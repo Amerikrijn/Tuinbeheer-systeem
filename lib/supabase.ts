@@ -1,9 +1,28 @@
 import { createClient } from "@supabase/supabase-js"
 
-const supabaseUrl = process.env.CUSTOM_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.CUSTOM_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Force use of custom environment variables - override any problematic ones
+const supabaseUrl = process.env.CUSTOM_SUPABASE_URL || "https://nrdgfiotsgnzvzsmylne.supabase.co"
+const supabaseAnonKey = process.env.CUSTOM_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY"
+
+// Validate that we have proper URLs, not SQL code
+if (!supabaseUrl.startsWith('https://') || supabaseUrl.includes('CREATE TABLE') || supabaseUrl.includes('--')) {
+  console.error('❌ Invalid Supabase URL detected, using fallback')
+  console.log('Problematic URL:', supabaseUrl)
+  throw new Error('Invalid Supabase URL - contains SQL code instead of URL')
+}
+
+if (!supabaseAnonKey.startsWith('eyJ')) {
+  console.error('❌ Invalid Supabase API key detected')
+  throw new Error('Invalid Supabase API key format')
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Log current configuration (for debugging)
+console.log('🔧 Supabase Configuration:')
+console.log('  URL:', supabaseUrl.substring(0, 50) + '...')
+console.log('  Key length:', supabaseAnonKey.length)
+console.log('  Key prefix:', supabaseAnonKey.substring(0, 20) + '...')
 
 // Types for our database tables
 export interface Database {
