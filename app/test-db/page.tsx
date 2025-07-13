@@ -30,10 +30,12 @@ export default function TestDatabasePage() {
 
       // Test 1: Environment Variables
       console.log("1. Testing environment variables...")
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      const supabaseUrl = process.env.CUSTOM_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
+      const supabaseKey = process.env.CUSTOM_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
       
-      console.log("Supabase URL:", supabaseUrl)
+      console.log("Supabase URL (custom):", process.env.CUSTOM_SUPABASE_URL)
+      console.log("Supabase URL (standard):", process.env.NEXT_PUBLIC_SUPABASE_URL)
+      console.log("Using URL:", supabaseUrl)
       console.log("API Key length:", supabaseKey?.length)
       console.log("API Key starts with:", supabaseKey?.substring(0, 20))
 
@@ -333,8 +335,10 @@ export default function TestDatabasePage() {
           <pre className="text-xs bg-gray-100 p-4 rounded overflow-auto">
 {`Environment:
 - Node Environment: ${process.env.NODE_ENV}
-- Supabase URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL}
-- API Key Length: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 0} characters
+- Custom Supabase URL: ${process.env.CUSTOM_SUPABASE_URL || 'Not set'}
+- Standard Supabase URL: ${process.env.NEXT_PUBLIC_SUPABASE_URL || 'Not set'}
+- Custom API Key Length: ${process.env.CUSTOM_SUPABASE_ANON_KEY?.length || 0} characters
+- Standard API Key Length: ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 0} characters
 - Timestamp: ${new Date().toISOString()}
 - User Agent: ${typeof window !== 'undefined' ? window.navigator.userAgent : 'Server'}
 `}
