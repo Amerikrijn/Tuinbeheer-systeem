@@ -1,24 +1,20 @@
 // Simple Supabase connection test
 // Run: node test-connection.js
+// Auto-generated: 2025-07-13T21:30:28.752Z
 
 const { createClient } = require('@supabase/supabase-js');
 
 async function testConnection() {
-  console.log('🔍 Testing Supabase Connection...\n');
+  console.log('🔍 Testing New Supabase Connection...\n');
 
-  // Test environment variables
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qrotadbmnkhhwhshijdy.supabase.co';
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyb3RhZGJtbmtoaHdoc2hpamR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzAzMTQsImV4cCI6MjA2ODAwNjMxNH0.S7lxECMVvsQAO6sqp_fInc8PXJXWGlg7_3XYn17z9ZQ';
+  // Use new credentials
+  const supabaseUrl = 'https://nrdgfiotsgnzvzsmylne.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY';
 
   console.log('1. Environment Check:');
   console.log(`   URL: ${supabaseUrl}`);
-  console.log(`   Key: ${supabaseKey ? supabaseKey.substring(0, 20) + '...' : 'NOT SET'}`);
+  console.log(`   Key: ${supabaseKey.substring(0, 20)}...`);
   console.log('');
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.log('❌ Missing environment variables!');
-    return;
-  }
 
   // Create client
   const supabase = createClient(supabaseUrl, supabaseKey);
@@ -30,28 +26,31 @@ async function testConnection() {
     
     if (authError) {
       console.log(`   ❌ Auth error: ${authError.message}`);
+      return false;
     } else {
       console.log('   ✅ Auth connection successful');
     }
 
-    // Test 2: Simple query
-    console.log('3. Testing simple query...');
+    // Test 2: Database access
+    console.log('3. Testing database access...');
     const { data, error } = await supabase
       .from('gardens')
       .select('count')
       .limit(1);
 
     if (error) {
-      console.log(`   ❌ Query error: ${error.message}`);
-      console.log(`   Error details: ${JSON.stringify(error, null, 2)}`);
+      console.log(`   ❌ Database error: ${error.message}`);
+      console.log('   ℹ️  This is expected if tables are not created yet');
+      return false;
     } else {
-      console.log('   ✅ Query successful');
+      console.log('   ✅ Database query successful');
       console.log(`   Result: ${JSON.stringify(data, null, 2)}`);
     }
 
     // Test 3: Check if tables exist
     console.log('4. Testing table access...');
     const tables = ['gardens', 'plant_beds', 'plants'];
+    let tablesExist = true;
     
     for (const table of tables) {
       try {
@@ -62,20 +61,39 @@ async function testConnection() {
           
         if (error) {
           console.log(`   ❌ ${table}: ${error.message}`);
+          tablesExist = false;
         } else {
           console.log(`   ✅ ${table}: accessible (${data?.length || 0} records)`);
         }
       } catch (err) {
         console.log(`   ❌ ${table}: ${err.message}`);
+        tablesExist = false;
       }
     }
 
+    if (!tablesExist) {
+      console.log('\n📝 Next steps:');
+      console.log('   1. Go to Supabase SQL Editor');
+      console.log('   2. Run the database_setup.sql script');
+      console.log('   3. Insert test data');
+      console.log('   4. Run this test again');
+    }
+
+    return tablesExist;
+
   } catch (error) {
     console.log(`❌ Connection failed: ${error.message}`);
-    console.log(`Full error: ${JSON.stringify(error, null, 2)}`);
+    return false;
   }
-
-  console.log('\n🏁 Test complete!');
 }
 
-testConnection().catch(console.error);
+testConnection()
+  .then(success => {
+    console.log('\n🏁 Test complete!');
+    if (success) {
+      console.log('🎉 All tests passed! Database is ready.');
+    } else {
+      console.log('⚠️  Some tests failed. Check the output above.');
+    }
+  })
+  .catch(console.error);
