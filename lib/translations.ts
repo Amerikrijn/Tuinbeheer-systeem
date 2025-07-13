@@ -1,4 +1,6 @@
 // Translation types
+export type Language = "en" | "nl"
+
 export interface TranslationKey {
   en: string
   nl: string
@@ -1281,7 +1283,7 @@ const translations: Translations = {
 }
 
 // Current language state
-let currentLanguage: "en" | "nl" = "en"
+let currentLanguage: Language = "en"
 
 // Helper function to get nested translation
 function getNestedTranslation(obj: any, path: string[]): TranslationKey | undefined {
@@ -1297,7 +1299,7 @@ function getNestedTranslation(obj: any, path: string[]): TranslationKey | undefi
 }
 
 // Translation function
-export function t(key: string, lang?: "en" | "nl"): string {
+export function t(key: string, lang?: Language): string {
   const language = lang || currentLanguage
   const keys = key.split(".")
   const translation = getNestedTranslation(translations, keys)
@@ -1311,30 +1313,32 @@ export function t(key: string, lang?: "en" | "nl"): string {
 }
 
 // Get translation function (backward compatibility)
-export function getTranslation(key: string, lang?: "en" | "nl"): string {
+export function getTranslation(key: string, lang?: Language): string {
   return t(key, lang)
 }
 
 // Set current language
-export function setLanguage(lang: "en" | "nl"): void {
+export function setLanguage(lang: Language): void {
   currentLanguage = lang
 }
 
 // Get current language
-export function getCurrentLanguage(): "en" | "nl" {
+export function getCurrentLanguage(): Language {
   return currentLanguage
 }
 
 // Load translations (async for compatibility)
-export async function loadTranslations(lang: "en" | "nl"): Promise<void> {
+export async function loadTranslations(lang?: Language): Promise<void> {
   return new Promise((resolve) => {
-    setLanguage(lang)
+    if (lang) {
+      setLanguage(lang)
+    }
     resolve()
   })
 }
 
 // Get all translations for a specific language
-export function getAllTranslations(lang: "en" | "nl"): Record<string, string> {
+export function getAllTranslations(lang: Language): Record<string, string> {
   const result: Record<string, string> = {}
 
   function flatten(obj: any, prefix = ""): void {
@@ -1362,7 +1366,7 @@ export function hasTranslation(key: string): boolean {
 }
 
 // Get available languages
-export function getAvailableLanguages(): Array<{ code: "en" | "nl"; name: string; nativeName: string }> {
+export function getAvailableLanguages(): Array<{ code: Language; name: string; nativeName: string }> {
   return [
     { code: "en", name: "English", nativeName: "English" },
     { code: "nl", name: "Dutch", nativeName: "Nederlands" },
