@@ -15,6 +15,7 @@
     "start:prod": "APP_ENV=prod next start",
     "setup:test": "node scripts/run-all-steps.js",
     "setup:test:full": "node scripts/setup-test-environment.js",
+    "setup:test:sql": "node scripts/setup-test-from-sql.js",
     "test:db": "node scripts/test-environment-connection.js",
     "test:db:prod": "node test-connection-detailed.js",
     "test:step1": "node scripts/01-check-environment.js",
