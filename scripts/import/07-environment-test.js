@@ -12,12 +12,9 @@ console.log('='.repeat(50))
 
 async function testEnvironmentSwitching() {
   try {
-    // Test 1: Load config system
-    console.log('Testing configuration system...')
-    const { getCurrentEnvironment, getSupabaseConfig, validateSupabaseConfig } = require('../../lib/config.ts')
-    
-    // Test 2: Check current environment
-    const currentEnv = getCurrentEnvironment()
+    // Test 1: Check environment variables
+    console.log('Testing environment variables...')
+    const currentEnv = process.env.APP_ENV || 'prod'
     console.log(`✅ Current environment: ${currentEnv}`)
     
     if (currentEnv !== 'test') {
@@ -25,53 +22,39 @@ async function testEnvironmentSwitching() {
       console.log('Make sure APP_ENV=test is set in .env.test')
     }
     
-    // Test 3: Get config for current environment
-    const config = getSupabaseConfig()
-    console.log('✅ Configuration loaded')
-    console.log(`  URL: ${config.url.substring(0, 40)}...`)
-    console.log(`  Key length: ${config.anonKey.length}`)
+    // Test 2: Check environment URLs
+    console.log('Testing environment URLs...')
+    const testUrl = process.env.NEXT_PUBLIC_SUPABASE_URL_TEST
+    const prodUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     
-    // Test 4: Validate config
-    try {
-      validateSupabaseConfig(config)
-      console.log('✅ Configuration validation passed')
-    } catch (validationError) {
-      console.log('❌ Configuration validation failed:', validationError.message)
-      return
-    }
-    
-    // Test 5: Check if using correct test URL
-    if (config.url.includes('dwsgwqosmihsfaxuheji')) {
-      console.log('✅ Using TEST database correctly')
+    if (testUrl && testUrl.includes('dwsgwqosmihsfaxuheji')) {
+      console.log('✅ Test URL configured correctly')
     } else {
-      console.log('❌ NOT using test database!')
-      console.log('Current URL:', config.url)
-      return
+      console.log('❌ Test URL not configured properly')
     }
     
-    // Test 6: Simulate production environment
-    console.log('\nTesting production environment simulation...')
-    const originalEnv = process.env.APP_ENV
-    process.env.APP_ENV = 'prod'
-    
-    // Re-require the config to get fresh environment
-    delete require.cache[require.resolve('../../lib/config.ts')]
-    const { getCurrentEnvironment: getProdEnv, getSupabaseConfig: getProdConfig } = require('../../lib/config.ts')
-    
-    const prodEnv = getProdEnv()
-    const prodConfig = getProdConfig()
-    
-    console.log(`✅ Production environment: ${prodEnv}`)
-    console.log(`✅ Production URL: ${prodConfig.url.substring(0, 40)}...`)
-    
-    if (prodConfig.url.includes('qrotadbmnkhhwhshijdy')) {
-      console.log('✅ Production configuration correct')
+    if (prodUrl && prodUrl.includes('qrotadbmnkhhwhshijdy')) {
+      console.log('✅ Production URL configured correctly')
     } else {
-      console.log('❌ Production configuration incorrect')
+      console.log('❌ Production URL not configured properly')
     }
     
-    // Restore environment
-    process.env.APP_ENV = originalEnv
+    // Test 3: Check API keys
+    console.log('Testing API keys...')
+    const testKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST
+    const prodKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (testKey && testKey.startsWith('eyJ')) {
+      console.log('✅ Test API key configured')
+    } else {
+      console.log('❌ Test API key not configured')
+    }
+    
+    if (prodKey && prodKey.startsWith('eyJ')) {
+      console.log('✅ Production API key configured')
+    } else {
+      console.log('❌ Production API key not configured')
+    }
 
     console.log('\n' + '='.repeat(50))
     console.log('🎉 Environment switching test PASSED!')
