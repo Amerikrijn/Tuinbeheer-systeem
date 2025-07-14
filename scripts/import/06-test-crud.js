@@ -7,6 +7,7 @@
 
 require('dotenv').config({ path: '.env.test' })
 const { createClient } = require('@supabase/supabase-js')
+const { randomUUID } = require('crypto')
 
 console.log('✏️  STAP 6: CRUD Operations Test')
 console.log('='.repeat(50))
@@ -18,7 +19,7 @@ async function testCRUD() {
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE'
     )
 
-    const testId = 'test-crud-' + Date.now()
+    const testId = randomUUID()
     
     // CREATE Test
     console.log('Testing CREATE operation...')
