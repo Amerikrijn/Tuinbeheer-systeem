@@ -1,4 +1,4 @@
-// Environment configuration for different deployment stages
+// Environment configuration for TEST and PROD deployment
 
 export type Environment = 'test' | 'prod'
 
@@ -53,7 +53,7 @@ export function logCurrentConfig(): void {
   const config = getSupabaseConfig()
   
   console.log(`🔧 Supabase Configuration [${env.toUpperCase()}]:`)
-  console.log('  URL:', config.url.substring(0, 50) + '...')
+  console.log('  URL:', config.url.substring(0, 40) + '...')
   console.log('  Key length:', config.anonKey.length)
   console.log('  Key prefix:', config.anonKey.substring(0, 20) + '...')
 }
