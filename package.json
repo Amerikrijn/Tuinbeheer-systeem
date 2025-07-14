@@ -15,14 +15,15 @@
     "start:prod": "APP_ENV=prod next start",
     "import:step1": "node scripts/import/01-check-environment.js",
     "import:step2": "node scripts/import/02-test-connection.js",
-    "import:step3": "node scripts/import/03-show-sql.js",
-    "import:step4": "node scripts/import/04-run-sql.js",
+    "import:step3": "node scripts/import/03-import-schema.js",
+    "import:step4": "node scripts/import/04-verify-import.js",
     "import:step5": "node scripts/import/05-verify-tables.js",
     "import:step6": "node scripts/import/06-test-crud.js",
     "import:step7": "node scripts/import/07-environment-test.js",
     "import:step8": "node scripts/import/08-final-verification.js",
     "import:step9": "node scripts/import/09-summary.js",
-    "import:all": "node scripts/import/run-all-steps.js"
+    "import:all": "node scripts/import/run-all-steps.js",
+    "import:prod": "node scripts/import/import-prod-schema.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -65,6 +66,7 @@
     "lucide-react": "^0.454.0",
     "next": "14.2.16",
     "next-themes": "latest",
+    "node-fetch": "^3.3.2",
     "react": "^18",
     "react-day-picker": "latest",
     "react-dom": "^18",
