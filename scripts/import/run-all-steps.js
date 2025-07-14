@@ -26,20 +26,10 @@ async function runStep(stepNumber, description, command) {
   console.log('=' .repeat(60))
   
   try {
-    if (stepNumber === 4) {
-      // Step 4 is interactive, just run it
+    if (stepNumber === 3 || stepNumber === 4) {
+      // Step 3 and 4 may be interactive, just run them
       execSync(command, { stdio: 'inherit' })
       return true
-    } else if (stepNumber === 3) {
-      // Step 3 shows SQL, pause for user
-      execSync(command, { stdio: 'inherit' })
-      const proceed = await askQuestion('\nHave you executed the SQL in Supabase? (y/n): ')
-      if (proceed === 'y' || proceed === 'yes') {
-        return true
-      } else {
-        console.log('⚠️  Please execute the SQL first, then continue.')
-        return false
-      }
     } else {
       // Regular steps
       execSync(command, { stdio: 'inherit' })
@@ -72,8 +62,8 @@ async function runAllSteps() {
   const steps = [
     { num: 1, desc: 'Environment Check', cmd: 'node scripts/import/01-check-environment.js' },
     { num: 2, desc: 'Connection Test', cmd: 'node scripts/import/02-test-connection.js' },
-    { num: 3, desc: 'Show SQL', cmd: 'node scripts/import/03-show-sql.js' },
-    { num: 4, desc: 'Confirm SQL Execution', cmd: 'node scripts/import/04-run-sql.js' },
+    { num: 3, desc: 'Import Schema', cmd: 'node scripts/import/03-import-schema.js' },
+    { num: 4, desc: 'Verify Import', cmd: 'node scripts/import/04-verify-import.js' },
     { num: 5, desc: 'Verify Tables', cmd: 'node scripts/import/05-verify-tables.js' },
     { num: 6, desc: 'Test CRUD', cmd: 'node scripts/import/06-test-crud.js' },
     { num: 7, desc: 'Environment Test', cmd: 'node scripts/import/07-environment-test.js' },
@@ -114,6 +104,7 @@ async function runAllSteps() {
   console.log('📋 Individual step commands:')
   console.log('   npm run import:step1 through npm run import:step9')
   console.log('   npm run import:all (this script)')
+  console.log('   npm run import:prod (for production import)')
   
   rl.close()
 }
