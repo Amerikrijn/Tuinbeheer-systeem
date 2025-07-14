@@ -1,6 +1,6 @@
 # Plantvak Beheer
 
-Een moderne web-applicatie voor het beheren van plantvakken en planten, gebouwd met Next.js en Supabase.
+Een moderne web-applicatie voor het beheren van plantvakken en planten, gebouwd met Next.js en Supabase. 
 
 ## Features
 
