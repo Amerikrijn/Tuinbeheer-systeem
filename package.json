@@ -10,10 +10,20 @@
     "dev:test": "APP_ENV=test next dev",
     "build:test": "APP_ENV=test next build",
     "start:test": "APP_ENV=test next start",
-    "setup:test": "node scripts/setup-test-environment.js",
+    "setup:test": "node scripts/run-all-steps.js",
+    "setup:test:full": "node scripts/setup-test-environment.js",
     "test:db": "node scripts/test-environment-connection.js",
     "test:db:dev": "node test-connection.js",
-    "test:db:prod": "node test-connection-detailed.js"
+    "test:db:prod": "node test-connection-detailed.js",
+    "test:step1": "node scripts/01-check-environment.js",
+    "test:step2": "node scripts/02-test-connection.js",
+    "test:step3": "node scripts/03-show-sql.js",
+    "test:step4": "node scripts/04-test-database.js",
+    "test:step5": "node scripts/05-test-write.js",
+    "test:step6": "node scripts/06-test-config.js",
+    "test:step7": "node scripts/07-start-test-server.js",
+    "test:step8": "node scripts/08-test-app.js",
+    "test:step9": "node scripts/09-final-check.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
