@@ -2,7 +2,7 @@
 
 /**
  * STAP 3: Import Database Schema
- * Importeer database schema in Supabase via DDL execution
+ * Importeer database schema in Supabase
  */
 
 require('dotenv').config({ path: '.env.test' })
@@ -31,63 +31,9 @@ async function importSchema() {
     console.log('🔗 Connecting to TEST database...')
     console.log('URL: https://dwsgwqosmihsfaxuheji.supabase.co')
     
-    // Step 1: Check if we can execute raw SQL
-    console.log('\n1️⃣ Trying direct SQL execution...')
-    
-    try {
-      // Try to execute SQL via the SQL endpoint
-      const response = await fetch('https://dwsgwqosmihsfaxuheji.supabase.co/rest/v1/rpc/exec_sql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE'
-        },
-        body: JSON.stringify({ sql: sqlContent })
-      })
-
-      if (response.ok) {
-        console.log('✅ Direct SQL execution successful!')
-        console.log('🎉 Schema imported via API!')
-        console.log('➡️  Next: npm run import:step4')
-        return
-      }
-    } catch (err) {
-      console.log('⚠️  Direct SQL execution not available')
-    }
-
-    // Step 2: Manual table creation
-    console.log('\n2️⃣ Creating tables manually...')
-    
-    const createResults = await createTablesManually(supabase)
-    
-    if (createResults.success) {
-      console.log('✅ Tables created successfully!')
-      
-      // Step 3: Insert sample data
-      console.log('\n3️⃣ Inserting sample data...')
-      await insertSampleData(supabase)
-      
-      console.log('\n' + '='.repeat(50))
-      console.log('🎉 Schema import COMPLETED!')
-      console.log('Database tables and sample data have been imported.')
-      console.log('➡️  Next: npm run import:step4')
-      
-    } else {
-      console.log('\n❌ Automatic import failed.')
-      console.log('Using manual SQL approach...')
-      await showManualInstructions(sqlContent)
-    }
-
-  } catch (error) {
-    console.log('❌ Import error:', error.message)
-    await showManualInstructions(fs.readFileSync('database_setup.sql', 'utf8'))
-  }
-}
-
-async function createTablesManually(supabase) {
-  try {
     // Check if tables already exist
+    console.log('\n1️⃣ Checking existing tables...')
+    
     const { data: existingTables, error: checkError } = await supabase
       .from('gardens')
       .select('id')
@@ -95,47 +41,18 @@ async function createTablesManually(supabase) {
     
     if (!checkError) {
       console.log('✅ Tables already exist!')
-      return { success: true }
-    }
-
-    console.log('Creating tables...')
-    
-    // Since we can't create tables via client, we'll simulate success
-    // and show instructions for manual creation
-    return { success: false }
-    
-  } catch (error) {
-    console.log('❌ Table creation failed:', error.message)
-    return { success: false }
-  }
-}
-
-async function insertSampleData(supabase) {
-  try {
-    console.log('Inserting sample garden data...')
-    
-    const { data: garden, error: gardenError } = await supabase
-      .from('gardens')
-      .insert([
-        {
-          id: 'test-garden-1',
-          name: 'Test Garden 1',
-          location: 'Test Location',
-          description: 'Test garden created by import script',
-          created_at: new Date().toISOString()
-        }
-      ])
-      .select()
-    
-    if (gardenError) {
-      console.log('⚠️  Sample data insertion failed:', gardenError.message)
+      console.log('🎉 Schema already imported!')
+      console.log('➡️  Next: npm run import:step4')
       return
     }
 
-    console.log('✅ Sample data inserted successfully!')
-    
+    // Show manual import instructions
+    console.log('\n2️⃣ Manual import required...')
+    await showManualInstructions(sqlContent)
+
   } catch (error) {
-    console.log('⚠️  Sample data insertion error:', error.message)
+    console.log('❌ Import error:', error.message)
+    await showManualInstructions(fs.readFileSync('database_setup.sql', 'utf8'))
   }
 }
 

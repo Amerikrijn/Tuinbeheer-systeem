@@ -54,32 +54,8 @@ async function importProdSchema() {
     
     rl.close()
     
-    // Step 1: Check if we can execute raw SQL
-    console.log('\n1️⃣ Trying direct SQL execution...')
-    
-    try {
-      // Try to execute SQL via the SQL endpoint
-      const response = await fetch('https://qrotadbmnkhhwhshijdy.supabase.co/rest/v1/rpc/exec_sql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY`,
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY'
-        },
-        body: JSON.stringify({ sql: sqlContent })
-      })
-
-      if (response.ok) {
-        console.log('✅ Direct SQL execution successful!')
-        console.log('🎉 Schema imported to PRODUCTION via API!')
-        return
-      }
-    } catch (err) {
-      console.log('⚠️  Direct SQL execution not available')
-    }
-
-    // Step 2: Manual table creation check
-    console.log('\n2️⃣ Checking existing tables...')
+    // Check if tables already exist
+    console.log('\n1️⃣ Checking existing tables...')
     
     const createResults = await checkProductionTables(supabase)
     
@@ -88,7 +64,7 @@ async function importProdSchema() {
       console.log('🎉 Production database is ready!')
       
     } else {
-      console.log('\n❌ Manual import required for production.')
+      console.log('\n⚠️  Manual import required for production.')
       console.log('Using manual SQL approach...')
       await showProductionInstructions(sqlContent)
     }
