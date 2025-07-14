@@ -1,8 +1,11 @@
+
+
+
 import { createClient } from "@supabase/supabase-js"
 
 // Force use of custom environment variables - override any problematic ones
-const supabaseUrl = process.env.CUSTOM_SUPABASE_URL || "https://nrdgfiotsgnzvzsmylne.supabase.co"
-const supabaseAnonKey = process.env.CUSTOM_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY"
+const supabaseUrl = process.env.CUSTOM_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "https://qrotadbmnkhhwhshijdy.supabase.co"
+const supabaseAnonKey = process.env.CUSTOM_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY"
 
 // Validate that we have proper URLs, not SQL code
 if (!supabaseUrl.startsWith('https://') || supabaseUrl.includes('CREATE TABLE') || supabaseUrl.includes('--')) {
