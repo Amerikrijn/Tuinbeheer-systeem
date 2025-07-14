@@ -89,11 +89,19 @@ export default function HomePage() {
               <p className="text-gray-600 mb-4">
                 Interactieve visuele weergave van je tuin met drag & drop functionaliteit voor plantvakken.
               </p>
-              <Link href="/visual-garden-demo">
-                <Button variant="outline" size="sm" className="bg-transparent">
-                  Designer Proberen
-                </Button>
-              </Link>
+              <div className="flex gap-2">
+                <Link href="/visual-garden-demo">
+                  <Button variant="outline" size="sm" className="bg-transparent">
+                    Designer Proberen
+                  </Button>
+                </Link>
+                <Link href="/flower-selector-demo">
+                  <Button variant="outline" size="sm" className="bg-transparent">
+                    <Leaf className="h-4 w-4 mr-1" />
+                    Bloemennamen
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -111,18 +119,18 @@ export default function HomePage() {
                   Nieuwe Tuin
                 </Button>
               </Link>
-              <Link href="/visual-garden-demo">
-                <Button variant="outline" className="w-full bg-transparent">
-                  <Palette className="h-4 w-4 mr-2" />
-                  Visual Designer
-                </Button>
-              </Link>
-              <Link href="/admin">
-                <Button variant="outline" className="w-full bg-transparent">
-                  <Settings className="h-4 w-4 mr-2" />
-                  Admin Panel
-                </Button>
-              </Link>
+                          <Link href="/visual-garden-demo">
+              <Button variant="outline" className="w-full bg-transparent">
+                <Palette className="h-4 w-4 mr-2" />
+                Visual Designer
+              </Button>
+            </Link>
+            <Link href="/flower-selector-demo">
+              <Button variant="outline" className="w-full bg-transparent">
+                <Leaf className="h-4 w-4 mr-2" />
+                Bloemennamen Database
+              </Button>
+            </Link>
             </div>
           </CardContent>
         </Card>
