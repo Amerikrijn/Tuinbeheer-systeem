@@ -6,7 +6,14 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "dev:test": "APP_ENV=test next dev",
+    "build:test": "APP_ENV=test next build",
+    "start:test": "APP_ENV=test next start",
+    "setup:test": "node scripts/setup-test-environment.js",
+    "test:db": "node scripts/test-environment-connection.js",
+    "test:db:dev": "node test-connection.js",
+    "test:db:prod": "node test-connection-detailed.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -43,6 +50,7 @@
     "clsx": "^2.1.1",
     "cmdk": "latest",
     "date-fns": "4.1.0",
+    "dotenv": "^17.2.0",
     "embla-carousel-react": "latest",
     "input-otp": "latest",
     "lucide-react": "^0.454.0",
