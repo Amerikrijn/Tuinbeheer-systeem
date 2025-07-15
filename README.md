@@ -1,8 +1,16 @@
-# Plantvak Beheer
+# 🌿 Tuinbeheer Systeem
 
-Een moderne web-applicatie voor het beheren van plantvakken en planten, gebouwd met Next.js en Supabase. 
+Een uitgebreid systeem voor het beheren van tuinen, plantvakken en planten met **Visual Garden Designer** functionaliteit.
 
-## Features
+## 🎯 **STATUS: VISUAL GARDEN DESIGNER COMPLETE** ✅
+
+### **Laatste Update**: 15 Januari 2025  
+### **Environment**: TEST Branch  
+### **Demo**: http://localhost:3000/visual-garden-demo
+
+---
+
+## 🌱 **Core Features**
 
 - 🌱 **Plantvak Beheer**: Maak, bewerk en verwijder plantvakken
 - 🌿 **Plant Tracking**: Houd planten bij per plantvak
@@ -26,48 +34,31 @@ Een moderne web-applicatie voor het beheren van plantvakken en planten, gebouwd 
 - **Styling**: Tailwind CSS
 - **UI Components**: shadcn/ui
 - **Icons**: Lucide React
+- **Canvas**: HTML5 Canvas API
+- **Animations**: Framer Motion
 
-## Setup
+## 🚀 **NEW: Visual Garden Designer**
 
-### 1. Clone het project
+### **Live Demo**
+- **Demo URL**: http://localhost:3000/visual-garden-demo
+- **Features**: Canvas-based garden layout, plant positioning, visual design tools
 
-\`\`\`bash
-git clone <repository-url>
-cd plantvak-beheer
-\`\`\`
+### **Key Capabilities**
+- 🎨 **Visual Design**: Drag-and-drop interface for garden planning
+- 🌸 **Plant Database**: 150+ Nederlandse bloemen met details
+- 📐 **Precision Layout**: Grid-based positioning system
+- 💾 **Auto-Save**: Real-time persistence to Supabase
+- 📱 **Touch Support**: Mobile-optimized controls
+- 🎯 **Plant Selection**: Advanced filtering and search
 
-### 2. Installeer dependencies
-
-\`\`\`bash
-npm install
-\`\`\`
-
-### 3. Supabase Setup
-
-1. Maak een nieuw project aan op [supabase.com](https://supabase.com)
-2. Ga naar Settings > API om je project URL en anon key te vinden
-3. Kopieer `.env.example` naar `.env.local` en vul je Supabase credentials in:
-
-\`\`\`env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-\`\`\`
-
-### 4. Database Schema
-
-Voer de SQL migratie uit in je Supabase SQL editor:
-
-\`\`\`sql
--- Kopieer de inhoud van supabase/migrations/001_initial_schema.sql
-\`\`\`
-
-### 5. Start de development server
-
-\`\`\`bash
+### **Interactive Demo**
+```bash
+# Start development server
 npm run dev
-\`\`\`
 
-Open [http://localhost:3000](http://localhost:3000) in je browser.
+# Open demo in browser
+http://localhost:3000/visual-garden-demo
+```
 
 ## Quick Start Guide
 
@@ -90,84 +81,213 @@ Open [http://localhost:3000](http://localhost:3000) in je browser.
 
 - **Plantvak Overzicht**: `/plant-beds` - Overzicht van alle plantvakken
 - **Garden Layout**: `/plant-beds/layout` - Interactieve tuin planner
+- **Visual Garden Demo**: `/visual-garden-demo` - Canvas-based designer
 - **Plantvak Details**: `/plant-beds/[id]` - Gedetailleerde plantvak informatie
 
-## Project Structuur
+## 📁 **Project Structure**
 
-\`\`\`
+```
 ├── app/                    # Next.js App Router
 │   ├── plant-beds/        # Plantvak paginas
 │   │   ├── layout/        # Interactieve tuin layout
 │   │   │   └── page.tsx   # Fullscreen garden planner
 │   │   ├── page.tsx       # Plantvak overzicht
 │   │   └── [id]/         # Individuele plantvak details
+│   ├── visual-garden-demo/  # Visual Garden Designer
+│   ├── api/               # API routes
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Homepage
 ├── components/            # React componenten
-│   └── ui/               # shadcn/ui componenten
+│   ├── ui/               # shadcn/ui componenten
+│   └── visual-garden-designer/  # Canvas components
 ├── lib/                  # Utilities en database functies
 │   ├── database.ts       # Database queries
 │   ├── mock-data.ts      # Mock data voor development
+│   ├── dutch-flowers.ts  # Nederlandse bloemen database
 │   ├── supabase.ts       # Supabase client en types
 │   └── types.ts          # TypeScript types
-├── supabase/
-│   └── migrations/       # Database migraties
-└── public/              # Statische bestanden
-\`\`\`
+├── docs/                 # Documentatie
+│   ├── architecture/     # Architectuur documentatie
+│   ├── functional/       # Functionele specificaties
+│   ├── setup/           # Setup instructies
+│   └── technical/       # Technische documentatie
+├── database/            # Database migraties
+├── scripts/            # Utility scripts
+└── public/            # Statische bestanden
+```
 
-## Database Schema
+## 🔧 **Setup Instructions**
 
-### Tables
+### **Prerequisites**
+- Node.js 18+
+- npm/pnpm
+- Supabase account
 
-- **gardens**: Tuin informatie
-- **plant_beds**: Plantvakken met eigenschappen
-- **plants**: Individuele planten per plantvak
+### **1. Clone & Install**
+```bash
+git clone [repository-url]
+cd tuinbeheer-systeem
+npm install
+```
 
-### Relationships
+### **2. Environment Setup**
+```bash
+# Copy environment template
+cp .env.example .env.local
 
-- Een tuin heeft meerdere plantvakken
-- Een plantvak heeft meerdere planten
-
-## Development
-
-### Nieuwe features toevoegen
-
-1. Maak database wijzigingen in een nieuwe migratie
-2. Update TypeScript types in `lib/supabase.ts`
-3. Voeg database functies toe in `lib/database.ts`
-4. Bouw UI componenten en paginas
-
-### Code Style
-
-- TypeScript voor type safety
-- ESLint voor code kwaliteit
-- Prettier voor code formatting
-- Tailwind CSS voor styling
-
-## Deployment
-
-### Vercel (Aanbevolen)
-
-1. Push je code naar GitHub
-2. Verbind je repository met Vercel
-3. Voeg environment variables toe in Vercel dashboard
-4. Deploy!
-
-### Environment Variables
-
-\`\`\`env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+# Configure Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-\`\`\`
+```
 
-## Contributing
+### **3. Database Setup**
+```bash
+# Run migrations
+npm run migrate
 
-1. Fork het project
-2. Maak een feature branch (`git checkout -b feature/nieuwe-feature`)
-3. Commit je wijzigingen (`git commit -am 'Voeg nieuwe feature toe'`)
-4. Push naar de branch (`git push origin feature/nieuwe-feature`)
-5. Maak een Pull Request
+# Seed with test data
+npm run seed
+```
 
-## License
+### **4. Development Server**
+```bash
+npm run dev
+# Open http://localhost:3000
+```
 
-Dit project is gelicenseerd onder de MIT License.
+## 📊 **Database Schema**
+
+### **Core Tables**
+- **gardens**: Tuin configuratie en metadata
+- **plant_beds**: Plantvak definities en eigenschappen
+- **plants**: Individuele planten per plantvak
+- **plant_bed_positions**: Canvas posities voor visual designer
+
+### **Visual Designer Tables**
+- **canvas_configs**: Canvas instellingen per tuin
+- **plant_positions**: Exacte posities op canvas
+- **garden_layouts**: Opgeslagen layout configuraties
+
+## 🧪 **Testing**
+
+### **Run Tests**
+```bash
+# Build verification
+npm run build
+
+# Route testing
+npm run test:routes
+
+# API endpoint testing
+npm run test:api
+
+# Full test suite
+npm run test:all
+```
+
+### **Manual Testing**
+```bash
+# Test garden layout functionality
+node test-garden-layout.js
+
+# Test all routes
+node scripts/test-all-routes.js
+
+# Test API endpoints
+node scripts/test-api-endpoints.js
+```
+
+## 🚀 **Deployment**
+
+### **Production Build**
+```bash
+npm run build
+npm run export  # For static export
+```
+
+### **Vercel Deployment**
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+### **Environment Variables**
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_production_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_key
+```
+
+## 📚 **Documentation**
+
+### **Architecture**
+- [`docs/architecture/`](docs/architecture/) - System architecture
+- [`docs/technical/`](docs/technical/) - Technical specifications
+
+### **User Guides**
+- [`docs/functional/`](docs/functional/) - Feature documentation
+- [`docs/setup/`](docs/setup/) - Setup and configuration
+
+### **API Documentation**
+- [`docs/api/`](docs/api/) - API endpoints and schemas
+
+## 🔗 **Key Routes**
+
+### **Main Application**
+- `/` - Homepage with project overview
+- `/plant-beds` - Plant bed management
+- `/plant-beds/layout` - Interactive garden layout
+- `/visual-garden-demo` - Visual garden designer
+
+### **API Endpoints**
+- `/api/gardens` - Garden CRUD operations
+- `/api/plant-beds` - Plant bed management
+- `/api/plants` - Plant database operations
+
+## 📋 **Features Checklist**
+
+### **Core Functionality** ✅
+- [x] Plant bed management
+- [x] Plant catalog and tracking
+- [x] Interactive garden layout
+- [x] Responsive design
+- [x] Data persistence
+
+### **Visual Garden Designer** ✅
+- [x] Canvas-based layout
+- [x] Drag-and-drop interface
+- [x] Plant positioning system
+- [x] Real-time saving
+- [x] Touch support
+
+### **Advanced Features** ✅
+- [x] Fullscreen mode
+- [x] Plant detail management
+- [x] Layout saving/loading
+- [x] Dutch flower database
+- [x] Mobile optimization
+
+## 🤝 **Contributing**
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/nieuwe-feature`)
+3. Commit changes (`git commit -am 'Add nieuwe feature'`)
+4. Push to branch (`git push origin feature/nieuwe-feature`)
+5. Create Pull Request
+
+## 📜 **License**
+
+This project is licensed under the MIT License.
+
+---
+
+## 🎯 **Next Steps**
+
+1. **Test Visual Garden Designer**: Visit `/visual-garden-demo`
+2. **Explore Plant Management**: Check `/plant-beds`
+3. **Review Documentation**: Browse `/docs`
+4. **Deploy to Production**: Follow deployment guide
+
+**Ready for production deployment!** 🚀
