@@ -273,6 +273,10 @@ export async function createPlant(plant: {
   variety?: string
   color?: string
   height?: number
+  stem_length?: number
+  photo_url?: string
+  category?: string
+  bloom_period?: string
   planting_date?: string
   expected_harvest_date?: string
   status?: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
