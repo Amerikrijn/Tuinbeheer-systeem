@@ -9,6 +9,9 @@ const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
+// Load environment variables
+require('dotenv').config({ path: '.env.test' });
+
 // Configuratie
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qrotadbmnkhhwhshijdy.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -130,10 +133,7 @@ async function checkDatabaseSchema() {
   try {
     // Check if plants table exists
     const { data: tables, error } = await supabase
-      .from('information_schema.tables')
-      .select('table_name')
-      .eq('table_schema', 'public')
-      .eq('table_name', 'plants');
+      .rpc('check_table_exists', { table_name: 'plants' });
 
     if (error) {
       console.error('❌ Error checking tables:', error);
