@@ -63,11 +63,12 @@ export interface PlantBed {
   id: string;
   garden_id: string;
   name: string;
-  description?: string;
-  location?: string;
-  size_m2?: number;
+  size?: string; // Calculated from length × width
+  length?: number; // Length in meters
+  width?: number; // Width in meters
   created_at: string;
   updated_at: string;
+  is_active?: boolean;
   // NEW: Visual Garden Designer fields
   position_x?: number;
   position_y?: number;
@@ -83,21 +84,7 @@ export interface Plant {
   id: string;
   plant_bed_id: string;
   name: string;
-  scientific_name?: string;
-  variety?: string;
-  color?: string;
-  height?: number;
-  stem_length?: number; // Steellengte in cm
-  photo_url?: string; // URL naar foto van de plant
-  category?: string; // Categorie: eenjarig, vaste_planten, etc.
-  bloom_period?: string; // Bloeiperiode
-  planting_date?: string;
-  expected_harvest_date?: string;
-  status?: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested";
-  notes?: string;
-  care_instructions?: string;
-  watering_frequency?: number;
-  fertilizer_schedule?: string;
+  height?: number; // Height in cm
   created_at: string;
   updated_at: string;
 }
