@@ -95,6 +95,7 @@ export default function NewPlantBedPage() {
     try {
       await createPlantBed({
         id: newPlantBed.id.toUpperCase(),
+        garden_id: "default-garden", // TODO: This should be selected from available gardens
         name: newPlantBed.name,
         location: newPlantBed.location,
         size: newPlantBed.size,
