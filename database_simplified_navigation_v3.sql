@@ -88,15 +88,15 @@ ALTER COLUMN width SET NOT NULL;
 
 -- Add check constraints for reasonable dimensions
 ALTER TABLE plant_beds 
-ADD CONSTRAINT IF NOT EXISTS check_length_positive CHECK (length > 0),
-ADD CONSTRAINT IF NOT EXISTS check_width_positive CHECK (width > 0),
-ADD CONSTRAINT IF NOT EXISTS check_length_reasonable CHECK (length <= 50),
-ADD CONSTRAINT IF NOT EXISTS check_width_reasonable CHECK (width <= 50);
+ADD CONSTRAINT check_length_positive CHECK (length > 0),
+ADD CONSTRAINT check_width_positive CHECK (width > 0),
+ADD CONSTRAINT check_length_reasonable CHECK (length <= 50),
+ADD CONSTRAINT check_width_reasonable CHECK (width <= 50);
 
 -- Add check constraint for height
 ALTER TABLE plants 
-ADD CONSTRAINT IF NOT EXISTS check_height_positive CHECK (height > 0),
-ADD CONSTRAINT IF NOT EXISTS check_height_reasonable CHECK (height <= 500); -- max 5 meters
+ADD CONSTRAINT check_height_positive CHECK (height > 0),
+ADD CONSTRAINT check_height_reasonable CHECK (height <= 500); -- max 5 meters
 
 -- Update indexes
 DROP INDEX IF EXISTS idx_plants_status;
