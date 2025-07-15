@@ -23,9 +23,6 @@ interface EditGarden {
   width: string
   location: string
   gardenType: string
-  maintenanceLevel: string
-  soilCondition: string
-  wateringSystem: string
   notes: string
 }
 
@@ -44,9 +41,6 @@ export default function GardenPage() {
     width: "",
     location: "",
     gardenType: "",
-    maintenanceLevel: "",
-    soilCondition: "",
-    wateringSystem: "",
     notes: "",
   })
 
@@ -64,9 +58,6 @@ export default function GardenPage() {
           width: gardenData.width,
           location: gardenData.location,
           gardenType: gardenData.gardenType,
-          maintenanceLevel: gardenData.maintenanceLevel,
-          soilCondition: gardenData.soilCondition,
-          wateringSystem: gardenData.wateringSystem,
           notes: gardenData.notes || "",
         })
       } catch (error) {
@@ -123,20 +114,7 @@ export default function GardenPage() {
     "Educational garden",
   ]
 
-  const maintenanceLevelOptions = [
-    "Low - minimal maintenance",
-    "Medium - regular maintenance",
-    "High - intensive maintenance",
-  ]
 
-  const wateringSystemOptions = [
-    "Manual",
-    "Drip irrigation",
-    "Sprinkler system",
-    "Drip irrigation + manual",
-    "Rainwater collection",
-    "Automatic system",
-  ]
 
   // Calculate statistics
   const plantBeds = getMockPlantBeds()
@@ -280,53 +258,7 @@ export default function GardenPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="maintenanceLevel">Maintenance Level</Label>
-                    <Select
-                      value={editGarden.maintenanceLevel}
-                      onValueChange={(value) => setEditGarden((prev) => ({ ...prev, maintenanceLevel: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select maintenance level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {maintenanceLevelOptions.map((level) => (
-                          <SelectItem key={level} value={level}>
-                            {level}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="wateringSystem">Watering System</Label>
-                    <Select
-                      value={editGarden.wateringSystem}
-                      onValueChange={(value) => setEditGarden((prev) => ({ ...prev, wateringSystem: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select watering system" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {wateringSystemOptions.map((system) => (
-                          <SelectItem key={system} value={system}>
-                            {system}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="soilCondition">Soil Condition</Label>
-                    <Input
-                      id="soilCondition"
-                      value={editGarden.soilCondition}
-                      onChange={(e) => setEditGarden((prev) => ({ ...prev, soilCondition: e.target.value }))}
-                      placeholder="Describe the general soil condition"
-                    />
-                  </div>
                 </div>
 
                 <div className="space-y-2">
