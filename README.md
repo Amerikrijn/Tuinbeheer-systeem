@@ -1,293 +1,292 @@
-# 🌿 Tuinbeheer Systeem
+# 🌿 Tuinbeheer Systeem (Garden Management System)
 
-Een uitgebreid systeem voor het beheren van tuinen, plantvakken en planten met **Visual Garden Designer** functionaliteit.
+A comprehensive, modern garden management system with interactive visual garden designer, built with Next.js, TypeScript, and Supabase.
 
-## 🎯 **STATUS: VISUAL GARDEN DESIGNER COMPLETE** ✅
+![Project Status](https://img.shields.io/badge/Status-Active-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-blue)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green)
 
-### **Laatste Update**: 15 Januari 2025  
-### **Environment**: TEST Branch  
-### **Demo**: http://localhost:3000/visual-garden-demo
+## 🎯 Project Overview
 
----
+The **Tuinbeheer Systeem** is a modern web application designed to help gardeners, landscapers, and garden enthusiasts manage their gardens digitally. The system provides an intuitive, visual-first approach to garden planning and management.
 
-## 🌱 **Core Features**
+### ✨ Key Features
 
-- 🌱 **Plantvak Beheer**: Maak, bewerk en verwijder plantvakken
-- 🌿 **Plant Tracking**: Houd planten bij per plantvak
-- 🗺️ **Interactieve Layout**: Schermvullende visuele weergave van de tuin layout
-- 📱 **Responsive Design**: Werkt op desktop en mobiel
-- 🎨 **Modern UI**: Gebouwd met shadcn/ui componenten
+- **🎨 Interactive Visual Garden Designer**: Canvas-based drag-and-drop garden planning
+- **🌱 Plant Bed Management**: Create, organize, and track garden sections
+- **📊 Comprehensive Plant Database**: 150+ Dutch flowers and plants with detailed information
+- **⚡ Real-time Updates**: Live synchronization with Supabase database
+- **📱 Mobile-First Design**: Responsive interface optimized for all devices
+- **🔄 Collaboration Tools**: Real-time multi-user editing capabilities
 
-### 🌱 Nieuwe Garden Layout Features
+### 🖼️ Screenshots
 
-- **🖥️ Fullscreen Modus**: Toggle tussen normale en schermvullende weergave
-- **🎯 Interactieve Plantvakken**: Klik op plantvakken voor gedetailleerde plant informatie
-- **✏️ Real-Time Bewerking**: Voeg planten toe, bewerk en verwijder direct vanuit de layout
-- **🔄 Drag & Drop**: Versleep plantvakken met visuele feedback en grid snapping
-- **💾 Opslaan Functionaliteit**: Automatische wijzigingsdetectie met opslaan bevestiging
-- **📲 Touch-Friendly**: Geoptimaliseerd voor alle schermgroottes met aanraakbediening
+| Feature | Preview |
+|---------|---------|
+| **Visual Garden Designer** | ![Visual Designer](docs/assets/screenshots/visual-designer.png) |
+| **Plant Bed Management** | ![Plant Management](docs/assets/screenshots/plant-management.png) |
+| **Mobile Interface** | ![Mobile Interface](docs/assets/screenshots/mobile-interface.png) |
 
-## Tech Stack
+## 🚀 Quick Start
 
-- **Frontend**: Next.js 14, React, TypeScript
-- **Database**: Supabase (PostgreSQL)
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn/ui
-- **Icons**: Lucide React
-- **Canvas**: HTML5 Canvas API
-- **Animations**: Framer Motion
-
-## 🚀 **NEW: Visual Garden Designer**
-
-### **Live Demo**
-- **Demo URL**: http://localhost:3000/visual-garden-demo
-- **Features**: Canvas-based garden layout, plant positioning, visual design tools
-
-### **Key Capabilities**
-- 🎨 **Visual Design**: Drag-and-drop interface for garden planning
-- 🌸 **Plant Database**: 150+ Nederlandse bloemen met details
-- 📐 **Precision Layout**: Grid-based positioning system
-- 💾 **Auto-Save**: Real-time persistence to Supabase
-- 📱 **Touch Support**: Mobile-optimized controls
-- 🎯 **Plant Selection**: Advanced filtering and search
-
-### **Interactive Demo**
-```bash
-# Start development server
-npm run dev
-
-# Open demo in browser
-http://localhost:3000/visual-garden-demo
-```
-
-## Quick Start Guide
-
-### Het Garden Layout Systeem Gebruiken
-
-1. **Ga naar Plantvakken**: Navigeer naar `/plant-beds` voor het overzicht
-2. **Open Layout Weergave**: Klik op "Layout Weergave" button
-3. **Fullscreen Modus**: Klik op het fullscreen icoon (⛶) voor optimale weergave
-4. **Interactie met Plantvakken**: 
-   - Klik op een plantvak om details te bekijken
-   - Versleep plantvakken om ze te herpositioneren
-   - Bewerk plantvak eigenschappen via de edit knop
-5. **Plant Beheer**:
-   - Voeg nieuwe planten toe via "Plant toevoegen"
-   - Bekijk alle planten in een plantvak
-   - Verwijder planten indien nodig
-6. **Wijzigingen Opslaan**: Klik op "Opslaan" wanneer de knop verschijnt
-
-### Navigatie
-
-- **Plantvak Overzicht**: `/plant-beds` - Overzicht van alle plantvakken
-- **Garden Layout**: `/plant-beds/layout` - Interactieve tuin planner
-- **Visual Garden Demo**: `/visual-garden-demo` - Canvas-based designer
-- **Plantvak Details**: `/plant-beds/[id]` - Gedetailleerde plantvak informatie
-
-## 📁 **Project Structure**
-
-```
-├── app/                    # Next.js App Router
-│   ├── plant-beds/        # Plantvak paginas
-│   │   ├── layout/        # Interactieve tuin layout
-│   │   │   └── page.tsx   # Fullscreen garden planner
-│   │   ├── page.tsx       # Plantvak overzicht
-│   │   └── [id]/         # Individuele plantvak details
-│   ├── visual-garden-demo/  # Visual Garden Designer
-│   ├── api/               # API routes
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Homepage
-├── components/            # React componenten
-│   ├── ui/               # shadcn/ui componenten
-│   └── visual-garden-designer/  # Canvas components
-├── lib/                  # Utilities en database functies
-│   ├── database.ts       # Database queries
-│   ├── mock-data.ts      # Mock data voor development
-│   ├── dutch-flowers.ts  # Nederlandse bloemen database
-│   ├── supabase.ts       # Supabase client en types
-│   └── types.ts          # TypeScript types
-├── docs/                 # Documentatie
-│   ├── architecture/     # Architectuur documentatie
-│   ├── functional/       # Functionele specificaties
-│   ├── setup/           # Setup instructies
-│   └── technical/       # Technische documentatie
-├── database/            # Database migraties
-├── scripts/            # Utility scripts
-└── public/            # Statische bestanden
-```
-
-## 🔧 **Setup Instructions**
-
-### **Prerequisites**
-- Node.js 18+
-- npm/pnpm
+### Prerequisites
+- Node.js 18 or later
+- pnpm (recommended) or npm
 - Supabase account
 
-### **1. Clone & Install**
-```bash
-git clone [repository-url]
-cd tuinbeheer-systeem
-npm install
-```
+### Installation
 
-### **2. Environment Setup**
 ```bash
-# Copy environment template
+# 1. Clone the repository
+git clone [repository-url]
+cd garden-management-system
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Set up environment
 cp .env.example .env.local
 
-# Configure Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+# 4. Configure database (interactive)
+pnpm run setup:database
+
+# 5. Start development server
+pnpm run dev
 ```
 
-### **3. Database Setup**
-```bash
-# Run migrations
-npm run migrate
+🎉 **That's it!** Your garden management system is now running at `http://localhost:3000`
 
-# Seed with test data
-npm run seed
+### 🎮 Try the Demo
+
+- **Visual Garden Designer**: `http://localhost:3000/visual-garden-demo`
+- **Plant Bed Management**: `http://localhost:3000/plant-beds`
+- **Garden Layout**: `http://localhost:3000/plant-beds/layout`
+
+## 📚 Documentation
+
+### 👥 For Different User Types
+
+| User Type | Documentation | Description |
+|-----------|---------------|-------------|
+| **🏠 End Users** | [User Guide](docs/guides/users/README.md) | Complete user manual with screenshots and tutorials |
+| **🏗️ Architects** | [Architecture Guide](docs/guides/architects/README.md) | System design, technical architecture, and patterns |
+| **💼 Business Analysts** | [Business Guide](docs/guides/business-analysts/README.md) | Requirements, processes, and business value |
+| **🛠️ Developers** | [Developer Guide](docs/guides/developers/README.md) | Technical setup, API docs, and development practices |
+
+### 🔧 Setup & Configuration
+
+| Topic | Documentation | Description |
+|-------|---------------|-------------|
+| **Environment Setup** | [Environment Guide](docs/setup/environment-setup.md) | Complete environment configuration |
+| **Database Setup** | [Database Guide](docs/setup/database-setup.md) | Supabase configuration and schema |
+| **Deployment** | [Deployment Guide](docs/setup/deployment.md) | Production deployment instructions |
+| **Troubleshooting** | [Troubleshooting Guide](docs/setup/troubleshooting.md) | Common issues and solutions |
+
+## 🛠️ Technology Stack
+
+### Frontend
+- **Next.js 14**: React framework with App Router
+- **TypeScript**: Type-safe development
+- **Tailwind CSS**: Utility-first CSS framework
+- **shadcn/ui**: Modern UI component library
+- **HTML5 Canvas**: Interactive garden designer
+
+### Backend
+- **Supabase**: Backend-as-a-Service with PostgreSQL
+- **Row Level Security**: Database-level access control
+- **Real-time Subscriptions**: Live data synchronization
+- **RESTful API**: Standard HTTP API endpoints
+
+### DevOps
+- **Vercel**: Serverless deployment platform
+- **GitHub Actions**: CI/CD pipeline
+- **ESLint & Prettier**: Code quality and formatting
+
+## 🌟 Key Capabilities
+
+### 🎨 Visual Garden Designer
+- **Canvas-based Interface**: Intuitive drag-and-drop design
+- **Real-time Collaboration**: Multiple users can edit simultaneously
+- **Precision Tools**: Grid snapping, zoom controls, and measurements
+- **Auto-save**: Changes are automatically saved to the database
+
+### 🌱 Plant Management
+- **Plant Database**: Comprehensive Dutch plant information
+- **Growth Tracking**: Monitor plant development over time
+- **Seasonal Planning**: Plan activities by season and plant type
+- **Care Reminders**: Automated notifications for plant care
+
+### 📊 Analytics & Reporting
+- **Garden Statistics**: Track garden productivity and health
+- **Growth Analytics**: Monitor plant development patterns
+- **Usage Reports**: Understand how your garden space is utilized
+- **Export Capabilities**: Generate reports and export data
+
+## 🔄 Development Workflow
+
+### Available Scripts
+
+```bash
+# Development
+pnpm run dev                    # Start development server
+pnpm run build                  # Build for production
+pnpm run start                  # Start production server
+
+# Database
+pnpm run setup:database         # Interactive database setup
+pnpm run test:connection        # Test database connection
+pnpm run db:migrate             # Run database migrations
+
+# Code Quality
+pnpm run lint                   # Run ESLint
+pnpm run type-check             # TypeScript type checking
+pnpm run format                 # Format code with Prettier
+
+# Testing
+pnpm run test:routes            # Test all application routes
+pnpm run test:database          # Test database operations
 ```
 
-### **4. Development Server**
-```bash
-npm run dev
-# Open http://localhost:3000
+### 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## 📁 Project Structure
+
+```
+garden-management-system/
+├── 📁 app/                    # Next.js app directory
+│   ├── 📁 plant-beds/        # Plant bed management
+│   ├── 📁 visual-garden-demo/ # Visual designer
+│   └── 📁 api/               # API routes
+├── 📁 components/            # React components
+│   ├── 📁 ui/               # Base UI components
+│   ├── 📁 plant-beds/       # Plant bed components
+│   └── 📁 visual-garden-designer/ # Canvas components
+├── 📁 lib/                   # Utility libraries
+├── 📁 docs/                  # Documentation
+│   ├── 📁 guides/           # User guides
+│   ├── 📁 setup/            # Setup documentation
+│   └── 📁 assets/           # Images and resources
+├── 📁 scripts/              # Automation scripts
+├── 📁 supabase-sql-scripts/ # Database scripts
+└── 📁 public/               # Static assets
 ```
 
-## 📊 **Database Schema**
+## 🚀 Deployment
 
-### **Core Tables**
-- **gardens**: Tuin configuratie en metadata
-- **plant_beds**: Plantvak definities en eigenschappen
-- **plants**: Individuele planten per plantvak
-- **plant_bed_positions**: Canvas posities voor visual designer
+### Quick Deploy to Vercel
 
-### **Visual Designer Tables**
-- **canvas_configs**: Canvas instellingen per tuin
-- **plant_positions**: Exacte posities op canvas
-- **garden_layouts**: Opgeslagen layout configuraties
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-org/garden-management-system)
 
-## 🧪 **Testing**
+### Manual Deployment
 
-### **Run Tests**
 ```bash
-# Build verification
-npm run build
+# 1. Build the application
+pnpm run build
 
-# Route testing
-npm run test:routes
+# 2. Set up environment variables in your deployment platform
+# 3. Deploy using your preferred method (Vercel, Netlify, etc.)
 
-# API endpoint testing
-npm run test:api
-
-# Full test suite
-npm run test:all
-```
-
-### **Manual Testing**
-```bash
-# Test garden layout functionality
-node test-garden-layout.js
-
-# Test all routes
-node scripts/test-all-routes.js
-
-# Test API endpoints
-node scripts/test-api-endpoints.js
-```
-
-## 🚀 **Deployment**
-
-### **Production Build**
-```bash
-npm run build
-npm run export  # For static export
-```
-
-### **Vercel Deployment**
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy
+# For Vercel CLI
 vercel --prod
 ```
 
-### **Environment Variables**
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_production_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_key
+### Environment Variables for Production
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-production-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-production-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
-## 📚 **Documentation**
+## 🔐 Security
 
-### **Architecture**
-- [`docs/architecture/`](docs/architecture/) - System architecture
-- [`docs/technical/`](docs/technical/) - Technical specifications
+- **Row Level Security**: Database-level access control
+- **Environment Variables**: Secure credential management
+- **Input Validation**: Comprehensive data validation
+- **Authentication**: Secure user authentication via Supabase Auth
 
-### **User Guides**
-- [`docs/functional/`](docs/functional/) - Feature documentation
-- [`docs/setup/`](docs/setup/) - Setup and configuration
+## 📈 Performance
 
-### **API Documentation**
-- [`docs/api/`](docs/api/) - API endpoints and schemas
+- **Server-side Rendering**: Fast initial page loads
+- **Code Splitting**: Optimized bundle sizes
+- **Image Optimization**: Automatic image compression
+- **Canvas Optimization**: Efficient visual rendering
 
-## 🔗 **Key Routes**
+## 🌍 Browser Support
 
-### **Main Application**
-- `/` - Homepage with project overview
-- `/plant-beds` - Plant bed management
-- `/plant-beds/layout` - Interactive garden layout
-- `/visual-garden-demo` - Visual garden designer
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
-### **API Endpoints**
-- `/api/gardens` - Garden CRUD operations
-- `/api/plant-beds` - Plant bed management
-- `/api/plants` - Plant database operations
+## 📄 License
 
-## 📋 **Features Checklist**
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-### **Core Functionality** ✅
-- [x] Plant bed management
-- [x] Plant catalog and tracking
-- [x] Interactive garden layout
-- [x] Responsive design
-- [x] Data persistence
+## 🙏 Acknowledgments
 
-### **Visual Garden Designer** ✅
-- [x] Canvas-based layout
-- [x] Drag-and-drop interface
-- [x] Plant positioning system
-- [x] Real-time saving
-- [x] Touch support
+- **Supabase**: For providing an excellent backend-as-a-Service platform
+- **Next.js Team**: For the amazing React framework
+- **shadcn/ui**: For beautiful and accessible UI components
+- **Vercel**: For seamless deployment and hosting
 
-### **Advanced Features** ✅
-- [x] Fullscreen mode
-- [x] Plant detail management
-- [x] Layout saving/loading
-- [x] Dutch flower database
-- [x] Mobile optimization
+## 🆘 Support
 
-## 🤝 **Contributing**
+### Getting Help
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/nieuwe-feature`)
-3. Commit changes (`git commit -am 'Add nieuwe feature'`)
-4. Push to branch (`git push origin feature/nieuwe-feature`)
-5. Create Pull Request
+- **📖 Documentation**: Check the [docs](docs/) folder for comprehensive guides
+- **🐛 Issues**: Report bugs via [GitHub Issues](../../issues)
+- **💬 Discussions**: Join our [GitHub Discussions](../../discussions)
+- **📧 Email**: Contact us at [support@tuinbeheer.com](mailto:support@tuinbeheer.com)
 
-## 📜 **License**
+### Common Issues
 
-This project is licensed under the MIT License.
+| Issue | Solution |
+|-------|----------|
+| Database connection failed | Check [Environment Setup](docs/setup/environment-setup.md) |
+| Visual designer not loading | See [Troubleshooting Guide](docs/setup/troubleshooting.md) |
+| Build errors | Review [Developer Guide](docs/guides/developers/README.md) |
+
+## 🗺️ Roadmap
+
+### Current Version (v1.1.0)
+- ✅ Visual Garden Designer
+- ✅ Plant Bed Management
+- ✅ Mobile Responsive Design
+- ✅ Real-time Collaboration
+
+### Next Release (v1.2.0)
+- 🔄 Advanced Plant Database
+- 🔄 Weather Integration
+- 🔄 Plant Care Reminders
+- 🔄 Garden Analytics
+
+### Future Plans (v2.0.0)
+- 🔮 AI-powered Plant Recommendations
+- 🔮 Mobile App (React Native)
+- 🔮 Community Features
+- 🔮 E-commerce Integration
 
 ---
 
-## 🎯 **Next Steps**
+<div align="center">
 
-1. **Test Visual Garden Designer**: Visit `/visual-garden-demo`
-2. **Explore Plant Management**: Check `/plant-beds`
-3. **Review Documentation**: Browse `/docs`
-4. **Deploy to Production**: Follow deployment guide
+**🌿 Made with ❤️ by the Tuinbeheer Team**
+
+[![GitHub stars](https://img.shields.io/github/stars/your-org/garden-management-system?style=social)](https://github.com/your-org/garden-management-system)
+[![GitHub forks](https://img.shields.io/github/forks/your-org/garden-management-system?style=social)](https://github.com/your-org/garden-management-system)
+[![GitHub issues](https://img.shields.io/github/issues/your-org/garden-management-system)](https://github.com/your-org/garden-management-system/issues)
 
 **Ready for production deployment!** 🚀
+
+</div>

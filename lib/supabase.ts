@@ -3,41 +3,169 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Get configuration based on environment
-function getSupabaseConfig() {
-  // Check if we're in test environment
-  const isTest = process.env.APP_ENV === 'test' || process.env.NODE_ENV === 'test';
-  
-  if (isTest) {
-    return {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL_TEST || 'https://dwsgwqosmihsfaxuheji.supabase.co',
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE'
-    };
-  } else {
-    return {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qrotadbmnkhhwhshijdy.supabase.co',
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY'
-    };
+// ===================================================================
+// ENVIRONMENT VALIDATION
+// ===================================================================
+
+function validateEnvironment() {
+  const requiredEnvVars = [
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY'
+  ];
+
+  const missingVars = requiredEnvVars.filter(
+    varName => !process.env[varName]
+  );
+
+  if (missingVars.length > 0) {
+    throw new Error(
+      `Missing required environment variables: ${missingVars.join(', ')}\n` +
+      'Please check your .env.local file and ensure all required variables are set.\n' +
+      'See docs/setup/environment-setup.md for more information.'
+    );
   }
 }
 
-function getCurrentEnvironment() {
-  return process.env.APP_ENV === 'test' || process.env.NODE_ENV === 'test' ? 'test' : 'prod';
-}
+// ===================================================================
+// SUPABASE CONFIGURATION
+// ===================================================================
 
-// Get environment-specific configuration
-const config = getSupabaseConfig();
+function getSupabaseConfig() {
+  // Validate environment first
+  validateEnvironment();
 
-// Validate configuration
-if (!config.url || !config.anonKey) {
-  throw new Error('Missing Supabase environment variables');
+  // Determine environment
+  const isTest = process.env.APP_ENV === 'test' || process.env.NODE_ENV === 'test';
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  // Get configuration based on environment
+  let config;
+  
+  if (isTest) {
+    config = {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL_TEST,
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST,
+      environment: 'test'
+    };
+  } else if (isProduction) {
+    config = {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL_PROD || process.env.NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      environment: 'production'
+    };
+  } else {
+    config = {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      environment: 'development'
+    };
+  }
+
+  // Validate configuration
+  if (!config.url || !config.anonKey) {
+    throw new Error(
+      `Missing Supabase configuration for ${config.environment} environment.\n` +
+      'Please ensure the following environment variables are set:\n' +
+      `- NEXT_PUBLIC_SUPABASE_URL${isTest ? '_TEST' : isProduction ? '_PROD' : ''}\n` +
+      `- NEXT_PUBLIC_SUPABASE_ANON_KEY${isTest ? '_TEST' : isProduction ? '_PROD' : ''}`
+    );
+  }
+
+  // Validate URL format
+  if (!config.url.startsWith('https://') || !config.url.includes('.supabase.co')) {
+    throw new Error(
+      `Invalid Supabase URL format: ${config.url}\n` +
+      'Expected format: https://[project-id].supabase.co'
+    );
+  }
+
+  // Validate key format (basic check)
+  if (!config.anonKey.startsWith('eyJ')) {
+    throw new Error(
+      `Invalid Supabase key format. Expected JWT token starting with "eyJ"`
+    );
+  }
+
+  return config;
 }
 
 // ===================================================================
 // SUPABASE CLIENT SETUP
 // ===================================================================
 
-export const supabase = createClient(config.url, config.anonKey);
+const config = getSupabaseConfig();
+
+export const supabase = createClient(config.url, config.anonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  realtime: {
+    reconnectOnFocus: true,
+    heartbeatIntervalMs: 30000,
+    reconnectOnVisibilityChange: true
+  },
+  db: {
+    schema: 'public'
+  }
+});
+
+// ===================================================================
+// CONFIGURATION UTILITIES
+// ===================================================================
+
+export function getCurrentEnvironment() {
+  return config.environment;
+}
+
+export function getSupabaseUrl() {
+  return config.url;
+}
+
+export function isTestEnvironment() {
+  return config.environment === 'test';
+}
+
+export function isProductionEnvironment() {
+  return config.environment === 'production';
+}
+
+export function isDevelopmentEnvironment() {
+  return config.environment === 'development';
+}
+
+// ===================================================================
+// CONNECTION TESTING
+// ===================================================================
+
+export async function testSupabaseConnection() {
+  try {
+    const { data, error } = await supabase
+      .from('gardens')
+      .select('count')
+      .limit(1);
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      success: true,
+      environment: config.environment,
+      url: config.url,
+      message: 'Supabase connection successful'
+    };
+  } catch (error) {
+    return {
+      success: false,
+      environment: config.environment,
+      url: config.url,
+      error: error.message,
+      message: 'Supabase connection failed'
+    };
+  }
+}
 
 // ===================================================================
 // EXISTING TYPES (Extended for Visual Garden Designer)
@@ -594,7 +722,22 @@ export const VISUAL_GARDEN_CONSTANTS = {
 } as const;
 
 // ===================================================================
-// EXPORT UTILITY FUNCTIONS
+// ENVIRONMENT INFORMATION
 // ===================================================================
 
-export { getCurrentEnvironment, getSupabaseConfig };
+export const ENVIRONMENT_INFO = {
+  environment: config.environment,
+  supabaseUrl: config.url,
+  isTest: isTestEnvironment(),
+  isProduction: isProductionEnvironment(),
+  isDevelopment: isDevelopmentEnvironment(),
+} as const;
+
+// Log environment information in development
+if (isDevelopmentEnvironment()) {
+  console.log('🌱 Tuinbeheer Systeem - Supabase Configuration', {
+    environment: config.environment,
+    url: config.url,
+    timestamp: new Date().toISOString()
+  });
+}
