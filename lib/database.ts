@@ -71,9 +71,6 @@ export async function createGarden(garden: {
   length?: string
   width?: string
   garden_type?: string
-  maintenance_level?: string
-  soil_condition?: string
-  watering_system?: string
   established_date?: string
   notes?: string
 }): Promise<Garden | null> {
@@ -103,9 +100,6 @@ export async function createGarden(garden: {
       length: garden.length || null,
       width: garden.width || null,
       garden_type: garden.garden_type || null,
-      maintenance_level: garden.maintenance_level || null,
-      soil_condition: garden.soil_condition || null,
-      watering_system: garden.watering_system || null,
       established_date: garden.established_date || null,
       notes: garden.notes || null,
       is_active: true,

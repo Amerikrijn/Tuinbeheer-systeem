@@ -211,7 +211,18 @@ export default function PlantvakViewPage() {
                   <TreePine className="h-6 w-6 text-green-600" />
                   {garden.name} - Plantvak Weergave
                 </h1>
-                <p className="text-gray-600">Visuele weergave van plantvakken met verplaatsbare planten</p>
+                <p className="text-gray-600">
+                  Visuele weergave van plantvakken met verplaatsbare planten
+                  {(garden.total_area || (garden.length && garden.width)) && (
+                    <span className="ml-2 text-sm font-medium text-green-600">
+                      • Tuingrootte: {garden.total_area || 
+                        (garden.length && garden.width && 
+                          `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
+                        )
+                      }
+                    </span>
+                  )}
+                </p>
               </div>
             </div>
             
