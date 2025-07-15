@@ -1,214 +1,321 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Leaf, Plus, Eye, Flower, Sparkles, TreePine, Palette, Settings } from "lucide-react"
-import { useLanguage } from "@/hooks/use-language"
-import { t } from "@/lib/translations"
+import { Badge } from "@/components/ui/badge"
+import { 
+  Leaf, 
+  Plus, 
+  Eye, 
+  Flower, 
+  Sparkles, 
+  TreePine, 
+  Palette, 
+  Settings, 
+  BarChart3, 
+  Users, 
+  Database,
+  Activity,
+  TrendingUp,
+  AlertCircle,
+  CheckCircle,
+  Clock
+} from "lucide-react"
+import { ModernPageWrapper } from "@/components/modern-page-wrapper"
+
+// Mock data for admin dashboard
+const mockStats = {
+  totalGardens: 3,
+  totalPlantBeds: 12,
+  totalPlants: 45,
+  activeUsers: 2,
+  systemHealth: "Good",
+  databaseSize: "2.3 MB",
+  lastBackup: "2 hours ago"
+}
+
+const mockRecentActivity = [
+  {
+    id: 1,
+    type: "garden",
+    action: "created",
+    item: "Achtertuin",
+    user: "Admin",
+    timestamp: "2 uur geleden"
+  },
+  {
+    id: 2,
+    type: "plant",
+    action: "added",
+    item: "Rozen in Voorbed",
+    user: "Admin", 
+    timestamp: "3 uur geleden"
+  },
+  {
+    id: 3,
+    type: "bed",
+    action: "updated",
+    item: "Groentevak A1",
+    user: "Admin",
+    timestamp: "1 dag geleden"
+  }
+]
+
 export default function AdminDashboard() {
-  const [loading, setLoading] = useState(true)
-  const { language } = useLanguage()
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    const bootstrap = async () => {
-      setLoading(false)
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Good": return "bg-green-100 text-green-800"
+      case "Warning": return "bg-yellow-100 text-yellow-800"
+      case "Error": return "bg-red-100 text-red-800"
+      default: return "bg-gray-100 text-gray-800"
     }
+  }
 
-    bootstrap()
-  }, [])
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case "garden": return <TreePine className="h-4 w-4 text-green-600" />
+      case "plant": return <Flower className="h-4 w-4 text-blue-600" />
+      case "bed": return <Leaf className="h-4 w-4 text-purple-600" />
+      default: return <Activity className="h-4 w-4 text-gray-600" />
+    }
+  }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <ModernPageWrapper title="Admin Dashboard" subtitle="Laden...">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">{t("loading", language)}</p>
+          <p className="text-gray-600">Bezig met laden...</p>
         </div>
-      </div>
+      </ModernPageWrapper>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-      <div className="container mx-auto p-6 space-y-8">
-        <div className="text-center py-8">
-          <div className="flex justify-center mb-6">
-            <Settings className="h-16 w-16 text-green-600" />
-          </div>
-          <h1 className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            {t("admin.dashboard", language)}
-          </h1>
-          <p className="text-lg text-gray-600">
-            {t("admin.welcome", language)}
-          </p>
+    <ModernPageWrapper
+      title="Admin Dashboard"
+      subtitle="Systeembeheer en configuratie"
+      maxWidth="xl"
+      headerActions={
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="bg-green-100 text-green-800">
+            Admin
+          </Badge>
+          <Button size="sm" className="bg-green-600 hover:bg-green-700">
+            <Settings className="h-4 w-4 mr-1" />
+            Instellingen
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
+        {/* System Status */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Systeemstatus</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="text-sm">{mockStats.systemHealth}</span>
+                </div>
+                <Badge className={getStatusColor(mockStats.systemHealth)}>
+                  Online
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Database</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Database className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm">{mockStats.databaseSize}</span>
+                </div>
+                <Badge variant="outline">
+                  Actief
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Laatste Backup</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-orange-600" />
+                  <span className="text-sm">{mockStats.lastBackup}</span>
+                </div>
+                <Badge variant="outline">
+                  Recent
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">Actieve Gebruikers</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm">{mockStats.activeUsers}</span>
+                </div>
+                <Badge variant="outline">
+                  Online
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-
-
-        {/* Main Actions Grid */}
+        {/* Statistics Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Manage Gardens */}
-          <Card className="hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm cursor-pointer group overflow-hidden transform hover:scale-105">
-            <Link href="/admin/garden">
-              <div className="bg-gradient-to-br from-green-400 via-green-500 to-green-600 p-6 sm:p-8 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                <div className="flex items-center justify-between mb-4 sm:mb-6 relative z-10">
-                  <div className="bg-white/20 p-2 sm:p-3 rounded-full">
-                    <TreePine className="h-6 w-6 sm:h-8 sm:w-8" />
-                  </div>
-                  <Eye className="h-5 w-5 sm:h-6 sm:w-6 opacity-75" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 relative z-10">
-                  {t("manage.gardens", language)}
-                </h3>
-                <p className="text-green-100 text-sm relative z-10">{t("view.all.gardens", language)}</p>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TreePine className="h-5 w-5 text-green-600" />
+                Tuinen
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600 mb-2">
+                {mockStats.totalGardens}
               </div>
-              <CardContent className="p-4 sm:p-8">
-                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full"></div>
-                    {t("view.garden.details", language)}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full"></div>
-                    {t("manage.settings", language)}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-3 h-3 bg-gradient-to-r from-green-400 to-green-500 rounded-full"></div>
-                    {t("monitor.status", language)}
-                  </div>
-                </div>
-                <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-2 sm:py-3 rounded-lg shadow-lg transform transition-all duration-200 group-hover:scale-105">
-                  {t("manage.gardens", language)}
-                </Button>
-              </CardContent>
-            </Link>
+              <p className="text-sm text-gray-600">Totaal aantal tuinen</p>
+              <div className="flex items-center gap-2 mt-2">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-green-600">+1 deze week</span>
+              </div>
+            </CardContent>
           </Card>
 
-          {/* Manage Plant Beds */}
-          <Card className="hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm cursor-pointer group overflow-hidden transform hover:scale-105">
-            <Link href="/admin/plant-beds">
-              <div className="bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 p-6 sm:p-8 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                <div className="flex items-center justify-between mb-4 sm:mb-6 relative z-10">
-                  <div className="bg-white/20 p-2 sm:p-3 rounded-full">
-                    <Leaf className="h-6 w-6 sm:h-8 sm:w-8" />
-                  </div>
-                  <Flower className="h-5 w-5 sm:h-6 sm:w-6 opacity-75" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 relative z-10">
-                  {t("manage.plant.beds", language)}
-                </h3>
-                <p className="text-blue-100 text-sm relative z-10">{t("organize.plant.beds", language)}</p>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Leaf className="h-5 w-5 text-blue-600" />
+                Plantvakken
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-600 mb-2">
+                {mockStats.totalPlantBeds}
               </div>
-              <CardContent className="p-4 sm:p-8">
-                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full"></div>
-                    {t("create.plant.beds", language)}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full"></div>
-                    {t("assign.plants", language)}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-3 h-3 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full"></div>
-                    {t("track.growth", language)}
-                  </div>
-                </div>
-                <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-2 sm:py-3 rounded-lg shadow-lg transform transition-all duration-200 group-hover:scale-105">
-                  {t("manage.plant.beds", language)}
-                </Button>
-              </CardContent>
-            </Link>
+              <p className="text-sm text-gray-600">Totaal aantal plantvakken</p>
+              <div className="flex items-center gap-2 mt-2">
+                <TrendingUp className="h-4 w-4 text-blue-500" />
+                <span className="text-sm text-blue-600">+3 deze week</span>
+              </div>
+            </CardContent>
           </Card>
 
-          {/* Visual Garden Designer */}
-          <Card className="hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm cursor-pointer group overflow-hidden transform hover:scale-105">
-            <Link href="/visual-garden-demo">
-              <div className="bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 p-6 sm:p-8 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                <div className="flex items-center justify-between mb-4 sm:mb-6 relative z-10">
-                  <div className="bg-white/20 p-2 sm:p-3 rounded-full">
-                    <Palette className="h-6 w-6 sm:h-8 sm:w-8" />
-                  </div>
-                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 opacity-75" />
-                </div>
-                <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 relative z-10">
-                  {t("visual.garden.designer", language)}
-                </h3>
-                <p className="text-purple-100 text-sm relative z-10">{t("design.visually", language)}</p>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Flower className="h-5 w-5 text-purple-600" />
+                Planten
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-600 mb-2">
+                {mockStats.totalPlants}
               </div>
-              <CardContent className="p-4 sm:p-8">
-                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full"></div>
-                    {t("drag.drop.beds", language)}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full"></div>
-                    {t("visual.layout", language)}
-                  </div>
-                  <div className="flex items-center gap-3 text-sm text-gray-600">
-                    <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full"></div>
-                    {t("real.time.preview", language)}
-                  </div>
-                </div>
-                <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-2 sm:py-3 rounded-lg shadow-lg transform transition-all duration-200 group-hover:scale-105">
-                  {t("open.designer", language)}
-                </Button>
-              </CardContent>
-            </Link>
+              <p className="text-sm text-gray-600">Totaal aantal planten</p>
+              <div className="flex items-center gap-2 mt-2">
+                <TrendingUp className="h-4 w-4 text-purple-500" />
+                <span className="text-sm text-purple-600">+8 deze week</span>
+              </div>
+            </CardContent>
           </Card>
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-12 sm:mt-20 text-center">
-          <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-6 sm:mb-8">
-            {t("quick.actions", language)}
-          </h3>
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-            <Link href="/admin/plant-beds/configure">
-              <Button
-                variant="outline"
-                className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-green-300 text-green-700 hover:bg-green-50 px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105 text-sm sm:text-base"
-              >
-                <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                {t("new.plant.bed", language)}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Snelle Acties
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Button asChild variant="outline" className="h-auto p-4">
+                <Link href="/admin/garden">
+                  <div className="flex flex-col items-center gap-2">
+                    <TreePine className="h-6 w-6 text-green-600" />
+                    <span>Tuinbeheer</span>
+                    <span className="text-xs text-gray-500">Beheer tuinen en configuratie</span>
+                  </div>
+                </Link>
               </Button>
-            </Link>
-            <Link href="/gardens/new">
-              <Button
-                variant="outline"
-                className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-blue-300 text-blue-700 hover:bg-blue-50 px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105 text-sm sm:text-base"
-              >
-                <TreePine className="h-4 w-4 sm:h-5 sm:w-5" />
-                {t("new.garden", language)}
+
+              <Button asChild variant="outline" className="h-auto p-4">
+                <Link href="/admin/plant-beds">
+                  <div className="flex flex-col items-center gap-2">
+                    <Leaf className="h-6 w-6 text-blue-600" />
+                    <span>Plantvakbeheer</span>
+                    <span className="text-xs text-gray-500">Beheer plantvakken</span>
+                  </div>
+                </Link>
               </Button>
-            </Link>
-            <Link href="/visual-garden-demo">
-              <Button
-                variant="outline"
-                className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-purple-300 text-purple-700 hover:bg-purple-50 px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105 text-sm sm:text-base"
-              >
-                <Palette className="h-4 w-4 sm:h-5 sm:w-5" />
-                {t("visual.designer", language)}
+
+              <Button asChild variant="outline" className="h-auto p-4">
+                <Link href="/visual-garden-demo">
+                  <div className="flex flex-col items-center gap-2">
+                    <Palette className="h-6 w-6 text-purple-600" />
+                    <span>Visual Designer</span>
+                    <span className="text-xs text-gray-500">Ontwerp tuinen visueel</span>
+                  </div>
+                </Link>
               </Button>
-            </Link>
-            <Link href="/">
-              <Button
-                variant="outline"
-                className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-gray-300 text-gray-700 hover:bg-gray-50 px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105 text-sm sm:text-base"
-              >
-                <TreePine className="h-4 w-4 sm:h-5 sm:w-5" />
-                {t("back.to.home", language)}
-              </Button>
-            </Link>
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Recente Activiteit
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {mockRecentActivity.map((activity) => (
+                <div key={activity.id} className="flex items-center gap-3 p-3 rounded-lg bg-gray-50">
+                  {getActivityIcon(activity.type)}
+                  <div className="flex-1">
+                    <p className="text-sm">
+                      <span className="font-medium">{activity.user}</span> heeft{" "}
+                      <span className="font-medium">{activity.item}</span> {activity.action}
+                    </p>
+                    <p className="text-xs text-gray-500">{activity.timestamp}</p>
+                  </div>
+                </div>
+              ))}
+              {mockRecentActivity.length === 0 && (
+                <p className="text-gray-500 text-center py-4">Geen recente activiteit</p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </ModernPageWrapper>
   )
 }

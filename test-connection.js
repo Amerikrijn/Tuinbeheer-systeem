@@ -1,6 +1,6 @@
 // Simple Supabase connection test
 // Run: node test-connection.js
-// Auto-generated: 2025-07-13T21:30:28.752Z
+// Auto-generated: 2025-07-15T22:34:12.593Z
 
 const { createClient } = require('@supabase/supabase-js');
 
@@ -8,8 +8,8 @@ async function testConnection() {
   console.log('🔍 Testing New Supabase Connection...\n');
 
   // Use new credentials
-  const supabaseUrl = 'https://nrdgfiotsgnzvzsmylne.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY';
+  const supabaseUrl = 'https://dwsgwqosmihsfaxuheji.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE';
 
   console.log('1. Environment Check:');
   console.log(`   URL: ${supabaseUrl}`);

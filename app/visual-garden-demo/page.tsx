@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState, useEffect } from 'react';
-import GardenCanvas from '@/components/visual-garden-designer/GardenCanvas';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ModernPageWrapper } from '@/components/modern-page-wrapper';
 import { 
   Loader2, 
   AlertCircle, 
@@ -19,17 +19,21 @@ import {
   Save,
   Settings,
   Move,
-  Eye
+  Eye,
+  Palette,
+  TreePine,
+  Flower,
+  Grid,
+  Layout
 } from 'lucide-react';
 
-// ===================================================================
-// MOCK DATA (Would come from API in production)
-// ===================================================================
-
+// Mock data for visual garden
 const mockGarden = {
   id: 'demo-garden-1',
   name: 'Demo Tuin',
-  description: 'Een voorbeeldtuin voor het testen van de Visual Garden Designer'
+  description: 'Een voorbeeldtuin voor het testen van de Visual Garden Designer',
+  width: 10,
+  height: 8
 };
 
 const mockPlantBeds = [
@@ -45,493 +49,376 @@ const mockPlantBeds = [
     visual_height: 2,
     color_code: '#22c55e',
     rotation: 0,
-    z_index: 1
+    z_index: 1,
+    plants: [
+      { id: '1', name: 'Tomaten', type: 'Groente' },
+      { id: '2', name: 'Basilicum', type: 'Kruid' }
+    ]
   },
   {
     id: 'bed-2',
     garden_id: 'demo-garden-1',
-    name: 'Kruidenvak B1',
-    description: 'Kruidentuin met diverse keukenkruiden',
+    name: 'Bloemenvak B1',
+    description: 'Kleurrijke bloemen voor het voorjaar',
     size_m2: 4,
     position_x: 6,
     position_y: 2,
     visual_width: 2,
     visual_height: 2,
-    color_code: '#8b5cf6',
+    color_code: '#3b82f6',
     rotation: 0,
-    z_index: 1
+    z_index: 1,
+    plants: [
+      { id: '3', name: 'Tulpen', type: 'Bol' },
+      { id: '4', name: 'Narcissen', type: 'Bol' }
+    ]
   },
   {
     id: 'bed-3',
     garden_id: 'demo-garden-1',
-    name: 'Bloemenbed C1',
-    description: 'Kleurrijke bloemenweide',
-    size_m2: 8,
-    position_x: 10,
-    position_y: 4,
-    visual_width: 4,
-    visual_height: 2,
-    color_code: '#f59e0b',
+    name: 'Kruidentuin C1',
+    description: 'Verse kruiden voor in de keuken',
+    size_m2: 3,
+    position_x: 1,
+    position_y: 6,
+    visual_width: 2,
+    visual_height: 1.5,
+    color_code: '#8b5cf6',
     rotation: 0,
-    z_index: 1
-  },
-  {
-    id: 'bed-4',
-    garden_id: 'demo-garden-1',
-    name: 'Fruitbomen D1',
-    description: 'Kleine fruitbomen en struiken',
-    size_m2: 12,
-    position_x: 3,
-    position_y: 8,
-    visual_width: 3,
-    visual_height: 4,
-    color_code: '#dc2626',
-    rotation: 0,
-    z_index: 1
+    z_index: 1,
+    plants: [
+      { id: '5', name: 'Peterselie', type: 'Kruid' },
+      { id: '6', name: 'Bieslook', type: 'Kruid' }
+    ]
   }
 ];
 
-const mockCanvasConfig = {
-  canvas_width: 20,
-  canvas_height: 15,
-  grid_size: 1,
-  default_zoom: 1,
-  show_grid: true,
-  snap_to_grid: true,
-  background_color: '#f8fafc'
-};
-
-// ===================================================================
-// DEMO PAGE COMPONENT
-// ===================================================================
-
-export default function VisualGardenDemoPage() {
-  const [plantBeds, setPlantBeds] = useState(mockPlantBeds);
-  const [canvasConfig, setCanvasConfig] = useState(mockCanvasConfig);
-  const [isLoading, setIsLoading] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+export default function VisualGardenDemo() {
+  const [selectedBed, setSelectedBed] = useState(null);
+  const [viewMode, setViewMode] = useState('design'); // 'design' or 'preview'
   const [zoom, setZoom] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
 
-  // ===================================================================
-  // SAVE HANDLERS
-  // ===================================================================
+  const handleBedClick = (bed) => {
+    setSelectedBed(bed);
+  };
 
-  const handleSave = async (updatedPlantBeds: typeof plantBeds) => {
+  const handleSave = () => {
     setIsLoading(true);
-    setSaveMessage(null);
-    setErrorMessage(null);
-
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In production, this would be an API call:
-      // await fetch('/api/gardens/demo-garden-1/plant-beds/positions', {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ positions: updatedPlantBeds })
-      // });
-
-      setPlantBeds(updatedPlantBeds);
-      setSaveMessage('Plantvak posities succesvol opgeslagen!');
-      
-      // Clear message after 3 seconds
-      setTimeout(() => setSaveMessage(null), 3000);
-      
-    } catch (error) {
-      setErrorMessage('Fout bij het opslaan van plantvak posities. Probeer opnieuw.');
-      console.error('Save error:', error);
-    } finally {
+    // Mock save operation
+    setTimeout(() => {
       setIsLoading(false);
-    }
+      alert('Tuin opgeslagen!');
+    }, 1000);
   };
 
-  const handleCanvasConfigChange = async (configUpdates: Partial<typeof canvasConfig>) => {
-    setIsLoading(true);
-    setSaveMessage(null);
-    setErrorMessage(null);
-
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // In production, this would be an API call:
-      // await fetch('/api/gardens/demo-garden-1/canvas-config', {
-      //   method: 'PATCH',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(configUpdates)
-      // });
-
-      setCanvasConfig(prev => ({ ...prev, ...configUpdates }));
-      setSaveMessage('Canvas configuratie succesvol bijgewerkt!');
-      
-      // Clear message after 3 seconds
-      setTimeout(() => setSaveMessage(null), 3000);
-      
-    } catch (error) {
-      setErrorMessage('Fout bij het bijwerken van canvas configuratie. Probeer opnieuw.');
-      console.error('Canvas config update error:', error);
-    } finally {
-      setIsLoading(false);
-    }
+  const handleZoomIn = () => {
+    setZoom(Math.min(zoom + 0.1, 2));
   };
 
-  // ===================================================================
-  // ZOOM AND FULLSCREEN HANDLERS
-  // ===================================================================
-
-  const handleZoomIn = () => setZoom(prev => Math.min(prev * 1.2, 3));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev / 1.2, 0.3));
-  const handleResetZoom = () => setZoom(1);
-
-  const toggleFullscreen = () => {
-    setIsFullscreen(!isFullscreen);
+  const handleZoomOut = () => {
+    setZoom(Math.max(zoom - 0.1, 0.5));
   };
 
-  // ===================================================================
-  // RENDER
-  // ===================================================================
+  const handleReset = () => {
+    setZoom(1);
+    setSelectedBed(null);
+  };
 
-  const renderFullscreen = () => (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-      {/* Fullscreen Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
-        <div className="container mx-auto p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold flex items-center gap-2">
-                <Eye className="h-6 w-6 text-green-600" />
-                {mockGarden.name} - Volledig Scherm
-              </h1>
-              <p className="text-gray-600">Visuele weergave van plantvakken op schaal</p>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleZoomOut}
-                className="bg-white/80"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleResetZoom}
-                className="bg-white/80"
-              >
-                {Math.round(zoom * 100)}%
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleZoomIn}
-                className="bg-white/80"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Separator orientation="vertical" className="h-6" />
-              <Button 
-                onClick={() => handleSave(plantBeds)}
-                disabled={isLoading}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Opslaan...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Opslaan
-                  </>
-                )}
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={toggleFullscreen}
-                className="bg-white/80"
-              >
-                <Minimize className="h-4 w-4 mr-2" />
-                Verlaten
-              </Button>
-            </div>
-          </div>
+  return (
+    <ModernPageWrapper
+      title="Visual Garden Designer"
+      subtitle={`Ontwerp je tuin visueel - ${mockGarden.name}`}
+      maxWidth="full"
+      headerActions={
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+            Demo Mode
+          </Badge>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setViewMode(viewMode === 'design' ? 'preview' : 'design')}
+          >
+            {viewMode === 'design' ? <Eye className="h-4 w-4 mr-1" /> : <Layout className="h-4 w-4 mr-1" />}
+            {viewMode === 'design' ? 'Preview' : 'Design'}
+          </Button>
+          <Button 
+            size="sm" 
+            className="bg-purple-600 hover:bg-purple-700"
+            onClick={handleSave}
+            disabled={isLoading}
+          >
+            {isLoading ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Save className="h-4 w-4 mr-1" />}
+            Opslaan
+          </Button>
         </div>
-      </div>
+      }
+    >
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-full">
+        {/* Main Canvas Area */}
+        <div className="xl:col-span-3 space-y-4">
+          {/* Toolbar */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setShowGrid(!showGrid)}>
+                    <Grid className="h-4 w-4 mr-1" />
+                    {showGrid ? 'Verberg' : 'Toon'} Grid
+                  </Button>
+                  <Separator orientation="vertical" className="h-6" />
+                  <Button variant="outline" size="sm" onClick={handleZoomOut}>
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-gray-600 min-w-[60px] text-center">
+                    {Math.round(zoom * 100)}%
+                  </span>
+                  <Button variant="outline" size="sm" onClick={handleZoomIn}>
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleReset}>
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline">{mockGarden.width}m × {mockGarden.height}m</Badge>
+                  <Badge variant="outline">{mockPlantBeds.length} plantvakken</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Status Messages */}
-      {saveMessage && (
-        <Alert className="mx-4 mt-4">
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>{saveMessage}</AlertDescription>
-        </Alert>
-      )}
+          {/* Garden Canvas */}
+          <Card className="flex-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TreePine className="h-5 w-5 text-green-600" />
+                {mockGarden.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="relative border-2 border-dashed border-gray-300 rounded-lg overflow-hidden bg-green-50">
+                <div 
+                  className="relative bg-gradient-to-br from-green-100 to-green-200"
+                  style={{
+                    width: `${mockGarden.width * 40 * zoom}px`,
+                    height: `${mockGarden.height * 40 * zoom}px`,
+                    minWidth: '600px',
+                    minHeight: '400px'
+                  }}
+                >
+                  {/* Grid overlay */}
+                  {showGrid && (
+                    <div 
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        backgroundImage: `
+                          linear-gradient(to right, rgba(0,0,0,0.1) 1px, transparent 1px),
+                          linear-gradient(to bottom, rgba(0,0,0,0.1) 1px, transparent 1px)
+                        `,
+                        backgroundSize: `${40 * zoom}px ${40 * zoom}px`
+                      }}
+                    />
+                  )}
 
-      {errorMessage && (
-        <Alert variant="destructive" className="mx-4 mt-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{errorMessage}</AlertDescription>
-        </Alert>
-      )}
+                  {/* Plant beds */}
+                  {mockPlantBeds.map((bed) => (
+                    <div
+                      key={bed.id}
+                      className={`absolute border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-lg ${
+                        selectedBed?.id === bed.id 
+                          ? 'border-blue-500 shadow-lg z-10' 
+                          : 'border-gray-400 hover:border-gray-600'
+                      }`}
+                      style={{
+                        left: `${bed.position_x * 40 * zoom}px`,
+                        top: `${bed.position_y * 40 * zoom}px`,
+                        width: `${bed.visual_width * 40 * zoom}px`,
+                        height: `${bed.visual_height * 40 * zoom}px`,
+                        backgroundColor: bed.color_code,
+                        opacity: 0.7,
+                        transform: `rotate(${bed.rotation}deg)`,
+                        zIndex: bed.z_index
+                      }}
+                      onClick={() => handleBedClick(bed)}
+                    >
+                      <div className="absolute inset-0 flex items-center justify-center p-1">
+                        <div className="text-center">
+                          <div className="text-xs font-medium text-white bg-black bg-opacity-50 px-1 py-0.5 rounded">
+                            {bed.name}
+                          </div>
+                          {bed.plants && bed.plants.length > 0 && (
+                            <div className="text-xs text-white bg-black bg-opacity-30 px-1 mt-1 rounded">
+                              {bed.plants.length} planten
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Fullscreen Canvas */}
-      <div className="h-full p-4" style={{ height: 'calc(100vh - 120px)' }}>
-        <div 
-          className="h-full bg-white/60 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg overflow-hidden"
-          style={{ 
-            transform: `scale(${zoom})`,
-            transformOrigin: 'top left'
-          }}
-        >
-          <GardenCanvas
-            garden={mockGarden}
-            plantBeds={plantBeds}
-            canvasConfig={canvasConfig}
-            onSave={handleSave}
-            onCanvasConfigChange={handleCanvasConfigChange}
-            isFullscreen={true}
-          />
-        </div>
-      </div>
-
-      {/* Fullscreen Instructions */}
-      <div className="bg-white/80 backdrop-blur-sm border-t border-gray-200">
-        <div className="container mx-auto p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Move className="h-4 w-4 text-blue-600" />
-              <span>Sleep plantvakken om ze te verplaatsen</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Settings className="h-4 w-4 text-purple-600" />
-              <span>Plantvakken zijn op schaal weergegeven</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <ZoomIn className="h-4 w-4 text-orange-600" />
-              <span>Zoom in/uit voor detail werk</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Save className="h-4 w-4 text-green-600" />
-              <span>Sla wijzigingen op met Ctrl+S</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderNormal = () => (
-    <div className="container mx-auto p-4">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Visual Garden Designer - Demo</h1>
-        <p className="text-muted-foreground">
-          Interactieve demo van de Visual Garden Designer functionaliteit. 
-          Sleep plantvakken rond, zoom in/uit en pas configuratie aan.
-        </p>
-      </div>
-
-      {/* Status Messages */}
-      {saveMessage && (
-        <Alert className="mb-4">
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>{saveMessage}</AlertDescription>
-        </Alert>
-      )}
-
-      {errorMessage && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{errorMessage}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Loading Indicator */}
-      {isLoading && (
-        <div className="fixed top-4 right-4 z-50">
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Opslaan...</span>
-            </div>
+          {/* Status Bar */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between text-sm text-gray-600">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    <span>Automatisch opgeslagen</span>
+                  </div>
+                  <div>Totale oppervlakte: {mockGarden.width * mockGarden.height} m²</div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedBed && (
+                    <Badge variant="outline">
+                      {selectedBed.name} geselecteerd
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </div>
-      )}
 
-      {/* Controls */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleZoomOut}
-          >
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleResetZoom}
-          >
-            {Math.round(zoom * 100)}%
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleZoomIn}
-          >
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button 
-            onClick={() => handleSave(plantBeds)}
-            disabled={isLoading}
-            className="bg-green-600 hover:bg-green-700"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Opslaan...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Opslaan
-              </>
-            )}
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={toggleFullscreen}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Maximize className="h-4 w-4 mr-2" />
-            Volledig Scherm
-          </Button>
+        {/* Right Panel - Properties */}
+        <div className="space-y-4">
+          {/* Selected Bed Properties */}
+          {selectedBed ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Flower className="h-5 w-5 text-purple-600" />
+                  {selectedBed.name}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="text-sm">
+                    <span className="font-medium">Beschrijving:</span>
+                    <p className="text-gray-600 mt-1">{selectedBed.description}</p>
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium">Grootte:</span>
+                    <p className="text-gray-600">{selectedBed.size_m2} m²</p>
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium">Positie:</span>
+                    <p className="text-gray-600">X: {selectedBed.position_x}m, Y: {selectedBed.position_y}m</p>
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium">Afmetingen:</span>
+                    <p className="text-gray-600">{selectedBed.visual_width}m × {selectedBed.visual_height}m</p>
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-medium">Kleur:</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div 
+                        className="w-4 h-4 rounded border"
+                        style={{ backgroundColor: selectedBed.color_code }}
+                      />
+                      <span className="text-gray-600">{selectedBed.color_code}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Planten ({selectedBed.plants?.length || 0})</h4>
+                  {selectedBed.plants && selectedBed.plants.length > 0 ? (
+                    <div className="space-y-1">
+                      {selectedBed.plants.map((plant) => (
+                        <div key={plant.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+                          <Flower className="h-4 w-4 text-green-600" />
+                          <div>
+                            <div className="text-sm font-medium">{plant.name}</div>
+                            <div className="text-xs text-gray-500">{plant.type}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">Nog geen planten toegevoegd</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5" />
+                  Eigenschappen
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-500 text-sm">
+                  Selecteer een plantvak om de eigenschappen te bekijken en te bewerken.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Garden Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TreePine className="h-5 w-5 text-green-600" />
+                Tuin Informatie
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="text-sm">
+                <span className="font-medium">Naam:</span>
+                <p className="text-gray-600">{mockGarden.name}</p>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium">Beschrijving:</span>
+                <p className="text-gray-600">{mockGarden.description}</p>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium">Afmetingen:</span>
+                <p className="text-gray-600">{mockGarden.width}m × {mockGarden.height}m</p>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium">Totale oppervlakte:</span>
+                <p className="text-gray-600">{mockGarden.width * mockGarden.height} m²</p>
+              </div>
+              <div className="text-sm">
+                <span className="font-medium">Plantvakken:</span>
+                <p className="text-gray-600">{mockPlantBeds.length} vakken</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">Snelle Acties</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <Move className="h-4 w-4 mr-2" />
+                Verplaats Mode
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <Palette className="h-4 w-4 mr-2" />
+                Verander Kleuren
+              </Button>
+              <Button variant="outline" size="sm" className="w-full justify-start">
+                <Maximize className="h-4 w-4 mr-2" />
+                Volledig Scherm
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
-
-      {/* Feature Info Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">🎯 Drag & Drop</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-sm text-muted-foreground">
-              Sleep plantvakken rond op het canvas. Automatisch snappen naar raster indien ingeschakeld.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">🔍 Zoom & Pan</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-sm text-muted-foreground">
-              Zoom in/uit voor detail werk. Toetsenbord shortcuts: Ctrl/Cmd + Plus/Min/0
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">📺 Volledig Scherm</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <p className="text-sm text-muted-foreground">
-              Bekijk je tuin op volledig scherm met alle plantvakken op schaal weergegeven.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Demo Data Info */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-lg">📊 Demo Data</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <Badge variant="outline" className="mb-1">Tuin</Badge>
-              <div className="text-muted-foreground">{mockGarden.name}</div>
-            </div>
-            <div>
-              <Badge variant="outline" className="mb-1">Canvas</Badge>
-              <div className="text-muted-foreground">{canvasConfig.canvas_width}m × {canvasConfig.canvas_height}m</div>
-            </div>
-            <div>
-              <Badge variant="outline" className="mb-1">Plantvakken</Badge>
-              <div className="text-muted-foreground">{plantBeds.length} vakken</div>
-            </div>
-            <div>
-              <Badge variant="outline" className="mb-1">Zoom</Badge>
-              <div className="text-muted-foreground">{Math.round(zoom * 100)}%</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Main Canvas */}
-      <Card className="h-[600px]">
-        <div 
-          style={{ 
-            transform: `scale(${zoom})`,
-            transformOrigin: 'top left',
-            height: '100%'
-          }}
-        >
-          <GardenCanvas
-            garden={mockGarden}
-            plantBeds={plantBeds}
-            canvasConfig={canvasConfig}
-            onSave={handleSave}
-            onCanvasConfigChange={handleCanvasConfigChange}
-            isFullscreen={false}
-          />
-        </div>
-      </Card>
-
-      {/* Instructions */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle className="text-lg">🎮 Instructies</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <h4 className="font-semibold mb-2">Muis Bediening</h4>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• Klik en sleep om plantvakken te verplaatsen</li>
-                <li>• Klik op een plantvak om het te selecteren</li>
-                <li>• Scroll om in/uit te zoomen</li>
-                <li>• Plantvakken zijn verplaatsbaar binnen het canvas</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-semibold mb-2">Toetsenbord Shortcuts</h4>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• <kbd>Ctrl/Cmd + S</kbd> - Opslaan</li>
-                <li>• <kbd>Ctrl/Cmd + Plus</kbd> - Inzoomen</li>
-                <li>• <kbd>Ctrl/Cmd + Min</kbd> - Uitzoomen</li>
-                <li>• <kbd>Ctrl/Cmd + 0</kbd> - Zoom reset</li>
-                <li>• <kbd>F11</kbd> - Volledig scherm</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    </ModernPageWrapper>
   );
-
-  return isFullscreen ? renderFullscreen() : renderNormal();
 }

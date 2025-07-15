@@ -5,13 +5,14 @@ import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme-provider"
 import { LanguageProvider } from "@/hooks/use-language"
+import { MainNavigation } from "@/components/main-navigation"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Plantvak Beheer",
-  description: "Beheer je plantvakken en planten",
-    generator: 'v0.dev'
+  title: "Tuinbeheer Systeem 2025",
+  description: "Moderne tuin beheer applicatie - Beheer je tuinen, plantvakken en bloemen",
+  generator: 'v0.dev'
 }
 
 export default function RootLayout({
@@ -24,7 +25,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <LanguageProvider>
-            {children}
+            <MainNavigation>
+              {children}
+            </MainNavigation>
           </LanguageProvider>
           <Toaster />
         </ThemeProvider>
