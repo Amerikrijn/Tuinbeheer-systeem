@@ -4,22 +4,15 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Leaf, Plus, Thermometer, Eye, Flower, Sparkles, TreePine, Palette, Settings } from "lucide-react"
+import { Leaf, Plus, Eye, Flower, Sparkles, TreePine, Palette, Settings } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { t } from "@/lib/translations"
-import { getCurrentWeather, getWeatherTheme } from "@/lib/weather-service"
-
 export default function AdminDashboard() {
-  const [currentWeather, setCurrentWeather] = useState<any>(null)
-  const [weatherTheme, setWeatherTheme] = useState(getWeatherTheme("sunny"))
   const [loading, setLoading] = useState(true)
   const { language } = useLanguage()
 
   useEffect(() => {
     const bootstrap = async () => {
-      const weather = await getCurrentWeather()
-      setCurrentWeather(weather)
-      setWeatherTheme(getWeatherTheme(weather.condition))
       setLoading(false)
     }
 
@@ -52,34 +45,7 @@ export default function AdminDashboard() {
           </p>
         </div>
 
-        {/* Weather Info */}
-        {currentWeather && (
-          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <Thermometer className="h-8 w-8 text-blue-500" />
-                  <div>
-                    <h3 className="text-lg font-semibold">
-                      {currentWeather.location}
-                    </h3>
-                    <p className="text-gray-600">
-                      {currentWeather.temperature}°C - {currentWeather.condition}
-                    </p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-gray-500">
-                    {t("humidity", language)}: {currentWeather.humidity}%
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {t("wind", language)}: {currentWeather.windSpeed} km/h
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+
 
         {/* Main Actions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
