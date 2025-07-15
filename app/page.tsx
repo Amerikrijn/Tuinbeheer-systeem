@@ -70,13 +70,6 @@ export default function HomePage() {
               <p className="text-gray-600 mb-4">
                 Organiseer je tuinen in plantvakken met specifieke eigenschappen zoals zonligging en grondtype.
               </p>
-<<<<<<< HEAD
-              <Link href="/plant-beds">
-                <Button variant="outline" size="sm" className="bg-transparent">
-                  Ga naar Plantvakken
-                </Button>
-              </Link>
-=======
               <div className="flex gap-2">
                 <Link href="/plant-beds">
                   <Button variant="outline" size="sm" className="bg-transparent">
@@ -90,7 +83,6 @@ export default function HomePage() {
                   </Button>
                 </Link>
               </div>
->>>>>>> cursor/verbeter-plantregistratie-en-voeg-bloemen-toe-199e
             </CardContent>
           </Card>
 
@@ -105,7 +97,6 @@ export default function HomePage() {
               <p className="text-gray-600 mb-4">
                 Interactieve visuele weergave van je tuin met drag & drop functionaliteit voor plantvakken.
               </p>
-<<<<<<< HEAD
               <div className="flex gap-2">
                 <Link href="/visual-garden-demo">
                   <Button variant="outline" size="sm" className="bg-transparent">
@@ -119,13 +110,6 @@ export default function HomePage() {
                   </Button>
                 </Link>
               </div>
-=======
-              <Link href="/visual-garden-demo">
-                <Button variant="outline" size="sm" className="bg-transparent">
-                  Designer Proberen
-                </Button>
-              </Link>
->>>>>>> cursor/verbeter-plantregistratie-en-voeg-bloemen-toe-199e
             </CardContent>
           </Card>
         </div>
