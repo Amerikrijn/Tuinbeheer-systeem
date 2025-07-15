@@ -1,366 +1,273 @@
 "use client"
 
-import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Leaf, Plus, AlertCircle } from "lucide-react"
-import { createPlantBed, getPlantBeds } from "@/lib/database"
-import type { PlantBedFormData } from "@/lib/types"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  ArrowLeft,
+  Leaf,
+  TreePine,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react"
+import { getGarden, createPlantBed } from "@/lib/database"
+import type { Garden } from "@/lib/supabase"
 
 export default function NewPlantBedPage() {
   const router = useRouter()
-  const { toast } = useToast()
+  const searchParams = useSearchParams()
+  const [garden, setGarden] = useState<Garden | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  
+  // Form state
+  const [name, setName] = useState("")
+  const [length, setLength] = useState("")
+  const [width, setWidth] = useState("")
 
-  const [loading, setLoading] = React.useState(false)
-  const [existingIds, setExistingIds] = React.useState<string[]>([])
-  const [errors, setErrors] = React.useState<Record<string, string>>({})
+  const gardenId = searchParams.get("garden_id")
 
-  const [newPlantBed, setNewPlantBed] = React.useState<PlantBedFormData>({
-    id: "",
-    name: "",
-    location: "",
-    size: "Gemiddeld (5-15 m²)",
-    soilType: "",
-    sunExposure: "full-sun",
-    description: "",
-  })
-
-  React.useEffect(() => {
-    const loadExistingIds = async () => {
-      try {
-        const beds = await getPlantBeds()
-        setExistingIds(beds.map((b) => b.id.toLowerCase()))
-      } catch (error) {
-        console.error("Error loading existing plant beds:", error)
-      }
-    }
-    loadExistingIds()
-  }, [])
-
-  const sizeOptions = ["Klein (< 5 m²)", "Gemiddeld (5-15 m²)", "Groot (15-30 m²)", "Extra groot (> 30 m²)"]
-
-  const soilTypeOptions = [
-    "Kleigrond",
-    "Zandgrond",
-    "Leemgrond",
-    "Veengrond",
-    "Potgrond",
-    "Kleigrond met compost",
-    "Zandgrond met compost",
-    "Humusrijke grond",
-  ]
-
-  const sunExposureOptions = [
-    { value: "full-sun", label: "Volle zon (6+ uur/dag)" },
-    { value: "partial-sun", label: "Gedeeltelijke zon (3-6 uur/dag)" },
-    { value: "shade", label: "Schaduw (< 3 uur/dag)" },
-  ]
-
-  const validateForm = () => {
-    const nextErrors: Record<string, string> = {}
-
-    if (!newPlantBed.id.trim()) {
-      nextErrors.id = "Plantvak-ID is verplicht"
-    } else if (!/^[A-Z0-9]+$/i.test(newPlantBed.id)) {
-      nextErrors.id = "ID mag alleen letters en cijfers bevatten"
-    } else if (existingIds.includes(newPlantBed.id.toLowerCase())) {
-      nextErrors.id = "Dit ID bestaat al"
-    }
-
-    if (!newPlantBed.name.trim()) nextErrors.name = "Naam is verplicht"
-    if (!newPlantBed.location.trim()) nextErrors.location = "Locatie is verplicht"
-    if (!newPlantBed.soilType.trim()) nextErrors.soilType = "Grondsoort is verplicht"
-
-    setErrors(nextErrors)
-    return Object.keys(nextErrors).length === 0
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!validateForm()) {
-      toast({
-        title: "Formulier onvolledig",
-        description: "Controleer de gemarkeerde velden en probeer opnieuw.",
-        variant: "destructive",
-      })
+  useEffect(() => {
+    if (!gardenId) {
+      setError("Geen tuin geselecteerd")
+      setLoading(false)
       return
     }
 
-    setLoading(true)
+    const loadGarden = async () => {
+      try {
+        const gardenData = await getGarden(gardenId)
+        setGarden(gardenData)
+      } catch (error) {
+        setError("Fout bij het laden van de tuin")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadGarden()
+  }, [gardenId])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError(null)
+    setSuccess(null)
+
+    // Validation
+    if (!name.trim()) {
+      setError("Plantvak naam is verplicht")
+      return
+    }
+
+    if (!length || !width) {
+      setError("Lengte en breedte zijn verplicht")
+      return
+    }
+
+    const lengthNum = parseFloat(length)
+    const widthNum = parseFloat(width)
+
+    if (isNaN(lengthNum) || isNaN(widthNum)) {
+      setError("Lengte en breedte moeten geldige getallen zijn")
+      return
+    }
+
+    if (lengthNum < 0.5 || widthNum < 0.5) {
+      setError("Minimale afmetingen: 0.5m × 0.5m")
+      return
+    }
+
+    if (lengthNum > 50 || widthNum > 50) {
+      setError("Maximale afmetingen: 50m × 50m")
+      return
+    }
+
+    setSaving(true)
+
     try {
+      const size = `${lengthNum}m × ${widthNum}m (${(lengthNum * widthNum).toFixed(1)}m²)`
+      
       await createPlantBed({
-        id: newPlantBed.id.toUpperCase(),
-        garden_id: "default-garden", // TODO: This should be selected from available gardens
-        name: newPlantBed.name,
-        location: newPlantBed.location,
-        size: newPlantBed.size,
-        soil_type: newPlantBed.soilType,
-        sun_exposure: newPlantBed.sunExposure,
-        description: newPlantBed.description || undefined,
+        garden_id: gardenId!,
+        name: name.trim(),
+        size,
+        length: lengthNum,
+        width: widthNum,
       })
 
-      toast({
-        title: "Plantvak aangemaakt!",
-        description: `Plantvak ${newPlantBed.id.toUpperCase()} (${newPlantBed.name}) is succesvol aangemaakt.`,
-      })
-      router.push("/plant-beds")
-    } catch (err) {
-      console.error("Error creating plant bed:", err)
-      toast({
-        title: "Fout",
-        description: "Er ging iets mis bij het aanmaken van het plantvak.",
-        variant: "destructive",
-      })
+      setSuccess("Plantvak succesvol toegevoegd!")
+      
+      // Redirect after a short delay
+      setTimeout(() => {
+        router.push(`/gardens/${gardenId}`)
+      }, 1500)
+    } catch (error) {
+      setError("Fout bij het toevoegen van het plantvak")
     } finally {
-      setLoading(false)
+      setSaving(false)
     }
   }
 
-  const handleReset = () => {
-    setNewPlantBed({
-      id: "",
-      name: "",
-      location: "",
-      size: "Gemiddeld (5-15 m²)",
-      soilType: "",
-      sunExposure: "full-sun",
-      description: "",
-    })
-    setErrors({})
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+            <div className="h-64 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!garden) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="max-w-2xl mx-auto text-center py-12">
+          <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
+          <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
+          <Link href="/gardens">
+            <Button className="bg-green-600 hover:bg-green-700">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Terug naar Tuinen
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="container mx-auto space-y-6 p-6">
-      <div className="flex flex-wrap items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push("/plant-beds")}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Plantvakken
-        </Button>
-
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-            <Plus className="h-7 w-7 text-green-600" />
-            Nieuw plantvak
-          </h1>
-          <p className="text-muted-foreground">Voeg een nieuw plantvak toe aan de tuin</p>
+    <div className="container mx-auto p-6">
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <Link href={`/gardens/${garden.id}`}>
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <div className="flex items-center gap-2">
+            <Leaf className="h-8 w-8 text-green-600" />
+            <div>
+              <h1 className="text-3xl font-bold text-green-700">Nieuw Plantvak</h1>
+              <p className="text-gray-600">Tuin: {garden.name}</p>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Leaf className="h-5 w-5 text-green-600" />
-                Plantvak-informatie
-              </CardTitle>
-            </CardHeader>
+        {/* Navigation Breadcrumb */}
+        <div className="text-sm text-gray-500">
+          <span className="text-gray-400">Tuin</span> → <span className="font-medium">Plantvak</span> → Bloem
+        </div>
 
-            <CardContent>
-              <form onSubmit={handleSubmit} onReset={handleReset} className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="id">Plantvak-ID *</Label>
-                    <Input
-                      id="id"
-                      placeholder="Bijv. A1, B, C2"
-                      value={newPlantBed.id}
-                      onChange={(e) =>
-                        setNewPlantBed((p) => ({
-                          ...p,
-                          id: e.target.value.toUpperCase(),
-                        }))
-                      }
-                      className={errors.id ? "border-destructive" : ""}
-                      maxLength={5}
-                      required
-                    />
-                    {errors.id && (
-                      <div className="flex items-center gap-1 text-destructive text-sm">
-                        <AlertCircle className="h-4 w-4" />
-                        {errors.id}
-                      </div>
-                    )}
-                  </div>
+        {/* Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Plantvak Toevoegen</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Name */}
+              <div className="space-y-2">
+                <Label htmlFor="name">Naam *</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Bijvoorbeeld: Groentevak A1"
+                  required
+                />
+              </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Naam *</Label>
-                    <Input
-                      id="name"
-                      placeholder="Bijv. Rozenbed"
-                      value={newPlantBed.name}
-                      onChange={(e) =>
-                        setNewPlantBed((p) => ({
-                          ...p,
-                          name: e.target.value,
-                        }))
-                      }
-                      className={errors.name ? "border-destructive" : ""}
-                      required
-                    />
-                    {errors.name && (
-                      <div className="flex items-center gap-1 text-destructive text-sm">
-                        <AlertCircle className="h-4 w-4" />
-                        {errors.name}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Locatie *</Label>
-                    <Input
-                      id="location"
-                      placeholder="Bijv. Noordkant tuin"
-                      value={newPlantBed.location}
-                      onChange={(e) =>
-                        setNewPlantBed((p) => ({
-                          ...p,
-                          location: e.target.value,
-                        }))
-                      }
-                      className={errors.location ? "border-destructive" : ""}
-                      required
-                    />
-                    {errors.location && (
-                      <div className="flex items-center gap-1 text-destructive text-sm">
-                        <AlertCircle className="h-4 w-4" />
-                        {errors.location}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="size">Grootte</Label>
-                    <Select
-                      value={newPlantBed.size}
-                      onValueChange={(value) =>
-                        setNewPlantBed((p) => ({
-                          ...p,
-                          size: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Grootte" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sizeOptions.map((size) => (
-                          <SelectItem key={size} value={size}>
-                            {size}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="soilType">Grondsoort *</Label>
-                    <Select
-                      value={newPlantBed.soilType}
-                      onValueChange={(value) =>
-                        setNewPlantBed((p) => ({
-                          ...p,
-                          soilType: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger className={errors.soilType ? "border-destructive" : ""}>
-                        <SelectValue placeholder="Kies grondsoort" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {soilTypeOptions.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.soilType && (
-                      <div className="flex items-center gap-1 text-destructive text-sm">
-                        <AlertCircle className="h-4 w-4" />
-                        {errors.soilType}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="sunExposure">Zonlicht</Label>
-                    <Select
-                      value={newPlantBed.sunExposure}
-                      onValueChange={(value: "full-sun" | "partial-sun" | "shade") =>
-                        setNewPlantBed((p) => ({
-                          ...p,
-                          sunExposure: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Zonlicht" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {sunExposureOptions.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
+              {/* Dimensions */}
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="description">Beschrijving</Label>
-                  <textarea
-                    id="description"
-                    rows={3}
-                    className="w-full resize-none rounded-md border bg-background p-2 text-sm shadow-sm outline-none focus:ring-2 focus:ring-ring"
-                    placeholder="Optionele beschrijving…"
-                    value={newPlantBed.description}
-                    onChange={(e) =>
-                      setNewPlantBed((p) => ({
-                        ...p,
-                        description: e.target.value,
-                      }))
-                    }
+                  <Label htmlFor="length">Lengte (m) *</Label>
+                  <Input
+                    id="length"
+                    type="number"
+                    step="0.1"
+                    min="0.5"
+                    max="50"
+                    value={length}
+                    onChange={(e) => setLength(e.target.value)}
+                    placeholder="3.0"
+                    required
                   />
                 </div>
-
-                <div className="flex gap-3">
-                  <Button type="submit" disabled={loading}>
-                    {loading ? "Opslaan…" : "Opslaan"}
-                  </Button>
-                  <Button type="reset" variant="outline" disabled={loading}>
-                    Reset
-                  </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="width">Breedte (m) *</Label>
+                  <Input
+                    id="width"
+                    type="number"
+                    step="0.1"
+                    min="0.5"
+                    max="50"
+                    value={width}
+                    onChange={(e) => setWidth(e.target.value)}
+                    placeholder="2.0"
+                    required
+                  />
                 </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+              </div>
 
-        <aside className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Tips</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm leading-relaxed">
-              <p>
-                • Kies een uniek ID van max. 5 tekens. <br />• Geef een duidelijke naam en locatie. <br />• Controleer
-                of de grondsoort overeenkomt met de geplande beplanting.
-              </p>
-            </CardContent>
-          </Card>
-        </aside>
+              {/* Calculated Area */}
+              {length && width && !isNaN(parseFloat(length)) && !isNaN(parseFloat(width)) && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-blue-800">
+                    <Leaf className="h-4 w-4" />
+                    <span className="font-medium">
+                      Berekende oppervlakte: {(parseFloat(length) * parseFloat(width)).toFixed(1)} m²
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Error */}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Success */}
+              {success && (
+                <Alert className="border-green-200 bg-green-50">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">{success}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Buttons */}
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {saving ? "Opslaan..." : "Opslaan"}
+                </Button>
+                <Link href={`/gardens/${garden.id}`}>
+                  <Button type="button" variant="outline">
+                    Annuleren
+                  </Button>
+                </Link>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
