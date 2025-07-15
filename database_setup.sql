@@ -56,6 +56,10 @@ CREATE TABLE IF NOT EXISTS plants (
     variety VARCHAR(255),
     color VARCHAR(100),
     height DECIMAL(8,2),
+    stem_length DECIMAL(8,2), -- Steellengte in cm
+    photo_url TEXT, -- URL naar foto van de plant
+    category VARCHAR(50) DEFAULT 'eenjarig', -- Categorie: eenjarig, vaste_planten, etc.
+    bloom_period VARCHAR(100), -- Bloeiperiode
     planting_date DATE,
     expected_harvest_date DATE,
     status VARCHAR(20) CHECK (status IN ('healthy', 'needs_attention', 'diseased', 'dead', 'harvested')) DEFAULT 'healthy',
