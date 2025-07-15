@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { TreePine, Palette, Eye } from "lucide-react"
+import { TreePine, Palette, Eye, Flower } from "lucide-react"
 
 export default function HomePage() {
   return (
@@ -24,7 +24,7 @@ export default function HomePage() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-700">
@@ -39,6 +39,25 @@ export default function HomePage() {
               <Link href="/gardens">
                 <Button variant="outline" size="sm" className="bg-transparent">
                   Ga naar Tuinen
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-700">
+                <Flower className="h-6 w-6" />
+                60 Populaire Bloemen
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Ontdek de 60 meest voorkomende bloemen voor je tuin. Zoek, filter en voeg direct toe aan je plantvakken.
+              </p>
+              <Link href="/plant-beds/popular-flowers">
+                <Button variant="outline" size="sm" className="bg-transparent">
+                  Bekijk Bloemen
                 </Button>
               </Link>
             </CardContent>
