@@ -6,9 +6,18 @@ Een moderne web-applicatie voor het beheren van plantvakken en planten, gebouwd 
 
 - 🌱 **Plantvak Beheer**: Maak, bewerk en verwijder plantvakken
 - 🌿 **Plant Tracking**: Houd planten bij per plantvak
-- 🗺️ **Layout Weergave**: Visuele weergave van de tuin layout
+- 🗺️ **Interactieve Layout**: Schermvullende visuele weergave van de tuin layout
 - 📱 **Responsive Design**: Werkt op desktop en mobiel
 - 🎨 **Modern UI**: Gebouwd met shadcn/ui componenten
+
+### 🌱 Nieuwe Garden Layout Features
+
+- **🖥️ Fullscreen Modus**: Toggle tussen normale en schermvullende weergave
+- **🎯 Interactieve Plantvakken**: Klik op plantvakken voor gedetailleerde plant informatie
+- **✏️ Real-Time Bewerking**: Voeg planten toe, bewerk en verwijder direct vanuit de layout
+- **🔄 Drag & Drop**: Versleep plantvakken met visuele feedback en grid snapping
+- **💾 Opslaan Functionaliteit**: Automatische wijzigingsdetectie met opslaan bevestiging
+- **📲 Touch-Friendly**: Geoptimaliseerd voor alle schermgroottes met aanraakbediening
 
 ## Tech Stack
 
@@ -60,17 +69,45 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in je browser.
 
+## Quick Start Guide
+
+### Het Garden Layout Systeem Gebruiken
+
+1. **Ga naar Plantvakken**: Navigeer naar `/plant-beds` voor het overzicht
+2. **Open Layout Weergave**: Klik op "Layout Weergave" button
+3. **Fullscreen Modus**: Klik op het fullscreen icoon (⛶) voor optimale weergave
+4. **Interactie met Plantvakken**: 
+   - Klik op een plantvak om details te bekijken
+   - Versleep plantvakken om ze te herpositioneren
+   - Bewerk plantvak eigenschappen via de edit knop
+5. **Plant Beheer**:
+   - Voeg nieuwe planten toe via "Plant toevoegen"
+   - Bekijk alle planten in een plantvak
+   - Verwijder planten indien nodig
+6. **Wijzigingen Opslaan**: Klik op "Opslaan" wanneer de knop verschijnt
+
+### Navigatie
+
+- **Plantvak Overzicht**: `/plant-beds` - Overzicht van alle plantvakken
+- **Garden Layout**: `/plant-beds/layout` - Interactieve tuin planner
+- **Plantvak Details**: `/plant-beds/[id]` - Gedetailleerde plantvak informatie
+
 ## Project Structuur
 
 \`\`\`
 ├── app/                    # Next.js App Router
 │   ├── plant-beds/        # Plantvak paginas
+│   │   ├── layout/        # Interactieve tuin layout
+│   │   │   └── page.tsx   # Fullscreen garden planner
+│   │   ├── page.tsx       # Plantvak overzicht
+│   │   └── [id]/         # Individuele plantvak details
 │   ├── layout.tsx         # Root layout
 │   └── page.tsx           # Homepage
 ├── components/            # React componenten
 │   └── ui/               # shadcn/ui componenten
 ├── lib/                  # Utilities en database functies
 │   ├── database.ts       # Database queries
+│   ├── mock-data.ts      # Mock data voor development
 │   ├── supabase.ts       # Supabase client en types
 │   └── types.ts          # TypeScript types
 ├── supabase/
