@@ -310,13 +310,33 @@ export default function PlantBedsPage() {
                 {bed.plants.length > 0 && (
                   <div>
                     <div className="text-xs font-medium text-gray-700 mb-2">Recente Planten:</div>
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       {bed.plants.slice(0, 2).map((plant) => (
-                        <div key={plant.id} className="flex items-center justify-between text-xs">
-                          <span className="truncate">{plant.name}</span>
-                          <Badge variant="secondary" className="text-xs px-1 py-0">
-                            {plant.status}
-                          </Badge>
+                        <div key={plant.id} className="border rounded-lg p-2 bg-gray-50">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="truncate font-medium">{plant.name}</span>
+                            <Badge variant="secondary" className="text-xs px-1 py-0">
+                              {plant.status}
+                            </Badge>
+                          </div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            {plant.category && (
+                              <div className="flex items-center gap-1">
+                                <Leaf className="h-3 w-3" />
+                                <span>{plant.category}</span>
+                              </div>
+                            )}
+                            {plant.stem_length && (
+                              <div className="flex items-center gap-1">
+                                <span>Steellengte: {plant.stem_length}cm</span>
+                              </div>
+                            )}
+                            {plant.color && (
+                              <div className="flex items-center gap-1">
+                                <span>Kleur: {plant.color}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       ))}
                       {bed.plants.length > 2 && (
