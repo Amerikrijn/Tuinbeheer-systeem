@@ -10,19 +10,10 @@ const routes = [
   '/gardens/new',
   '/plant-beds',
   '/plant-beds/new',
+  '/plant-beds/add-plant',
+  '/plant-beds/layout',
+  '/plant-beds/popular-flowers',
   '/visual-garden-demo',
-  
-  // Calendar (should be removed)
-  '/calendar',
-  
-  // Auth routes (should be removed)
-  '/login',
-  '/register',
-  
-  // Other routes (should be removed)
-  '/mobile',
-  '/progress',
-  '/test-db',
   
   // Admin routes
   '/admin',
@@ -31,9 +22,6 @@ const routes = [
   '/admin/plant-beds/new',
   '/admin/plant-beds/configure',
   '/admin/plant-beds/layout',
-  '/admin/analytics',
-  '/admin/events',
-  '/admin/sessions',
   
   // API routes
   '/api/gardens',
@@ -55,18 +43,8 @@ async function testRoutes() {
     shouldBeRemoved: []
   };
   
-  // Routes that should be removed
-  const toRemove = [
-    '/calendar',
-    '/login', 
-    '/register',
-    '/mobile',
-    '/progress',
-    '/test-db',
-    '/admin/analytics',
-    '/admin/events', 
-    '/admin/sessions'
-  ];
+  // Routes that should be removed (none currently)
+  const toRemove = [];
   
   for (const route of routes) {
     try {
@@ -117,11 +95,35 @@ async function testRoutes() {
     if (gardensResponse.status === 200 && gardensResponse.data.length > 0) {
       const sampleGardenId = gardensResponse.data[0].id;
       
+      // Get sample plant-bed data
+      const plantBedsResponse = await axios.get(`${BASE_URL}/api/plant-beds`);
+      const samplePlantBedId = plantBedsResponse.status === 200 && plantBedsResponse.data.length > 0 
+        ? plantBedsResponse.data[0].id : 'sample-bed-id';
+      
       const dynamicRoutesToTest = [
+        // Garden routes
         `/gardens/${sampleGardenId}`,
         `/gardens/${sampleGardenId}/plant-beds`,
         `/gardens/${sampleGardenId}/plant-beds/new`,
+        `/gardens/${sampleGardenId}/plantvak-view`,
+        
+        // Plant-bed routes
+        `/plant-beds/${samplePlantBedId}`,
+        `/plant-beds/${samplePlantBedId}/layout`,
+        `/plant-beds/${samplePlantBedId}/plants`,
+        `/plant-beds/${samplePlantBedId}/plants/new`,
+        
+        // Admin routes
         `/admin/plant-beds/configure`,
+        `/admin/plant-beds/${samplePlantBedId}`,
+        `/admin/plant-beds/${samplePlantBedId}/add-plant`,
+        `/admin/plant-beds/${samplePlantBedId}/edit`,
+        
+        // API routes
+        `/api/gardens/${sampleGardenId}/canvas-config`,
+        `/api/gardens/${sampleGardenId}/plant-beds`,
+        `/api/gardens/${sampleGardenId}/plant-beds/positions`,
+        `/api/plant-beds/${samplePlantBedId}/position`,
       ];
       
       for (const route of dynamicRoutesToTest) {
@@ -177,13 +179,18 @@ async function testRoutes() {
     }
   });
   
-  console.log('\n🎯 CLEANUP ACTIONS NEEDED:');
-  console.log('1. Remove calendar functionality');
-  console.log('2. Remove auth pages (login/register)');
-  console.log('3. Remove analytics, events, sessions admin pages');
-  console.log('4. Remove mobile, progress, test-db pages');
-  console.log('5. Fix any 404 routes for core functionality');
-  console.log('6. Add Visual Garden Designer link to main page');
+  console.log('\n🎯 STATUS:');
+  if (results.notFound.length === 0 && results.error.length === 0) {
+    console.log('✅ All routes are working correctly! No 404 errors found.');
+  } else {
+    console.log('⚠️  Issues found that need attention:');
+    if (results.notFound.length > 0) {
+      console.log('- Fix 404 routes for core functionality');
+    }
+    if (results.error.length > 0) {
+      console.log('- Fix error routes');
+    }
+  }
   
   return results;
 }
