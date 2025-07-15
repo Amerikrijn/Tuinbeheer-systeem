@@ -70,11 +70,27 @@ export default function HomePage() {
               <p className="text-gray-600 mb-4">
                 Organiseer je tuinen in plantvakken met specifieke eigenschappen zoals zonligging en grondtype.
               </p>
+<<<<<<< HEAD
               <Link href="/plant-beds">
                 <Button variant="outline" size="sm" className="bg-transparent">
                   Ga naar Plantvakken
                 </Button>
               </Link>
+=======
+              <div className="flex gap-2">
+                <Link href="/plant-beds">
+                  <Button variant="outline" size="sm" className="bg-transparent">
+                    Plantvakken Bekijken
+                  </Button>
+                </Link>
+                <Link href="/plant-beds/add-plant">
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                    <Leaf className="h-4 w-4 mr-1" />
+                    Bloemen Registreren
+                  </Button>
+                </Link>
+              </div>
+>>>>>>> cursor/verbeter-plantregistratie-en-voeg-bloemen-toe-199e
             </CardContent>
           </Card>
 
@@ -89,6 +105,7 @@ export default function HomePage() {
               <p className="text-gray-600 mb-4">
                 Interactieve visuele weergave van je tuin met drag & drop functionaliteit voor plantvakken.
               </p>
+<<<<<<< HEAD
               <div className="flex gap-2">
                 <Link href="/visual-garden-demo">
                   <Button variant="outline" size="sm" className="bg-transparent">
@@ -102,6 +119,13 @@ export default function HomePage() {
                   </Button>
                 </Link>
               </div>
+=======
+              <Link href="/visual-garden-demo">
+                <Button variant="outline" size="sm" className="bg-transparent">
+                  Designer Proberen
+                </Button>
+              </Link>
+>>>>>>> cursor/verbeter-plantregistratie-en-voeg-bloemen-toe-199e
             </CardContent>
           </Card>
         </div>
@@ -125,10 +149,10 @@ export default function HomePage() {
                   Visueel Overzicht
                 </Button>
               </Link>
-              <Link href="/flower-selector-demo">
+              <Link href="/plant-beds/add-plant">
                 <Button variant="outline" className="w-full bg-transparent">
                   <Leaf className="h-4 w-4 mr-2" />
-                  Bloemennamen Database
+                  Bloemen Registreren
                 </Button>
               </Link>
             </div>
@@ -158,9 +182,9 @@ export default function HomePage() {
                   <span className="text-blue-600 font-bold">2</span>
                 </div>
                 <div>
-                  <h3 className="font-medium">Voeg planten toe</h3>
+                  <h3 className="font-medium">Registreer bloemen</h3>
                   <p className="text-sm text-gray-600">
-                    Voeg nieuwe planten toe aan je plantvakken met specifieke eigenschappen.
+                    Registreer eenjarige bloemen met steellengte en foto's voor je plantvakken.
                   </p>
                 </div>
               </div>
