@@ -22,17 +22,17 @@ export default function HomePage() {
             Met visuele tuin designer voor interactieve planning.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/gardens">
+            <Link href="/plant-beds">
               <Button size="lg" className="bg-green-600 hover:bg-green-700">
-                <TreePine className="h-5 w-5 mr-2" />
-                Bekijk Tuinen
+                <Leaf className="h-5 w-5 mr-2" />
+                Plant Toevoegen
                 <ArrowRight className="h-5 w-5 ml-2" />
               </Button>
             </Link>
             <Link href="/visual-garden-demo">
               <Button size="lg" variant="outline" className="bg-white/80 backdrop-blur-sm border-green-300 hover:bg-green-50">
-                <Palette className="h-5 w-5 mr-2" />
-                Visual Garden Designer
+                <Eye className="h-5 w-5 mr-2" />
+                Visueel Overzicht
               </Button>
             </Link>
           </div>
@@ -51,9 +51,9 @@ export default function HomePage() {
               <p className="text-gray-600 mb-4">
                 Beheer meerdere tuinen met gedetailleerde informatie over locatie, afmetingen en kenmerken.
               </p>
-              <Link href="/gardens">
+              <Link href="/visual-garden-demo">
                 <Button variant="outline" size="sm" className="bg-transparent">
-                  Tuinen Bekijken
+                  Visueel Overzicht
                 </Button>
               </Link>
             </CardContent>
@@ -113,24 +113,24 @@ export default function HomePage() {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link href="/gardens/new">
+              <Link href="/plant-beds">
                 <Button className="w-full bg-green-600 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
-                  Nieuwe Tuin
+                  Plant Toevoegen
                 </Button>
               </Link>
-                          <Link href="/visual-garden-demo">
-              <Button variant="outline" className="w-full bg-transparent">
-                <Palette className="h-4 w-4 mr-2" />
-                Visual Designer
-              </Button>
-            </Link>
-            <Link href="/flower-selector-demo">
-              <Button variant="outline" className="w-full bg-transparent">
-                <Leaf className="h-4 w-4 mr-2" />
-                Bloemennamen Database
-              </Button>
-            </Link>
+              <Link href="/visual-garden-demo">
+                <Button variant="outline" className="w-full bg-transparent">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Visueel Overzicht
+                </Button>
+              </Link>
+              <Link href="/flower-selector-demo">
+                <Button variant="outline" className="w-full bg-transparent">
+                  <Leaf className="h-4 w-4 mr-2" />
+                  Bloemennamen Database
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -147,9 +147,9 @@ export default function HomePage() {
                   <span className="text-green-600 font-bold">1</span>
                 </div>
                 <div>
-                  <h3 className="font-medium">Maak je eerste tuin aan</h3>
+                  <h3 className="font-medium">Bekijk plantvakken</h3>
                   <p className="text-sm text-gray-600">
-                    Begin met het toevoegen van een tuin met naam, locatie en afmetingen.
+                    Start met het bekijken van bestaande plantvakken en hun eigenschappen.
                   </p>
                 </div>
               </div>
@@ -158,9 +158,9 @@ export default function HomePage() {
                   <span className="text-blue-600 font-bold">2</span>
                 </div>
                 <div>
-                  <h3 className="font-medium">Voeg plantvakken toe</h3>
+                  <h3 className="font-medium">Voeg planten toe</h3>
                   <p className="text-sm text-gray-600">
-                    Verdeel je tuin in plantvakken met unieke eigenschappen en afmetingen.
+                    Voeg nieuwe planten toe aan je plantvakken met specifieke eigenschappen.
                   </p>
                 </div>
               </div>
@@ -171,7 +171,7 @@ export default function HomePage() {
                 <div>
                   <h3 className="font-medium">Gebruik Visual Garden Designer</h3>
                   <p className="text-sm text-gray-600">
-                    Plaats plantvakken visueel in je tuin met drag & drop functionaliteit.
+                    Bekijk je tuin visueel en plaats plantvakken interactief met drag & drop.
                   </p>
                 </div>
               </div>
@@ -182,7 +182,7 @@ export default function HomePage() {
                 <div>
                   <h3 className="font-medium">Beheer je planten</h3>
                   <p className="text-sm text-gray-600">
-                    Voeg planten toe aan elk plantvak en houd hun groei bij.
+                    Houd de groei en status van je planten bij met gedetailleerde informatie.
                   </p>
                 </div>
               </div>
