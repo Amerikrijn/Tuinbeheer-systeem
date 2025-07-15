@@ -20,9 +20,6 @@ interface NewGarden {
   length: string
   width: string
   gardenType: string
-  maintenanceLevel: string
-  soilCondition: string
-  wateringSystem: string
   establishedDate: string
   notes: string
 }
@@ -42,9 +39,6 @@ export default function NewGardenPage() {
     length: "",
     width: "",
     gardenType: "Gemeenschapstuin",
-    maintenanceLevel: "Gemiddeld onderhoud",
-    soilCondition: "",
-    wateringSystem: "Handmatig",
     establishedDate: "",
     notes: "",
   })
@@ -60,16 +54,7 @@ export default function NewGardenPage() {
     "Botanische tuin",
   ]
 
-  const maintenanceLevelOptions = ["Laag onderhoud", "Gemiddeld onderhoud", "Intensief onderhoud"]
 
-  const wateringSystemOptions = [
-    "Handmatig",
-    "Druppelirrigatie",
-    "Sprinklerinstallatie",
-    "Druppelirrigatie + handmatig",
-    "Regenwater opvang",
-    "Automatisch systeem",
-  ]
 
   const validateForm = () => {
     const nextErrors: Record<string, string> = {}
@@ -98,17 +83,24 @@ export default function NewGardenPage() {
 
     setLoading(true)
     try {
+      // Calculate square meters automatically if length and width are provided
+      let calculatedTotalArea = newGarden.totalArea
+      if (newGarden.length && newGarden.width && !newGarden.totalArea) {
+        const length = parseFloat(newGarden.length)
+        const width = parseFloat(newGarden.width)
+        if (!isNaN(length) && !isNaN(width)) {
+          calculatedTotalArea = (length * width).toString()
+        }
+      }
+
       const garden = await createGarden({
         name: newGarden.name,
         description: newGarden.description || undefined,
         location: newGarden.location,
-        total_area: newGarden.totalArea || undefined, // keep as text
+        total_area: calculatedTotalArea || undefined, // keep as text
         length: newGarden.length || undefined,
         width: newGarden.width || undefined,
         garden_type: newGarden.gardenType || undefined,
-        maintenance_level: newGarden.maintenanceLevel || undefined,
-        soil_condition: newGarden.soilCondition || undefined,
-        watering_system: newGarden.wateringSystem || undefined,
         established_date: newGarden.establishedDate || undefined,
         notes: newGarden.notes || undefined,
       })
@@ -144,9 +136,6 @@ export default function NewGardenPage() {
       length: "",
       width: "",
       gardenType: "Gemeenschapstuin",
-      maintenanceLevel: "Gemiddeld onderhoud",
-      soilCondition: "",
-      wateringSystem: "Handmatig",
       establishedDate: "",
       notes: "",
     })
@@ -312,53 +301,7 @@ export default function NewGardenPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="maintenanceLevel">Onderhoudsniveau</Label>
-                    <Select
-                      value={newGarden.maintenanceLevel}
-                      onValueChange={(value) =>
-                        setNewGarden((p) => ({
-                          ...p,
-                          maintenanceLevel: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer onderhoudsniveau" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {maintenanceLevelOptions.map((level) => (
-                          <SelectItem key={level} value={level}>
-                            {level}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="wateringSystem">Bewateringssysteem</Label>
-                    <Select
-                      value={newGarden.wateringSystem}
-                      onValueChange={(value) =>
-                        setNewGarden((p) => ({
-                          ...p,
-                          wateringSystem: value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer bewateringssysteem" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {wateringSystemOptions.map((system) => (
-                          <SelectItem key={system} value={system}>
-                            {system}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="establishedDate">Oprichtingsdatum</Label>
@@ -375,20 +318,7 @@ export default function NewGardenPage() {
                     />
                   </div>
 
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="soilCondition">Grondconditie</Label>
-                    <Input
-                      id="soilCondition"
-                      placeholder="Beschrijf de algemene grondconditie"
-                      value={newGarden.soilCondition}
-                      onChange={(e) =>
-                        setNewGarden((p) => ({
-                          ...p,
-                          soilCondition: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
+
                 </div>
 
                 <div className="space-y-2">
