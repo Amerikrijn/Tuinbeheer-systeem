@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -36,6 +36,7 @@ import type { PlantBed } from "@/lib/supabase"
 
 export default function AddPlantPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [plantBeds, setPlantBeds] = useState<PlantBed[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -50,6 +51,15 @@ export default function AddPlantPage() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [notes, setNotes] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState<string>("")
+
+  // Pre-select flower from URL parameter
+  useEffect(() => {
+    const flowerParam = searchParams.get('flower')
+    if (flowerParam) {
+      setSelectedFlower(flowerParam)
+      setSearchTerm(flowerParam) // Also set search term to show the flower
+    }
+  }, [searchParams])
 
   // Filter flowers to only show eenjarig (1-jarige)
   const eenjarigFlowers = DUTCH_FLOWERS.filter(flower => flower.category === 'eenjarig')
@@ -187,6 +197,12 @@ export default function AddPlantPage() {
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Terug
+              </Button>
+            </Link>
+            <Link href="/plant-beds/popular-flowers">
+              <Button variant="outline" size="sm">
+                <Palette className="h-4 w-4 mr-2" />
+                60 Populaire Bloemen
               </Button>
             </Link>
             <div>
