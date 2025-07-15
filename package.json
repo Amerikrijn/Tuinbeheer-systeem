@@ -23,7 +23,11 @@
     "import:step8": "node scripts/import/08-final-verification.js",
     "import:step9": "node scripts/import/09-summary.js",
     "import:all": "node scripts/import/run-all-steps.js",
-    "import:prod": "node scripts/import/import-prod-schema.js"
+    "import:prod": "node scripts/import/import-prod-schema.js",
+    "update-db": "node scripts/update-database-to-supabase.js",
+    "update-db:test": "NODE_ENV=test node scripts/update-database-to-supabase.js",
+    "update-db:sample": "node scripts/update-database-to-supabase.js --add-sample-data",
+    "test-routes": "node scripts/test-all-routes.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
