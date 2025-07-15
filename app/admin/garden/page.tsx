@@ -23,9 +23,6 @@ interface EditGarden {
   width: string
   location: string
   gardenType: string
-  maintenanceLevel: string
-  soilCondition: string
-  wateringSystem: string
   notes: string
 }
 
@@ -44,9 +41,6 @@ export default function GardenPage() {
     width: "",
     location: "",
     gardenType: "",
-    maintenanceLevel: "",
-    soilCondition: "",
-    wateringSystem: "",
     notes: "",
   })
 
@@ -64,9 +58,6 @@ export default function GardenPage() {
           width: gardenData.width,
           location: gardenData.location,
           gardenType: gardenData.gardenType,
-          maintenanceLevel: gardenData.maintenanceLevel,
-          soilCondition: gardenData.soilCondition,
-          wateringSystem: gardenData.wateringSystem,
           notes: gardenData.notes || "",
         })
       } catch (error) {
@@ -123,20 +114,7 @@ export default function GardenPage() {
     "Educational garden",
   ]
 
-  const maintenanceLevelOptions = [
-    "Low - minimal maintenance",
-    "Medium - regular maintenance",
-    "High - intensive maintenance",
-  ]
 
-  const wateringSystemOptions = [
-    "Manual",
-    "Drip irrigation",
-    "Sprinkler system",
-    "Drip irrigation + manual",
-    "Rainwater collection",
-    "Automatic system",
-  ]
 
   // Calculate statistics
   const plantBeds = getMockPlantBeds()
