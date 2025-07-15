@@ -30,9 +30,6 @@ export interface Garden {
   length: string
   width: string
   gardenType: string
-  maintenanceLevel: string
-  soilCondition: string
-  wateringSystem: string
   establishedDate: string
   lastModifiedDate: string
   lastModifiedBy: string
@@ -217,9 +214,6 @@ export function getMockGarden(): Garden {
     length: "30m",
     width: "15m",
     gardenType: "Community garden",
-    maintenanceLevel: "Medium - regular maintenance",
-    soilCondition: "Well-drained, fertile soil with good organic content",
-    wateringSystem: "Drip irrigation + manual",
     establishedDate: "2020-03-15",
     lastModifiedDate: "2024-11-15",
     lastModifiedBy: "Garden Admin",

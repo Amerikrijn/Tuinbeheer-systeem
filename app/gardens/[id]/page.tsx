@@ -177,17 +177,23 @@ export default function GardenDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {garden.total_area && (
+                {(garden.total_area || (garden.length && garden.width)) && (
                   <div>
                     <div className="font-medium">Oppervlakte</div>
-                    <div className="text-sm text-gray-600">{garden.total_area}</div>
+                    <div className="text-sm text-gray-600">
+                      {garden.total_area || 
+                        (garden.length && garden.width && 
+                          `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
+                        )
+                      }
+                    </div>
                   </div>
                 )}
                 {garden.length && garden.width && (
                   <div>
                     <div className="font-medium">Afmetingen</div>
                     <div className="text-sm text-gray-600">
-                      {garden.length} × {garden.width}
+                      {garden.length} × {garden.width} m
                     </div>
                   </div>
                 )}
@@ -209,31 +215,7 @@ export default function GardenDetailPage() {
                 </>
               )}
 
-              {(garden.maintenance_level || garden.watering_system || garden.soil_condition) && (
-                <>
-                  <Separator />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {garden.maintenance_level && (
-                      <div>
-                        <div className="font-medium">Onderhoudsniveau</div>
-                        <div className="text-sm text-gray-600">{garden.maintenance_level}</div>
-                      </div>
-                    )}
-                    {garden.watering_system && (
-                      <div>
-                        <div className="font-medium">Bewateringssysteem</div>
-                        <div className="text-sm text-gray-600">{garden.watering_system}</div>
-                      </div>
-                    )}
-                    {garden.soil_condition && (
-                      <div className="md:col-span-2">
-                        <div className="font-medium">Grondconditie</div>
-                        <div className="text-sm text-gray-600">{garden.soil_condition}</div>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
+
 
               {garden.notes && (
                 <>
