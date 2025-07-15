@@ -17,10 +17,10 @@ export const DUTCH_FLOWERS: FlowerData[] = [
     name: 'Zonnebloem',
     scientificName: 'Helianthus annuus',
     category: 'eenjarig',
-    bloeiperiode: 'Juli-Oktober',
-    kleur: ['Geel', 'Oranje'],
+    bloeiperiode: 'Juli-September',
+    kleur: ['Geel', 'Oranje', 'Rood'],
     popular: true,
-    description: 'Grote, vrolijke bloem die de zon volgt'
+    description: 'Grote bloem die de zon volgt'
   },
   {
     name: 'Petunia',
@@ -483,6 +483,88 @@ export const DUTCH_FLOWERS: FlowerData[] = [
     kleur: ['Geel', 'Oranje', 'Rood'],
     popular: true,
     description: 'Grote bloem die de zon volgt'
+  },
+  // Additional popular flowers to reach 60 total
+  {
+    name: 'Afrikaantje',
+    scientificName: 'Tagetes patula',
+    category: 'eenjarig',
+    bloeiperiode: 'Mei-Oktober',
+    kleur: ['Geel', 'Oranje', 'Rood'],
+    popular: true,
+    description: 'Compacte bloem die insecten afweet'
+  },
+  {
+    name: 'Balsemien',
+    scientificName: 'Impatiens balsamina',
+    category: 'eenjarig',
+    bloeiperiode: 'Juni-September',
+    kleur: ['Wit', 'Roze', 'Rood', 'Paars'],
+    popular: true,
+    description: 'Klassieke tuin bloem'
+  },
+  {
+    name: 'Calendula',
+    scientificName: 'Calendula officinalis',
+    category: 'eenjarig',
+    bloeiperiode: 'Mei-Oktober',
+    kleur: ['Geel', 'Oranje'],
+    popular: true,
+    description: 'Geneeskrachtige goudsbloem'
+  },
+  {
+    name: 'Duizendschoon',
+    scientificName: 'Bellis perennis',
+    category: 'vaste_planten',
+    bloeiperiode: 'Maart-November',
+    kleur: ['Wit', 'Roze', 'Rood'],
+    popular: true,
+    description: 'Vrolijke voorjaarsbloem'
+  },
+  {
+    name: 'Ganzenbloem',
+    scientificName: 'Leucanthemum vulgare',
+    category: 'vaste_planten',
+    bloeiperiode: 'Mei-September',
+    kleur: ['Wit'],
+    popular: true,
+    description: 'Wilde veldbloem'
+  },
+  {
+    name: 'Korenbloem',
+    scientificName: 'Centaurea cyanus',
+    category: 'eenjarig',
+    bloeiperiode: 'Mei-September',
+    kleur: ['Blauw', 'Wit', 'Roze'],
+    popular: true,
+    description: 'Klassieke veldbloem'
+  },
+  {
+    name: 'Klaproos',
+    scientificName: 'Papaver rhoeas',
+    category: 'eenjarig',
+    bloeiperiode: 'Mei-Juli',
+    kleur: ['Rood', 'Wit', 'Roze'],
+    popular: true,
+    description: 'Wilde veldbloem'
+  },
+  {
+    name: 'Ridderspoor',
+    scientificName: 'Consolida ajacis',
+    category: 'eenjarig',
+    bloeiperiode: 'Juni-September',
+    kleur: ['Blauw', 'Wit', 'Roze', 'Paars'],
+    popular: true,
+    description: 'Elegante hoogopgaande bloem'
+  },
+  {
+    name: 'Siernetel',
+    scientificName: 'Coleus blumei',
+    category: 'eenjarig',
+    bloeiperiode: 'Juli-Oktober',
+    kleur: ['Groen', 'Rood', 'Paars'],
+    popular: true,
+    description: 'Bladplant met kleurrijk loof'
   }
 ];
 
