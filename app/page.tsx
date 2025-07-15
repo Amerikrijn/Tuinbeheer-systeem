@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { TreePine, Leaf, Plus, ArrowRight, Palette, Eye, Settings, Users } from "lucide-react"
+import { TreePine, Palette, Eye } from "lucide-react"
 
 export default function HomePage() {
   return (
@@ -18,71 +18,29 @@ export default function HomePage() {
             Tuinbeheer Systeem
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Beheer je tuinen, plantvakken en planten op een professionele manier. 
+            Beheer je tuinen en plantvakken op een professionele manier. 
             Met visuele tuin designer voor interactieve planning.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/plant-beds">
-              <Button size="lg" className="bg-green-600 hover:bg-green-700">
-                <Leaf className="h-5 w-5 mr-2" />
-                Plant Toevoegen
-                <ArrowRight className="h-5 w-5 ml-2" />
-              </Button>
-            </Link>
-            <Link href="/visual-garden-demo">
-              <Button size="lg" variant="outline" className="bg-white/80 backdrop-blur-sm border-green-300 hover:bg-green-50">
-                <Eye className="h-5 w-5 mr-2" />
-                Visueel Overzicht
-              </Button>
-            </Link>
-          </div>
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-700">
                 <TreePine className="h-6 w-6" />
-                Tuin
+                Tuinen
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 mb-4">
-                Beheer je tuinen met gedetailleerde informatie over locatie, afmetingen en kenmerken.
+                Beheer je tuinen met gedetailleerde informatie over locatie, afmetingen en kenmerken. Plantvakken zijn altijd toegankelijk via je tuinen.
               </p>
               <Link href="/gardens">
                 <Button variant="outline" size="sm" className="bg-transparent">
                   Ga naar Tuinen
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-blue-700">
-                <Leaf className="h-6 w-6" />
-                Plantvak
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                Organiseer je tuinen in plantvakken met specifieke eigenschappen zoals zonligging en grondtype.
-              </p>
-              <div className="flex gap-2">
-                <Link href="/plant-beds">
-                  <Button variant="outline" size="sm" className="bg-transparent">
-                    Plantvakken Bekijken
-                  </Button>
-                </Link>
-                <Link href="/plant-beds/add-plant">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                    <Leaf className="h-4 w-4 mr-1" />
-                    Bloemen Registreren
-                  </Button>
-                </Link>
-              </div>
             </CardContent>
           </Card>
 
@@ -95,53 +53,16 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 mb-4">
-                Interactieve visuele weergave van je tuin met drag & drop functionaliteit voor plantvakken.
+                Interactieve visuele weergave van je tuin met drag & drop functionaliteit voor plantvakken en planten.
               </p>
-              <div className="flex gap-2">
-                <Link href="/visual-garden-demo">
-                  <Button variant="outline" size="sm" className="bg-transparent">
-                    Designer Proberen
-                  </Button>
-                </Link>
-                <Link href="/plant-beds/layout">
-                  <Button variant="outline" size="sm" className="bg-transparent">
-                    <Users className="h-4 w-4 mr-1" />
-                    Plantvakken Layout
-                  </Button>
-                </Link>
-              </div>
+              <Link href="/visual-garden-demo">
+                <Button variant="outline" size="sm" className="bg-transparent">
+                  Designer Proberen
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
-
-        {/* Quick Actions */}
-        <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
-          <CardHeader>
-            <CardTitle>Snelle Acties</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link href="/plant-beds">
-                <Button className="w-full bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Plant Toevoegen
-                </Button>
-              </Link>
-              <Link href="/visual-garden-demo">
-                <Button variant="outline" className="w-full bg-transparent">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Visueel Overzicht
-                </Button>
-              </Link>
-              <Link href="/plant-beds/add-plant">
-                <Button variant="outline" className="w-full bg-transparent">
-                  <Leaf className="h-4 w-4 mr-2" />
-                  Bloemen Registreren
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Getting Started */}
         <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg">
@@ -155,9 +76,9 @@ export default function HomePage() {
                   <span className="text-green-600 font-bold">1</span>
                 </div>
                 <div>
-                  <h3 className="font-medium">Bekijk plantvakken</h3>
+                  <h3 className="font-medium">Ga naar Tuinen</h3>
                   <p className="text-sm text-gray-600">
-                    Start met het bekijken van bestaande plantvakken en hun eigenschappen.
+                    Start met het bekijken van je tuinen. Plantvakken zijn altijd onderdeel van een tuin.
                   </p>
                 </div>
               </div>
@@ -166,9 +87,9 @@ export default function HomePage() {
                   <span className="text-blue-600 font-bold">2</span>
                 </div>
                 <div>
-                  <h3 className="font-medium">Registreer bloemen</h3>
+                  <h3 className="font-medium">Bekijk plantvakken</h3>
                   <p className="text-sm text-gray-600">
-                    Registreer eenjarige bloemen met steellengte en foto's voor je plantvakken.
+                    Gebruik de bekijk functie om plantvakken te openen en planten te beheren.
                   </p>
                 </div>
               </div>
@@ -179,18 +100,7 @@ export default function HomePage() {
                 <div>
                   <h3 className="font-medium">Gebruik Visual Garden Designer</h3>
                   <p className="text-sm text-gray-600">
-                    Bekijk je tuin visueel en plaats plantvakken interactief met drag & drop.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                  <span className="text-orange-600 font-bold">4</span>
-                </div>
-                <div>
-                  <h3 className="font-medium">Beheer je planten</h3>
-                  <p className="text-sm text-gray-600">
-                    Houd de groei en status van je planten bij met gedetailleerde informatie.
+                    Bekijk je tuin visueel op volledig scherm met verplaatsbare plantvakken en planten.
                   </p>
                 </div>
               </div>
