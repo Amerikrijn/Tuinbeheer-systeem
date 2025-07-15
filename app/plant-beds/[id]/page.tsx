@@ -28,6 +28,7 @@ import {
   User,
   AlertTriangle,
   RefreshCw,
+  Move,
 } from "lucide-react"
 import { getMockPlantBeds, type PlantBed } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
@@ -241,12 +242,20 @@ export default function PlantBedDetailPage() {
                   <Plus className="h-5 w-5 text-blue-600" />
                   Planten Overzicht ({plantBed.plants.length})
                 </CardTitle>
-                <Link href={`/plant-beds/${plantBed.id}/add-plant`}>
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Plant Toevoegen
-                  </Button>
-                </Link>
+                <div className="flex gap-2">
+                  <Link href={`/plant-beds/${plantBed.id}/plants`}>
+                    <Button size="sm" variant="outline" className="bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100">
+                      <Leaf className="h-4 w-4 mr-2" />
+                      Bekijk Planten
+                    </Button>
+                  </Link>
+                  <Link href={`/plant-beds/${plantBed.id}/plants/new`}>
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Plant Toevoegen
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -279,7 +288,7 @@ export default function PlantBedDetailPage() {
                   <Plus className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen planten</h3>
                   <p className="text-gray-600 mb-4">Begin met het toevoegen van je eerste plant aan dit plantvak.</p>
-                  <Link href={`/plant-beds/${plantBed.id}/add-plant`}>
+                  <Link href={`/plant-beds/${plantBed.id}/plants/new`}>
                     <Button className="bg-green-600 hover:bg-green-700">
                       <Plus className="h-4 w-4 mr-2" />
                       Eerste Plant Toevoegen
@@ -299,16 +308,22 @@ export default function PlantBedDetailPage() {
               <CardTitle>Snelle Acties</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Link href={`/plant-beds/${plantBed.id}/add-plant`} className="block">
+              <Link href={`/plant-beds/${plantBed.id}/plants`} className="block">
+                <Button variant="outline" className="w-full bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100">
+                  <Leaf className="h-4 w-4 mr-2" />
+                  Bekijk Planten
+                </Button>
+              </Link>
+              <Link href={`/plant-beds/${plantBed.id}/plants/new`} className="block">
                 <Button className="w-full bg-green-600 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
                   Plant Toevoegen
                 </Button>
               </Link>
-              <Link href={`/plant-beds/${plantBed.id}/edit`} className="block">
-                <Button variant="outline" className="w-full bg-transparent">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Plantvak Bewerken
+              <Link href={`/plant-beds/${plantBed.id}/layout`} className="block">
+                <Button variant="outline" className="w-full bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100">
+                  <Move className="h-4 w-4 mr-2" />
+                  Visuele Layout
                 </Button>
               </Link>
               <Button

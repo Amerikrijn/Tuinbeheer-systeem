@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { TreePine, Leaf, Plus, ArrowRight, Palette, Eye, Settings } from "lucide-react"
+import { TreePine, Leaf, Plus, ArrowRight, Palette, Eye, Settings, Users } from "lucide-react"
 
 export default function HomePage() {
   return (
@@ -39,21 +39,21 @@ export default function HomePage() {
         </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="border-0 bg-white/80 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-700">
                 <TreePine className="h-6 w-6" />
-                Tuinbeheer
+                Tuin
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 mb-4">
-                Beheer meerdere tuinen met gedetailleerde informatie over locatie, afmetingen en kenmerken.
+                Beheer je tuinen met gedetailleerde informatie over locatie, afmetingen en kenmerken.
               </p>
-              <Link href="/visual-garden-demo">
+              <Link href="/gardens">
                 <Button variant="outline" size="sm" className="bg-transparent">
-                  Visueel Overzicht
+                  Ga naar Tuinen
                 </Button>
               </Link>
             </CardContent>
@@ -63,7 +63,7 @@ export default function HomePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-blue-700">
                 <Leaf className="h-6 w-6" />
-                Plantvakken
+                Plantvak
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -72,7 +72,7 @@ export default function HomePage() {
               </p>
               <Link href="/plant-beds">
                 <Button variant="outline" size="sm" className="bg-transparent">
-                  Plantvakken Bekijken
+                  Ga naar Plantvakken
                 </Button>
               </Link>
             </CardContent>
@@ -95,10 +95,10 @@ export default function HomePage() {
                     Designer Proberen
                   </Button>
                 </Link>
-                <Link href="/flower-selector-demo">
+                <Link href="/plant-beds/layout">
                   <Button variant="outline" size="sm" className="bg-transparent">
-                    <Leaf className="h-4 w-4 mr-1" />
-                    Bloemennamen
+                    <Users className="h-4 w-4 mr-1" />
+                    Plantvakken Layout
                   </Button>
                 </Link>
               </div>
