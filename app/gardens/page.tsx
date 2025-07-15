@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, Settings } from "lucide-react"
 import { getGardens } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 
@@ -167,11 +167,17 @@ export default function GardensPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent">
-                    <Link href={`/gardens/${garden.id}`}>Bekijken</Link>
-                  </Button>
                   <Button asChild size="sm" className="flex-1 bg-green-600 hover:bg-green-700">
-                    <Link href={`/gardens/${garden.id}/plant-beds`}>Plantvakken</Link>
+                    <Link href={`/gardens/${garden.id}/plantvak-view`}>
+                      <Eye className="h-4 w-4 mr-2" />
+                      Bekijk
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent">
+                    <Link href={`/gardens/${garden.id}`}>
+                      <Settings className="h-4 w-4 mr-2" />
+                      Beheer
+                    </Link>
                   </Button>
                 </div>
               </CardContent>
