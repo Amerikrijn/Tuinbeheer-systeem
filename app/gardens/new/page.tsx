@@ -263,7 +263,14 @@ export default function NewGardenPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="totalArea">Totale oppervlakte (m²)</Label>
+                    <Label htmlFor="totalArea">
+                      Totale oppervlakte (m²)
+                      {newGarden.length && newGarden.width && !newGarden.totalArea && (
+                        <span className="text-sm text-green-600 ml-2">
+                          (Berekend: {(parseFloat(newGarden.length) * parseFloat(newGarden.width)).toFixed(1)} m²)
+                        </span>
+                      )}
+                    </Label>
                     <Input
                       id="totalArea"
                       type="number"
@@ -273,6 +280,11 @@ export default function NewGardenPage() {
                           ...p,
                           totalArea: e.target.value,
                         }))
+                      }
+                      placeholder={
+                        newGarden.length && newGarden.width && !newGarden.totalArea
+                          ? `${(parseFloat(newGarden.length) * parseFloat(newGarden.width)).toFixed(1)} (automatisch berekend)`
+                          : "Voer oppervlakte handmatig in"
                       }
                     />
                   </div>
