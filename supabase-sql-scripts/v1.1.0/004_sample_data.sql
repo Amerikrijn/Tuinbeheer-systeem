@@ -1,5 +1,5 @@
 -- ===================================================================
--- SUPABASE SQL SCRIPTS v1.0.0
+-- SUPABASE SQL SCRIPTS v1.1.0
 -- File: 004_sample_data.sql
 -- ===================================================================
 -- Inserts sample data for development and testing
