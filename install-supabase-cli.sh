@@ -12,6 +12,10 @@ echo "🔧 Installing Supabase CLI..."
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "📦 Installing for Linux..."
     
+    # Create temporary directory
+    temp_dir=$(mktemp -d)
+    cd "$temp_dir"
+    
     # Download and install Supabase CLI
     curl -fsSL https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz -o supabase.tar.gz
     
@@ -24,11 +28,14 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "✅ Supabase CLI installed successfully!"
     else
         echo "❌ Failed to extract Supabase CLI"
+        cd /workspace
+        rm -rf "$temp_dir"
         exit 1
     fi
     
     # Clean up
-    rm supabase.tar.gz
+    cd /workspace
+    rm -rf "$temp_dir"
     
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     echo "📦 Installing for macOS..."
