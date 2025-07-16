@@ -13,7 +13,6 @@
     "dev:prod": "APP_ENV=prod next dev",
     "build:prod": "APP_ENV=prod next build",
     "start:prod": "APP_ENV=prod next start",
-    "setup:supabase": "node scripts/supabase-setup.js",
     "clean": "rm -rf .next && rm -rf node_modules/.cache",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
