@@ -44,13 +44,13 @@ git clone [repository-url]
 cd garden-management-system
 
 # 2. Install dependencies
-pnpm install
+npm install
 
 # 3. Set up environment
 cp .env.example .env.local
 
-# 4. Configure Supabase (single command)
-npm run setup:supabase
+# 4. Configure Supabase
+# Follow the Supabase CLI installation guide
 
 # 5. Start development server
 npm run dev
@@ -133,9 +133,6 @@ npm run dev
 npm run dev                     # Start development server
 npm run build                   # Build for production
 npm run start                   # Start production server
-
-# Database Setup
-npm run setup:supabase          # Single command Supabase setup
 
 # Code Quality
 npm run lint                    # Run ESLint

@@ -36,8 +36,7 @@ pnpm install
 # Set up environment variables
 cp .env.example .env.local
 
-# Set up database
-pnpm run setup:database
+# Set up database using Supabase CLI
 
 # Start development server
 pnpm run dev
@@ -80,11 +79,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST=your-test-anon-key
 
 3. **Database Setup**
    ```bash
-   # Interactive setup
-   pnpm run setup:database:interactive
-   
-   # Or automated setup
-   pnpm run setup:database
+   # Use Supabase CLI for database setup
+   # Follow Supabase CLI documentation
    ```
 
 ### Development Workflow
@@ -207,11 +203,8 @@ garden-management-system/
 
 2. **Database Schema Setup**
    ```bash
-   # Run setup script
-   pnpm run setup:database
-   
-   # Or run SQL manually
-   psql -h your-db-host -U postgres -d postgres -f supabase-sql-scripts/v1.1.0/complete-setup-v1.1.0.sql
+   # Use Supabase CLI for database setup
+   # Follow Supabase CLI documentation
    ```
 
 3. **Environment Configuration**

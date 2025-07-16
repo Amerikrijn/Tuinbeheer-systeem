@@ -43,7 +43,7 @@ cp .env.example .env.local
 
 ```bash
 # Run the interactive setup script
-pnpm run setup:database
+# Use Supabase CLI for database setup
 ```
 
 Follow the prompts to enter your Supabase credentials.
@@ -73,7 +73,7 @@ Follow the prompts to enter your Supabase credentials.
 
 ```bash
 # Direct setup with credentials
-node scripts/setup-supabase.js "https://your-project-id.supabase.co" "eyJhbGciOiJIUzI1NiIs..."
+# Use Supabase CLI for database setup
 ```
 
 ### 5. Start Development Server
