@@ -34,9 +34,20 @@ export default function HomePage() {
         setGardens(data)
       } catch (error) {
         console.error("Failed to load gardens:", error)
-        const errorMessage = error instanceof Error 
-          ? error.message 
-          : "Database connection failed. Please check your Supabase configuration."
+        let errorMessage = "Database connection failed. Please check your Supabase configuration."
+        
+        if (error instanceof Error) {
+          if (error.message.includes("relation") || error.message.includes("table")) {
+            errorMessage = "Database tables not found. Please run the database setup script first."
+          } else if (error.message.includes("timeout")) {
+            errorMessage = "Database connection timeout. Please check your internet connection and try again."
+          } else if (error.message.includes("authentication") || error.message.includes("auth")) {
+            errorMessage = "Database authentication failed. Please check your Supabase credentials."
+          } else {
+            errorMessage = error.message
+          }
+        }
+        
         setError(errorMessage)
       } finally {
         setLoading(false)
@@ -77,6 +88,15 @@ export default function HomePage() {
           <CardContent>
             <p className="text-red-700 mb-4">{error}</p>
             <div className="space-y-4">
+              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                <h3 className="font-semibold mb-2 text-yellow-800">Troubleshooting Steps:</h3>
+                <ol className="text-sm text-yellow-700 space-y-1 mb-4">
+                  <li>1. Check if your Supabase project is running</li>
+                  <li>2. Verify your environment variables are set correctly</li>
+                  <li>3. Run the database setup script in Supabase SQL Editor</li>
+                  <li>4. Check your internet connection</li>
+                </ol>
+              </div>
               <div className="bg-white p-4 rounded-lg border">
                 <h3 className="font-semibold mb-2">Quick Start Options:</h3>
                 <div className="space-y-2">
