@@ -55,7 +55,7 @@ The following scripts were already using `IF NOT EXISTS` correctly:
 - `supabase-sql-scripts/v1.1.0/upgrade-from-v1.0.0.sql`
 - `supabase-sql-scripts/v1.1.0/complete-setup-v1.1.0.sql` (constraints only)
 - `supabase/migrations/008_visual_garden_constraints.sql`
-- `complete-setup-v1.1.0.sql`
+ - `supabase-sql-scripts/v1.1.0/complete-setup-v1.1.0.sql`
 
 ## Testing
 
@@ -108,7 +108,7 @@ The following scripts were already using `IF NOT EXISTS` correctly:
    -- Copy and paste the contents of 006_visual_garden_constraints.sql
    
    -- Test the complete setup
-   -- Copy and paste the contents of complete-setup-v1.1.0.sql
+   -- Copy and paste the contents of supabase-sql-scripts/v1.1.0/complete-setup-v1.1.0.sql
    ```
 
 ## Expected Results

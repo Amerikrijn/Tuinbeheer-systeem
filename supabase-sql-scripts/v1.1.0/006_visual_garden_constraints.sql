@@ -52,11 +52,6 @@ BEGIN
         ALTER TABLE gardens ADD CONSTRAINT check_default_zoom_positive CHECK (default_zoom > 0);
     END IF;
 END $$;
-ALTER TABLE gardens
-ADD CONSTRAINT IF NOT EXISTS check_canvas_width_positive CHECK (canvas_width > 0),
-ADD CONSTRAINT IF NOT EXISTS check_canvas_height_positive CHECK (canvas_height > 0),
-ADD CONSTRAINT IF NOT EXISTS check_grid_size_positive CHECK (grid_size > 0),
-ADD CONSTRAINT IF NOT EXISTS check_default_zoom_positive CHECK (default_zoom > 0);
 
 -- ===================================================================
 -- 4. PERFORMANCE INDICES
