@@ -304,8 +304,10 @@ BEGIN;
 DROP VIEW IF EXISTS visual_garden_data;
 
 -- Verwijder functies
-DROP FUNCTION IF EXISTS check_plant_bed_collision;
-DROP FUNCTION IF EXISTS check_canvas_boundaries;
+DROP FUNCTION IF EXISTS check_plant_bed_collision(UUID, VARCHAR(10), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2));
+DROP FUNCTION IF EXISTS check_plant_bed_collision(UUID, UUID, DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2));
+DROP FUNCTION IF EXISTS check_canvas_boundaries(UUID, DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2));
+DROP FUNCTION IF EXISTS check_canvas_boundaries(UUID, DECIMAL, DECIMAL, DECIMAL, DECIMAL);
 DROP FUNCTION IF EXISTS update_visual_updated_at;
 
 -- Verwijder triggers
