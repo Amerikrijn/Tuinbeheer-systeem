@@ -7,35 +7,190 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, Settings } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, Settings, AlertCircle, Sparkles } from "lucide-react"
 import { getGardens } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 
 export default function HomePage() {
   const [gardens, setGardens] = React.useState<Garden[]>([])
-  const [loading, setLoading] = React.useState(true)
+  const [loading, setLoading] = React.useState(false) // Start with false to show welcome immediately
+  const [error, setError] = React.useState<string | null>(null)
   const [searchTerm, setSearchTerm] = React.useState("")
 
   React.useEffect(() => {
     async function loadGardens() {
       try {
+        setLoading(true)
+        setError(null)
         const data = await getGardens()
         setGardens(data)
       } catch (error) {
         console.error("Failed to load gardens:", error)
+        setError("Database connection failed. Please check your Supabase configuration.")
       } finally {
         setLoading(false)
       }
     }
 
+    // Load gardens in background
     loadGardens()
   }, [])
 
   const filteredGardens = gardens.filter(
     (garden) =>
       garden.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      garden.location.toLowerCase().includes(searchTerm.toLowerCase()),
+      (garden.location && garden.location.toLowerCase().includes(searchTerm.toLowerCase())),
   )
+
+  // Show welcome screen when no gardens and not loading
+  if (!loading && gardens.length === 0 && !error) {
+    return (
+      <div className="container mx-auto space-y-6 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
+              <TreePine className="h-7 w-7 text-green-600" />
+              Tuinbeheer Systeem
+            </h1>
+            <p className="text-muted-foreground">Welcome to your Garden Management System</p>
+          </div>
+          <Button asChild className="bg-green-600 hover:bg-green-700">
+            <Link href="/gardens/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Nieuwe Tuin
+            </Link>
+          </Button>
+        </div>
+
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="mb-6">
+            <TreePine className="h-16 w-16 text-green-600 mb-4" />
+            <Sparkles className="h-8 w-8 text-yellow-500 -mt-8 ml-8" />
+          </div>
+          <h2 className="text-2xl font-semibold mb-4">Welcome to Tuinbeheer Systeem</h2>
+          <p className="text-muted-foreground mb-8 max-w-md">
+            Your comprehensive garden management solution. Start by adding your first garden or explore the features.
+          </p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Plus className="h-5 w-5 text-green-600" />
+                  Create Garden
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Add your first garden to start managing plant beds and plants.
+                </p>
+                <Button asChild className="w-full bg-green-600 hover:bg-green-700">
+                  <Link href="/gardens/new">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Garden
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Eye className="h-5 w-5 text-blue-600" />
+                  Visual Demo
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Try the interactive visual garden designer.
+                </p>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/visual-garden-demo">
+                    <Eye className="mr-2 h-4 w-4" />
+                    Try Demo
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Settings className="h-5 w-5 text-purple-600" />
+                  Admin Panel
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Access the admin panel for system management.
+                </p>
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/admin">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Admin Panel
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="container mx-auto space-y-6 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
+              <TreePine className="h-7 w-7 text-green-600" />
+              Tuinbeheer Systeem
+            </h1>
+            <p className="text-muted-foreground">Garden Management System</p>
+          </div>
+        </div>
+
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-800">
+              <AlertCircle className="h-5 w-5" />
+              Database Connection Error
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-700 mb-4">{error}</p>
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded-lg border">
+                <h3 className="font-semibold mb-2">Quick Start Options:</h3>
+                <div className="space-y-2">
+                  <Button asChild className="w-full bg-green-600 hover:bg-green-700">
+                    <Link href="/visual-garden-demo">
+                      <Eye className="mr-2 h-4 w-4" />
+                      Try Visual Garden Demo
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/plant-beds">
+                      <Leaf className="mr-2 h-4 w-4" />
+                      View Plant Beds
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/admin">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -44,9 +199,9 @@ export default function HomePage() {
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
               <TreePine className="h-7 w-7 text-green-600" />
-              Tuinen Overzicht
+              Tuinbeheer Systeem
             </h1>
-            <p className="text-muted-foreground">Beheer al je tuinen op één plek</p>
+            <p className="text-muted-foreground">Loading your gardens...</p>
           </div>
           <Button asChild className="bg-green-600 hover:bg-green-700">
             <Link href="/gardens/new">
@@ -86,7 +241,7 @@ export default function HomePage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
             <TreePine className="h-7 w-7 text-green-600" />
-            Tuinen Overzicht
+            Tuinbeheer Systeem
           </h1>
           <p className="text-muted-foreground">Beheer al je tuinen op één plek</p>
         </div>
@@ -118,16 +273,24 @@ export default function HomePage() {
       {gardens.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <TreePine className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Nog geen tuinen</h2>
+          <h2 className="text-xl font-semibold mb-2">Welkom bij Tuinbeheer Systeem</h2>
           <p className="text-muted-foreground mb-6 max-w-md">
             Begin met het toevoegen van je eerste tuin om plantvakken en planten te kunnen beheren.
           </p>
-          <Button asChild className="bg-green-600 hover:bg-green-700">
-            <Link href="/gardens/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Eerste Tuin Toevoegen
-            </Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button asChild className="bg-green-600 hover:bg-green-700">
+              <Link href="/gardens/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Eerste Tuin Toevoegen
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/visual-garden-demo">
+                <Eye className="mr-2 h-4 w-4" />
+                Try Visual Demo
+              </Link>
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">

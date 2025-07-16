@@ -175,6 +175,16 @@ export interface Garden {
   id: string;
   name: string;
   description?: string;
+  location?: string;
+  total_area?: string;
+  length?: string;
+  width?: string;
+  height?: string;
+  garden_type?: string;
+  established_date?: string;
+  soil_type?: string;
+  notes?: string;
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
   // NEW: Visual Garden Designer fields
