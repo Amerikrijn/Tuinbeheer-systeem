@@ -44,16 +44,16 @@ git clone [repository-url]
 cd garden-management-system
 
 # 2. Install dependencies
-pnpm install
+npm install
 
 # 3. Set up environment
 cp .env.example .env.local
 
-# 4. Configure database (interactive)
-pnpm run setup:database
+# 4. Configure Supabase
+# Follow the Supabase CLI installation guide
 
 # 5. Start development server
-pnpm run dev
+npm run dev
 ```
 
 🎉 **That's it!** Your garden management system is now running at `http://localhost:3000`
@@ -130,23 +130,15 @@ pnpm run dev
 
 ```bash
 # Development
-pnpm run dev                    # Start development server
-pnpm run build                  # Build for production
-pnpm run start                  # Start production server
-
-# Database
-pnpm run setup:database         # Interactive database setup
-pnpm run test:connection        # Test database connection
-pnpm run db:migrate             # Run database migrations
+npm run dev                     # Start development server
+npm run build                   # Build for production
+npm run start                   # Start production server
 
 # Code Quality
-pnpm run lint                   # Run ESLint
-pnpm run type-check             # TypeScript type checking
-pnpm run format                 # Format code with Prettier
-
-# Testing
-pnpm run test:routes            # Test all application routes
-pnpm run test:database          # Test database operations
+npm run lint                    # Run ESLint
+npm run type-check              # TypeScript type checking
+npm run format                  # Format code with Prettier
+npm run lint:fix                # Fix linting issues
 ```
 
 ### 🤝 Contributing
