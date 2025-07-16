@@ -66,18 +66,18 @@ ON plant_beds(visual_updated_at);
 
 -- Positionering constraints
 ALTER TABLE plant_beds 
-ADD CONSTRAINT check_position_x_positive CHECK (position_x >= 0),
-ADD CONSTRAINT check_position_y_positive CHECK (position_y >= 0),
-ADD CONSTRAINT check_visual_width_positive CHECK (visual_width > 0),
-ADD CONSTRAINT check_visual_height_positive CHECK (visual_height > 0),
-ADD CONSTRAINT check_rotation_range CHECK (rotation >= -180 AND rotation <= 180);
+ADD CONSTRAINT IF NOT EXISTS check_position_x_positive CHECK (position_x >= 0),
+ADD CONSTRAINT IF NOT EXISTS check_position_y_positive CHECK (position_y >= 0),
+ADD CONSTRAINT IF NOT EXISTS check_visual_width_positive CHECK (visual_width > 0),
+ADD CONSTRAINT IF NOT EXISTS check_visual_height_positive CHECK (visual_height > 0),
+ADD CONSTRAINT IF NOT EXISTS check_rotation_range CHECK (rotation >= -180 AND rotation <= 180);
 
 -- Canvas configuratie constraints
 ALTER TABLE gardens
-ADD CONSTRAINT check_canvas_width_positive CHECK (canvas_width > 0),
-ADD CONSTRAINT check_canvas_height_positive CHECK (canvas_height > 0),
-ADD CONSTRAINT check_grid_size_positive CHECK (grid_size > 0),
-ADD CONSTRAINT check_default_zoom_positive CHECK (default_zoom > 0);
+ADD CONSTRAINT IF NOT EXISTS check_canvas_width_positive CHECK (canvas_width > 0),
+ADD CONSTRAINT IF NOT EXISTS check_canvas_height_positive CHECK (canvas_height > 0),
+ADD CONSTRAINT IF NOT EXISTS check_grid_size_positive CHECK (grid_size > 0),
+ADD CONSTRAINT IF NOT EXISTS check_default_zoom_positive CHECK (default_zoom > 0);
 
 -- ===================================================================
 -- 5. TRIGGERS VOOR AUTOMATISCHE UPDATES

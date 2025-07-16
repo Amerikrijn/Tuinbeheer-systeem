@@ -8,6 +8,33 @@
 -- ===================================================================
 
 -- ===================================================================
+-- 0. CLEANUP EXISTING DATABASE
+-- ===================================================================
+
+-- Drop existing tables in correct order (respecting foreign key constraints)
+DROP TABLE IF EXISTS plants CASCADE;
+DROP TABLE IF EXISTS plant_beds CASCADE;
+DROP TABLE IF EXISTS gardens CASCADE;
+
+-- Drop any other tables that might exist from previous setups
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS garden_sessions CASCADE;
+DROP TABLE IF EXISTS session_registrations CASCADE;
+DROP TABLE IF EXISTS tasks CASCADE;
+DROP TABLE IF EXISTS task_comments CASCADE;
+DROP TABLE IF EXISTS photos CASCADE;
+DROP TABLE IF EXISTS session_photos CASCADE;
+DROP TABLE IF EXISTS task_photos CASCADE;
+DROP TABLE IF EXISTS plant_photos CASCADE;
+DROP TABLE IF EXISTS progress_entries CASCADE;
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS user_activity_log CASCADE;
+DROP TABLE IF EXISTS system_settings CASCADE;
+
+-- Drop all functions
+DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
+
+-- ===================================================================
 -- 1. EXTENSIONS
 -- ===================================================================
 

@@ -4,6 +4,15 @@
 -- Essential tables for Tuinbeheer System
 -- Focuses on core functionality without complex visual garden features
 
+-- ===================================================================
+-- CLEANUP EXISTING TABLES
+-- ===================================================================
+
+-- Drop existing tables in correct order (respecting foreign key constraints)
+DROP TABLE IF EXISTS plants CASCADE;
+DROP TABLE IF EXISTS plant_beds CASCADE;
+DROP TABLE IF EXISTS gardens CASCADE;
+
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
