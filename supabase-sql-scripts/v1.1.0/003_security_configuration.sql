@@ -1,5 +1,5 @@
 -- ===================================================================
--- SUPABASE SQL SCRIPTS v1.0.0
+-- SUPABASE SQL SCRIPTS v1.1.0
 -- File: 003_security_configuration.sql
 -- ===================================================================
 -- Configures Row Level Security (RLS) settings
