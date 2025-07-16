@@ -30,8 +30,7 @@
     "clean": "rm -rf .next && rm -rf node_modules/.cache",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "lint:fix": "next lint --fix",
-    "prepare": "husky install"
+    "lint:fix": "next lint --fix"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
