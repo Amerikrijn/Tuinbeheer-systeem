@@ -97,7 +97,7 @@ Complete guide for setting up and configuring Supabase for the Tuinbeheer Systee
 
 1. **Run the Setup Script**
    ```bash
-   npm run setup:database
+   # Use Supabase CLI for database setup
    ```
 
 2. **Follow the Prompts**
