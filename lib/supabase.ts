@@ -175,19 +175,17 @@ export interface Garden {
   id: string;
   name: string;
   description?: string;
-  location?: string;
+  location: string; // Required in database
   total_area?: string;
   length?: string;
   width?: string;
-  height?: string;
   garden_type?: string;
   established_date?: string;
-  soil_type?: string;
   notes?: string;
   is_active?: boolean;
   created_at: string;
   updated_at: string;
-  // NEW: Visual Garden Designer fields
+  // Visual Garden Designer fields
   canvas_width?: number;
   canvas_height?: number;
   grid_size?: number;
@@ -201,13 +199,15 @@ export interface PlantBed {
   id: string;
   garden_id: string;
   name: string;
-  size?: string; // Calculated from length × width
-  length?: number; // Length in meters
-  width?: number; // Width in meters
+  location?: string;
+  size?: string;
+  soil_type?: string;
+  sun_exposure?: 'full-sun' | 'partial-sun' | 'shade';
+  description?: string;
   created_at: string;
   updated_at: string;
   is_active?: boolean;
-  // NEW: Visual Garden Designer fields
+  // Visual Garden Designer fields
   position_x?: number;
   position_y?: number;
   visual_width?: number;
@@ -222,7 +222,21 @@ export interface Plant {
   id: string;
   plant_bed_id: string;
   name: string;
-  height?: number; // Height in cm
+  scientific_name?: string;
+  variety?: string;
+  color?: string;
+  height?: number;
+  stem_length?: number;
+  photo_url?: string;
+  category?: string;
+  bloom_period?: string;
+  planting_date?: string;
+  expected_harvest_date?: string;
+  status?: 'healthy' | 'needs_attention' | 'diseased' | 'dead' | 'harvested';
+  notes?: string;
+  care_instructions?: string;
+  watering_frequency?: number;
+  fertilizer_schedule?: string;
   created_at: string;
   updated_at: string;
 }
