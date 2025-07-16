@@ -24,18 +24,22 @@ const LanguageContext = createContext<LanguageContextValue | null>(null)
  * localStorage for subsequent visits.
  */
 export function LanguageProvider({ children }: { children: ReactNode }) {
+  // Initialize with a default language to prevent hydration issues
   const [language, setLanguageState] = useState<Language>("nl")
   const [translationsLoaded, setTranslationsLoaded] = useState(false)
 
   /* Load saved language preference and translation bundle on mount */
   useEffect(() => {
-    const saved = (typeof window !== "undefined" && localStorage.getItem("language")) as Language | null
+    // Only run on client side to prevent hydration issues
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("language") as Language | null
 
-    if (saved === "en" || saved === "nl") {
-      setLanguageState(saved)
+      if (saved === "en" || saved === "nl") {
+        setLanguageState(saved)
+      }
+
+      loadTranslations().then(() => setTranslationsLoaded(true))
     }
-
-    loadTranslations().then(() => setTranslationsLoaded(true))
   }, [])
 
   const handleSetLanguage = (lang: Language) => {
