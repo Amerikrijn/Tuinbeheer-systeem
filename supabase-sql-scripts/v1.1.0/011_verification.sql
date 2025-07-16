@@ -165,7 +165,7 @@ UPDATE gardens SET description = REPLACE(description, ' (Updated for test)', '')
 -- SECURITY VERIFICATION
 -- ===================================================================
 
--- Check RLS status (should be disabled for v1.0.0)
+-- Check RLS status (should be disabled for v1.1.0)
 SELECT 
     'RLS Status:' as check_type,
     schemaname,

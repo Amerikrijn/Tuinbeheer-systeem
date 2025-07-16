@@ -1,5 +1,5 @@
 -- ===================================================================
--- SUPABASE SQL SCRIPTS v1.0.0
+-- SUPABASE SQL SCRIPTS v1.1.0
 -- File: 001_extensions_and_base_tables.sql
 -- ===================================================================
 -- Creates the core extensions and base table structure
