@@ -167,6 +167,20 @@ The bootstrap command will guide you through the process of setting up a Supabas
 
 Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
 
+## Database Setup
+
+This project includes versioned SQL scripts for importing the database schema into Supabase.
+The scripts live in the [`supabase-sql-scripts/`](./supabase-sql-scripts) directory.
+
+**Quick start** using the latest stable version:
+
+```sql
+-- Run in the Supabase SQL Editor
+\i supabase-sql-scripts/v1.1.0/simple-setup.sql
+```
+
+For a full installation or upgrades, see the README inside that directory.
+
 ## Breaking changes
 
 We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.

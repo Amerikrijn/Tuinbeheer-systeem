@@ -82,7 +82,7 @@ echo ""
 echo "🏗️  Step 2: Setting up fresh database..."
 
 # Run complete setup script
-setup_sql=$(cat complete-setup-v1.1.0.sql)
+setup_sql=$(cat supabase-sql-scripts/v1.1.0/complete-setup-v1.1.0.sql)
 run_sql_content "$setup_sql" "Complete database setup"
 
 echo ""
