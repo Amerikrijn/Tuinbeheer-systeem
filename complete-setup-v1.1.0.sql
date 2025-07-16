@@ -189,6 +189,11 @@ CREATE TRIGGER trigger_update_visual_updated_at
 -- 6. VISUAL GARDEN FUNCTIONS
 -- ===================================================================
 
+-- Drop existing functions first to avoid conflicts
+DROP FUNCTION IF EXISTS check_plant_bed_collision(UUID, VARCHAR(10), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2)) CASCADE;
+DROP FUNCTION IF EXISTS check_plant_bed_collision(UUID, UUID, DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2)) CASCADE;
+DROP FUNCTION IF EXISTS check_canvas_boundaries(UUID, DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2)) CASCADE;
+
 -- Collision detection function
 CREATE OR REPLACE FUNCTION check_plant_bed_collision(
     p_garden_id UUID,
