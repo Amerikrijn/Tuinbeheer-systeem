@@ -25,10 +25,12 @@ DROP TABLE IF EXISTS notifications CASCADE;
 DROP TABLE IF EXISTS user_activity_log CASCADE;
 DROP TABLE IF EXISTS system_settings CASCADE;
 
--- Drop all functions
+-- Drop all functions with all possible parameter combinations
 DROP FUNCTION IF EXISTS update_updated_at_column() CASCADE;
 DROP FUNCTION IF EXISTS update_visual_updated_at() CASCADE;
-DROP FUNCTION IF EXISTS check_plant_bed_collision(UUID, UUID, DECIMAL, DECIMAL, DECIMAL, DECIMAL) CASCADE;
+DROP FUNCTION IF EXISTS check_plant_bed_collision(UUID, VARCHAR(10), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2)) CASCADE;
+DROP FUNCTION IF EXISTS check_plant_bed_collision(UUID, UUID, DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2)) CASCADE;
+DROP FUNCTION IF EXISTS check_canvas_boundaries(UUID, DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2), DECIMAL(10,2)) CASCADE;
 DROP FUNCTION IF EXISTS check_canvas_boundaries(UUID, DECIMAL, DECIMAL, DECIMAL, DECIMAL) CASCADE;
 
 -- Drop all views
