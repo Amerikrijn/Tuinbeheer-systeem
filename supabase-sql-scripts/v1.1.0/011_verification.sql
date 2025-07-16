@@ -220,7 +220,7 @@ SELECT 'Testing visual garden functions:' as test_type;
 SELECT 'Collision detection test:' as test_result,
        check_plant_bed_collision(
            (SELECT id FROM gardens LIMIT 1),
-           '00000000-0000-0000-0000-000000000000'::UUID,
+           'TEST001',
            100::DECIMAL(10,2),
            100::DECIMAL(10,2),
            1::DECIMAL(10,2),

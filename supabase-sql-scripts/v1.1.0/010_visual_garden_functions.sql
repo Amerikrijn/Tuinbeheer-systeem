@@ -12,7 +12,7 @@
 -- Function to detect plant bed overlapping
 CREATE OR REPLACE FUNCTION check_plant_bed_collision(
     p_garden_id UUID,
-    p_plant_bed_id UUID,
+    p_plant_bed_id VARCHAR(10),
     p_position_x DECIMAL(10,2),
     p_position_y DECIMAL(10,2),
     p_visual_width DECIMAL(10,2),
@@ -66,7 +66,7 @@ $$ LANGUAGE plpgsql;
 -- Function to find optimal position for a plant bed
 CREATE OR REPLACE FUNCTION find_optimal_position(
     p_garden_id UUID,
-    p_plant_bed_id UUID,
+    p_plant_bed_id VARCHAR(10),
     p_visual_width DECIMAL(10,2),
     p_visual_height DECIMAL(10,2)
 ) RETURNS TABLE(suggested_x DECIMAL(10,2), suggested_y DECIMAL(10,2)) AS $$
@@ -113,10 +113,10 @@ $$ LANGUAGE plpgsql;
 
 -- Function to get plant bed neighbors
 CREATE OR REPLACE FUNCTION get_plant_bed_neighbors(
-    p_plant_bed_id UUID,
+    p_plant_bed_id VARCHAR(10),
     p_distance_threshold DECIMAL(10,2) DEFAULT 2.0
 ) RETURNS TABLE(
-    neighbor_id UUID,
+    neighbor_id VARCHAR(10),
     neighbor_name VARCHAR(255),
     distance DECIMAL(10,2),
     direction VARCHAR(10)
