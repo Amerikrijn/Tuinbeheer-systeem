@@ -1,0 +1,42 @@
+
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#f3f4f6" stroke="#d1d5db" stroke-width="2"/>
+  
+  <!-- Mock UI Elements -->
+  <rect x="20" y="20" width="200" height="40" fill="#d1d5db" rx="4"/>
+  <rect x="240" y="20" width="120" height="40" fill="#d1d5db" rx="4"/>
+  <rect x="660" y="20" width="120" height="40" fill="#d1d5db" rx="4"/>
+  
+  <!-- Mock Content Area -->
+  <rect x="20" y="80" width="760" height="440" fill="white" stroke="#d1d5db" stroke-width="1" rx="8"/>
+  
+  <!-- Mock Cards/Elements -->
+  <rect x="40" y="100" width="200" height="120" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1" rx="4"/>
+  <rect x="260" y="100" width="200" height="120" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1" rx="4"/>
+  <rect x="480" y="100" width="200" height="120" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1" rx="4"/>
+  
+  <!-- Central Image Icon -->
+  <circle cx="400" cy="300" r="40" fill="#d1d5db"/>
+  <text x="400" y="270" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="32">📸</text>
+  
+  <!-- Title -->
+  <text x="400" y="310" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="20" font-weight="bold">
+    Garden Creation Form
+  </text>
+  
+  <!-- Description -->
+  <text x="400" y="335" text-anchor="middle" fill="#374151" font-family="Arial, sans-serif" font-size="14">
+    New garden creation form with all configuration options
+  </text>
+  
+  <!-- Placeholder Label -->
+  <text x="400" y="570" text-anchor="middle" fill="#d1d5db" font-family="Arial, sans-serif" font-size="12">
+    Placeholder - Replace with actual screenshot
+  </text>
+  
+  <!-- Dimensions -->
+  <text x="20" y="590" fill="#d1d5db" font-family="Arial, sans-serif" font-size="10">
+    800x600
+  </text>
+</svg>
