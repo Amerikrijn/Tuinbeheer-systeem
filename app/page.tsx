@@ -22,11 +22,22 @@ export default function HomePage() {
       try {
         setLoading(true)
         setError(null)
-        const data = await getGardens()
+        
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+        })
+        
+        const dataPromise = getGardens()
+        const data = await Promise.race([dataPromise, timeoutPromise])
+        
         setGardens(data)
       } catch (error) {
         console.error("Failed to load gardens:", error)
-        setError("Database connection failed. Please check your Supabase configuration.")
+        const errorMessage = error instanceof Error 
+          ? error.message 
+          : "Database connection failed. Please check your Supabase configuration."
+        setError(errorMessage)
       } finally {
         setLoading(false)
       }
@@ -42,8 +53,106 @@ export default function HomePage() {
       (garden.location && garden.location.toLowerCase().includes(searchTerm.toLowerCase())),
   )
 
+  // Show error state first - this takes priority
+  if (error) {
+    return (
+      <div className="container mx-auto space-y-6 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
+              <TreePine className="h-7 w-7 text-green-600" />
+              Tuinbeheer Systeem
+            </h1>
+            <p className="text-muted-foreground">Garden Management System</p>
+          </div>
+        </div>
+
+        <Card className="border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-800">
+              <AlertCircle className="h-5 w-5" />
+              Database Connection Error
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-red-700 mb-4">{error}</p>
+            <div className="space-y-4">
+              <div className="bg-white p-4 rounded-lg border">
+                <h3 className="font-semibold mb-2">Quick Start Options:</h3>
+                <div className="space-y-2">
+                  <Button asChild className="w-full bg-green-600 hover:bg-green-700">
+                    <Link href="/visual-garden-demo">
+                      <Eye className="mr-2 h-4 w-4" />
+                      Try Visual Garden Demo
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/plant-beds">
+                      <Leaf className="mr-2 h-4 w-4" />
+                      View Plant Beds
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline" className="w-full">
+                    <Link href="/admin">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="container mx-auto space-y-6 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
+              <TreePine className="h-7 w-7 text-green-600" />
+              Tuinbeheer Systeem
+            </h1>
+            <p className="text-muted-foreground">Loading your gardens...</p>
+          </div>
+          <Button asChild className="bg-green-600 hover:bg-green-700">
+            <Link href="/gardens/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Nieuwe Tuin
+            </Link>
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-6 w-16" />
+                    <Skeleton className="h-6 w-20" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   // Show welcome screen when no gardens and not loading
-  if (!loading && gardens.length === 0 && !error) {
+  if (gardens.length === 0) {
     return (
       <div className="container mx-auto space-y-6 p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -138,102 +247,7 @@ export default function HomePage() {
     )
   }
 
-  // Show error state
-  if (error) {
-    return (
-      <div className="container mx-auto space-y-6 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-              <TreePine className="h-7 w-7 text-green-600" />
-              Tuinbeheer Systeem
-            </h1>
-            <p className="text-muted-foreground">Garden Management System</p>
-          </div>
-        </div>
 
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-800">
-              <AlertCircle className="h-5 w-5" />
-              Database Connection Error
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-700 mb-4">{error}</p>
-            <div className="space-y-4">
-              <div className="bg-white p-4 rounded-lg border">
-                <h3 className="font-semibold mb-2">Quick Start Options:</h3>
-                <div className="space-y-2">
-                  <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-                    <Link href="/visual-garden-demo">
-                      <Eye className="mr-2 h-4 w-4" />
-                      Try Visual Garden Demo
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/plant-beds">
-                      <Leaf className="mr-2 h-4 w-4" />
-                      View Plant Beds
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/admin">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Admin Panel
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  if (loading) {
-    return (
-      <div className="container mx-auto space-y-6 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-              <TreePine className="h-7 w-7 text-green-600" />
-              Tuinbeheer Systeem
-            </h1>
-            <p className="text-muted-foreground">Loading your gardens...</p>
-          </div>
-          <Button asChild className="bg-green-600 hover:bg-green-700">
-            <Link href="/gardens/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Nieuwe Tuin
-            </Link>
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-6 w-16" />
-                    <Skeleton className="h-6 w-20" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="container mx-auto space-y-6 p-6">
