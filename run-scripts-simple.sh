@@ -29,7 +29,7 @@ echo "" >> combined-setup.sql
 echo "-- ===================================================================" >> combined-setup.sql
 echo "-- STEP 2: SETUP" >> combined-setup.sql
 echo "-- ===================================================================" >> combined-setup.sql
-cat complete-setup-v1.1.0.sql >> combined-setup.sql
+cat supabase-sql-scripts/v1.1.0/complete-setup-v1.1.0.sql >> combined-setup.sql
 
 echo "✅ Combined script created: combined-setup.sql"
 echo ""
