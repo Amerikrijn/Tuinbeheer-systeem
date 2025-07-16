@@ -216,9 +216,11 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
 export async function createPlantBed(plantBed: {
   garden_id: string
   name: string
+  location?: string
   size?: string
-  length: number
-  width: number
+  soil_type?: string
+  sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
+  description?: string
 }): Promise<PlantBed | null> {
   // Generate a simple ID for plant bed (format: PB001, PB002, etc.)
   const existingBeds = await supabase.from("plant_beds").select("id").order("id", { ascending: false }).limit(1)
@@ -234,9 +236,11 @@ export async function createPlantBed(plantBed: {
     id: newId,
     garden_id: plantBed.garden_id,
     name: plantBed.name,
+    location: plantBed.location,
     size: plantBed.size,
-    length: plantBed.length,
-    width: plantBed.width,
+    soil_type: plantBed.soil_type,
+    sun_exposure: plantBed.sun_exposure || 'full-sun',
+    description: plantBed.description,
     is_active: true
   }).select().single()
 
