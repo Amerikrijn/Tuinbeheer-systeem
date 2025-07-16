@@ -175,7 +175,7 @@ GROUP BY g.id, g.name, g.canvas_width, g.canvas_height, g.grid_size,
 -- Functie om overlapping te detecteren
 CREATE OR REPLACE FUNCTION check_plant_bed_collision(
     p_garden_id UUID,
-    p_plant_bed_id UUID,
+    p_plant_bed_id VARCHAR(10),
     p_position_x DECIMAL(10,2),
     p_position_y DECIMAL(10,2),
     p_visual_width DECIMAL(10,2),
@@ -283,7 +283,7 @@ WHERE conrelid IN ('plant_beds'::regclass, 'gardens'::regclass)
 -- Test functies
 SELECT check_plant_bed_collision(
     (SELECT id FROM gardens LIMIT 1),
-    '00000000-0000-0000-0000-000000000000'::UUID,
+    'TEST001',
     5::DECIMAL(10,2),
     5::DECIMAL(10,2),
     2::DECIMAL(10,2),

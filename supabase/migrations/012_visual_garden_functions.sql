@@ -11,7 +11,7 @@
 -- Function to detect plant bed overlapping
 CREATE OR REPLACE FUNCTION check_plant_bed_collision(
     p_garden_id UUID,
-    p_plant_bed_id UUID,
+    p_plant_bed_id VARCHAR(10),
     p_position_x DECIMAL(10,2),
     p_position_y DECIMAL(10,2),
     p_visual_width DECIMAL(10,2),
