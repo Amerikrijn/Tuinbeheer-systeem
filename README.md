@@ -181,3 +181,22 @@ To run from source:
 # Go >= 1.22
 go run . help
 ```
+
+## Database Setup
+
+All SQL scripts for setting up the Tuinbeheer database live in
+[`supabase-sql-scripts/`](./supabase-sql-scripts/). Each version directory
+(for example `v1.0.0` or `v1.1.0`) includes migration files and a complete setup
+script.
+
+### Quick Start
+
+To create the core tables with sample data, run the simplified script in the
+Supabase SQL editor:
+
+```sql
+\i supabase-sql-scripts/v1.1.0/simple-setup.sql
+```
+
+For additional features or different versions, use the scripts provided in the
+corresponding version folder.
