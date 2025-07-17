@@ -23,6 +23,11 @@ export default function HomePage() {
         setLoading(true)
         setError(null)
         
+        // Check environment variables first
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+          throw new Error("Missing Supabase environment variables. Please check your .env.local file.")
+        }
+        
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Database connection timeout')), 10000)
@@ -37,12 +42,16 @@ export default function HomePage() {
         let errorMessage = "Database connection failed. Please check your Supabase configuration."
         
         if (error instanceof Error) {
-          if (error.message.includes("relation") || error.message.includes("table")) {
+          if (error.message.includes("Missing Supabase environment variables")) {
+            errorMessage = "Environment variables not configured. Please create a .env.local file with your Supabase credentials."
+          } else if (error.message.includes("relation") || error.message.includes("table")) {
             errorMessage = "Database tables not found. Please run the database setup script first."
           } else if (error.message.includes("timeout")) {
             errorMessage = "Database connection timeout. Please check your internet connection and try again."
           } else if (error.message.includes("authentication") || error.message.includes("auth")) {
             errorMessage = "Database authentication failed. Please check your Supabase credentials."
+          } else if (error.message.includes("Invalid Supabase URL") || error.message.includes("Invalid Supabase key")) {
+            errorMessage = "Invalid Supabase configuration. Please check your environment variables format."
           } else {
             errorMessage = error.message
           }
