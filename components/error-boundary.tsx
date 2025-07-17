@@ -1,7 +1,9 @@
-'use client'
+"use client"
 
 import React from 'react'
-import { AlertCircle, RefreshCw, Home, TreePine } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { AlertCircle, RefreshCw, Home, Bug } from "lucide-react"
 
 interface ErrorBoundaryState {
   hasError: boolean
@@ -11,11 +13,7 @@ interface ErrorBoundaryState {
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
-  fallback?: React.ComponentType<{
-    error: Error | null
-    errorInfo: React.ErrorInfo | null
-    resetError: () => void
-  }>
+  fallback?: React.ComponentType<{ error: Error; reset: () => void }>
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -36,18 +34,14 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo)
-    
+    console.error('Error caught by boundary:', error, errorInfo)
     this.setState({
       error,
       errorInfo
     })
-
-    // Log to external service if needed
-    // logErrorToService(error, errorInfo)
   }
 
-  resetError = () => {
+  handleReset = () => {
     this.setState({
       hasError: false,
       error: null,
@@ -59,95 +53,80 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
     if (this.state.hasError) {
       if (this.props.fallback) {
         const FallbackComponent = this.props.fallback
-        return (
-          <FallbackComponent
-            error={this.state.error}
-            errorInfo={this.state.errorInfo}
-            resetError={this.resetError}
-          />
-        )
+        return <FallbackComponent error={this.state.error!} reset={this.handleReset} />
       }
 
       return (
-        <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-6">
-          <div className="max-w-2xl w-full">
-            <div className="bg-white rounded-lg shadow-xl border border-red-200 p-8">
-              <div className="text-center mb-6">
-                <TreePine className="w-16 h-16 text-red-600 mx-auto mb-4" />
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                  Tuinbeheer Systeem - Fout
-                </h1>
-                <p className="text-gray-600">Er is een onverwachte fout opgetreden in de applicatie</p>
-              </div>
-
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-red-800 mb-2">Foutdetails:</h3>
-                <p className="text-sm text-red-700 font-mono bg-red-100 p-2 rounded">
-                  {this.state.error?.message || 'Onbekende React fout'}
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <Card className="max-w-2xl w-full border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-800">
+                <AlertCircle className="h-6 w-6" />
+                Application Error
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-red-700">
+                <p className="font-medium mb-2">Something went wrong while loading the application.</p>
+                <p className="text-sm">
+                  {this.state.error?.message || 'An unexpected error occurred'}
                 </p>
-                {this.state.error?.stack && (
-                  <details className="mt-2">
-                    <summary className="text-sm text-red-600 cursor-pointer">Stack trace</summary>
-                    <pre className="text-xs text-red-600 mt-2 bg-red-100 p-2 rounded overflow-auto max-h-32">
-                      {this.state.error.stack}
-                    </pre>
-                  </details>
-                )}
-                {this.state.errorInfo?.componentStack && (
-                  <details className="mt-2">
-                    <summary className="text-sm text-red-600 cursor-pointer">Component stack</summary>
-                    <pre className="text-xs text-red-600 mt-2 bg-red-100 p-2 rounded overflow-auto max-h-32">
-                      {this.state.errorInfo.componentStack}
-                    </pre>
-                  </details>
-                )}
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-yellow-800 mb-2">Mogelijke oorzaken:</h3>
-                <ul className="text-sm text-yellow-700 space-y-1">
-                  <li>• JavaScript fout in een component</li>
-                  <li>• Ontbrekende of incorrecte data</li>
-                  <li>• Netwerk verbindingsproblemen</li>
-                  <li>• Browser compatibiliteitsproblemen</li>
+              <div className="bg-white p-4 rounded-lg border border-red-200">
+                <h3 className="font-semibold mb-2 text-red-800">Possible causes:</h3>
+                <ul className="text-sm text-red-700 space-y-1">
+                  <li>• Missing or invalid environment variables</li>
+                  <li>• Database connection issues</li>
+                  <li>• Network connectivity problems</li>
+                  <li>• JavaScript runtime errors</li>
                 </ul>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                <h3 className="font-semibold text-blue-800 mb-2">Wat te doen:</h3>
-                <ul className="text-sm text-blue-700 space-y-1">
-                  <li>• Klik op "Opnieuw Proberen" om de component te herstarten</li>
-                  <li>• Ververs de pagina (F5 of Ctrl+R)</li>
-                  <li>• Controleer de browser console (F12) voor meer details</li>
-                  <li>• Controleer of de development server draait</li>
-                </ul>
-              </div>
-
-              <div className="flex gap-4">
-                <button
-                  onClick={this.resetError}
-                  className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Opnieuw Proberen
-                </button>
-                <button
-                  onClick={() => window.location.reload()}
-                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  Pagina Vernieuwen
-                </button>
-                <button
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button onClick={this.handleReset} className="flex-1">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Try Again
+                </Button>
+                <Button 
+                  variant="outline" 
                   onClick={() => window.location.href = '/'}
-                  className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1"
                 >
-                  <Home className="w-4 h-4" />
-                  Hoofdpagina
-                </button>
+                  <Home className="mr-2 h-4 w-4" />
+                  Go Home
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => window.location.reload()}
+                  className="flex-1"
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Reload Page
+                </Button>
               </div>
-            </div>
-          </div>
+
+              {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-sm font-medium text-red-800 hover:text-red-900">
+                    <Bug className="inline mr-1 h-4 w-4" />
+                    Show Technical Details
+                  </summary>
+                  <div className="mt-2 p-3 bg-red-100 rounded text-xs font-mono text-red-800 overflow-auto">
+                    <div className="mb-2">
+                      <strong>Error:</strong> {this.state.error?.toString()}
+                    </div>
+                    <div>
+                      <strong>Stack Trace:</strong>
+                      <pre className="whitespace-pre-wrap mt-1">
+                        {this.state.errorInfo.componentStack}
+                      </pre>
+                    </div>
+                  </div>
+                </details>
+              )}
+            </CardContent>
+          </Card>
         </div>
       )
     }
@@ -156,12 +135,23 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 }
 
-// Hook for functional components
-export const useErrorHandler = () => {
-  return (error: Error, errorInfo?: React.ErrorInfo) => {
-    console.error('Error caught by useErrorHandler:', error, errorInfo)
-    
-    // You can dispatch to a global error state here
-    // or show a toast notification
-  }
+// Hook version for functional components
+export function useErrorBoundary() {
+  const [error, setError] = React.useState<Error | null>(null)
+
+  const resetError = React.useCallback(() => {
+    setError(null)
+  }, [])
+
+  const captureError = React.useCallback((error: Error) => {
+    setError(error)
+  }, [])
+
+  React.useEffect(() => {
+    if (error) {
+      throw error
+    }
+  }, [error])
+
+  return { captureError, resetError }
 }
