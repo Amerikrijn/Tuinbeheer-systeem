@@ -5,14 +5,20 @@ import { useEffect, useState } from 'react'
 export function WhiteScreenDetector() {
   const [isWhiteScreen, setIsWhiteScreen] = useState(false)
   const [debugInfo, setDebugInfo] = useState<string[]>([])
+  const [isProduction, setIsProduction] = useState(false)
 
   useEffect(() => {
+    setIsProduction(process.env.NODE_ENV === 'production')
+    
     const addDebugInfo = (message: string) => {
       console.log(`[WhiteScreenDetector] ${message}`)
       setDebugInfo(prev => [...prev, `${new Date().toISOString()}: ${message}`])
     }
 
     addDebugInfo('WhiteScreenDetector initialized')
+    addDebugInfo(`Environment: ${isProduction ? 'production' : 'development'}`)
+    addDebugInfo(`User agent: ${navigator.userAgent}`)
+    addDebugInfo(`URL: ${window.location.href}`)
 
     // Check if the page is actually rendered
     const checkForWhiteScreen = () => {
@@ -26,14 +32,21 @@ export function WhiteScreenDetector() {
       // Check if React has rendered
       const hasReactRoot = document.querySelector('[data-reactroot]') || 
                           document.querySelector('#__next') ||
-                          body.querySelector('div[id]')
+                          body.querySelector('div[id]') ||
+                          document.querySelector('[data-testid]')
       
       // Check for common error indicators
       const hasErrorElements = document.querySelector('[class*="error"]') ||
                               document.querySelector('[class*="Error"]') ||
                               document.querySelector('[role="alert"]')
       
-      const isCurrentlyWhiteScreen = !hasVisibleContent || !hasTextContent || !hasReactRoot
+      // Check for Vercel-specific elements
+      const hasVercelElements = document.querySelector('[data-vercel]') ||
+                               document.querySelector('[class*="vercel"]')
+      
+      // More lenient check for production
+      const isCurrentlyWhiteScreen = !hasVisibleContent || !hasTextContent || 
+                                    (isProduction ? false : !hasReactRoot)
       
       if (isCurrentlyWhiteScreen !== isWhiteScreen) {
         setIsWhiteScreen(isCurrentlyWhiteScreen)
@@ -42,8 +55,11 @@ export function WhiteScreenDetector() {
         addDebugInfo(`- Has text content: ${hasTextContent}`)
         addDebugInfo(`- Has React root: ${!!hasReactRoot}`)
         addDebugInfo(`- Has error elements: ${!!hasErrorElements}`)
+        addDebugInfo(`- Has Vercel elements: ${!!hasVercelElements}`)
         addDebugInfo(`- Body children count: ${body.children.length}`)
         addDebugInfo(`- Body text length: ${body.textContent?.length || 0}`)
+        addDebugInfo(`- Current URL: ${window.location.href}`)
+        addDebugInfo(`- Environment: ${isProduction ? 'production' : 'development'}`)
       }
     }
 
