@@ -1,3 +1,4 @@
+import { DatabaseService } from "./services/database.service"
 import { supabase, type Garden, type PlantBed, type Plant, type PlantBedWithPlants } from "./supabase"
 
 function isMissingRelation(err: { code?: string } | null): boolean {
@@ -7,23 +8,15 @@ function isMissingRelation(err: { code?: string } | null): boolean {
 // Garden functions
 export async function getGardens(): Promise<Garden[]> {
   console.log("Fetching gardens...")
-  const { data, error } = await supabase
-    .from("gardens")
-    .select("*")
-    .eq("is_active", true)
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("Error fetching gardens:", error)
-    if (isMissingRelation(error)) {
-      console.warn("Supabase table `gardens` not found yet – returning empty list until the migration is applied.")
-      return []
-    }
+  const result = await DatabaseService.Tuin.getAll()
+  
+  if (!result.success) {
+    console.error("Error fetching gardens:", result.error)
     return []
   }
 
-  console.log("Gardens fetched successfully:", data?.length || 0)
-  return data || []
+  console.log("Gardens fetched successfully:", result.data?.length || 0)
+  return result.data || []
 }
 
 export async function getGarden(id?: string): Promise<Garden | null> {
