@@ -33,15 +33,20 @@ export default function GardenDetailPage() {
           getPlantBeds(params.id as string),
         ])
         setGarden(gardenData)
-        setPlantBeds(plantBedsData)
+        setPlantBeds(Array.isArray(plantBedsData) ? plantBedsData : [])
       } catch (error) {
         console.error("Error loading data:", error)
+        // Set empty states to prevent white screen
+        setGarden(null)
+        setPlantBeds([])
       } finally {
         setLoading(false)
       }
     }
 
-    loadData()
+    if (params.id) {
+      loadData()
+    }
   }, [params.id])
 
   if (loading) {

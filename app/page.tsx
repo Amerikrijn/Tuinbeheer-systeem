@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,10 +13,12 @@ import { getGardens } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 
 export default function HomePage() {
+  const router = useRouter()
   const [gardens, setGardens] = React.useState<Garden[]>([])
   const [loading, setLoading] = React.useState(false) // Start with false to show welcome immediately
   const [error, setError] = React.useState<string | null>(null)
   const [searchTerm, setSearchTerm] = React.useState("")
+  const [renderError, setRenderError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     async function loadGardens() {
@@ -31,7 +34,7 @@ export default function HomePage() {
         const dataPromise = getGardens()
         const data = await Promise.race([dataPromise, timeoutPromise])
         
-        setGardens(data)
+        setGardens(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error("Failed to load gardens:", error)
         let errorMessage = "Database connection failed. Please check your Supabase configuration."
@@ -43,12 +46,18 @@ export default function HomePage() {
             errorMessage = "Database connection timeout. Please check your internet connection and try again."
           } else if (error.message.includes("authentication") || error.message.includes("auth")) {
             errorMessage = "Database authentication failed. Please check your Supabase credentials."
+          } else if (error.message.includes("fetch")) {
+            errorMessage = "Network error. Please check your internet connection and try again."
           } else {
-            errorMessage = error.message
+            errorMessage = `Error: ${error.message}`
           }
+        } else {
+          errorMessage = "An unexpected error occurred. Please try refreshing the page."
         }
         
         setError(errorMessage)
+        // Ensure gardens is always an array even on error
+        setGardens([])
       } finally {
         setLoading(false)
       }
@@ -58,14 +67,27 @@ export default function HomePage() {
     loadGardens()
   }, [])
 
-  const filteredGardens = gardens.filter(
-    (garden) =>
-      garden.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (garden.location && garden.location.toLowerCase().includes(searchTerm.toLowerCase())),
-  )
+  const filteredGardens = React.useMemo(() => {
+    try {
+      if (!Array.isArray(gardens)) {
+        return []
+      }
+      return gardens.filter(
+        (garden) =>
+          garden?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (garden?.location && garden.location.toLowerCase().includes(searchTerm.toLowerCase())),
+      )
+    } catch (error) {
+      console.error("Error filtering gardens:", error)
+      setRenderError("Er is een fout opgetreden bij het filteren van de tuinen.")
+      return []
+    }
+  }, [gardens, searchTerm])
 
-  // Show error state first - this takes priority
-  if (error) {
+  // Wrap the entire render in try-catch to prevent white screens
+  try {
+    // Show error state first - this takes priority
+    if (error || renderError) {
     return (
       <div className="container mx-auto space-y-6 p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -86,7 +108,7 @@ export default function HomePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-700 mb-4">{error}</p>
+            <p className="text-red-700 mb-4">{error || renderError}</p>
             <div className="space-y-4">
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                 <h3 className="font-semibold mb-2 text-yellow-800">Troubleshooting Steps:</h3>
@@ -312,7 +334,7 @@ export default function HomePage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredGardens.map((garden) => (
-            <Card key={garden.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = `/gardens/${garden.id}`}>
+            <Card key={garden.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push(`/gardens/${garden.id}`)}>
               <CardHeader>
                 <CardTitle className="flex items-start justify-between">
                   <span className="line-clamp-1">{garden.name}</span>
@@ -372,4 +394,51 @@ export default function HomePage() {
       )}
     </div>
   )
+  } catch (renderError) {
+    // Fallback UI for any unhandled render errors
+    console.error("Render error in HomePage:", renderError)
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-6">
+        <div className="container max-w-2xl">
+          <div className="text-center mb-8">
+            <TreePine className="h-16 w-16 text-green-600 mx-auto mb-4" />
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Tuinbeheer Systeem
+            </h1>
+            <p className="text-gray-600">Garden Management System</p>
+          </div>
+
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-800">
+                <AlertCircle className="h-5 w-5" />
+                Er is een fout opgetreden
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-red-700">
+                De pagina kan niet worden geladen. Probeer de pagina te vernieuwen of ga terug naar de hoofdpagina.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  onClick={() => window.location.reload()}
+                  className="flex-1 bg-green-600 hover:bg-green-700"
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Vernieuwen
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.href = '/'}
+                  className="flex-1"
+                >
+                  Hoofdpagina
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 }
