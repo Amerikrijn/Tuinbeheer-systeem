@@ -13,7 +13,10 @@
     "clean": "rm -rf .next && rm -rf node_modules/.cache",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "lint:fix": "next lint --fix"
+    "lint:fix": "next lint --fix",
+    "db:setup": "node database/setup.js setup --seed",
+    "db:reset": "node database/setup.js reset",
+    "db:schema": "node database/setup.js setup"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
