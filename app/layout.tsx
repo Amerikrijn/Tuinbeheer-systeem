@@ -25,11 +25,11 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                console.log('[Emergency] Initializing white screen prevention...');
+                console.log('[Emergency] White screen prevention initialized');
                 
                 // Prevent GitHub redirects
                 if (window.location.hostname.includes('github.com')) {
-                  console.log('[Emergency] GitHub redirect detected');
+                  console.log('[Emergency] GitHub redirect detected, redirecting to Vercel');
                   window.location.href = 'https://tuinbeheer-systeem.vercel.app';
                   return;
                 }
@@ -86,7 +86,7 @@ export default function RootLayout({
                             margin: 0 0 20px 0;
                             color: #6b7280;
                             font-size: 16px;
-                          ">Applicatie wordt geladen...</p>
+                          ">De applicatie wordt geladen...</p>
                           <div style="
                             width: 40px;
                             height: 40px;
@@ -94,8 +94,13 @@ export default function RootLayout({
                             border-top: 3px solid #22c55e;
                             border-radius: 50%;
                             animation: spin 1s linear infinite;
-                            margin: 0 auto;
+                            margin: 0 auto 20px;
                           "></div>
+                          <p style="
+                            margin: 0;
+                            color: #9ca3af;
+                            font-size: 14px;
+                          ">Een moment geduld...</p>
                         </div>
                       </div>
                       <style>
@@ -154,12 +159,33 @@ export default function RootLayout({
                           color: #1f2937;
                           font-size: 24px;
                           font-weight: 600;
-                        ">Laadprobleem</h1>
+                        ">Tuinbeheer Systeem</h1>
+                        <p style="
+                          margin: 0 0 10px 0;
+                          color: #ef4444;
+                          font-size: 18px;
+                          font-weight: 600;
+                        ">Laadprobleem</p>
                         <p style="
                           margin: 0 0 20px 0;
                           color: #6b7280;
                           font-size: 16px;
                         ">De applicatie kan niet worden geladen.</p>
+                        <div style="
+                          background: #fef2f2;
+                          padding: 15px;
+                          border-radius: 8px;
+                          margin: 20px 0;
+                          text-align: left;
+                        ">
+                          <p style="margin: 0 0 10px 0; font-weight: 600; color: #dc2626;">Mogelijke oorzaken:</p>
+                          <ul style="margin: 0; padding-left: 20px; color: #7f1d1d;">
+                            <li>JavaScript is uitgeschakeld</li>
+                            <li>Netwerkverbinding problemen</li>
+                            <li>Server onderhoudswerk</li>
+                            <li>Browser compatibiliteit</li>
+                          </ul>
+                        </div>
                         <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                           <button onclick="window.location.reload()" style="
                             padding: 12px 24px;
@@ -222,7 +248,7 @@ export default function RootLayout({
                   clearInterval(mountChecker);
                 }, 15000);
                 
-                console.log('[Emergency] White screen prevention initialized');
+                console.log('[Emergency] Emergency system ready');
               })();
             `,
           }}
