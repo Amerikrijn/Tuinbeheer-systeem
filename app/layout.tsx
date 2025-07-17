@@ -10,10 +10,185 @@ import { ErrorBoundary } from "@/components/error-boundary"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Plantvak Beheer",
-  description: "Beheer je plantvakken en planten",
-    generator: 'v0.dev'
+  title: "Tuinbeheer Systeem",
+  description: "Een systeem voor het beheren van tuinen en plantenvakken",
+  generator: 'v0.dev'
 }
+
+// Emergency white screen prevention script
+const emergencyScript = `
+  (function() {
+    console.log('[Emergency] White screen prevention active');
+    
+    // Prevent GitHub redirects
+    if (window.location.hostname.includes('github.com')) {
+      console.log('[Emergency] GitHub redirect detected, redirecting to Vercel');
+      window.location.href = 'https://tuinbeheer-systeem.vercel.app';
+      return;
+    }
+    
+    // Show emergency UI if page is blank
+    function showEmergencyUI() {
+      if (document.body.children.length === 0 || 
+          document.body.textContent.trim() === '' ||
+          !document.getElementById('__next') ||
+          document.getElementById('__next').children.length === 0) {
+        
+        console.log('[Emergency] White screen detected, showing emergency UI');
+        document.body.innerHTML = \`
+          <div id="emergency-loading" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 20px;
+          ">
+            <div style="
+              max-width: 500px;
+              background: white;
+              padding: 40px;
+              border-radius: 12px;
+              box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+              text-align: center;
+            ">
+              <div style="
+                width: 60px;
+                height: 60px;
+                background: #22c55e;
+                border-radius: 50%;
+                margin: 0 auto 20px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                color: white;
+              ">🌱</div>
+              <h1 style="
+                margin: 0 0 10px 0;
+                color: #1f2937;
+                font-size: 24px;
+                font-weight: 600;
+              ">Tuinbeheer Systeem</h1>
+              <p style="
+                margin: 0 0 20px 0;
+                color: #6b7280;
+                font-size: 16px;
+              ">De applicatie wordt geladen...</p>
+              <div style="
+                width: 40px;
+                height: 40px;
+                border: 3px solid #e5e7eb;
+                border-top: 3px solid #22c55e;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+                margin: 0 auto;
+              "></div>
+            </div>
+          </div>
+          <style>
+            @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+          </style>
+        \`;
+        return true;
+      }
+      return false;
+    }
+    
+    // Show emergency UI after 2 seconds if needed
+    setTimeout(showEmergencyUI, 2000);
+    
+    // Show error UI after 10 seconds
+    setTimeout(function() {
+      const emergencyDiv = document.getElementById('emergency-loading');
+      if (emergencyDiv) {
+        emergencyDiv.innerHTML = \`
+          <div style="
+            max-width: 500px;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 2px solid #fecaca;
+          ">
+            <div style="
+              width: 60px;
+              height: 60px;
+              background: #ef4444;
+              border-radius: 50%;
+              margin: 0 auto 20px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 24px;
+              color: white;
+            ">⚠️</div>
+            <h1 style="
+              margin: 0 0 10px 0;
+              color: #1f2937;
+              font-size: 24px;
+              font-weight: 600;
+            ">Laadprobleem</h1>
+            <p style="
+              margin: 0 0 20px 0;
+              color: #6b7280;
+              font-size: 16px;
+            ">De applicatie kan niet worden geladen.</p>
+            <button onclick="window.location.reload()" style="
+              padding: 12px 24px;
+              background: #22c55e;
+              color: white;
+              border: none;
+              border-radius: 8px;
+              cursor: pointer;
+              font-size: 16px;
+              font-weight: 600;
+            ">Vernieuwen</button>
+          </div>
+        \`;
+      }
+    }, 10000);
+    
+    // Remove emergency UI when React loads
+    const checkReactMount = () => {
+      const nextRoot = document.getElementById('__next');
+      if (nextRoot && nextRoot.children.length > 0) {
+        const emergencyUI = document.getElementById('emergency-loading');
+        if (emergencyUI) {
+          emergencyUI.style.opacity = '0';
+          emergencyUI.style.transition = 'opacity 0.3s ease-out';
+          setTimeout(() => {
+            if (emergencyUI.parentNode) {
+              emergencyUI.parentNode.removeChild(emergencyUI);
+            }
+          }, 300);
+        }
+        return true;
+      }
+      return false;
+    };
+    
+    const mountChecker = setInterval(() => {
+      if (checkReactMount()) {
+        clearInterval(mountChecker);
+      }
+    }, 500);
+    
+    setTimeout(() => {
+      clearInterval(mountChecker);
+    }, 15000);
+  })();
+`;
 
 export default function RootLayout({
   children,
@@ -22,15 +197,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="nl" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: emergencyScript }} />
+      </head>
       <body className={inter.className}>
-        <ErrorBoundary>
-          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-            <LanguageProvider>
-              {children}
-            </LanguageProvider>
-            <Toaster />
-          </ThemeProvider>
-        </ErrorBoundary>
+        <div id="__next">
+          <ErrorBoundary>
+            <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+              <LanguageProvider>
+                {children}
+                <Toaster />
+              </LanguageProvider>
+            </ThemeProvider>
+          </ErrorBoundary>
+        </div>
       </body>
     </html>
   )
