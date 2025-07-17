@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, Settings, AlertCircle, Sparkles } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, Settings, AlertCircle } from "lucide-react"
 import { getGardens } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 
@@ -190,7 +190,7 @@ export default function HomePage() {
               <TreePine className="h-7 w-7 text-green-600" />
               Tuinbeheer Systeem
             </h1>
-            <p className="text-muted-foreground">Welcome to your Garden Management System</p>
+            <p className="text-muted-foreground">Welkom bij uw persoonlijke tuinbeheer dashboard. Beheer uw tuinen, plantbedden en houd bij wat u heeft geplant.</p>
           </div>
           <Button asChild className="bg-green-600 hover:bg-green-700">
             <Link href="/gardens/new">
@@ -201,75 +201,24 @@ export default function HomePage() {
         </div>
 
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="mb-6">
-            <TreePine className="h-16 w-16 text-green-600 mb-4" />
-            <Sparkles className="h-8 w-8 text-yellow-500 -mt-8 ml-8" />
-          </div>
-          <h2 className="text-2xl font-semibold mb-4">Welcome to Tuinbeheer Systeem</h2>
-          <p className="text-muted-foreground mb-8 max-w-md">
-            Your comprehensive garden management solution. Start by adding your first garden or explore the features.
+          <TreePine className="h-16 w-16 text-muted-foreground mb-4" />
+          <h2 className="text-xl font-semibold mb-2">Nog geen tuinen</h2>
+          <p className="text-muted-foreground mb-6 max-w-md">
+            Begin met het aanmaken van uw eerste tuin om uw planten te beheren.
           </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Plus className="h-5 w-5 text-green-600" />
-                  Create Garden
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Add your first garden to start managing plant beds and plants.
-                </p>
-                <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-                  <Link href="/gardens/new">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Garden
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Eye className="h-5 w-5 text-blue-600" />
-                  Visual Demo
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Try the interactive visual garden designer.
-                </p>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/visual-garden-demo">
-                    <Eye className="mr-2 h-4 w-4" />
-                    Try Demo
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Settings className="h-5 w-5 text-purple-600" />
-                  Admin Panel
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Access the admin panel for system management.
-                </p>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/admin">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Admin Panel
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button asChild className="bg-green-600 hover:bg-green-700">
+              <Link href="/gardens/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Eerste tuin aanmaken
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/visual-garden-demo">
+                <Eye className="mr-2 h-4 w-4" />
+                Try Visual Demo
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
