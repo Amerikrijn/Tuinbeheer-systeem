@@ -138,7 +138,7 @@ export default function PlantBedDetailPage() {
           <Leaf className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Plantvak niet gevonden</h3>
           <p className="text-gray-600 mb-4">Het plantvak dat je zoekt bestaat niet of is verwijderd.</p>
-          <Link href="/plant-beds">
+          <Link href="/">
             <Button className="bg-green-600 hover:bg-green-700">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Terug naar Overzicht
@@ -157,11 +157,11 @@ export default function PlantBedDetailPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/plant-beds")}
+            onClick={() => router.push(`/gardens/${plantBed.garden_id}`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Plantvakken Overzicht
+            Terug naar Tuin
           </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">

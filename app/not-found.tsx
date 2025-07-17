@@ -51,10 +51,7 @@ export default function NotFound() {
                   <Settings className="h-4 w-4" />
                   Admin Panel
                 </Link>
-                <Link href="/visual-garden-demo" className="flex items-center gap-2 text-yellow-700 hover:text-yellow-800">
-                  <Eye className="h-4 w-4" />
-                  Visual Garden Demo
-                </Link>
+
               </div>
             </div>
             
