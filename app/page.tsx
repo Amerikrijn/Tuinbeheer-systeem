@@ -16,7 +16,7 @@ import { ErrorBoundary } from "@/components/error-boundary"
 function HomePageContent() {
   const router = useRouter()
   const [gardens, setGardens] = React.useState<Garden[]>([])
-  const [loading, setLoading] = React.useState(false) // Start with false to show welcome immediately
+  const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [searchTerm, setSearchTerm] = React.useState("")
   const [renderError, setRenderError] = React.useState<string | null>(null)
@@ -30,6 +30,11 @@ function HomePageContent() {
         // Log loading attempt
         console.log('[HomePage] Starting to load gardens...')
         
+        // Check environment variables first
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+          throw new Error("Missing Supabase environment variables. Please check your .env.local file.")
+        }
+        
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Database connection timeout')), 10000)
@@ -42,19 +47,20 @@ function HomePageContent() {
         setGardens(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error("Failed to load gardens:", error)
-        let errorMessage = "Database connection failed. Please check your Supabase configuration."
+        
+        let errorMessage = "Failed to load gardens. "
         
         if (error instanceof Error) {
-          if (error.message.includes("relation") || error.message.includes("table")) {
-            errorMessage = "Database tables not found. Please run the database setup script first."
-          } else if (error.message.includes("timeout")) {
-            errorMessage = "Database connection timeout. Please check your internet connection and try again."
-          } else if (error.message.includes("authentication") || error.message.includes("auth")) {
-            errorMessage = "Database authentication failed. Please check your Supabase credentials."
-          } else if (error.message.includes("fetch")) {
-            errorMessage = "Network error. Please check your internet connection and try again."
+          if (error.message.includes('fetch')) {
+            errorMessage += "Network connection issue. Please check your internet connection and try again."
+          } else if (error.message.includes('timeout')) {
+            errorMessage += "The request took too long. Please try again."
+          } else if (error.message.includes('Supabase') || error.message.includes('environment')) {
+            errorMessage += "Database connection issue. Please check your configuration."
+          } else if (error.message.includes('relation') || error.message.includes('table')) {
+            errorMessage += "Database tables not found. Please run the database setup script first."
           } else {
-            errorMessage = `Error: ${error.message}`
+            errorMessage += error.message
           }
         } else {
           errorMessage = "An unexpected error occurred. Please try refreshing the page."
@@ -77,314 +83,105 @@ function HomePageContent() {
     loadGardens()
   }, [])
 
-  const filteredGardens = React.useMemo(() => {
-    try {
-      if (!Array.isArray(gardens)) {
-        return []
-      }
-      return gardens.filter(
-        (garden) =>
-          garden?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (garden?.location && garden.location.toLowerCase().includes(searchTerm.toLowerCase())),
-      )
-    } catch (error) {
-      console.error("Error filtering gardens:", error)
-      setRenderError("Er is een fout opgetreden bij het filteren van de tuinen.")
-      return []
-    }
-  }, [gardens, searchTerm])
+  // Filter gardens based on search term
+  const filteredGardens = gardens.filter(garden =>
+    garden.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    garden.description?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
-  // Wrap the entire render in try-catch to prevent white screens
-  try {
-    // Show error state first - this takes priority
-    if (error || renderError) {
+  // Handle render errors
+  if (renderError) {
     return (
-      <div className="container mx-auto space-y-6 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-              <TreePine className="h-7 w-7 text-green-600" />
-              Tuinbeheer Systeem
-            </h1>
-            <p className="text-muted-foreground">Garden Management System</p>
-          </div>
-        </div>
-
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-800">
-              <AlertCircle className="h-5 w-5" />
-              Database Connection Error
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-700 mb-4">{error || renderError}</p>
-            <div className="space-y-4">
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                <h3 className="font-semibold mb-2 text-yellow-800">Troubleshooting Steps:</h3>
-                <ol className="text-sm text-yellow-700 space-y-1 mb-4">
-                  <li>1. Check if your Supabase project is running</li>
-                  <li>2. Verify your environment variables are set correctly</li>
-                  <li>3. Run the database setup script in Supabase SQL Editor</li>
-                  <li>4. Check your internet connection</li>
-                </ol>
-              </div>
-              <div className="bg-white p-4 rounded-lg border">
-                <h3 className="font-semibold mb-2">Quick Start Options:</h3>
-                <div className="space-y-2">
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/plant-beds">
-                      <Leaf className="mr-2 h-4 w-4" />
-                      View Plant Beds
-                    </Link>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="container mx-auto space-y-6 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-              <TreePine className="h-7 w-7 text-green-600" />
-              Tuinbeheer Systeem
-            </h1>
-            <p className="text-muted-foreground">Loading your gardens...</p>
-          </div>
-          <Button asChild className="bg-green-600 hover:bg-green-700">
-            <Link href="/gardens/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Nieuwe Tuin
-            </Link>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-red-800 mb-2">Render Error</h2>
+          <p className="text-red-600 mb-4">{renderError}</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline"
+            className="border-red-300 text-red-700 hover:bg-red-50"
+          >
+            Refresh Page
           </Button>
         </div>
-
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                  <div className="flex gap-2">
-                    <Skeleton className="h-6 w-16" />
-                    <Skeleton className="h-6 w-20" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
       </div>
     )
   }
-
-  // Show welcome screen when no gardens and not loading
-  if (gardens.length === 0) {
-    return (
-      <div className="container mx-auto space-y-6 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-              <TreePine className="h-7 w-7 text-green-600" />
-              Tuinbeheer Systeem
-            </h1>
-            <p className="text-muted-foreground">Welcome to your Garden Management System</p>
-          </div>
-          <Button asChild className="bg-green-600 hover:bg-green-700">
-            <Link href="/gardens/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Nieuwe Tuin
-            </Link>
-          </Button>
-        </div>
-
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <div className="mb-6">
-            <TreePine className="h-16 w-16 text-green-600 mb-4" />
-            <Sparkles className="h-8 w-8 text-yellow-500 -mt-8 ml-8" />
-          </div>
-          <h2 className="text-2xl font-semibold mb-4">Welcome to Tuinbeheer Systeem</h2>
-          <p className="text-muted-foreground mb-8 max-w-md">
-            Your comprehensive garden management solution. Start by adding your first garden or explore the features.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-2xl">
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Plus className="h-5 w-5 text-green-600" />
-                  Create Garden
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Add your first garden to start managing plant beds and plants.
-                </p>
-                <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-                  <Link href="/gardens/new">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Garden
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Eye className="h-5 w-5 text-blue-600" />
-                  Visual Demo
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Try the interactive visual garden designer.
-                </p>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/visual-garden-demo">
-                    <Eye className="mr-2 h-4 w-4" />
-                    Try Demo
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Settings className="h-5 w-5 text-purple-600" />
-                  Admin Panel
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Access the admin panel for system management.
-                </p>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/admin">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Admin Panel
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-
 
   return (
-    <div className="container mx-auto space-y-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-            <TreePine className="h-7 w-7 text-green-600" />
-            Tuinbeheer Systeem
-          </h1>
-          <p className="text-muted-foreground">Beheer al je tuinen op één plek</p>
+    <div className="container mx-auto px-4 py-8 max-w-6xl">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div className="p-3 bg-green-100 rounded-full">
+            <TreePine className="h-8 w-8 text-green-600" />
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900">Tuinbeheer Systeem</h1>
         </div>
-        <Button asChild className="bg-green-600 hover:bg-green-700">
-          <Link href="/gardens/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Nieuwe Tuin
-          </Link>
-        </Button>
+        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          Welkom bij uw persoonlijke tuinbeheer dashboard. Beheer uw tuinen, plant bedden en houd bij wat u heeft geplant.
+        </p>
       </div>
 
-      {gardens.length > 0 && (
-        <div className="flex items-center gap-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Zoek tuinen..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+      {/* Search and Actions */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Zoek tuinen..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button asChild>
+            <Link href="/gardens/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuwe Tuin
+            </Link>
+          </Button>
+        </div>
+      </div>
+
+      {/* Error Display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+            <div>
+              <h3 className="font-semibold text-red-800">Error Loading Gardens</h3>
+              <p className="text-red-600 mt-1">{error}</p>
+            </div>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {filteredGardens.length} van {gardens.length} tuinen
-          </div>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline"
+            className="mt-4 border-red-300 text-red-700 hover:bg-red-50"
+          >
+            Try Again
+          </Button>
         </div>
       )}
 
-      {gardens.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <TreePine className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Welkom bij Tuinbeheer Systeem</h2>
-          <p className="text-muted-foreground mb-6 max-w-md">
-            Begin met het toevoegen van je eerste tuin om plantvakken en planten te kunnen beheren.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Button asChild className="bg-green-600 hover:bg-green-700">
-              <Link href="/gardens/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Eerste Tuin Toevoegen
-              </Link>
-            </Button>
-
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredGardens.map((garden) => (
-            <Card key={garden.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => router.push(`/gardens/${garden.id}`)}>
-              <CardHeader>
-                <CardTitle className="flex items-start justify-between">
-                  <span className="line-clamp-1">{garden.name}</span>
-                  <Badge variant="secondary" className="ml-2 shrink-0">
-                    {garden.garden_type || "Tuin"}
-                  </Badge>
-                </CardTitle>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span className="line-clamp-1">{garden.location}</span>
+      {/* Loading State */}
+      {loading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-6 w-32" />
+                  <Skeleton className="h-5 w-16" />
                 </div>
               </CardHeader>
-
-              <CardContent className="space-y-4">
-                {garden.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">{garden.description}</p>
-                )}
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {garden.total_area && (
-                    <div className="flex items-center gap-1">
-                      <Leaf className="h-4 w-4 text-green-600" />
-                      <span>{garden.total_area}</span>
-                    </div>
-                  )}
-                  {garden.established_date && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4 text-blue-600" />
-                      <span>{new Date(garden.established_date).getFullYear()}</span>
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                  <Button asChild size="sm" className="flex-1 bg-green-600 hover:bg-green-700">
-                    <Link href={`/gardens/${garden.id}/plantvak-view`}>
-                      <Eye className="h-4 w-4 mr-2" />
-                      Visueel Overzicht
-                    </Link>
-                  </Button>
+              <CardContent>
+                <Skeleton className="h-4 w-full mb-2" />
+                <Skeleton className="h-4 w-3/4 mb-4" />
+                <div className="flex justify-between items-center">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-8 w-24" />
                 </div>
               </CardContent>
             </Card>
@@ -392,65 +189,133 @@ function HomePageContent() {
         </div>
       )}
 
-      {filteredGardens.length === 0 && gardens.length > 0 && (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Search className="h-16 w-16 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Geen tuinen gevonden</h2>
-          <p className="text-muted-foreground mb-6">Probeer een andere zoekterm of voeg een nieuwe tuin toe.</p>
-          <Button variant="outline" onClick={() => setSearchTerm("")} className="mr-2">
-            Wis zoekopdracht
-          </Button>
-        </div>
+      {/* Gardens Grid */}
+      {!loading && (
+        <>
+          {filteredGardens.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {filteredGardens.map((garden) => (
+                <Card key={garden.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg group-hover:text-green-600 transition-colors">
+                        {garden.name}
+                      </CardTitle>
+                      <Badge variant="secondary" className="text-xs">
+                        {garden.plant_beds?.length || 0} bedden
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 mb-4 line-clamp-2">
+                      {garden.description || "Geen beschrijving beschikbaar"}
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <MapPin className="h-4 w-4" />
+                        <span>{garden.location || "Geen locatie"}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push(`/gardens/${garden.id}/plantvak-view`)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Visueel
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => router.push(`/gardens/${garden.id}`)}
+                        >
+                          <Leaf className="h-4 w-4 mr-1" />
+                          Beheer
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <div className="p-6 bg-gray-50 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                <TreePine className="h-12 w-12 text-gray-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {searchTerm ? 'Geen tuinen gevonden' : 'Geen tuinen nog'}
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                {searchTerm 
+                  ? 'Probeer een andere zoekterm of maak een nieuwe tuin aan.'
+                  : 'Begin met het aanmaken van uw eerste tuin om uw planten te beheren.'
+                }
+              </p>
+              <Button asChild>
+                <Link href="/gardens/new">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Maak Eerste Tuin
+                </Link>
+              </Button>
+            </div>
+          )}
+        </>
       )}
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+        <Card className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Sparkles className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Snelle Acties</h3>
+              <p className="text-sm text-gray-600">Veelgebruikte functies</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <Button variant="outline" className="w-full justify-start" asChild>
+              <Link href="/gardens/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Nieuwe Tuin Aanmaken
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full justify-start" asChild>
+              <Link href="/plant-beds/new">
+                <Leaf className="h-4 w-4 mr-2" />
+                Nieuw Plantbed
+              </Link>
+            </Button>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-green-100 rounded-full">
+              <Calendar className="h-6 w-6 text-green-600" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">Tuin Statistieken</h3>
+              <p className="text-sm text-gray-600">Overzicht van uw tuinen</p>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Totaal Tuinen</span>
+              <Badge variant="secondary">{gardens.length}</Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Totaal Plant Bedden</span>
+              <Badge variant="secondary">
+                {gardens.reduce((total, garden) => total + (garden.plant_beds?.length || 0), 0)}
+              </Badge>
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
   )
-  } catch (renderError) {
-    // Fallback UI for any unhandled render errors
-    console.error("Render error in HomePage:", renderError)
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-6">
-        <div className="container max-w-2xl">
-          <div className="text-center mb-8">
-            <TreePine className="h-16 w-16 text-green-600 mx-auto mb-4" />
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              Tuinbeheer Systeem
-            </h1>
-            <p className="text-gray-600">Garden Management System</p>
-          </div>
-
-          <Card className="border-red-200 bg-red-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-red-800">
-                <AlertCircle className="h-5 w-5" />
-                Er is een fout opgetreden
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-red-700">
-                De pagina kan niet worden geladen. Probeer de pagina te vernieuwen of ga terug naar de hoofdpagina.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button
-                  onClick={() => window.location.reload()}
-                  className="flex-1 bg-green-600 hover:bg-green-700"
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Vernieuwen
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => window.location.href = '/'}
-                  className="flex-1"
-                >
-                  Hoofdpagina
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-  }
 }
 
 export default function HomePage() {
