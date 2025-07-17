@@ -12,13 +12,16 @@ export function getCurrentEnvironment(): Environment {
   const appEnv = process.env.APP_ENV || process.env.NODE_ENV
   const vercelEnv = process.env.VERCEL_ENV
   
-  // Handle Vercel-specific environments
+  // Handle Vercel-specific environments - PREVIEW IS TREATED AS PRODUCTION
   if (vercelEnv === 'preview' || vercelEnv === 'production') {
-    return 'prod' // Preview and production should use prod config
+    return 'prod' // Preview and production should use IDENTICAL prod config
   }
   
+  // Explicit check for test environment
   if (appEnv === 'test') return 'test'
-  return 'prod' // Default to prod for safety
+  
+  // Default to prod for safety (better to be safe than sorry)
+  return 'prod'
 }
 
 // Get Supabase configuration based on environment
@@ -33,9 +36,10 @@ export function getSupabaseConfig(): SupabaseConfig {
       }
     case 'prod':
     default:
+      // PRODUCTION CONFIGURATION - Used by both PROD and PREVIEW
       return {
-        url: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qrotadbmnkhhwhshijdy.supabase.co',
-        anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY'
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL_PROD || process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qrotadbmnkhhwhshijdy.supabase.co',
+        anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY'
       }
   }
 }
@@ -58,12 +62,24 @@ export function logCurrentConfig(): void {
   const env = getCurrentEnvironment()
   const config = getSupabaseConfig()
   const vercelEnv = process.env.VERCEL_ENV
+  const isPreview = vercelEnv === 'preview'
   
   console.log(`🔧 Supabase Configuration [${env.toUpperCase()}]:`)
   console.log('  APP_ENV:', process.env.APP_ENV)
   console.log('  NODE_ENV:', process.env.NODE_ENV)
   console.log('  VERCEL_ENV:', vercelEnv)
-  console.log('  URL:', config.url.substring(0, 40) + '...')
+  
+  if (isPreview) {
+    console.log('  🚨 PREVIEW MODE: Using PRODUCTION configuration')
+  }
+  
+  console.log('  Database URL:', config.url)
   console.log('  Key length:', config.anonKey.length)
   console.log('  Key prefix:', config.anonKey.substring(0, 20) + '...')
+  
+  // Validate that preview is using production config
+  if (isPreview && !config.url.includes('qrotadbmnkhhwhshijdy')) {
+    console.error('❌ PREVIEW ERROR: Not using production database!')
+    throw new Error('Preview environment must use production database')
+  }
 }
