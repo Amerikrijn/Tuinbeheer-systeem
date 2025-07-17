@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, Settings, AlertCircle, Sparkles } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, AlertCircle, Sparkles } from "lucide-react"
 import { getGardens } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -16,26 +16,25 @@ import { ErrorBoundary } from "@/components/error-boundary"
 function HomePageContent() {
   const router = useRouter()
   const [gardens, setGardens] = React.useState<Garden[]>([])
-  const [loading, setLoading] = React.useState(false)
+  const [loading, setLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [searchTerm, setSearchTerm] = React.useState("")
 
   React.useEffect(() => {
     async function loadGardens() {
       try {
+        console.log('[HomePage] Loading gardens...')
         setLoading(true)
         setError(null)
         
-        console.log('[HomePage] Starting to load gardens...')
-        
-        // Check environment variables first
+        // Check environment variables
         if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-          throw new Error("Missing Supabase environment variables. Please check your .env.local file.")
+          throw new Error("Environment variables not configured")
         }
         
-        // Add timeout to prevent hanging
+        // Add timeout protection
         const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Database connection timeout')), 10000)
+          setTimeout(() => reject(new Error('Connection timeout')), 8000)
         })
         
         const dataPromise = getGardens()
@@ -46,22 +45,22 @@ function HomePageContent() {
       } catch (error) {
         console.error("Failed to load gardens:", error)
         
-        let errorMessage = "Failed to load gardens. "
+        let errorMessage = "Kan tuinen niet laden. "
         
         if (error instanceof Error) {
-          if (error.message.includes('fetch')) {
-            errorMessage += "Network connection issue. Please check your internet connection and try again."
+          if (error.message.includes('Environment variables')) {
+            errorMessage += "Configuratie ontbreekt. Controleer environment variables."
           } else if (error.message.includes('timeout')) {
-            errorMessage += "The request took too long. Please try again."
-          } else if (error.message.includes('Supabase') || error.message.includes('environment')) {
-            errorMessage += "Database connection issue. Please check your configuration."
+            errorMessage += "Verbinding duurt te lang. Probeer opnieuw."
+          } else if (error.message.includes('fetch')) {
+            errorMessage += "Netwerkfout. Controleer internetverbinding."
           } else if (error.message.includes('relation') || error.message.includes('table')) {
-            errorMessage += "Database tables not found. Please run the database setup script first."
+            errorMessage += "Database tabellen niet gevonden. Voer database setup uit."
           } else {
             errorMessage += error.message
           }
         } else {
-          errorMessage = "An unexpected error occurred. Please try refreshing the page."
+          errorMessage += "Onbekende fout opgetreden."
         }
         
         setError(errorMessage)
@@ -77,7 +76,8 @@ function HomePageContent() {
   // Filter gardens based on search term
   const filteredGardens = gardens.filter(garden =>
     garden.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    garden.description?.toLowerCase().includes(searchTerm.toLowerCase())
+    garden.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    garden.location?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
   return (
@@ -91,7 +91,7 @@ function HomePageContent() {
           <h1 className="text-4xl font-bold text-gray-900">Tuinbeheer Systeem</h1>
         </div>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Welkom bij uw persoonlijke tuinbeheer dashboard. Beheer uw tuinen, plant bedden en houd bij wat u heeft geplant.
+          Welkom bij uw persoonlijke tuinbeheer dashboard. Beheer uw tuinen, plantbedden en houd bij wat u heeft geplant.
         </p>
       </div>
 
@@ -122,17 +122,26 @@ function HomePageContent() {
           <div className="flex items-center gap-3">
             <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold text-red-800">Error Loading Gardens</h3>
+              <h3 className="font-semibold text-red-800">Fout bij laden van tuinen</h3>
               <p className="text-red-600 mt-1">{error}</p>
             </div>
           </div>
-          <Button 
-            onClick={() => window.location.reload()} 
-            variant="outline"
-            className="mt-4 border-red-300 text-red-700 hover:bg-red-50"
-          >
-            Try Again
-          </Button>
+          <div className="mt-4 flex gap-2">
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-50"
+            >
+              Opnieuw proberen
+            </Button>
+            <Button 
+              onClick={() => setError(null)} 
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-50"
+            >
+              Sluiten
+            </Button>
+          </div>
         </div>
       )}
 
@@ -152,7 +161,10 @@ function HomePageContent() {
                 <Skeleton className="h-4 w-3/4 mb-4" />
                 <div className="flex justify-between items-center">
                   <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-8 w-24" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-16" />
+                    <Skeleton className="h-8 w-16" />
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -181,28 +193,36 @@ function HomePageContent() {
                     <p className="text-gray-600 mb-4 line-clamp-2">
                       {garden.description || "Geen beschrijving beschikbaar"}
                     </p>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center mb-4">
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <MapPin className="h-4 w-4" />
                         <span>{garden.location || "Geen locatie"}</span>
                       </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => router.push(`/gardens/${garden.id}/plantvak-view`)}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          Visueel
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => router.push(`/gardens/${garden.id}`)}
-                        >
-                          <Leaf className="h-4 w-4 mr-1" />
-                          Beheer
-                        </Button>
-                      </div>
+                      {garden.established_date && (
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <Calendar className="h-4 w-4" />
+                          <span>{new Date(garden.established_date).getFullYear()}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => router.push(`/gardens/${garden.id}/plantvak-view`)}
+                        className="flex-1"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Visueel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => router.push(`/gardens/${garden.id}`)}
+                        className="flex-1"
+                      >
+                        <Leaf className="h-4 w-4 mr-1" />
+                        Beheer
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -214,7 +234,7 @@ function HomePageContent() {
                 <TreePine className="h-12 w-12 text-gray-400" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                {searchTerm ? 'Geen tuinen gevonden' : 'Geen tuinen nog'}
+                {searchTerm ? 'Geen tuinen gevonden' : 'Nog geen tuinen'}
               </h3>
               <p className="text-gray-600 mb-6 max-w-md mx-auto">
                 {searchTerm 
@@ -222,12 +242,19 @@ function HomePageContent() {
                   : 'Begin met het aanmaken van uw eerste tuin om uw planten te beheren.'
                 }
               </p>
-              <Button asChild>
-                <Link href="/gardens/new">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Maak Eerste Tuin
-                </Link>
-              </Button>
+              <div className="flex gap-2 justify-center">
+                {searchTerm && (
+                  <Button variant="outline" onClick={() => setSearchTerm("")}>
+                    Zoeken wissen
+                  </Button>
+                )}
+                <Button asChild>
+                  <Link href="/gardens/new">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {searchTerm ? 'Nieuwe tuin' : 'Eerste tuin aanmaken'}
+                  </Link>
+                </Button>
+              </div>
             </div>
           )}
         </>
@@ -277,10 +304,14 @@ function HomePageContent() {
               <Badge variant="secondary">{gardens.length}</Badge>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Totaal Plant Bedden</span>
+              <span className="text-sm text-gray-600">Totaal Plantbedden</span>
               <Badge variant="secondary">
                 {gardens.reduce((total, garden) => total + (garden.plant_beds?.length || 0), 0)}
               </Badge>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">Zoekresultaten</span>
+              <Badge variant="secondary">{filteredGardens.length}</Badge>
             </div>
           </div>
         </Card>
