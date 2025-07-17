@@ -18,21 +18,15 @@ function validateEnvironment() {
   );
 
   if (missingVars.length > 0) {
-    // In build time, use fallback values from next.config.mjs
-    if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'development') {
-      console.warn(
-        `Warning: Missing environment variables: ${missingVars.join(', ')}\n` +
-        'Using fallback values from next.config.mjs for build.'
-      );
-      return; // Don't throw error, use fallback values
-    }
-    
-    throw new Error(
+    console.error(
       `Missing required environment variables: ${missingVars.join(', ')}\n` +
       'Please check your .env.local file and ensure all required variables are set.\n' +
       'See docs/setup/environment-setup.md for more information.'
     );
+    // Don't throw here - let the app handle it gracefully
+    return false;
   }
+  return true;
 }
 
 // ===================================================================
@@ -41,35 +35,40 @@ function validateEnvironment() {
 
 function getSupabaseConfig() {
   // Validate environment first
-  validateEnvironment();
+  const isValidEnvironment = validateEnvironment();
+  
+  if (!isValidEnvironment) {
+    // Return a fallback config that won't crash the app
+    return {
+      url: 'https://placeholder.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
+      environment: 'invalid'
+    };
+  }
 
   // Determine environment
   const isTest = process.env.APP_ENV === 'test' || process.env.NODE_ENV === 'test';
   const isProduction = process.env.NODE_ENV === 'production';
-  
-  // Fallback values from next.config.mjs
-  const fallbackUrl = 'https://qrotadbmnkhhwhshijdy.supabase.co';
-  const fallbackAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY';
   
   // Get configuration based on environment
   let config;
   
   if (isTest) {
     config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL_TEST || 'https://dwsgwqosmihsfaxuheji.supabase.co',
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE',
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL_TEST,
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST,
       environment: 'test'
     };
   } else if (isProduction) {
     config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL_PROD || process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackUrl,
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackAnonKey,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL_PROD || process.env.NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       environment: 'production'
     };
   } else {
     config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL || fallbackUrl,
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || fallbackAnonKey,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
       environment: 'development'
     };
   }
