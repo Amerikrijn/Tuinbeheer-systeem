@@ -18,12 +18,15 @@ function validateEnvironment() {
   );
 
   if (missingVars.length > 0) {
-    throw new Error(
+    console.error(
       `Missing required environment variables: ${missingVars.join(', ')}\n` +
       'Please check your .env.local file and ensure all required variables are set.\n' +
       'See docs/setup/environment-setup.md for more information.'
     );
+    // Don't throw here - let the app handle it gracefully
+    return false;
   }
+  return true;
 }
 
 // ===================================================================
@@ -32,7 +35,16 @@ function validateEnvironment() {
 
 function getSupabaseConfig() {
   // Validate environment first
-  validateEnvironment();
+  const isValidEnvironment = validateEnvironment();
+  
+  if (!isValidEnvironment) {
+    // Return a fallback config that won't crash the app
+    return {
+      url: 'https://placeholder.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
+      environment: 'invalid'
+    };
+  }
 
   // Determine environment
   const isTest = process.env.APP_ENV === 'test' || process.env.NODE_ENV === 'test';
