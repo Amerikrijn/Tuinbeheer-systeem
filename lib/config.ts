@@ -10,6 +10,12 @@ export interface SupabaseConfig {
 // Get current environment from environment variables
 export function getCurrentEnvironment(): Environment {
   const appEnv = process.env.APP_ENV || process.env.NODE_ENV
+  const vercelEnv = process.env.VERCEL_ENV
+  
+  // Handle Vercel-specific environments
+  if (vercelEnv === 'preview' || vercelEnv === 'production') {
+    return 'prod' // Preview and production should use prod config
+  }
   
   if (appEnv === 'test') return 'test'
   return 'prod' // Default to prod for safety
@@ -51,8 +57,12 @@ export function validateSupabaseConfig(config: SupabaseConfig): void {
 export function logCurrentConfig(): void {
   const env = getCurrentEnvironment()
   const config = getSupabaseConfig()
+  const vercelEnv = process.env.VERCEL_ENV
   
   console.log(`🔧 Supabase Configuration [${env.toUpperCase()}]:`)
+  console.log('  APP_ENV:', process.env.APP_ENV)
+  console.log('  NODE_ENV:', process.env.NODE_ENV)
+  console.log('  VERCEL_ENV:', vercelEnv)
   console.log('  URL:', config.url.substring(0, 40) + '...')
   console.log('  Key length:', config.anonKey.length)
   console.log('  Key prefix:', config.anonKey.substring(0, 20) + '...')

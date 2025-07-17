@@ -49,6 +49,7 @@ function getSupabaseConfig() {
   // Determine environment
   const isTest = process.env.APP_ENV === 'test' || process.env.NODE_ENV === 'test';
   const isProduction = process.env.NODE_ENV === 'production';
+  const isPreview = process.env.VERCEL_ENV === 'preview';
   
   // Get configuration based on environment
   let config;
@@ -59,11 +60,12 @@ function getSupabaseConfig() {
       anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST,
       environment: 'test'
     };
-  } else if (isProduction) {
+  } else if (isProduction || isPreview) {
+    // Both production and preview should use production config
     config = {
       url: process.env.NEXT_PUBLIC_SUPABASE_URL_PROD || process.env.NEXT_PUBLIC_SUPABASE_URL,
       anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      environment: 'production'
+      environment: isPreview ? 'preview' : 'production'
     };
   } else {
     config = {
@@ -75,11 +77,12 @@ function getSupabaseConfig() {
 
   // Validate configuration
   if (!config.url || !config.anonKey) {
+    const suffix = isTest ? '_TEST' : (isProduction || isPreview) ? '_PROD' : '';
     throw new Error(
       `Missing Supabase configuration for ${config.environment} environment.\n` +
       'Please ensure the following environment variables are set:\n' +
-      `- NEXT_PUBLIC_SUPABASE_URL${isTest ? '_TEST' : isProduction ? '_PROD' : ''}\n` +
-      `- NEXT_PUBLIC_SUPABASE_ANON_KEY${isTest ? '_TEST' : isProduction ? '_PROD' : ''}`
+      `- NEXT_PUBLIC_SUPABASE_URL${suffix}\n` +
+      `- NEXT_PUBLIC_SUPABASE_ANON_KEY${suffix}`
     );
   }
 
