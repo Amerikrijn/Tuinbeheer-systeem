@@ -11,8 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, Settings, AlertCircle, Sparkles } from "lucide-react"
 import { getGardens } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
+import { ErrorBoundary } from "@/components/error-boundary"
 
-export default function HomePage() {
+function HomePageContent() {
   const router = useRouter()
   const [gardens, setGardens] = React.useState<Garden[]>([])
   const [loading, setLoading] = React.useState(false) // Start with false to show welcome immediately
@@ -441,4 +442,12 @@ export default function HomePage() {
       </div>
     )
   }
+}
+
+export default function HomePage() {
+  return (
+    <ErrorBoundary>
+      <HomePageContent />
+    </ErrorBoundary>
+  )
 }
