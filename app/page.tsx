@@ -100,22 +100,10 @@ export default function HomePage() {
               <div className="bg-white p-4 rounded-lg border">
                 <h3 className="font-semibold mb-2">Quick Start Options:</h3>
                 <div className="space-y-2">
-                  <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-                    <Link href="/visual-garden-demo">
-                      <Eye className="mr-2 h-4 w-4" />
-                      Try Visual Garden Demo
-                    </Link>
-                  </Button>
                   <Button asChild variant="outline" className="w-full">
                     <Link href="/plant-beds">
                       <Leaf className="mr-2 h-4 w-4" />
                       View Plant Beds
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" className="w-full">
-                    <Link href="/admin">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Admin Panel
                     </Link>
                   </Button>
                 </div>
@@ -318,18 +306,13 @@ export default function HomePage() {
                 Eerste Tuin Toevoegen
               </Link>
             </Button>
-            <Button asChild variant="outline">
-              <Link href="/visual-garden-demo">
-                <Eye className="mr-2 h-4 w-4" />
-                Try Visual Demo
-              </Link>
-            </Button>
+
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredGardens.map((garden) => (
-            <Card key={garden.id} className="hover:shadow-lg transition-shadow">
+            <Card key={garden.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => window.location.href = `/gardens/${garden.id}`}>
               <CardHeader>
                 <CardTitle className="flex items-start justify-between">
                   <span className="line-clamp-1">{garden.name}</span>
@@ -363,17 +346,11 @@ export default function HomePage() {
                   )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                   <Button asChild size="sm" className="flex-1 bg-green-600 hover:bg-green-700">
                     <Link href={`/gardens/${garden.id}/plantvak-view`}>
                       <Eye className="h-4 w-4 mr-2" />
-                      Bekijk
-                    </Link>
-                  </Button>
-                  <Button asChild variant="outline" size="sm" className="flex-1 bg-transparent">
-                    <Link href={`/gardens/${garden.id}`}>
-                      <Settings className="h-4 w-4 mr-2" />
-                      Beheer
+                      Visueel Overzicht
                     </Link>
                   </Button>
                 </div>

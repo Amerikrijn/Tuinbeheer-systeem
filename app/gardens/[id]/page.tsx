@@ -69,7 +69,7 @@ export default function GardenDetailPage() {
           <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
           <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
-          <Link href="/gardens">
+          <Link href="/">
             <Button className="bg-green-600 hover:bg-green-700">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Terug naar Tuinen
@@ -86,7 +86,7 @@ export default function GardenDetailPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link href="/gardens">
+            <Link href="/">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
@@ -166,7 +166,7 @@ export default function GardenDetailPage() {
                     <p className="text-gray-600 mb-4">{bed.description}</p>
                   )}
                   <div className="flex gap-2">
-                    <Link href={`/plant-beds/${bed.id}/flowers`}>
+                    <Link href={`/plant-beds/${bed.id}`}>
                       <Button className="bg-green-600 hover:bg-green-700">
                         Beheer Bloemen
                       </Button>
@@ -193,7 +193,7 @@ export default function GardenDetailPage() {
                   Bekijk je plantvakken op schaal in de visuele tuin weergave
                 </p>
               </div>
-              <Link href={`/visual-garden/${garden.id}`}>
+              <Link href={`/gardens/${garden.id}/plantvak-view`}>
                 <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
                   Bekijk Visueel
                 </Button>
