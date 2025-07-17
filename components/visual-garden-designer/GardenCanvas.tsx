@@ -430,7 +430,7 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
         
         {selectedPlantBed && (
           <Badge variant="default">
-            Selected: {localPlantBeds.find(pb => pb.id === selectedPlantBed)?.name}
+            Selected: {localPlantBeds.find(pb => pb.id === selectedPlantBed)?.name || "Unknown"}
           </Badge>
         )}
       </div>
