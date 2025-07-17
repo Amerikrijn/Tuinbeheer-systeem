@@ -27,6 +27,9 @@ function HomePageContent() {
         setLoading(true)
         setError(null)
         
+        // Log loading attempt
+        console.log('[HomePage] Starting to load gardens...')
+        
         // Add timeout to prevent hanging
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('Database connection timeout')), 10000)
@@ -35,6 +38,7 @@ function HomePageContent() {
         const dataPromise = getGardens()
         const data = await Promise.race([dataPromise, timeoutPromise])
         
+        console.log('[HomePage] Gardens loaded:', data)
         setGardens(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error("Failed to load gardens:", error)
@@ -56,14 +60,19 @@ function HomePageContent() {
           errorMessage = "An unexpected error occurred. Please try refreshing the page."
         }
         
+        console.log('[HomePage] Setting error:', errorMessage)
         setError(errorMessage)
         // Ensure gardens is always an array even on error
         setGardens([])
       } finally {
         setLoading(false)
+        console.log('[HomePage] Loading complete')
       }
     }
 
+    // Always show something immediately
+    console.log('[HomePage] Component mounted, starting load process...')
+    
     // Load gardens in background
     loadGardens()
   }, [])
