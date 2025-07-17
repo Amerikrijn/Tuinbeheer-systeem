@@ -3,15 +3,21 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
+import React from "react"
 import { ThemeProvider } from "@/components/theme-provider"
 import { LanguageProvider } from "@/hooks/use-language"
+import { WhiteScreenDetector, LoadingDetector } from "@/app/debug-white-screen"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Plantvak Beheer",
-  description: "Beheer je plantvakken en planten",
-    generator: 'v0.dev'
+  title: "Tuinbeheer Systeem",
+  description: "Garden Management System",
+}
+
+// Simple wrapper component - actual error boundary is in components/error-boundary.tsx
+function LayoutWrapper({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
 }
 
 export default function RootLayout({
@@ -20,14 +26,18 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="nl" suppressHydrationWarning>
+    <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
-          <LanguageProvider>
-            {children}
-          </LanguageProvider>
-          <Toaster />
-        </ThemeProvider>
+        <LayoutWrapper>
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+            <LanguageProvider>
+              {children}
+            </LanguageProvider>
+            <Toaster />
+          </ThemeProvider>
+          <WhiteScreenDetector />
+          <LoadingDetector />
+        </LayoutWrapper>
       </body>
     </html>
   )
