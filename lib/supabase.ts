@@ -14,7 +14,7 @@ function validateEnvironment() {
   ];
 
   const missingVars = requiredEnvVars.filter(
-    varName => !getSupabaseConfig()[varName]
+    varName => !process.env[varName]
   );
 
   if (missingVars.length > 0) {
@@ -36,7 +36,7 @@ function validateEnvironment() {
 function getSupabaseConfig() {
   // Validate environment first
   const isValidEnvironment = validateEnvironment();
-  
+
   if (!isValidEnvironment) {
     // Return a fallback config that won't crash the app
     return {
@@ -47,28 +47,29 @@ function getSupabaseConfig() {
   }
 
   // Determine environment
-  const isTest = getSupabaseConfig().APP_ENV === 'test' || getSupabaseConfig().NODE_ENV === 'test';
-  const isProduction = getSupabaseConfig().NODE_ENV === 'production';
+  const appEnv = process.env.APP_ENV || process.env.NODE_ENV || 'development';
+  const isTest = appEnv === 'test';
+  const isProduction = appEnv === 'production' || appEnv === 'prod';
   
   // Get configuration based on environment
   let config;
-  
+
   if (isTest) {
     config = {
-      url: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_URL_TEST,
-      anonKey: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL_TEST || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       environment: 'test'
     };
   } else if (isProduction) {
     config = {
-      url: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_URL_PROD || getSupabaseConfig().NEXT_PUBLIC_SUPABASE_URL,
-      anonKey: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || getSupabaseConfig().NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL_PROD || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       environment: 'production'
     };
   } else {
     config = {
-      url: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_URL,
-      anonKey: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
       environment: 'development'
     };
   }
