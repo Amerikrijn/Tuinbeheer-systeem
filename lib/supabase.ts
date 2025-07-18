@@ -38,11 +38,11 @@ function getSupabaseConfig() {
   const isValidEnvironment = validateEnvironment();
 
   if (!isValidEnvironment) {
-    // Return a fallback config that won't crash the app
+    // Return production config as fallback
     return {
-      url: 'https://placeholder.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
-      environment: 'invalid'
+      url: 'https://dwsgwqosmihsfaxuheji.supabase.co',
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE',
+      environment: 'fallback'
     };
   }
 
