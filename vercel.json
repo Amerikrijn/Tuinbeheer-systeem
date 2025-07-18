@@ -1,37 +1,14 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": ".next",
-  "framework": "nextjs",
-  "installCommand": "npm install",
-  "devCommand": "npm run dev", 
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "env": {
-    "APP_ENV": "prod",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://ofkwazgnoncvgfmrnbot.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ma3dhemdub25jdmdmbXJuYm90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTIzODYsImV4cCI6MjA2ODA4ODM4Nn0.vujBFus_-HQ01-iT3Dq4WKblGmc-RKgbiHGNYLLJ8V4"
-  },
-  "build": {
-    "env": {
-      "APP_ENV": "prod"
-    }
-  },
-  "preview": {
-    "env": {
-      "APP_ENV": "preview",
-      "NEXT_PUBLIC_SUPABASE_URL": "https://dwsgwqosmihsfaxuheji.supabase.co",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE"
-    }
+    "NEXT_PUBLIC_SUPABASE_URL": "https://dwsgwqosmihsfaxuheji.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE"
   },
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
     }
   },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -47,10 +24,29 @@
         {
           "key": "X-XSS-Protection",
           "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, apikey"
         }
       ]
     }
-  ],
-  "trailingSlash": false,
-  "cleanUrls": true
+  ]
 }
