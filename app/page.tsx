@@ -12,6 +12,7 @@ import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, AlertCircle, Spark
 import { getGardens } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { debugEnvironmentVariables } from "@/lib/debug-vercel-env"
 
 function HomePageContent() {
   const router = useRouter()
@@ -24,6 +25,11 @@ function HomePageContent() {
     async function loadGardens() {
       try {
         console.log('[HomePage] Loading gardens...')
+        
+        // Run debug diagnostics
+        const debugInfo = debugEnvironmentVariables()
+        console.log('[HomePage] Debug info:', debugInfo)
+        
         setLoading(true)
         setError(null)
         
