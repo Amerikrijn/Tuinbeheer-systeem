@@ -632,7 +632,7 @@ export class BloemendatabaseService {
       
       const { data, error } = await supabase
         .from('plants')
-        .select('name, scientific_name, category, color, height, bloom_period')
+        .select('*')
         .not('category', 'is', null)
         .order('name')
         .limit(60)
@@ -644,7 +644,7 @@ export class BloemendatabaseService {
       return createResponse(data || [])
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Bloem>(null, message)
+      return createResponse<Bloem[]>([], message)
     }
   }
 
