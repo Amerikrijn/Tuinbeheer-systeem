@@ -189,7 +189,7 @@ function HomePageContent() {
                         {garden.name}
                       </CardTitle>
                       <Badge variant="secondary" className="text-xs">
-                        {garden.plant_beds?.length || 0} bedden
+                        Tuin
                       </Badge>
                     </div>
                   </CardHeader>
@@ -310,7 +310,7 @@ function HomePageContent() {
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Totaal Plantbedden</span>
               <Badge variant="secondary">
-                {gardens.reduce((total, garden) => total + (garden.plant_beds?.length || 0), 0)}
+                {gardens.length}
               </Badge>
             </div>
             <div className="flex justify-between items-center">
