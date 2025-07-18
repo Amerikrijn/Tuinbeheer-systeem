@@ -14,7 +14,7 @@ function validateEnvironment() {
   ];
 
   const missingVars = requiredEnvVars.filter(
-    varName => !process.env[varName]
+    varName => !getSupabaseConfig()[varName]
   );
 
   if (missingVars.length > 0) {
@@ -47,28 +47,28 @@ function getSupabaseConfig() {
   }
 
   // Determine environment
-  const isTest = process.env.APP_ENV === 'test' || process.env.NODE_ENV === 'test';
-  const isProduction = process.env.NODE_ENV === 'production';
+  const isTest = getSupabaseConfig().APP_ENV === 'test' || getSupabaseConfig().NODE_ENV === 'test';
+  const isProduction = getSupabaseConfig().NODE_ENV === 'production';
   
   // Get configuration based on environment
   let config;
   
   if (isTest) {
     config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL_TEST,
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST,
+      url: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_URL_TEST,
+      anonKey: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST,
       environment: 'test'
     };
   } else if (isProduction) {
     config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL_PROD || process.env.NEXT_PUBLIC_SUPABASE_URL,
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      url: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_URL_PROD || getSupabaseConfig().NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || getSupabaseConfig().NEXT_PUBLIC_SUPABASE_ANON_KEY,
       environment: 'production'
     };
   } else {
     config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      url: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_URL,
+      anonKey: getSupabaseConfig().NEXT_PUBLIC_SUPABASE_ANON_KEY,
       environment: 'development'
     };
   }
