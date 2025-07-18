@@ -14,13 +14,6 @@
       "APP_ENV": "prod"
     }
   },
-  "preview": {
-    "env": {
-      "APP_ENV": "preview",
-      "NEXT_PUBLIC_SUPABASE_URL": "https://ofkwazgnoncvgfmrnbot.supabase.co",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ma3dhemdub25jdmdmbXJuYm90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTIzODYsImV4cCI6MjA2ODA4ODM4Nn0.vujBFus_-HQ01-iT3Dq4WKblGmc-RKgbiHGNYLLJ8V4"
-    }
-  },
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
