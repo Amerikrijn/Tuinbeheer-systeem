@@ -377,7 +377,7 @@ export class PlantvakService {
       return createResponse(true)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Plantvak>(null, message)
+      return createResponse(false, message)
     }
   }
 
@@ -558,7 +558,7 @@ export class BloemService {
       return createResponse(true)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Bloem>(null, message)
+      return createResponse(false, message)
     }
   }
 
