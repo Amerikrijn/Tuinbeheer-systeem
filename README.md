@@ -18,10 +18,9 @@ cd tuinbeheer-systeem
 # Installeer dependencies
 npm install
 
-# Setup environment
-// Environment variables are configured in Vercel dashboard
-// No local .env files needed for cloud deployment
-# Vul je Supabase credentials in
+# Setup environment variabelen
+cp .env.example .env.local
+# Vul je Supabase credentials in .env.local
 
 # Setup database
 npm run db:setup

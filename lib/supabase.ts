@@ -35,85 +35,37 @@ function validateEnvironment() {
 // ===================================================================
 
 function getSupabaseConfig() {
-  // Emergency fallback values - ONLY for temporary use
-  const FALLBACK_URL = 'https://qrotadbmnkhhwhshijdy.supabase.co';
-  const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyb3RhZGJtbmtoaHdoc2hpamR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY';
+  // Get environment variables
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Validate environment first
-  const isValidEnvironment = validateEnvironment();
-
-  if (!isValidEnvironment) {
-    console.warn(
-      '⚠️  USING EMERGENCY FALLBACK CONFIGURATION!\n' +
-      'This is temporary. Please set environment variables properly:\n' +
-      '1. Go to Vercel Dashboard > Settings > Environment Variables\n' +
-      '2. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY\n' +
-      '3. Redeploy your application\n' +
-      'See vercel-env-fix.md for detailed instructions.'
+  // Check if we have the required variables
+  if (!url || !anonKey) {
+    console.error(
+      '❌ CRITICAL ERROR: Supabase environment variables are missing!\n' +
+      'Required variables:\n' +
+      '- NEXT_PUBLIC_SUPABASE_URL\n' +
+      '- NEXT_PUBLIC_SUPABASE_ANON_KEY\n\n' +
+      'Please set these in:\n' +
+      '1. Local development: .env.local file\n' +
+      '2. Vercel: Dashboard > Settings > Environment Variables\n'
     );
     
-    // Return emergency fallback config
-    return {
-      url: FALLBACK_URL,
-      anonKey: FALLBACK_KEY,
-      environment: 'fallback'
-    };
+    throw new Error('Missing required Supabase environment variables');
   }
 
-  // Determine environment
-  const appEnv = process.env.APP_ENV || process.env.NODE_ENV || 'development';
-  const isTest = appEnv === 'test';
-  const isProduction = appEnv === 'production' || appEnv === 'prod';
-  
-  // Get configuration based on environment
-  let config;
-
-  if (isTest) {
-    config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL_TEST || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      environment: 'test'
-    };
-  } else if (isProduction) {
-    config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL_PROD || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      environment: 'production'
-    };
-  } else {
-    config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      environment: 'development'
-    };
+  // Validate the URL format
+  if (!url.includes('supabase.co')) {
+    console.error('Invalid Supabase URL format:', url);
+    throw new Error('Invalid Supabase URL');
   }
 
-  // Validate configuration
-  if (!config.url || !config.anonKey) {
-    throw new Error(
-      `Missing Supabase configuration for ${config.environment} environment.\n` +
-      'Please ensure the following environment variables are set:\n' +
-      `- NEXT_PUBLIC_SUPABASE_URL${isTest ? '_TEST' : isProduction ? '_PROD' : ''}\n` +
-      `- NEXT_PUBLIC_SUPABASE_ANON_KEY${isTest ? '_TEST' : isProduction ? '_PROD' : ''}`
-    );
-  }
-
-  // Validate URL format
-  if (!config.url.startsWith('https://') || !config.url.includes('.supabase.co')) {
-    throw new Error(
-      `Invalid Supabase URL format: ${config.url}\n` +
-      'Expected format: https://[project-id].supabase.co'
-    );
-  }
-
-  // Validate key format (basic check)
-  if (!config.anonKey.startsWith('eyJ')) {
-    throw new Error(
-      `Invalid Supabase key format. Expected JWT token starting with "eyJ"`
-    );
-  }
-
-  return config;
+  // Return the configuration
+  return {
+    url,
+    anonKey,
+    environment: process.env.NODE_ENV || 'development'
+  };
 }
 
 // ===================================================================
