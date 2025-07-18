@@ -2,7 +2,7 @@
 
 Een moderne webapplicatie voor het beheren van tuinen, plantvakken en bloemen. Gebouwd met Next.js 14, TypeScript, Supabase en Tailwind CSS.
 
-## 🚀 Quick Start
+## 🚀 Quick Start 
 
 ### Vereisten
 - Node.js 18+
