@@ -6,8 +6,8 @@
   "devCommand": "npm run dev",
   "env": {
     "APP_ENV": "prod",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://qrotadbmnkhhwhshijdy.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyb3RhZGJtbmtoaHdoc2hpamR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY"
+    "NEXT_PUBLIC_SUPABASE_URL": "https://ofkwazgnoncvgfmrnbot.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ma3dhemdub25jdmdmbXJuYm90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTIzODYsImV4cCI6MjA2ODA4ODM4Nn0.vujBFus_-HQ01-iT3Dq4WKblGmc-RKgbiHGNYLLJ8V4"
   },
   "build": {
     "env": {
