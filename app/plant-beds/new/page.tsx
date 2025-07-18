@@ -98,8 +98,6 @@ export default function NewPlantBedPage() {
         garden_id: gardenId!,
         name: name.trim(),
         size,
-        length: lengthNum,
-        width: widthNum,
       })
 
       setSuccess("Plantvak succesvol toegevoegd!")

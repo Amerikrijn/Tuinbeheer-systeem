@@ -220,7 +220,7 @@ export default function PlantBedDetailPage() {
                 </div>
                 <div>
                   <div className="font-medium">Grondsoort</div>
-                  <div className="text-sm text-gray-600">{plantBed.soilType}</div>
+                  <div className="text-sm text-gray-600">{plantBed.soil_type || 'Niet gespecificeerd'}</div>
                 </div>
               </div>
 
@@ -269,7 +269,7 @@ export default function PlantBedDetailPage() {
                         <div className="font-medium">{plant.name}</div>
                         <div className="text-sm text-gray-600 mt-1">
                           {plant.color} • {plant.height}cm hoog • Geplant op{" "}
-                          {new Date(plant.plantingDate).toLocaleDateString("nl-NL")}
+                          {plant.planting_date ? new Date(plant.planting_date).toLocaleDateString("nl-NL") : 'Onbekend'}
                         </div>
                         {plant.notes && <div className="text-sm text-gray-500 mt-1">{plant.notes}</div>}
                       </div>
@@ -357,23 +357,7 @@ export default function PlantBedDetailPage() {
                 <div className="font-medium">{plantBed.plants.length}</div>
               </div>
 
-              <Separator />
 
-              {plantBed.lastModifiedDate && (
-                <div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                    <Calendar className="h-4 w-4" />
-                    Laatst bewerkt
-                  </div>
-                  <div className="font-medium">{new Date(plantBed.lastModifiedDate).toLocaleDateString("nl-NL")}</div>
-                  {plantBed.lastModifiedBy && (
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                      <User className="h-4 w-4" />
-                      Door: {plantBed.lastModifiedBy}
-                    </div>
-                  )}
-                </div>
-              )}
             </CardContent>
           </Card>
         </div>
