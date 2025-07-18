@@ -28,7 +28,7 @@ The `@supabase_url` and `@supabase_anon_key` secrets are referenced in the confi
 
 ### Fallback Values
 The `next.config.mjs` file has fallback values:
-- `NEXT_PUBLIC_SUPABASE_URL`: `https://qrotadbmnkhhwhshijdy.supabase.co`
+- `NEXT_PUBLIC_SUPABASE_URL`: `https://zjerimsanjjiircmvuuh.supabase.co`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 
 ## Solution Steps
@@ -38,9 +38,9 @@ The `next.config.mjs` file has fallback values:
 2. Navigate to **Settings** → **Environment Variables**
 3. Add the missing secrets:
    - **Secret Name**: `supabase_url`
-   - **Value**: `https://qrotadbmnkhhwhshijdy.supabase.co`
+   - **Value**: `https://zjerimsanjjiircmvuuh.supabase.co`
    - **Secret Name**: `supabase_anon_key`
-   - **Value**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY`
+   - **Value**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqZXJpbXNhbmpqaWlyY212dXVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4NTg5NTIsImV4cCI6MjA2ODQzNDk1Mn0.RsptMTkc3myRUnfNzgj4U3EW0fUp1yLLo4ZR6xdV9gc`
 
 ### Option 2: Update vercel.json to Use Regular Environment Variables
 Modify `vercel.json` to use regular environment variables instead of secrets:
@@ -48,8 +48,8 @@ Modify `vercel.json` to use regular environment variables instead of secrets:
 ```json
 "env": {
   "APP_ENV": "prod",
-  "NEXT_PUBLIC_SUPABASE_URL": "https://qrotadbmnkhhwhshijdy.supabase.co",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5yZGdmaW90c2duenZ6c215bG5lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY"
+  "NEXT_PUBLIC_SUPABASE_URL": "https://zjerimsanjjiircmvuuh.supabase.co",
+  "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqZXJpbXNhbmpqaWlyY212dXVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI4NTg5NTIsImV4cCI6MjA2ODQzNDk1Mn0.RsptMTkc3myRUnfNzgj4U3EW0fUp1yLLo4ZR6xdV9gc"
 }
 ```
 
