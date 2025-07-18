@@ -255,7 +255,7 @@ export default function EditPlantBedPage() {
                   <SelectContent>
                     <SelectItem value="vol-zon">Vol zon (6+ uren)</SelectItem>
                     <SelectItem value="halfschaduw">Halfschaduw (3-6 uren)</SelectItem>
-                    <SelectItem value="schaduw">Schaduw (< 3 uren)</SelectItem>
+                    <SelectItem value="schaduw">Schaduw (&lt; 3 uren)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
