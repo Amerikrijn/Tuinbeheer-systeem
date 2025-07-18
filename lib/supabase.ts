@@ -587,9 +587,6 @@ export type Database = {
 // ===================================================================
 
 export type {
-  Size,
-  Bounds,
-  CanvasConfig,
   PlantBedWithPosition,
   VisualGardenData,
   UpdatePositionRequest,
