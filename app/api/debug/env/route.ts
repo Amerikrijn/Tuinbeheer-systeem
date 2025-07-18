@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       keyLength: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 0,
       keyValid: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.startsWith('eyJ') || false,
     },
-    recommendations: [],
+    recommendations: [] as string[],
   };
 
   // Add recommendations based on the checks
