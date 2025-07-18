@@ -21,7 +21,8 @@ function validateEnvironment() {
     console.error(
       `Missing required environment variables: ${missingVars.join(', ')}\n` +
       'Please check your Vercel environment variables configuration.\n' +
-      'Environment variables should be set in Vercel dashboard or vercel.json.'
+      'Environment variables should be set in Vercel dashboard, NOT in vercel.json.\n' +
+      'See vercel-env-fix.md for detailed instructions.'
     );
     // Don't throw here - let the app handle it gracefully
     return false;
@@ -34,15 +35,28 @@ function validateEnvironment() {
 // ===================================================================
 
 function getSupabaseConfig() {
+  // Emergency fallback values - ONLY for temporary use
+  const FALLBACK_URL = 'https://qrotadbmnkhhwhshijdy.supabase.co';
+  const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyb3RhZGJtbmtoaHdoc2hpamR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY';
+
   // Validate environment first
   const isValidEnvironment = validateEnvironment();
 
   if (!isValidEnvironment) {
-    // Return a fallback config that won't crash the app
+    console.warn(
+      '⚠️  USING EMERGENCY FALLBACK CONFIGURATION!\n' +
+      'This is temporary. Please set environment variables properly:\n' +
+      '1. Go to Vercel Dashboard > Settings > Environment Variables\n' +
+      '2. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY\n' +
+      '3. Redeploy your application\n' +
+      'See vercel-env-fix.md for detailed instructions.'
+    );
+    
+    // Return emergency fallback config
     return {
-      url: 'https://placeholder.supabase.co',
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder',
-      environment: 'invalid'
+      url: FALLBACK_URL,
+      anonKey: FALLBACK_KEY,
+      environment: 'fallback'
     };
   }
 
