@@ -105,7 +105,6 @@ export default function NewPlantBedPage() {
     setLoading(true)
     try {
       const plantBed = await createPlantBed({
-        id: newPlantBed.id,
         garden_id: garden.id,
         name: newPlantBed.name,
         location: newPlantBed.location || undefined,
