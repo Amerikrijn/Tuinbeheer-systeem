@@ -104,7 +104,7 @@ export class TuinService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -132,7 +132,7 @@ export class TuinService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -162,12 +162,12 @@ export class TuinService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
   /**
-   * Soft delete garden
+   * Delete garden (soft delete)
    */
   static async delete(id: string): Promise<ApiResponse<boolean>> {
     try {
@@ -189,7 +189,7 @@ export class TuinService {
       return createResponse(true)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<boolean>(false, message)
     }
   }
 
@@ -228,7 +228,7 @@ export class TuinService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<TuinWithPlantvakken>(null, message)
     }
   }
 }
@@ -260,7 +260,7 @@ export class PlantvakService {
       return createResponse(data || [])
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Plantvak[]>([], message)
     }
   }
 
@@ -292,7 +292,7 @@ export class PlantvakService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -320,7 +320,7 @@ export class PlantvakService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -350,7 +350,7 @@ export class PlantvakService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -377,7 +377,7 @@ export class PlantvakService {
       return createResponse(true)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -412,7 +412,7 @@ export class PlantvakService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 }
@@ -443,7 +443,7 @@ export class BloemService {
       return createResponse(data || [])
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -474,7 +474,7 @@ export class BloemService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -502,7 +502,7 @@ export class BloemService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -531,7 +531,7 @@ export class BloemService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -558,7 +558,7 @@ export class BloemService {
       return createResponse(true)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -616,7 +616,7 @@ export class BloemService {
       return createResponse(response)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<PaginatedResponse<Bloem>>({ data: [], total: 0, page: 1, limit: 10 }, message)
     }
   }
 }
@@ -644,7 +644,7 @@ export class BloemendatabaseService {
       return createResponse(data || [])
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<Bloem>(null, message)
     }
   }
 
@@ -677,7 +677,7 @@ export class BloemendatabaseService {
       return createResponse(stats)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null as any, message)
+      return createResponse<{ total_plants: number; total_categories: number; total_plant_beds: number; total_gardens: number }>({ total_plants: 0, total_categories: 0, total_plant_beds: 0, total_gardens: 0 }, message)
     }
   }
 }
