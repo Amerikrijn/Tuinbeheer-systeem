@@ -320,7 +320,7 @@ export async function PUT(
     }
     
     // Check if all plant beds exist and belong to this garden
-    const invalidPlantBeds = plantBedIds.filter(id => 
+    const invalidPlantBeds = plantBedIds.filter((id: string) => 
       !existingPlantBeds?.some(pb => pb.id === id && pb.garden_id === gardenId)
     );
     
