@@ -30,7 +30,8 @@ import {
   RefreshCw,
   Move,
 } from "lucide-react"
-import { getMockPlantBeds, type PlantBed } from "@/lib/mock-data"
+import { getPlantBed } from "@/lib/database"
+import type { PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 
@@ -38,7 +39,7 @@ export default function PlantBedDetailPage() {
   const router = useRouter()
   const params = useParams()
   const { toast } = useToast()
-  const [plantBed, setPlantBed] = useState<PlantBed | null>(null)
+  const [plantBed, setPlantBed] = useState<PlantBedWithPlants | null>(null)
   const [loading, setLoading] = useState(true)
   const [deleteDialog, setDeleteDialog] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -46,18 +47,19 @@ export default function PlantBedDetailPage() {
   useEffect(() => {
     const loadPlantBed = async () => {
       try {
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        const beds = getMockPlantBeds()
-        const bed = beds.find((b) => b.id === params.id)
-        setPlantBed(bed || null)
+        const bed = await getPlantBed(params.id as string)
+        setPlantBed(bed)
       } catch (error) {
         console.error("Error loading plant bed:", error)
+        setPlantBed(null)
       } finally {
         setLoading(false)
       }
     }
 
-    loadPlantBed()
+    if (params.id) {
+      loadPlantBed()
+    }
   }, [params.id])
 
   const handleDeletePlantBed = async () => {

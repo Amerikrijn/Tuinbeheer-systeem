@@ -176,7 +176,7 @@ export default function GardenDetailPage() {
                         Beheer Bloemen
                       </Button>
                     </Link>
-                    <Link href={`/plant-beds/${bed.id}/edit`}>
+                    <Link href={`/admin/plant-beds/${bed.id}/edit`}>
                       <Button variant="outline">
                         Bewerken
                       </Button>
