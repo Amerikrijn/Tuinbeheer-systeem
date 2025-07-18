@@ -42,7 +42,7 @@ async function validateConnection(): Promise<void> {
 }
 
 // Generic response wrapper
-function createResponse<T>(data: T, error: string | null = null): ApiResponse<T> {
+function createResponse<T>(data: T | null, error: string | null = null): ApiResponse<T> {
   return {
     data,
     error,
