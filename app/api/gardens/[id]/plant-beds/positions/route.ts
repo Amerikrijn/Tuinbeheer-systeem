@@ -472,7 +472,7 @@ export async function PATCH(
     });
     
     // Check if all plant beds exist
-    const missingPlantBeds = plantBedIds.filter(id => !currentDataMap.has(id));
+    const missingPlantBeds = plantBedIds.filter((id: string) => !currentDataMap.has(id));
     if (missingPlantBeds.length > 0) {
       return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
         data: null,
