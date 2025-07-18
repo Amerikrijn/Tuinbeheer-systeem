@@ -161,7 +161,7 @@ export async function testEnvironmentAccess() {
     console.error('Environment access test failed:', error);
     return {
       success: false,
-      error: error.message
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
