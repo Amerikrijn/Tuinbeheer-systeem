@@ -222,10 +222,10 @@ export default function PlantBedPlantsPage() {
                       <div className="text-sm text-gray-600 italic mt-1">{plant.scientific_name}</div>
                     )}
                   </div>
-                  <Badge className={`text-xs ${getStatusColor(plant.status)}`}>
+                  <Badge className={`text-xs ${getStatusColor(plant.status || 'growing')}`}>
                     <div className="flex items-center gap-1">
-                      {getStatusIcon(plant.status)}
-                      {getStatusText(plant.status)}
+                      {getStatusIcon(plant.status || 'growing')}
+                      {getStatusText(plant.status || 'growing')}
                     </div>
                   </Badge>
                 </div>
