@@ -9,7 +9,7 @@ import type {
   PaginatedResponse,
   SearchFilters,
   SortOptions
-} from '../types'
+} from '../types/index'
 
 /**
  * Database Service Layer
