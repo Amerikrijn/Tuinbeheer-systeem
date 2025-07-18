@@ -54,7 +54,7 @@ Een volledige audit van de codebase om alle verwijzingen naar lokale omgevingsva
 ```
 
 ### 4. API Key Consistentie
-Alle configuratiebestanden bijgewerkt met de juiste API key die hoort bij de URL `https://qrotadbmnkhhwhshijdy.supabase.co`.
+Alle configuratiebestanden bijgewerkt met de juiste API key die hoort bij de URL `https://zjerimsanjjiircmvuuh.supabase.co`.
 
 ## Huidige Configuratie Status
 
