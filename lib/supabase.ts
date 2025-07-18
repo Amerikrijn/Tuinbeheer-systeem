@@ -587,7 +587,6 @@ export type Database = {
 // ===================================================================
 
 export type {
-  Position,
   Size,
   Bounds,
   CanvasConfig,
