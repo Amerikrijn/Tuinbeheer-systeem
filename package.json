@@ -7,16 +7,16 @@
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
-    "dev:test": "APP_ENV=test next dev",
-    "build:test": "APP_ENV=test next build",
-    "start:test": "APP_ENV=test next start",
     "dev:prod": "APP_ENV=prod next dev",
     "build:prod": "APP_ENV=prod next build",
     "start:prod": "APP_ENV=prod next start",
     "clean": "rm -rf .next && rm -rf node_modules/.cache",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
-    "lint:fix": "next lint --fix"
+    "lint:fix": "next lint --fix",
+    "db:setup": "node database/setup.js setup --seed",
+    "db:reset": "node database/setup.js reset",
+    "db:schema": "node database/setup.js setup"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
