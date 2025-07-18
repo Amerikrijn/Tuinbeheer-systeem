@@ -80,7 +80,7 @@ export async function testSupabaseConnection() {
       success: false,
       environment: getCurrentEnvironment(),
       url: getSupabaseUrl(),
-      error: error.message,
+      error: error instanceof Error ? error.message : 'Unknown error',
       message: 'Supabase connection failed'
     };
   }
