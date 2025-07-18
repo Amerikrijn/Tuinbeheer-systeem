@@ -15,7 +15,7 @@ This analysis covers the configuration of a Next.js application with Supabase in
   "devCommand": "npm run dev",
   "env": {
     "APP_ENV": "prod",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://qrotadbmnkhhwhshijdy.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://zjerimsanjjiircmvuuh.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   }
 }
@@ -35,7 +35,7 @@ const nextConfig = {
   images: { unoptimized: true },
   env: {
     APP_ENV: process.env.APP_ENV || 'prod',
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://qrotadbmnkhhwhshijdy.supabase.co',
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://zjerimsanjjiircmvuuh.supabase.co',
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '...'
   }
 }
@@ -50,7 +50,7 @@ const nextConfig = {
 ### ✅ Supabase Configuration (`lib/supabase.ts` & `lib/config.ts`)
 
 **Multi-Environment Support**:
-- **Production**: `https://qrotadbmnkhhwhshijdy.supabase.co`
+- **Production**: `https://zjerimsanjjiircmvuuh.supabase.co`
 - **Test**: `https://dwsgwqosmihsfaxuheji.supabase.co`
 
 **Status**: ✅ **WELL CONFIGURED**
@@ -106,7 +106,7 @@ Production Deployment (Vercel)
 ## 📊 Database Configuration
 
 ### Supabase Instances
-- **Production**: `qrotadbmnkhhwhshijdy.supabase.co`
+- **Production**: `zjerimsanjjiircmvuuh.supabase.co`
 - **Test**: `dwsgwqosmihsfaxuheji.supabase.co`
 
 ### Database Schema
