@@ -1,20 +1,27 @@
-/** @type {import('next').NextConfig} */ 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  eslint: {
-    ignoreDuringBuilds: true,
+  reactStrictMode: true,
+  swcMinify: true,
+  
+  // Explicitly define environment variables for client-side
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   },
-  typescript: {
-    ignoreBuildErrors: true,
+  
+  // Add headers for CORS if needed
+  async headers() {
+    return [
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET,POST,PUT,DELETE,OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
+        ],
+      },
+    ];
   },
-  images: {
-    unoptimized: true,
-  },
-  experimental: {
-    serverComponentsExternalPackages: [],
-  },
-  // SECURE: No environment variables exposed to client
-  // All configuration is handled securely in lib/config.ts
-  // Only hardcoded test/prod Supabase configurations are allowed
-}
+};
 
-export default nextConfig
+export default nextConfig;

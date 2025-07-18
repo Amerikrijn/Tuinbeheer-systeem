@@ -4,138 +4,39 @@
 import { createClient } from '@supabase/supabase-js';
 
 // ===================================================================
-// ENVIRONMENT VALIDATION
+// SUPABASE CLIENT INITIALIZATION
 // ===================================================================
 
-function validateEnvironment() {
-  const requiredEnvVars = [
-    'NEXT_PUBLIC_SUPABASE_URL',
-    'NEXT_PUBLIC_SUPABASE_ANON_KEY'
-  ];
+// Get Supabase configuration from environment variables
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const missingVars = requiredEnvVars.filter(
-    varName => !process.env[varName]
+// Debug logging
+console.log('🔍 Supabase Configuration Debug:', {
+  urlExists: !!supabaseUrl,
+  urlValue: supabaseUrl,
+  keyExists: !!supabaseAnonKey,
+  keyLength: supabaseAnonKey?.length,
+  timestamp: new Date().toISOString()
+});
+
+// Validate that we have the required environment variables
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('❌ Missing Supabase environment variables:', {
+    url: supabaseUrl || 'NOT SET',
+    key: supabaseAnonKey ? 'SET' : 'NOT SET'
+  });
+  throw new Error(
+    'Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel Dashboard.'
   );
-
-  if (missingVars.length > 0) {
-    console.error(
-      `Missing required environment variables: ${missingVars.join(', ')}\n` +
-      'Please check your Vercel environment variables configuration.\n' +
-      'Environment variables should be set in Vercel dashboard, NOT in vercel.json.\n' +
-      'See vercel-env-fix.md for detailed instructions.'
-    );
-    // Don't throw here - let the app handle it gracefully
-    return false;
-  }
-  return true;
 }
 
-// ===================================================================
-// SUPABASE CONFIGURATION
-// ===================================================================
-
-function getSupabaseConfig() {
-  // Emergency fallback values - ONLY for temporary use
-  const FALLBACK_URL = 'https://qrotadbmnkhhwhshijdy.supabase.co';
-  const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyb3RhZGJtbmtoaHdoc2hpamR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0MzA4MTMsImV4cCI6MjA2ODAwNjgxM30.5ARPqu6X_YzHmKdHZKYf69jK2KZUrwLdPHwd3toD2BY';
-
-  // Validate environment first
-  const isValidEnvironment = validateEnvironment();
-
-  if (!isValidEnvironment) {
-    console.warn(
-      '⚠️  USING EMERGENCY FALLBACK CONFIGURATION!\n' +
-      'This is temporary. Please set environment variables properly:\n' +
-      '1. Go to Vercel Dashboard > Settings > Environment Variables\n' +
-      '2. Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY\n' +
-      '3. Redeploy your application\n' +
-      'See vercel-env-fix.md for detailed instructions.'
-    );
-    
-    // Return emergency fallback config
-    return {
-      url: FALLBACK_URL,
-      anonKey: FALLBACK_KEY,
-      environment: 'fallback'
-    };
-  }
-
-  // Determine environment
-  const appEnv = process.env.APP_ENV || process.env.NODE_ENV || 'development';
-  const isTest = appEnv === 'test';
-  const isProduction = appEnv === 'production' || appEnv === 'prod';
-  
-  // Get configuration based on environment
-  let config;
-
-  if (isTest) {
-    config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL_TEST || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_TEST || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      environment: 'test'
-    };
-  } else if (isProduction) {
-    config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL_PROD || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY_PROD || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      environment: 'production'
-    };
-  } else {
-    config = {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      environment: 'development'
-    };
-  }
-
-  // Validate configuration
-  if (!config.url || !config.anonKey) {
-    throw new Error(
-      `Missing Supabase configuration for ${config.environment} environment.\n` +
-      'Please ensure the following environment variables are set:\n' +
-      `- NEXT_PUBLIC_SUPABASE_URL${isTest ? '_TEST' : isProduction ? '_PROD' : ''}\n` +
-      `- NEXT_PUBLIC_SUPABASE_ANON_KEY${isTest ? '_TEST' : isProduction ? '_PROD' : ''}`
-    );
-  }
-
-  // Validate URL format
-  if (!config.url.startsWith('https://') || !config.url.includes('.supabase.co')) {
-    throw new Error(
-      `Invalid Supabase URL format: ${config.url}\n` +
-      'Expected format: https://[project-id].supabase.co'
-    );
-  }
-
-  // Validate key format (basic check)
-  if (!config.anonKey.startsWith('eyJ')) {
-    throw new Error(
-      `Invalid Supabase key format. Expected JWT token starting with "eyJ"`
-    );
-  }
-
-  return config;
-}
-
-// ===================================================================
-// SUPABASE CLIENT SETUP
-// ===================================================================
-
-const config = getSupabaseConfig();
-
-export const supabase = createClient(config.url, config.anonKey, {
+// Create Supabase client
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: true
   },
-  realtime: {
-    reconnectOnFocus: true,
-    heartbeatIntervalMs: 30000,
-    reconnectOnVisibilityChange: true
-  },
-  db: {
-    schema: 'public'
-  }
 });
 
 // ===================================================================
@@ -143,23 +44,23 @@ export const supabase = createClient(config.url, config.anonKey, {
 // ===================================================================
 
 export function getCurrentEnvironment() {
-  return config.environment;
+  return process.env.NODE_ENV || 'development';
 }
 
 export function getSupabaseUrl() {
-  return config.url;
+  return supabaseUrl;
 }
 
 export function isTestEnvironment() {
-  return config.environment === 'test';
+  return process.env.NODE_ENV === 'test';
 }
 
 export function isProductionEnvironment() {
-  return config.environment === 'production';
+  return process.env.NODE_ENV === 'production';
 }
 
 export function isDevelopmentEnvironment() {
-  return config.environment === 'development';
+  return process.env.NODE_ENV === 'development';
 }
 
 // ===================================================================
@@ -179,15 +80,15 @@ export async function testSupabaseConnection() {
 
     return {
       success: true,
-      environment: config.environment,
-      url: config.url,
+      environment: getCurrentEnvironment(),
+      url: getSupabaseUrl(),
       message: 'Supabase connection successful'
     };
   } catch (error) {
     return {
       success: false,
-      environment: config.environment,
-      url: config.url,
+      environment: getCurrentEnvironment(),
+      url: getSupabaseUrl(),
       error: error.message,
       message: 'Supabase connection failed'
     };
@@ -777,8 +678,8 @@ export const VISUAL_GARDEN_CONSTANTS = {
 // ===================================================================
 
 export const ENVIRONMENT_INFO = {
-  environment: config.environment,
-  supabaseUrl: config.url,
+  environment: getCurrentEnvironment(),
+  supabaseUrl: getSupabaseUrl(),
   isTest: isTestEnvironment(),
   isProduction: isProductionEnvironment(),
   isDevelopment: isDevelopmentEnvironment(),
@@ -787,8 +688,8 @@ export const ENVIRONMENT_INFO = {
 // Log environment information in development
 if (isDevelopmentEnvironment()) {
   console.log('🌱 Tuinbeheer Systeem - Supabase Configuration', {
-    environment: config.environment,
-    url: config.url,
+    environment: getCurrentEnvironment(),
+    url: getSupabaseUrl(),
     timestamp: new Date().toISOString()
   });
 }
