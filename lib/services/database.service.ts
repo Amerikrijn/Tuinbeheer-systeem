@@ -616,7 +616,7 @@ export class BloemService {
       return createResponse(response)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<PaginatedResponse<Bloem>>({ data: [], total: 0, page: 1, limit: 10 }, message)
+      return createResponse<PaginatedResponse<Bloem>>({ data: [], count: 0, page: 1, page_size: 10, total_pages: 0 }, message)
     }
   }
 }
