@@ -20,8 +20,8 @@ function validateEnvironment() {
   if (missingVars.length > 0) {
     console.error(
       `Missing required environment variables: ${missingVars.join(', ')}\n` +
-      'Please check your .env.local file and ensure all required variables are set.\n' +
-      'See docs/setup/environment-setup.md for more information.'
+      'Please check your Vercel environment variables configuration.\n' +
+      'Environment variables should be set in Vercel dashboard or vercel.json.'
     );
     // Don't throw here - let the app handle it gracefully
     return false;
