@@ -95,6 +95,7 @@ export default function GardenPage() {
 
       router.push("/admin/plant-beds")
     } catch (error) {
+      console.error("Error updating garden:", error)
       toast({
         title: "Error",
         description: "An error occurred while updating the garden.",

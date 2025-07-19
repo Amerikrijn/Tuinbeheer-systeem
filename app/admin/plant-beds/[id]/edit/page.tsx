@@ -104,6 +104,7 @@ export default function EditPlantBedPage() {
 
       router.push(`/admin/plant-beds/${editPlantBed.id}`)
     } catch (error) {
+      console.error("Error updating plant bed:", error)
       toast({
         title: "Fout",
         description: "Er is een fout opgetreden bij het bijwerken van het plantvak.",
@@ -128,6 +129,7 @@ export default function EditPlantBedPage() {
 
       router.push("/admin/plant-beds")
     } catch (error) {
+      console.error("Error deleting plant bed:", error)
       toast({
         title: "Fout",
         description: "Er is een fout opgetreden bij het verwijderen van het plantvak.",

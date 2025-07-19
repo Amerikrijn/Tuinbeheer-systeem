@@ -15,7 +15,6 @@ import {
   Edit,
   Trash2,
   Leaf,
-  Calendar,
   MapPin,
   Flower,
   TreePine,

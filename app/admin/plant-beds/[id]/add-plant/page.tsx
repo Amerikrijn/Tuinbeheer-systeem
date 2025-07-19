@@ -83,6 +83,7 @@ export default function AddPlantPage() {
 
       router.push(`/admin/plant-beds/${params.id}`)
     } catch (error) {
+      console.error("Error adding plant:", error)
       toast({
         title: "Fout",
         description: "Er is een fout opgetreden bij het toevoegen van de plant.",
