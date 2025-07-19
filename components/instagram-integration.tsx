@@ -170,22 +170,22 @@ export function InstagramIntegration({
               {recentPosts.map((post) => (
                 <div key={post.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
                   <img
-                    src={post.imageUrl || "/placeholder.svg"}
-                    alt={post.sessionTitle}
+                    src={post.media_url || "/placeholder.svg"}
+                    alt="Instagram post"
                     className="w-12 h-12 object-cover rounded"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{post.sessionTitle}</div>
-                    <div className="text-xs text-gray-500">{new Date(post.postedAt).toLocaleDateString()}</div>
+                    <div className="font-medium text-sm truncate">{post.caption || 'Instagram Post'}</div>
+                    <div className="text-xs text-gray-500">{post.timestamp ? new Date(post.timestamp).toLocaleDateString() : 'Recent'}</div>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span className="flex items-center gap-1">
                       <Heart className="h-3 w-3" />
-                      {post.likes}
+                      0
                     </span>
                     <span className="flex items-center gap-1">
                       <MessageCircle className="h-3 w-3" />
-                      {post.comments}
+                      0
                     </span>
                   </div>
                 </div>
