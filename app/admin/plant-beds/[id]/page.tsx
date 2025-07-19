@@ -188,12 +188,6 @@ export default function PlantBedDetailPage() {
               Bewerk Plantvak
             </Button>
           </Link>
-          <Link href={`/admin/plant-beds/${plantBed.id}/add-plant`}>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Plant Toevoegen
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -242,18 +236,10 @@ export default function PlantBedDetailPage() {
           {/* Plants Overview */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="h-5 w-5 text-blue-600" />
-                  Planten Overzicht ({plantBed.plants.length})
-                </CardTitle>
-                <Link href={`/admin/plant-beds/${plantBed.id}/add-plant`}>
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Plant Toevoegen
-                  </Button>
-                </Link>
-              </div>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5 text-blue-600" />
+                Planten Overzicht ({plantBed.plants.length})
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {plantBed.plants.length > 0 ? (
@@ -284,13 +270,7 @@ export default function PlantBedDetailPage() {
                 <div className="text-center py-8">
                   <Plus className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen planten</h3>
-                  <p className="text-gray-600 mb-4">Begin met het toevoegen van je eerste plant aan dit plantvak.</p>
-                  <Link href={`/admin/plant-beds/${plantBed.id}/add-plant`}>
-                    <Button className="bg-green-600 hover:bg-green-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Eerste Plant Toevoegen
-                    </Button>
-                  </Link>
+                  <p className="text-gray-600 mb-4">Dit plantvak heeft nog geen planten.</p>
                 </div>
               )}
             </CardContent>
@@ -305,12 +285,6 @@ export default function PlantBedDetailPage() {
               <CardTitle>Snelle Acties</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Link href={`/admin/plant-beds/${plantBed.id}/add-plant`} className="block">
-                <Button className="w-full bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Plant Toevoegen
-                </Button>
-              </Link>
               <Link href={`/admin/plant-beds/${plantBed.id}/edit`} className="block">
                 <Button variant="outline" className="w-full bg-transparent">
                   <Edit className="h-4 w-4 mr-2" />

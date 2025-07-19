@@ -226,12 +226,6 @@ export default function PlantBedLayoutPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link href={`/plant-beds/${plantBed.id}/plants/new`}>
-            <Button variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Plant Toevoegen
-            </Button>
-          </Link>
           <Button variant="outline" size="sm" onClick={zoomOut}>
             <ZoomOut className="h-4 w-4" />
           </Button>
@@ -350,13 +344,7 @@ export default function PlantBedLayoutPage() {
                   <div className="text-center">
                     <Flower className="h-16 w-16 mx-auto text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen planten</h3>
-                    <p className="text-gray-600 mb-4">Begin met het toevoegen van planten aan dit plantvak.</p>
-                    <Link href={`/plant-beds/${plantBed.id}/plants/new`}>
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Eerste Plant Toevoegen
-                      </Button>
-                    </Link>
+                    <p className="text-gray-600 mb-4">Dit plantvak heeft nog geen planten.</p>
                   </div>
                 </div>
               )}

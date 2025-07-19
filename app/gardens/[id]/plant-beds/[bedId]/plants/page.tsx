@@ -310,16 +310,8 @@ export default function PlantBedPlantsPage() {
           <p className="text-gray-600 mb-6">
             {searchTerm
               ? `Geen planten gevonden voor "${searchTerm}"`
-              : `Begin met het toevoegen van planten aan ${plantBed.name}`}
+              : `${plantBed.name} heeft nog geen planten`}
           </p>
-          {!searchTerm && (
-            <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/new`}>
-              <Button className="bg-green-600 hover:bg-green-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Eerste Plant Toevoegen
-              </Button>
-            </Link>
-          )}
         </div>
       )}
 
