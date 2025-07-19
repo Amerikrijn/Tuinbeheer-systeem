@@ -185,12 +185,6 @@ export default function PlantBedDetailPage() {
               Bewerk Plantvak
             </Button>
           </Link>
-          <Link href={`/plant-beds/${plantBed.id}/add-plant`}>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Plant Toevoegen
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -316,7 +310,7 @@ export default function PlantBedDetailPage() {
                   Bekijk Planten
                 </Button>
               </Link>
-              <Link href={`/plant-beds/${plantBed.id}/plants/new`} className="block">
+              <Link href={`/plant-beds/add-plant`} className="block">
                 <Button className="w-full bg-green-600 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
                   Plant Toevoegen

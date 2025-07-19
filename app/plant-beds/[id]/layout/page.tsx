@@ -226,12 +226,6 @@ export default function PlantBedLayoutPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Link href={`/plant-beds/${plantBed.id}/plants/new`}>
-            <Button variant="outline" size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Plant Toevoegen
-            </Button>
-          </Link>
           <Button variant="outline" size="sm" onClick={zoomOut}>
             <ZoomOut className="h-4 w-4" />
           </Button>
