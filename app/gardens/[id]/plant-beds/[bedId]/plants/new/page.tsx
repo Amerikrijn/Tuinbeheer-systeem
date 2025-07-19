@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useRouter, useParams } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -160,24 +161,33 @@ export default function NewPlantPage() {
 
   return (
     <div className="container mx-auto space-y-6 p-6">
-      <div className="flex flex-wrap items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push(`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants`)}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {plantBed.name} - Planten
-        </Button>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push(`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants`)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            {plantBed.name} - Planten
+          </Button>
 
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-            <Plus className="h-7 w-7 text-green-600" />
-            Nieuwe Plant
-          </h1>
-          <p className="text-muted-foreground">Voeg een nieuwe plant toe aan {plantBed.name}</p>
+          <div>
+            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
+              <Plus className="h-7 w-7 text-green-600" />
+              Nieuwe Plant
+            </h1>
+            <p className="text-muted-foreground">Voeg een nieuwe plant toe aan {plantBed.name}</p>
+          </div>
         </div>
+
+        <Link href="/plant-beds/new">
+          <Button className="bg-green-600 hover:bg-green-700">
+            <Plus className="h-4 w-4 mr-2" />
+            Plantvak Toevoegen
+          </Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

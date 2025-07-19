@@ -187,12 +187,20 @@ export default function PlantBedPlantsPage() {
             </p>
           </div>
         </div>
-        <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/new`}>
-          <Button className="bg-green-600 hover:bg-green-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Nieuwe Plant
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/plant-beds/new">
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Plantvak Toevoegen
+            </Button>
+          </Link>
+          <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/new`}>
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuwe Plant
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Search */}

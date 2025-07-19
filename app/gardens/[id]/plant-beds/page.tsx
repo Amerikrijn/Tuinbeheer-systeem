@@ -133,12 +133,20 @@ export default function PlantBedsPage() {
             </div>
           </div>
         </div>
-        <Link href={`/gardens/${garden.id}/plant-beds/new`}>
-          <Button className="bg-green-600 hover:bg-green-700">
-            <Plus className="h-4 w-4 mr-2" />
-            Nieuw Plantvak
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/plant-beds/new">
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Plantvak Toevoegen
+            </Button>
+          </Link>
+          <Link href={`/gardens/${garden.id}/plant-beds/new`}>
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuw Plantvak
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Search */}
@@ -245,12 +253,20 @@ export default function PlantBedsPage() {
               : "Begin met het toevoegen van je eerste plantvak"}
           </p>
           {!searchTerm && (
-            <Link href={`/gardens/${garden.id}/plant-beds/new`}>
-              <Button className="bg-green-600 hover:bg-green-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Eerste Plantvak Toevoegen
-              </Button>
-            </Link>
+            <div className="flex gap-2 justify-center">
+              <Link href="/plant-beds/new">
+                <Button className="bg-green-600 hover:bg-green-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Plantvak Toevoegen
+                </Button>
+              </Link>
+              <Link href={`/gardens/${garden.id}/plant-beds/new`}>
+                <Button className="bg-green-600 hover:bg-green-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Eerste Plantvak Toevoegen
+                </Button>
+              </Link>
+            </div>
           )}
         </div>
       )}
