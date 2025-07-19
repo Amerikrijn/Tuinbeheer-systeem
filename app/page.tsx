@@ -191,7 +191,7 @@ function HomePageContent() {
                         {garden.name}
                       </CardTitle>
                       <Badge variant="secondary" className="text-xs">
-                        {garden.plant_beds?.length || 0} bedden
+                        {(garden as any).plant_beds?.length || 0} bedden
                       </Badge>
                     </div>
                   </CardHeader>
