@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { useNavigationHistory } from "@/hooks/use-navigation-history"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -28,6 +29,7 @@ import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 
 export default function PlantBedsPage() {
   const router = useRouter()
+  const { navigateTo } = useNavigationHistory()
   const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])
   const [garden, setGarden] = useState<Garden | null>(null)
   const [loading, setLoading] = useState(true)

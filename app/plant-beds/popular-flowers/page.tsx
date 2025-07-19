@@ -18,11 +18,11 @@ import {
   ArrowLeft,
   Search,
   Filter,
+  Plus,
   Calendar,
   Palette,
   Sparkles,
   Home,
-  Plus,
 } from "lucide-react"
 import { getPopularFlowers, FLOWER_CATEGORIES } from "@/lib/dutch-flowers"
 import type { FlowerData } from "@/lib/dutch-flowers"
@@ -98,6 +98,12 @@ export default function PopularFlowersPage() {
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Plantvakken
+              </Button>
+            </Link>
+            <Link href="/plant-beds/new">
+              <Button className="bg-green-600 hover:bg-green-700 text-white" size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Plantvak Toevoegen
               </Button>
             </Link>
           </div>
