@@ -250,7 +250,7 @@ export default function PlantBedDetailPage() {
                 <Link href={`/plant-beds/add-plant?plantvak=${plantBed.id}`}>
                   <Button className="bg-green-600 hover:bg-green-700">
                     <Flower className="h-4 w-4 mr-2" />
-                    Bloemen Registreren
+                    Bloemen Toevoegen
                   </Button>
                 </Link>
               </div>

@@ -49,6 +49,8 @@ export default function AddPlantPage() {
   // Form state
   const [selectedPlantBed, setSelectedPlantBed] = useState<string>("")
   const [selectedFlower, setSelectedFlower] = useState<string>("")
+  const [isManualEntry, setIsManualEntry] = useState<boolean>(false)
+  const [customFlowerName, setCustomFlowerName] = useState<string>("")
   const [stemLength, setStemLength] = useState<string>("")
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
@@ -134,7 +136,9 @@ export default function AddPlantPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!selectedPlantBed || !selectedFlower || !stemLength) {
+    const flowerName = isManualEntry ? customFlowerName : selectedFlower
+    
+    if (!selectedPlantBed || !flowerName || !stemLength) {
       setError("Vul alle verplichte velden in")
       return
     }
@@ -151,7 +155,7 @@ export default function AddPlantPage() {
       // Prepare plant data for database
       const plantData = {
         plant_bed_id: selectedPlantBed,
-        name: selectedFlower,
+        name: flowerName,
         scientific_name: selectedFlowerData?.scientificName || "",
         category: 'eenjarig',
         bloom_period: selectedFlowerData?.bloeiperiode || "",
@@ -169,11 +173,13 @@ export default function AddPlantPage() {
       const result = await createPlant(plantData)
       
       if (result) {
-        setSuccess("Bloem succesvol geregistreerd!")
+        setSuccess("Bloem succesvol toegevoegd!")
         
         // Reset form
         setSelectedPlantBed("")
         setSelectedFlower("")
+        setIsManualEntry(false)
+        setCustomFlowerName("")
         setStemLength("")
         setPhotoFile(null)
         setPhotoPreview(null)
@@ -221,7 +227,7 @@ export default function AddPlantPage() {
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-3 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
                 <Leaf className="h-8 w-8 text-green-600" />
-                Bloemen Registreren
+                Bloemen Toevoegen
               </h1>
               <p className="text-gray-600 mt-1">Voeg eenjarige bloemen toe aan je plantvakken</p>
             </div>
@@ -267,59 +273,113 @@ export default function AddPlantPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Search */}
-              <div className="space-y-2">
-                <Label htmlFor="search">Zoek een bloem</Label>
-                <Input
-                  id="search"
-                  type="text"
-                  placeholder="Zoek op naam..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
+              {/* Entry Mode Toggle */}
+              <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
+                <Button
+                  type="button"
+                  variant={!isManualEntry ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => {
+                    setIsManualEntry(false)
+                    setCustomFlowerName("")
+                    setSelectedFlower("")
+                  }}
+                  className="flex-1"
+                >
+                  Selecteer uit lijst
+                </Button>
+                <Button
+                  type="button"
+                  variant={isManualEntry ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => {
+                    setIsManualEntry(true)
+                    setSelectedFlower("")
+                    setSearchTerm("")
+                  }}
+                  className="flex-1"
+                >
+                  Handmatig invoeren
+                </Button>
               </div>
+
+              {!isManualEntry ? (
+                <>
+                  {/* Search */}
+                  <div className="space-y-2">
+                    <Label htmlFor="search">Zoek een bloem</Label>
+                    <Input
+                      id="search"
+                      type="text"
+                      placeholder="Zoek op naam..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Manual Entry */}
+                  <div className="space-y-2">
+                    <Label htmlFor="customFlowerName">Bloem naam *</Label>
+                    <Input
+                      id="customFlowerName"
+                      type="text"
+                      placeholder="Voer bloem naam in..."
+                      value={customFlowerName}
+                      onChange={(e) => setCustomFlowerName(e.target.value)}
+                      className="w-full"
+                      required
+                    />
+                  </div>
+                </>
+              )}
               
-              {/* Flower Selection */}
-              <div className="space-y-2">
-                <Label>Beschikbare eenjarige bloemen ({filteredFlowers.length})</Label>
-                <div className="max-h-96 overflow-y-auto border rounded-lg p-2 space-y-2">
-                  {filteredFlowers.map((flower) => (
-                    <div
-                      key={flower.name}
-                      className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                        selectedFlower === flower.name
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-200 hover:border-green-300 hover:bg-green-25'
-                      }`}
-                      onClick={() => setSelectedFlower(flower.name)}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-medium">{flower.name}</h3>
-                          {flower.scientificName && (
-                            <p className="text-sm text-gray-600 italic">{flower.scientificName}</p>
-                          )}
+              {!isManualEntry && (
+                <>
+                  {/* Flower Selection */}
+                  <div className="space-y-2">
+                    <Label>Beschikbare eenjarige bloemen ({filteredFlowers.length})</Label>
+                    <div className="max-h-96 overflow-y-auto border rounded-lg p-2 space-y-2">
+                      {filteredFlowers.map((flower) => (
+                        <div
+                          key={flower.name}
+                          className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                            selectedFlower === flower.name
+                              ? 'border-green-500 bg-green-50'
+                              : 'border-gray-200 hover:border-green-300 hover:bg-green-25'
+                          }`}
+                          onClick={() => setSelectedFlower(flower.name)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h3 className="font-medium">{flower.name}</h3>
+                              {flower.scientificName && (
+                                <p className="text-sm text-gray-600 italic">{flower.scientificName}</p>
+                              )}
+                            </div>
+                            {selectedFlower === flower.name && (
+                              <CheckCircle className="h-5 w-5 text-green-600" />
+                            )}
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {flower.kleur.map((kleur) => (
+                              <Badge key={kleur} variant="secondary" className="text-xs">
+                                {kleur}
+                              </Badge>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            <Calendar className="h-3 w-3 inline mr-1" />
+                            {flower.bloeiperiode}
+                          </p>
                         </div>
-                        {selectedFlower === flower.name && (
-                          <CheckCircle className="h-5 w-5 text-green-600" />
-                        )}
-                      </div>
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {flower.kleur.map((kleur) => (
-                          <Badge key={kleur} variant="secondary" className="text-xs">
-                            {kleur}
-                          </Badge>
-                        ))}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        <Calendar className="h-3 w-3 inline mr-1" />
-                        {flower.bloeiperiode}
-                      </p>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
 
@@ -328,7 +388,7 @@ export default function AddPlantPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Palette className="h-5 w-5 text-blue-600" />
-                Bloem Registreren
+                Bloem Toevoegen
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -351,7 +411,7 @@ export default function AddPlantPage() {
                 </div>
 
                 {/* Selected Flower Info */}
-                {selectedFlowerData && (
+                {!isManualEntry && selectedFlowerData && (
                   <div className="p-3 bg-green-50 rounded-lg">
                     <h4 className="font-medium text-green-800">{selectedFlowerData.name}</h4>
                     {selectedFlowerData.scientificName && (
@@ -368,6 +428,14 @@ export default function AddPlantPage() {
                       <Calendar className="h-3 w-3 inline mr-1" />
                       {selectedFlowerData.bloeiperiode}
                     </p>
+                  </div>
+                )}
+                
+                {/* Manual Entry Flower Info */}
+                {isManualEntry && customFlowerName && (
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <h4 className="font-medium text-blue-800">{customFlowerName}</h4>
+                    <p className="text-sm text-blue-700">Handmatig toegevoegde bloem</p>
                   </div>
                 )}
 
@@ -466,7 +534,7 @@ export default function AddPlantPage() {
                   ) : (
                     <>
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Bloem Registreren
+                      Bloem Toevoegen
                     </>
                   )}
                 </Button>
