@@ -264,7 +264,7 @@ export default function PlantBedDetailPage() {
                         <div className="font-medium">{plant.name}</div>
                         <div className="text-sm text-gray-600 mt-1">
                           {plant.color} • {plant.height}cm hoog • Geplant op{" "}
-                          {new Date(plant.plantingDate).toLocaleDateString("nl-NL")}
+                          {new Date((plant as any).plantingDate || (plant as any).planting_date).toLocaleDateString("nl-NL")}
                         </div>
                         {plant.notes && <div className="text-sm text-gray-500 mt-1">{plant.notes}</div>}
                       </div>
