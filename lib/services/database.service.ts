@@ -228,7 +228,7 @@ export class TuinService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse(null, message)
+      return createResponse(null as TuinWithPlantvakken | null, message)
     }
   }
 }
@@ -260,7 +260,7 @@ export class PlantvakService {
       return createResponse(data || [])
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse(null, message)
+      return createResponse([], message)
     }
   }
 
@@ -292,7 +292,7 @@ export class PlantvakService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse(null, message)
+      return createResponse(null as Plantvak | null, message)
     }
   }
 
@@ -320,7 +320,7 @@ export class PlantvakService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse(null, message)
+      return createResponse(null as Plantvak | null, message)
     }
   }
 
