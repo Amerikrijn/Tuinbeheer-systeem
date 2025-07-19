@@ -583,6 +583,42 @@ export type Database = {
 };
 
 // ===================================================================
+// VISUAL GARDEN CONSTANTS
+// ===================================================================
+
+export const VISUAL_GARDEN_CONSTANTS = {
+  // Canvas dimensions
+  DEFAULT_CANVAS_WIDTH: 800,
+  DEFAULT_CANVAS_HEIGHT: 600,
+  MIN_CANVAS_WIDTH: 400,
+  MAX_CANVAS_WIDTH: 2000,
+  MIN_CANVAS_HEIGHT: 300,
+  MAX_CANVAS_HEIGHT: 1500,
+
+  // Grid settings
+  DEFAULT_GRID_SIZE: 20,
+  MIN_GRID_SIZE: 10,
+  MAX_GRID_SIZE: 50,
+
+  // Zoom settings
+  DEFAULT_ZOOM: 1.0,
+  MIN_ZOOM: 0.1,
+  MAX_ZOOM: 3.0,
+
+  // Plant bed settings
+  DEFAULT_PLANT_BED_SIZE: 100,
+  MAX_PLANT_BED_SIZE: 500,
+
+  // Colors
+  DEFAULT_COLORS: {
+    BACKGROUND: '#f5f5f5',
+    PLANT_BED: '#8fbc8f',
+    GRID: '#e0e0e0',
+    BORDER: '#666666'
+  }
+};
+
+// ===================================================================
 // EXPORT TYPES FOR EASY IMPORT
 // ===================================================================
 
