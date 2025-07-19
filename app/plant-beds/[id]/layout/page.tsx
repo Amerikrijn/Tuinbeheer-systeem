@@ -253,10 +253,10 @@ export default function PlantBedLayoutPage() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
-              {getSunExposureIcon(plantBed.sunExposure)}
+              {getSunExposureIcon((plantBed as any).sunExposure || (plantBed as any).sun_exposure)}
               <div>
                 <div className="font-medium">Zonlicht</div>
-                <div className="text-sm text-gray-600">{plantBed.sunExposure}</div>
+                <div className="text-sm text-gray-600">{(plantBed as any).sunExposure || (plantBed as any).sun_exposure}</div>
               </div>
             </div>
             <div>
