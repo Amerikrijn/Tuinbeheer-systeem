@@ -39,7 +39,7 @@ import {
   Leaf,
 } from "lucide-react"
 import { getPlantBed, updatePlant, deletePlant } from "@/lib/database"
-import type { PlantBedWithPlants } from "@/lib/supabase"
+import type { PlantBedWithPlants, Plant } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 
 export default function EditPlantPage() {
@@ -47,7 +47,7 @@ export default function EditPlantPage() {
   const params = useParams()
   const { toast } = useToast()
   const [plantBed, setPlantBed] = useState<PlantBedWithPlants | null>(null)
-  const [plant, setPlant] = useState<any>(null)
+  const [plant, setPlant] = useState<Plant | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleteDialog, setDeleteDialog] = useState(false)
@@ -62,11 +62,11 @@ export default function EditPlantPage() {
   const [notes, setNotes] = useState("")
 
   const statusOptions = [
-    { value: "gezaaid", label: "Gezaaid" },
-    { value: "gekiemd", label: "Gekiemd" },
-    { value: "bloeiend", label: "Bloeiend" },
-    { value: "uitgebloeid", label: "Uitgebloeid" },
-    { value: "verwijderd", label: "Verwijderd" }
+    { value: "healthy", label: "Gezond" },
+    { value: "needs_attention", label: "Heeft Aandacht Nodig" },
+    { value: "diseased", label: "Ziek" },
+    { value: "dead", label: "Dood" },
+    { value: "harvested", label: "Geoogst" }
   ]
 
   useEffect(() => {
@@ -92,7 +92,7 @@ export default function EditPlantPage() {
         setColor(foundPlant.color || "")
         setHeight(foundPlant.height?.toString() || "")
         setPlantingDate(foundPlant.planting_date ? foundPlant.planting_date.split('T')[0] : "")
-        setStatus(foundPlant.status || "gezaaid")
+        setStatus(foundPlant.status || "healthy")
         setNotes(foundPlant.notes || "")
         
       } catch (error) {
@@ -128,10 +128,10 @@ export default function EditPlantPage() {
       await updatePlant(params.plantId as string, {
         name: name.trim(),
         color: color.trim(),
-        height: height ? parseInt(height) : null,
-        planting_date: plantingDate || null,
-        status,
-        notes: notes.trim() || null,
+        height: height ? parseInt(height) : undefined,
+        planting_date: plantingDate || undefined,
+        status: status as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
+        notes: notes.trim() || undefined,
       })
 
       toast({
@@ -160,7 +160,7 @@ export default function EditPlantPage() {
 
       toast({
         title: "Plant verwijderd",
-        description: `${plant.name} is succesvol verwijderd uit het plantvak.`,
+        description: `${plant?.name} is succesvol verwijderd uit het plantvak.`,
       })
 
       router.push(`/plant-beds/${params.id}`)
@@ -221,9 +221,9 @@ export default function EditPlantPage() {
               <Edit className="h-8 w-8 text-blue-600" />
               Plant Bewerken
             </h1>
-            <p className="text-gray-600 mt-1">
-              Bewerk {plant.name} in plantvak {plantBed.id} ({plantBed.name})
-            </p>
+                         <p className="text-gray-600 mt-1">
+               Bewerk {plant?.name} in plantvak {plantBed.id} ({plantBed.name})
+             </p>
           </div>
         </div>
         <Button
@@ -383,7 +383,7 @@ export default function EditPlantPage() {
               Plant Verwijderen
             </DialogTitle>
             <DialogDescription>
-              Weet je zeker dat je <strong>{plant.name}</strong> wilt verwijderen uit plantvak {plantBed.id}?
+              Weet je zeker dat je <strong>{plant?.name}</strong> wilt verwijderen uit plantvak {plantBed.id}?
               Deze actie kan niet ongedaan worden gemaakt.
             </DialogDescription>
           </DialogHeader>
