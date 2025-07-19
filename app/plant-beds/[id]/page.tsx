@@ -239,10 +239,10 @@ export default function PlantBedDetailPage() {
                   <Plus className="h-5 w-5 text-blue-600" />
                   Planten Overzicht ({plantBed.plants.length})
                 </CardTitle>
-                <Link href={`/plant-beds/${plantBed.id}/add-flowers`}>
+                <Link href={`/plant-beds/add-plant?plantvak=${plantBed.id}`}>
                   <Button className="bg-green-600 hover:bg-green-700">
                     <Flower className="h-4 w-4 mr-2" />
-                    Bloemen Toevoegen
+                    Bloemen Registreren
                   </Button>
                 </Link>
               </div>
