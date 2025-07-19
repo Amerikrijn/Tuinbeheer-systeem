@@ -23,7 +23,6 @@ import {
   Palette,
   Sparkles,
   Home,
-  Plus,
 } from "lucide-react"
 import { getPopularFlowers, FLOWER_CATEGORIES } from "@/lib/dutch-flowers"
 import type { FlowerData } from "@/lib/dutch-flowers"
