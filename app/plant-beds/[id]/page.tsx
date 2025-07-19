@@ -203,10 +203,10 @@ export default function PlantBedDetailPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="flex items-center gap-3">
-                  {getSunExposureIcon(plantBed.sunExposure)}
+                  {getSunExposureIcon(plantBed.sun_exposure)}
                   <div>
                     <div className="font-medium">Zonlicht</div>
-                    <div className="text-sm text-gray-600">{getSunExposureText(plantBed.sunExposure)}</div>
+                    <div className="text-sm text-gray-600">{getSunExposureText(plantBed.sun_exposure)}</div>
                   </div>
                 </div>
                 <div>
