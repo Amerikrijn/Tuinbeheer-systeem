@@ -4,7 +4,7 @@ import type {
   BloemFormData, 
   ValidationError, 
   ValidationResult 
-} from '../types'
+} from '../types/index'
 
 /**
  * Validation Utilities
@@ -211,7 +211,7 @@ class Validator {
 }
 
 // Tuin validation
-export function validateTuin(data: TuinFormData): ValidationResult {
+function validateTuin(data: TuinFormData): ValidationResult {
   const validator = new Validator()
 
   // Required fields
@@ -274,7 +274,7 @@ export function validateTuin(data: TuinFormData): ValidationResult {
 }
 
 // Plantvak validation
-export function validatePlantvak(data: PlantvakFormData): ValidationResult {
+function validatePlantvak(data: PlantvakFormData): ValidationResult {
   const validator = new Validator()
 
   // Required fields
@@ -324,7 +324,7 @@ export function validatePlantvak(data: PlantvakFormData): ValidationResult {
 }
 
 // Bloem validation
-export function validateBloem(data: BloemFormData): ValidationResult {
+function validateBloem(data: BloemFormData): ValidationResult {
   const validator = new Validator()
 
   // Required fields
@@ -412,7 +412,7 @@ export function validateBloem(data: BloemFormData): ValidationResult {
 }
 
 // Generic form validation
-export function validateForm<T>(
+function validateForm<T>(
   data: T,
   validationRules: Record<keyof T, (value: any) => string | null>
 ): ValidationResult {
@@ -420,7 +420,7 @@ export function validateForm<T>(
 
   for (const [field, rule] of Object.entries(validationRules)) {
     const value = data[field as keyof T]
-    const error = rule(value)
+    const error = (rule as (value: any) => string | null)(value)
     
     if (error) {
       errors.push({ field, message: error })
