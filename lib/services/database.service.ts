@@ -350,7 +350,7 @@ export class PlantvakService {
       return createResponse(data)
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse(null, message)
+      return createResponse(null as Plantvak | null, message)
     }
   }
 
