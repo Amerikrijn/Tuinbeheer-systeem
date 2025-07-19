@@ -37,7 +37,7 @@ export function InstagramIntegration({
   const [isPosting, setIsPosting] = useState(false)
   const [autoPost, setAutoPost] = useState(false)
   const [customCaption, setCustomCaption] = useState("")
-  const [recentPosts] = useState<InstagramPost[]>(getInstagramPosts().slice(0, 3))
+  const [recentPosts] = useState<InstagramPost[]>([])
   const { toast } = useToast()
 
   const defaultCaption = generateInstagramCaption(sessionTitle, description, completedTasks, totalTasks, weather)

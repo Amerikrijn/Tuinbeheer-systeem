@@ -21,8 +21,24 @@ export async function getInstagramPosts(): Promise<InstagramPost[]> {
   return []
 }
 
-export function generateInstagramCaption(title: string, description: string): string {
+export function generateInstagramCaption(
+  title: string, 
+  description: string, 
+  completedTasks?: number, 
+  totalTasks?: number, 
+  weather?: string
+): string {
   // Basic caption generation
+  let caption = `${title}\n\n${description}`
+  
+  if (completedTasks !== undefined && totalTasks !== undefined) {
+    caption += `\n\n✅ ${completedTasks}/${totalTasks} taken voltooid`
+  }
+  
+  if (weather) {
+    caption += `\n🌤️ Weer: ${weather}`
+  }
+  
   const hashtags = '#tuinieren #planten #tuin #natuur'
-  return `${title}\n\n${description}\n\n${hashtags}`
+  return `${caption}\n\n${hashtags}`
 }
