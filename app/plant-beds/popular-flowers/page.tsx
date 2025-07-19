@@ -100,12 +100,6 @@ export default function PopularFlowersPage() {
                 Plantvakken
               </Button>
             </Link>
-            <Link href="/plant-beds/add-plant">
-              <Button variant="default" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Plant Toevoegen
-              </Button>
-            </Link>
           </div>
           
           <div className="text-center">
