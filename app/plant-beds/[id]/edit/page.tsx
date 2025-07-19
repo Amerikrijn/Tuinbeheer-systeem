@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { useNavigationHistory } from "@/hooks/use-navigation-history"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,8 +21,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Edit, Leaf, RefreshCw, Trash2, AlertTriangle, Home, Calendar, User } from "lucide-react"
+import { ArrowLeft, Edit, Leaf, RefreshCw, Trash2, AlertTriangle, Home, Calendar, User, Plus } from "lucide-react"
 import { getMockPlantBeds, type PlantBed } from "@/lib/mock-data"
+import Link from "next/link"
 
 interface EditPlantBed {
   id: string
@@ -36,6 +38,7 @@ interface EditPlantBed {
 export default function EditPlantBedPage() {
   const router = useRouter()
   const params = useParams()
+  const { goBack } = useNavigationHistory()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -150,14 +153,22 @@ export default function EditPlantBedPage() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.push(`/plant-beds/${plantBed.id}`)}
-            className="mb-4 text-green-700 hover:text-green-800 hover:bg-green-100"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Terug naar Plantvak
-          </Button>
+          <div className="flex gap-2 mb-4">
+            <Button
+              variant="ghost"
+              onClick={goBack}
+              className="text-green-700 hover:text-green-800 hover:bg-green-100"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Terug
+            </Button>
+            <Link href="/plant-beds/new">
+              <Button className="bg-green-600 hover:bg-green-700 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Plantvak Toevoegen
+              </Button>
+            </Link>
+          </div>
           
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-green-100 rounded-lg">
@@ -290,7 +301,7 @@ export default function EditPlantBedPage() {
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => router.push(`/plant-beds/${plantBed.id}`)}
+              onClick={goBack}
             >
               Annuleren
             </Button>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useNavigationHistory } from "@/hooks/use-navigation-history"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -37,6 +38,7 @@ import type { PlantBed } from "@/lib/supabase"
 export default function AddPlantPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { goBack } = useNavigationHistory()
   const [plantBeds, setPlantBeds] = useState<PlantBed[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -205,12 +207,10 @@ export default function AddPlantPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link href="/plant-beds">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Terug
-              </Button>
-            </Link>
+            <Button variant="outline" size="sm" onClick={goBack}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Terug
+            </Button>
             <Link href="/plant-beds/popular-flowers">
               <Button variant="outline" size="sm">
                 <Palette className="h-4 w-4 mr-2" />
@@ -225,12 +225,20 @@ export default function AddPlantPage() {
               <p className="text-gray-600 mt-1">Voeg eenjarige bloemen toe aan je plantvakken</p>
             </div>
           </div>
-          <Link href="/">
-            <Button variant="outline">
-              <Home className="h-4 w-4 mr-2" />
-              Home
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href="/plant-beds/new">
+              <Button className="bg-green-600 hover:bg-green-700 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Plantvak Toevoegen
+              </Button>
+            </Link>
+                        <Link href="/">
+              <Button variant="outline">
+                <Home className="h-4 w-4 mr-2" />
+               Home
+             </Button>
+           </Link>
+          </div>
         </div>
 
         {/* Alerts */}

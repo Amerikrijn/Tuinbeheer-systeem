@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { useNavigationHistory } from "@/hooks/use-navigation-history"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,7 @@ import { useToast } from "@/hooks/use-toast"
 export default function PlantBedPlantsPage() {
   const router = useRouter()
   const params = useParams()
+  const { goBack } = useNavigationHistory()
   const { toast } = useToast()
   const [plantBed, setPlantBed] = useState<PlantBed | null>(null)
   const [loading, setLoading] = useState(true)
@@ -113,11 +115,11 @@ export default function PlantBedPlantsPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push(`/plant-beds/${plantBed.id}`)}
+              onClick={goBack}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
-              Terug naar Plantvak
+              Terug
             </Button>
             <div>
               <h1 className="text-4xl font-bold flex items-center gap-3 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
@@ -132,6 +134,12 @@ export default function PlantBedPlantsPage() {
               <Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg">
                 <Plus className="h-4 w-4 mr-2" />
                 Nieuwe Plant
+              </Button>
+            </Link>
+            <Link href="/plant-beds/new">
+              <Button className="bg-green-600 hover:bg-green-700 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Plantvak Toevoegen
               </Button>
             </Link>
             <Link href={`/plant-beds/${plantBed.id}/layout`}>
