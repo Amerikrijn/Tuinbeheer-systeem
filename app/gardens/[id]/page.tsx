@@ -107,12 +107,20 @@ export default function GardenDetailPage() {
               </div>
             </div>
           </div>
-          <Link href={`/plant-beds/new?garden_id=${garden.id}`}>
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Nieuw Plantvak
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            <Link href={`/plant-beds/add-plant?garden_id=${garden.id}`}>
+              <Button variant="outline" className="bg-green-50 border-green-300 text-green-700 hover:bg-green-100">
+                <Plus className="h-4 w-4 mr-2" />
+                Planten/Bloemen Toevoegen
+              </Button>
+            </Link>
+            <Link href={`/plant-beds/new?garden_id=${garden.id}`}>
+              <Button className="bg-green-600 hover:bg-green-700">
+                <Plus className="h-4 w-4 mr-2" />
+                Nieuw Plantvak
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Navigation Breadcrumb */}
