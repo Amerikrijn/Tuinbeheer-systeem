@@ -114,7 +114,7 @@ export default function GardenDetailPage() {
                 Planten/Bloemen Toevoegen
               </Button>
             </Link>
-            <Link href={`/plant-beds/new?garden_id=${garden.id}`}>
+            <Link href={`/gardens/${garden.id}/plant-beds/new`}>
               <Button className="bg-green-600 hover:bg-green-700">
                 <Plus className="h-4 w-4 mr-2" />
                 Nieuw Plantvak
