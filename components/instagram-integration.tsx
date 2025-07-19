@@ -56,7 +56,7 @@ export function InstagramIntegration({
 
     try {
       const caption = customCaption.trim() || defaultCaption
-      const post = await postToInstagram(caption, imageUrl, sessionTitle)
+      const post = await postToInstagram(caption, imageUrl)
 
       toast({
         title: "Instagram Post Succesvol",
