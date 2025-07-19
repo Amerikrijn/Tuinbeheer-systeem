@@ -354,17 +354,17 @@ export default function PlantBedDetailPage() {
 
               <Separator />
 
-              {plantBed.lastModifiedDate && (
+              {((plantBed as any).lastModifiedDate || (plantBed as any).last_modified_date) && (
                 <div>
                   <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
                     <Calendar className="h-4 w-4" />
                     Laatst bewerkt
                   </div>
-                  <div className="font-medium">{new Date(plantBed.lastModifiedDate).toLocaleDateString("nl-NL")}</div>
-                  {plantBed.lastModifiedBy && (
+                  <div className="font-medium">{new Date((plantBed as any).lastModifiedDate || (plantBed as any).last_modified_date).toLocaleDateString("nl-NL")}</div>
+                  {((plantBed as any).lastModifiedBy || (plantBed as any).last_modified_by) && (
                     <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
                       <User className="h-4 w-4" />
-                      Door: {plantBed.lastModifiedBy}
+                      Door: {(plantBed as any).lastModifiedBy || (plantBed as any).last_modified_by}
                     </div>
                   )}
                 </div>
