@@ -281,8 +281,8 @@ export async function PUT(
       id,
       updateData.position_x,
       updateData.position_y,
-      updateData.visual_width,
-      updateData.visual_height
+      updateData.visual_width!,
+      updateData.visual_height!
     );
     
     if (hasCollision) {
