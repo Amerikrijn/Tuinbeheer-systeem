@@ -72,7 +72,7 @@ export class TuinService {
       return createResponse(data || [])
     } catch (error) {
       const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse(null, message)
+      return createResponse([], message)
     }
   }
 
