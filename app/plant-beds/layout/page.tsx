@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { useNavigationHistory } from "@/hooks/use-navigation-history"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -48,6 +49,7 @@ const SCALE_MAX = 2
 
 export default function PlantBedsLayoutPage() {
   const router = useRouter()
+  const { goBack } = useNavigationHistory()
   const { toast } = useToast()
   const [plantBeds, setPlantBeds] = useState<PlantBed[]>([])
   const [garden, setGarden] = useState<Garden | null>(null)
@@ -186,7 +188,7 @@ export default function PlantBedsLayoutPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push("/plant-beds")}
+              onClick={goBack}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -202,6 +204,12 @@ export default function PlantBedsLayoutPage() {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
+            <Link href="/plant-beds/new">
+              <Button className="bg-green-600 hover:bg-green-700 text-white">
+                <Plus className="w-4 h-4 mr-2" />
+                Plantvak Toevoegen
+              </Button>
+            </Link>
             <Button variant="outline" size="sm" onClick={toggleFullscreen}>
               {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
             </Button>

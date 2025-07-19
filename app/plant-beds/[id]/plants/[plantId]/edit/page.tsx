@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { useNavigationHistory } from "@/hooks/use-navigation-history"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -37,6 +38,7 @@ import {
   AlertCircle,
   CheckCircle,
   Leaf,
+  Plus,
 } from "lucide-react"
 import { getPlantBed, updatePlant, deletePlant } from "@/lib/database"
 import type { PlantBedWithPlants, Plant } from "@/lib/supabase"
@@ -45,6 +47,7 @@ import { useToast } from "@/hooks/use-toast"
 export default function EditPlantPage() {
   const router = useRouter()
   const params = useParams()
+  const { goBack } = useNavigationHistory()
   const { toast } = useToast()
   const [plantBed, setPlantBed] = useState<PlantBedWithPlants | null>(null)
   const [plant, setPlant] = useState<Plant | null>(null)
@@ -210,11 +213,11 @@ export default function EditPlantPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/plant-beds/${plantBed.id}`)}
+            onClick={goBack}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Terug naar Plantvak
+            Terug
           </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -226,14 +229,22 @@ export default function EditPlantPage() {
              </p>
           </div>
         </div>
-        <Button
-          variant="destructive"
-          onClick={() => setDeleteDialog(true)}
-          className="bg-red-600 hover:bg-red-700"
-        >
-          <Trash2 className="h-4 w-4 mr-2" />
-          Verwijder Plant
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/plant-beds/new">
+            <Button className="bg-green-600 hover:bg-green-700 text-white">
+              <Plus className="w-4 h-4 mr-2" />
+              Plantvak Toevoegen
+            </Button>
+          </Link>
+          <Button
+            variant="destructive"
+            onClick={() => setDeleteDialog(true)}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Verwijder Plant
+          </Button>
+        </div>
       </div>
 
       {/* Plantvak Info */}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useNavigationHistory } from "@/hooks/use-navigation-history"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -21,6 +22,7 @@ import type { Garden } from "@/lib/supabase"
 export default function NewPlantBedPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { goBack } = useNavigationHistory()
   const [garden, setGarden] = useState<Garden | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -149,11 +151,9 @@ export default function NewPlantBedPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <Link href={`/gardens/${garden.id}`}>
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-          </Link>
+          <Button variant="ghost" size="sm" onClick={goBack}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
           <div className="flex items-center gap-2">
             <Leaf className="h-8 w-8 text-green-600" />
             <div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { useNavigationHistory } from "@/hooks/use-navigation-history"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -37,6 +38,7 @@ import Link from "next/link"
 export default function PlantBedDetailPage() {
   const router = useRouter()
   const params = useParams()
+  const { goBack } = useNavigationHistory()
   const { toast } = useToast()
   const [plantBed, setPlantBed] = useState<PlantBed | null>(null)
   const [loading, setLoading] = useState(true)

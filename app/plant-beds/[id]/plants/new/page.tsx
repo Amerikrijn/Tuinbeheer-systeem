@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
+import { useNavigationHistory } from "@/hooks/use-navigation-history"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -16,6 +17,7 @@ import { useToast } from "@/hooks/use-toast"
 export default function NewPlantPage() {
   const router = useRouter()
   const params = useParams()
+  const { goBack } = useNavigationHistory()
   const { toast } = useToast()
   const [plantBed, setPlantBed] = useState<PlantBed | null>(null)
   const [loading, setLoading] = useState(true)
@@ -124,11 +126,11 @@ export default function NewPlantPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/plant-beds/${plantBed.id}/plants`)}
+            onClick={goBack}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Terug naar Planten
+            Terug
           </Button>
           <div>
             <h1 className="text-4xl font-bold flex items-center gap-3 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
@@ -242,11 +244,17 @@ export default function NewPlantPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.push(`/plant-beds/${plantBed.id}/plants`)}
+                  onClick={goBack}
                   className="bg-white/80 backdrop-blur-sm"
                 >
                   Annuleren
                 </Button>
+                <Link href="/plant-beds/new">
+                  <Button className="bg-green-600 hover:bg-green-700 text-white">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Plantvak Toevoegen
+                  </Button>
+                </Link>
               </div>
             </form>
           </CardContent>
