@@ -312,7 +312,7 @@ function HomePageContent() {
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">Totaal Plantbedden</span>
               <Badge variant="secondary">
-                {gardens.reduce((total, garden) => total + (garden.plant_beds?.length || 0), 0)}
+                {gardens.reduce((total, garden) => total + ((garden as any).plant_beds?.length || 0), 0)}
               </Badge>
             </div>
             <div className="flex justify-between items-center">
