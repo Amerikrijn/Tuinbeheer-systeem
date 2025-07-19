@@ -76,7 +76,9 @@ export function InstagramIntegration({
         description: `Je post over "${sessionTitle}" is gedeeld op Instagram!`,
       })
 
-      onPostSuccess?.(post)
+      if (post.success) {
+        onPostSuccess?.({ id: Date.now().toString(), caption })
+      }
       setCustomCaption("")
     } catch (error) {
       toast({
