@@ -238,14 +238,7 @@ export default function PlantBedDetailPage() {
                   <Plus className="h-5 w-5 text-blue-600" />
                   Planten Overzicht ({plantBed.plants.length})
                 </CardTitle>
-                <div className="flex gap-2">
-                  <Link href={`/plant-beds/${plantBed.id}/plants`}>
-                    <Button size="sm" variant="outline" className="bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100">
-                      <Leaf className="h-4 w-4 mr-2" />
-                      Bekijk Planten
-                    </Button>
-                  </Link>
-                </div>
+
               </div>
             </CardHeader>
             <CardContent>
@@ -292,12 +285,6 @@ export default function PlantBedDetailPage() {
               <CardTitle>Snelle Acties</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Link href={`/plant-beds/${plantBed.id}/plants`} className="block">
-                <Button variant="outline" className="w-full bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100">
-                  <Leaf className="h-4 w-4 mr-2" />
-                  Bekijk Planten
-                </Button>
-              </Link>
               <Link href={`/plant-beds/${plantBed.id}/layout`} className="block">
                 <Button variant="outline" className="w-full bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100">
                   <Move className="h-4 w-4 mr-2" />
