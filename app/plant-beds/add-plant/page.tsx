@@ -61,6 +61,18 @@ export default function AddPlantPage() {
     }
   }, [searchParams])
 
+  // Pre-select plantvak from URL parameter
+  useEffect(() => {
+    const plantvakParam = searchParams.get('plantvak')
+    if (plantvakParam && plantBeds.length > 0) {
+      // Check if the plantvak exists in the loaded plant beds
+      const plantvakExists = plantBeds.some(bed => bed.id === plantvakParam)
+      if (plantvakExists) {
+        setSelectedPlantBed(plantvakParam)
+      }
+    }
+  }, [searchParams, plantBeds])
+
   // Filter flowers to only show eenjarig (1-jarige)
   const eenjarigFlowers = DUTCH_FLOWERS.filter(flower => flower.category === 'eenjarig')
   
