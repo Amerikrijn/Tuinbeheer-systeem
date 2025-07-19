@@ -194,10 +194,10 @@ export default function PlantBedsPage() {
                   )}
                 </div>
 
-                {bed.sun_exposure && (
+                {((bed as any).sun_exposure || (bed as any).sunExposure) && (
                   <div className="flex items-center gap-2 text-sm">
-                    {getSunExposureIcon(bed.sun_exposure)}
-                    <span className="text-gray-600">{getSunExposureText(bed.sun_exposure)}</span>
+                    {getSunExposureIcon((bed as any).sun_exposure || (bed as any).sunExposure)}
+                    <span className="text-gray-600">{getSunExposureText((bed as any).sun_exposure || (bed as any).sunExposure)}</span>
                   </div>
                 )}
 

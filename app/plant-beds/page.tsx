@@ -289,8 +289,8 @@ export default function PlantBedsPage() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="flex items-center gap-2">
-                    {getSunExposureIcon(bed.sun_exposure)}
-                    <span className="text-gray-600">{getSunExposureText(bed.sun_exposure)}</span>
+                    {getSunExposureIcon((bed as any).sun_exposure || (bed as any).sunExposure)}
+                    <span className="text-gray-600">{getSunExposureText((bed as any).sun_exposure || (bed as any).sunExposure)}</span>
                   </div>
                   <div className="text-gray-600">
                     <span className="font-medium">{bed.plants.length}</span> planten
