@@ -215,7 +215,7 @@ export default function PlantBedDetailPage() {
                 </div>
                 <div>
                   <div className="font-medium">Grondsoort</div>
-                  <div className="text-sm text-gray-600">{plantBed.soilType}</div>
+                  <div className="text-sm text-gray-600">{(plantBed as any).soilType || (plantBed as any).soil_type}</div>
                 </div>
               </div>
 
