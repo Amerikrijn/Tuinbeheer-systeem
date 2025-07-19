@@ -77,6 +77,7 @@ export default function PlantBedDetailPage() {
 
       router.push("/plant-beds")
     } catch (error) {
+      console.error("Error deleting plant bed:", error)
       toast({
         title: "Fout",
         description: "Er is een fout opgetreden bij het verwijderen van het plantvak.",

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -35,7 +35,6 @@ import { DUTCH_FLOWERS } from "@/lib/dutch-flowers"
 import type { PlantBed } from "@/lib/supabase"
 
 export default function AddPlantPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const [plantBeds, setPlantBeds] = useState<PlantBed[]>([])
   const [loading, setLoading] = useState(true)

@@ -16,7 +16,6 @@ import {
   Sun,
   CloudSun,
   Cloud,
-  Move,
   ArrowLeft,
   Flower,
   Plus,
@@ -171,6 +170,7 @@ export default function PlantBedLayoutPage() {
       })
       setHasChanges(false)
     } catch (error) {
+      console.error("Error saving layout:", error)
       toast({
         title: "Fout",
         description: "Er is een fout opgetreden bij het opslaan van de layout.",

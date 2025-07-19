@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -18,7 +18,6 @@ import { getGarden, getPlantBeds } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 
 export default function GardenDetailPage() {
-  const router = useRouter()
   const params = useParams()
   const [garden, setGarden] = useState<Garden | null>(null)
   const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])

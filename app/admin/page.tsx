@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Leaf, Plus, Eye, Flower, Sparkles, TreePine, Settings } from "lucide-react"
+import { Leaf, Plus, Eye, Flower, TreePine, Settings } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { t } from "@/lib/translations"
 export default function AdminDashboard() {
