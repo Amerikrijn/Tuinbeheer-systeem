@@ -30,6 +30,7 @@ import {
   CheckCircle,
   AlertCircle,
   Home,
+  Plus,
 } from "lucide-react"
 import { getPlantBeds, createPlant } from "@/lib/database"
 import { DUTCH_FLOWERS } from "@/lib/dutch-flowers"
