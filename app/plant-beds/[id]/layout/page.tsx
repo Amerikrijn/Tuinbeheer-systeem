@@ -318,7 +318,7 @@ export default function PlantBedLayoutPage() {
                 return (
                   <div
                     key={position.id}
-                    className={`absolute cursor-move rounded-lg border-2 ${getPlantColor(plant)} ${getStatusColor(plant.status)} ${
+                    className={`absolute cursor-move rounded-lg border-2 ${getPlantColor(plant)} ${getStatusColor(plant.status || 'planted')} ${
                       draggedPlant === position.id ? "shadow-2xl ring-2 ring-green-500 z-10" : "shadow-md"
                     } transition-all duration-200 hover:shadow-lg flex items-center justify-center text-xs font-medium text-white`}
                     style={{
