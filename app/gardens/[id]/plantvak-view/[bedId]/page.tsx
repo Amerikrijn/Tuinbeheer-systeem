@@ -1544,12 +1544,57 @@ export default function PlantBedViewPage() {
                           Muis • Trackpad • Mobiel
                         </div>
                         
-                                                                        {/* 🖱️💻📱 UNIVERSEEL RESIZE SYSTEEM */}
-                        <div className="absolute -bottom-12 -right-12 flex flex-col gap-2">
+                                                                        {/* 🚨 POGING 1/2 - SIMPELSTE OPLOSSING OOIT! */}
+                        <div className="absolute -bottom-16 -right-16 flex gap-4">
                           
-                          {/* DRAG HANDLE - voor muis en trackpad */}
+                          {/* MEGA GROTE + BUTTON */}
                           <div
-                            className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 border-4 border-white rounded-full cursor-nw-resize hover:from-blue-600 hover:to-blue-800 hover:scale-105 flex items-center justify-center z-30 shadow-xl touch-none select-none"
+                            className="w-24 h-24 bg-green-400 border-8 border-yellow-300 rounded-full cursor-pointer hover:bg-green-500 hover:scale-110 flex items-center justify-center z-50 shadow-2xl animate-pulse"
+                            onClick={() => {
+                              console.log("🟢 MEGA + CLICKED!")
+                              
+                              // DIRECTE bloem groter maken
+                              setFlowerPositions(prev => prev.map(f => {
+                                if (f.id === flower.id) {
+                                  return { 
+                                    ...f, 
+                                    visual_width: (f.visual_width || 40) + 30,
+                                    visual_height: (f.visual_height || 40) + 30
+                                  }
+                                }
+                                return f
+                              }))
+                              
+                              alert("BLOEM IS 30PX GROTER GEMAAKT!")
+                            }}
+                          >
+                            <div className="text-white text-5xl font-black drop-shadow-lg">+</div>
+                          </div>
+                          
+                          {/* MEGA GROTE - BUTTON */}
+                          <div
+                            className="w-24 h-24 bg-red-400 border-8 border-yellow-300 rounded-full cursor-pointer hover:bg-red-500 hover:scale-110 flex items-center justify-center z-50 shadow-2xl animate-pulse"
+                            onClick={() => {
+                              console.log("🔴 MEGA - CLICKED!")
+                              
+                              // DIRECTE bloem kleiner maken
+                              setFlowerPositions(prev => prev.map(f => {
+                                if (f.id === flower.id) {
+                                  return { 
+                                    ...f, 
+                                    visual_width: Math.max(40, (f.visual_width || 40) - 30),
+                                    visual_height: Math.max(40, (f.visual_height || 40) - 30)
+                                  }
+                                }
+                                return f
+                              }))
+                              
+                              alert("BLOEM IS 30PX KLEINER GEMAAKT!")
+                            }}
+                          >
+                            <div className="text-white text-5xl font-black drop-shadow-lg">-</div>
+                          </div>
+                        </div>
                           onMouseDown={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
