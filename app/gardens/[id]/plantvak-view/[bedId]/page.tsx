@@ -475,7 +475,7 @@ export default function PlantBedViewPage() {
     }
   }
 
-  // Handle single click - toggle resize mode with REF
+  // Handle single click - SELECT flower (standard UI pattern)
   const handleFlowerClick = useCallback((e: React.MouseEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -483,38 +483,16 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    // Use REF to check current resize mode (not state that might be stale)
-    const isCurrentlyInResizeMode = resizeModeRef.current === flowerId
+    // Standard UI: Click = Select (resize handles appear)
+    console.log("🎯 SELECTING flower for resize")
+    setSelectedFlower(flower)
+    resizeModeRef.current = flowerId
     
-    console.log("🔍 FLOWER CLICK DEBUG:", {
-      flowerId,
-      resizeModeRef: resizeModeRef.current,
-      isCurrentlyInResizeMode,
-      selectedFlowerId: selectedFlower?.id
+    toast({
+      title: "🎯 Bloem geselecteerd",
+      description: "Sleep de blauwe hoek om het gebied groter te maken",
     })
-    
-    if (isCurrentlyInResizeMode) {
-      // Second click on SAME flower - STOP resize mode
-      console.log("🛑 STOPPING resize mode")
-      resizeModeRef.current = null
-      setSelectedFlower(null)
-      setIsResizing(null)
-      toast({
-        title: "✅ Resize gestopt",
-        description: "Bloem is niet meer geselecteerd voor resizing",
-      })
-    } else {
-      // First click OR click on different flower - START resize mode
-      console.log("🎯 STARTING resize mode")
-      resizeModeRef.current = flowerId
-      setSelectedFlower(flower)
-      setIsResizing(null) // Make sure we're not in resize drag mode
-      toast({
-        title: "🎯 Resize actief",
-        description: "Sleep de blauwe hoek om het vlak groter te maken",
-      })
-    }
-  }, [flowerPositions, selectedFlower, toast])
+  }, [flowerPositions, toast])
 
   // Handle mouse down - start dragging immediately
   const handleFlowerMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
@@ -599,12 +577,20 @@ export default function PlantBedViewPage() {
     setDragOffset({ x: 0, y: 0 })
   }, [draggedFlower])
 
-  // Handle click outside to deselect
+  // Handle click outside to deselect (standard UI pattern)
   const handleCanvasClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
+      console.log("🔄 DESELECTING flower (clicked on canvas)")
       setSelectedFlower(null)
+      setIsResizing(null)
+      resizeModeRef.current = null
+      
+      toast({
+        title: "✅ Selectie opgeheven",
+        description: "Klik op een bloem om te selecteren",
+      })
     }
-  }, [])
+  }, [toast])
 
   // Handle resize start
   const handleResizeStart = useCallback((e: React.MouseEvent, flowerId: string, mode: 'uniform' | 'width' | 'height' = 'uniform') => {
@@ -919,7 +905,7 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🌸 <strong>Eindelijk Goed:</strong> Klik bloem → Sleep blauwe hoek → Bloem blijft zelfde grootte, maar MEER bloemen komen erbij!
+              🌸 <strong>Standaard UI:</strong> Klik bloem (selecteren) → Sleep blauwe hoek (resizen) → Loslaten (vastleggen) → MEER bloemen komen erbij!
               <span className="ml-2 text-sm font-medium text-pink-600">
                 • {plantBed.size || 'Op schaal'}
               </span>
@@ -1607,11 +1593,11 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>💡 <strong>Eindelijk Het Juiste Systeem:</strong></p>
-              <p>🌸 <strong>Klik 1x</strong> → Resize mode aan (blauwe hoek verschijnt)</p>
-              <p>🔵 <strong>Sleep blauwe hoek</strong> → Onzichtbaar gebied wordt groter</p>
-              <p>✨ <strong>BLOEM BLIJFT ZELFDE GROOTTE</strong> maar meer bloemen komen erbij!</p>
-              <p>📛 <strong>Klik 2x</strong> → Resize mode uit (geen hoek meer)</p>
+              <p>💡 <strong>Standaard UI Pattern (zoals Windows/Photoshop):</strong></p>
+              <p>🌸 <strong>Klik bloem</strong> → Selecteren (blauwe hoek verschijnt)</p>
+              <p>🔵 <strong>Sleep blauwe hoek</strong> → Actief resizen (gebied wordt groter)</p>
+              <p>✨ <strong>Loslaten</strong> → Resize vastleggen + MEER bloemen komen erbij!</p>
+              <p>📛 <strong>Klik ergens anders</strong> → Deselecteren</p>
               <p>👆 <strong>Ook:</strong> Sleep bloem = verplaatsen, Dubbelklik = bewerken</p>
             </div>
             <div className="flex items-center gap-4">
@@ -1658,12 +1644,12 @@ export default function PlantBedViewPage() {
               </div>
             </div>
             <div>
-              <h4 className="font-medium mb-3">🎯 Eindelijk Het Juiste Systeem!</h4>
+              <h4 className="font-medium mb-3">🎯 Standaard UI Pattern!</h4>
               <div className="space-y-2 text-sm text-gray-600">
-                <p>• <strong>Klik 1x</strong> = resize mode aan + blauwe hoek + naam zichtbaar</p>
-                <p>• <strong>Sleep blauwe hoek</strong> = onzichtbaar gebied groter maken</p>
-                <p>• <strong>Bloem blijft zelfde grootte</strong> maar meer bloemen komen erbij!</p>
-                <p>• <strong>Klik 2x (zelfde bloem)</strong> = resize mode uit</p>
+                <p>• <strong>Klik bloem</strong> = selecteren + blauwe hoek + naam zichtbaar</p>
+                <p>• <strong>Sleep blauwe hoek</strong> = actief resizen (gebied groter)</p>
+                <p>• <strong>Loslaten</strong> = resize vastleggen + meer bloemen komen erbij!</p>
+                <p>• <strong>Klik ergens anders</strong> = deselecteren</p>
                 <p>• <strong>Sleep bloem zelf</strong> om te verplaatsen</p>
                 <p>• <strong>Dubbelklik</strong> om eigenschappen te bewerken</p>
                 <p>• Vergeet niet te <strong>opslaan</strong> na wijzigingen</p>
