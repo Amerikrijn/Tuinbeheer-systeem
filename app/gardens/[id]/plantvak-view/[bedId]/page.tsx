@@ -1537,76 +1537,90 @@ export default function PlantBedViewPage() {
                           )
                         })()}
                         
-                        <div className="absolute -top-16 -right-2 bg-red-500 text-white text-sm px-3 py-2 rounded z-10 animate-bounce font-bold">
-                          ⬇️ DIRECT SLEPEN - GEEN KLIK! ⬇️
+                        <div className="absolute -top-16 -right-2 bg-green-500 text-white text-sm px-3 py-2 rounded z-10 animate-bounce font-bold">
+                          📱 LAPTOP/TRACKPAD VRIENDELIJK
                         </div>
-                        <div className="absolute -top-8 -right-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded z-10 font-bold">
-                          Houd ingedrukt + sleep
+                        <div className="absolute -top-8 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10 font-bold">
+                          Klik + sleep (laptop OK!)
                         </div>
                         
-                        {/* DIRECT DRAG RESIZE HANDLE - GEEN KLIK EERST! */}
-                        <div
-                          className="absolute -bottom-5 -right-5 w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 border-8 border-white rounded-full cursor-nw-resize hover:from-blue-500 hover:to-blue-700 hover:scale-110 flex items-center justify-center z-20 shadow-2xl animate-pulse"
-                          onMouseDown={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            
-                            console.log("🔵 JQUERY UI RESIZE START!")
-                            
-                            // JQUERY UI PATTERN: Direct resize start
-                            const currentFlower = flowerPositions.find(f => f.id === flower.id)
-                            if (!currentFlower) return
-                            
-                                                         const startX = e.clientX
-                             const startY = e.clientY
-                             const currentAreaSize = currentFlower.notes?.includes('area_size:') 
-                               ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
-                               : FLOWER_SIZE * 3
-                            
-                            // REAL-TIME RESIZE FUNCTION
-                            const doResize = (moveEvent: MouseEvent) => {
-                              const deltaX = moveEvent.clientX - startX
-                              const deltaY = moveEvent.clientY - startY
-                              const newAreaSize = Math.max(FLOWER_SIZE * 2, currentAreaSize + Math.max(deltaX, deltaY))
+                                                {/* LAPTOP VRIENDELIJKE RESIZE BUTTONS */}
+                        <div className="absolute -bottom-8 -right-8 flex gap-1">
+                          {/* Groter maken button */}
+                          <button
+                            className="w-12 h-12 bg-green-500 hover:bg-green-600 border-4 border-white rounded-full flex items-center justify-center z-20 shadow-xl cursor-pointer"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
                               
-                              console.log("🔄 RESIZING:", newAreaSize)
+                              console.log("🔵 LAPTOP RESIZE - GROTER!")
                               
-                                                             // Update flower area size
-                               setFlowerPositions(prev => prev.map(f => {
-                                 if (f.id === currentFlower.id) {
-                                   return { ...f, notes: `area_size:${newAreaSize}` }
-                                 }
-                                 return f
-                               }))
-                            }
-                            
-                            // STOP RESIZE FUNCTION
-                            const stopResize = () => {
-                              console.log("✅ RESIZE STOPPED!")
-                              document.removeEventListener('mousemove', doResize)
-                              document.removeEventListener('mouseup', stopResize)
+                              const currentFlower = flowerPositions.find(f => f.id === flower.id)
+                              if (!currentFlower) return
+                              
+                              const currentAreaSize = currentFlower.notes?.includes('area_size:') 
+                                ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
+                                : FLOWER_SIZE * 3
+                              
+                              const newAreaSize = currentAreaSize + 40 // 40px groter
+                              
+                              console.log("🔄 GROTER MAKEN:", newAreaSize)
+                              
+                              // Update flower area size
+                              setFlowerPositions(prev => prev.map(f => {
+                                if (f.id === currentFlower.id) {
+                                  return { ...f, notes: `area_size:${newAreaSize}` }
+                                }
+                                return f
+                              }))
+                              
                               toast({
-                                title: "✅ Resize voltooid!",
-                                description: "Gebied is aangepast - meer bloemen toegevoegd!",
+                                title: "✅ Groter gemaakt!",
+                                description: `Gebied nu ${newAreaSize}px - meer bloemen komen erbij!`,
                               })
-                            }
-                            
-                            // JQUERY UI PATTERN: Global listeners
-                            document.addEventListener('mousemove', doResize)
-                            document.addEventListener('mouseup', stopResize)
-                            
-                            toast({
-                              title: "🎯 Resize gestart!",
-                              description: "Sleep om gebied groter te maken - loslaten om te stoppen!",
-                            })
-                          }}
-                          onClick={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                          }}
-                          title="JQUERY UI STANDARD RESIZE HANDLE!"
-                        >
-                          <div className="text-white text-lg font-bold">⤢</div>
+                            }}
+                            title="Klik om gebied groter te maken (laptop vriendelijk!)"
+                          >
+                            <div className="text-white text-lg font-bold">+</div>
+                          </button>
+                          
+                          {/* Kleiner maken button */}
+                          <button
+                            className="w-12 h-12 bg-red-500 hover:bg-red-600 border-4 border-white rounded-full flex items-center justify-center z-20 shadow-xl cursor-pointer"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              
+                              console.log("🔴 LAPTOP RESIZE - KLEINER!")
+                              
+                              const currentFlower = flowerPositions.find(f => f.id === flower.id)
+                              if (!currentFlower) return
+                              
+                              const currentAreaSize = currentFlower.notes?.includes('area_size:') 
+                                ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
+                                : FLOWER_SIZE * 3
+                              
+                              const newAreaSize = Math.max(FLOWER_SIZE * 2, currentAreaSize - 40) // 40px kleiner
+                              
+                              console.log("🔄 KLEINER MAKEN:", newAreaSize)
+                              
+                              // Update flower area size
+                              setFlowerPositions(prev => prev.map(f => {
+                                if (f.id === currentFlower.id) {
+                                  return { ...f, notes: `area_size:${newAreaSize}` }
+                                }
+                                return f
+                              }))
+                              
+                              toast({
+                                title: "✅ Kleiner gemaakt!",
+                                description: `Gebied nu ${newAreaSize}px - bloemen verdwijnen automatisch!`,
+                              })
+                            }}
+                            title="Klik om gebied kleiner te maken"
+                          >
+                            <div className="text-white text-lg font-bold">-</div>
+                          </button>
                         </div>
                         
                         {/* Show live area info during resize */}
