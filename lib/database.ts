@@ -203,12 +203,13 @@ export async function createPlantBed(plantBed: {
 }): Promise<PlantBed | null> {
   console.log("🌱 Creating plant bed:", plantBed)
   
-  // Validate garden_id is a valid UUID format
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  if (!uuidRegex.test(plantBed.garden_id)) {
-    console.error("❌ Invalid garden_id format:", plantBed.garden_id)
-    throw new Error(`Invalid garden_id format: ${plantBed.garden_id}`)
-  }
+  // Validate garden_id is a valid UUID format (temporarily disabled for debugging)
+  // const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  // if (!uuidRegex.test(plantBed.garden_id)) {
+  //   console.error("❌ Invalid garden_id format:", plantBed.garden_id)
+  //   throw new Error(`Invalid garden_id format: ${plantBed.garden_id}`)
+  // }
+  console.log("🔍 Garden ID to be used:", { garden_id: plantBed.garden_id, type: typeof plantBed.garden_id })
   
   // Check if garden exists first
   const { data: gardenExists, error: gardenCheckError } = await supabase
