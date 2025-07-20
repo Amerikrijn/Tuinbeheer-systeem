@@ -1558,26 +1558,74 @@ export default function PlantBedViewPage() {
                             const startY = e.clientY
                             const startSize = flower.visual_width || 40
                             
-                            const handleMouseMove = (moveEvent: MouseEvent) => {
-                              const deltaX = moveEvent.clientX - startX
-                              const deltaY = moveEvent.clientY - startY
-                              const delta = Math.max(deltaX, deltaY)
-                              const newSize = Math.max(30, startSize + delta)
-                              
-                              console.log("🎯 DRAGGING SIZE:", newSize)
-                              
-                              // DIRECT size update
-                              setFlowerPositions(prev => prev.map(f => {
-                                if (f.id === flower.id) {
-                                  return { 
-                                    ...f, 
-                                    visual_width: newSize,
-                                    visual_height: newSize
-                                  }
-                                }
-                                return f
-                              }))
-                            }
+                                                         const handleMouseMove = async (moveEvent: MouseEvent) => {
+                               const deltaX = moveEvent.clientX - startX
+                               const deltaY = moveEvent.clientY - startY
+                               const delta = Math.max(deltaX, deltaY)
+                               const newAreaSize = Math.max(100, startSize + delta)
+                               
+                               console.log("🎯 DRAGGING AREA SIZE:", newAreaSize)
+                               
+                               // Update area size in notes
+                               setFlowerPositions(prev => prev.map(f => {
+                                 if (f.id === flower.id) {
+                                   return { 
+                                     ...f, 
+                                     notes: `area_size:${newAreaSize}`
+                                   }
+                                 }
+                                 return f
+                               }))
+                               
+                               // Calculate how many flowers should be in this area
+                               const areaRatio = (newAreaSize * newAreaSize) / (FLOWER_SIZE * FLOWER_SIZE)
+                               const targetFlowers = Math.floor(areaRatio * 0.3) // 0.3 density
+                               const maxFlowers = 20
+                               const actualTargetFlowers = Math.min(targetFlowers, maxFlowers)
+                               
+                               // Count current extra flowers
+                               const currentExtraFlowers = flowerPositions.filter(f => 
+                                 f.id !== flower.id && 
+                                 f.name === flower.name &&
+                                 Math.abs(f.position_x - flower.position_x) < newAreaSize &&
+                                 Math.abs(f.position_y - flower.position_y) < newAreaSize
+                               ).length
+                               
+                               // Add flowers if needed
+                               if (actualTargetFlowers > currentExtraFlowers) {
+                                 const flowersToAdd = Math.min(2, actualTargetFlowers - currentExtraFlowers)
+                                 
+                                 for (let i = 0; i < flowersToAdd; i++) {
+                                   const angle = Math.random() * 2 * Math.PI
+                                   const radius = Math.random() * (newAreaSize / 3)
+                                   const x = flower.position_x + Math.cos(angle) * radius
+                                   const y = flower.position_y + Math.sin(angle) * radius
+                                   
+                                   try {
+                                     const newFlower = await createVisualPlant({
+                                       plant_bed_id: plantBed?.id || '',
+                                       name: flower.name,
+                                       color: flower.color || '#FF69B4',
+                                       status: 'healthy',
+                                       position_x: Math.max(10, Math.min(x, canvasWidth - 50)),
+                                       position_y: Math.max(10, Math.min(y, canvasHeight - 50)),
+                                       visual_width: FLOWER_SIZE,
+                                       visual_height: FLOWER_SIZE,
+                                       emoji: flower.emoji || '🌸',
+                                       is_custom: false,
+                                       category: flower.category,
+                                       notes: `sub_flower_of:${flower.id}`
+                                     })
+                                     
+                                     if (newFlower) {
+                                       setFlowerPositions(prev => [...prev, newFlower])
+                                     }
+                                   } catch (error) {
+                                     console.error("Error adding flower:", error)
+                                   }
+                                 }
+                               }
+                             }
                             
                             const handleMouseUp = () => {
                               console.log("🎯 DRAG STOP!")
