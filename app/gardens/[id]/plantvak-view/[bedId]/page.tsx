@@ -42,6 +42,13 @@ interface FlowerPosition {
   status: 'healthy' | 'needs_attention' | 'blooming' | 'sick'
   emoji?: string
   isCustom?: boolean
+  isEnlarged?: boolean
+  subFlowers?: Array<{
+    id: string
+    x: number
+    y: number
+    emoji: string
+  }>
 }
 
 const GRID_SIZE = 10
@@ -96,17 +103,18 @@ export default function PlantBedViewPage() {
 
   // Calculate canvas size based on plant bed size
   const getCanvasSize = () => {
-    if (!plantBed) return { width: 600, height: 400 }
+    if (!plantBed) return { width: 600, height: 450 }
     
     // Convert plant bed size to pixels (rough scale: 1 meter = 100 pixels)
+    // Add extra height for flower names
     const sizeMatch = plantBed.size?.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/)
     if (sizeMatch) {
       const width = Math.max(400, parseFloat(sizeMatch[1]) * 100)
-      const height = Math.max(300, parseFloat(sizeMatch[2]) * 100)
+      const height = Math.max(350, parseFloat(sizeMatch[2]) * 100 + 50) // Extra height for names
       return { width, height }
     }
     
-    return { width: 600, height: 400 }
+    return { width: 600, height: 450 }
   }
 
   const { width: canvasWidth, height: canvasHeight } = getCanvasSize()
@@ -199,7 +207,8 @@ export default function PlantBedViewPage() {
       type: isCustomFlower ? 'Aangepast' : newFlower.type,
       status: 'healthy',
       emoji: isCustomFlower ? newFlower.customEmoji : selectedType?.emoji,
-      isCustom: isCustomFlower
+      isCustom: isCustomFlower,
+      isEnlarged: false
     }
 
     setFlowerPositions(prev => [...prev, newFlowerPosition])
@@ -245,16 +254,67 @@ export default function PlantBedViewPage() {
     })
   }
 
+  const toggleFlowerSize = (flowerId: string) => {
+    setFlowerPositions(prev => prev.map(flower => {
+      if (flower.id === flowerId) {
+        const isCurrentlyEnlarged = flower.isEnlarged
+        
+        if (!isCurrentlyEnlarged) {
+          // Enlarge and add sub-flowers
+          const enlargedSize = 120
+          
+          // Ensure the enlarged flower stays within canvas bounds
+          const maxX = canvasWidth - enlargedSize
+          const maxY = canvasHeight - enlargedSize
+          const adjustedX = Math.min(flower.x, maxX)
+          const adjustedY = Math.min(flower.y, maxY)
+          
+          const subFlowers = Array.from({ length: 7 }, (_, i) => ({
+            id: `sub-${flowerId}-${i}`,
+            x: 10 + Math.random() * 80, // Keep sub-flowers within the enlarged area
+            y: 10 + Math.random() * 80,
+            emoji: flower.emoji || '🌸'
+          }))
+          
+          return {
+            ...flower,
+            x: adjustedX,
+            y: adjustedY,
+            width: enlargedSize,
+            height: enlargedSize,
+            isEnlarged: true,
+            subFlowers
+          }
+        } else {
+          // Return to normal size
+          return {
+            ...flower,
+            width: FLOWER_SIZE,
+            height: FLOWER_SIZE,
+            isEnlarged: false,
+            subFlowers: undefined
+          }
+        }
+      }
+      return flower
+    }))
+    setHasChanges(true)
+  }
+
   const onMouseMove = useCallback((e: React.MouseEvent) => {
     if (!draggedFlower || !containerRef.current) return
+
+    const draggedFlowerObj = flowerPositions.find(f => f.id === draggedFlower)
+    if (!draggedFlowerObj || draggedFlowerObj.isEnlarged) return
 
     const rect = containerRef.current.getBoundingClientRect()
     const newX = (e.clientX - rect.left) / scale - dragOffset.x
     const newY = (e.clientY - rect.top) / scale - dragOffset.y
 
     // Constrain to canvas bounds
-    const constrainedX = Math.max(0, Math.min(newX, canvasWidth - FLOWER_SIZE))
-    const constrainedY = Math.max(0, Math.min(newY, canvasHeight - FLOWER_SIZE))
+    const flowerSize = draggedFlowerObj.width || FLOWER_SIZE
+    const constrainedX = Math.max(0, Math.min(newX, canvasWidth - flowerSize))
+    const constrainedY = Math.max(0, Math.min(newY, canvasHeight - flowerSize))
 
     setFlowerPositions(prev =>
       prev.map(f =>
@@ -264,7 +324,7 @@ export default function PlantBedViewPage() {
       )
     )
     setHasChanges(true)
-  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
+  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight, flowerPositions])
 
   const onMouseUp = useCallback(() => {
     setDraggedFlower(null)
@@ -345,7 +405,7 @@ export default function PlantBedViewPage() {
               <Leaf className="h-8 w-8 text-green-600" />
               {plantBed.name}
             </h1>
-            <p className="text-gray-600">Sleep bloemen om ze te verplaatsen in het plantvak</p>
+            <p className="text-gray-600">Klik op bloemen om ze te vergroten, sleep kleine bloemen om ze te verplaatsen</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -579,9 +639,11 @@ export default function PlantBedViewPage() {
               {flowerPositions.map((flower) => (
                 <div
                   key={flower.id}
-                  className={`absolute cursor-move rounded-full border-4 ${getStatusColor(flower.status)} ${
+                  className={`absolute cursor-pointer rounded-full border-4 ${getStatusColor(flower.status)} ${
                     draggedFlower === flower.id ? "shadow-2xl ring-4 ring-green-500 z-10 scale-110" : "shadow-lg hover:shadow-xl"
-                  } transition-all duration-200 flex items-center justify-center text-2xl font-bold text-white`}
+                  } transition-all duration-300 flex items-center justify-center text-white ${
+                    flower.isEnlarged ? 'cursor-pointer' : 'cursor-move'
+                  }`}
                   style={{
                     left: flower.x,
                     top: flower.y,
@@ -589,12 +651,58 @@ export default function PlantBedViewPage() {
                     height: flower.height,
                     backgroundColor: flower.color,
                   }}
-                  onMouseDown={(e) => onMouseDown(e, flower.id)}
-                  onClick={() => !draggedFlower && setSelectedFlower(flower)}
+                  onMouseDown={(e) => {
+                    if (!flower.isEnlarged) {
+                      onMouseDown(e, flower.id)
+                    }
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (!draggedFlower) {
+                      toggleFlowerSize(flower.id)
+                    }
+                  }}
                 >
-                  <div className="text-center">
-                    <div className="text-xl">{flower.emoji || '🌸'}</div>
-                  </div>
+                  {flower.isEnlarged ? (
+                    <div className="relative w-full h-full">
+                      {/* Background gradient for enlarged flower */}
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-green-100 to-green-200 opacity-30"></div>
+                      
+                      {/* Main flower in center */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-4xl drop-shadow-lg">{flower.emoji || '🌸'}</div>
+                      </div>
+                      
+                      {/* Sub-flowers scattered around */}
+                      {flower.subFlowers?.map((subFlower) => (
+                        <div
+                          key={subFlower.id}
+                          className="absolute text-lg drop-shadow-md animate-pulse"
+                          style={{
+                            left: subFlower.x,
+                            top: subFlower.y,
+                            animationDelay: `${Math.random() * 2}s`,
+                            animationDuration: '3s'
+                          }}
+                        >
+                          {subFlower.emoji}
+                        </div>
+                      ))}
+                      
+                      {/* Flower name */}
+                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-sm font-bold text-white bg-black bg-opacity-70 px-3 py-1 rounded-full shadow-lg">
+                        {flower.name}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center relative">
+                      <div className="text-xl">{flower.emoji || '🌸'}</div>
+                      {/* Small name label for normal size */}
+                      <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-700 bg-white bg-opacity-90 px-2 py-1 rounded shadow-sm whitespace-nowrap">
+                        {flower.name}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
 
@@ -656,8 +764,9 @@ export default function PlantBedViewPage() {
               <div className="space-y-1 text-sm text-gray-600">
                 <div>• Klik op "Bloem Toevoegen" om nieuwe bloemen toe te voegen</div>
                 <div>• Maak aangepaste bloemen met eigen emoji en kleur</div>
-                <div>• Sleep bloemen om ze te verplaatsen</div>
-                <div>• Klik op een bloem voor meer informatie</div>
+                <div>• Sleep kleine bloemen om ze te verplaatsen</div>
+                <div>• Klik op een bloem om deze te vergroten/verkleinen</div>
+                <div>• Vergrote bloemen tonen meer bloemen en de naam</div>
                 <div>• Gebruik zoom knoppen om in/uit te zoomen</div>
                 <div>• Vergeet niet te opslaan na wijzigingen</div>
               </div>
