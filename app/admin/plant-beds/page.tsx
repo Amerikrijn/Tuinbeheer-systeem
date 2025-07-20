@@ -157,7 +157,7 @@ export default function PlantBedsPage() {
                 className="bg-white/80 backdrop-blur-sm border-blue-300 text-blue-700 hover:bg-blue-50"
               >
                 <MapPin className="h-4 w-4 mr-2" />
-                {language === "nl" ? "Layout Weergave" : "Layout View"}
+                {language === "nl" ? "Visuele Layout Designer" : "Visual Layout Designer"}
               </Button>
             </Link>
             <Link href="/admin/plant-beds/configure">

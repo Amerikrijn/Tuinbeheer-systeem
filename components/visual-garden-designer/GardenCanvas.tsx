@@ -5,42 +5,30 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ZoomIn, ZoomOut, RotateCcw, Grid, Settings, Save, Eye, EyeOff } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ZoomIn, ZoomOut, RotateCcw, Grid, Settings, Save, Eye, EyeOff, Flower2, Trash2, Edit, Plus } from 'lucide-react';
+import { getMockPlantBeds, getMockGarden, type PlantBed, type Garden, type Plant } from '@/lib/mock-data';
+import { useToast } from '@/hooks/use-toast';
 
 // ===================================================================
-// TYPES (Basis implementatie)
+// TYPES
 // ===================================================================
 
-interface Garden {
+interface PlantBedPosition {
   id: string;
-  name: string;
-  description?: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
 }
 
-interface PlantBed {
+interface PlantPosition {
   id: string;
-  garden_id: string;
-  name: string;
-  description?: string;
-  size_m2?: number;
-  // Visual properties (zou uit database moeten komen)
-  position_x?: number;
-  position_y?: number;
-  visual_width?: number;
-  visual_height?: number;
-  color_code?: string;
-  rotation?: number;
-  z_index?: number;
-}
-
-interface CanvasConfig {
-  canvas_width: number;
-  canvas_height: number;
-  grid_size: number;
-  default_zoom: number;
-  show_grid: boolean;
-  snap_to_grid: boolean;
-  background_color: string;
+  bedId: string;
+  x: number;
+  y: number;
+  size: number;
 }
 
 interface Position {
@@ -54,94 +42,154 @@ interface Position {
 
 interface PlantBedVisualProps {
   plantBed: PlantBed;
+  position: PlantBedPosition;
+  plantPositions: PlantPosition[];
   scale: number;
   isSelected: boolean;
   isDragging: boolean;
-  onSelect: (id: string) => void;
+  showPlants: boolean;
+  onSelect: (bed: PlantBed) => void;
   onDragStart: (id: string, position: Position) => void;
   onDragMove: (position: Position) => void;
   onDragEnd: () => void;
+  onPlantSelect: (plant: Plant) => void;
+  onPlantDragStart: (plantId: string, bedId: string, position: Position) => void;
+  getPlantColor: (plant: Plant) => string;
 }
 
 const PlantBedVisual: React.FC<PlantBedVisualProps> = ({
   plantBed,
+  position,
+  plantPositions,
   scale,
   isSelected,
   isDragging,
+  showPlants,
   onSelect,
   onDragStart,
   onDragMove,
-  onDragEnd
+  onDragEnd,
+  onPlantSelect,
+  onPlantDragStart,
+  getPlantColor
 }) => {
   const [dragOffset, setDragOffset] = useState<Position>({ x: 0, y: 0 });
   
-  const position = {
-    x: (plantBed.position_x || 0) * scale,
-    y: (plantBed.position_y || 0) * scale
+  const scaledPosition = {
+    x: position.x * scale,
+    y: position.y * scale
   };
   
-  const size = {
-    width: (plantBed.visual_width || 2) * scale,
-    height: (plantBed.visual_height || 2) * scale
+  const scaledSize = {
+    width: position.width * scale,
+    height: position.height * scale
   };
   
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
     const offset = {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top
     };
     setDragOffset(offset);
-    onSelect(plantBed.id);
-    onDragStart(plantBed.id, position);
+    onSelect(plantBed);
+    onDragStart(plantBed.id, scaledPosition);
   };
   
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging) {
-      const newPosition = {
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y
-      };
-      onDragMove(newPosition);
+  const handlePlantMouseDown = (e: React.MouseEvent, plant: Plant) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offset = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    };
+    setDragOffset(offset);
+    onPlantSelect(plant);
+    onPlantDragStart(plant.id, plantBed.id, scaledPosition);
+  };
+  
+  const getSunColor = (exp: string) => {
+    switch (exp) {
+      case "full-sun":
+        return "bg-yellow-100 border-yellow-300"
+      case "partial-sun":
+        return "bg-orange-100 border-orange-300"
+      case "shade":
+        return "bg-gray-100 border-gray-300"
+      default:
+        return "bg-green-100 border-green-300"
     }
-  };
+  }
   
-  const handleMouseUp = () => {
-    if (isDragging) {
-      onDragEnd();
-    }
-  };
-  
-  const color = plantBed.color_code || '#22c55e';
-  const borderColor = isSelected ? '#3b82f6' : color;
-  const borderWidth = isSelected ? 2 : 1;
+  const borderColor = isSelected ? 'border-blue-500' : '';
+  const borderWidth = isSelected ? 'border-4' : 'border-2';
   
   return (
     <div
-      className={`absolute border-2 cursor-move transition-all duration-200 rounded-md flex items-center justify-center text-white font-semibold shadow-lg ${
-        isDragging ? 'shadow-xl z-50' : ''
+      className={`absolute rounded-lg shadow-lg cursor-move transition-all duration-200 hover:shadow-xl ${getSunColor(plantBed.sunExposure)} ${borderColor} ${borderWidth} ${
+        isDragging ? 'shadow-2xl ring-2 ring-green-500' : ''
       }`}
       style={{
-        left: position.x,
-        top: position.y,
-        width: size.width,
-        height: size.height,
-        backgroundColor: color,
-        borderColor: borderColor,
-        borderWidth: borderWidth,
-        transform: `rotate(${plantBed.rotation || 0}deg)`,
-        zIndex: plantBed.z_index || 0
+        left: scaledPosition.x,
+        top: scaledPosition.y,
+        width: scaledSize.width,
+        height: scaledSize.height,
+        transform: `rotate(${position.rotation}deg)`,
       }}
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!isDragging) onSelect(plantBed);
+      }}
     >
-      <div className="text-center text-sm p-1">
-        <div className="truncate">{plantBed.name}</div>
-        {plantBed.size_m2 && (
-          <div className="text-xs opacity-75">{plantBed.size_m2}m²</div>
-        )}
+      <div className="p-2 h-full flex flex-col justify-between relative">
+        <div>
+          <div className="flex items-center justify-between mb-1">
+            <Badge variant="outline" className="text-xs font-bold">
+              {plantBed.id}
+            </Badge>
+          </div>
+          <div className="font-semibold text-xs leading-tight mb-1">{plantBed.name}</div>
+          <div className="text-xs text-gray-600 leading-tight">{plantBed.location}</div>
+        </div>
+        <div className="text-xs flex items-center justify-between">
+          <span className="text-gray-600">{plantBed.size}</span>
+          <span className="font-medium">{plantBed.plants.length} planten</span>
+        </div>
+
+        {/* Plants within the bed */}
+        {showPlants && plantPositions
+          .filter(plantPos => plantPos.bedId === plantBed.id)
+          .map(plantPos => {
+            const plant = plantBed.plants.find(p => p.id === plantPos.id);
+            if (!plant) return null;
+            return (
+              <div
+                key={plant.id}
+                className="absolute rounded-full cursor-pointer transition-all duration-200 hover:scale-110 border-2 border-white shadow-md"
+                style={{
+                  left: plantPos.x,
+                  top: plantPos.y,
+                  width: plantPos.size,
+                  height: plantPos.size,
+                  backgroundColor: getPlantColor(plant),
+                }}
+                onMouseDown={(e) => handlePlantMouseDown(e, plant)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPlantSelect(plant);
+                }}
+                title={`${plant.name} (${plant.color})`}
+              >
+                <div className="w-full h-full flex items-center justify-center">
+                  <Flower2 className="h-2 w-2 text-white" />
+                </div>
+              </div>
+            );
+          })}
       </div>
     </div>
   );
@@ -219,34 +267,110 @@ const GridOverlay: React.FC<GridOverlayProps> = ({
 // ===================================================================
 
 interface GardenCanvasProps {
-  garden: Garden;
-  plantBeds: PlantBed[];
-  canvasConfig: CanvasConfig;
-  onSave: (plantBeds: PlantBed[]) => Promise<void>;
-  onCanvasConfigChange: (config: Partial<CanvasConfig>) => Promise<void>;
+  onNavigateToEdit?: (bedId: string) => void;
+  onNavigateToAddPlant?: (bedId: string) => void;
+  onNavigateToEditPlant?: (bedId: string, plantId: string) => void;
 }
 
 const GardenCanvas: React.FC<GardenCanvasProps> = ({
-  garden,
-  plantBeds,
-  canvasConfig,
-  onSave,
-  onCanvasConfigChange
+  onNavigateToEdit,
+  onNavigateToAddPlant,
+  onNavigateToEditPlant
 }) => {
-  const [scale, setScale] = useState(canvasConfig.default_zoom);
-  const [selectedPlantBed, setSelectedPlantBed] = useState<string | null>(null);
+  const { toast } = useToast();
+  const [garden, setGarden] = useState<Garden | null>(null);
+  const [plantBeds, setPlantBeds] = useState<PlantBed[]>([]);
+  const [positions, setPositions] = useState<PlantBedPosition[]>([]);
+  const [plantPositions, setPlantPositions] = useState<PlantPosition[]>([]);
+  const [scale, setScale] = useState(1);
+  const [selectedPlantBed, setSelectedPlantBed] = useState<PlantBed | null>(null);
+  const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [draggedElementId, setDraggedElementId] = useState<string | null>(null);
-  const [showGrid, setShowGrid] = useState(canvasConfig.show_grid);
+  const [draggedPlantId, setDraggedPlantId] = useState<string | null>(null);
+  const [showGrid, setShowGrid] = useState(true);
+  const [showPlants, setShowPlants] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [localPlantBeds, setLocalPlantBeds] = useState<PlantBed[]>(plantBeds);
+  const [loading, setLoading] = useState(true);
   
   const canvasRef = useRef<HTMLDivElement>(null);
+  const GRID_SIZE = 20;
+  const CANVAS_WIDTH = 800;
+  const CANVAS_HEIGHT = 600;
   
   // Canvas dimensions
   const canvasSize = {
-    width: canvasConfig.canvas_width * scale,
-    height: canvasConfig.canvas_height * scale
+    width: CANVAS_WIDTH * scale,
+    height: CANVAS_HEIGHT * scale
+  };
+
+  // Load data
+  useEffect(() => {
+    const loadData = async () => {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const beds = getMockPlantBeds();
+      const gardenData = getMockGarden();
+      setPlantBeds(beds);
+      setGarden(gardenData);
+
+      // Initialize positions
+      const initialPositions: PlantBedPosition[] = beds.map((bed, index) => {
+        const sizeMap = {
+          "Klein (< 5m²)": { width: 80, height: 60 },
+          "Gemiddeld (5-15m²)": { width: 120, height: 100 },
+          "Groot (15-30m²)": { width: 160, height: 140 },
+        } as const;
+        const size = sizeMap[bed.size as keyof typeof sizeMap] ?? { width: 100, height: 80 };
+        return {
+          id: bed.id,
+          x: 100 + (index % 3) * 200,
+          y: 100 + Math.floor(index / 3) * 180,
+          width: size.width,
+          height: size.height,
+          rotation: 0,
+        };
+      });
+      setPositions(initialPositions);
+
+      // Initialize plant positions
+      const initialPlantPositions: PlantPosition[] = [];
+      beds.forEach((bed) => {
+        bed.plants.forEach((plant, plantIndex) => {
+          const bedPosition = initialPositions.find(p => p.id === bed.id);
+          if (bedPosition) {
+            const plantsPerRow = Math.ceil(Math.sqrt(bed.plants.length));
+            const row = Math.floor(plantIndex / plantsPerRow);
+            const col = plantIndex % plantsPerRow;
+            const plantSpacing = Math.min(bedPosition.width, bedPosition.height) / (plantsPerRow + 1);
+            
+            initialPlantPositions.push({
+              id: plant.id,
+              bedId: bed.id,
+              x: (col + 1) * plantSpacing - 10,
+              y: (row + 1) * plantSpacing - 10,
+              size: 20
+            });
+          }
+        });
+      });
+      setPlantPositions(initialPlantPositions);
+      setLoading(false);
+    };
+    loadData();
+  }, []);
+
+  const getPlantColor = (plant: Plant) => {
+    const colorMap: { [key: string]: string } = {
+      'Rood': '#ef4444',
+      'Roze': '#ec4899',
+      'Geel': '#eab308',
+      'Wit': '#f8fafc',
+      'Paars': '#8b5cf6',
+      'Blauw': '#3b82f6',
+      'Oranje': '#f97316',
+      'Groen': '#22c55e',
+    };
+    return colorMap[plant.color] || '#22c55e';
   };
   
   // ===================================================================
@@ -254,24 +378,15 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
   // ===================================================================
   
   const handleZoomIn = () => {
-    setScale(prev => Math.min(prev * 1.2, 5));
+    setScale(prev => Math.min(prev * 1.2, 3));
   };
   
   const handleZoomOut = () => {
-    setScale(prev => Math.max(prev / 1.2, 0.1));
+    setScale(prev => Math.max(prev / 1.2, 0.3));
   };
   
   const handleZoomReset = () => {
-    setScale(canvasConfig.default_zoom);
-  };
-  
-  const handleZoomToFit = () => {
-    if (canvasRef.current) {
-      const containerRect = canvasRef.current.getBoundingClientRect();
-      const scaleX = containerRect.width / canvasConfig.canvas_width;
-      const scaleY = containerRect.height / canvasConfig.canvas_height;
-      setScale(Math.min(scaleX, scaleY) * 0.9);
-    }
+    setScale(1);
   };
   
   // ===================================================================
@@ -282,6 +397,11 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
     setIsDragging(true);
     setDraggedElementId(id);
   };
+
+  const handlePlantDragStart = (plantId: string, bedId: string, position: Position) => {
+    setIsDragging(true);
+    setDraggedPlantId(plantId);
+  };
   
   const handleDragMove = (position: Position) => {
     if (isDragging && draggedElementId) {
@@ -290,28 +410,41 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
         y: position.y / scale
       };
       
-      // Snap to grid if enabled
-      if (canvasConfig.snap_to_grid) {
-        newPosition.x = Math.round(newPosition.x / canvasConfig.grid_size) * canvasConfig.grid_size;
-        newPosition.y = Math.round(newPosition.y / canvasConfig.grid_size) * canvasConfig.grid_size;
-      }
+      // Snap to grid
+      newPosition.x = Math.round(newPosition.x / GRID_SIZE) * GRID_SIZE;
+      newPosition.y = Math.round(newPosition.y / GRID_SIZE) * GRID_SIZE;
       
       // Update local state
-      setLocalPlantBeds(prev => 
-        prev.map(pb => 
-          pb.id === draggedElementId 
-            ? { ...pb, position_x: newPosition.x, position_y: newPosition.y }
-            : pb
+      setPositions(prev => 
+        prev.map(pos => 
+          pos.id === draggedElementId 
+            ? { ...pos, x: Math.max(0, newPosition.x), y: Math.max(0, newPosition.y) }
+            : pos
         )
       );
       
       setHasUnsavedChanges(true);
+    } else if (isDragging && draggedPlantId) {
+      const bedId = plantPositions.find(p => p.id === draggedPlantId)?.bedId;
+      const bedPos = positions.find(p => p.id === bedId);
+      if (bedPos) {
+        const relativeX = (position.x / scale) - bedPos.x;
+        const relativeY = (position.y / scale) - bedPos.y;
+        const constrainedX = Math.max(5, Math.min(relativeX, bedPos.width - 25));
+        const constrainedY = Math.max(5, Math.min(relativeY, bedPos.height - 25));
+        
+        setPlantPositions(prev =>
+          prev.map(p => (p.id === draggedPlantId ? { ...p, x: constrainedX, y: constrainedY } : p))
+        );
+        setHasUnsavedChanges(true);
+      }
     }
   };
   
   const handleDragEnd = () => {
     setIsDragging(false);
     setDraggedElementId(null);
+    setDraggedPlantId(null);
   };
   
   // ===================================================================
@@ -320,45 +453,42 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
   
   const handleSave = async () => {
     try {
-      await onSave(localPlantBeds);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      toast({
+        title: "Layout opgeslagen",
+        description: "De tuinlayout is succesvol opgeslagen.",
+      });
       setHasUnsavedChanges(false);
     } catch (error) {
-      console.error('Failed to save:', error);
+      toast({
+        title: "Fout",
+        description: "Er is een fout opgetreden bij het opslaan.",
+        variant: "destructive",
+      });
     }
   };
+
+  const deletePlant = (plantId: string) => {
+    setPlantBeds(prev => prev.map(bed => ({
+      ...bed,
+      plants: bed.plants.filter(plant => plant.id !== plantId)
+    })));
+    setPlantPositions(prev => prev.filter(pos => pos.id !== plantId));
+    setSelectedPlant(null);
+    setHasUnsavedChanges(true);
+    toast({
+      title: "Plant verwijderd",
+      description: "De plant is succesvol verwijderd.",
+    });
+  };
   
-  // ===================================================================
-  // KEYBOARD SHORTCUTS
-  // ===================================================================
-  
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        switch (e.key) {
-          case 's':
-            e.preventDefault();
-            handleSave();
-            break;
-          case '=':
-          case '+':
-            e.preventDefault();
-            handleZoomIn();
-            break;
-          case '-':
-            e.preventDefault();
-            handleZoomOut();
-            break;
-          case '0':
-            e.preventDefault();
-            handleZoomReset();
-            break;
-        }
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
   
   // ===================================================================
   // RENDER
@@ -369,16 +499,25 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <div>
-          <h2 className="text-xl font-semibold">{garden.name}</h2>
+          <h2 className="text-xl font-semibold">{garden?.name || 'Tuin Layout Designer'}</h2>
           <p className="text-sm text-muted-foreground">
-            Visual Garden Designer - {canvasConfig.canvas_width}m × {canvasConfig.canvas_height}m
+            Versleep plantvakken en planten om je tuin opnieuw in te delen
           </p>
         </div>
         
         <div className="flex items-center gap-2">
           <Badge variant={hasUnsavedChanges ? 'destructive' : 'secondary'}>
-            {hasUnsavedChanges ? 'Unsaved Changes' : 'Saved'}
+            {hasUnsavedChanges ? 'Niet opgeslagen' : 'Opgeslagen'}
           </Badge>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowPlants(!showPlants)}
+          >
+            <Flower2 className="h-4 w-4" />
+            {showPlants ? 'Verberg Planten' : 'Toon Planten'}
+          </Button>
           
           <Button
             variant="outline"
@@ -386,7 +525,7 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
             onClick={() => setShowGrid(!showGrid)}
           >
             {showGrid ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            Grid
+            Raster
           </Button>
           
           <Button
@@ -396,7 +535,7 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
             disabled={!hasUnsavedChanges}
           >
             <Save className="h-4 w-4 mr-2" />
-            Save
+            Opslaan
           </Button>
         </div>
       </div>
@@ -413,9 +552,6 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
           <Button variant="outline" size="sm" onClick={handleZoomReset}>
             <RotateCcw className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={handleZoomToFit}>
-            Fit
-          </Button>
         </div>
         
         <Separator orientation="vertical" className="h-8" />
@@ -425,12 +561,12 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
         </Badge>
         
         <Badge variant="outline">
-          Plant Beds: {localPlantBeds.length}
+          Plantvakken: {plantBeds.length}
         </Badge>
         
         {selectedPlantBed && (
           <Badge variant="default">
-            Selected: {localPlantBeds.find(pb => pb.id === selectedPlantBed)?.name || "Unknown"}
+            Geselecteerd: {selectedPlantBed.name}
           </Badge>
         )}
       </div>
@@ -438,11 +574,25 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
       {/* Canvas */}
       <div 
         ref={canvasRef}
-        className="flex-1 overflow-auto p-4 bg-gray-50"
-        style={{ backgroundColor: canvasConfig.background_color }}
+        className="flex-1 overflow-auto p-4 bg-green-50"
+        style={{
+          backgroundImage: `radial-gradient(circle, #10b981 1px, transparent 1px)`,
+          backgroundSize: `${GRID_SIZE * scale}px ${GRID_SIZE * scale}px`,
+        }}
+        onMouseMove={(e) => {
+          if (!canvasRef.current) return;
+          const rect = canvasRef.current.getBoundingClientRect();
+          const position = {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top
+          };
+          handleDragMove(position);
+        }}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
       >
         <div
-          className="relative border-2 border-gray-300 bg-white shadow-lg"
+          className="relative bg-white shadow-lg border-2 border-gray-300"
           style={{
             width: canvasSize.width,
             height: canvasSize.height,
@@ -453,34 +603,169 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
           {/* Grid Overlay */}
           <GridOverlay
             canvasSize={canvasSize}
-            gridSize={canvasConfig.grid_size}
+            gridSize={GRID_SIZE}
             scale={scale}
             visible={showGrid}
           />
           
           {/* Plant Beds */}
-          {localPlantBeds.map(plantBed => (
-            <PlantBedVisual
-              key={plantBed.id}
-              plantBed={plantBed}
-              scale={scale}
-              isSelected={selectedPlantBed === plantBed.id}
-              isDragging={isDragging && draggedElementId === plantBed.id}
-              onSelect={setSelectedPlantBed}
-              onDragStart={handleDragStart}
-              onDragMove={handleDragMove}
-              onDragEnd={handleDragEnd}
-            />
-          ))}
+          {positions.map(position => {
+            const plantBed = plantBeds.find(bed => bed.id === position.id);
+            if (!plantBed) return null;
+            
+            return (
+              <PlantBedVisual
+                key={plantBed.id}
+                plantBed={plantBed}
+                position={position}
+                plantPositions={plantPositions}
+                scale={scale}
+                isSelected={selectedPlantBed?.id === plantBed.id}
+                isDragging={isDragging && draggedElementId === plantBed.id}
+                showPlants={showPlants}
+                onSelect={setSelectedPlantBed}
+                onDragStart={handleDragStart}
+                onDragMove={handleDragMove}
+                onDragEnd={handleDragEnd}
+                onPlantSelect={setSelectedPlant}
+                onPlantDragStart={handlePlantDragStart}
+                getPlantColor={getPlantColor}
+              />
+            );
+          })}
           
           {/* Canvas Info */}
           <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-2 text-xs text-gray-600">
-            <div>Canvas: {canvasConfig.canvas_width}m × {canvasConfig.canvas_height}m</div>
-            <div>Grid: {canvasConfig.grid_size}m</div>
-            <div>Scale: {Math.round(scale * 100)}%</div>
+            <div>Canvas: {CANVAS_WIDTH}×{CANVAS_HEIGHT}px</div>
+            <div>Raster: {GRID_SIZE}px</div>
+            <div>Schaal: {Math.round(scale * 100)}%</div>
           </div>
         </div>
       </div>
+
+      {/* Plant Detail Dialog */}
+      <Dialog open={!!selectedPlant} onOpenChange={() => setSelectedPlant(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div 
+                className="w-6 h-6 rounded-full border-2 border-white"
+                style={{ backgroundColor: selectedPlant ? getPlantColor(selectedPlant) : '#22c55e' }}
+              />
+              {selectedPlant?.name}
+            </DialogTitle>
+            <DialogDescription className="space-y-3">
+              {selectedPlant && (
+                <>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Kleur:</span>
+                      <div className="font-medium">{selectedPlant.color}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Hoogte:</span>
+                      <div className="font-medium">{selectedPlant.height}cm</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Status:</span>
+                      <div className="font-medium">
+                        <Badge variant="secondary">{selectedPlant.status}</Badge>
+                      </div>
+                    </div>
+                                         <div>
+                       <span className="text-gray-600">Plantdatum:</span>
+                       <div className="font-medium">{selectedPlant.plantingDate}</div>
+                     </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        const bedId = plantPositions.find(p => p.id === selectedPlant.id)?.bedId;
+                        if (bedId && onNavigateToEditPlant) {
+                          onNavigateToEditPlant(bedId, selectedPlant.id);
+                        }
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Bewerken
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => deletePlant(selectedPlant.id)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Verwijderen
+                    </Button>
+                  </div>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bed Detail Dialog */}
+      <Dialog open={!!selectedPlantBed && !selectedPlant} onOpenChange={() => setSelectedPlantBed(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Badge variant="outline" className="text-lg font-bold px-3 py-1">
+                {selectedPlantBed?.id}
+              </Badge>
+              {selectedPlantBed?.name}
+            </DialogTitle>
+            <DialogDescription className="space-y-3">
+              {selectedPlantBed && (
+                <>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Locatie:</span>
+                      <div className="font-medium">{selectedPlantBed.location}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Grootte:</span>
+                      <div className="font-medium">{selectedPlantBed.size}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Aantal planten:</span>
+                      <div className="font-medium">{selectedPlantBed.plants.length}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        if (onNavigateToEdit) {
+                          onNavigateToEdit(selectedPlantBed.id);
+                        }
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Bewerken
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        if (onNavigateToAddPlant) {
+                          onNavigateToAddPlant(selectedPlantBed.id);
+                        }
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Plant Toevoegen
+                    </Button>
+                  </div>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
