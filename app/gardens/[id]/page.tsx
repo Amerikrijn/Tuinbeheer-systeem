@@ -27,8 +27,9 @@ import {
   Sun,
   CloudSun,
   Cloud,
+  Trash2,
 } from "lucide-react"
-import { getGarden, getPlantBeds, createPlantBed, updatePlantBed } from "@/lib/database"
+import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 
 const CANVAS_WIDTH = 800
@@ -61,6 +62,8 @@ export default function GardenDetailPage() {
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingPlantBed, setIsAddingPlantBed] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [deletingBedId, setDeletingBedId] = useState<string | null>(null)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const canvasRef = useRef<HTMLDivElement>(null)
 
   // New plant bed form state with length and width
@@ -430,6 +433,41 @@ export default function GardenDetailPage() {
         description: "Er is een fout opgetreden bij het toevoegen van het plantvak.",
         variant: "destructive",
       })
+    }
+  }
+
+  // Delete plant bed function
+  const handleDeletePlantBed = async (bedId: string) => {
+    const bedToDelete = plantBeds.find(bed => bed.id === bedId)
+    if (!bedToDelete) return
+
+    setDeletingBedId(bedId)
+    setShowDeleteDialog(true)
+  }
+
+  const confirmDeletePlantBed = async () => {
+    if (!deletingBedId) return
+
+    try {
+      await deletePlantBed(deletingBedId)
+      
+      setPlantBeds(prev => prev.filter(bed => bed.id !== deletingBedId))
+      
+      toast({
+        title: "Plantvak verwijderd",
+        description: "Het plantvak is succesvol verwijderd.",
+      })
+    } catch (error) {
+      console.error("Error deleting plant bed:", error)
+      toast({
+        title: "Fout bij verwijderen",
+        description: "Er is een fout opgetreden bij het verwijderen van het plantvak.",
+        variant: "destructive",
+      })
+    } finally {
+      setDeletingBedId(null)
+      setShowDeleteDialog(false)
+      setSelectedBed(null)
     }
   }
 
@@ -828,9 +866,20 @@ export default function GardenDetailPage() {
               <div className="flex items-center gap-4">
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                 {selectedBed && (
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                    {plantBeds.find(b => b.id === selectedBed)?.name} geselecteerd
-                  </Badge>
+                  <>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      {plantBeds.find(b => b.id === selectedBed)?.name} geselecteerd
+                    </Badge>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeletePlantBed(selectedBed)}
+                      className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Verwijder
+                    </Button>
+                  </>
                 )}
                 {hasChanges && (
                   <Badge variant="secondary" className="bg-orange-100 text-orange-800">
@@ -900,6 +949,14 @@ export default function GardenDetailPage() {
                         Plantvak Beheren
                       </Button>
                     </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeletePlantBed(bed.id)}
+                      className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -907,6 +964,49 @@ export default function GardenDetailPage() {
           </div>
         )
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="h-5 w-5" />
+              Plantvak Verwijderen
+            </DialogTitle>
+            <DialogDescription>
+              Weet je zeker dat je dit plantvak wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+            </DialogDescription>
+          </DialogHeader>
+          {deletingBedId && (
+            <div className="py-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Leaf className="h-4 w-4 text-red-600" />
+                  <span className="font-medium text-red-800">
+                    {plantBeds.find(bed => bed.id === deletingBedId)?.name}
+                  </span>
+                </div>
+                <div className="text-sm text-red-700">
+                  {plantBeds.find(bed => bed.id === deletingBedId)?.plants.length || 0} bloemen zullen ook worden verwijderd
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Annuleren
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={confirmDeletePlantBed}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Verwijderen
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

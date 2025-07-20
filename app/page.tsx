@@ -8,11 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, AlertCircle, Sparkles } from "lucide-react"
-import { getGardens } from "@/lib/database"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, AlertCircle, Sparkles, Trash2 } from "lucide-react"
+import { getGardens, deleteGarden } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { debugEnvironmentVariables } from "@/lib/debug-vercel-env"
+import { useToast } from "@/hooks/use-toast"
 
 function HomePageContent() {
   const router = useRouter()
