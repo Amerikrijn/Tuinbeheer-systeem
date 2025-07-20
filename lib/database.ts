@@ -245,6 +245,8 @@ export async function createPlantBed(plantBed: {
       code: error.code,
       fullError: JSON.stringify(error, null, 2)
     })
+    console.error("❌ Raw error object:", error)
+    console.error("❌ Error properties:", Object.keys(error))
     console.error("❌ Plant bed data that failed:", JSON.stringify({
       garden_id: plantBed.garden_id,
       name: plantBed.name,
