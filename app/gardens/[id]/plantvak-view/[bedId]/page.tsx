@@ -905,9 +905,9 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🖱️💻📱 <strong>UNIVERSEEL:</strong> 1) Klik bloem → 2) Sleep blauwe hoek OF klik +/- buttons → MEER bloemen!
+              🚨 <strong>LAATSTE KANS:</strong> 1) Klik bloem → 2) Sleep GELE hoek → MEER BLOEMEN komen erbij (niet 1 grote bloem!)
               <span className="ml-2 text-sm font-medium text-pink-600">
-                • {plantBed.size || 'Op schaal'} • Muis • Trackpad • Mobiel
+                • {plantBed.size || 'Op schaal'} • 🌸 MEER BLOEMEN + NAAM ZICHTBAAR
               </span>
             </p>
           </div>
@@ -1545,6 +1545,12 @@ export default function PlantBedViewPage() {
                         </div>
                         
                                                                         {/* 🚨 POGING 2/2 - LAATSTE KANS PERFECTE DRAG! */}
+                        {/* NAAM VAN DE BLOEM - ALTIJD ZICHTBAAR */}
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 text-sm font-bold px-3 py-1 rounded shadow-lg border z-40">
+                          {flower.name}
+                        </div>
+                        
+                        {/* DRAG HANDLE VOOR MEER BLOEMEN */}
                         <div 
                           className="absolute -bottom-8 -right-8 w-20 h-20 bg-yellow-400 border-4 border-black rounded-full cursor-se-resize hover:bg-yellow-300 flex items-center justify-center z-50 shadow-2xl animate-bounce"
                           onMouseDown={(e) => {
@@ -1692,12 +1698,12 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>🎉 <strong>UNIVERSEEL SYSTEEM - VOOR ALLES!</strong></p>
-              <p>🌸 <strong>Klik bloem</strong> → Selecteren (blauwe hoek + buttons verschijnen)</p>
-              <p>🔵 <strong>OPTIE 1: Sleep blauwe hoek</strong> → Voor muis/trackpad</p>
-              <p>🟢 <strong>OPTIE 2: Klik + button</strong> → Groter (werkt altijd!)</p>
-              <p>🔴 <strong>OPTIE 3: Klik - button</strong> → Kleiner (werkt altijd!)</p>
-              <p>📱 <strong>Mobiel</strong> → Tap + of - buttons</p>
+              <p>🚨 <strong>LAATSTE KANS - MEER BLOEMEN SYSTEEM!</strong></p>
+              <p>🌸 <strong>Klik bloem</strong> → Selecteren (NAAM + gele hoek verschijnen)</p>
+              <p>🟡 <strong>Sleep gele hoek</strong> → Gebied groter + MEER BLOEMEN komen erbij!</p>
+              <p>📛 <strong>NIET 1 grote bloem</strong> → Maar VEEL kleine bloemen!</p>
+              <p>🏷️ <strong>Naam altijd zichtbaar</strong> → Witte label boven bloem</p>
+              <p>🎯 <strong>Real-time</strong> → Tijdens slepen komen bloemen erbij</p>
               <p>📛 <strong>Klik ergens anders</strong> → Deselecteren</p>
             </div>
             <div className="flex items-center gap-4">
