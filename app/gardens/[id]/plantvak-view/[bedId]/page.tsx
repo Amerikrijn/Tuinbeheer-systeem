@@ -1674,76 +1674,48 @@ export default function PlantBedViewPage() {
                              <div className="text-white text-lg font-bold">⤢</div>
                            </div>
                            
-                           {/* SIMPELE BUTTONS - voor als drag niet werkt */}
-                           <div className="flex gap-1">
-                             <button
-                               className="w-12 h-12 bg-green-500 hover:bg-green-600 active:bg-green-700 border-2 border-white rounded-lg flex items-center justify-center z-30 shadow-lg cursor-pointer"
-                               onClick={(e) => {
-                                 e.preventDefault()
-                                 e.stopPropagation()
-                                 
-                                 console.log("🟢 BUTTON RESIZE - GROTER!")
-                                 
-                                 const currentFlower = flowerPositions.find(f => f.id === flower.id)
-                                 if (!currentFlower) return
-                                 
-                                 const currentAreaSize = currentFlower.notes?.includes('area_size:') 
-                                   ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
-                                   : FLOWER_SIZE * 3
-                                 
-                                 const newAreaSize = currentAreaSize + 50 // 50px groter
-                                 
-                                 setFlowerPositions(prev => prev.map(f => {
-                                   if (f.id === currentFlower.id) {
-                                     return { ...f, notes: `area_size:${newAreaSize}` }
-                                   }
-                                   return f
-                                 }))
-                                 
-                                 toast({
-                                   title: "✅ Groter gemaakt!",
-                                   description: `Gebied nu ${newAreaSize}px - meer bloemen!`,
-                                 })
-                               }}
-                               title="Klik om groter te maken (werkt altijd!)"
-                             >
-                               <div className="text-white text-lg font-bold">+</div>
-                             </button>
-                             
-                             <button
-                               className="w-12 h-12 bg-red-500 hover:bg-red-600 active:bg-red-700 border-2 border-white rounded-lg flex items-center justify-center z-30 shadow-lg cursor-pointer"
-                               onClick={(e) => {
-                                 e.preventDefault()
-                                 e.stopPropagation()
-                                 
-                                 console.log("🔴 BUTTON RESIZE - KLEINER!")
-                                 
-                                 const currentFlower = flowerPositions.find(f => f.id === flower.id)
-                                 if (!currentFlower) return
-                                 
-                                 const currentAreaSize = currentFlower.notes?.includes('area_size:') 
-                                   ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
-                                   : FLOWER_SIZE * 3
-                                 
-                                 const newAreaSize = Math.max(FLOWER_SIZE * 2, currentAreaSize - 50) // 50px kleiner
-                                 
-                                 setFlowerPositions(prev => prev.map(f => {
-                                   if (f.id === currentFlower.id) {
-                                     return { ...f, notes: `area_size:${newAreaSize}` }
-                                   }
-                                   return f
-                                 }))
-                                 
-                                 toast({
-                                   title: "✅ Kleiner gemaakt!",
-                                   description: `Gebied nu ${newAreaSize}px - minder bloemen!`,
-                                 })
-                               }}
-                               title="Klik om kleiner te maken"
-                             >
-                               <div className="text-white text-lg font-bold">-</div>
-                             </button>
-                           </div>
+                                                       {/* SUPER GROTE BUTTONS - MOETEN WERKEN! */}
+                            <div className="flex flex-col gap-2 mt-2">
+                              <button
+                                className="w-20 h-20 bg-green-500 hover:bg-green-600 active:bg-green-700 border-4 border-white rounded-xl flex items-center justify-center z-40 shadow-2xl cursor-pointer animate-bounce"
+                                onClick={(e) => {
+                                  console.log("🟢 BUTTON CLICKED!")
+                                  alert("GROTER BUTTON WERKT!")
+                                  
+                                  // Simpele resize zonder complexe logica
+                                  setFlowerPositions(prev => prev.map(f => {
+                                    if (f.id === flower.id) {
+                                      const currentSize = f.visual_width || FLOWER_SIZE
+                                      return { ...f, visual_width: currentSize + 20, visual_height: currentSize + 20 }
+                                    }
+                                    return f
+                                  }))
+                                }}
+                                title="KLIK VOOR GROTER!"
+                              >
+                                <div className="text-white text-3xl font-black">+</div>
+                              </button>
+                              
+                              <button
+                                className="w-20 h-20 bg-red-500 hover:bg-red-600 active:bg-red-700 border-4 border-white rounded-xl flex items-center justify-center z-40 shadow-2xl cursor-pointer animate-bounce"
+                                onClick={(e) => {
+                                  console.log("🔴 BUTTON CLICKED!")
+                                  alert("KLEINER BUTTON WERKT!")
+                                  
+                                  // Simpele resize zonder complexe logica
+                                  setFlowerPositions(prev => prev.map(f => {
+                                    if (f.id === flower.id) {
+                                      const currentSize = f.visual_width || FLOWER_SIZE
+                                      return { ...f, visual_width: Math.max(FLOWER_SIZE, currentSize - 20), visual_height: Math.max(FLOWER_SIZE, currentSize - 20) }
+                                    }
+                                    return f
+                                  }))
+                                }}
+                                title="KLIK VOOR KLEINER!"
+                              >
+                                <div className="text-white text-3xl font-black">-</div>
+                              </button>
+                            </div>
                          </div>
                         
                         {/* Show live area info during resize */}
