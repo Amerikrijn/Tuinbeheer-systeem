@@ -600,78 +600,51 @@ export default function PlantBedViewPage() {
         newHeight = Math.max(20, Math.min(resizeStartSize.height + deltaY, resizeStartSize.height + maxDelta))
       }
 
-      // Calculate how many flowers should fit inside the resized area - improved logic
+      // VEEL EENVOUDIGERE DUPLICATIE LOGICA
       const newDuplicatePositions: {x: number, y: number}[] = []
       
-      // Calculate area increase for all resize modes
-      const currentArea = newWidth * newHeight
-      const originalArea = resizeStartSize.width * resizeStartSize.height
-      const areaIncrease = currentArea - originalArea
+      // Bereken hoeveel bloemen er moeten komen op basis van grootte
+      const currentSize = Math.max(newWidth, newHeight)
+      const originalSize = Math.max(resizeStartSize.width, resizeStartSize.height)
       
-      // Create duplicates based on area increase (not just uniform mode)
-      if (areaIncrease > 500) { // Only if significant area increase (500px²)
-        const areaRatio = currentArea / originalArea
-        let targetFlowerCount = Math.floor(Math.sqrt(areaRatio))
+      // Al bij kleine vergroting bloemen toevoegen (veel lagere threshold)
+      if (currentSize > originalSize + 30) { // Slechts 30px groei = al bloemen!
+        let flowerCount = 1 // Start met 1 (origineel)
         
-        // For non-uniform resize, adjust flower count based on shape
-        if (resizeMode === 'width') {
-          targetFlowerCount = Math.floor(newWidth / 80) // Every 80px width = 1 flower
-        } else if (resizeMode === 'height') {
-          targetFlowerCount = Math.floor(newHeight / 80) // Every 80px height = 1 flower
-        }
+        // Eenvoudige logica: elke 40px = 1 extra bloem
+        const extraSize = currentSize - originalSize
+        flowerCount += Math.floor(extraSize / 40)
         
-        // Cap the number of duplicates to prevent chaos
-        targetFlowerCount = Math.min(targetFlowerCount, 8)
-
-        // Generate positions for duplicates in a smart pattern
-        if (targetFlowerCount > 1) {
-          const availableWidth = newWidth * 0.85 // Leave some margin
-          const availableHeight = newHeight * 0.85
-          const baseSize = Math.min(availableWidth, availableHeight) / Math.ceil(Math.sqrt(targetFlowerCount))
+        // Max 6 bloemen totaal (5 duplicaten)
+        flowerCount = Math.min(flowerCount, 6)
+        
+        // Maak de duplicaten zichtbaar
+        for (let i = 1; i < flowerCount; i++) {
+          let x, y
           
-          // Create distribution pattern based on resize mode
-          if (resizeMode === 'width') {
-            // Horizontal line distribution
-            for (let i = 0; i < targetFlowerCount - 1; i++) {
-              const x = flower.position_x + (i + 1) * (availableWidth / targetFlowerCount)
-              const y = flower.position_y + (Math.random() - 0.5) * availableHeight * 0.3
-              
-              if (x + baseSize <= canvasWidth && y + baseSize <= canvasHeight && x >= 0 && y >= 0) {
-                newDuplicatePositions.push({ x, y })
-              }
-            }
-          } else if (resizeMode === 'height') {
-            // Vertical line distribution
-            for (let i = 0; i < targetFlowerCount - 1; i++) {
-              const x = flower.position_x + (Math.random() - 0.5) * availableWidth * 0.3
-              const y = flower.position_y + (i + 1) * (availableHeight / targetFlowerCount)
-              
-              if (x + baseSize <= canvasWidth && y + baseSize <= canvasHeight && x >= 0 && y >= 0) {
-                newDuplicatePositions.push({ x, y })
-              }
-            }
+          if (resizeMode === 'width' || newWidth > newHeight) {
+            // Horizontaal patroon
+            x = flower.position_x + (i * 60) % newWidth
+            y = flower.position_y + Math.floor((i * 60) / newWidth) * 50
+          } else if (resizeMode === 'height' || newHeight > newWidth) {
+            // Verticaal patroon  
+            x = flower.position_x + Math.floor((i * 50) / newHeight) * 50
+            y = flower.position_y + (i * 50) % newHeight
           } else {
-            // Grid distribution for uniform resize
-            const cols = Math.ceil(Math.sqrt(targetFlowerCount))
-            const rows = Math.ceil(targetFlowerCount / cols)
+            // Grid patroon
+            const cols = Math.ceil(Math.sqrt(flowerCount))
+            const col = i % cols
+            const row = Math.floor(i / cols)
             
-            for (let i = 0; i < targetFlowerCount - 1; i++) {
-              const col = i % cols
-              const row = Math.floor(i / cols)
-              
-              // Add some randomness for more organic placement
-              const jitterX = (Math.random() - 0.5) * baseSize * 0.3
-              const jitterY = (Math.random() - 0.5) * baseSize * 0.3
-              
-              const x = flower.position_x + (col + 1) * (availableWidth / (cols + 1)) + jitterX
-              const y = flower.position_y + (row + 1) * (availableHeight / (rows + 1)) + jitterY
-              
-              // Ensure position is within canvas bounds
-              if (x + baseSize <= canvasWidth && y + baseSize <= canvasHeight && x >= 0 && y >= 0) {
-                newDuplicatePositions.push({ x, y })
-              }
-            }
+            x = flower.position_x + (col * (newWidth / cols))
+            y = flower.position_y + (row * (newHeight / Math.ceil(flowerCount / cols)))
           }
+          
+          // Zorg dat bloemen binnen canvas blijven
+          x = Math.max(10, Math.min(x, canvasWidth - 40))
+          y = Math.max(10, Math.min(y, canvasHeight - 40))
+          
+          newDuplicatePositions.push({ x, y })
         }
       }
 
@@ -1466,66 +1439,53 @@ export default function PlantBedViewPage() {
                     </div>
                     {isSelected && (
                       <>
-                        <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded z-10">
-                          Geselecteerd
+                        <div className="absolute -top-6 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10">
+                          Sleep hoek om groter te maken
                         </div>
-                        {/* Main resize handle - uniform scaling */}
+                        {/* Grote, duidelijke resize handle */}
                         <div
-                          className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-nw-resize hover:bg-blue-600 flex items-center justify-center z-10"
+                          className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-500 border-3 border-white rounded-full cursor-nw-resize hover:bg-blue-600 hover:scale-110 flex items-center justify-center z-10 shadow-lg"
                           onMouseDown={(e) => handleResizeStart(e, flower.id, 'uniform')}
-                          title="Sleep om uniform te vergroten en dupliceren"
+                          title="Sleep om bloem groter te maken en meer bloemen toe te voegen!"
                         >
-                          <div className="w-2 h-2 bg-white rounded-full"></div>
+                          <div className="text-white text-xs font-bold">⤢</div>
                         </div>
-                        {/* Width resize handle */}
-                        <div
-                          className="absolute top-1/2 -right-1 w-3 h-6 bg-green-500 border-2 border-white rounded cursor-ew-resize hover:bg-green-600 transform -translate-y-1/2 z-10"
-                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'width')}
-                          title="Sleep om breedte te wijzigen"
-                        />
-                        {/* Height resize handle */}
-                        <div
-                          className="absolute -bottom-1 left-1/2 w-6 h-3 bg-green-500 border-2 border-white rounded cursor-ns-resize hover:bg-green-600 transform -translate-x-1/2 z-10"
-                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'height')}
-                          title="Sleep om hoogte te wijzigen"
-                        />
-                        {/* Corner resize handles for free-form shaping */}
-                        <div
-                          className="absolute -top-1 -left-1 w-3 h-3 bg-purple-500 border-2 border-white rounded-full cursor-nw-resize hover:bg-purple-600 z-10"
-                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'width')}
-                          title="Vrije vormgeving"
-                        />
-                        <div
-                          className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 border-2 border-white rounded-full cursor-ne-resize hover:bg-purple-600 z-10"
-                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'height')}
-                          title="Vrije vormgeving"
-                        />
+                        {/* Visual feedback tijdens resize */}
+                        {isBeingResized && (
+                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded z-10 animate-pulse">
+                            +{duplicatePositions.length} bloemen
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
                 )
               })}
 
-              {/* Preview duplicates during resize */}
+              {/* Preview duplicates tijdens resize - VEEL ZICHTBAARDER */}
               {isResizing && duplicatePositions.map((pos, index) => {
                 const originalFlower = flowerPositions.find(f => f.id === isResizing)
                 if (!originalFlower) return null
                 
-                const previewSize = Math.min(originalFlower.visual_width * 0.6, 60)
+                // Maak preview bloemen groter en duidelijker
+                const previewSize = 50 // Vaste grootte, goed zichtbaar
                 
                 return (
                   <div
                     key={`preview-${index}`}
-                    className="absolute border-2 border-dashed border-blue-400 bg-blue-100 opacity-60 rounded-full flex items-center justify-center pointer-events-none"
+                    className="absolute border-3 border-dashed border-green-500 bg-green-100 opacity-80 rounded-full flex items-center justify-center pointer-events-none animate-pulse shadow-lg"
                     style={{
                       left: pos.x,
                       top: pos.y,
                       width: previewSize,
                       height: previewSize,
-                      backgroundColor: originalFlower.color + '40', // Add transparency
+                      backgroundColor: originalFlower.color + '60', // Meer transparantie
                     }}
                   >
-                    <div className="text-sm opacity-80">{originalFlower.emoji || '🌸'}</div>
+                    <div className="text-2xl">{originalFlower.emoji || '🌸'}</div>
+                    <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 rounded-full">
+                      +{index + 1}
+                    </div>
                   </div>
                 )
               })}
@@ -1548,13 +1508,11 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>💡 <strong>Smart Resize & Duplicatie:</strong></p>
-              <p>🔵 <strong>Blauwe cirkel:</strong> Uniform vergroten → Grid van bloemen</p>
-              <p>🟢 <strong>Groene breedte:</strong> Breder maken → Horizontale lijn bloemen</p>
-              <p>🟢 <strong>Groene hoogte:</strong> Hoger maken → Verticale lijn bloemen</p>
-              <p>🟣 <strong>Paarse hoeken:</strong> Vrije vormgeving</p>
-              <p>🎯 <strong>Auto-duplicatie:</strong> Bij +500px² gebied komen er meer bloemen!</p>
-              <p>👆 <strong>Basis:</strong> Klik = selecteren, Sleep = verplaatsen, Dubbelklik = bewerken</p>
+              <p>💡 <strong>Super Eenvoudig:</strong></p>
+              <p>🌸 <strong>Klik bloem</strong> → Zie blauwe hoek</p>
+              <p>🔵 <strong>Sleep blauwe hoek</strong> → Bloem wordt groter + meer bloemen verschijnen!</p>
+              <p>📏 <strong>Elke 40px groei</strong> = +1 extra bloem (max 5 extra)</p>
+              <p>👆 <strong>Basis:</strong> Klik = selecteren, Sleep bloem = verplaatsen, Dubbelklik = bewerken</p>
             </div>
             <div className="flex items-center gap-4">
               <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
