@@ -144,24 +144,31 @@ export default function GardenDetailPage() {
     e.preventDefault()
     e.stopPropagation()
     
-    if (selectedBed === bedId) {
-      // Already selected, start dragging
-      const bed = plantBeds.find(b => b.id === bedId)
-      if (!bed) return
+    // Select this plant bed
+    setSelectedBed(bedId)
+  }, [])
 
-      const rect = canvasRef.current?.getBoundingClientRect()
-      if (!rect) return
+  // Handle mouse down - start dragging immediately
+  const handlePlantBedMouseDown = useCallback((e: React.MouseEvent, bedId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const bed = plantBeds.find(b => b.id === bedId)
+    if (!bed) return
 
-      const offsetX = e.clientX - rect.left - (bed.position_x || 100) * scale
-      const offsetY = e.clientY - rect.top - (bed.position_y || 100) * scale
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
 
-      setDraggedBed(bedId)
-      setDragOffset({ x: offsetX / scale, y: offsetY / scale })
-    } else {
-      // Select this plant bed
-      setSelectedBed(bedId)
-    }
-  }, [selectedBed, plantBeds, scale])
+    // Select the bed
+    setSelectedBed(bedId)
+    
+    // Start dragging
+    const offsetX = e.clientX - rect.left - (bed.position_x || 100) * scale
+    const offsetY = e.clientY - rect.top - (bed.position_y || 100) * scale
+
+    setDraggedBed(bedId)
+    setDragOffset({ x: offsetX / scale, y: offsetY / scale })
+  }, [plantBeds, scale])
 
   // Handle double click - navigate to plant bed details
   const handlePlantBedDoubleClick = useCallback((bedId: string) => {
@@ -449,7 +456,7 @@ export default function GardenDetailPage() {
               {garden.name}
             </h1>
             <p className="text-gray-600">
-              Klik om te selecteren, sleep om te verplaatsen, dubbelklik om te beheren
+              Sleep om te verplaatsen, dubbelklik om te beheren
               {(garden.total_area || (garden.length && garden.width)) && (
                 <span className="ml-2 text-sm font-medium text-green-600">
                   • Tuingrootte: {garden.total_area || 
@@ -727,6 +734,7 @@ export default function GardenDetailPage() {
                       }}
                       onClick={(e) => handlePlantBedClick(e, bed.id)}
                       onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
+                      onMouseDown={(e) => handlePlantBedMouseDown(e, bed.id)}
                     >
                       <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors ${
                         isSelected ? 'bg-blue-50' : ''
@@ -779,7 +787,7 @@ export default function GardenDetailPage() {
               </div>
             </div>
             <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
-              <p>💡 <strong>Tip:</strong> Klik om te selecteren, sleep om te verplaatsen, dubbelklik om te beheren</p>
+              <p>💡 <strong>Tip:</strong> Sleep om te verplaatsen, dubbelklik om te beheren</p>
               <div className="flex items-center gap-4">
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                 {selectedBed && (
