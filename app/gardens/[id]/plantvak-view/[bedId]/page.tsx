@@ -463,7 +463,7 @@ export default function PlantBedViewPage() {
       const updatedBed = await updatePlantBed(plantBed.id, {
         name: plantBedForm.name.trim(),
         size: sizeString,
-        description: plantBedForm.description?.trim() || null,
+        description: plantBedForm.description?.trim() || undefined,
         sun_exposure: plantBedForm.sun_exposure,
         soil_type: plantBedForm.soil_type,
         visual_width: visualWidth,
