@@ -31,13 +31,16 @@ import {
 } from "lucide-react"
 import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
-
-const CANVAS_WIDTH = 800
-const CANVAS_HEIGHT = 600
-const GRID_SIZE = 20
-const PLANTVAK_MIN_WIDTH = 100
-const PLANTVAK_MIN_HEIGHT = 80
-const METERS_TO_PIXELS = 50 // 1 meter = 50 pixels
+import { 
+  METERS_TO_PIXELS, 
+  GARDEN_CANVAS_WIDTH as CANVAS_WIDTH,
+  GARDEN_CANVAS_HEIGHT as CANVAS_HEIGHT,
+  GARDEN_GRID_SIZE as GRID_SIZE,
+  PLANTVAK_MIN_WIDTH,
+  PLANTVAK_MIN_HEIGHT,
+  metersToPixels,
+  parsePlantBedDimensions
+} from "@/lib/scaling-constants"
 
 interface PlantBedPosition {
   id: string
@@ -164,13 +167,11 @@ export default function GardenDetailPage() {
 
   // Convert dimensions from string (e.g., "2m x 1.5m" or "2 x 1.5") to pixels
   const getDimensionsFromSize = (size: string) => {
-    const match = size?.match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/)
-    if (match) {
-      const width = parseFloat(match[1]) * METERS_TO_PIXELS
-      const height = parseFloat(match[2]) * METERS_TO_PIXELS
+    const dimensions = parsePlantBedDimensions(size)
+    if (dimensions) {
       return {
-        width: Math.max(PLANTVAK_MIN_WIDTH, width),
-        height: Math.max(PLANTVAK_MIN_HEIGHT, height)
+        width: Math.max(PLANTVAK_MIN_WIDTH, dimensions.lengthPixels),
+        height: Math.max(PLANTVAK_MIN_HEIGHT, dimensions.widthPixels)
       }
     }
     return {
@@ -337,8 +338,8 @@ export default function GardenDetailPage() {
         return
       }
 
-      const visualWidth = Math.max(PLANTVAK_MIN_WIDTH, length * METERS_TO_PIXELS)
-      const visualHeight = Math.max(PLANTVAK_MIN_HEIGHT, width * METERS_TO_PIXELS)
+      const visualWidth = Math.max(PLANTVAK_MIN_WIDTH, metersToPixels(length))
+      const visualHeight = Math.max(PLANTVAK_MIN_HEIGHT, metersToPixels(width))
 
       // Find a good position for the new plant bed
       const existingPositions = plantBeds.map(bed => ({

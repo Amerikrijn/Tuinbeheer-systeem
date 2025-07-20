@@ -30,11 +30,22 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
+import {
+  METERS_TO_PIXELS,
+  PLANTVAK_CANVAS_PADDING,
+  FLOWER_SIZE_SMALL,
+  FLOWER_SIZE_MEDIUM,
+  FLOWER_SIZE_LARGE,
+  FLOWER_NAME_HEIGHT,
+  metersToPixels,
+  calculatePlantBedCanvasSize,
+  parsePlantBedDimensions
+} from "@/lib/scaling-constants"
 
 const GRID_SIZE = 10
 const SCALE_MIN = 0.5
 const SCALE_MAX = 3
-const FLOWER_SIZE = 40
+const FLOWER_SIZE = FLOWER_SIZE_MEDIUM // Default to medium size
 
 const FLOWER_TYPES = [
   { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
@@ -62,8 +73,18 @@ const FLOWER_STATUS_OPTIONS = [
   { value: 'sick', label: 'Ziek', color: 'border-red-500' },
 ]
 
-// Helper function to get emoji based on plant name or category
-const getPlantEmoji = (name?: string, category?: string): string => {
+  // Helper function to get flower size in pixels
+  const getFlowerSize = (size: 'small' | 'medium' | 'large'): number => {
+    switch (size) {
+      case 'small': return FLOWER_SIZE_SMALL
+      case 'medium': return FLOWER_SIZE_MEDIUM  
+      case 'large': return FLOWER_SIZE_LARGE
+      default: return FLOWER_SIZE_MEDIUM
+    }
+  }
+
+  // Helper function to get emoji based on plant name or category
+  const getPlantEmoji = (name?: string, category?: string): string => {
   const plantName = (name || '').toLowerCase()
   const plantCategory = (category || '').toLowerCase()
   
@@ -118,7 +139,8 @@ export default function PlantBedViewPage() {
     color: '#FF69B4',
     customEmoji: '',
     description: '',
-    status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick'
+    status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
+    size: 'medium' as 'small' | 'medium' | 'large'
   })
   const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
   const [plantBedForm, setPlantBedForm] = useState({
@@ -132,20 +154,10 @@ export default function PlantBedViewPage() {
   
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Calculate canvas size based on plant bed size
+  // Calculate canvas size based on plant bed size using consistent scaling
   const getCanvasSize = () => {
-    if (!plantBed) return { width: 600, height: 450 }
-    
-    // Convert plant bed size to pixels (rough scale: 1 meter = 100 pixels)
-    // Add extra height for flower names
-    const sizeMatch = plantBed.size?.match(/(\d+(?:\.\d+)?)\s*x\s*(\d+(?:\.\d+)?)/)
-    if (sizeMatch) {
-      const width = Math.max(400, parseFloat(sizeMatch[1]) * 100)
-      const height = Math.max(350, parseFloat(sizeMatch[2]) * 100 + 50) // Extra height for names
-      return { width, height }
-    }
-    
-    return { width: 600, height: 450 }
+    if (!plantBed?.size) return { width: 600, height: 450 }
+    return calculatePlantBedCanvasSize(plantBed.size)
   }
 
   const { width: canvasWidth, height: canvasHeight } = getCanvasSize()
@@ -257,19 +269,21 @@ export default function PlantBedViewPage() {
                       newFlower.status === 'blooming' ? 'healthy' : 
                       newFlower.status
 
+      const flowerSize = getFlowerSize(newFlower.size)
+      
       const newPlant = await createVisualPlant({
         plant_bed_id: plantBed.id,
         name: newFlower.name,
         color: newFlower.color,
         status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
-        position_x: Math.random() * (canvasWidth - FLOWER_SIZE),
-        position_y: Math.random() * (canvasHeight - FLOWER_SIZE),
-        visual_width: FLOWER_SIZE,
-        visual_height: FLOWER_SIZE,
+        position_x: Math.random() * (canvasWidth - flowerSize),
+        position_y: Math.random() * (canvasHeight - flowerSize),
+        visual_width: flowerSize,
+        visual_height: flowerSize,
         emoji: isCustomFlower ? newFlower.customEmoji : selectedType?.emoji || '🌸',
         is_custom: isCustomFlower,
         category: isCustomFlower ? 'Aangepast' : newFlower.type,
-        notes: newFlower.description
+        notes: `${newFlower.description}${newFlower.description ? ' | ' : ''}Size: ${newFlower.size}`
       })
 
       if (newPlant) {
@@ -282,7 +296,8 @@ export default function PlantBedViewPage() {
           color: '#FF69B4',
           customEmoji: '',
           description: '',
-          status: 'healthy'
+          status: 'healthy',
+          size: 'medium'
         })
         
         toast({
@@ -441,8 +456,8 @@ export default function PlantBedViewPage() {
         return
       }
       
-      const visualWidth = length * 50 // 1m = 50px
-      const visualHeight = width * 50
+      const visualWidth = metersToPixels(length)
+      const visualHeight = metersToPixels(width)
 
       const updatedBed = await updatePlantBed(plantBed.id, {
         name: plantBedForm.name.trim(),
@@ -1055,6 +1070,37 @@ export default function PlantBedViewPage() {
                 </div>
 
                 <div>
+                  <label className="text-sm font-medium">Grootte</label>
+                  <Select value={newFlower.size} onValueChange={(value: 'small' | 'medium' | 'large') => 
+                    setNewFlower(prev => ({ ...prev, size: value }))
+                  }>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="small">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                          <span>Klein ({FLOWER_SIZE_SMALL}px)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="medium">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                          <span>Midden ({FLOWER_SIZE_MEDIUM}px)</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="large">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 bg-green-600 rounded-full"></div>
+                          <span>Groot ({FLOWER_SIZE_LARGE}px)</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
                   <label className="text-sm font-medium">Beschrijving (optioneel)</label>
                   <Textarea
                     value={newFlower.description}
@@ -1436,7 +1482,7 @@ export default function PlantBedViewPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Palette className="h-5 w-5 text-purple-600" />
-            Bloemen Layout - Op Schaal
+            Bloemen Layout - Op Schaal (1m = {METERS_TO_PIXELS}px)
           </CardTitle>
         </CardHeader>
         <CardContent>
