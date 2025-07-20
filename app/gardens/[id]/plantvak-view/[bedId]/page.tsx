@@ -28,7 +28,7 @@ import {
   Edit,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant } from "@/lib/database"
+import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 
 const GRID_SIZE = 10
@@ -92,6 +92,15 @@ export default function PlantBedViewPage() {
     customEmoji: '',
     description: '',
     status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick'
+  })
+  const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
+  const [plantBedForm, setPlantBedForm] = useState({
+    name: '',
+    length: '',
+    width: '',
+    description: '',
+    sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
+    soil_type: 'loam' as 'clay' | 'sand' | 'loam' | 'peat'
   })
   
   const containerRef = useRef<HTMLDivElement>(null)
@@ -346,6 +355,92 @@ export default function PlantBedViewPage() {
       toast({
         title: "Fout bij verwijderen",
         description: "Er is een fout opgetreden bij het verwijderen van de bloem.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Parse dimensions from size string
+  const parseDimensions = (sizeString: string) => {
+    const match = sizeString?.match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/)
+    if (match) {
+      return {
+        length: match[1],
+        width: match[2]
+      }
+    }
+    return { length: '', width: '' }
+  }
+
+  // Initialize plant bed form when plant bed loads
+  useEffect(() => {
+    if (plantBed) {
+      const dimensions = parseDimensions(plantBed.size || '')
+      setPlantBedForm({
+        name: plantBed.name,
+        length: dimensions.length,
+        width: dimensions.width,
+        description: plantBed.description || '',
+        sun_exposure: (plantBed.sun_exposure || 'full-sun') as 'full-sun' | 'partial-sun' | 'shade',
+        soil_type: (plantBed.soil_type || 'loam') as 'clay' | 'sand' | 'loam' | 'peat'
+      })
+    }
+  }, [plantBed])
+
+  // Update plant bed
+  const updatePlantBedInfo = async () => {
+    if (!plantBed || !plantBedForm.name || !plantBedForm.length || !plantBedForm.width) {
+      toast({
+        title: "Incomplete gegevens",
+        description: "Vul alle velden in om het plantvak bij te werken.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    try {
+      const sizeString = `${plantBedForm.length}m x ${plantBedForm.width}m`
+      const length = parseFloat(plantBedForm.length)
+      const width = parseFloat(plantBedForm.width)
+      const visualWidth = length * 50 // 1m = 50px
+      const visualHeight = width * 50
+
+      const updatedBed = await updatePlantBed(plantBed.id, {
+        name: plantBedForm.name,
+        size: sizeString,
+        description: plantBedForm.description,
+        sun_exposure: plantBedForm.sun_exposure,
+        soil_type: plantBedForm.soil_type,
+        visual_width: visualWidth,
+        visual_height: visualHeight
+      })
+
+      if (updatedBed) {
+        // Convert PlantBed to PlantBedWithPlants by adding plants array and ensuring required fields
+        const bedWithPlants: PlantBedWithPlants = {
+          ...updatedBed,
+          position_x: updatedBed.position_x ?? plantBed?.position_x ?? 100,
+          position_y: updatedBed.position_y ?? plantBed?.position_y ?? 100,
+          visual_width: updatedBed.visual_width ?? visualWidth,
+          visual_height: updatedBed.visual_height ?? visualHeight,
+          rotation: updatedBed.rotation ?? plantBed?.rotation ?? 0,
+          z_index: updatedBed.z_index ?? plantBed?.z_index ?? 0,
+          color_code: updatedBed.color_code ?? plantBed?.color_code ?? '',
+          visual_updated_at: updatedBed.visual_updated_at ?? new Date().toISOString(),
+          plants: flowerPositions // Use current flower positions as plants
+        }
+        setPlantBed(bedWithPlants)
+        setIsEditingPlantBed(false)
+        toast({
+          title: "Plantvak bijgewerkt",
+          description: "De plantvak informatie is succesvol bijgewerkt.",
+        })
+      }
+    } catch (error) {
+      console.error("Error updating plant bed:", error)
+      toast({
+        title: "Fout bij bijwerken",
+        description: "Er is een fout opgetreden bij het bijwerken van het plantvak.",
         variant: "destructive",
       })
     }
@@ -1003,48 +1098,190 @@ export default function PlantBedViewPage() {
         </div>
       </div>
 
-      {/* Plant Bed Info */}
+      {/* Plant Bed Information */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Leaf className="h-5 w-5 text-green-600" />
-            Plantvak Informatie
+          <CardTitle className="flex items-center gap-2 justify-between">
+            <div className="flex items-center gap-2">
+              <Leaf className="h-5 w-5 text-green-600" />
+              Plantvak Informatie
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditingPlantBed(true)}
+              className="flex items-center gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Bewerken
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
-              <div className="font-medium">Grootte</div>
-              <div className="text-sm text-gray-600">{plantBed.size || 'Niet opgegeven'}</div>
+              <h4 className="font-medium text-gray-700 mb-1">Naam</h4>
+              <p className="text-lg font-semibold">{plantBed?.name || 'Onbekend'}</p>
             </div>
-            <div className="flex items-center gap-2">
-              {plantBed.sun_exposure && getSunExposureIcon(plantBed.sun_exposure)}
-              <div>
-                <div className="font-medium">Zonligging</div>
-                <div className="text-sm text-gray-600">
-                  {plantBed.sun_exposure === 'full-sun' ? 'Volle zon' :
-                   plantBed.sun_exposure === 'partial-sun' ? 'Halfschaduw' :
-                   plantBed.sun_exposure === 'shade' ? 'Schaduw' : 'Onbekend'}
-                </div>
+            <div>
+              <h4 className="font-medium text-gray-700 mb-1">Lengte</h4>
+              <p className="text-lg font-semibold">
+                {plantBed?.size ? parseDimensions(plantBed.size).length + 'm' : 'Niet opgegeven'}
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-700 mb-1">Breedte</h4>
+              <p className="text-lg font-semibold">
+                {plantBed?.size ? parseDimensions(plantBed.size).width + 'm' : 'Niet opgegeven'}
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-gray-700 mb-1">Zonligging</h4>
+              <div className="flex items-center gap-2">
+                {getSunExposureIcon(plantBed?.sun_exposure || 'full-sun')}
+                <span className="text-lg font-semibold">
+                  {plantBed?.sun_exposure === 'full-sun' ? 'Volle zon' :
+                   plantBed?.sun_exposure === 'partial-sun' ? 'Gedeeltelijke zon' :
+                   plantBed?.sun_exposure === 'shade' ? 'Schaduw' : 'Volle zon'}
+                </span>
               </div>
             </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
             <div>
-              <div className="font-medium">Bloemen</div>
-              <div className="text-sm text-gray-600">{flowerPositions.length}</div>
+              <h4 className="font-medium text-gray-700 mb-1">Bloemen</h4>
+              <p className="text-lg font-semibold">{flowerPositions.length}</p>
             </div>
             <div>
-              <div className="font-medium">Grondsoort</div>
-              <div className="text-sm text-gray-600">{plantBed.soil_type || 'Niet opgegeven'}</div>
+              <h4 className="font-medium text-gray-700 mb-1">Grondsoort</h4>
+              <p className="text-lg font-semibold">
+                {plantBed?.soil_type === 'clay' ? 'Klei' :
+                 plantBed?.soil_type === 'sand' ? 'Zand' :
+                 plantBed?.soil_type === 'loam' ? 'Leem' :
+                 plantBed?.soil_type === 'peat' ? 'Veen' : 'Niet opgegeven'}
+              </p>
             </div>
           </div>
-          {plantBed.description && (
-            <div className="mt-4">
-              <div className="font-medium">Beschrijving</div>
-              <p className="text-sm text-gray-600 mt-1">{plantBed.description}</p>
+
+          {plantBed?.description && (
+            <div className="mt-6">
+              <h4 className="font-medium text-gray-700 mb-1">Beschrijving</h4>
+              <p className="text-gray-600">{plantBed.description}</p>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Plant Bed Dialog */}
+      <Dialog open={isEditingPlantBed} onOpenChange={setIsEditingPlantBed}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Plantvak Bewerken</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Naam *</label>
+              <Input
+                value={plantBedForm.name}
+                onChange={(e) => setPlantBedForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Bijv. Rozen bed"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Lengte (m) *</label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  value={plantBedForm.length}
+                  onChange={(e) => setPlantBedForm(prev => ({ ...prev, length: e.target.value }))}
+                  placeholder="2.0"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Breedte (m) *</label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  value={plantBedForm.width}
+                  onChange={(e) => setPlantBedForm(prev => ({ ...prev, width: e.target.value }))}
+                  placeholder="1.5"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Zonligging</label>
+              <Select value={plantBedForm.sun_exposure} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
+                setPlantBedForm(prev => ({ ...prev, sun_exposure: value }))
+              }>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="full-sun">
+                    <div className="flex items-center gap-2">
+                      <Sun className="h-4 w-4 text-yellow-500" />
+                      <span>Volle zon</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="partial-sun">
+                    <div className="flex items-center gap-2">
+                      <CloudSun className="h-4 w-4 text-yellow-400" />
+                      <span>Gedeeltelijke zon</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="shade">
+                    <div className="flex items-center gap-2">
+                      <Cloud className="h-4 w-4 text-gray-500" />
+                      <span>Schaduw</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Grondsoort</label>
+              <Select value={plantBedForm.soil_type} onValueChange={(value: 'clay' | 'sand' | 'loam' | 'peat') => 
+                setPlantBedForm(prev => ({ ...prev, soil_type: value }))
+              }>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="clay">Klei</SelectItem>
+                  <SelectItem value="sand">Zand</SelectItem>
+                  <SelectItem value="loam">Leem</SelectItem>
+                  <SelectItem value="peat">Veen</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Beschrijving</label>
+              <Input
+                value={plantBedForm.description}
+                onChange={(e) => setPlantBedForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Optionele beschrijving..."
+              />
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button onClick={updatePlantBedInfo} className="flex-1">
+                Opslaan
+              </Button>
+              <Button variant="outline" onClick={() => setIsEditingPlantBed(false)} className="flex-1">
+                Annuleren
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Canvas */}
       <Card>
