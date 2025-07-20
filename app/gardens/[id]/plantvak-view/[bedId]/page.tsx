@@ -25,6 +25,7 @@ import {
   Leaf,
   Trash2,
   Palette,
+  Edit,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getGarden, getPlantBeds } from "@/lib/database"
@@ -42,6 +43,7 @@ interface FlowerPosition {
   status: 'healthy' | 'needs_attention' | 'blooming' | 'sick'
   emoji?: string
   isCustom?: boolean
+  description?: string
 }
 
 const GRID_SIZE = 10
@@ -68,6 +70,13 @@ const DEFAULT_FLOWER_COLORS = [
   '#32CD32', '#00CED1', '#FF6347', '#DDA0DD', '#98FB98'
 ]
 
+const FLOWER_STATUS_OPTIONS = [
+  { value: 'healthy', label: 'Gezond', color: 'border-green-500' },
+  { value: 'needs_attention', label: 'Aandacht nodig', color: 'border-yellow-500' },
+  { value: 'blooming', label: 'Bloeiend', color: 'border-purple-500' },
+  { value: 'sick', label: 'Ziek', color: 'border-red-500' },
+]
+
 export default function PlantBedViewPage() {
   const router = useRouter()
   const params = useParams()
@@ -82,14 +91,17 @@ export default function PlantBedViewPage() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingFlower, setIsAddingFlower] = useState(false)
+  const [isEditingFlower, setIsEditingFlower] = useState(false)
   const [loading, setLoading] = useState(true)
   const [isCustomFlower, setIsCustomFlower] = useState(false)
+  const [isEditCustomFlower, setIsEditCustomFlower] = useState(false)
   const [newFlower, setNewFlower] = useState({
     name: '',
     type: '',
     color: '#FF69B4',
     customEmoji: '',
-    description: ''
+    description: '',
+    status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick'
   })
   
   const containerRef = useRef<HTMLDivElement>(null)
@@ -197,9 +209,10 @@ export default function PlantBedViewPage() {
       name: newFlower.name,
       color: newFlower.color,
       type: isCustomFlower ? 'Aangepast' : newFlower.type,
-      status: 'healthy',
+      status: newFlower.status,
       emoji: isCustomFlower ? newFlower.customEmoji : selectedType?.emoji,
-      isCustom: isCustomFlower
+      isCustom: isCustomFlower,
+      description: newFlower.description
     }
 
     setFlowerPositions(prev => [...prev, newFlowerPosition])
@@ -211,7 +224,8 @@ export default function PlantBedViewPage() {
       type: '',
       color: '#FF69B4',
       customEmoji: '',
-      description: ''
+      description: '',
+      status: 'healthy'
     })
     
     toast({
@@ -220,31 +234,112 @@ export default function PlantBedViewPage() {
     })
   }
 
+  const updateFlower = () => {
+    if (!selectedFlower || !newFlower.name || (!newFlower.type && !isEditCustomFlower)) {
+      toast({
+        title: "Incomplete gegevens",
+        description: "Vul alle velden in om de bloem te wijzigen.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (isEditCustomFlower && !newFlower.customEmoji) {
+      toast({
+        title: "Emoji vereist",
+        description: "Voeg een emoji toe voor je aangepaste bloem.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
+
+    setFlowerPositions(prev => prev.map(flower => 
+      flower.id === selectedFlower.id 
+        ? {
+            ...flower,
+            name: newFlower.name,
+            color: newFlower.color,
+            type: isEditCustomFlower ? 'Aangepast' : newFlower.type,
+            status: newFlower.status,
+            emoji: isEditCustomFlower ? newFlower.customEmoji : selectedType?.emoji,
+            isCustom: isEditCustomFlower,
+            description: newFlower.description
+          }
+        : flower
+    ))
+
+    setHasChanges(true)
+    setIsEditingFlower(false)
+    setSelectedFlower(null)
+    setIsEditCustomFlower(false)
+    setNewFlower({
+      name: '',
+      type: '',
+      color: '#FF69B4',
+      customEmoji: '',
+      description: '',
+      status: 'healthy'
+    })
+    
+    toast({
+      title: "Bloem gewijzigd",
+      description: `${newFlower.name} is succesvol gewijzigd.`,
+    })
+  }
+
   const removeFlower = (flowerId: string) => {
     setFlowerPositions(prev => prev.filter(f => f.id !== flowerId))
     setHasChanges(true)
     setSelectedFlower(null)
+    setIsEditingFlower(false)
     toast({
       title: "Bloem verwijderd",
       description: "De bloem is verwijderd uit het plantvak.",
     })
   }
 
-  const onMouseDown = (e: React.MouseEvent, flowerId: string) => {
+  // Handle single click - select flower for dragging
+  const handleFlowerClick = useCallback((e: React.MouseEvent, flowerId: string) => {
     e.preventDefault()
+    e.stopPropagation()
+    
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
+    if (selectedFlower?.id === flowerId) {
+      // Already selected, start dragging
+      const rect = containerRef.current?.getBoundingClientRect()
+      if (!rect) return
 
-    setDraggedFlower(flowerId)
-    setDragOffset({
-      x: (e.clientX - rect.left) / scale - flower.x,
-      y: (e.clientY - rect.top) / scale - flower.y
+      setDraggedFlower(flowerId)
+      setDragOffset({
+        x: (e.clientX - rect.left) / scale - flower.x,
+        y: (e.clientY - rect.top) / scale - flower.y
+      })
+    } else {
+      // Select this flower
+      setSelectedFlower(flower)
+    }
+  }, [selectedFlower, flowerPositions, scale])
+
+  // Handle double click - open edit dialog
+  const handleFlowerDoubleClick = useCallback((flower: FlowerPosition) => {
+    setSelectedFlower(flower)
+    setIsEditCustomFlower(flower.isCustom || false)
+    setNewFlower({
+      name: flower.name,
+      type: flower.type,
+      color: flower.color,
+      customEmoji: flower.emoji || '',
+      description: flower.description || '',
+      status: flower.status
     })
-  }
+    setIsEditingFlower(true)
+  }, [])
 
+  // Handle drag move
   const onMouseMove = useCallback((e: React.MouseEvent) => {
     if (!draggedFlower || !containerRef.current) return
 
@@ -266,9 +361,17 @@ export default function PlantBedViewPage() {
     setHasChanges(true)
   }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
 
+  // Handle drag end
   const onMouseUp = useCallback(() => {
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
+  }, [])
+
+  // Handle click outside to deselect
+  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setSelectedFlower(null)
+    }
   }, [])
 
   const getSunExposureIcon = (exposure: string) => {
@@ -299,25 +402,23 @@ export default function PlantBedViewPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <Leaf className="h-16 w-16 mx-auto text-gray-400 mb-4 animate-pulse" />
-            <h2 className="text-xl font-semibold text-gray-900">Plantvak wordt geladen...</h2>
-          </div>
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
         </div>
       </div>
     )
   }
 
-  if (!garden || !plantBed) {
+  if (!plantBed || !garden) {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
           <Leaf className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Plantvak niet gevonden</h3>
-          <p className="text-gray-600 mb-4">Het plantvak dat je zoekt bestaat niet of is verwijderd.</p>
-          <Button onClick={() => router.push(`/gardens/${garden?.id || params.id}`)} className="bg-green-600 hover:bg-green-700">
+          <p className="text-gray-600 mb-4">Het plantvak dat je zoekt bestaat niet.</p>
+          <Button onClick={() => router.push(`/gardens/${params.id}`)} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar Tuin
           </Button>
@@ -334,7 +435,7 @@ export default function PlantBedViewPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/gardens/${garden.id}`)}
+            onClick={() => router.push(`/gardens/${params.id}`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -342,61 +443,51 @@ export default function PlantBedViewPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Leaf className="h-8 w-8 text-green-600" />
+              <Flower className="h-8 w-8 text-pink-600" />
               {plantBed.name}
             </h1>
-            <p className="text-gray-600">Sleep bloemen om ze te verplaatsen in het plantvak</p>
+            <p className="text-gray-600">
+              Klik om te selecteren, sleep om te verplaatsen, dubbelklik om te bewerken
+              <span className="ml-2 text-sm font-medium text-pink-600">
+                • {plantBed.size || 'Op schaal'}
+              </span>
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog open={isAddingFlower} onOpenChange={(open) => {
-            setIsAddingFlower(open)
-            if (!open) {
-              setIsCustomFlower(false)
-              setNewFlower({
-                name: '',
-                type: '',
-                color: '#FF69B4',
-                customEmoji: '',
-                description: ''
-              })
-            }
-          }}>
+          <Dialog open={isAddingFlower} onOpenChange={setIsAddingFlower}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
                 <Plus className="h-4 w-4 mr-2" />
                 Bloem Toevoegen
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
                 <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
                 <DialogDescription>
-                  Voeg een nieuwe bloem toe aan {plantBed.name}
+                  Voeg een nieuwe bloem toe aan dit plantvak. Je kunt het later verplaatsen door te slepen.
                 </DialogDescription>
               </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Naam</label>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <label htmlFor="name" className="text-sm font-medium">
+                    Naam *
+                  </label>
                   <Input
+                    id="name"
                     value={newFlower.name}
                     onChange={(e) => setNewFlower(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Bijv. Mijn mooie roos"
+                    placeholder="Bijvoorbeeld: Mijn mooie roos"
                   />
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
                     id="customFlower"
                     checked={isCustomFlower}
-                    onChange={(e) => {
-                      setIsCustomFlower(e.target.checked)
-                      if (e.target.checked) {
-                        setNewFlower(prev => ({ ...prev, type: '' }))
-                      }
-                    }}
-                    className="rounded"
+                    onChange={(e) => setIsCustomFlower(e.target.checked)}
                   />
                   <label htmlFor="customFlower" className="text-sm font-medium">
                     Aangepaste bloem maken
@@ -405,7 +496,7 @@ export default function PlantBedViewPage() {
 
                 {!isCustomFlower ? (
                   <div>
-                    <label className="text-sm font-medium">Type</label>
+                    <label className="text-sm font-medium">Type *</label>
                     <Select value={newFlower.type} onValueChange={(value) => {
                       const selectedType = FLOWER_TYPES.find(type => type.name === value)
                       setNewFlower(prev => ({ 
@@ -432,7 +523,7 @@ export default function PlantBedViewPage() {
                 ) : (
                   <div className="space-y-3">
                     <div>
-                      <label className="text-sm font-medium">Emoji</label>
+                      <label className="text-sm font-medium">Emoji *</label>
                       <Input
                         value={newFlower.customEmoji}
                         onChange={(e) => setNewFlower(prev => ({ ...prev, customEmoji: e.target.value }))}
@@ -442,44 +533,65 @@ export default function PlantBedViewPage() {
                       />
                       <p className="text-xs text-gray-500 mt-1">Kies een emoji voor je bloem</p>
                     </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Kleur</label>
-                      <div className="flex gap-2 flex-wrap mt-2">
-                        {DEFAULT_FLOWER_COLORS.map((color) => (
-                          <button
-                            key={color}
-                            type="button"
-                            className={`w-8 h-8 rounded-full border-2 ${
-                              newFlower.color === color ? 'border-gray-800' : 'border-gray-300'
-                            }`}
-                            style={{ backgroundColor: color }}
-                            onClick={() => setNewFlower(prev => ({ ...prev, color }))}
-                          />
-                        ))}
-                      </div>
-                      <Input
-                        type="color"
-                        value={newFlower.color}
-                        onChange={(e) => setNewFlower(prev => ({ ...prev, color: e.target.value }))}
-                        className="mt-2 h-10"
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Beschrijving (optioneel)</label>
-                      <Textarea
-                        value={newFlower.description}
-                        onChange={(e) => setNewFlower(prev => ({ ...prev, description: e.target.value }))}
-                        placeholder="Beschrijf je aangepaste bloem..."
-                        rows={2}
-                      />
-                    </div>
                   </div>
                 )}
+
+                <div>
+                  <label className="text-sm font-medium">Kleur</label>
+                  <div className="flex gap-2 flex-wrap mt-2">
+                    {DEFAULT_FLOWER_COLORS.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={`w-8 h-8 rounded-full border-2 ${
+                          newFlower.color === color ? 'border-gray-800' : 'border-gray-300'
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => setNewFlower(prev => ({ ...prev, color }))}
+                      />
+                    ))}
+                  </div>
+                  <Input
+                    type="color"
+                    value={newFlower.color}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, color: e.target.value }))}
+                    className="mt-2 h-10"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Status</label>
+                  <Select value={newFlower.status} onValueChange={(value: 'healthy' | 'needs_attention' | 'blooming' | 'sick') => 
+                    setNewFlower(prev => ({ ...prev, status: value }))
+                  }>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FLOWER_STATUS_OPTIONS.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full border-2 ${status.color}`}></div>
+                            <span>{status.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Beschrijving (optioneel)</label>
+                  <Textarea
+                    value={newFlower.description}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Beschrijf je bloem..."
+                    rows={2}
+                  />
+                </div>
                 
                 <div className="flex gap-2">
-                  <Button onClick={addFlower} className="flex-1">
+                  <Button onClick={addFlower} className="flex-1 bg-pink-600 hover:bg-pink-700">
                     <Plus className="h-4 w-4 mr-2" />
                     Toevoegen
                   </Button>
@@ -490,6 +602,158 @@ export default function PlantBedViewPage() {
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Edit Flower Dialog */}
+          <Dialog open={isEditingFlower} onOpenChange={setIsEditingFlower}>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Bloem Bewerken</DialogTitle>
+                <DialogDescription>
+                  Wijzig de eigenschappen van deze bloem.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <label htmlFor="edit-name" className="text-sm font-medium">
+                    Naam *
+                  </label>
+                  <Input
+                    id="edit-name"
+                    value={newFlower.name}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Bijvoorbeeld: Mijn mooie roos"
+                  />
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="editCustomFlower"
+                    checked={isEditCustomFlower}
+                    onChange={(e) => setIsEditCustomFlower(e.target.checked)}
+                  />
+                  <label htmlFor="editCustomFlower" className="text-sm font-medium">
+                    Aangepaste bloem maken
+                  </label>
+                </div>
+
+                {!isEditCustomFlower ? (
+                  <div>
+                    <label className="text-sm font-medium">Type *</label>
+                    <Select value={newFlower.type} onValueChange={(value) => {
+                      const selectedType = FLOWER_TYPES.find(type => type.name === value)
+                      setNewFlower(prev => ({ 
+                        ...prev, 
+                        type: value,
+                        color: selectedType?.color || prev.color
+                      }))
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecteer bloem type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FLOWER_TYPES.map((type) => (
+                          <SelectItem key={type.name} value={type.name}>
+                            <div className="flex items-center gap-2">
+                              <span>{type.emoji}</span>
+                              <span>{type.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium">Emoji *</label>
+                      <Input
+                        value={newFlower.customEmoji}
+                        onChange={(e) => setNewFlower(prev => ({ ...prev, customEmoji: e.target.value }))}
+                        placeholder="🌺"
+                        maxLength={2}
+                        className="text-2xl text-center"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Kies een emoji voor je bloem</p>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-sm font-medium">Kleur</label>
+                  <div className="flex gap-2 flex-wrap mt-2">
+                    {DEFAULT_FLOWER_COLORS.map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        className={`w-8 h-8 rounded-full border-2 ${
+                          newFlower.color === color ? 'border-gray-800' : 'border-gray-300'
+                        }`}
+                        style={{ backgroundColor: color }}
+                        onClick={() => setNewFlower(prev => ({ ...prev, color }))}
+                      />
+                    ))}
+                  </div>
+                  <Input
+                    type="color"
+                    value={newFlower.color}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, color: e.target.value }))}
+                    className="mt-2 h-10"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Status</label>
+                  <Select value={newFlower.status} onValueChange={(value: 'healthy' | 'needs_attention' | 'blooming' | 'sick') => 
+                    setNewFlower(prev => ({ ...prev, status: value }))
+                  }>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FLOWER_STATUS_OPTIONS.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          <div className="flex items-center gap-2">
+                            <div className={`w-3 h-3 rounded-full border-2 ${status.color}`}></div>
+                            <span>{status.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Beschrijving (optioneel)</label>
+                  <Textarea
+                    value={newFlower.description}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Beschrijf je bloem..."
+                    rows={2}
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button onClick={updateFlower} className="flex-1 bg-blue-600 hover:bg-blue-700">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Wijzigen
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => selectedFlower && removeFlower(selectedFlower.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Verwijderen
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsEditingFlower(false)}>
+                    Annuleren
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Button variant="outline" size="sm" onClick={zoomOut}>
             <ZoomOut className="h-4 w-4" />
           </Button>
@@ -499,10 +763,12 @@ export default function PlantBedViewPage() {
           <Button variant="outline" size="sm" onClick={resetView}>
             <RotateCcw className="h-4 w-4" />
           </Button>
-          <Button onClick={saveLayout} disabled={!hasChanges}>
-            <Save className="h-4 w-4 mr-2" />
-            Opslaan
-          </Button>
+          {hasChanges && (
+            <Button onClick={saveLayout} className="bg-blue-600 hover:bg-blue-700">
+              <Save className="h-4 w-4 mr-2" />
+              Opslaan
+            </Button>
+          )}
         </div>
       </div>
 
@@ -516,35 +782,45 @@ export default function PlantBedViewPage() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <div className="font-medium">Grootte</div>
+              <div className="text-sm text-gray-600">{plantBed.size || 'Niet opgegeven'}</div>
+            </div>
             <div className="flex items-center gap-2">
-              {getSunExposureIcon(plantBed.sun_exposure || 'partial-sun')}
+              {plantBed.sun_exposure && getSunExposureIcon(plantBed.sun_exposure)}
               <div>
-                <div className="font-medium">Zonlicht</div>
-                <div className="text-sm text-gray-600">{plantBed.sun_exposure || 'Onbekend'}</div>
+                <div className="font-medium">Zonligging</div>
+                <div className="text-sm text-gray-600">
+                  {plantBed.sun_exposure === 'full-sun' ? 'Volle zon' :
+                   plantBed.sun_exposure === 'partial-sun' ? 'Halfschaduw' :
+                   plantBed.sun_exposure === 'shade' ? 'Schaduw' : 'Onbekend'}
+                </div>
               </div>
             </div>
             <div>
-              <div className="font-medium">Grootte</div>
-              <div className="text-sm text-gray-600">{plantBed.size || 'Onbekend'}</div>
+              <div className="font-medium">Bloemen</div>
+              <div className="text-sm text-gray-600">{flowerPositions.length}</div>
             </div>
             <div>
               <div className="font-medium">Grondsoort</div>
-              <div className="text-sm text-gray-600">{plantBed.soil_type || 'Onbekend'}</div>
-            </div>
-            <div>
-              <div className="font-medium">Aantal bloemen</div>
-              <div className="text-sm text-gray-600">{flowerPositions.length}</div>
+              <div className="text-sm text-gray-600">{plantBed.soil_type || 'Niet opgegeven'}</div>
             </div>
           </div>
+          {plantBed.description && (
+            <div className="mt-4">
+              <div className="font-medium">Beschrijving</div>
+              <p className="text-sm text-gray-600 mt-1">{plantBed.description}</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Visual Plant Bed Canvas */}
+      {/* Canvas */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Grid3X3 className="h-5 w-5 text-blue-600" />
-            Plantvak Layout - Op Schaal
+            <Palette className="h-5 w-5 text-purple-600" />
+            Bloemen Layout - Op Schaal
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -562,6 +838,7 @@ export default function PlantBedViewPage() {
               onMouseMove={onMouseMove}
               onMouseUp={onMouseUp}
               onMouseLeave={onMouseUp}
+              onClick={handleCanvasClick}
             >
               {/* Grid */}
               <div
@@ -576,27 +853,39 @@ export default function PlantBedViewPage() {
               />
 
               {/* Flowers */}
-              {flowerPositions.map((flower) => (
-                <div
-                  key={flower.id}
-                  className={`absolute cursor-move rounded-full border-4 ${getStatusColor(flower.status)} ${
-                    draggedFlower === flower.id ? "shadow-2xl ring-4 ring-green-500 z-10 scale-110" : "shadow-lg hover:shadow-xl"
-                  } transition-all duration-200 flex items-center justify-center text-2xl font-bold text-white`}
-                  style={{
-                    left: flower.x,
-                    top: flower.y,
-                    width: flower.width,
-                    height: flower.height,
-                    backgroundColor: flower.color,
-                  }}
-                  onMouseDown={(e) => onMouseDown(e, flower.id)}
-                  onClick={() => !draggedFlower && setSelectedFlower(flower)}
-                >
-                  <div className="text-center">
-                    <div className="text-xl">{flower.emoji || '🌸'}</div>
+              {flowerPositions.map((flower) => {
+                const isSelected = selectedFlower?.id === flower.id
+                const isDragging = draggedFlower === flower.id
+
+                return (
+                  <div
+                    key={flower.id}
+                    className={`absolute cursor-pointer rounded-full border-4 ${getStatusColor(flower.status)} ${
+                      isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-110" : 
+                      isSelected ? "ring-4 ring-blue-500 shadow-xl" :
+                      "shadow-lg hover:shadow-xl"
+                    } transition-all duration-200 flex items-center justify-center text-2xl font-bold text-white`}
+                    style={{
+                      left: flower.x,
+                      top: flower.y,
+                      width: flower.width,
+                      height: flower.height,
+                      backgroundColor: flower.color,
+                    }}
+                    onClick={(e) => handleFlowerClick(e, flower.id)}
+                    onDoubleClick={() => handleFlowerDoubleClick(flower)}
+                  >
+                    <div className="text-center">
+                      <div className="text-xl">{flower.emoji || '🌸'}</div>
+                    </div>
+                    {isSelected && (
+                      <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
+                        Geselecteerd
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                )
+              })}
 
               {/* Empty State */}
               {flowerPositions.length === 0 && (
@@ -605,7 +894,7 @@ export default function PlantBedViewPage() {
                     <Flower className="h-16 w-16 mx-auto text-gray-400 mb-4" />
                     <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen bloemen</h3>
                     <p className="text-gray-600 mb-4">Voeg bloemen toe aan dit plantvak.</p>
-                    <Button onClick={() => setIsAddingFlower(true)}>
+                    <Button onClick={() => setIsAddingFlower(true)} className="bg-pink-600 hover:bg-pink-700">
                       <Plus className="h-4 w-4 mr-2" />
                       Eerste Bloem Toevoegen
                     </Button>
@@ -614,8 +903,21 @@ export default function PlantBedViewPage() {
               )}
             </div>
           </div>
-          <div className="mt-4 text-sm text-gray-600">
-            <p>💡 <strong>Schaal:</strong> Dit plantvak is {plantBed.size || 'op schaal'} weergegeven</p>
+          <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
+            <p>💡 <strong>Tip:</strong> Klik om te selecteren, sleep om te verplaatsen, dubbelklik om te bewerken</p>
+            <div className="flex items-center gap-4">
+              <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
+              {selectedFlower && (
+                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                  {selectedFlower.name} geselecteerd
+                </Badge>
+              )}
+              {hasChanges && (
+                <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                  Niet opgeslagen wijzigingen
+                </Badge>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -652,86 +954,19 @@ export default function PlantBedViewPage() {
               </div>
             </div>
             <div>
-              <h4 className="font-medium mb-3">Instructies</h4>
-              <div className="space-y-1 text-sm text-gray-600">
-                <div>• Klik op "Bloem Toevoegen" om nieuwe bloemen toe te voegen</div>
-                <div>• Maak aangepaste bloemen met eigen emoji en kleur</div>
-                <div>• Sleep bloemen om ze te verplaatsen</div>
-                <div>• Klik op een bloem voor meer informatie</div>
-                <div>• Gebruik zoom knoppen om in/uit te zoomen</div>
-                <div>• Vergeet niet te opslaan na wijzigingen</div>
+              <h4 className="font-medium mb-3">Hoe te gebruiken</h4>
+              <div className="space-y-2 text-sm text-gray-600">
+                <p>• <strong>Klik</strong> op een bloem om deze te selecteren</p>
+                <p>• <strong>Sleep</strong> een geselecteerde bloem om te verplaatsen</p>
+                <p>• <strong>Dubbelklik</strong> op een bloem om te bewerken</p>
+                <p>• <strong>Klik buiten</strong> om selectie op te heffen</p>
+                <p>• <strong>Zoom</strong> in/uit voor betere weergave</p>
+                <p>• Vergeet niet te <strong>opslaan</strong> na wijzigingen</p>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* Flower Details Dialog */}
-      <Dialog open={!!selectedFlower} onOpenChange={() => setSelectedFlower(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <span className="text-2xl">{selectedFlower?.emoji || '🌸'}</span>
-              {selectedFlower?.name}
-              {selectedFlower?.isCustom && (
-                <Badge variant="outline" className="ml-2">
-                  <Palette className="h-3 w-3 mr-1" />
-                  Aangepast
-                </Badge>
-              )}
-            </DialogTitle>
-            <DialogDescription>
-              Bloem details en opties
-            </DialogDescription>
-          </DialogHeader>
-          {selectedFlower && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-sm font-medium">Type:</span>
-                  <div className="text-sm text-gray-600 flex items-center gap-1">
-                    <span>{selectedFlower.emoji}</span>
-                    {selectedFlower.type}
-                  </div>
-                </div>
-                <div>
-                  <span className="text-sm font-medium">Kleur:</span>
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-4 h-4 rounded-full border"
-                      style={{ backgroundColor: selectedFlower.color }}
-                    />
-                    <span className="text-sm text-gray-600">{selectedFlower.color}</span>
-                  </div>
-                </div>
-                <div>
-                  <span className="text-sm font-medium">Status:</span>
-                  <Badge variant="secondary">{selectedFlower.status}</Badge>
-                </div>
-                <div>
-                  <span className="text-sm font-medium">Positie:</span>
-                  <div className="text-sm text-gray-600">
-                    {Math.round(selectedFlower.x)}, {Math.round(selectedFlower.y)}
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => removeFlower(selectedFlower.id)}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Verwijderen
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setSelectedFlower(null)}>
-                  Sluiten
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
