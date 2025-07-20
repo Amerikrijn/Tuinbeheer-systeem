@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Grid3X3,
   ZoomIn,
@@ -24,6 +25,7 @@ import {
   Leaf,
   Trash2,
   TreePine,
+  Palette,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
@@ -41,6 +43,8 @@ interface FlowerPosition {
   type: string
   status: 'healthy' | 'needs_attention' | 'blooming' | 'sick'
   plant_bed_id: string
+  emoji?: string
+  isCustom?: boolean
 }
 
 const GRID_SIZE = 20
@@ -63,6 +67,12 @@ const FLOWER_TYPES = [
   { name: 'Begonia', color: '#FF8C69', emoji: '🌸' },
 ]
 
+const DEFAULT_FLOWER_COLORS = [
+  '#FF69B4', '#FF4500', '#FFD700', '#9370DB', '#FF1493', 
+  '#FFA500', '#FFFF00', '#4B0082', '#FF6B6B', '#FF8C69',
+  '#32CD32', '#00CED1', '#FF6347', '#DDA0DD', '#98FB98'
+]
+
 export default function PlantvakViewPage() {
   const router = useRouter()
   const params = useParams()
@@ -79,11 +89,14 @@ export default function PlantvakViewPage() {
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingFlower, setIsAddingFlower] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [isCustomFlower, setIsCustomFlower] = useState(false)
   const [newFlower, setNewFlower] = useState({
     name: '',
     type: '',
     color: '#FF69B4',
-    plant_bed_id: ''
+    plant_bed_id: '',
+    customEmoji: '',
+    description: ''
   })
   
   const containerRef = useRef<HTMLDivElement>(null)
@@ -148,10 +161,19 @@ export default function PlantvakViewPage() {
   }
 
   const addFlower = () => {
-    if (!newFlower.name || !newFlower.type || !newFlower.plant_bed_id) {
+    if (!newFlower.name || (!newFlower.type && !isCustomFlower) || !newFlower.plant_bed_id) {
       toast({
         title: "Incomplete gegevens",
         description: "Vul alle velden in om een bloem toe te voegen.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (isCustomFlower && !newFlower.customEmoji) {
+      toast({
+        title: "Emoji vereist",
+        description: "Voeg een emoji toe voor je aangepaste bloem.",
         variant: "destructive",
       })
       return
@@ -182,16 +204,26 @@ export default function PlantvakViewPage() {
       width: FLOWER_SIZE,
       height: FLOWER_SIZE,
       name: newFlower.name,
-      color: selectedType?.color || newFlower.color,
-      type: newFlower.type,
+      color: newFlower.color,
+      type: isCustomFlower ? 'Aangepast' : newFlower.type,
       status: 'healthy',
-      plant_bed_id: newFlower.plant_bed_id
+      plant_bed_id: newFlower.plant_bed_id,
+      emoji: isCustomFlower ? newFlower.customEmoji : selectedType?.emoji,
+      isCustom: isCustomFlower
     }
 
     setFlowerPositions(prev => [...prev, newFlowerPosition])
     setHasChanges(true)
     setIsAddingFlower(false)
-    setNewFlower(prev => ({ ...prev, name: '', type: '', color: '#FF69B4' }))
+    setIsCustomFlower(false)
+    setNewFlower(prev => ({ 
+      ...prev, 
+      name: '', 
+      type: '', 
+      color: '#FF69B4',
+      customEmoji: '',
+      description: ''
+    }))
     
     toast({
       title: "Bloem toegevoegd",
@@ -354,14 +386,27 @@ export default function PlantvakViewPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog open={isAddingFlower} onOpenChange={setIsAddingFlower}>
+          <Dialog open={isAddingFlower} onOpenChange={(open) => {
+            setIsAddingFlower(open)
+            if (!open) {
+              setIsCustomFlower(false)
+              setNewFlower(prev => ({ 
+                ...prev, 
+                name: '', 
+                type: '', 
+                color: '#FF69B4',
+                customEmoji: '',
+                description: ''
+              }))
+            }
+          }}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" disabled={plantBeds.length === 0}>
                 <Plus className="h-4 w-4 mr-2" />
                 Bloem Toevoegen
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-md">
               <DialogHeader>
                 <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
                 <DialogDescription>
@@ -386,6 +431,7 @@ export default function PlantvakViewPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                
                 <div>
                   <label className="text-sm font-medium">Naam</label>
                   <Input
@@ -394,31 +440,100 @@ export default function PlantvakViewPage() {
                     placeholder="Bijv. Mijn mooie roos"
                   />
                 </div>
-                <div>
-                  <label className="text-sm font-medium">Type</label>
-                  <Select value={newFlower.type} onValueChange={(value) => {
-                    const selectedType = FLOWER_TYPES.find(type => type.name === value)
-                    setNewFlower(prev => ({ 
-                      ...prev, 
-                      type: value,
-                      color: selectedType?.color || prev.color
-                    }))
-                  }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecteer bloem type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FLOWER_TYPES.map((type) => (
-                        <SelectItem key={type.name} value={type.name}>
-                          <div className="flex items-center gap-2">
-                            <span>{type.emoji}</span>
-                            <span>{type.name}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="customFlower"
+                    checked={isCustomFlower}
+                    onChange={(e) => {
+                      setIsCustomFlower(e.target.checked)
+                      if (e.target.checked) {
+                        setNewFlower(prev => ({ ...prev, type: '' }))
+                      }
+                    }}
+                    className="rounded"
+                  />
+                  <label htmlFor="customFlower" className="text-sm font-medium">
+                    Aangepaste bloem maken
+                  </label>
                 </div>
+
+                {!isCustomFlower ? (
+                  <div>
+                    <label className="text-sm font-medium">Type</label>
+                    <Select value={newFlower.type} onValueChange={(value) => {
+                      const selectedType = FLOWER_TYPES.find(type => type.name === value)
+                      setNewFlower(prev => ({ 
+                        ...prev, 
+                        type: value,
+                        color: selectedType?.color || prev.color
+                      }))
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecteer bloem type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FLOWER_TYPES.map((type) => (
+                          <SelectItem key={type.name} value={type.name}>
+                            <div className="flex items-center gap-2">
+                              <span>{type.emoji}</span>
+                              <span>{type.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium">Emoji</label>
+                      <Input
+                        value={newFlower.customEmoji}
+                        onChange={(e) => setNewFlower(prev => ({ ...prev, customEmoji: e.target.value }))}
+                        placeholder="🌺"
+                        maxLength={2}
+                        className="text-2xl text-center"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Kies een emoji voor je bloem</p>
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Kleur</label>
+                      <div className="flex gap-2 flex-wrap mt-2">
+                        {DEFAULT_FLOWER_COLORS.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            className={`w-8 h-8 rounded-full border-2 ${
+                              newFlower.color === color ? 'border-gray-800' : 'border-gray-300'
+                            }`}
+                            style={{ backgroundColor: color }}
+                            onClick={() => setNewFlower(prev => ({ ...prev, color }))}
+                          />
+                        ))}
+                      </div>
+                      <Input
+                        type="color"
+                        value={newFlower.color}
+                        onChange={(e) => setNewFlower(prev => ({ ...prev, color: e.target.value }))}
+                        className="mt-2 h-10"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="text-sm font-medium">Beschrijving (optioneel)</label>
+                      <Textarea
+                        value={newFlower.description}
+                        onChange={(e) => setNewFlower(prev => ({ ...prev, description: e.target.value }))}
+                        placeholder="Beschrijf je aangepaste bloem..."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex gap-2">
                   <Button onClick={addFlower} className="flex-1">
                     <Plus className="h-4 w-4 mr-2" />
@@ -592,7 +707,6 @@ export default function PlantvakViewPage() {
 
               {/* Flowers */}
               {flowerPositions.map((flower) => {
-                const flowerType = FLOWER_TYPES.find(type => type.name === flower.type)
                 return (
                   <div
                     key={flower.id}
@@ -610,7 +724,7 @@ export default function PlantvakViewPage() {
                     onClick={() => !draggedFlower && setSelectedFlower(flower)}
                   >
                     <div className="text-center">
-                      <div className="text-2xl mb-1">{flowerType?.emoji || '🌸'}</div>
+                      <div className="text-2xl mb-1">{flower.emoji || '🌸'}</div>
                     </div>
                   </div>
                 )
@@ -680,6 +794,7 @@ export default function PlantvakViewPage() {
               <h4 className="font-medium mb-3">Instructies</h4>
               <div className="space-y-1 text-sm text-gray-600">
                 <div>• Klik op "Bloem Toevoegen" om nieuwe bloemen toe te voegen</div>
+                <div>• Maak aangepaste bloemen met eigen emoji en kleur</div>
                 <div>• Sleep bloemen om ze binnen hun plantvak te verplaatsen</div>
                 <div>• Klik op een plantvak om het te selecteren</div>
                 <div>• Klik op een bloem voor meer informatie en opties</div>
@@ -696,8 +811,14 @@ export default function PlantvakViewPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Flower className="h-5 w-5" />
+              <span className="text-2xl">{selectedFlower?.emoji || '🌸'}</span>
               {selectedFlower?.name}
+              {selectedFlower?.isCustom && (
+                <Badge variant="outline" className="ml-2">
+                  <Palette className="h-3 w-3 mr-1" />
+                  Aangepast
+                </Badge>
+              )}
             </DialogTitle>
             <DialogDescription>
               Bloem details en opties
@@ -709,7 +830,7 @@ export default function PlantvakViewPage() {
                 <div>
                   <span className="text-sm font-medium">Type:</span>
                   <div className="text-sm text-gray-600 flex items-center gap-1">
-                    <span>{FLOWER_TYPES.find(t => t.name === selectedFlower.type)?.emoji}</span>
+                    <span>{selectedFlower.emoji}</span>
                     {selectedFlower.type}
                   </div>
                 </div>
