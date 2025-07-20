@@ -366,7 +366,8 @@ export default function PlantBedViewPage() {
           color: '#FF69B4',
           customEmoji: '',
           description: '',
-          status: 'healthy'
+          status: 'healthy',
+          size: 'medium'
         })
         
         toast({
@@ -654,7 +655,7 @@ export default function PlantBedViewPage() {
       title: "🎯 Resize actief!",
       description: "Sleep om het gebied groter te maken - veel meer bloemen komen erbij!",
     })
-  }, [flowerPositions])
+  }, [flowerPositions, toast])
 
   // Handle resize move - Create invisible area with more flowers inside!
   const handleResizeMove = useCallback(async (e: MouseEvent) => {
