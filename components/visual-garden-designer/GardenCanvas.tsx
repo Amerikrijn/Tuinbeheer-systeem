@@ -672,10 +672,10 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
                         <Badge variant="secondary">{selectedPlant.status}</Badge>
                       </div>
                     </div>
-                    <div>
-                      <span className="text-gray-600">Plantdatum:</span>
-                      <div className="font-medium">{selectedPlant.plantedDate}</div>
-                    </div>
+                                         <div>
+                       <span className="text-gray-600">Plantdatum:</span>
+                       <div className="font-medium">{selectedPlant.plantingDate}</div>
+                     </div>
                   </div>
 
                   <div className="flex gap-2 pt-2">
