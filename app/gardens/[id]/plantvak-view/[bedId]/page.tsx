@@ -565,7 +565,9 @@ export default function PlantBedViewPage() {
       description: flower.notes || '',
       status: flower.status === 'needs_attention' ? 'needs_attention' : 
              flower.status === 'diseased' ? 'sick' : 
-             flower.status === 'dead' ? 'sick' : 'healthy'
+             flower.status === 'dead' ? 'sick' : 'healthy',
+      size: flower.visual_width <= FLOWER_SIZE_SMALL ? 'small' :
+            flower.visual_width >= FLOWER_SIZE_LARGE ? 'large' : 'medium'
     })
     setIsEditingFlower(true)
   }, [])
