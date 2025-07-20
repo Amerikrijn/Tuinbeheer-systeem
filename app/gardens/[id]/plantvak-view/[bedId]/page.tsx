@@ -905,7 +905,7 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🌸 <strong>BELANGRIJK:</strong> 1) Klik bloem → 2) Sleep de BLAUWE HOEK (niet de bloem!) → 3) Loslaten → MEER bloemen!
+              🌸 <strong>LET OP:</strong> 1) Klik bloem (selecteren) → 2) Sleep ALLEEN de BLAUWE HOEK (bloem = verplaatsen!) → 3) Loslaten → MEER bloemen!
               <span className="ml-2 text-sm font-medium text-pink-600">
                 • {plantBed.size || 'Op schaal'}
               </span>
@@ -1536,12 +1536,18 @@ export default function PlantBedViewPage() {
                           ⬇️ SLEEP DEZE BLAUWE HOEK ⬇️
                         </div>
                         
-                        {/* ZEER GROTE, DUIDELIJKE resize handle */}
+                        {/* ZEER GROTE, DUIDELIJKE resize handle - VOLLEDIG GESCHEIDEN */}
                         <div
                           className="absolute -bottom-5 -right-5 w-16 h-16 bg-blue-500 border-6 border-white rounded-full cursor-nw-resize hover:bg-blue-600 hover:scale-125 flex items-center justify-center z-20 shadow-2xl animate-pulse"
                           onMouseDown={(e) => {
-                            console.log("🔵 RESIZE HANDLE MOUSEDOWN!")
+                            e.preventDefault()
+                            e.stopPropagation() // STOP event bubbling naar bloem!
+                            console.log("🔵 RESIZE HANDLE MOUSEDOWN - NIET VERPLAATSEN!")
                             handleResizeStart(e, flower.id, 'uniform')
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation() // STOP click naar bloem!
                           }}
                           title="SLEEP DEZE BLAUWE HOEK OM TE RESIZEN!"
                         >
@@ -1596,12 +1602,12 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>💡 <strong>Standaard UI Pattern (zoals Windows/Photoshop):</strong></p>
+              <p>💡 <strong>BELANGRIJK - Twee verschillende acties:</strong></p>
               <p>🌸 <strong>Klik bloem</strong> → Selecteren (blauwe hoek verschijnt)</p>
-              <p>🔵 <strong>Sleep blauwe hoek</strong> → Actief resizen (gebied wordt groter)</p>
-              <p>✨ <strong>Loslaten</strong> → Resize vastleggen + MEER bloemen komen erbij!</p>
+              <p>🔵 <strong>Sleep BLAUWE HOEK</strong> → Resizen (gebied groter + meer bloemen)</p>
+              <p>🚚 <strong>Sleep BLOEM ZELF</strong> → Verplaatsen (andere positie)</p>
               <p>📛 <strong>Klik ergens anders</strong> → Deselecteren</p>
-              <p>👆 <strong>Ook:</strong> Sleep bloem = verplaatsen, Dubbelklik = bewerken</p>
+              <p>👆 <strong>Ook:</strong> Dubbelklik bloem = bewerken</p>
             </div>
             <div className="flex items-center gap-4">
               <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
