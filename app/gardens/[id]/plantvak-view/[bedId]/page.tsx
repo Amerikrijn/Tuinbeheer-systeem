@@ -553,6 +553,11 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
+    // Clear any existing resize state first
+    setIsResizing(null)
+    setDraggedFlower(null) // Ensure no drag conflicts
+    
+    // Set resize state
     setIsResizing(flowerId)
     setResizeMode(mode)
     setResizeStartSize({ 
@@ -595,38 +600,76 @@ export default function PlantBedViewPage() {
         newHeight = Math.max(20, Math.min(resizeStartSize.height + deltaY, resizeStartSize.height + maxDelta))
       }
 
-      // Calculate how many flowers should fit inside the resized area (only for uniform mode)
+      // Calculate how many flowers should fit inside the resized area - improved logic
       const newDuplicatePositions: {x: number, y: number}[] = []
-      if (resizeMode === 'uniform') {
-        const area = newWidth * newHeight
-        const originalArea = resizeStartSize.width * resizeStartSize.height
-        const areaRatio = area / originalArea
-        const targetFlowerCount = Math.floor(Math.sqrt(areaRatio))
+      
+      // Calculate area increase for all resize modes
+      const currentArea = newWidth * newHeight
+      const originalArea = resizeStartSize.width * resizeStartSize.height
+      const areaIncrease = currentArea - originalArea
+      
+      // Create duplicates based on area increase (not just uniform mode)
+      if (areaIncrease > 500) { // Only if significant area increase (500px²)
+        const areaRatio = currentArea / originalArea
+        let targetFlowerCount = Math.floor(Math.sqrt(areaRatio))
+        
+        // For non-uniform resize, adjust flower count based on shape
+        if (resizeMode === 'width') {
+          targetFlowerCount = Math.floor(newWidth / 80) // Every 80px width = 1 flower
+        } else if (resizeMode === 'height') {
+          targetFlowerCount = Math.floor(newHeight / 80) // Every 80px height = 1 flower
+        }
+        
+        // Cap the number of duplicates to prevent chaos
+        targetFlowerCount = Math.min(targetFlowerCount, 8)
 
-        // Generate positions for duplicates in a more organic pattern
+        // Generate positions for duplicates in a smart pattern
         if (targetFlowerCount > 1) {
-          const availableWidth = newWidth * 0.8 // Leave some margin
-          const availableHeight = newHeight * 0.8
+          const availableWidth = newWidth * 0.85 // Leave some margin
+          const availableHeight = newHeight * 0.85
           const baseSize = Math.min(availableWidth, availableHeight) / Math.ceil(Math.sqrt(targetFlowerCount))
           
-          // Create a more natural distribution pattern
-          const cols = Math.ceil(Math.sqrt(targetFlowerCount))
-          const rows = Math.ceil(targetFlowerCount / cols)
-          
-          for (let i = 0; i < targetFlowerCount - 1; i++) {
-            const col = i % cols
-            const row = Math.floor(i / cols)
+          // Create distribution pattern based on resize mode
+          if (resizeMode === 'width') {
+            // Horizontal line distribution
+            for (let i = 0; i < targetFlowerCount - 1; i++) {
+              const x = flower.position_x + (i + 1) * (availableWidth / targetFlowerCount)
+              const y = flower.position_y + (Math.random() - 0.5) * availableHeight * 0.3
+              
+              if (x + baseSize <= canvasWidth && y + baseSize <= canvasHeight && x >= 0 && y >= 0) {
+                newDuplicatePositions.push({ x, y })
+              }
+            }
+          } else if (resizeMode === 'height') {
+            // Vertical line distribution
+            for (let i = 0; i < targetFlowerCount - 1; i++) {
+              const x = flower.position_x + (Math.random() - 0.5) * availableWidth * 0.3
+              const y = flower.position_y + (i + 1) * (availableHeight / targetFlowerCount)
+              
+              if (x + baseSize <= canvasWidth && y + baseSize <= canvasHeight && x >= 0 && y >= 0) {
+                newDuplicatePositions.push({ x, y })
+              }
+            }
+          } else {
+            // Grid distribution for uniform resize
+            const cols = Math.ceil(Math.sqrt(targetFlowerCount))
+            const rows = Math.ceil(targetFlowerCount / cols)
             
-            // Add some randomness for more organic placement
-            const jitterX = (Math.random() - 0.5) * baseSize * 0.3
-            const jitterY = (Math.random() - 0.5) * baseSize * 0.3
-            
-            const x = flower.position_x + (col + 1) * (availableWidth / (cols + 1)) + jitterX
-            const y = flower.position_y + (row + 1) * (availableHeight / (rows + 1)) + jitterY
-            
-            // Ensure position is within canvas bounds
-            if (x + baseSize <= canvasWidth && y + baseSize <= canvasHeight && x >= 0 && y >= 0) {
-              newDuplicatePositions.push({ x, y })
+            for (let i = 0; i < targetFlowerCount - 1; i++) {
+              const col = i % cols
+              const row = Math.floor(i / cols)
+              
+              // Add some randomness for more organic placement
+              const jitterX = (Math.random() - 0.5) * baseSize * 0.3
+              const jitterY = (Math.random() - 0.5) * baseSize * 0.3
+              
+              const x = flower.position_x + (col + 1) * (availableWidth / (cols + 1)) + jitterX
+              const y = flower.position_y + (row + 1) * (availableHeight / (rows + 1)) + jitterY
+              
+              // Ensure position is within canvas bounds
+              if (x + baseSize <= canvasWidth && y + baseSize <= canvasHeight && x >= 0 && y >= 0) {
+                newDuplicatePositions.push({ x, y })
+              }
             }
           }
         }
@@ -650,9 +693,16 @@ export default function PlantBedViewPage() {
   const handleResizeEnd = useCallback(async () => {
     if (!isResizing || !plantBed) return
 
+    // Immediately clear resize state to prevent sticky behavior
+    const currentResizingId = isResizing
+    setIsResizing(null)
+    setResizeStartSize({ width: 0, height: 0 })
+    setResizeStartPos({ x: 0, y: 0 })
+    setResizeMode('uniform')
+
     try {
       // Get the current flower state from the latest flowerPositions
-      const currentFlower = flowerPositions.find(f => f.id === isResizing)
+      const currentFlower = flowerPositions.find(f => f.id === currentResizingId)
       if (!currentFlower) return
 
       // Create duplicates at the calculated positions
@@ -697,16 +747,19 @@ export default function PlantBedViewPage() {
         description: "Er is een fout opgetreden bij het dupliceren van bloemen.",
         variant: "destructive",
       })
+    } finally {
+      // Ensure cleanup even if there's an error
+      setDuplicatePositions([])
     }
-
-    setIsResizing(null)
-    setResizeStartSize({ width: 0, height: 0 })
-    setResizeStartPos({ x: 0, y: 0 })
-    setDuplicatePositions([])
-    setResizeMode('uniform')
   }, [isResizing, plantBed, duplicatePositions, flowerPositions, toast])
 
   useEffect(() => {
+    const cleanup = () => {
+      // Remove all event listeners to prevent sticky behavior
+      document.removeEventListener('mousemove', handleResizeMove as any)
+      document.removeEventListener('mouseup', handleResizeEnd as any)
+    }
+
     if (draggedFlower) {
       const handleMouseMoveGlobal = (e: MouseEvent) => {
         const mockReactEvent = {
@@ -715,6 +768,9 @@ export default function PlantBedViewPage() {
         } as React.MouseEvent
         onMouseMove(mockReactEvent)
       }
+      
+      // Clean up any resize listeners first
+      cleanup()
       
       document.addEventListener('mousemove', handleMouseMoveGlobal)
       document.addEventListener('mouseup', onMouseUp)
@@ -725,13 +781,19 @@ export default function PlantBedViewPage() {
     }
     
     if (isResizing) {
-      document.addEventListener('mousemove', handleResizeMove)
-      document.addEventListener('mouseup', handleResizeEnd)
+      // Clean up any drag listeners first
+      cleanup()
+      
+      document.addEventListener('mousemove', handleResizeMove as any)
+      document.addEventListener('mouseup', handleResizeEnd as any)
       return () => {
-        document.removeEventListener('mousemove', handleResizeMove)
-        document.removeEventListener('mouseup', handleResizeEnd)
+        document.removeEventListener('mousemove', handleResizeMove as any)
+        document.removeEventListener('mouseup', handleResizeEnd as any)
       }
     }
+
+    // Cleanup on unmount or when neither drag nor resize is active
+    return cleanup
   }, [draggedFlower, isResizing, onMouseMove, onMouseUp, handleResizeMove, handleResizeEnd])
 
   const getSunExposureIcon = (exposure: string) => {
@@ -1486,11 +1548,12 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>💡 <strong>Vorm & Resize Tips:</strong></p>
-              <p>🔵 <strong>Blauwe cirkel:</strong> Uniform vergroten + auto-duplicatie</p>
-              <p>🟢 <strong>Groene handels:</strong> Breedte/hoogte apart wijzigen</p>
+              <p>💡 <strong>Smart Resize & Duplicatie:</strong></p>
+              <p>🔵 <strong>Blauwe cirkel:</strong> Uniform vergroten → Grid van bloemen</p>
+              <p>🟢 <strong>Groene breedte:</strong> Breder maken → Horizontale lijn bloemen</p>
+              <p>🟢 <strong>Groene hoogte:</strong> Hoger maken → Verticale lijn bloemen</p>
               <p>🟣 <strong>Paarse hoeken:</strong> Vrije vormgeving</p>
-              <p>🎯 <strong>Vormen:</strong> Rond → Ovaal → Rechthoek (automatisch)</p>
+              <p>🎯 <strong>Auto-duplicatie:</strong> Bij +500px² gebied komen er meer bloemen!</p>
               <p>👆 <strong>Basis:</strong> Klik = selecteren, Sleep = verplaatsen, Dubbelklik = bewerken</p>
             </div>
             <div className="flex items-center gap-4">
