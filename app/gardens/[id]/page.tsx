@@ -400,13 +400,22 @@ export default function GardenDetailPage() {
 
       const sizeString = `${length}m x ${width}m`
       
-      const plantBed = await createPlantBed({
+      console.log("📝 Creating plant bed with data:", {
         garden_id: garden.id,
         name: newPlantBed.name,
         size: sizeString,
         description: newPlantBed.description,
         sun_exposure: newPlantBed.sun_exposure,
         soil_type: newPlantBed.soil_type,
+      })
+
+      const plantBed = await createPlantBed({
+        garden_id: garden.id,
+        name: newPlantBed.name,
+        size: sizeString,
+        description: newPlantBed.description?.trim() || undefined,
+        sun_exposure: newPlantBed.sun_exposure,
+        soil_type: newPlantBed.soil_type?.trim() || undefined,
       })
 
       if (plantBed) {

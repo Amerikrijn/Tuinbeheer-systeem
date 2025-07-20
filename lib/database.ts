@@ -207,16 +207,22 @@ export async function createPlantBed(plantBed: {
   const { data, error } = await supabase.from("plant_beds").insert({
     garden_id: plantBed.garden_id,
     name: plantBed.name,
-    location: plantBed.location,
-    size: plantBed.size,
-    soil_type: plantBed.soil_type,
+    location: plantBed.location || null,
+    size: plantBed.size || null,
+    soil_type: plantBed.soil_type || null,
     sun_exposure: plantBed.sun_exposure || 'full-sun',
-    description: plantBed.description,
+    description: plantBed.description || null,
     is_active: true
   }).select().single()
 
   if (error) {
-    console.error("❌ Error creating plant bed:", error)
+    console.error("❌ Error creating plant bed:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+      fullError: error
+    })
     if (isMissingRelation(error)) {
       console.warn(
         "Supabase table `plant_beds` not found yet – cannot create a plant bed until the migration is applied.",
