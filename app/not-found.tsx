@@ -43,10 +43,7 @@ export default function NotFound() {
                   <MapPin className="h-4 w-4" />
                   Gardens
                 </Link>
-                <Link href="/plant-beds" className="flex items-center gap-2 text-yellow-700 hover:text-yellow-800">
-                  <Search className="h-4 w-4" />
-                  Plant Beds
-                </Link>
+
                 <Link href="/admin" className="flex items-center gap-2 text-yellow-700 hover:text-yellow-800">
                   <Settings className="h-4 w-4" />
                   Admin Panel
@@ -70,12 +67,7 @@ export default function NotFound() {
                     View Gardens
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/plant-beds">
-                    <Search className="mr-2 h-4 w-4" />
-                    View Plant Beds
-                  </Link>
-                </Button>
+
                 <Button asChild variant="outline" className="w-full">
                   <Link href="/admin">
                     <Settings className="mr-2 h-4 w-4" />
