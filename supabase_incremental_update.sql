@@ -153,6 +153,7 @@ RETURNS INTEGER AS $$
 DECLARE
     position_record JSONB;
     updated_count INTEGER := 0;
+    row_count INTEGER;
 BEGIN
     FOR position_record IN SELECT * FROM jsonb_array_elements(positions)
     LOOP
@@ -168,7 +169,8 @@ BEGIN
             visual_updated_at = NOW()
         WHERE id = position_record->>'id';
         
-        GET DIAGNOSTICS updated_count = updated_count + ROW_COUNT;
+        GET DIAGNOSTICS row_count = ROW_COUNT;
+        updated_count = updated_count + row_count;
     END LOOP;
     
     RETURN updated_count;
