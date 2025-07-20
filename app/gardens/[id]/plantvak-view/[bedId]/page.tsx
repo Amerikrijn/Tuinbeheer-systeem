@@ -1794,12 +1794,12 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>🔥 <strong>ULTIMATE DRAG SYSTEEM - LAATSTE POGING:</strong></p>
-              <p>🌸 <strong>Klik bloem</strong> → Selecteren (RODE hoek verschijnt)</p>
-              <p>🔥 <strong>SLEEP RODE HOEK</strong> → DIRECT resizen + meer bloemen!</p>
-              <p>💻 <strong>Laptop/desktop</strong> → Sleep met muis</p>
-              <p>📱 <strong>iPhone/Android</strong> → Sleep met vinger</p>
-              <p>✅ <strong>Loslaten</strong> → Resize klaar + save</p>
+              <p>🎉 <strong>UNIVERSEEL SYSTEEM - VOOR ALLES!</strong></p>
+              <p>🌸 <strong>Klik bloem</strong> → Selecteren (blauwe hoek + buttons verschijnen)</p>
+              <p>🔵 <strong>OPTIE 1: Sleep blauwe hoek</strong> → Voor muis/trackpad</p>
+              <p>🟢 <strong>OPTIE 2: Klik + button</strong> → Groter (werkt altijd!)</p>
+              <p>🔴 <strong>OPTIE 3: Klik - button</strong> → Kleiner (werkt altijd!)</p>
+              <p>📱 <strong>Mobiel</strong> → Tap + of - buttons</p>
               <p>📛 <strong>Klik ergens anders</strong> → Deselecteren</p>
             </div>
             <div className="flex items-center gap-4">
