@@ -1461,7 +1461,7 @@ export default function PlantBedViewPage() {
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute cursor-pointer rounded-full border-4 ${getStatusColor(flower.status || 'healthy')} ${
+                    className={`absolute ${isSelected ? 'cursor-default' : 'cursor-pointer'} rounded-full border-4 ${getStatusColor(flower.status || 'healthy')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105" : 
                       isSelected ? "ring-4 ring-blue-500 shadow-xl" :
                       "shadow-lg hover:shadow-xl hover:scale-105"
@@ -1475,8 +1475,13 @@ export default function PlantBedViewPage() {
                     }}
                     onClick={(e) => handleFlowerClick(e, flower.id)}
                     onDoubleClick={() => handleFlowerDoubleClick(flower)}
-                    onMouseDown={(e) => handleFlowerMouseDown(e, flower.id)}
-                    title="Klik om te selecteren, sleep resize handle om grootte aan te passen"
+                    onMouseDown={(e) => {
+                      // ALLEEN drag als bloem NIET geselecteerd is (geen resize handle)
+                      if (!isSelected) {
+                        handleFlowerMouseDown(e, flower.id)
+                      }
+                    }}
+                    title={isSelected ? "Geselecteerd - sleep blauwe hoek om te resizen" : "Klik om te selecteren"}
                   >
                     <div className="text-center w-full h-full flex flex-col items-center justify-center">
                       <div 
