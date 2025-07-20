@@ -201,39 +201,70 @@ export async function createPlantBed(plantBed: {
   sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
   description?: string
 }): Promise<PlantBed | null> {
-  // Generate a simple ID for plant bed (format: PB001, PB002, etc.)
-  const existingBeds = await supabase.from("plant_beds").select("id").order("id", { ascending: false }).limit(1)
-  let newId = "PB001"
+  console.log("🌱 Creating plant bed:", plantBed)
   
-  if (existingBeds.data && existingBeds.data.length > 0) {
-    const lastId = existingBeds.data[0].id
-    const numberPart = parseInt(lastId.slice(2)) + 1
-    newId = `PB${numberPart.toString().padStart(3, '0')}`
+  // Validate garden_id is a valid UUID format (temporarily disabled for debugging)
+  // const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  // if (!uuidRegex.test(plantBed.garden_id)) {
+  //   console.error("❌ Invalid garden_id format:", plantBed.garden_id)
+  //   throw new Error(`Invalid garden_id format: ${plantBed.garden_id}`)
+  // }
+  console.log("🔍 Garden ID to be used:", { garden_id: plantBed.garden_id, type: typeof plantBed.garden_id })
+  
+  // Check if garden exists first
+  const { data: gardenExists, error: gardenCheckError } = await supabase
+    .from("gardens")
+    .select("id")
+    .eq("id", plantBed.garden_id)
+    .single()
+  
+  if (gardenCheckError || !gardenExists) {
+    console.error("❌ Garden does not exist:", { garden_id: plantBed.garden_id, error: gardenCheckError })
+    throw new Error(`Garden with id ${plantBed.garden_id} does not exist`)
   }
-
+  
+  console.log("✅ Garden exists, proceeding with plant bed creation")
+  
+  // Let the database auto-generate the UUID
   const { data, error } = await supabase.from("plant_beds").insert({
-    id: newId,
     garden_id: plantBed.garden_id,
     name: plantBed.name,
-    location: plantBed.location,
-    size: plantBed.size,
-    soil_type: plantBed.soil_type,
+    location: plantBed.location || null,
+    size: plantBed.size || null,
+    soil_type: plantBed.soil_type || null,
     sun_exposure: plantBed.sun_exposure || 'full-sun',
-    description: plantBed.description,
+    description: plantBed.description || null,
     is_active: true
   }).select().single()
 
   if (error) {
+    console.error("❌ Error creating plant bed - DETAILED:", {
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
+      fullError: JSON.stringify(error, null, 2)
+    })
+    console.error("❌ Plant bed data that failed:", JSON.stringify({
+      garden_id: plantBed.garden_id,
+      name: plantBed.name,
+      location: plantBed.location || null,
+      size: plantBed.size || null,
+      soil_type: plantBed.soil_type || null,
+      sun_exposure: plantBed.sun_exposure || 'full-sun',
+      description: plantBed.description || null,
+      is_active: true
+    }, null, 2))
     if (isMissingRelation(error)) {
       console.warn(
         "Supabase table `plant_beds` not found yet – cannot create a plant bed until the migration is applied.",
       )
       throw error
     }
-    console.error("Error creating plant bed:", error)
     throw error
   }
 
+  console.log("✅ Plant bed created successfully:", data)
   return data
 }
 
