@@ -28,23 +28,8 @@ import {
   Edit,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { getGarden, getPlantBeds } from "@/lib/database"
-import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
-
-interface FlowerPosition {
-  id: string
-  x: number
-  y: number
-  width: number
-  height: number
-  name: string
-  color: string
-  type: string
-  status: 'healthy' | 'needs_attention' | 'blooming' | 'sick'
-  emoji?: string
-  isCustom?: boolean
-  description?: string
-}
+import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant } from "@/lib/database"
+import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 
 const GRID_SIZE = 10
 const SCALE_MIN = 0.5
@@ -84,9 +69,9 @@ export default function PlantBedViewPage() {
   
   const [garden, setGarden] = useState<Garden | null>(null)
   const [plantBed, setPlantBed] = useState<PlantBedWithPlants | null>(null)
-  const [flowerPositions, setFlowerPositions] = useState<FlowerPosition[]>([])
+  const [flowerPositions, setFlowerPositions] = useState<PlantWithPosition[]>([])
   const [scale, setScale] = useState(1)
-  const [selectedFlower, setSelectedFlower] = useState<FlowerPosition | null>(null)
+  const [selectedFlower, setSelectedFlower] = useState<PlantWithPosition | null>(null)
   const [draggedFlower, setDraggedFlower] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [hasChanges, setHasChanges] = useState(false)
@@ -139,15 +124,16 @@ export default function PlantBedViewPage() {
         const specificBed = plantBedsData.find(bed => bed.id === params.bedId)
         setPlantBed(specificBed || null)
         
-        // Load saved flower positions from localStorage
-        const savedPositions = localStorage.getItem(`plantvak-${params.bedId}-flowers`)
-        if (savedPositions) {
-          setFlowerPositions(JSON.parse(savedPositions))
+        // Load plants from database instead of localStorage
+        if (params.bedId) {
+          const plants = await getPlantsWithPositions(params.bedId as string)
+          setFlowerPositions(plants)
         }
       } catch (error) {
         console.error("Error loading data:", error)
         setGarden(null)
         setPlantBed(null)
+        setFlowerPositions([])
       } finally {
         setLoading(false)
       }
@@ -170,13 +156,35 @@ export default function PlantBedViewPage() {
     setScale(1)
   }
 
-  const saveLayout = () => {
-    localStorage.setItem(`plantvak-${params.bedId}-flowers`, JSON.stringify(flowerPositions))
-    setHasChanges(false)
-    toast({
-      title: "Layout opgeslagen",
-      description: "De bloemen posities zijn succesvol opgeslagen.",
-    })
+  const saveLayout = async () => {
+    if (!hasChanges) return
+
+    try {
+      // Update all plant positions in the database
+      await Promise.all(
+        flowerPositions.map(flower => 
+          updatePlantPosition(flower.id, {
+            position_x: flower.position_x,
+            position_y: flower.position_y,
+            visual_width: flower.visual_width,
+            visual_height: flower.visual_height
+          })
+        )
+      )
+
+      setHasChanges(false)
+      toast({
+        title: "Layout opgeslagen",
+        description: "De bloemen posities zijn succesvol opgeslagen in de database.",
+      })
+    } catch (error) {
+      console.error("Error saving layout:", error)
+      toast({
+        title: "Fout bij opslaan",
+        description: "Er is een fout opgetreden bij het opslaan van de layout.",
+        variant: "destructive",
+      })
+    }
   }
 
   const addFlower = () => {
@@ -200,7 +208,7 @@ export default function PlantBedViewPage() {
 
     const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
 
-    const newFlowerPosition: FlowerPosition = {
+    const newFlowerPosition: PlantWithPosition = {
       id: Date.now().toString(),
       x: Math.random() * (canvasWidth - FLOWER_SIZE),
       y: Math.random() * (canvasHeight - FLOWER_SIZE),
@@ -325,7 +333,7 @@ export default function PlantBedViewPage() {
   }, [selectedFlower, flowerPositions, scale])
 
   // Handle double click - open edit dialog
-  const handleFlowerDoubleClick = useCallback((flower: FlowerPosition) => {
+  const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
     setSelectedFlower(flower)
     setIsEditCustomFlower(flower.isCustom || false)
     setNewFlower({
