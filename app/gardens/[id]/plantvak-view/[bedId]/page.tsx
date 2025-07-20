@@ -599,128 +599,118 @@ export default function PlantBedViewPage() {
     setDuplicatePositions([]) // Reset duplicate positions
   }, [flowerPositions])
 
-  // Handle resize move - with real-time duplication and dynamic shapes
-  const handleResizeMove = useCallback((e: MouseEvent) => {
-    if (!isResizing) return
-
-    // Use a functional update to avoid dependency on flowerPositions
-    setFlowerPositions(prev => {
-      const flower = prev.find(f => f.id === isResizing)
-      if (!flower) return prev
-
-      const deltaX = e.clientX - resizeStartPos.x
-      const deltaY = e.clientY - resizeStartPos.y
-      
-      let newWidth = resizeStartSize.width
-      let newHeight = resizeStartSize.height
-
-      // Calculate new dimensions based on resize mode with boundary constraints
-      if (resizeMode === 'uniform') {
-        // For uniform scaling, use the smaller delta to prevent going out of bounds
-        const maxDeltaX = (canvasWidth - flower.position_x) - resizeStartSize.width
-        const maxDeltaY = (canvasHeight - flower.position_y) - resizeStartSize.height
-        const delta = Math.min(Math.max(deltaX, deltaY), Math.min(maxDeltaX, maxDeltaY))
-        
-        newWidth = Math.max(20, resizeStartSize.width + delta)
-        newHeight = Math.max(20, resizeStartSize.height + delta)
-      } else if (resizeMode === 'width') {
-        const maxDelta = (canvasWidth - flower.position_x) - resizeStartSize.width
-        newWidth = Math.max(20, Math.min(resizeStartSize.width + deltaX, resizeStartSize.width + maxDelta))
-      } else if (resizeMode === 'height') {
-        const maxDelta = (canvasHeight - flower.position_y) - resizeStartSize.height
-        newHeight = Math.max(20, Math.min(resizeStartSize.height + deltaY, resizeStartSize.height + maxDelta))
-      }
-
-      // VERBETERDE DUPLICATIE - BLOEMEN BINNEN HET GROTE VLAK
-      const newDuplicatePositions: {x: number, y: number}[] = []
-      
-      // Bereken hoeveel bloemen er moeten komen op basis van grootte
-      const currentSize = Math.max(newWidth, newHeight)
-      const originalSize = Math.max(resizeStartSize.width, resizeStartSize.height)
-      
-      // Al bij kleine vergroting bloemen toevoegen (nog lagere threshold)
-      if (currentSize > originalSize + 20) { // Slechts 20px groei = al bloemen!
-        
-        // Veel meer bloemen - gebaseerd op oppervlakte
-        const currentArea = newWidth * newHeight
-        const originalArea = resizeStartSize.width * resizeStartSize.height
-        const areaRatio = currentArea / originalArea
-        
-        // Veel meer bloemen mogelijk (max 15 in plaats van 6)
-        let flowerCount = Math.floor(Math.sqrt(areaRatio * 4)) // Meer bloemen door *4
-        flowerCount = Math.min(flowerCount, 15) // Max 15 bloemen totaal
-        
-        // Maak bloemen BINNEN het grote vlak
-        for (let i = 1; i < flowerCount; i++) {
-          let x, y
-          
-          // Verschillende patronen afhankelijk van vorm
-          if (newWidth > newHeight * 1.5) {
-            // Breed vlak - horizontale rijen
-            const cols = Math.ceil(Math.sqrt(flowerCount))
-            const rows = Math.ceil(flowerCount / cols)
-            const col = i % cols
-            const row = Math.floor(i / cols)
-            
-            x = flower.position_x + (col * (newWidth / cols)) + (newWidth / cols) * 0.1
-            y = flower.position_y + (row * (newHeight / rows)) + (newHeight / rows) * 0.1
-            
-          } else if (newHeight > newWidth * 1.5) {
-            // Hoog vlak - verticale kolommen
-            const rows = Math.ceil(Math.sqrt(flowerCount))
-            const cols = Math.ceil(flowerCount / rows)
-            const row = i % rows
-            const col = Math.floor(i / rows)
-            
-            x = flower.position_x + (col * (newWidth / cols)) + (newWidth / cols) * 0.1
-            y = flower.position_y + (row * (newHeight / rows)) + (newHeight / rows) * 0.1
-            
-          } else {
-            // Vierkant vlak - grid patroon
-            const cols = Math.ceil(Math.sqrt(flowerCount))
-            const rows = Math.ceil(flowerCount / cols)
-            const col = i % cols
-            const row = Math.floor(i / cols)
-            
-            x = flower.position_x + (col * (newWidth / cols)) + (newWidth / cols) * 0.1
-            y = flower.position_y + (row * (newHeight / rows)) + (newHeight / rows) * 0.1
-          }
-          
-          // Kleine random jitter voor natuurlijk effect
-          x += (Math.random() - 0.5) * 20
-          y += (Math.random() - 0.5) * 20
-          
-          // Zorg dat bloemen BINNEN het grote vlak blijven
-          x = Math.max(flower.position_x + 5, Math.min(x, flower.position_x + newWidth - 35))
-          y = Math.max(flower.position_y + 5, Math.min(y, flower.position_y + newHeight - 35))
-          
-          // En ook binnen canvas grenzen
-          x = Math.max(10, Math.min(x, canvasWidth - 40))
-          y = Math.max(10, Math.min(y, canvasHeight - 40))
-          
-          newDuplicatePositions.push({ x, y })
-        }
-      }
-
-      setDuplicatePositions(newDuplicatePositions)
-
-      // Update ONLY the flower being resized, keep all others exactly the same
-      return prev.map(f => {
-        if (f.id === isResizing) {
-          return { ...f, visual_width: newWidth, visual_height: newHeight }
-        }
-        return f // Return the exact same object reference for other flowers
-      })
-    })
-    
-    setHasChanges(true)
-  }, [isResizing, resizeStartSize, resizeStartPos, resizeMode, canvasWidth, canvasHeight])
-
-  // Handle resize end - create actual duplicates
-  const handleResizeEnd = useCallback(async () => {
+  // Handle resize move - REAL-TIME bloemen toevoegen/verwijderen!
+  const handleResizeMove = useCallback(async (e: MouseEvent) => {
     if (!isResizing || !plantBed) return
 
-    // Immediately clear resize state to prevent sticky behavior
+    const flower = flowerPositions.find(f => f.id === isResizing)
+    if (!flower) return
+
+    const deltaX = e.clientX - resizeStartPos.x
+    const deltaY = e.clientY - resizeStartPos.y
+    
+    // Calculate new size (keep it round)
+    const delta = Math.max(deltaX, deltaY)
+    let newSize = Math.max(FLOWER_SIZE, resizeStartSize.width + delta)
+    
+    // Constrain to canvas bounds
+    const maxSize = Math.min(canvasWidth - flower.position_x, canvasHeight - flower.position_y)
+    newSize = Math.min(newSize, maxSize)
+
+    // Update the main flower size immediately
+    setFlowerPositions(prev => prev.map(f => {
+      if (f.id === isResizing) {
+        return { ...f, visual_width: newSize, visual_height: newSize }
+      }
+      return f
+    }))
+
+    // Calculate how many extra flowers we should have based on size
+    const sizeRatio = newSize / FLOWER_SIZE
+    const targetExtraFlowers = Math.max(0, Math.floor(sizeRatio * sizeRatio - 1)) // Quadratic growth
+    const maxExtraFlowers = 20 // Cap it
+    const actualTargetFlowers = Math.min(targetExtraFlowers, maxExtraFlowers)
+
+    // Get current extra flowers (flowers with same name near this one)
+    const currentExtraFlowers = flowerPositions.filter(f => 
+      f.id !== isResizing && 
+      f.name === flower.name &&
+      Math.abs(f.position_x - flower.position_x) < newSize * 1.5 &&
+      Math.abs(f.position_y - flower.position_y) < newSize * 1.5
+    )
+
+    const currentCount = currentExtraFlowers.length
+
+    if (actualTargetFlowers > currentCount) {
+      // ADD MORE FLOWERS
+      const flowersToAdd = actualTargetFlowers - currentCount
+      const newFlowers: PlantWithPosition[] = []
+
+      for (let i = 0; i < flowersToAdd; i++) {
+        // Position flowers in a nice spread around the main flower
+        const angle = (Math.random() * 2 * Math.PI)
+        const radius = (newSize / 4) + Math.random() * (newSize / 3)
+        const centerX = flower.position_x + newSize / 2
+        const centerY = flower.position_y + newSize / 2
+        
+        const x = centerX + Math.cos(angle) * radius - 20
+        const y = centerY + Math.sin(angle) * radius - 20
+        
+        // Keep within the enlarged area
+        const constrainedX = Math.max(flower.position_x + 10, Math.min(x, flower.position_x + newSize - 50))
+        const constrainedY = Math.max(flower.position_y + 10, Math.min(y, flower.position_y + newSize - 50))
+        
+        try {
+          const newFlower = await createVisualPlant({
+            plant_bed_id: plantBed.id,
+            name: flower.name,
+            color: flower.color || '#FF69B4',
+            status: flower.status || 'healthy',
+            position_x: constrainedX,
+            position_y: constrainedY,
+            visual_width: 30, // Smaller sub-flowers
+            visual_height: 30,
+            emoji: flower.emoji || '🌸',
+            is_custom: flower.is_custom,
+            category: flower.category,
+            notes: flower.notes
+          })
+          
+          if (newFlower) newFlowers.push(newFlower)
+        } catch (error) {
+          console.error("Error creating sub-flower:", error)
+        }
+      }
+
+      if (newFlowers.length > 0) {
+        setFlowerPositions(prev => [...prev, ...newFlowers])
+      }
+
+    } else if (actualTargetFlowers < currentCount) {
+      // REMOVE EXCESS FLOWERS
+      const flowersToRemove = currentCount - actualTargetFlowers
+      const flowersToDelete = currentExtraFlowers.slice(0, flowersToRemove)
+
+      for (const flowerToDelete of flowersToDelete) {
+        try {
+          await deletePlant(flowerToDelete.id)
+        } catch (error) {
+          console.error("Error deleting sub-flower:", error)
+        }
+      }
+
+      setFlowerPositions(prev => prev.filter(f => 
+        !flowersToDelete.some(fd => fd.id === f.id)
+      ))
+    }
+    
+    setHasChanges(true)
+  }, [isResizing, resizeStartSize, resizeStartPos, canvasWidth, canvasHeight, flowerPositions, plantBed])
+
+  // Handle resize end - just save the main flower size
+  const handleResizeEnd = useCallback(async () => {
+    if (!isResizing) return
+
     const currentResizingId = isResizing
     setIsResizing(null)
     setResizeStartSize({ width: 0, height: 0 })
@@ -728,57 +718,38 @@ export default function PlantBedViewPage() {
     setResizeMode('uniform')
 
     try {
-      // Get the current flower state from the latest flowerPositions
+      // Save the resized flower to database
       const currentFlower = flowerPositions.find(f => f.id === currentResizingId)
-      if (!currentFlower) return
-
-      // Create duplicates at the calculated positions
-      const duplicates: PlantWithPosition[] = []
-      for (const pos of duplicatePositions) {
-        const duplicate = await createVisualPlant({
-          plant_bed_id: plantBed.id,
-          name: currentFlower.name,
-          color: currentFlower.color || '#FF69B4',
-          status: currentFlower.status || 'healthy',
-          position_x: pos.x,
-          position_y: pos.y,
-          visual_width: Math.min(currentFlower.visual_width * 0.6, 60), // Smaller duplicates
-          visual_height: Math.min(currentFlower.visual_height * 0.6, 60),
-          emoji: currentFlower.emoji || '🌸',
-          is_custom: currentFlower.is_custom,
-          category: currentFlower.category,
-          notes: currentFlower.notes
+      if (currentFlower) {
+        await updatePlantPosition(currentFlower.id, {
+          visual_width: currentFlower.visual_width,
+          visual_height: currentFlower.visual_height
         })
-        if (duplicate) duplicates.push(duplicate)
+
+        // Count extra flowers for feedback
+        const extraFlowers = flowerPositions.filter(f => 
+          f.id !== currentResizingId && 
+          f.name === currentFlower.name &&
+          Math.abs(f.position_x - currentFlower.position_x) < currentFlower.visual_width * 1.5 &&
+          Math.abs(f.position_y - currentFlower.position_y) < currentFlower.visual_height * 1.5
+        )
+
+        if (extraFlowers.length > 0) {
+          toast({
+            title: "🌸 Bloem aangepast!",
+            description: `Grootte gewijzigd! Nu ${extraFlowers.length} extra bloemen.`,
+          })
+        }
       }
-
-      // Add duplicates to state (only if there are any)
-      if (duplicates.length > 0) {
-        setFlowerPositions(prev => [...prev, ...duplicates])
-        toast({
-          title: "Bloemen gedupliceerd! 🌸",
-          description: `${duplicates.length} extra bloemen toegevoegd door te vergroten!`,
-        })
-      }
-
-      // Save the resized original flower
-      await updatePlantPosition(currentFlower.id, {
-        visual_width: currentFlower.visual_width,
-        visual_height: currentFlower.visual_height
-      })
-
     } catch (error) {
-      console.error("Error creating duplicates:", error)
+      console.error("Error saving flower size:", error)
       toast({
-        title: "Fout bij dupliceren",
-        description: "Er is een fout opgetreden bij het dupliceren van bloemen.",
+        title: "Fout bij opslaan",
+        description: "Er is een fout opgetreden bij het opslaan van de grootte.",
         variant: "destructive",
       })
-    } finally {
-      // Ensure cleanup even if there's an error
-      setDuplicatePositions([])
     }
-  }, [isResizing, plantBed, duplicatePositions, flowerPositions, toast])
+  }, [isResizing, flowerPositions, toast])
 
   useEffect(() => {
     const cleanup = () => {
@@ -896,7 +867,7 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🌸 <strong>Super Eenvoudig:</strong> Klik op bloem = groter + meer bloemen! Klik nogmaals = kleiner
+              🌸 <strong>Perfect Systeem:</strong> Klik bloem → Sleep blauwe hoek → Precies zo groot als je wilt + automatisch meer bloemen!
               <span className="ml-2 text-sm font-medium text-pink-600">
                 • {plantBed.size || 'Op schaal'}
               </span>
@@ -1445,17 +1416,18 @@ export default function PlantBedViewPage() {
 
               {/* Flowers */}
               {flowerPositions.map((flower) => {
+                const isSelected = selectedFlower?.id === flower.id
                 const isDragging = draggedFlower === flower.id
-                const isLarge = flower.visual_width > FLOWER_SIZE * 1.5
+                const isBeingResized = isResizing === flower.id
 
                 return (
                   <div
                     key={flower.id}
                     className={`absolute cursor-pointer rounded-full border-4 ${getStatusColor(flower.status || 'healthy')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105" : 
-                      isLarge ? "ring-2 ring-green-300 shadow-2xl" :
+                      isSelected ? "ring-4 ring-blue-500 shadow-xl" :
                       "shadow-lg hover:shadow-xl hover:scale-105"
-                    } transition-all duration-300 flex items-center justify-center text-white relative overflow-hidden`}
+                    } transition-all duration-200 flex items-center justify-center text-white relative overflow-hidden`}
                     style={{
                       left: flower.position_x,
                       top: flower.position_y,
@@ -1466,67 +1438,61 @@ export default function PlantBedViewPage() {
                     onClick={(e) => handleFlowerClick(e, flower.id)}
                     onDoubleClick={() => handleFlowerDoubleClick(flower)}
                     onMouseDown={(e) => handleFlowerMouseDown(e, flower.id)}
-                    title={isLarge ? "Klik om te verkleinen" : "Klik om te vergroten met meer bloemen!"}
+                    title="Klik om te selecteren, sleep resize handle om grootte aan te passen"
                   >
-                    {isLarge ? (
-                      // GROTE BLOEM: Toon hoofdbloem + naam + hint voor meer bloemen
-                      <div className="relative w-full h-full flex flex-col items-center justify-center">
-                        {/* Achtergrond patroon voor "meer bloemen" gevoel */}
-                        <div className="absolute inset-2 rounded-full opacity-20 bg-gradient-to-br from-white to-transparent"></div>
-                        
-                        {/* Hoofdbloem groot in center */}
+                    <div className="text-center w-full h-full flex flex-col items-center justify-center">
+                      <div 
+                        className="flex items-center justify-center"
+                        style={{ 
+                          fontSize: Math.max(12, Math.min(48, flower.visual_width * 0.4)) + 'px'
+                        }}
+                      >
+                        {flower.emoji || '🌸'}
+                      </div>
+                      
+                      {/* Toon naam als er genoeg ruimte is */}
+                      {flower.visual_width > 60 && (
                         <div 
-                          className="text-center z-10 drop-shadow-lg"
+                          className="text-center text-white font-bold mt-1 px-1 leading-tight"
                           style={{ 
-                            fontSize: Math.min(flower.visual_width * 0.4, 48) + 'px'
-                          }}
-                        >
-                          {flower.emoji || '🌸'}
-                        </div>
-                        
-                        {/* Naam prominent zichtbaar */}
-                        <div 
-                          className="text-center text-white font-bold mt-2 px-2 py-1 bg-black bg-opacity-50 rounded-full z-10"
-                          style={{ 
-                            fontSize: Math.max(10, Math.min(16, flower.visual_width * 0.12)) + 'px',
+                            fontSize: Math.max(8, Math.min(16, flower.visual_width * 0.15)) + 'px',
                             textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
                           }}
                         >
                           {flower.name}
                         </div>
-                        
-                        {/* "Meer bloemen" indicator */}
-                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
-                          +{Math.floor(flower.visual_width / 20)} bloemen
-                        </div>
-                        
-                        {/* Klik hint */}
-                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-white opacity-75">
-                          Klik = kleiner
-                        </div>
-                      </div>
-                    ) : (
-                      // KLEINE BLOEM: Eenvoudig, met duidelijke hint
-                      <div className="text-center w-full h-full flex flex-col items-center justify-center relative">
-                        <div 
-                          className="flex items-center justify-center"
-                          style={{ 
-                            fontSize: Math.max(16, Math.min(32, flower.visual_width * 0.6)) + 'px'
-                          }}
-                        >
-                          {flower.emoji || '🌸'}
-                        </div>
-                        
-                        {/* Naam onder kleine bloem */}
+                      )}
+                      
+                      {/* Kleine naam label voor kleine bloemen */}
+                      {flower.visual_width <= 60 && (
                         <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-700 bg-white bg-opacity-90 px-2 py-1 rounded shadow-sm whitespace-nowrap">
                           {flower.name}
                         </div>
-                        
-                        {/* Hover hint */}
-                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                          <div className="text-xs text-white font-bold">Klik = groter</div>
+                      )}
+                    </div>
+
+                    {/* RESIZE HANDLE - alleen als geselecteerd */}
+                    {isSelected && (
+                      <>
+                        <div className="absolute -top-8 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10">
+                          Sleep hoek om grootte aan te passen
                         </div>
-                      </div>
+                        {/* Grote, duidelijke resize handle */}
+                        <div
+                          className="absolute -bottom-3 -right-3 w-10 h-10 bg-blue-500 border-4 border-white rounded-full cursor-nw-resize hover:bg-blue-600 hover:scale-110 flex items-center justify-center z-10 shadow-lg"
+                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'uniform')}
+                          title="Sleep om grootte aan te passen - meer bloemen komen automatisch bij!"
+                        >
+                          <div className="text-white text-sm font-bold">⤢</div>
+                        </div>
+                        
+                        {/* Show live count during resize */}
+                        {isBeingResized && (
+                          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-sm px-3 py-2 rounded-full z-10 animate-bounce shadow-lg">
+                            🌸 Grootte: {Math.round(flower.visual_width)}px
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )
@@ -1552,10 +1518,11 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>💡 <strong>Nieuwe Eenvoudige Manier:</strong></p>
-              <p>🌸 <strong>Klik op bloem</strong> → Wordt groot + krijgt 8-12 extra bloemen!</p>
-              <p>🔄 <strong>Klik nogmaals</strong> → Wordt klein + extra bloemen verdwijnen</p>
-              <p>🎯 <strong>Resultaat:</strong> Grote bloemen tonen echt meer bloemen binnen het vlak</p>
+              <p>💡 <strong>Perfect Resize Systeem:</strong></p>
+              <p>🌸 <strong>Klik bloem</strong> → Zie blauwe resize handle</p>
+              <p>🔵 <strong>Sleep blauwe hoek</strong> → Bloem wordt precies zo groot als je wilt!</p>
+              <p>✨ <strong>REAL-TIME:</strong> Meer bloemen komen automatisch bij tijdens slepen</p>
+              <p>🎯 <strong>Kleiner maken?</strong> Sleep terug - extra bloemen verdwijnen automatisch</p>
               <p>👆 <strong>Ook:</strong> Sleep bloem = verplaatsen, Dubbelklik = bewerken</p>
             </div>
             <div className="flex items-center gap-4">
@@ -1602,12 +1569,13 @@ export default function PlantBedViewPage() {
               </div>
             </div>
             <div>
-              <h4 className="font-medium mb-3">🌸 Nieuwe Eenvoudige Manier!</h4>
+              <h4 className="font-medium mb-3">🎯 Perfect Resize Systeem!</h4>
               <div className="space-y-2 text-sm text-gray-600">
-                <p>• <strong>1 Klik</strong> = bloem wordt groot + krijgt 8-12 extra bloemen</p>
-                <p>• <strong>2e Klik</strong> = bloem wordt klein + extra bloemen weg</p>
-                <p>• <strong>Grote bloemen</strong> tonen naam + aantal extra bloemen</p>
-                <p>• <strong>Sleep bloem</strong> om te verplaatsen</p>
+                <p>• <strong>Klik bloem</strong> = selecteren + blauwe resize handle verschijnt</p>
+                <p>• <strong>Sleep blauwe hoek</strong> = precies zo groot maken als je wilt</p>
+                <p>• <strong>REAL-TIME:</strong> Extra bloemen komen automatisch bij tijdens slepen</p>
+                <p>• <strong>Kleiner slepen</strong> = extra bloemen verdwijnen automatisch</p>
+                <p>• <strong>Sleep bloem zelf</strong> om te verplaatsen</p>
                 <p>• <strong>Dubbelklik</strong> om eigenschappen te bewerken</p>
                 <p>• Vergeet niet te <strong>opslaan</strong> na wijzigingen</p>
               </div>
