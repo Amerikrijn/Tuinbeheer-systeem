@@ -451,12 +451,22 @@ export default function PlantBedViewPage() {
     e.preventDefault()
     e.stopPropagation()
     
+    // If currently resizing, stop it
+    if (isResizing) {
+      setIsResizing(null)
+      setResizeStartSize({ width: 0, height: 0 })
+      setResizeStartPos({ x: 0, y: 0 })
+      setResizeMode('uniform')
+      setDuplicatePositions([])
+      return
+    }
+    
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
     // Select this flower
     setSelectedFlower(flower)
-  }, [flowerPositions])
+  }, [flowerPositions, isResizing])
 
   // Handle mouse down - start dragging immediately
   const handleFlowerMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
@@ -600,47 +610,70 @@ export default function PlantBedViewPage() {
         newHeight = Math.max(20, Math.min(resizeStartSize.height + deltaY, resizeStartSize.height + maxDelta))
       }
 
-      // VEEL EENVOUDIGERE DUPLICATIE LOGICA
+      // VERBETERDE DUPLICATIE - BLOEMEN BINNEN HET GROTE VLAK
       const newDuplicatePositions: {x: number, y: number}[] = []
       
       // Bereken hoeveel bloemen er moeten komen op basis van grootte
       const currentSize = Math.max(newWidth, newHeight)
       const originalSize = Math.max(resizeStartSize.width, resizeStartSize.height)
       
-      // Al bij kleine vergroting bloemen toevoegen (veel lagere threshold)
-      if (currentSize > originalSize + 30) { // Slechts 30px groei = al bloemen!
-        let flowerCount = 1 // Start met 1 (origineel)
+      // Al bij kleine vergroting bloemen toevoegen (nog lagere threshold)
+      if (currentSize > originalSize + 20) { // Slechts 20px groei = al bloemen!
         
-        // Eenvoudige logica: elke 40px = 1 extra bloem
-        const extraSize = currentSize - originalSize
-        flowerCount += Math.floor(extraSize / 40)
+        // Veel meer bloemen - gebaseerd op oppervlakte
+        const currentArea = newWidth * newHeight
+        const originalArea = resizeStartSize.width * resizeStartSize.height
+        const areaRatio = currentArea / originalArea
         
-        // Max 6 bloemen totaal (5 duplicaten)
-        flowerCount = Math.min(flowerCount, 6)
+        // Veel meer bloemen mogelijk (max 15 in plaats van 6)
+        let flowerCount = Math.floor(Math.sqrt(areaRatio * 4)) // Meer bloemen door *4
+        flowerCount = Math.min(flowerCount, 15) // Max 15 bloemen totaal
         
-        // Maak de duplicaten zichtbaar
+        // Maak bloemen BINNEN het grote vlak
         for (let i = 1; i < flowerCount; i++) {
           let x, y
           
-          if (resizeMode === 'width' || newWidth > newHeight) {
-            // Horizontaal patroon
-            x = flower.position_x + (i * 60) % newWidth
-            y = flower.position_y + Math.floor((i * 60) / newWidth) * 50
-          } else if (resizeMode === 'height' || newHeight > newWidth) {
-            // Verticaal patroon  
-            x = flower.position_x + Math.floor((i * 50) / newHeight) * 50
-            y = flower.position_y + (i * 50) % newHeight
-          } else {
-            // Grid patroon
+          // Verschillende patronen afhankelijk van vorm
+          if (newWidth > newHeight * 1.5) {
+            // Breed vlak - horizontale rijen
             const cols = Math.ceil(Math.sqrt(flowerCount))
+            const rows = Math.ceil(flowerCount / cols)
             const col = i % cols
             const row = Math.floor(i / cols)
             
-            x = flower.position_x + (col * (newWidth / cols))
-            y = flower.position_y + (row * (newHeight / Math.ceil(flowerCount / cols)))
+            x = flower.position_x + (col * (newWidth / cols)) + (newWidth / cols) * 0.1
+            y = flower.position_y + (row * (newHeight / rows)) + (newHeight / rows) * 0.1
+            
+          } else if (newHeight > newWidth * 1.5) {
+            // Hoog vlak - verticale kolommen
+            const rows = Math.ceil(Math.sqrt(flowerCount))
+            const cols = Math.ceil(flowerCount / rows)
+            const row = i % rows
+            const col = Math.floor(i / rows)
+            
+            x = flower.position_x + (col * (newWidth / cols)) + (newWidth / cols) * 0.1
+            y = flower.position_y + (row * (newHeight / rows)) + (newHeight / rows) * 0.1
+            
+          } else {
+            // Vierkant vlak - grid patroon
+            const cols = Math.ceil(Math.sqrt(flowerCount))
+            const rows = Math.ceil(flowerCount / cols)
+            const col = i % cols
+            const row = Math.floor(i / cols)
+            
+            x = flower.position_x + (col * (newWidth / cols)) + (newWidth / cols) * 0.1
+            y = flower.position_y + (row * (newHeight / rows)) + (newHeight / rows) * 0.1
           }
           
-          // Zorg dat bloemen binnen canvas blijven
+          // Kleine random jitter voor natuurlijk effect
+          x += (Math.random() - 0.5) * 20
+          y += (Math.random() - 0.5) * 20
+          
+          // Zorg dat bloemen BINNEN het grote vlak blijven
+          x = Math.max(flower.position_x + 5, Math.min(x, flower.position_x + newWidth - 35))
+          y = Math.max(flower.position_y + 5, Math.min(y, flower.position_y + newHeight - 35))
+          
+          // En ook binnen canvas grenzen
           x = Math.max(10, Math.min(x, canvasWidth - 40))
           y = Math.max(10, Math.min(y, canvasHeight - 40))
           
@@ -1427,15 +1460,27 @@ export default function PlantBedViewPage() {
                     onDoubleClick={() => handleFlowerDoubleClick(flower)}
                     onMouseDown={(e) => handleFlowerMouseDown(e, flower.id)}
                   >
-                    <div className="text-center">
+                    <div className="text-center w-full h-full flex flex-col items-center justify-center">
                       <div 
                         className="flex items-center justify-center"
                         style={{ 
-                          fontSize: Math.max(12, Math.min(32, Math.min(flower.visual_width, flower.visual_height) * 0.4)) + 'px'
+                          fontSize: Math.max(12, Math.min(24, Math.min(flower.visual_width, flower.visual_height) * 0.3)) + 'px'
                         }}
                       >
                         {flower.emoji || '🌸'}
                       </div>
+                      {/* Toon naam in de bloem als er genoeg ruimte is */}
+                      {flower.visual_width > 60 && flower.visual_height > 60 && (
+                        <div 
+                          className="text-center text-white font-bold mt-1 px-1 leading-tight"
+                          style={{ 
+                            fontSize: Math.max(8, Math.min(12, Math.min(flower.visual_width, flower.visual_height) * 0.15)) + 'px',
+                            textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
+                          }}
+                        >
+                          {flower.name}
+                        </div>
+                      )}
                     </div>
                     {isSelected && (
                       <>
@@ -1462,27 +1507,33 @@ export default function PlantBedViewPage() {
                 )
               })}
 
-              {/* Preview duplicates tijdens resize - VEEL ZICHTBAARDER */}
+              {/* Preview duplicates tijdens resize - MET NAMEN */}
               {isResizing && duplicatePositions.map((pos, index) => {
                 const originalFlower = flowerPositions.find(f => f.id === isResizing)
                 if (!originalFlower) return null
                 
                 // Maak preview bloemen groter en duidelijker
-                const previewSize = 50 // Vaste grootte, goed zichtbaar
+                const previewSize = Math.max(50, Math.min(80, originalFlower.visual_width * 0.7))
                 
                 return (
                   <div
                     key={`preview-${index}`}
-                    className="absolute border-3 border-dashed border-green-500 bg-green-100 opacity-80 rounded-full flex items-center justify-center pointer-events-none animate-pulse shadow-lg"
+                    className="absolute border-3 border-dashed border-green-500 bg-green-100 opacity-90 rounded-full flex flex-col items-center justify-center pointer-events-none animate-pulse shadow-lg"
                     style={{
                       left: pos.x,
                       top: pos.y,
                       width: previewSize,
                       height: previewSize,
-                      backgroundColor: originalFlower.color + '60', // Meer transparantie
+                      backgroundColor: originalFlower.color + '40', // Transparantie
                     }}
                   >
-                    <div className="text-2xl">{originalFlower.emoji || '🌸'}</div>
+                    <div className="text-xl">{originalFlower.emoji || '🌸'}</div>
+                    {/* Toon naam als er ruimte is */}
+                    {previewSize > 60 && (
+                      <div className="text-xs font-bold text-green-800 mt-1 text-center leading-tight">
+                        {originalFlower.name}
+                      </div>
+                    )}
                     <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 rounded-full">
                       +{index + 1}
                     </div>
