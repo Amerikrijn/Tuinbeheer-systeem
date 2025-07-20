@@ -98,6 +98,7 @@ export default function PlantBedViewPage() {
   const [flowerPositions, setFlowerPositions] = useState<PlantWithPosition[]>([])
   const [scale, setScale] = useState(1)
   const [selectedFlower, setSelectedFlower] = useState<PlantWithPosition | null>(null)
+  const resizeModeRef = useRef<string | null>(null) // Track resize mode with ref
   const [draggedFlower, setDraggedFlower] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [isResizing, setIsResizing] = useState<string | null>(null)
@@ -474,7 +475,7 @@ export default function PlantBedViewPage() {
     }
   }
 
-  // Handle single click - toggle resize mode
+  // Handle single click - toggle resize mode with REF
   const handleFlowerClick = useCallback((e: React.MouseEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -482,19 +483,20 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    // DEBUG: Log current state
+    // Use REF to check current resize mode (not state that might be stale)
+    const isCurrentlyInResizeMode = resizeModeRef.current === flowerId
+    
     console.log("🔍 FLOWER CLICK DEBUG:", {
       flowerId,
-      selectedFlowerId: selectedFlower?.id,
-      isCurrentlySelected: selectedFlower?.id === flowerId
+      resizeModeRef: resizeModeRef.current,
+      isCurrentlyInResizeMode,
+      selectedFlowerId: selectedFlower?.id
     })
-
-    // Check if THIS specific flower is already selected for resizing
-    const isCurrentlySelected = selectedFlower?.id === flowerId
     
-    if (isCurrentlySelected) {
+    if (isCurrentlyInResizeMode) {
       // Second click on SAME flower - STOP resize mode
       console.log("🛑 STOPPING resize mode")
+      resizeModeRef.current = null
       setSelectedFlower(null)
       setIsResizing(null)
       toast({
@@ -504,6 +506,7 @@ export default function PlantBedViewPage() {
     } else {
       // First click OR click on different flower - START resize mode
       console.log("🎯 STARTING resize mode")
+      resizeModeRef.current = flowerId
       setSelectedFlower(flower)
       setIsResizing(null) // Make sure we're not in resize drag mode
       toast({
