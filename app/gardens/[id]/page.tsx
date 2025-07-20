@@ -36,7 +36,7 @@ const CANVAS_HEIGHT = 600
 const GRID_SIZE = 20
 const PLANTVAK_MIN_WIDTH = 100
 const PLANTVAK_MIN_HEIGHT = 80
-const METERS_TO_PIXELS = 50 // 1 meter = 50 pixels
+const METERS_TO_PIXELS = 42 // 1 meter = 42 pixels (optimized for 19m x 6m garden)
 
 interface PlantBedPosition {
   id: string
