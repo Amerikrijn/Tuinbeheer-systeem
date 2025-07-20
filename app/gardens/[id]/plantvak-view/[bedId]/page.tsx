@@ -482,11 +482,19 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
+    // DEBUG: Log current state
+    console.log("🔍 FLOWER CLICK DEBUG:", {
+      flowerId,
+      selectedFlowerId: selectedFlower?.id,
+      isCurrentlySelected: selectedFlower?.id === flowerId
+    })
+
     // Check if THIS specific flower is already selected for resizing
     const isCurrentlySelected = selectedFlower?.id === flowerId
     
     if (isCurrentlySelected) {
       // Second click on SAME flower - STOP resize mode
+      console.log("🛑 STOPPING resize mode")
       setSelectedFlower(null)
       setIsResizing(null)
       toast({
@@ -495,6 +503,7 @@ export default function PlantBedViewPage() {
       })
     } else {
       // First click OR click on different flower - START resize mode
+      console.log("🎯 STARTING resize mode")
       setSelectedFlower(flower)
       setIsResizing(null) // Make sure we're not in resize drag mode
       toast({
@@ -520,8 +529,8 @@ export default function PlantBedViewPage() {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // Select the flower
-    setSelectedFlower(flower)
+    // DON'T select the flower here - let click handler do it!
+    // This was causing the bug where first click was seen as second click
     
     // Start dragging this specific flower
     setDraggedFlower(flowerId)
