@@ -32,7 +32,7 @@ export default function GardenDetailPage() {
   const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])
   const [loading, setLoading] = useState(true)
   const [scale, setScale] = useState(1)
-  const [showVisualView, setShowVisualView] = useState(false)
+  const [showVisualView, setShowVisualView] = useState(true)
 
   useEffect(() => {
     const loadData = async () => {
@@ -135,7 +135,7 @@ export default function GardenDetailPage() {
               {garden.name}
             </h1>
             <p className="text-gray-600">
-              Beheer je tuin en plantvakken
+              Klik op een plantvak om de bloemen te beheren
               {(garden.total_area || (garden.length && garden.width)) && (
                 <span className="ml-2 text-sm font-medium text-green-600">
                   • Tuingrootte: {garden.total_area || 
@@ -156,6 +156,10 @@ export default function GardenDetailPage() {
           >
             <Grid3X3 className="h-4 w-4 mr-2" />
             {showVisualView ? "Lijst Weergave" : "Visuele Weergave"}
+          </Button>
+          <Button variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Plantvak Toevoegen
           </Button>
         </div>
       </div>
@@ -247,46 +251,55 @@ export default function GardenDetailPage() {
                   }}
                 />
 
-                {/* Plant Beds */}
-                {plantBeds.map((bed) => (
-                  <Link
-                    key={bed.id}
-                    href={`/gardens/${garden.id}/plantvak-view/${bed.id}`}
-                    className="absolute border-2 rounded-lg cursor-pointer transition-all hover:shadow-lg hover:scale-105"
-                    style={{
-                      left: bed.position_x || 100,
-                      top: bed.position_y || 100,
-                      width: bed.visual_width || 150,
-                      height: bed.visual_height || 100,
-                    }}
-                  >
-                    <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2`}>
-                      <div className="text-xs font-medium text-gray-700 bg-white/80 px-2 py-1 rounded">
-                        {bed.name}
-                      </div>
-                      <div className="text-xs bg-white/80 px-2 py-1 rounded flex items-center justify-between">
-                        <span>{bed.plants.length} 🌸</span>
-                        <span>{bed.size || 'Onbekend'}</span>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+                                 {/* Plant Beds */}
+                 {plantBeds.map((bed) => (
+                   <Link
+                     key={bed.id}
+                     href={`/gardens/${garden.id}/plantvak-view/${bed.id}`}
+                     className="absolute border-2 rounded-lg cursor-pointer transition-all hover:shadow-xl hover:scale-105 hover:border-green-500 group"
+                     style={{
+                       left: bed.position_x || 100,
+                       top: bed.position_y || 100,
+                       width: bed.visual_width || 150,
+                       height: bed.visual_height || 100,
+                     }}
+                   >
+                     <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors`}>
+                       <div className="text-xs font-medium text-gray-700 bg-white/90 px-2 py-1 rounded shadow-sm">
+                         {bed.name}
+                       </div>
+                       <div className="text-xs bg-white/90 px-2 py-1 rounded shadow-sm flex items-center justify-between">
+                         <span className="flex items-center gap-1">
+                           <span>{bed.plants.length}</span>
+                           <span>🌸</span>
+                         </span>
+                         <span>{bed.size || 'Onbekend'}</span>
+                       </div>
+                       <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
+                     </div>
+                   </Link>
+                 ))}
 
-                {/* Empty State */}
-                {plantBeds.length === 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <Leaf className="h-20 w-20 mx-auto text-gray-400 mb-4" />
-                      <h3 className="text-xl font-medium text-gray-900 mb-2">Nog geen plantvakken</h3>
-                      <p className="text-gray-600 mb-4">Voeg plantvakken toe om je tuin in te richten.</p>
-                    </div>
-                  </div>
-                )}
+                                 {/* Empty State */}
+                 {plantBeds.length === 0 && (
+                   <div className="absolute inset-0 flex items-center justify-center">
+                     <div className="text-center bg-white/80 p-8 rounded-lg border-2 border-dashed border-gray-300">
+                       <Leaf className="h-20 w-20 mx-auto text-gray-400 mb-4" />
+                       <h3 className="text-xl font-medium text-gray-900 mb-2">Nog geen plantvakken</h3>
+                       <p className="text-gray-600 mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
+                       <Button className="bg-green-600 hover:bg-green-700">
+                         <Plus className="h-4 w-4 mr-2" />
+                         Eerste Plantvak Maken
+                       </Button>
+                     </div>
+                   </div>
+                 )}
               </div>
             </div>
-            <div className="mt-4 text-sm text-gray-600">
-              <p>💡 <strong>Tip:</strong> Klik op een plantvak om de bloemen te beheren</p>
-            </div>
+                         <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
+               <p>💡 <strong>Tip:</strong> Klik op een plantvak om de bloemen te beheren</p>
+               <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
+             </div>
           </CardContent>
         </Card>
       ) : (
