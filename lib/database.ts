@@ -203,6 +203,27 @@ export async function createPlantBed(plantBed: {
 }): Promise<PlantBed | null> {
   console.log("🌱 Creating plant bed:", plantBed)
   
+  // Validate garden_id is a valid UUID format
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  if (!uuidRegex.test(plantBed.garden_id)) {
+    console.error("❌ Invalid garden_id format:", plantBed.garden_id)
+    throw new Error(`Invalid garden_id format: ${plantBed.garden_id}`)
+  }
+  
+  // Check if garden exists first
+  const { data: gardenExists, error: gardenCheckError } = await supabase
+    .from("gardens")
+    .select("id")
+    .eq("id", plantBed.garden_id)
+    .single()
+  
+  if (gardenCheckError || !gardenExists) {
+    console.error("❌ Garden does not exist:", { garden_id: plantBed.garden_id, error: gardenCheckError })
+    throw new Error(`Garden with id ${plantBed.garden_id} does not exist`)
+  }
+  
+  console.log("✅ Garden exists, proceeding with plant bed creation")
+  
   // Let the database auto-generate the UUID
   const { data, error } = await supabase.from("plant_beds").insert({
     garden_id: plantBed.garden_id,
@@ -216,13 +237,25 @@ export async function createPlantBed(plantBed: {
   }).select().single()
 
   if (error) {
-    console.error("❌ Error creating plant bed:", {
+    console.error("❌ Error creating plant bed - DETAILED:", {
       message: error.message,
       details: error.details,
       hint: error.hint,
       code: error.code,
-      fullError: error
+      status: error.status,
+      statusText: error.statusText,
+      fullError: JSON.stringify(error, null, 2)
     })
+    console.error("❌ Plant bed data that failed:", JSON.stringify({
+      garden_id: plantBed.garden_id,
+      name: plantBed.name,
+      location: plantBed.location || null,
+      size: plantBed.size || null,
+      soil_type: plantBed.soil_type || null,
+      sun_exposure: plantBed.sun_exposure || 'full-sun',
+      description: plantBed.description || null,
+      is_active: true
+    }, null, 2))
     if (isMissingRelation(error)) {
       console.warn(
         "Supabase table `plant_beds` not found yet – cannot create a plant bed until the migration is applied.",
