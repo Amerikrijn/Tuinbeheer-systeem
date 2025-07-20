@@ -283,12 +283,7 @@ function HomePageContent() {
                 Nieuwe Tuin Aanmaken
               </Link>
             </Button>
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link href="/plant-beds/new">
-                <Leaf className="h-4 w-4 mr-2" />
-                Nieuw Plantbed
-              </Link>
-            </Button>
+
           </div>
         </Card>
 
