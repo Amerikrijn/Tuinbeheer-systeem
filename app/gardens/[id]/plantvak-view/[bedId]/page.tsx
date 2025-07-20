@@ -905,7 +905,7 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🌸 <strong>JQUERY UI STANDARD:</strong> 1) Klik bloem (selecteren) → 2) Sleep BLAUWE HOEK → 3) Loslaten → MEER bloemen!
+              🌸 <strong>BELANGRIJK:</strong> 1) Klik bloem → 2) DIRECT SLEPEN van blauwe hoek (GEEN extra klik!) → 3) Loslaten → MEER bloemen!
               <span className="ml-2 text-sm font-medium text-pink-600">
                 • {plantBed.size || 'Op schaal'}
               </span>
@@ -1537,13 +1537,16 @@ export default function PlantBedViewPage() {
                           )
                         })()}
                         
-                        <div className="absolute -top-12 -right-2 bg-yellow-500 text-black text-sm px-3 py-2 rounded z-10 animate-pulse font-bold">
-                          ⬇️ SLEEP DEZE BLAUWE HOEK ⬇️
+                        <div className="absolute -top-16 -right-2 bg-red-500 text-white text-sm px-3 py-2 rounded z-10 animate-bounce font-bold">
+                          ⬇️ DIRECT SLEPEN - GEEN KLIK! ⬇️
+                        </div>
+                        <div className="absolute -top-8 -right-2 bg-yellow-500 text-black text-xs px-2 py-1 rounded z-10 font-bold">
+                          Houd ingedrukt + sleep
                         </div>
                         
-                        {/* JQUERY UI STANDARD RESIZE HANDLE */}
+                        {/* DIRECT DRAG RESIZE HANDLE - GEEN KLIK EERST! */}
                         <div
-                          className="absolute -bottom-5 -right-5 w-16 h-16 bg-blue-500 border-6 border-white rounded-full cursor-nw-resize hover:bg-blue-600 hover:scale-125 flex items-center justify-center z-20 shadow-2xl animate-pulse"
+                          className="absolute -bottom-5 -right-5 w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 border-8 border-white rounded-full cursor-nw-resize hover:from-blue-500 hover:to-blue-700 hover:scale-110 flex items-center justify-center z-20 shadow-2xl animate-pulse"
                           onMouseDown={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
@@ -1654,12 +1657,12 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>💡 <strong>BELANGRIJK - Twee verschillende acties:</strong></p>
+              <p>💡 <strong>DIRECT SLEPEN - GEEN KLIK EERST:</strong></p>
               <p>🌸 <strong>Klik bloem</strong> → Selecteren (blauwe hoek verschijnt)</p>
-              <p>🔵 <strong>Sleep BLAUWE HOEK</strong> → Resizen (gebied groter + meer bloemen)</p>
-              <p>🚚 <strong>Sleep BLOEM ZELF</strong> → Verplaatsen (andere positie)</p>
+              <p>🔵 <strong>HOUD BLAUWE HOEK INGEDRUKT + SLEEP</strong> → Direct resizen!</p>
+              <p>❌ <strong>NIET: klik hoek → dan slepen</strong> (werkt niet!)</p>
+              <p>✅ <strong>WEL: direct slepen vanaf hoek</strong> (zoals Photoshop)</p>
               <p>📛 <strong>Klik ergens anders</strong> → Deselecteren</p>
-              <p>👆 <strong>Ook:</strong> Dubbelklik bloem = bewerken</p>
             </div>
             <div className="flex items-center gap-4">
               <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
