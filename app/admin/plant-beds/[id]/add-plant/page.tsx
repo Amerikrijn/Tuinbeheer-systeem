@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Plus, Leaf, RefreshCw, Home } from "lucide-react"
+import { ArrowLeft, Plus, Leaf, RefreshCw, Home, MapPin } from "lucide-react"
 import { getMockPlantBeds, type PlantBed } from "@/lib/mock-data"
 
 interface NewPlant {
