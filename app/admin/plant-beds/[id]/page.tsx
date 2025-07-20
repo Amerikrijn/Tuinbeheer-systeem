@@ -184,6 +184,12 @@ export default function PlantBedDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Link href="/admin/plant-beds/layout">
+            <Button variant="outline" className="bg-transparent">
+              <MapPin className="h-4 w-4 mr-2" />
+              Visuele Layout
+            </Button>
+          </Link>
           <Link href={`/admin/plant-beds/${plantBed.id}/edit`}>
             <Button variant="outline" className="bg-transparent">
               <Edit className="h-4 w-4 mr-2" />
@@ -287,6 +293,18 @@ export default function PlantBedDetailPage() {
               <CardTitle>Snelle Acties</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              <Link href="/admin/plant-beds/layout" className="block">
+                <Button variant="outline" className="w-full bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
+                  <MapPin className="h-4 w-4 mr-2" />
+                  Visuele Layout Designer
+                </Button>
+              </Link>
+              <Link href={`/admin/plant-beds/${plantBed.id}/add-plant`} className="block">
+                <Button variant="outline" className="w-full bg-green-50 border-green-200 text-green-700 hover:bg-green-100">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Plant Toevoegen
+                </Button>
+              </Link>
               <Link href={`/admin/plant-beds/${plantBed.id}/edit`} className="block">
                 <Button variant="outline" className="w-full bg-transparent">
                   <Edit className="h-4 w-4 mr-2" />
