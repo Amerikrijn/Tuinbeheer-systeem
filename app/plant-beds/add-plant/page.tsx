@@ -233,12 +233,7 @@ export default function AddPlantPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Link href="/plant-beds/new">
-              <Button className="bg-green-600 hover:bg-green-700 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Plantvak Toevoegen
-              </Button>
-            </Link>
+
                         <Link href="/">
               <Button variant="outline">
                 <Home className="h-4 w-4 mr-2" />
