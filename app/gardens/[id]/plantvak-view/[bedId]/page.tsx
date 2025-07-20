@@ -905,9 +905,9 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🌸 <strong>ALLE DEVICES:</strong> 1) Klik/tap bloem → 2) Klik/tap + of - buttons → MEER bloemen komen erbij!
+              🔥 <strong>ULTIMATE DRAG:</strong> 1) Klik bloem → 2) SLEEP rode hoek → 3) Loslaten → MEER bloemen! LAATSTE POGING!
               <span className="ml-2 text-sm font-medium text-pink-600">
-                • {plantBed.size || 'Op schaal'} • 💻📱 Web/iPhone/Android
+                • {plantBed.size || 'Op schaal'} • 🔥 SLEEP = RESIZE!
               </span>
             </p>
           </div>
@@ -1537,108 +1537,138 @@ export default function PlantBedViewPage() {
                           )
                         })()}
                         
-                        <div className="absolute -top-16 -right-2 bg-purple-500 text-white text-sm px-3 py-1 rounded z-10 animate-bounce font-bold">
-                          💻📱 ALLE DEVICES
+                        <div className="absolute -top-16 -right-2 bg-red-500 text-white text-sm px-3 py-1 rounded z-10 animate-bounce font-bold">
+                          🔥 LAATSTE POGING! 🔥
                         </div>
-                        <div className="absolute -top-10 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10 font-bold">
-                          Web • iPhone • Android
+                        <div className="absolute -top-10 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded z-10 font-bold">
+                          SLEEP = RESIZE!
                         </div>
                         
-                                                {/* LAPTOP VRIENDELIJKE RESIZE BUTTONS */}
-                        <div className="absolute -bottom-8 -right-8 flex gap-1">
-                          {/* Groter maken button - TOUCH VRIENDELIJK */}
-                          <button
-                            className="w-14 h-14 bg-green-500 hover:bg-green-600 active:bg-green-700 border-4 border-white rounded-full flex items-center justify-center z-20 shadow-xl cursor-pointer touch-manipulation"
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
+                                                                        {/* 🔥 ULTIMATE DRAG HANDLE - LAATSTE POGING! */}
+                        <div
+                          className="absolute -bottom-6 -right-6 w-20 h-20 bg-gradient-to-br from-red-500 to-red-700 border-6 border-white rounded-full cursor-nw-resize hover:from-red-600 hover:to-red-800 hover:scale-110 flex items-center justify-center z-30 shadow-2xl animate-pulse touch-none select-none"
+                          onMouseDown={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            
+                            console.log("🔥 ULTIMATE DRAG START - LAATSTE POGING!")
+                            
+                            const currentFlower = flowerPositions.find(f => f.id === flower.id)
+                            if (!currentFlower) return
+                            
+                            const startX = e.clientX
+                            const startY = e.clientY
+                            const startAreaSize = currentFlower.notes?.includes('area_size:') 
+                              ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
+                              : FLOWER_SIZE * 3
+                            
+                            let isDragging = true
+                            
+                            const handleDrag = (moveEvent: MouseEvent) => {
+                              if (!isDragging) return
                               
-                              console.log("🔵 MULTI-DEVICE RESIZE - GROTER!")
+                              const deltaX = moveEvent.clientX - startX
+                              const deltaY = moveEvent.clientY - startY
+                              const delta = Math.max(deltaX, deltaY)
+                              const newAreaSize = Math.max(FLOWER_SIZE * 2, startAreaSize + delta)
                               
-                              const currentFlower = flowerPositions.find(f => f.id === flower.id)
-                              if (!currentFlower) return
+                              console.log("🔥 ULTIMATE DRAGGING:", newAreaSize)
                               
-                              const currentAreaSize = currentFlower.notes?.includes('area_size:') 
-                                ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
-                                : FLOWER_SIZE * 3
-                              
-                              const newAreaSize = currentAreaSize + 40 // 40px groter
-                              
-                              console.log("🔄 GROTER MAKEN:", newAreaSize)
-                              
-                              // Update flower area size
+                              // REAL-TIME update
                               setFlowerPositions(prev => prev.map(f => {
                                 if (f.id === currentFlower.id) {
                                   return { ...f, notes: `area_size:${newAreaSize}` }
                                 }
                                 return f
                               }))
+                            }
+                            
+                            const handleStop = () => {
+                              isDragging = false
+                              console.log("🔥 ULTIMATE DRAG STOP!")
+                              document.removeEventListener('mousemove', handleDrag)
+                              document.removeEventListener('mouseup', handleStop)
+                              document.removeEventListener('mouseleave', handleStop)
                               
                               toast({
-                                title: "✅ Groter gemaakt!",
-                                description: `Gebied nu ${newAreaSize}px - meer bloemen komen erbij!`,
+                                title: "🔥 ULTIMATE RESIZE DONE!",
+                                description: "Sleep werkt! Meer bloemen toegevoegd!",
                               })
-                            }}
-                            onTouchEnd={(e) => {
-                              // Same functionality for mobile touch
-                              e.preventDefault()
-                              e.stopPropagation()
-                              console.log("📱 TOUCH RESIZE - GROTER!")
-                              // Trigger same logic as click
-                              const event = new MouseEvent('click', { bubbles: true })
-                              e.currentTarget.dispatchEvent(event)
-                            }}
-                            title="Klik/tap om gebied groter te maken (alle devices!)"
-                          >
-                            <div className="text-white text-lg font-bold">+</div>
-                          </button>
-                          
-                          {/* Kleiner maken button - TOUCH VRIENDELIJK */}
-                          <button
-                            className="w-14 h-14 bg-red-500 hover:bg-red-600 active:bg-red-700 border-4 border-white rounded-full flex items-center justify-center z-20 shadow-xl cursor-pointer touch-manipulation"
-                            onClick={(e) => {
-                              e.preventDefault()
-                              e.stopPropagation()
+                            }
+                            
+                            // GLOBAL listeners - werkt OVERAL
+                            document.addEventListener('mousemove', handleDrag, { passive: false })
+                            document.addEventListener('mouseup', handleStop, { passive: false })
+                            document.addEventListener('mouseleave', handleStop, { passive: false })
+                            
+                            toast({
+                              title: "🔥 ULTIMATE DRAG ACTIVE!",
+                              description: "Sleep nu om te resizen - loslaten om te stoppen!",
+                            })
+                          }}
+                          onTouchStart={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            
+                            console.log("📱 ULTIMATE TOUCH START!")
+                            
+                            const currentFlower = flowerPositions.find(f => f.id === flower.id)
+                            if (!currentFlower) return
+                            
+                            const touch = e.touches[0]
+                            const startX = touch.clientX
+                            const startY = touch.clientY
+                            const startAreaSize = currentFlower.notes?.includes('area_size:') 
+                              ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
+                              : FLOWER_SIZE * 3
+                            
+                            let isTouchDragging = true
+                            
+                            const handleTouchMove = (moveEvent: TouchEvent) => {
+                              if (!isTouchDragging) return
+                              moveEvent.preventDefault()
                               
-                              console.log("🔴 MULTI-DEVICE RESIZE - KLEINER!")
+                              const touch = moveEvent.touches[0]
+                              const deltaX = touch.clientX - startX
+                              const deltaY = touch.clientY - startY
+                              const delta = Math.max(deltaX, deltaY)
+                              const newAreaSize = Math.max(FLOWER_SIZE * 2, startAreaSize + delta)
                               
-                              const currentFlower = flowerPositions.find(f => f.id === flower.id)
-                              if (!currentFlower) return
+                              console.log("📱 ULTIMATE TOUCH DRAGGING:", newAreaSize)
                               
-                              const currentAreaSize = currentFlower.notes?.includes('area_size:') 
-                                ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
-                                : FLOWER_SIZE * 3
-                              
-                              const newAreaSize = Math.max(FLOWER_SIZE * 2, currentAreaSize - 40) // 40px kleiner
-                              
-                              console.log("🔄 KLEINER MAKEN:", newAreaSize)
-                              
-                              // Update flower area size
+                              // REAL-TIME update
                               setFlowerPositions(prev => prev.map(f => {
                                 if (f.id === currentFlower.id) {
                                   return { ...f, notes: `area_size:${newAreaSize}` }
                                 }
                                 return f
                               }))
+                            }
+                            
+                            const handleTouchEnd = () => {
+                              isTouchDragging = false
+                              console.log("📱 ULTIMATE TOUCH END!")
+                              document.removeEventListener('touchmove', handleTouchMove as any)
+                              document.removeEventListener('touchend', handleTouchEnd as any)
                               
                               toast({
-                                title: "✅ Kleiner gemaakt!",
-                                description: `Gebied nu ${newAreaSize}px - bloemen verdwijnen automatisch!`,
+                                title: "📱 TOUCH RESIZE DONE!",
+                                description: "Touch sleep werkt! Meer bloemen toegevoegd!",
                               })
-                            }}
-                            onTouchEnd={(e) => {
-                              // Same functionality for mobile touch
-                              e.preventDefault()
-                              e.stopPropagation()
-                              console.log("📱 TOUCH RESIZE - KLEINER!")
-                              // Trigger same logic as click
-                              const event = new MouseEvent('click', { bubbles: true })
-                              e.currentTarget.dispatchEvent(event)
-                            }}
-                            title="Klik/tap om gebied kleiner te maken (alle devices!)"
-                          >
-                            <div className="text-white text-lg font-bold">-</div>
-                          </button>
+                            }
+                            
+                            // GLOBAL touch listeners
+                            document.addEventListener('touchmove', handleTouchMove as any, { passive: false })
+                            document.addEventListener('touchend', handleTouchEnd as any, { passive: false })
+                            
+                            toast({
+                              title: "📱 TOUCH DRAG ACTIVE!",
+                              description: "Sleep nu met vinger - loslaten om te stoppen!",
+                            })
+                          }}
+                          title="🔥 ULTIMATE DRAG HANDLE - Sleep om te resizen!"
+                        >
+                          <div className="text-white text-xl font-black">⤢</div>
                         </div>
                         
                         {/* Show live area info during resize */}
@@ -1689,12 +1719,12 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>💡 <strong>MULTI-DEVICE RESIZE SYSTEEM:</strong></p>
-              <p>🌸 <strong>Klik/tap bloem</strong> → Selecteren (+ en - buttons verschijnen)</p>
-              <p>🟢 <strong>+ button</strong> → Gebied groter + meer bloemen</p>
-              <p>🔴 <strong>- button</strong> → Gebied kleiner + minder bloemen</p>
-              <p>💻 <strong>Web/laptop</strong> → Click buttons</p>
-              <p>📱 <strong>iPhone/Android</strong> → Tap buttons</p>
+              <p>🔥 <strong>ULTIMATE DRAG SYSTEEM - LAATSTE POGING:</strong></p>
+              <p>🌸 <strong>Klik bloem</strong> → Selecteren (RODE hoek verschijnt)</p>
+              <p>🔥 <strong>SLEEP RODE HOEK</strong> → DIRECT resizen + meer bloemen!</p>
+              <p>💻 <strong>Laptop/desktop</strong> → Sleep met muis</p>
+              <p>📱 <strong>iPhone/Android</strong> → Sleep met vinger</p>
+              <p>✅ <strong>Loslaten</strong> → Resize klaar + save</p>
               <p>📛 <strong>Klik ergens anders</strong> → Deselecteren</p>
             </div>
             <div className="flex items-center gap-4">
