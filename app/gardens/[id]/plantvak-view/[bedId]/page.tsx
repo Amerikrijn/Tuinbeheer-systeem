@@ -905,9 +905,9 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🔥 <strong>ULTIMATE DRAG:</strong> 1) Klik bloem → 2) SLEEP rode hoek → 3) Loslaten → MEER bloemen! LAATSTE POGING!
+              🖱️💻📱 <strong>UNIVERSEEL:</strong> 1) Klik bloem → 2) Sleep blauwe hoek OF klik +/- buttons → MEER bloemen!
               <span className="ml-2 text-sm font-medium text-pink-600">
-                • {plantBed.size || 'Op schaal'} • 🔥 SLEEP = RESIZE!
+                • {plantBed.size || 'Op schaal'} • Muis • Trackpad • Mobiel
               </span>
             </p>
           </div>
@@ -1537,16 +1537,19 @@ export default function PlantBedViewPage() {
                           )
                         })()}
                         
-                        <div className="absolute -top-16 -right-2 bg-blue-500 text-white text-sm px-3 py-1 rounded z-10 animate-bounce font-bold">
-                          💻 TRACKPAD VRIENDELIJK! 
+                        <div className="absolute -top-16 -right-2 bg-purple-500 text-white text-sm px-3 py-1 rounded z-10 animate-bounce font-bold">
+                          🖱️💻📱 UNIVERSEEL SYSTEEM
                         </div>
-                        <div className="absolute -top-10 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded z-10 font-bold">
-                          KLIK + KLIK = RESIZE!
+                        <div className="absolute -top-10 -right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded z-10 font-bold">
+                          Muis • Trackpad • Mobiel
                         </div>
                         
-                                                                        {/* 🔥 ULTIMATE DRAG HANDLE - LAATSTE POGING! */}
-                        <div
-                          className="absolute -bottom-6 -right-6 w-20 h-20 bg-gradient-to-br from-red-500 to-red-700 border-6 border-white rounded-full cursor-nw-resize hover:from-red-600 hover:to-red-800 hover:scale-110 flex items-center justify-center z-30 shadow-2xl animate-pulse touch-none select-none"
+                                                                        {/* 🖱️💻📱 UNIVERSEEL RESIZE SYSTEEM */}
+                        <div className="absolute -bottom-12 -right-12 flex flex-col gap-2">
+                          
+                          {/* DRAG HANDLE - voor muis en trackpad */}
+                          <div
+                            className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-700 border-4 border-white rounded-full cursor-nw-resize hover:from-blue-600 hover:to-blue-800 hover:scale-105 flex items-center justify-center z-30 shadow-xl touch-none select-none"
                           onMouseDown={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
@@ -1666,10 +1669,82 @@ export default function PlantBedViewPage() {
                               description: "Sleep nu met vinger - loslaten om te stoppen!",
                             })
                           }}
-                          title="🔥 ULTIMATE DRAG HANDLE - Sleep om te resizen!"
-                        >
-                          <div className="text-white text-xl font-black">⤢</div>
-                        </div>
+                                                       title="🖱️ DRAG HANDLE - Sleep om te resizen (muis/trackpad)"
+                           >
+                             <div className="text-white text-lg font-bold">⤢</div>
+                           </div>
+                           
+                           {/* SIMPELE BUTTONS - voor als drag niet werkt */}
+                           <div className="flex gap-1">
+                             <button
+                               className="w-12 h-12 bg-green-500 hover:bg-green-600 active:bg-green-700 border-2 border-white rounded-lg flex items-center justify-center z-30 shadow-lg cursor-pointer"
+                               onClick={(e) => {
+                                 e.preventDefault()
+                                 e.stopPropagation()
+                                 
+                                 console.log("🟢 BUTTON RESIZE - GROTER!")
+                                 
+                                 const currentFlower = flowerPositions.find(f => f.id === flower.id)
+                                 if (!currentFlower) return
+                                 
+                                 const currentAreaSize = currentFlower.notes?.includes('area_size:') 
+                                   ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
+                                   : FLOWER_SIZE * 3
+                                 
+                                 const newAreaSize = currentAreaSize + 50 // 50px groter
+                                 
+                                 setFlowerPositions(prev => prev.map(f => {
+                                   if (f.id === currentFlower.id) {
+                                     return { ...f, notes: `area_size:${newAreaSize}` }
+                                   }
+                                   return f
+                                 }))
+                                 
+                                 toast({
+                                   title: "✅ Groter gemaakt!",
+                                   description: `Gebied nu ${newAreaSize}px - meer bloemen!`,
+                                 })
+                               }}
+                               title="Klik om groter te maken (werkt altijd!)"
+                             >
+                               <div className="text-white text-lg font-bold">+</div>
+                             </button>
+                             
+                             <button
+                               className="w-12 h-12 bg-red-500 hover:bg-red-600 active:bg-red-700 border-2 border-white rounded-lg flex items-center justify-center z-30 shadow-lg cursor-pointer"
+                               onClick={(e) => {
+                                 e.preventDefault()
+                                 e.stopPropagation()
+                                 
+                                 console.log("🔴 BUTTON RESIZE - KLEINER!")
+                                 
+                                 const currentFlower = flowerPositions.find(f => f.id === flower.id)
+                                 if (!currentFlower) return
+                                 
+                                 const currentAreaSize = currentFlower.notes?.includes('area_size:') 
+                                   ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
+                                   : FLOWER_SIZE * 3
+                                 
+                                 const newAreaSize = Math.max(FLOWER_SIZE * 2, currentAreaSize - 50) // 50px kleiner
+                                 
+                                 setFlowerPositions(prev => prev.map(f => {
+                                   if (f.id === currentFlower.id) {
+                                     return { ...f, notes: `area_size:${newAreaSize}` }
+                                   }
+                                   return f
+                                 }))
+                                 
+                                 toast({
+                                   title: "✅ Kleiner gemaakt!",
+                                   description: `Gebied nu ${newAreaSize}px - minder bloemen!`,
+                                 })
+                               }}
+                               title="Klik om kleiner te maken"
+                             >
+                               <div className="text-white text-lg font-bold">-</div>
+                             </button>
+                           </div>
+                         </div>
                         
                         {/* Show live area info during resize */}
                         {isBeingResized && (
