@@ -242,8 +242,6 @@ export async function createPlantBed(plantBed: {
       details: error.details,
       hint: error.hint,
       code: error.code,
-      status: error.status,
-      statusText: error.statusText,
       fullError: JSON.stringify(error, null, 2)
     })
     console.error("❌ Plant bed data that failed:", JSON.stringify({
