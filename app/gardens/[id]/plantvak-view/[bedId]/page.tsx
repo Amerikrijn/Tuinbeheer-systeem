@@ -1537,11 +1537,11 @@ export default function PlantBedViewPage() {
                           )
                         })()}
                         
-                        <div className="absolute -top-16 -right-2 bg-red-500 text-white text-sm px-3 py-1 rounded z-10 animate-bounce font-bold">
-                          🔥 LAATSTE POGING! 🔥
+                        <div className="absolute -top-16 -right-2 bg-blue-500 text-white text-sm px-3 py-1 rounded z-10 animate-bounce font-bold">
+                          💻 TRACKPAD VRIENDELIJK! 
                         </div>
                         <div className="absolute -top-10 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded z-10 font-bold">
-                          SLEEP = RESIZE!
+                          KLIK + KLIK = RESIZE!
                         </div>
                         
                                                                         {/* 🔥 ULTIMATE DRAG HANDLE - LAATSTE POGING! */}
