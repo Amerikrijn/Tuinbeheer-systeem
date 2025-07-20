@@ -482,8 +482,11 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    if (selectedFlower?.id === flowerId) {
-      // Second click - STOP resize mode
+    // Check if THIS specific flower is already selected for resizing
+    const isCurrentlySelected = selectedFlower?.id === flowerId
+    
+    if (isCurrentlySelected) {
+      // Second click on SAME flower - STOP resize mode
       setSelectedFlower(null)
       setIsResizing(null)
       toast({
@@ -491,8 +494,9 @@ export default function PlantBedViewPage() {
         description: "Bloem is niet meer geselecteerd voor resizing",
       })
     } else {
-      // First click - START resize mode
+      // First click OR click on different flower - START resize mode
       setSelectedFlower(flower)
+      setIsResizing(null) // Make sure we're not in resize drag mode
       toast({
         title: "🎯 Resize actief",
         description: "Sleep de blauwe hoek om het vlak groter te maken",
@@ -602,15 +606,25 @@ export default function PlantBedViewPage() {
     setIsResizing(null)
     setDraggedFlower(null) // Ensure no drag conflicts
     
+    // Get current area size or set default
+    const currentAreaSize = flower.notes?.includes('area_size:') 
+      ? parseInt(flower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
+      : FLOWER_SIZE * 3
+
     // Set resize state
     setIsResizing(flowerId)
     setResizeMode(mode)
     setResizeStartSize({ 
-      width: flower.visual_width, 
-      height: flower.visual_height 
+      width: currentAreaSize,  // Use area size, not flower size
+      height: currentAreaSize 
     })
     setResizeStartPos({ x: e.clientX, y: e.clientY })
     setDuplicatePositions([]) // Reset duplicate positions
+    
+    toast({
+      title: "🎯 Resize actief!",
+      description: "Sleep om het gebied groter te maken - veel meer bloemen komen erbij!",
+    })
   }, [flowerPositions])
 
   // Handle resize move - Create invisible area with more flowers inside!
@@ -625,7 +639,7 @@ export default function PlantBedViewPage() {
     
     // Calculate new AREA size (invisible boundary for flowers)
     const delta = Math.max(deltaX, deltaY)
-    let newAreaSize = Math.max(FLOWER_SIZE * 2, resizeStartSize.width + delta)
+    let newAreaSize = Math.max(FLOWER_SIZE * 3, resizeStartSize.width + delta) // Start groter voor meer bloemen
     
     // Constrain to canvas bounds
     const maxSize = Math.min(canvasWidth - flower.position_x, canvasHeight - flower.position_y)
@@ -645,10 +659,10 @@ export default function PlantBedViewPage() {
       return f
     }))
 
-    // Calculate how many flowers should be in this area
-    const areaRatio = (newAreaSize * newAreaSize) / (FLOWER_SIZE * FLOWER_SIZE * 4) // Area ratio
-    const targetExtraFlowers = Math.max(0, Math.floor(areaRatio * 2)) // More flowers = bigger area
-    const maxExtraFlowers = 25
+    // Calculate how many flowers should be in this area - VEEL MEER voor leuk effect!
+    const areaRatio = (newAreaSize * newAreaSize) / (FLOWER_SIZE * FLOWER_SIZE) // Area ratio
+    const targetExtraFlowers = Math.max(0, Math.floor(areaRatio * 0.8)) // Veel meer bloemen!
+    const maxExtraFlowers = 50 // Verhoogd voor leuk effect
     const actualTargetFlowers = Math.min(targetExtraFlowers, maxExtraFlowers)
 
     // Get current extra flowers in this area
@@ -662,8 +676,8 @@ export default function PlantBedViewPage() {
     const currentCount = currentExtraFlowers.length
 
     if (actualTargetFlowers > currentCount) {
-      // ADD MORE FLOWERS within the invisible area
-      const flowersToAdd = Math.min(3, actualTargetFlowers - currentCount) // Add max 3 at a time for performance
+      // ADD MORE FLOWERS within the invisible area - MEER voor leuk effect!
+      const flowersToAdd = Math.min(8, actualTargetFlowers - currentCount) // Meer bloemen per keer!
       const newFlowers: PlantWithPosition[] = []
 
       for (let i = 0; i < flowersToAdd; i++) {
@@ -714,7 +728,7 @@ export default function PlantBedViewPage() {
 
     } else if (actualTargetFlowers < currentCount) {
       // REMOVE EXCESS FLOWERS
-      const flowersToRemove = Math.min(3, currentCount - actualTargetFlowers) // Remove max 3 at a time
+      const flowersToRemove = Math.min(5, currentCount - actualTargetFlowers) // Remove meer per keer
       const flowersToDelete = currentExtraFlowers.slice(0, flowersToRemove)
 
       for (const flowerToDelete of flowersToDelete) {
@@ -1503,8 +1517,8 @@ export default function PlantBedViewPage() {
                         {/* Invisible area visualization */}
                         {(() => {
                           const areaSize = flower.notes?.includes('area_size:') 
-                            ? parseInt(flower.notes.split('area_size:')[1]) || FLOWER_SIZE * 2
-                            : FLOWER_SIZE * 2
+                            ? parseInt(flower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
+                            : FLOWER_SIZE * 3
                           
                           return (
                             <div
@@ -1538,8 +1552,8 @@ export default function PlantBedViewPage() {
                           <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-sm px-3 py-2 rounded-full z-10 animate-bounce shadow-lg">
                             🌸 Gebied: {(() => {
                               const areaSize = flower.notes?.includes('area_size:') 
-                                ? parseInt(flower.notes.split('area_size:')[1]) || FLOWER_SIZE * 2
-                                : FLOWER_SIZE * 2
+                                ? parseInt(flower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
+                                : FLOWER_SIZE * 3
                               const extraFlowers = flowerPositions.filter(f => 
                                 f.id !== flower.id && 
                                 f.name === flower.name &&
