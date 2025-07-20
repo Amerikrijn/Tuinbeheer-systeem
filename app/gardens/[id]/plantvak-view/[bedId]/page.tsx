@@ -905,7 +905,7 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🌸 <strong>LET OP:</strong> 1) Klik bloem (selecteren) → 2) Sleep ALLEEN de BLAUWE HOEK (bloem = verplaatsen!) → 3) Loslaten → MEER bloemen!
+              🌸 <strong>JQUERY UI STANDARD:</strong> 1) Klik bloem (selecteren) → 2) Sleep BLAUWE HOEK → 3) Loslaten → MEER bloemen!
               <span className="ml-2 text-sm font-medium text-pink-600">
                 • {plantBed.size || 'Op schaal'}
               </span>
@@ -1536,20 +1536,67 @@ export default function PlantBedViewPage() {
                           ⬇️ SLEEP DEZE BLAUWE HOEK ⬇️
                         </div>
                         
-                        {/* ZEER GROTE, DUIDELIJKE resize handle - VOLLEDIG GESCHEIDEN */}
+                        {/* JQUERY UI STANDARD RESIZE HANDLE */}
                         <div
                           className="absolute -bottom-5 -right-5 w-16 h-16 bg-blue-500 border-6 border-white rounded-full cursor-nw-resize hover:bg-blue-600 hover:scale-125 flex items-center justify-center z-20 shadow-2xl animate-pulse"
                           onMouseDown={(e) => {
                             e.preventDefault()
-                            e.stopPropagation() // STOP event bubbling naar bloem!
-                            console.log("🔵 RESIZE HANDLE MOUSEDOWN - NIET VERPLAATSEN!")
-                            handleResizeStart(e, flower.id, 'uniform')
+                            e.stopPropagation()
+                            
+                            console.log("🔵 JQUERY UI RESIZE START!")
+                            
+                            // JQUERY UI PATTERN: Direct resize start
+                            const currentFlower = flowerPositions.find(f => f.id === flower.id)
+                            if (!currentFlower) return
+                            
+                                                         const startX = e.clientX
+                             const startY = e.clientY
+                             const currentAreaSize = currentFlower.notes?.includes('area_size:') 
+                               ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
+                               : FLOWER_SIZE * 3
+                            
+                            // REAL-TIME RESIZE FUNCTION
+                            const doResize = (moveEvent: MouseEvent) => {
+                              const deltaX = moveEvent.clientX - startX
+                              const deltaY = moveEvent.clientY - startY
+                              const newAreaSize = Math.max(FLOWER_SIZE * 2, currentAreaSize + Math.max(deltaX, deltaY))
+                              
+                              console.log("🔄 RESIZING:", newAreaSize)
+                              
+                                                             // Update flower area size
+                               setFlowerPositions(prev => prev.map(f => {
+                                 if (f.id === currentFlower.id) {
+                                   return { ...f, notes: `area_size:${newAreaSize}` }
+                                 }
+                                 return f
+                               }))
+                            }
+                            
+                            // STOP RESIZE FUNCTION
+                            const stopResize = () => {
+                              console.log("✅ RESIZE STOPPED!")
+                              document.removeEventListener('mousemove', doResize)
+                              document.removeEventListener('mouseup', stopResize)
+                              toast({
+                                title: "✅ Resize voltooid!",
+                                description: "Gebied is aangepast - meer bloemen toegevoegd!",
+                              })
+                            }
+                            
+                            // JQUERY UI PATTERN: Global listeners
+                            document.addEventListener('mousemove', doResize)
+                            document.addEventListener('mouseup', stopResize)
+                            
+                            toast({
+                              title: "🎯 Resize gestart!",
+                              description: "Sleep om gebied groter te maken - loslaten om te stoppen!",
+                            })
                           }}
                           onClick={(e) => {
                             e.preventDefault()
-                            e.stopPropagation() // STOP click naar bloem!
+                            e.stopPropagation()
                           }}
-                          title="SLEEP DEZE BLAUWE HOEK OM TE RESIZEN!"
+                          title="JQUERY UI STANDARD RESIZE HANDLE!"
                         >
                           <div className="text-white text-lg font-bold">⤢</div>
                         </div>
