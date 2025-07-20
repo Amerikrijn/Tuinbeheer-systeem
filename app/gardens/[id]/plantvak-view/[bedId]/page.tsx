@@ -75,6 +75,32 @@ const DEFAULT_FLOWER_COLORS = [
   '#32CD32', '#00CED1', '#FF6347', '#DDA0DD', '#98FB98'
 ]
 
+// Helper function to get emoji based on plant name or category
+const getPlantEmoji = (name?: string, category?: string): string => {
+  const plantName = (name || '').toLowerCase()
+  const plantCategory = (category || '').toLowerCase()
+  
+  // Match by name
+  if (plantName.includes('roos') || plantName.includes('rose')) return '🌹'
+  if (plantName.includes('tulp') || plantName.includes('tulip')) return '🌷'
+  if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
+  if (plantName.includes('lavendel') || plantName.includes('lavender')) return '🪻'
+  if (plantName.includes('dahlia')) return '🌺'
+  if (plantName.includes('chrysant')) return '🌼'
+  if (plantName.includes('narcis') || plantName.includes('daffodil')) return '🌻'
+  if (plantName.includes('iris')) return '🌸'
+  if (plantName.includes('petunia')) return '🌺'
+  if (plantName.includes('begonia')) return '🌸'
+  
+  // Match by category
+  if (plantCategory.includes('bloem') || plantCategory.includes('flower')) return '🌸'
+  if (plantCategory.includes('kruid') || plantCategory.includes('herb')) return '🌿'
+  if (plantCategory.includes('groente') || plantCategory.includes('vegetable')) return '🥬'
+  
+  // Default
+  return '🌸'
+}
+
 export default function PlantBedViewPage() {
   const router = useRouter()
   const params = useParams()
@@ -135,7 +161,30 @@ export default function PlantBedViewPage() {
         const specificBed = plantBedsData.find(bed => bed.id === params.bedId)
         setPlantBed(specificBed || null)
         
-        // Load saved flower positions from localStorage
+        // Convert existing plants to flower positions
+        if (specificBed?.plants && specificBed.plants.length > 0) {
+          console.log('Loading plants from database:', specificBed.plants)
+          const existingFlowers: FlowerPosition[] = specificBed.plants.map((plant, index) => ({
+            id: plant.id || `plant-${index}`,
+            x: Math.random() * (canvasWidth - FLOWER_SIZE),
+            y: Math.random() * (canvasHeight - FLOWER_SIZE),
+            width: FLOWER_SIZE,
+            height: FLOWER_SIZE,
+            name: plant.name || 'Onbekende bloem',
+            color: plant.color || '#FF69B4',
+            type: plant.category || plant.scientific_name || 'Bloem',
+            status: (plant.status as any) || 'healthy',
+            emoji: getPlantEmoji(plant.name, plant.category),
+            isCustom: false,
+            isEnlarged: false
+          }))
+          console.log('Converted to flower positions:', existingFlowers)
+          setFlowerPositions(existingFlowers)
+        } else {
+          console.log('No plants found in database for bed:', params.bedId)
+        }
+        
+        // Load saved flower positions from localStorage (overwrites database positions if exists)
         const savedPositions = localStorage.getItem(`plantvak-${params.bedId}-flowers`)
         if (savedPositions) {
           setFlowerPositions(JSON.parse(savedPositions))
@@ -152,7 +201,7 @@ export default function PlantBedViewPage() {
     if (params.id && params.bedId) {
       loadData()
     }
-  }, [params.id, params.bedId])
+  }, [params.id, params.bedId, canvasWidth, canvasHeight])
 
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
