@@ -134,10 +134,10 @@ export default function GardenDetailPage() {
                 Voeg je eerste plantvak toe om bloemen te kunnen planten.
               </p>
 
-              <Link href={`/plant-beds/new?garden_id=${garden.id}`}>
+              <Link href={`/gardens/${garden.id}/plantvak-view`}>
                 <Button className="bg-green-600 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
-                  Eerste Plantvak Maken
+                  Plantvakken Beheren
                 </Button>
               </Link>
             </CardContent>
