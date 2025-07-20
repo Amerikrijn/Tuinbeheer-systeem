@@ -418,7 +418,15 @@ export default function PlantBedViewPage() {
 
   // Update plant bed
   const updatePlantBedInfo = async () => {
-    if (!plantBed || !plantBedForm.name || !plantBedForm.length || !plantBedForm.width) {
+    console.log("🔍 Updating plant bed with form data:", plantBedForm)
+    
+    if (!plantBed || !plantBedForm.name?.trim() || !plantBedForm.length || !plantBedForm.width) {
+      console.log("❌ Validation failed:", { 
+        plantBed: !!plantBed, 
+        name: plantBedForm.name, 
+        length: plantBedForm.length, 
+        width: plantBedForm.width 
+      })
       toast({
         title: "Incomplete gegevens",
         description: "Vul alle velden in om het plantvak bij te werken.",
@@ -431,10 +439,21 @@ export default function PlantBedViewPage() {
       const sizeString = `${plantBedForm.length}m x ${plantBedForm.width}m`
       const length = parseFloat(plantBedForm.length)
       const width = parseFloat(plantBedForm.width)
+      
+      if (isNaN(length) || isNaN(width) || length <= 0 || width <= 0) {
+        toast({
+          title: "Ongeldige afmetingen",
+          description: "Lengte en breedte moeten geldige getallen zijn groter dan 0.",
+          variant: "destructive",
+        })
+        return
+      }
+      
       const visualWidth = length * 50 // 1m = 50px
       const visualHeight = width * 50
 
-      const updatedBed = await updatePlantBed(plantBed.id, {
+      console.log("📝 Updating plant bed with data:", {
+        id: plantBed.id,
         name: plantBedForm.name,
         size: sizeString,
         description: plantBedForm.description,
@@ -444,7 +463,19 @@ export default function PlantBedViewPage() {
         visual_height: visualHeight
       })
 
+      const updatedBed = await updatePlantBed(plantBed.id, {
+        name: plantBedForm.name.trim(),
+        size: sizeString,
+        description: plantBedForm.description?.trim() || null,
+        sun_exposure: plantBedForm.sun_exposure,
+        soil_type: plantBedForm.soil_type,
+        visual_width: visualWidth,
+        visual_height: visualHeight
+      })
+
       if (updatedBed) {
+        console.log("✅ Plant bed updated successfully:", updatedBed)
+        
         // Convert PlantBed to PlantBedWithPlants by adding plants array and ensuring required fields
         const bedWithPlants: PlantBedWithPlants = {
           ...updatedBed,
@@ -463,6 +494,13 @@ export default function PlantBedViewPage() {
         toast({
           title: "Plantvak bijgewerkt",
           description: "De plantvak informatie is succesvol bijgewerkt.",
+        })
+      } else {
+        console.log("⚠️ No updated bed returned from database")
+        toast({
+          title: "Waarschuwing",
+          description: "Het plantvak is mogelijk niet bijgewerkt. Probeer het opnieuw.",
+          variant: "destructive",
         })
       }
     } catch (error) {
