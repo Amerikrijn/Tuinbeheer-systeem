@@ -203,14 +203,6 @@ export async function createPlantBed(plantBed: {
 }): Promise<PlantBed | null> {
   console.log("🌱 Creating plant bed:", plantBed)
   
-  // Validate garden_id is a valid UUID format (temporarily disabled for debugging)
-  // const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  // if (!uuidRegex.test(plantBed.garden_id)) {
-  //   console.error("❌ Invalid garden_id format:", plantBed.garden_id)
-  //   throw new Error(`Invalid garden_id format: ${plantBed.garden_id}`)
-  // }
-  console.log("🔍 Garden ID to be used:", { garden_id: plantBed.garden_id, type: typeof plantBed.garden_id })
-  
   // Check if garden exists first
   const { data: gardenExists, error: gardenCheckError } = await supabase
     .from("gardens")
@@ -225,8 +217,50 @@ export async function createPlantBed(plantBed: {
   
   console.log("✅ Garden exists, proceeding with plant bed creation")
   
-  // Let the database auto-generate the UUID
+  // Generate a unique ID for the plant bed
+  // Get existing plant bed IDs for this garden to generate next available ID
+  const { data: existingBeds, error: fetchError } = await supabase
+    .from("plant_beds")
+    .select("id")
+    .eq("garden_id", plantBed.garden_id)
+    .order("id")
+  
+  if (fetchError) {
+    console.error("❌ Error fetching existing plant beds:", fetchError)
+    throw fetchError
+  }
+  
+  // Generate next available ID (A1, A2, B1, B2, etc.)
+  const generateNextId = (existingIds: string[]): string => {
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    
+    for (const letter of letters) {
+      let number = 1
+      let candidateId = `${letter}${number}`
+      
+      while (existingIds.includes(candidateId)) {
+        number++
+        candidateId = `${letter}${number}`
+      }
+      
+      // If we found an available ID with this letter, use it
+      if (!existingIds.includes(candidateId)) {
+        return candidateId
+      }
+    }
+    
+    // Fallback: use timestamp-based ID if all letters are exhausted
+    return `BED${Date.now().toString().slice(-6)}`
+  }
+  
+  const existingIds = existingBeds?.map(bed => bed.id) || []
+  const newId = generateNextId(existingIds)
+  
+  console.log("🆔 Generated plant bed ID:", newId)
+  
+  // Insert with the generated ID
   const { data, error } = await supabase.from("plant_beds").insert({
+    id: newId,
     garden_id: plantBed.garden_id,
     name: plantBed.name,
     location: plantBed.location || null,
@@ -246,6 +280,7 @@ export async function createPlantBed(plantBed: {
       fullError: JSON.stringify(error, null, 2)
     })
     console.error("❌ Plant bed data that failed:", JSON.stringify({
+      id: newId,
       garden_id: plantBed.garden_id,
       name: plantBed.name,
       location: plantBed.location || null,
