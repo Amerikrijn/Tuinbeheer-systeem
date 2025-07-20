@@ -93,7 +93,7 @@ export default function GardenPage() {
         description: `${editGarden.name} has been successfully updated.`,
       })
 
-      router.push("/admin/plant-beds")
+      router.push("/gardens")
     } catch (error) {
       toast({
         title: "Error",
@@ -139,9 +139,9 @@ export default function GardenPage() {
           <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Garden not found</h3>
           <p className="text-gray-600 mb-4">There was a problem loading the garden data.</p>
-          <Button onClick={() => router.push("/admin/plant-beds")} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={() => router.push("/gardens")} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Plant Beds
+            Back to Gardens
           </Button>
         </div>
       </div>
@@ -159,11 +159,11 @@ export default function GardenPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push("/admin/plant-beds")}
+          onClick={() => router.push("/gardens")}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
-          Plant Beds Management
+          Gardens Management
         </Button>
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -297,7 +297,7 @@ export default function GardenPage() {
                       </>
                     )}
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => router.push("/admin/plant-beds")}>
+                  <Button type="button" variant="outline" onClick={() => router.push("/gardens")}>
                     Cancel
                   </Button>
                 </div>
@@ -399,18 +399,18 @@ export default function GardenPage() {
               <Button
                 variant="outline"
                 className="w-full bg-transparent"
-                onClick={() => router.push("/admin/plant-beds/layout")}
+                onClick={() => router.push(`/gardens/${garden?.id || ''}`)}
               >
                 <MapPin className="h-4 w-4 mr-2" />
-                Layout View
+                View Garden Layout
               </Button>
               <Button
                 variant="outline"
                 className="w-full bg-transparent"
-                onClick={() => router.push("/admin/plant-beds/configure")}
+                onClick={() => router.push("/gardens")}
               >
                 <TreePine className="h-4 w-4 mr-2" />
-                New Plant Bed
+                All Gardens
               </Button>
             </CardContent>
           </Card>
