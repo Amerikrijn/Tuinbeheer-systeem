@@ -474,27 +474,141 @@ export default function PlantBedViewPage() {
     }
   }
 
-  // Handle single click - select flower
-  const handleFlowerClick = useCallback((e: React.MouseEvent, flowerId: string) => {
+  // Handle single click - toggle flower size (make it much simpler!)
+  const handleFlowerClick = useCallback(async (e: React.MouseEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
     
-    // If currently resizing, stop it
-    if (isResizing) {
-      setIsResizing(null)
-      setResizeStartSize({ width: 0, height: 0 })
-      setResizeStartPos({ x: 0, y: 0 })
-      setResizeMode('uniform')
-      setDuplicatePositions([])
-      return
+    const flower = flowerPositions.find(f => f.id === flowerId)
+    if (!flower || !plantBed) return
+
+    // Simple toggle: if small -> make big, if big -> make small
+    const isCurrentlySmall = flower.visual_width <= FLOWER_SIZE * 1.5
+    
+    if (isCurrentlySmall) {
+      // VERGROTEN: Maak bloem groot en voeg veel bloemen toe
+      const newSize = FLOWER_SIZE * 4 // Veel groter!
+      
+      // Zorg dat het binnen canvas blijft
+      const maxX = canvasWidth - newSize
+      const maxY = canvasHeight - newSize
+      const adjustedX = Math.min(flower.position_x, Math.max(0, maxX))
+      const adjustedY = Math.min(flower.position_y, Math.max(0, maxY))
+      
+      try {
+        // Update de originele bloem
+        const updatedFlower = await updatePlantPosition(flower.id, {
+          position_x: adjustedX,
+          position_y: adjustedY,
+          visual_width: newSize,
+          visual_height: newSize
+        })
+        
+        if (updatedFlower) {
+          // Voeg 8-12 extra bloemen toe BINNEN het grote vlak
+          const extraFlowerCount = 8 + Math.floor(Math.random() * 5) // 8-12 bloemen
+          const newFlowers: PlantWithPosition[] = []
+          
+          for (let i = 0; i < extraFlowerCount; i++) {
+            // Positioneer bloemen in een mooie spreiding binnen het grote vlak
+            const angle = (i / extraFlowerCount) * 2 * Math.PI + Math.random() * 0.5
+            const radius = 20 + Math.random() * (newSize/2 - 40)
+            const centerX = adjustedX + newSize/2
+            const centerY = adjustedY + newSize/2
+            
+            const x = centerX + Math.cos(angle) * radius - 20
+            const y = centerY + Math.sin(angle) * radius - 20
+            
+            // Zorg dat ze binnen het grote vlak blijven
+            const constrainedX = Math.max(adjustedX + 5, Math.min(x, adjustedX + newSize - 45))
+            const constrainedY = Math.max(adjustedY + 5, Math.min(y, adjustedY + newSize - 45))
+            
+            const newFlower = await createVisualPlant({
+              plant_bed_id: plantBed.id,
+              name: flower.name,
+              color: flower.color || '#FF69B4',
+              status: flower.status || 'healthy',
+              position_x: constrainedX,
+              position_y: constrainedY,
+              visual_width: 40,
+              visual_height: 40,
+              emoji: flower.emoji || '🌸',
+              is_custom: flower.is_custom,
+              category: flower.category,
+              notes: flower.notes
+            })
+            
+            if (newFlower) newFlowers.push(newFlower)
+          }
+          
+          // Update state met alle nieuwe bloemen
+          setFlowerPositions(prev => prev.map(f => 
+            f.id === flowerId ? updatedFlower : f
+          ).concat(newFlowers))
+          
+          toast({
+            title: "🌸 Bloem vergroot!",
+            description: `${newFlowers.length} extra bloemen toegevoegd!`,
+          })
+        }
+      } catch (error) {
+        console.error("Error enlarging flower:", error)
+        toast({
+          title: "Fout bij vergroten",
+          description: "Er is een fout opgetreden bij het vergroten van de bloem.",
+          variant: "destructive",
+        })
+      }
+    } else {
+      // VERKLEINEN: Maak bloem klein en verwijder extra bloemen
+      try {
+        // Update de originele bloem naar kleine maat
+        const updatedFlower = await updatePlantPosition(flower.id, {
+          visual_width: FLOWER_SIZE,
+          visual_height: FLOWER_SIZE
+        })
+        
+        if (updatedFlower) {
+          // Zoek alle bloemen met dezelfde naam in de buurt (dit zijn waarschijnlijk de duplicaten)
+          const nearbyFlowers = flowerPositions.filter(f => 
+            f.id !== flowerId && 
+            f.name === flower.name &&
+            Math.abs(f.position_x - flower.position_x) < 200 &&
+            Math.abs(f.position_y - flower.position_y) < 200
+          )
+          
+          // Verwijder de extra bloemen
+          for (const nearbyFlower of nearbyFlowers) {
+            try {
+              await deletePlant(nearbyFlower.id)
+            } catch (error) {
+              console.error("Error deleting nearby flower:", error)
+            }
+          }
+          
+          // Update state
+          setFlowerPositions(prev => prev
+            .filter(f => !nearbyFlowers.some(nf => nf.id === f.id))
+            .map(f => f.id === flowerId ? updatedFlower : f)
+          )
+          
+          toast({
+            title: "🌸 Bloem verkleind",
+            description: `${nearbyFlowers.length} extra bloemen verwijderd`,
+          })
+        }
+      } catch (error) {
+        console.error("Error shrinking flower:", error)
+        toast({
+          title: "Fout bij verkleinen",
+          description: "Er is een fout opgetreden bij het verkleinen van de bloem.",
+          variant: "destructive",
+        })
+      }
     }
     
-    const flower = flowerPositions.find(f => f.id === flowerId)
-    if (!flower) return
-
-    // Select this flower
-    setSelectedFlower(flower)
-  }, [flowerPositions, isResizing])
+    setHasChanges(true)
+  }, [flowerPositions, plantBed, canvasWidth, canvasHeight, toast])
 
   // Handle mouse down - start dragging immediately
   const handleFlowerMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
@@ -906,7 +1020,7 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🌸 Klik bloem → Sleep blauwe hoek → Meer bloemen! 
+              🌸 <strong>Super Eenvoudig:</strong> Klik op bloem = groter + meer bloemen! Klik nogmaals = kleiner
               <span className="ml-2 text-sm font-medium text-pink-600">
                 • {plantBed.size || 'Op schaal'}
               </span>
@@ -1455,31 +1569,17 @@ export default function PlantBedViewPage() {
 
               {/* Flowers */}
               {flowerPositions.map((flower) => {
-                const isSelected = selectedFlower?.id === flower.id
                 const isDragging = draggedFlower === flower.id
-                const isBeingResized = isResizing === flower.id
-
-                // Determine shape based on width/height ratio
-                const aspectRatio = flower.visual_width / flower.visual_height
-                const isCircular = Math.abs(aspectRatio - 1) < 0.1 // Nearly square = circular
-                const isWide = aspectRatio > 1.3 // Wide oval
-                const isTall = aspectRatio < 0.7 // Tall oval
-
-                let shapeClass = 'rounded-full' // Default circular
-                if (isBeingResized || !isCircular) {
-                  if (isWide) shapeClass = 'rounded-3xl' // Wide oval
-                  else if (isTall) shapeClass = 'rounded-3xl' // Tall oval
-                  else shapeClass = 'rounded-2xl' // Slightly rounded rectangle
-                }
+                const isLarge = flower.visual_width > FLOWER_SIZE * 1.5
 
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute cursor-pointer ${shapeClass} border-4 ${getStatusColor(flower.status || 'healthy')} ${
-                      isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-110" : 
-                      isSelected ? "ring-4 ring-blue-500 shadow-xl" :
-                      "shadow-lg hover:shadow-xl"
-                    } transition-all duration-200 flex items-center justify-center text-2xl font-bold text-white relative`}
+                    className={`absolute cursor-pointer rounded-full border-4 ${getStatusColor(flower.status || 'healthy')} ${
+                      isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105" : 
+                      isLarge ? "ring-2 ring-green-300 shadow-2xl" :
+                      "shadow-lg hover:shadow-xl hover:scale-105"
+                    } transition-all duration-300 flex items-center justify-center text-white relative overflow-hidden`}
                     style={{
                       left: flower.position_x,
                       top: flower.position_y,
@@ -1490,87 +1590,73 @@ export default function PlantBedViewPage() {
                     onClick={(e) => handleFlowerClick(e, flower.id)}
                     onDoubleClick={() => handleFlowerDoubleClick(flower)}
                     onMouseDown={(e) => handleFlowerMouseDown(e, flower.id)}
+                    title={isLarge ? "Klik om te verkleinen" : "Klik om te vergroten met meer bloemen!"}
                   >
-                    <div className="text-center w-full h-full flex flex-col items-center justify-center">
-                      <div 
-                        className="flex items-center justify-center"
-                        style={{ 
-                          fontSize: Math.max(12, Math.min(24, Math.min(flower.visual_width, flower.visual_height) * 0.3)) + 'px'
-                        }}
-                      >
-                        {flower.emoji || '🌸'}
-                      </div>
-                      {/* Toon naam in de bloem als er genoeg ruimte is */}
-                      {flower.visual_width > 60 && flower.visual_height > 60 && (
+                    {isLarge ? (
+                      // GROTE BLOEM: Toon hoofdbloem + naam + hint voor meer bloemen
+                      <div className="relative w-full h-full flex flex-col items-center justify-center">
+                        {/* Achtergrond patroon voor "meer bloemen" gevoel */}
+                        <div className="absolute inset-2 rounded-full opacity-20 bg-gradient-to-br from-white to-transparent"></div>
+                        
+                        {/* Hoofdbloem groot in center */}
                         <div 
-                          className="text-center text-white font-bold mt-1 px-1 leading-tight"
+                          className="text-center z-10 drop-shadow-lg"
                           style={{ 
-                            fontSize: Math.max(8, Math.min(12, Math.min(flower.visual_width, flower.visual_height) * 0.15)) + 'px',
+                            fontSize: Math.min(flower.visual_width * 0.4, 48) + 'px'
+                          }}
+                        >
+                          {flower.emoji || '🌸'}
+                        </div>
+                        
+                        {/* Naam prominent zichtbaar */}
+                        <div 
+                          className="text-center text-white font-bold mt-2 px-2 py-1 bg-black bg-opacity-50 rounded-full z-10"
+                          style={{ 
+                            fontSize: Math.max(10, Math.min(16, flower.visual_width * 0.12)) + 'px',
                             textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
                           }}
                         >
                           {flower.name}
                         </div>
-                      )}
-                    </div>
-                    {isSelected && (
-                      <>
-                        <div className="absolute -top-6 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10">
-                          Sleep hoek om groter te maken
+                        
+                        {/* "Meer bloemen" indicator */}
+                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                          +{Math.floor(flower.visual_width / 20)} bloemen
                         </div>
-                        {/* Grote, duidelijke resize handle */}
-                        <div
-                          className="absolute -bottom-2 -right-2 w-8 h-8 bg-blue-500 border-3 border-white rounded-full cursor-nw-resize hover:bg-blue-600 hover:scale-110 flex items-center justify-center z-10 shadow-lg"
-                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'uniform')}
-                          title="Sleep om bloem groter te maken en meer bloemen toe te voegen!"
+                        
+                        {/* Klik hint */}
+                        <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 text-xs text-white opacity-75">
+                          Klik = kleiner
+                        </div>
+                      </div>
+                    ) : (
+                      // KLEINE BLOEM: Eenvoudig, met duidelijke hint
+                      <div className="text-center w-full h-full flex flex-col items-center justify-center relative">
+                        <div 
+                          className="flex items-center justify-center"
+                          style={{ 
+                            fontSize: Math.max(16, Math.min(32, flower.visual_width * 0.6)) + 'px'
+                          }}
                         >
-                          <div className="text-white text-xs font-bold">⤢</div>
+                          {flower.emoji || '🌸'}
                         </div>
-                        {/* Visual feedback tijdens resize */}
-                        {isBeingResized && (
-                          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded z-10 animate-pulse">
-                            +{duplicatePositions.length} bloemen
-                          </div>
-                        )}
-                      </>
+                        
+                        {/* Naam onder kleine bloem */}
+                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-700 bg-white bg-opacity-90 px-2 py-1 rounded shadow-sm whitespace-nowrap">
+                          {flower.name}
+                        </div>
+                        
+                        {/* Hover hint */}
+                        <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                          <div className="text-xs text-white font-bold">Klik = groter</div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )
               })}
 
-              {/* Preview duplicates tijdens resize - MET NAMEN */}
-              {isResizing && duplicatePositions.map((pos, index) => {
-                const originalFlower = flowerPositions.find(f => f.id === isResizing)
-                if (!originalFlower) return null
-                
-                // Maak preview bloemen groter en duidelijker
-                const previewSize = Math.max(50, Math.min(80, originalFlower.visual_width * 0.7))
-                
-                return (
-                  <div
-                    key={`preview-${index}`}
-                    className="absolute border-3 border-dashed border-green-500 bg-green-100 opacity-90 rounded-full flex flex-col items-center justify-center pointer-events-none animate-pulse shadow-lg"
-                    style={{
-                      left: pos.x,
-                      top: pos.y,
-                      width: previewSize,
-                      height: previewSize,
-                      backgroundColor: originalFlower.color + '40', // Transparantie
-                    }}
-                  >
-                    <div className="text-xl">{originalFlower.emoji || '🌸'}</div>
-                    {/* Toon naam als er ruimte is */}
-                    {previewSize > 60 && (
-                      <div className="text-xs font-bold text-green-800 mt-1 text-center leading-tight">
-                        {originalFlower.name}
-                      </div>
-                    )}
-                    <div className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 rounded-full">
-                      +{index + 1}
-                    </div>
-                  </div>
-                )
-              })}
+
 
               {/* Empty State */}
               {flowerPositions.length === 0 && (
@@ -1590,19 +1676,14 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>💡 <strong>Super Eenvoudig:</strong></p>
-              <p>🌸 <strong>Klik bloem</strong> → Zie blauwe hoek</p>
-              <p>🔵 <strong>Sleep blauwe hoek</strong> → Bloem wordt groter + meer bloemen verschijnen!</p>
-              <p>📏 <strong>Elke 40px groei</strong> = +1 extra bloem (max 15 extra)</p>
-              <p>👆 <strong>Basis:</strong> Klik = selecteren, Sleep bloem = verplaatsen, Dubbelklik = bewerken</p>
+              <p>💡 <strong>Nieuwe Eenvoudige Manier:</strong></p>
+              <p>🌸 <strong>Klik op bloem</strong> → Wordt groot + krijgt 8-12 extra bloemen!</p>
+              <p>🔄 <strong>Klik nogmaals</strong> → Wordt klein + extra bloemen verdwijnen</p>
+              <p>🎯 <strong>Resultaat:</strong> Grote bloemen tonen echt meer bloemen binnen het vlak</p>
+              <p>👆 <strong>Ook:</strong> Sleep bloem = verplaatsen, Dubbelklik = bewerken</p>
             </div>
             <div className="flex items-center gap-4">
               <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
-              {selectedFlower && (
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  {selectedFlower.name} geselecteerd
-                </Badge>
-              )}
               {hasChanges && (
                 <Badge variant="secondary" className="bg-orange-100 text-orange-800">
                   Niet opgeslagen wijzigingen
@@ -1645,13 +1726,13 @@ export default function PlantBedViewPage() {
               </div>
             </div>
             <div>
-              <h4 className="font-medium mb-3">🌸 Nieuwe Functionaliteit!</h4>
+              <h4 className="font-medium mb-3">🌸 Nieuwe Eenvoudige Manier!</h4>
               <div className="space-y-2 text-sm text-gray-600">
-                <p>• <strong>Klik</strong> op een bloem om deze te selecteren</p>
-                <p>• <strong>Sleep blauwe hoek</strong> om bloem groter te maken</p>
-                <p>• <strong>Groter maken</strong> = automatisch meer bloemen!</p>
-                <p>• <strong>Dubbelklik</strong> op een bloem om te bewerken</p>
+                <p>• <strong>1 Klik</strong> = bloem wordt groot + krijgt 8-12 extra bloemen</p>
+                <p>• <strong>2e Klik</strong> = bloem wordt klein + extra bloemen weg</p>
+                <p>• <strong>Grote bloemen</strong> tonen naam + aantal extra bloemen</p>
                 <p>• <strong>Sleep bloem</strong> om te verplaatsen</p>
+                <p>• <strong>Dubbelklik</strong> om eigenschappen te bewerken</p>
                 <p>• Vergeet niet te <strong>opslaan</strong> na wijzigingen</p>
               </div>
             </div>
