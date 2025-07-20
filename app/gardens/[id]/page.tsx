@@ -82,7 +82,44 @@ export default function GardenDetailPage() {
           getPlantBeds(params.id as string),
         ])
         setGarden(gardenData)
-        setPlantBeds(Array.isArray(plantBedsData) ? plantBedsData : [])
+        
+        // Process plant beds to ensure they have visual dimensions
+        const processedBeds = plantBedsData.map(bed => {
+          let visualWidth = bed.visual_width
+          let visualHeight = bed.visual_height
+          
+          // If no visual dimensions, calculate from size
+          if (!visualWidth || !visualHeight) {
+            if (bed.size) {
+              const dims = getDimensionsFromSize(bed.size)
+              visualWidth = dims.width
+              visualHeight = dims.height
+              
+              // Update the database with calculated dimensions
+              updatePlantBed(bed.id, {
+                visual_width: visualWidth,
+                visual_height: visualHeight
+              }).catch(console.error)
+            } else {
+              visualWidth = PLANTVAK_MIN_WIDTH
+              visualHeight = PLANTVAK_MIN_HEIGHT
+            }
+          }
+          
+          return {
+            ...bed,
+            visual_width: visualWidth,
+            visual_height: visualHeight,
+            position_x: bed.position_x ?? 100,
+            position_y: bed.position_y ?? 100,
+            rotation: bed.rotation ?? 0,
+            z_index: bed.z_index ?? 0,
+            color_code: bed.color_code ?? '',
+            visual_updated_at: bed.visual_updated_at ?? new Date().toISOString(),
+          }
+        })
+        
+        setPlantBeds(processedBeds)
       } catch (error) {
         console.error("Error loading data:", error)
         setGarden(null)
