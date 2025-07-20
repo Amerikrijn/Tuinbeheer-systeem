@@ -188,12 +188,7 @@ export default function PlantBedDetailPage() {
               Bewerk Plantvak
             </Button>
           </Link>
-          <Link href="/plant-beds/new">
-            <Button className="bg-green-600 hover:bg-green-700 text-white">
-              <Plus className="w-4 h-4 mr-2" />
-              Plantvak Toevoegen
-            </Button>
-          </Link>
+
         </div>
       </div>
 

@@ -114,12 +114,7 @@ export default function GardenDetailPage() {
                 Planten/Bloemen Toevoegen
               </Button>
             </Link>
-            <Link href="/plant-beds/new">
-              <Button className="bg-green-600 hover:bg-green-700">
-                <Plus className="h-4 w-4 mr-2" />
-                Plantvak Toevoegen
-              </Button>
-            </Link>
+
             <Link href={`/plant-beds/new?garden_id=${garden.id}`}>
               <Button className="bg-green-600 hover:bg-green-700">
                 <Plus className="h-4 w-4 mr-2" />
@@ -145,12 +140,7 @@ export default function GardenDetailPage() {
               <p className="text-gray-500 mb-6">
                 Voeg je eerste plantvak toe om bloemen te kunnen planten.
               </p>
-              <Link href="/plant-beds/new">
-                <Button className="bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Plantvak Toevoegen
-                </Button>
-              </Link>
+
               <Link href={`/plant-beds/new?garden_id=${garden.id}`}>
                 <Button className="bg-green-600 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
@@ -193,7 +183,7 @@ export default function GardenDetailPage() {
                   <div className="flex gap-2">
                     <Link href={`/plant-beds/${bed.id}`}>
                       <Button className="bg-green-600 hover:bg-green-700">
-                        Beheer Bloemen
+                        Beheer Plantvak
                       </Button>
                     </Link>
                   </div>
