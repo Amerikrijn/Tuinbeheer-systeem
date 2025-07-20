@@ -187,8 +187,8 @@ export default function PlantBedViewPage() {
     }
   }
 
-  const addFlower = () => {
-    if (!newFlower.name || (!newFlower.type && !isCustomFlower)) {
+  const addFlower = async () => {
+    if (!plantBed || !newFlower.name || (!newFlower.type && !isCustomFlower)) {
       toast({
         title: "Incomplete gegevens",
         description: "Vul alle velden in om een bloem toe te voegen.",
@@ -206,43 +206,58 @@ export default function PlantBedViewPage() {
       return
     }
 
-    const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
+    try {
+      const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
 
-    const newFlowerPosition: PlantWithPosition = {
-      id: Date.now().toString(),
-      x: Math.random() * (canvasWidth - FLOWER_SIZE),
-      y: Math.random() * (canvasHeight - FLOWER_SIZE),
-      width: FLOWER_SIZE,
-      height: FLOWER_SIZE,
-      name: newFlower.name,
-      color: newFlower.color,
-      type: isCustomFlower ? 'Aangepast' : newFlower.type,
-      status: newFlower.status,
-      emoji: isCustomFlower ? newFlower.customEmoji : selectedType?.emoji,
-      isCustom: isCustomFlower,
-      description: newFlower.description
+      // Map status to database format
+      const dbStatus = newFlower.status === 'sick' ? 'diseased' : 
+                      newFlower.status === 'blooming' ? 'healthy' : 
+                      newFlower.status
+
+      const newPlant = await createVisualPlant({
+        plant_bed_id: plantBed.id,
+        name: newFlower.name,
+        color: newFlower.color,
+        status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
+        position_x: Math.random() * (canvasWidth - FLOWER_SIZE),
+        position_y: Math.random() * (canvasHeight - FLOWER_SIZE),
+        visual_width: FLOWER_SIZE,
+        visual_height: FLOWER_SIZE,
+        emoji: isCustomFlower ? newFlower.customEmoji : selectedType?.emoji || '🌸',
+        is_custom: isCustomFlower,
+        category: isCustomFlower ? 'Aangepast' : newFlower.type,
+        notes: newFlower.description
+      })
+
+      if (newPlant) {
+        setFlowerPositions(prev => [...prev, newPlant])
+        setIsAddingFlower(false)
+        setIsCustomFlower(false)
+        setNewFlower({
+          name: '',
+          type: '',
+          color: '#FF69B4',
+          customEmoji: '',
+          description: '',
+          status: 'healthy'
+        })
+        
+        toast({
+          title: "Bloem toegevoegd",
+          description: `${newFlower.name} is toegevoegd aan het plantvak.`,
+        })
+      }
+    } catch (error) {
+      console.error("Error creating flower:", error)
+      toast({
+        title: "Fout bij toevoegen",
+        description: "Er is een fout opgetreden bij het toevoegen van de bloem.",
+        variant: "destructive",
+      })
     }
-
-    setFlowerPositions(prev => [...prev, newFlowerPosition])
-    setHasChanges(true)
-    setIsAddingFlower(false)
-    setIsCustomFlower(false)
-    setNewFlower({
-      name: '',
-      type: '',
-      color: '#FF69B4',
-      customEmoji: '',
-      description: '',
-      status: 'healthy'
-    })
-    
-    toast({
-      title: "Bloem toegevoegd",
-      description: `${newFlower.name} is toegevoegd aan het plantvak.`,
-    })
   }
 
-  const updateFlower = () => {
+  const updateFlower = async () => {
     if (!selectedFlower || !newFlower.name || (!newFlower.type && !isEditCustomFlower)) {
       toast({
         title: "Incomplete gegevens",
@@ -261,54 +276,77 @@ export default function PlantBedViewPage() {
       return
     }
 
-    const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
+    try {
+      const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
 
-    setFlowerPositions(prev => prev.map(flower => 
-      flower.id === selectedFlower.id 
-        ? {
-            ...flower,
-            name: newFlower.name,
-            color: newFlower.color,
-            type: isEditCustomFlower ? 'Aangepast' : newFlower.type,
-            status: newFlower.status,
-            emoji: isEditCustomFlower ? newFlower.customEmoji : selectedType?.emoji,
-            isCustom: isEditCustomFlower,
-            description: newFlower.description
-          }
-        : flower
-    ))
+      // Map status to database format
+      const dbStatus = newFlower.status === 'sick' ? 'diseased' : 
+                      newFlower.status === 'blooming' ? 'healthy' : 
+                      newFlower.status
 
-    setHasChanges(true)
-    setIsEditingFlower(false)
-    setSelectedFlower(null)
-    setIsEditCustomFlower(false)
-    setNewFlower({
-      name: '',
-      type: '',
-      color: '#FF69B4',
-      customEmoji: '',
-      description: '',
-      status: 'healthy'
-    })
-    
-    toast({
-      title: "Bloem gewijzigd",
-      description: `${newFlower.name} is succesvol gewijzigd.`,
-    })
+      const updatedPlant = await updatePlantPosition(selectedFlower.id, {
+        name: newFlower.name,
+        color: newFlower.color,
+        status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
+        emoji: isEditCustomFlower ? newFlower.customEmoji : selectedType?.emoji || '🌸',
+        is_custom: isEditCustomFlower,
+        category: isEditCustomFlower ? 'Aangepast' : newFlower.type,
+        notes: newFlower.description
+      })
+
+      if (updatedPlant) {
+        setFlowerPositions(prev => prev.map(flower => 
+          flower.id === selectedFlower.id ? updatedPlant : flower
+        ))
+
+        setIsEditingFlower(false)
+        setSelectedFlower(null)
+        setIsEditCustomFlower(false)
+        setNewFlower({
+          name: '',
+          type: '',
+          color: '#FF69B4',
+          customEmoji: '',
+          description: '',
+          status: 'healthy'
+        })
+        
+        toast({
+          title: "Bloem gewijzigd",
+          description: `${newFlower.name} is succesvol gewijzigd.`,
+        })
+      }
+    } catch (error) {
+      console.error("Error updating flower:", error)
+      toast({
+        title: "Fout bij wijzigen",
+        description: "Er is een fout opgetreden bij het wijzigen van de bloem.",
+        variant: "destructive",
+      })
+    }
   }
 
-  const removeFlower = (flowerId: string) => {
-    setFlowerPositions(prev => prev.filter(f => f.id !== flowerId))
-    setHasChanges(true)
-    setSelectedFlower(null)
-    setIsEditingFlower(false)
-    toast({
-      title: "Bloem verwijderd",
-      description: "De bloem is verwijderd uit het plantvak.",
-    })
+  const removeFlower = async (flowerId: string) => {
+    try {
+      await deletePlant(flowerId)
+      setFlowerPositions(prev => prev.filter(f => f.id !== flowerId))
+      setSelectedFlower(null)
+      setIsEditingFlower(false)
+      toast({
+        title: "Bloem verwijderd",
+        description: "De bloem is verwijderd uit het plantvak.",
+      })
+    } catch (error) {
+      console.error("Error deleting flower:", error)
+      toast({
+        title: "Fout bij verwijderen",
+        description: "Er is een fout opgetreden bij het verwijderen van de bloem.",
+        variant: "destructive",
+      })
+    }
   }
 
-  // Handle single click - select flower for dragging
+  // Handle single click - select flower
   const handleFlowerClick = useCallback((e: React.MouseEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -316,33 +354,45 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    if (selectedFlower?.id === flowerId) {
-      // Already selected, start dragging
-      const rect = containerRef.current?.getBoundingClientRect()
-      if (!rect) return
+    // Select this flower
+    setSelectedFlower(flower)
+  }, [flowerPositions])
 
-      setDraggedFlower(flowerId)
-      setDragOffset({
-        x: (e.clientX - rect.left) / scale - flower.x,
-        y: (e.clientY - rect.top) / scale - flower.y
-      })
-    } else {
-      // Select this flower
-      setSelectedFlower(flower)
-    }
-  }, [selectedFlower, flowerPositions, scale])
+  // Handle mouse down - start dragging immediately
+  const handleFlowerMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const flower = flowerPositions.find(f => f.id === flowerId)
+    if (!flower) return
+
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    // Select the flower
+    setSelectedFlower(flower)
+    
+    // Start dragging
+    setDraggedFlower(flowerId)
+    setDragOffset({
+      x: (e.clientX - rect.left) / scale - flower.position_x,
+      y: (e.clientY - rect.top) / scale - flower.position_y
+    })
+  }, [flowerPositions, scale])
 
   // Handle double click - open edit dialog
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
     setSelectedFlower(flower)
-    setIsEditCustomFlower(flower.isCustom || false)
+    setIsEditCustomFlower(flower.is_custom || false)
     setNewFlower({
       name: flower.name,
-      type: flower.type,
-      color: flower.color,
+      type: flower.category || '',
+      color: flower.color || '#FF69B4',
       customEmoji: flower.emoji || '',
-      description: flower.description || '',
-      status: flower.status
+      description: flower.notes || '',
+      status: flower.status === 'needs_attention' ? 'needs_attention' : 
+             flower.status === 'diseased' ? 'sick' : 
+             flower.status === 'dead' ? 'sick' : 'healthy'
     })
     setIsEditingFlower(true)
   }, [])
@@ -362,7 +412,7 @@ export default function PlantBedViewPage() {
     setFlowerPositions(prev =>
       prev.map(f =>
         f.id === draggedFlower
-          ? { ...f, x: constrainedX, y: constrainedY }
+          ? { ...f, position_x: constrainedX, position_y: constrainedY }
           : f
       )
     )
@@ -868,20 +918,21 @@ export default function PlantBedViewPage() {
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute cursor-pointer rounded-full border-4 ${getStatusColor(flower.status)} ${
+                    className={`absolute cursor-pointer rounded-full border-4 ${getStatusColor(flower.status || 'healthy')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-110" : 
                       isSelected ? "ring-4 ring-blue-500 shadow-xl" :
                       "shadow-lg hover:shadow-xl"
                     } transition-all duration-200 flex items-center justify-center text-2xl font-bold text-white`}
                     style={{
-                      left: flower.x,
-                      top: flower.y,
-                      width: flower.width,
-                      height: flower.height,
+                      left: flower.position_x,
+                      top: flower.position_y,
+                      width: flower.visual_width,
+                      height: flower.visual_height,
                       backgroundColor: flower.color,
                     }}
                     onClick={(e) => handleFlowerClick(e, flower.id)}
                     onDoubleClick={() => handleFlowerDoubleClick(flower)}
+                    onMouseDown={(e) => handleFlowerMouseDown(e, flower.id)}
                   >
                     <div className="text-center">
                       <div className="text-xl">{flower.emoji || '🌸'}</div>
