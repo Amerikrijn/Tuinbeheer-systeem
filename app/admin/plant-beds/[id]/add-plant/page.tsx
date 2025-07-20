@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Plus, Leaf, RefreshCw, Home } from "lucide-react"
+import { ArrowLeft, Plus, Leaf, RefreshCw, Home, MapPin } from "lucide-react"
 import { getMockPlantBeds, type PlantBed } from "@/lib/mock-data"
 
 interface NewPlant {
@@ -149,6 +149,15 @@ export default function AddPlantPage() {
         >
           <ArrowLeft className="h-4 w-4" />
           Plantvak {plantBed.id}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push("/admin/plant-beds/layout")}
+          className="flex items-center gap-2"
+        >
+          <MapPin className="h-4 w-4" />
+          Visuele Layout
         </Button>
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
