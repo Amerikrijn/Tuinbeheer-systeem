@@ -463,6 +463,11 @@ export default function PlantBedViewPage() {
     e.preventDefault()
     e.stopPropagation()
     
+    // Clear any existing selections first
+    if (draggedFlower && draggedFlower !== flowerId) {
+      return // Prevent multiple flowers from being dragged at once
+    }
+    
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
@@ -472,13 +477,13 @@ export default function PlantBedViewPage() {
     // Select the flower
     setSelectedFlower(flower)
     
-    // Start dragging
+    // Start dragging this specific flower
     setDraggedFlower(flowerId)
     setDragOffset({
       x: (e.clientX - rect.left) / scale - flower.position_x,
       y: (e.clientY - rect.top) / scale - flower.position_y
     })
-  }, [flowerPositions, scale])
+  }, [flowerPositions, scale, draggedFlower])
 
   // Handle double click - open edit dialog
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
@@ -505,19 +510,24 @@ export default function PlantBedViewPage() {
     const newX = (e.clientX - rect.left) / scale - dragOffset.x
     const newY = (e.clientY - rect.top) / scale - dragOffset.y
 
-    // Constrain to canvas bounds
-    const constrainedX = Math.max(0, Math.min(newX, canvasWidth - FLOWER_SIZE))
-    const constrainedY = Math.max(0, Math.min(newY, canvasHeight - FLOWER_SIZE))
+    // Find the dragged flower to get its dimensions
+    const draggedFlowerData = flowerPositions.find(f => f.id === draggedFlower)
+    if (!draggedFlowerData) return
 
+    // Constrain to canvas bounds using the flower's actual size
+    const constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width))
+    const constrainedY = Math.max(0, Math.min(newY, canvasHeight - draggedFlowerData.visual_height))
+
+    // Only update the specific dragged flower
     setFlowerPositions(prev =>
       prev.map(f =>
         f.id === draggedFlower
           ? { ...f, position_x: constrainedX, position_y: constrainedY }
-          : f
+          : f // Keep other flowers unchanged
       )
     )
     setHasChanges(true)
-  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
+  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight, flowerPositions])
 
   // Handle drag end
   const onMouseUp = useCallback(() => {
@@ -550,7 +560,7 @@ export default function PlantBedViewPage() {
     setDuplicatePositions([]) // Reset duplicate positions
   }, [flowerPositions])
 
-  // Handle resize move - with real-time duplication
+  // Handle resize move - with real-time duplication and dynamic shapes
   const handleResizeMove = useCallback((e: MouseEvent) => {
     if (!isResizing) return
 
@@ -563,51 +573,68 @@ export default function PlantBedViewPage() {
     let newWidth = resizeStartSize.width
     let newHeight = resizeStartSize.height
 
-    // Calculate new dimensions based on resize mode
+    // Calculate new dimensions based on resize mode with boundary constraints
     if (resizeMode === 'uniform') {
-      const delta = Math.max(deltaX, deltaY)
-      newWidth = Math.max(20, Math.min(canvasWidth - flower.position_x, resizeStartSize.width + delta))
-      newHeight = Math.max(20, Math.min(canvasHeight - flower.position_y, resizeStartSize.height + delta))
+      // For uniform scaling, use the smaller delta to prevent going out of bounds
+      const maxDeltaX = (canvasWidth - flower.position_x) - resizeStartSize.width
+      const maxDeltaY = (canvasHeight - flower.position_y) - resizeStartSize.height
+      const delta = Math.min(Math.max(deltaX, deltaY), Math.min(maxDeltaX, maxDeltaY))
+      
+      newWidth = Math.max(20, resizeStartSize.width + delta)
+      newHeight = Math.max(20, resizeStartSize.height + delta)
     } else if (resizeMode === 'width') {
-      newWidth = Math.max(20, Math.min(canvasWidth - flower.position_x, resizeStartSize.width + deltaX))
+      const maxDelta = (canvasWidth - flower.position_x) - resizeStartSize.width
+      newWidth = Math.max(20, Math.min(resizeStartSize.width + deltaX, resizeStartSize.width + maxDelta))
     } else if (resizeMode === 'height') {
-      newHeight = Math.max(20, Math.min(canvasHeight - flower.position_y, resizeStartSize.height + deltaY))
+      const maxDelta = (canvasHeight - flower.position_y) - resizeStartSize.height
+      newHeight = Math.max(20, Math.min(resizeStartSize.height + deltaY, resizeStartSize.height + maxDelta))
     }
 
-    // Calculate how many flowers should fit inside the resized area
-    const area = newWidth * newHeight
-    const originalArea = resizeStartSize.width * resizeStartSize.height
-    const areaRatio = area / originalArea
-    const targetFlowerCount = Math.floor(Math.sqrt(areaRatio)) // Square root for nice distribution
-
-    // Generate positions for duplicates in a grid pattern
+    // Calculate how many flowers should fit inside the resized area (only for uniform mode)
     const newDuplicatePositions: {x: number, y: number}[] = []
-    if (targetFlowerCount > 1) {
-      const cols = Math.ceil(Math.sqrt(targetFlowerCount))
-      const rows = Math.ceil(targetFlowerCount / cols)
-      const flowerSize = Math.min(newWidth / cols, newHeight / rows) * 0.8 // 80% to leave some space
-      
-      for (let i = 0; i < targetFlowerCount - 1; i++) { // -1 because we already have the original
-        const col = i % cols
-        const row = Math.floor(i / cols)
-        const x = flower.position_x + (col + 1) * (newWidth / cols)
-        const y = flower.position_y + (row + 1) * (newHeight / rows)
+    if (resizeMode === 'uniform') {
+      const area = newWidth * newHeight
+      const originalArea = resizeStartSize.width * resizeStartSize.height
+      const areaRatio = area / originalArea
+      const targetFlowerCount = Math.floor(Math.sqrt(areaRatio))
+
+      // Generate positions for duplicates in a more organic pattern
+      if (targetFlowerCount > 1) {
+        const availableWidth = newWidth * 0.8 // Leave some margin
+        const availableHeight = newHeight * 0.8
+        const baseSize = Math.min(availableWidth, availableHeight) / Math.ceil(Math.sqrt(targetFlowerCount))
         
-        // Make sure position is within canvas bounds
-        if (x + flowerSize <= canvasWidth && y + flowerSize <= canvasHeight) {
-          newDuplicatePositions.push({ x, y })
+        // Create a more natural distribution pattern
+        const cols = Math.ceil(Math.sqrt(targetFlowerCount))
+        const rows = Math.ceil(targetFlowerCount / cols)
+        
+        for (let i = 0; i < targetFlowerCount - 1; i++) {
+          const col = i % cols
+          const row = Math.floor(i / cols)
+          
+          // Add some randomness for more organic placement
+          const jitterX = (Math.random() - 0.5) * baseSize * 0.3
+          const jitterY = (Math.random() - 0.5) * baseSize * 0.3
+          
+          const x = flower.position_x + (col + 1) * (availableWidth / (cols + 1)) + jitterX
+          const y = flower.position_y + (row + 1) * (availableHeight / (rows + 1)) + jitterY
+          
+          // Ensure position is within canvas bounds
+          if (x + baseSize <= canvasWidth && y + baseSize <= canvasHeight && x >= 0 && y >= 0) {
+            newDuplicatePositions.push({ x, y })
+          }
         }
       }
     }
 
     setDuplicatePositions(newDuplicatePositions)
 
-    // Update the flower being resized
+    // Update only the flower being resized
     setFlowerPositions(prev =>
       prev.map(f =>
         f.id === isResizing
           ? { ...f, visual_width: newWidth, visual_height: newHeight }
-          : f
+          : f // Keep other flowers unchanged
       )
     )
     setHasChanges(true)
@@ -1326,12 +1353,23 @@ export default function PlantBedViewPage() {
                 const isDragging = draggedFlower === flower.id
                 const isBeingResized = isResizing === flower.id
 
+                // Determine shape based on width/height ratio
+                const aspectRatio = flower.visual_width / flower.visual_height
+                const isCircular = Math.abs(aspectRatio - 1) < 0.1 // Nearly square = circular
+                const isWide = aspectRatio > 1.3 // Wide oval
+                const isTall = aspectRatio < 0.7 // Tall oval
+
+                let shapeClass = 'rounded-full' // Default circular
+                if (isBeingResized || !isCircular) {
+                  if (isWide) shapeClass = 'rounded-3xl' // Wide oval
+                  else if (isTall) shapeClass = 'rounded-3xl' // Tall oval
+                  else shapeClass = 'rounded-2xl' // Slightly rounded rectangle
+                }
+
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute cursor-pointer ${
-                      isBeingResized ? 'rounded-lg' : 'rounded-full'
-                    } border-4 ${getStatusColor(flower.status || 'healthy')} ${
+                    className={`absolute cursor-pointer ${shapeClass} border-4 ${getStatusColor(flower.status || 'healthy')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-110" : 
                       isSelected ? "ring-4 ring-blue-500 shadow-xl" :
                       "shadow-lg hover:shadow-xl"
@@ -1348,16 +1386,23 @@ export default function PlantBedViewPage() {
                     onMouseDown={(e) => handleFlowerMouseDown(e, flower.id)}
                   >
                     <div className="text-center">
-                      <div className="text-xl">{flower.emoji || '🌸'}</div>
+                      <div 
+                        className="flex items-center justify-center"
+                        style={{ 
+                          fontSize: Math.max(12, Math.min(32, Math.min(flower.visual_width, flower.visual_height) * 0.4)) + 'px'
+                        }}
+                      >
+                        {flower.emoji || '🌸'}
+                      </div>
                     </div>
                     {isSelected && (
                       <>
-                        <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
+                        <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded z-10">
                           Geselecteerd
                         </div>
                         {/* Main resize handle - uniform scaling */}
                         <div
-                          className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-nw-resize hover:bg-blue-600 flex items-center justify-center"
+                          className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-nw-resize hover:bg-blue-600 flex items-center justify-center z-10"
                           onMouseDown={(e) => handleResizeStart(e, flower.id, 'uniform')}
                           title="Sleep om uniform te vergroten en dupliceren"
                         >
@@ -1365,15 +1410,26 @@ export default function PlantBedViewPage() {
                         </div>
                         {/* Width resize handle */}
                         <div
-                          className="absolute top-1/2 -right-1 w-3 h-6 bg-green-500 border-2 border-white rounded cursor-ew-resize hover:bg-green-600 transform -translate-y-1/2"
+                          className="absolute top-1/2 -right-1 w-3 h-6 bg-green-500 border-2 border-white rounded cursor-ew-resize hover:bg-green-600 transform -translate-y-1/2 z-10"
                           onMouseDown={(e) => handleResizeStart(e, flower.id, 'width')}
                           title="Sleep om breedte te wijzigen"
                         />
                         {/* Height resize handle */}
                         <div
-                          className="absolute -bottom-1 left-1/2 w-6 h-3 bg-green-500 border-2 border-white rounded cursor-ns-resize hover:bg-green-600 transform -translate-x-1/2"
+                          className="absolute -bottom-1 left-1/2 w-6 h-3 bg-green-500 border-2 border-white rounded cursor-ns-resize hover:bg-green-600 transform -translate-x-1/2 z-10"
                           onMouseDown={(e) => handleResizeStart(e, flower.id, 'height')}
                           title="Sleep om hoogte te wijzigen"
+                        />
+                        {/* Corner resize handles for free-form shaping */}
+                        <div
+                          className="absolute -top-1 -left-1 w-3 h-3 bg-purple-500 border-2 border-white rounded-full cursor-nw-resize hover:bg-purple-600 z-10"
+                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'width')}
+                          title="Vrije vormgeving"
+                        />
+                        <div
+                          className="absolute -top-1 -right-1 w-3 h-3 bg-purple-500 border-2 border-white rounded-full cursor-ne-resize hover:bg-purple-600 z-10"
+                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'height')}
+                          title="Vrije vormgeving"
                         />
                       </>
                     )}
@@ -1423,9 +1479,11 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>💡 <strong>Resize Tips:</strong></p>
+              <p>💡 <strong>Vorm & Resize Tips:</strong></p>
               <p>🔵 <strong>Blauwe cirkel:</strong> Uniform vergroten + auto-duplicatie</p>
-              <p>🟢 <strong>Groene handels:</strong> Alleen breedte/hoogte wijzigen</p>
+              <p>🟢 <strong>Groene handels:</strong> Breedte/hoogte apart wijzigen</p>
+              <p>🟣 <strong>Paarse hoeken:</strong> Vrije vormgeving</p>
+              <p>🎯 <strong>Vormen:</strong> Rond → Ovaal → Rechthoek (automatisch)</p>
               <p>👆 <strong>Basis:</strong> Klik = selecteren, Sleep = verplaatsen, Dubbelklik = bewerken</p>
             </div>
             <div className="flex items-center gap-4">
