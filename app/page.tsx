@@ -212,20 +212,20 @@ function HomePageContent() {
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        variant="outline"
-                        onClick={() => router.push(`/gardens/${garden.id}/plantvak-view`)}
-                        className="flex-1"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        Visueel
-                      </Button>
-                      <Button
-                        size="sm"
                         onClick={() => router.push(`/gardens/${garden.id}`)}
                         className="flex-1"
                       >
                         <Leaf className="h-4 w-4 mr-1" />
-                        Beheer
+                        Beheer Tuin
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => router.push(`/admin/plant-beds/layout`)}
+                        className="flex-1"
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        Layout Weergave
                       </Button>
                     </div>
                   </CardContent>

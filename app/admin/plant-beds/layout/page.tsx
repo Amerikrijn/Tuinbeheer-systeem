@@ -21,8 +21,12 @@ import {
   Move,
   ArrowLeft,
   Trees,
+  Trash2,
+  Edit,
+  Plus,
+  Flower2,
 } from "lucide-react"
-import { getMockPlantBeds, getMockGarden, type PlantBed, type Garden } from "@/lib/mock-data"
+import { getMockPlantBeds, getMockGarden, type PlantBed, type Garden, type Plant } from "@/lib/mock-data"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
 
@@ -35,6 +39,14 @@ interface PlantBedPosition {
   rotation: number
 }
 
+interface PlantPosition {
+  id: string
+  bedId: string
+  x: number
+  y: number
+  size: number
+}
+
 const GRID_SIZE = 20
 const SCALE_MIN = 0.5
 const SCALE_MAX = 2
@@ -45,12 +57,16 @@ export default function PlantBedsLayoutPage() {
   const [plantBeds, setPlantBeds] = useState<PlantBed[]>([])
   const [garden, setGarden] = useState<Garden | null>(null)
   const [positions, setPositions] = useState<PlantBedPosition[]>([])
+  const [plantPositions, setPlantPositions] = useState<PlantPosition[]>([])
   const [scale, setScale] = useState(1)
   const [selectedBed, setSelectedBed] = useState<PlantBed | null>(null)
+  const [selectedPlant, setSelectedPlant] = useState<Plant | null>(null)
   const [draggedBed, setDraggedBed] = useState<string | null>(null)
+  const [draggedPlant, setDraggedPlant] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [loading, setLoading] = useState(true)
   const [hasChanges, setHasChanges] = useState(false)
+  const [showPlants, setShowPlants] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
 
   /* ------------------------------------------------------------------ */
@@ -84,6 +100,29 @@ export default function PlantBedsLayoutPage() {
         }
       })
       setPositions(initialPositions)
+
+      // Initiële plant posities
+      const initialPlantPositions: PlantPosition[] = []
+      beds.forEach((bed) => {
+        bed.plants.forEach((plant, plantIndex) => {
+          const bedPosition = initialPositions.find(p => p.id === bed.id)
+          if (bedPosition) {
+            const plantsPerRow = Math.ceil(Math.sqrt(bed.plants.length))
+            const row = Math.floor(plantIndex / plantsPerRow)
+            const col = plantIndex % plantsPerRow
+            const plantSpacing = Math.min(bedPosition.width, bedPosition.height) / (plantsPerRow + 1)
+            
+            initialPlantPositions.push({
+              id: plant.id,
+              bedId: bed.id,
+              x: (col + 1) * plantSpacing - 10,
+              y: (row + 1) * plantSpacing - 10,
+              size: 20
+            })
+          }
+        })
+      })
+      setPlantPositions(initialPlantPositions)
       setLoading(false)
     }
     loadData()
@@ -127,11 +166,26 @@ export default function PlantBedsLayoutPage() {
     }
   }
 
+  const getPlantColor = (plant: Plant) => {
+    const colorMap: { [key: string]: string } = {
+      'Rood': '#ef4444',
+      'Roze': '#ec4899',
+      'Geel': '#eab308',
+      'Wit': '#f8fafc',
+      'Paars': '#8b5cf6',
+      'Blauw': '#3b82f6',
+      'Oranje': '#f97316',
+      'Groen': '#22c55e',
+    }
+    return colorMap[plant.color] || '#22c55e'
+  }
+
   /* ------------------------------------------------------------------ */
   /*  Drag + Zoom handlers                                              */
   /* ------------------------------------------------------------------ */
-  const onMouseDown = (e: React.MouseEvent, id: string) => {
+  const onBedMouseDown = (e: React.MouseEvent, id: string) => {
     e.preventDefault()
+    e.stopPropagation()
     const pos = positions.find((p) => p.id === id)
     if (!pos || !containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
@@ -142,22 +196,69 @@ export default function PlantBedsLayoutPage() {
     })
   }
 
+  const onPlantMouseDown = (e: React.MouseEvent, plantId: string, bedId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const pos = plantPositions.find((p) => p.id === plantId)
+    const bedPos = positions.find((p) => p.id === bedId)
+    if (!pos || !bedPos || !containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+    setDraggedPlant(plantId)
+    setDragOffset({
+      x: (e.clientX - rect.left) / scale - (bedPos.x + pos.x),
+      y: (e.clientY - rect.top) / scale - (bedPos.y + pos.y),
+    })
+  }
+
   const onMouseMove = (e: React.MouseEvent) => {
-    if (!draggedBed || !containerRef.current) return
+    if (!containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
     const newX = (e.clientX - rect.left) / scale - dragOffset.x
     const newY = (e.clientY - rect.top) / scale - dragOffset.y
-    const snapX = Math.round(newX / GRID_SIZE) * GRID_SIZE
-    const snapY = Math.round(newY / GRID_SIZE) * GRID_SIZE
-    setPositions((prev) =>
-      prev.map((p) => (p.id === draggedBed ? { ...p, x: Math.max(0, snapX), y: Math.max(0, snapY) } : p)),
-    )
-    setHasChanges(true)
+
+    if (draggedBed) {
+      const snapX = Math.round(newX / GRID_SIZE) * GRID_SIZE
+      const snapY = Math.round(newY / GRID_SIZE) * GRID_SIZE
+      setPositions((prev) =>
+        prev.map((p) => (p.id === draggedBed ? { ...p, x: Math.max(0, snapX), y: Math.max(0, snapY) } : p)),
+      )
+      setHasChanges(true)
+    } else if (draggedPlant) {
+      const bedId = plantPositions.find(p => p.id === draggedPlant)?.bedId
+      const bedPos = positions.find(p => p.id === bedId)
+      if (bedPos) {
+        const relativeX = newX - bedPos.x
+        const relativeY = newY - bedPos.y
+        // Zorg ervoor dat planten binnen het plantvak blijven
+        const constrainedX = Math.max(5, Math.min(relativeX, bedPos.width - 25))
+        const constrainedY = Math.max(5, Math.min(relativeY, bedPos.height - 25))
+        
+        setPlantPositions((prev) =>
+          prev.map((p) => (p.id === draggedPlant ? { ...p, x: constrainedX, y: constrainedY } : p)),
+        )
+        setHasChanges(true)
+      }
+    }
   }
 
   const onMouseUp = () => {
     setDraggedBed(null)
+    setDraggedPlant(null)
     setDragOffset({ x: 0, y: 0 })
+  }
+
+  const deletePlant = (plantId: string) => {
+    setPlantBeds(prev => prev.map(bed => ({
+      ...bed,
+      plants: bed.plants.filter(plant => plant.id !== plantId)
+    })))
+    setPlantPositions(prev => prev.filter(pos => pos.id !== plantId))
+    setSelectedPlant(null)
+    setHasChanges(true)
+    toast({
+      title: "Plant verwijderd",
+      description: "De plant is succesvol verwijderd uit het plantvak.",
+    })
   }
 
   const zoomIn = () => setScale((s) => Math.min(s + 0.1, SCALE_MAX))
@@ -216,14 +317,23 @@ export default function PlantBedsLayoutPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Grid3X3 className="h-8 w-8 text-green-600" />
-              Tuin Layout
+              Tuin Layout Designer
             </h1>
-            <p className="text-gray-600">Grafische weergave van alle plantvakken – versleep om te herindelen</p>
+            <p className="text-gray-600">Versleep plantvakken en planten om je tuin opnieuw in te delen</p>
           </div>
         </div>
 
         {/* Controls ------------------------------------------------ */}
         <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setShowPlants(!showPlants)}
+            className={showPlants ? "bg-green-100 border-green-300" : ""}
+          >
+            <Flower2 className="h-4 w-4" />
+            {showPlants ? "Verberg Planten" : "Toon Planten"}
+          </Button>
           <Button variant="outline" size="sm" onClick={zoomOut} disabled={scale <= SCALE_MIN}>
             <ZoomOut className="h-4 w-4" />
           </Button>
@@ -263,7 +373,11 @@ export default function PlantBedsLayoutPage() {
           </div>
           <div className="flex items-center gap-2">
             <Move className="h-4 w-4 text-gray-600" />
-            <span>Versleep om te verplaatsen</span>
+            <span>Versleep plantvakken en planten</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Flower2 className="h-4 w-4 text-pink-500" />
+            <span>Klik op planten voor opties</span>
           </div>
           {garden && (
             <div className="flex items-center gap-2">
@@ -318,10 +432,13 @@ export default function PlantBedsLayoutPage() {
                     height: pos.height * scale,
                     transform: `rotate(${pos.rotation}deg)`,
                   }}
-                  onMouseDown={(e) => onMouseDown(e, pos.id)}
-                  onClick={() => !draggedBed && setSelectedBed(bed)}
+                  onMouseDown={(e) => onBedMouseDown(e, pos.id)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (!draggedBed) setSelectedBed(bed)
+                  }}
                 >
-                  <div className="p-2 h-full flex flex-col justify-between">
+                  <div className="p-2 h-full flex flex-col justify-between relative">
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <Badge variant="outline" className="text-xs font-bold">
@@ -336,6 +453,39 @@ export default function PlantBedsLayoutPage() {
                       <span className="text-gray-600">{getSizeLabel(bed)}</span>
                       <span className="font-medium">{bed.plants.length} planten</span>
                     </div>
+
+                    {/* Planten binnen het plantvak -------------------- */}
+                    {showPlants && plantPositions
+                      .filter(plantPos => plantPos.bedId === bed.id)
+                      .map(plantPos => {
+                        const plant = bed.plants.find(p => p.id === plantPos.id)
+                        if (!plant) return null
+                        return (
+                          <div
+                            key={plant.id}
+                            className={`absolute rounded-full cursor-pointer transition-all duration-200 hover:scale-110 border-2 border-white shadow-md ${
+                              draggedPlant === plant.id ? "shadow-xl ring-2 ring-blue-500 scale-110" : ""
+                            } ${selectedPlant?.id === plant.id ? "ring-2 ring-blue-400" : ""}`}
+                            style={{
+                              left: plantPos.x,
+                              top: plantPos.y,
+                              width: plantPos.size,
+                              height: plantPos.size,
+                              backgroundColor: getPlantColor(plant),
+                            }}
+                            onMouseDown={(e) => onPlantMouseDown(e, plant.id, bed.id)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (!draggedPlant) setSelectedPlant(plant)
+                            }}
+                            title={`${plant.name} (${plant.color})`}
+                          >
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Flower2 className="h-2 w-2 text-white" />
+                            </div>
+                          </div>
+                        )
+                      })}
                   </div>
                 </div>
               )
@@ -344,8 +494,79 @@ export default function PlantBedsLayoutPage() {
         </CardContent>
       </Card>
 
-      {/* Detail-dialog ----------------------------------------- */}
-      <Dialog open={!!selectedBed} onOpenChange={() => setSelectedBed(null)}>
+      {/* Plant Detail Dialog ----------------------------------- */}
+      <Dialog open={!!selectedPlant} onOpenChange={() => setSelectedPlant(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <div 
+                className="w-6 h-6 rounded-full border-2 border-white"
+                style={{ backgroundColor: selectedPlant ? getPlantColor(selectedPlant) : '#22c55e' }}
+              />
+              {selectedPlant?.name}
+            </DialogTitle>
+            <DialogDescription className="space-y-3">
+              {selectedPlant && (
+                <>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Kleur:</span>
+                      <div className="font-medium">{selectedPlant.color}</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Hoogte:</span>
+                      <div className="font-medium">{selectedPlant.height}cm</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Status:</span>
+                      <div className="font-medium">
+                        <Badge variant="secondary">{selectedPlant.status}</Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Plantdatum:</span>
+                      <div className="font-medium">{selectedPlant.plantedDate}</div>
+                    </div>
+                  </div>
+
+                  {selectedPlant.notes && (
+                    <div>
+                      <span className="text-gray-600">Notities:</span>
+                      <div className="font-medium text-sm mt-1">{selectedPlant.notes}</div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        const bedId = plantPositions.find(p => p.id === selectedPlant.id)?.bedId
+                        if (bedId) {
+                          router.push(`/admin/plant-beds/${bedId}/plants/${selectedPlant.id}/edit`)
+                        }
+                      }}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Bewerken
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => deletePlant(selectedPlant.id)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Verwijderen
+                    </Button>
+                  </div>
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bed Detail Dialog ------------------------------------- */}
+      <Dialog open={!!selectedBed && !selectedPlant} onOpenChange={() => setSelectedBed(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -388,10 +609,16 @@ export default function PlantBedsLayoutPage() {
                     <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
                       {selectedBed.plants.map((p) => (
                         <div key={p.id} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
-                          <div>
-                            <div className="font-medium">{p.name}</div>
-                            <div className="text-xs text-gray-600">
-                              {p.color} • {p.height}cm
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full border border-gray-300"
+                              style={{ backgroundColor: getPlantColor(p) }}
+                            />
+                            <div>
+                              <div className="font-medium">{p.name}</div>
+                              <div className="text-xs text-gray-600">
+                                {p.color} • {p.height}cm
+                              </div>
                             </div>
                           </div>
                           <Badge variant="secondary" className="text-xs">
@@ -407,9 +634,15 @@ export default function PlantBedsLayoutPage() {
 
                   <div className="flex gap-2 pt-2">
                     <Link href={`/admin/plant-beds/${selectedBed.id}`} className="flex-1">
-                      <Button variant="outline" className="w-full bg-transparent">
+                      <Button variant="outline" className="w-full">
                         <Info className="h-4 w-4 mr-2" />
                         Details Bekijken
+                      </Button>
+                    </Link>
+                    <Link href={`/admin/plant-beds/${selectedBed.id}/add-plant`}>
+                      <Button variant="outline">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Plant Toevoegen
                       </Button>
                     </Link>
                   </div>

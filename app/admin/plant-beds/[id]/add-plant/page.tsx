@@ -150,6 +150,15 @@ export default function AddPlantPage() {
           <ArrowLeft className="h-4 w-4" />
           Plantvak {plantBed.id}
         </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push("/admin/plant-beds/layout")}
+          className="flex items-center gap-2"
+        >
+          <MapPin className="h-4 w-4" />
+          Visuele Layout
+        </Button>
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Plus className="h-8 w-8 text-green-600" />
