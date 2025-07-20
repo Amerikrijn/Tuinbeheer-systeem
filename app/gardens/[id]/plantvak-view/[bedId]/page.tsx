@@ -261,7 +261,7 @@ export default function PlantBedViewPage() {
         
         if (!isCurrentlyEnlarged) {
           // Enlarge and add sub-flowers
-          const enlargedSize = 120
+          const enlargedSize = 160
           
           // Ensure the enlarged flower stays within canvas bounds
           const maxX = canvasWidth - enlargedSize
@@ -269,10 +269,10 @@ export default function PlantBedViewPage() {
           const adjustedX = Math.min(flower.x, maxX)
           const adjustedY = Math.min(flower.y, maxY)
           
-          const subFlowers = Array.from({ length: 7 }, (_, i) => ({
+          const subFlowers = Array.from({ length: 15 }, (_, i) => ({
             id: `sub-${flowerId}-${i}`,
-            x: 10 + Math.random() * 80, // Keep sub-flowers within the enlarged area
-            y: 10 + Math.random() * 80,
+            x: 20 + Math.random() * 120, // Keep sub-flowers within the enlarged area
+            y: 30 + Math.random() * 100,
             emoji: flower.emoji || '🌸'
           }))
           
@@ -405,7 +405,7 @@ export default function PlantBedViewPage() {
               <Leaf className="h-8 w-8 text-green-600" />
               {plantBed.name}
             </h1>
-            <p className="text-gray-600">Klik op bloemen om ze te vergroten, sleep kleine bloemen om ze te verplaatsen</p>
+            <p className="text-gray-600">Klik op bloemen om ze te vergroten met 15+ bloemen en naam, sleep kleine bloemen om ze te verplaatsen</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -666,32 +666,38 @@ export default function PlantBedViewPage() {
                   {flower.isEnlarged ? (
                     <div className="relative w-full h-full">
                       {/* Background gradient for enlarged flower */}
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-green-100 to-green-200 opacity-30"></div>
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-green-100 via-emerald-50 to-green-200 opacity-40 border-2 border-green-300 border-dashed"></div>
                       
                       {/* Main flower in center */}
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-4xl drop-shadow-lg">{flower.emoji || '🌸'}</div>
+                        <div className="text-5xl drop-shadow-lg animate-bounce" style={{animationDuration: '4s'}}>{flower.emoji || '🌸'}</div>
                       </div>
                       
-                      {/* Sub-flowers scattered around */}
-                      {flower.subFlowers?.map((subFlower) => (
+                      {/* Sub-flowers scattered around - more visible */}
+                      {flower.subFlowers?.map((subFlower, index) => (
                         <div
                           key={subFlower.id}
-                          className="absolute text-lg drop-shadow-md animate-pulse"
+                          className="absolute text-xl drop-shadow-md animate-pulse"
                           style={{
                             left: subFlower.x,
                             top: subFlower.y,
-                            animationDelay: `${Math.random() * 2}s`,
-                            animationDuration: '3s'
+                            animationDelay: `${index * 0.2}s`,
+                            animationDuration: '2s',
+                            transform: `rotate(${Math.random() * 20 - 10}deg)`
                           }}
                         >
                           {subFlower.emoji}
                         </div>
                       ))}
                       
-                      {/* Flower name */}
-                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-sm font-bold text-white bg-black bg-opacity-70 px-3 py-1 rounded-full shadow-lg">
+                      {/* Flower name - more prominent */}
+                      <div className="absolute top-2 left-1/2 transform -translate-x-1/2 text-base font-bold text-green-800 bg-white bg-opacity-90 px-4 py-2 rounded-full shadow-lg border-2 border-green-300">
                         {flower.name}
+                      </div>
+                      
+                      {/* Flower type at bottom */}
+                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-sm font-medium text-green-700 bg-green-100 bg-opacity-90 px-3 py-1 rounded-full shadow-md">
+                        {flower.type}
                       </div>
                     </div>
                   ) : (
@@ -765,8 +771,9 @@ export default function PlantBedViewPage() {
                 <div>• Klik op "Bloem Toevoegen" om nieuwe bloemen toe te voegen</div>
                 <div>• Maak aangepaste bloemen met eigen emoji en kleur</div>
                 <div>• Sleep kleine bloemen om ze te verplaatsen</div>
-                <div>• Klik op een bloem om deze te vergroten/verkleinen</div>
-                <div>• Vergrote bloemen tonen meer bloemen en de naam</div>
+                <div>• <strong>Klik op een bloem om deze te vergroten</strong> - toont 15+ bloemen</div>
+                <div>• Vergrote bloemen tonen de naam en het type prominent</div>
+                <div>• Klik nogmaals op een vergrote bloem om te verkleinen</div>
                 <div>• Gebruik zoom knoppen om in/uit te zoomen</div>
                 <div>• Vergeet niet te opslaan na wijzigingen</div>
               </div>
