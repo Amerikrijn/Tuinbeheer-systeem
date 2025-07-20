@@ -510,24 +510,27 @@ export default function PlantBedViewPage() {
     const newX = (e.clientX - rect.left) / scale - dragOffset.x
     const newY = (e.clientY - rect.top) / scale - dragOffset.y
 
-    // Find the dragged flower to get its dimensions
-    const draggedFlowerData = flowerPositions.find(f => f.id === draggedFlower)
-    if (!draggedFlowerData) return
+    // Use functional update to avoid dependency issues
+    setFlowerPositions(prev => {
+      // Find the dragged flower to get its dimensions
+      const draggedFlowerData = prev.find(f => f.id === draggedFlower)
+      if (!draggedFlowerData) return prev
 
-    // Constrain to canvas bounds using the flower's actual size
-    const constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width))
-    const constrainedY = Math.max(0, Math.min(newY, canvasHeight - draggedFlowerData.visual_height))
+      // Constrain to canvas bounds using the flower's actual size
+      const constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width))
+      const constrainedY = Math.max(0, Math.min(newY, canvasHeight - draggedFlowerData.visual_height))
 
-    // Only update the specific dragged flower
-    setFlowerPositions(prev =>
-      prev.map(f =>
-        f.id === draggedFlower
-          ? { ...f, position_x: constrainedX, position_y: constrainedY }
-          : f // Keep other flowers unchanged
-      )
-    )
+      // Only update the specific dragged flower
+      return prev.map(f => {
+        if (f.id === draggedFlower) {
+          return { ...f, position_x: constrainedX, position_y: constrainedY }
+        }
+        return f // Keep other flowers unchanged with same object reference
+      })
+    })
+    
     setHasChanges(true)
-  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight, flowerPositions])
+  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
 
   // Handle drag end
   const onMouseUp = useCallback(() => {
@@ -564,111 +567,115 @@ export default function PlantBedViewPage() {
   const handleResizeMove = useCallback((e: MouseEvent) => {
     if (!isResizing) return
 
-    const flower = flowerPositions.find(f => f.id === isResizing)
-    if (!flower) return
+    // Use a functional update to avoid dependency on flowerPositions
+    setFlowerPositions(prev => {
+      const flower = prev.find(f => f.id === isResizing)
+      if (!flower) return prev
 
-    const deltaX = e.clientX - resizeStartPos.x
-    const deltaY = e.clientY - resizeStartPos.y
-    
-    let newWidth = resizeStartSize.width
-    let newHeight = resizeStartSize.height
-
-    // Calculate new dimensions based on resize mode with boundary constraints
-    if (resizeMode === 'uniform') {
-      // For uniform scaling, use the smaller delta to prevent going out of bounds
-      const maxDeltaX = (canvasWidth - flower.position_x) - resizeStartSize.width
-      const maxDeltaY = (canvasHeight - flower.position_y) - resizeStartSize.height
-      const delta = Math.min(Math.max(deltaX, deltaY), Math.min(maxDeltaX, maxDeltaY))
+      const deltaX = e.clientX - resizeStartPos.x
+      const deltaY = e.clientY - resizeStartPos.y
       
-      newWidth = Math.max(20, resizeStartSize.width + delta)
-      newHeight = Math.max(20, resizeStartSize.height + delta)
-    } else if (resizeMode === 'width') {
-      const maxDelta = (canvasWidth - flower.position_x) - resizeStartSize.width
-      newWidth = Math.max(20, Math.min(resizeStartSize.width + deltaX, resizeStartSize.width + maxDelta))
-    } else if (resizeMode === 'height') {
-      const maxDelta = (canvasHeight - flower.position_y) - resizeStartSize.height
-      newHeight = Math.max(20, Math.min(resizeStartSize.height + deltaY, resizeStartSize.height + maxDelta))
-    }
+      let newWidth = resizeStartSize.width
+      let newHeight = resizeStartSize.height
 
-    // Calculate how many flowers should fit inside the resized area (only for uniform mode)
-    const newDuplicatePositions: {x: number, y: number}[] = []
-    if (resizeMode === 'uniform') {
-      const area = newWidth * newHeight
-      const originalArea = resizeStartSize.width * resizeStartSize.height
-      const areaRatio = area / originalArea
-      const targetFlowerCount = Math.floor(Math.sqrt(areaRatio))
+      // Calculate new dimensions based on resize mode with boundary constraints
+      if (resizeMode === 'uniform') {
+        // For uniform scaling, use the smaller delta to prevent going out of bounds
+        const maxDeltaX = (canvasWidth - flower.position_x) - resizeStartSize.width
+        const maxDeltaY = (canvasHeight - flower.position_y) - resizeStartSize.height
+        const delta = Math.min(Math.max(deltaX, deltaY), Math.min(maxDeltaX, maxDeltaY))
+        
+        newWidth = Math.max(20, resizeStartSize.width + delta)
+        newHeight = Math.max(20, resizeStartSize.height + delta)
+      } else if (resizeMode === 'width') {
+        const maxDelta = (canvasWidth - flower.position_x) - resizeStartSize.width
+        newWidth = Math.max(20, Math.min(resizeStartSize.width + deltaX, resizeStartSize.width + maxDelta))
+      } else if (resizeMode === 'height') {
+        const maxDelta = (canvasHeight - flower.position_y) - resizeStartSize.height
+        newHeight = Math.max(20, Math.min(resizeStartSize.height + deltaY, resizeStartSize.height + maxDelta))
+      }
 
-      // Generate positions for duplicates in a more organic pattern
-      if (targetFlowerCount > 1) {
-        const availableWidth = newWidth * 0.8 // Leave some margin
-        const availableHeight = newHeight * 0.8
-        const baseSize = Math.min(availableWidth, availableHeight) / Math.ceil(Math.sqrt(targetFlowerCount))
-        
-        // Create a more natural distribution pattern
-        const cols = Math.ceil(Math.sqrt(targetFlowerCount))
-        const rows = Math.ceil(targetFlowerCount / cols)
-        
-        for (let i = 0; i < targetFlowerCount - 1; i++) {
-          const col = i % cols
-          const row = Math.floor(i / cols)
+      // Calculate how many flowers should fit inside the resized area (only for uniform mode)
+      const newDuplicatePositions: {x: number, y: number}[] = []
+      if (resizeMode === 'uniform') {
+        const area = newWidth * newHeight
+        const originalArea = resizeStartSize.width * resizeStartSize.height
+        const areaRatio = area / originalArea
+        const targetFlowerCount = Math.floor(Math.sqrt(areaRatio))
+
+        // Generate positions for duplicates in a more organic pattern
+        if (targetFlowerCount > 1) {
+          const availableWidth = newWidth * 0.8 // Leave some margin
+          const availableHeight = newHeight * 0.8
+          const baseSize = Math.min(availableWidth, availableHeight) / Math.ceil(Math.sqrt(targetFlowerCount))
           
-          // Add some randomness for more organic placement
-          const jitterX = (Math.random() - 0.5) * baseSize * 0.3
-          const jitterY = (Math.random() - 0.5) * baseSize * 0.3
+          // Create a more natural distribution pattern
+          const cols = Math.ceil(Math.sqrt(targetFlowerCount))
+          const rows = Math.ceil(targetFlowerCount / cols)
           
-          const x = flower.position_x + (col + 1) * (availableWidth / (cols + 1)) + jitterX
-          const y = flower.position_y + (row + 1) * (availableHeight / (rows + 1)) + jitterY
-          
-          // Ensure position is within canvas bounds
-          if (x + baseSize <= canvasWidth && y + baseSize <= canvasHeight && x >= 0 && y >= 0) {
-            newDuplicatePositions.push({ x, y })
+          for (let i = 0; i < targetFlowerCount - 1; i++) {
+            const col = i % cols
+            const row = Math.floor(i / cols)
+            
+            // Add some randomness for more organic placement
+            const jitterX = (Math.random() - 0.5) * baseSize * 0.3
+            const jitterY = (Math.random() - 0.5) * baseSize * 0.3
+            
+            const x = flower.position_x + (col + 1) * (availableWidth / (cols + 1)) + jitterX
+            const y = flower.position_y + (row + 1) * (availableHeight / (rows + 1)) + jitterY
+            
+            // Ensure position is within canvas bounds
+            if (x + baseSize <= canvasWidth && y + baseSize <= canvasHeight && x >= 0 && y >= 0) {
+              newDuplicatePositions.push({ x, y })
+            }
           }
         }
       }
-    }
 
-    setDuplicatePositions(newDuplicatePositions)
+      setDuplicatePositions(newDuplicatePositions)
 
-    // Update only the flower being resized
-    setFlowerPositions(prev =>
-      prev.map(f =>
-        f.id === isResizing
-          ? { ...f, visual_width: newWidth, visual_height: newHeight }
-          : f // Keep other flowers unchanged
-      )
-    )
+      // Update ONLY the flower being resized, keep all others exactly the same
+      return prev.map(f => {
+        if (f.id === isResizing) {
+          return { ...f, visual_width: newWidth, visual_height: newHeight }
+        }
+        return f // Return the exact same object reference for other flowers
+      })
+    })
+    
     setHasChanges(true)
-  }, [isResizing, flowerPositions, resizeStartSize, resizeStartPos, resizeMode, canvasWidth, canvasHeight])
+  }, [isResizing, resizeStartSize, resizeStartPos, resizeMode, canvasWidth, canvasHeight])
 
   // Handle resize end - create actual duplicates
   const handleResizeEnd = useCallback(async () => {
-    if (!isResizing) return
-
-    const flower = flowerPositions.find(f => f.id === isResizing)
-    if (!flower || !plantBed) return
+    if (!isResizing || !plantBed) return
 
     try {
+      // Get the current flower state from the latest flowerPositions
+      const currentFlower = flowerPositions.find(f => f.id === isResizing)
+      if (!currentFlower) return
+
       // Create duplicates at the calculated positions
       const duplicates: PlantWithPosition[] = []
       for (const pos of duplicatePositions) {
         const duplicate = await createVisualPlant({
           plant_bed_id: plantBed.id,
-          name: flower.name,
-          color: flower.color || '#FF69B4',
-          status: flower.status || 'healthy',
+          name: currentFlower.name,
+          color: currentFlower.color || '#FF69B4',
+          status: currentFlower.status || 'healthy',
           position_x: pos.x,
           position_y: pos.y,
-          visual_width: Math.min(flower.visual_width * 0.6, 60), // Smaller duplicates
-          visual_height: Math.min(flower.visual_height * 0.6, 60),
-          emoji: flower.emoji || '🌸',
-          is_custom: flower.is_custom,
-          category: flower.category,
-          notes: flower.notes
+          visual_width: Math.min(currentFlower.visual_width * 0.6, 60), // Smaller duplicates
+          visual_height: Math.min(currentFlower.visual_height * 0.6, 60),
+          emoji: currentFlower.emoji || '🌸',
+          is_custom: currentFlower.is_custom,
+          category: currentFlower.category,
+          notes: currentFlower.notes
         })
         if (duplicate) duplicates.push(duplicate)
       }
 
-      // Add duplicates to state
+      // Add duplicates to state (only if there are any)
       if (duplicates.length > 0) {
         setFlowerPositions(prev => [...prev, ...duplicates])
         toast({
@@ -678,9 +685,9 @@ export default function PlantBedViewPage() {
       }
 
       // Save the resized original flower
-      await updatePlantPosition(flower.id, {
-        visual_width: flower.visual_width,
-        visual_height: flower.visual_height
+      await updatePlantPosition(currentFlower.id, {
+        visual_width: currentFlower.visual_width,
+        visual_height: currentFlower.visual_height
       })
 
     } catch (error) {
@@ -697,7 +704,7 @@ export default function PlantBedViewPage() {
     setResizeStartPos({ x: 0, y: 0 })
     setDuplicatePositions([])
     setResizeMode('uniform')
-  }, [isResizing, flowerPositions, resizeStartSize, plantBed, duplicatePositions, toast])
+  }, [isResizing, plantBed, duplicatePositions, flowerPositions, toast])
 
   useEffect(() => {
     if (draggedFlower) {
