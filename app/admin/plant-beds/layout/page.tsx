@@ -525,7 +525,7 @@ export default function PlantBedsLayoutPage() {
                     </div>
                     <div>
                       <span className="text-gray-600">Plantdatum:</span>
-                      <div className="font-medium">{selectedPlant.plantedDate}</div>
+                      <div className="font-medium">{selectedPlant.plantingDate}</div>
                     </div>
                   </div>
 
