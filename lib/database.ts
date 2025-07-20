@@ -1,5 +1,5 @@
 import { DatabaseService } from "./services/database.service"
-import { supabase, type Garden, type PlantBed, type Plant, type PlantBedWithPlants } from "./supabase"
+import { supabase, type Garden, type PlantBed, type Plant, type PlantBedWithPlants, type PlantWithPosition } from "./supabase"
 
 function isMissingRelation(err: { code?: string } | null): boolean {
   return !!err && err.code === "42P01"
@@ -316,4 +316,99 @@ export async function getPlant(id: string): Promise<Plant | null> {
   }
 
   return data
+}
+
+// ===================================================================
+// VISUAL PLANT DESIGNER FUNCTIONS
+// ===================================================================
+
+// Get plants with positions for visual designer
+export async function getPlantsWithPositions(plantBedId: string): Promise<PlantWithPosition[]> {
+  const { data: plants, error } = await supabase
+    .from("plants")
+    .select("*")
+    .eq("plant_bed_id", plantBedId)
+    .order("created_at", { ascending: true })
+
+  if (error) {
+    console.error("Error fetching plants with positions:", error)
+    return []
+  }
+
+  // Convert to PlantWithPosition format with defaults
+  return (plants || []).map(plant => ({
+    ...plant,
+    position_x: plant.position_x ?? Math.random() * 400,
+    position_y: plant.position_y ?? Math.random() * 300,
+    visual_width: plant.visual_width ?? 40,
+    visual_height: plant.visual_height ?? 40,
+    emoji: plant.emoji ?? '🌸'
+  })) as PlantWithPosition[]
+}
+
+// Create plant for visual designer
+export async function createVisualPlant(plant: {
+  plant_bed_id: string
+  name: string
+  color: string
+  status: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  position_x: number
+  position_y: number
+  visual_width: number
+  visual_height: number
+  emoji: string
+  is_custom?: boolean
+  category?: string
+  notes?: string
+}): Promise<PlantWithPosition | null> {
+  const { data, error } = await supabase.from("plants").insert({
+    plant_bed_id: plant.plant_bed_id,
+    name: plant.name,
+    color: plant.color,
+    status: plant.status,
+    position_x: plant.position_x,
+    position_y: plant.position_y,
+    visual_width: plant.visual_width,
+    visual_height: plant.visual_height,
+    emoji: plant.emoji,
+    is_custom: plant.is_custom,
+    category: plant.category,
+    notes: plant.notes,
+  }).select().single()
+
+  if (error) {
+    console.error("Error creating visual plant:", error)
+    throw error
+  }
+
+  return data as PlantWithPosition
+}
+
+// Update plant position and visual properties
+export async function updatePlantPosition(id: string, updates: {
+  position_x?: number
+  position_y?: number
+  visual_width?: number
+  visual_height?: number
+  name?: string
+  color?: string
+  status?: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  emoji?: string
+  is_custom?: boolean
+  category?: string
+  notes?: string
+}): Promise<PlantWithPosition | null> {
+  const { data, error } = await supabase
+    .from("plants")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error("Error updating plant position:", error)
+    throw error
+  }
+
+  return data as PlantWithPosition
 }

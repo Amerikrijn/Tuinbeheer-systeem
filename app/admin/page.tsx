@@ -87,9 +87,9 @@ export default function AdminDashboard() {
             </Link>
           </Card>
 
-          {/* Manage Plant Beds */}
+          {/* Manage Gardens */}
           <Card className="hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm cursor-pointer group overflow-hidden transform hover:scale-105">
-            <Link href="/admin/plant-beds">
+            <Link href="/gardens">
               <div className="bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600 p-6 sm:p-8 text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
                 <div className="flex items-center justify-between mb-4 sm:mb-6 relative z-10">
@@ -134,13 +134,13 @@ export default function AdminDashboard() {
             {t("quick.actions", language)}
           </h3>
           <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-            <Link href="/admin/plant-beds/configure">
+            <Link href="/gardens/new">
               <Button
                 variant="outline"
                 className="flex items-center gap-3 bg-white/80 backdrop-blur-sm border-green-300 text-green-700 hover:bg-green-50 px-4 sm:px-6 py-2 sm:py-3 rounded-full shadow-lg transform transition-all duration-200 hover:scale-105 text-sm sm:text-base"
               >
                 <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
-                {t("new.plant.bed", language)}
+                New Garden
               </Button>
             </Link>
             <Link href="/gardens/new">
