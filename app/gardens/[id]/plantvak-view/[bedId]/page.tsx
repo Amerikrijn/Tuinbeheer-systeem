@@ -290,17 +290,39 @@ export default function PlantBedViewPage() {
 
   const onMouseDown = (e: React.MouseEvent, flowerId: string) => {
     e.preventDefault()
+    e.stopPropagation()
     const flower = flowerPositions.find(f => f.id === flowerId)
-    if (!flower) return
+    if (!flower || flower.isEnlarged) return
 
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    setDraggedFlower(flowerId)
-    setDragOffset({
-      x: (e.clientX - rect.left) / scale - flower.x,
-      y: (e.clientY - rect.top) / scale - flower.y
-    })
+    // Only start dragging if this is a mouse down (not a click)
+    const startX = e.clientX
+    const startY = e.clientY
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = Math.abs(moveEvent.clientX - startX)
+      const deltaY = Math.abs(moveEvent.clientY - startY)
+      
+      // Only start dragging if mouse moved more than 5 pixels
+      if (deltaX > 5 || deltaY > 5) {
+        setDraggedFlower(flowerId)
+        setDragOffset({
+          x: (startX - rect.left) / scale - flower.x,
+          y: (startY - rect.top) / scale - flower.y
+        })
+        document.removeEventListener('mousemove', handleMouseMove)
+      }
+    }
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+    
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
   }
 
   const toggleFlowerSize = (flowerId: string) => {
@@ -376,9 +398,12 @@ export default function PlantBedViewPage() {
   }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight, flowerPositions])
 
   const onMouseUp = useCallback(() => {
+    if (draggedFlower) {
+      console.log('Ending drag for:', draggedFlower)
+    }
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [])
+  }, [draggedFlower])
 
   const getSunExposureIcon = (exposure: string) => {
     switch (exposure) {
@@ -454,7 +479,7 @@ export default function PlantBedViewPage() {
               <Leaf className="h-8 w-8 text-green-600" />
               {plantBed.name}
             </h1>
-            <p className="text-gray-600">Klik op bloemen om ze te vergroten met 15+ bloemen en naam, sleep kleine bloemen om ze te verplaatsen</p>
+            <p className="text-gray-600">Klik of dubbelklik op bloemen om ze te vergroten met 15+ bloemen en naam, sleep kleine bloemen om ze te verplaatsen</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -707,9 +732,21 @@ export default function PlantBedViewPage() {
                   }}
                   onClick={(e) => {
                     e.stopPropagation()
-                    if (!draggedFlower) {
-                      toggleFlowerSize(flower.id)
-                    }
+                    e.preventDefault()
+                    console.log('Flower clicked:', flower.name, 'draggedFlower:', draggedFlower)
+                    // Use setTimeout to ensure drag state is cleared
+                    setTimeout(() => {
+                      if (!draggedFlower) {
+                        console.log('Toggling flower size for:', flower.name)
+                        toggleFlowerSize(flower.id)
+                      }
+                    }, 10)
+                  }}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation()
+                    e.preventDefault()
+                    console.log('Flower double-clicked:', flower.name)
+                    toggleFlowerSize(flower.id)
                   }}
                 >
                   {flower.isEnlarged ? (
@@ -820,9 +857,9 @@ export default function PlantBedViewPage() {
                 <div>• Klik op "Bloem Toevoegen" om nieuwe bloemen toe te voegen</div>
                 <div>• Maak aangepaste bloemen met eigen emoji en kleur</div>
                 <div>• Sleep kleine bloemen om ze te verplaatsen</div>
-                <div>• <strong>Klik op een bloem om deze te vergroten</strong> - toont 15+ bloemen</div>
+                <div>• <strong>Klik of dubbelklik op een bloem om deze te vergroten</strong> - toont 15+ bloemen</div>
                 <div>• Vergrote bloemen tonen de naam en het type prominent</div>
-                <div>• Klik nogmaals op een vergrote bloem om te verkleinen</div>
+                <div>• Klik/dubbelklik nogmaals op een vergrote bloem om te verkleinen</div>
                 <div>• Gebruik zoom knoppen om in/uit te zoomen</div>
                 <div>• Vergeet niet te opslaan na wijzigingen</div>
               </div>
