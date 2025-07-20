@@ -21,7 +21,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Edit, Leaf, RefreshCw, Trash2, AlertTriangle, Home, Calendar } from "lucide-react"
+import { ArrowLeft, Edit, Leaf, RefreshCw, Trash2, AlertTriangle, Home, Calendar, MapPin } from "lucide-react"
 import { getMockPlantBeds, type PlantBed, type Plant } from "@/lib/mock-data"
 
 interface EditPlant {
