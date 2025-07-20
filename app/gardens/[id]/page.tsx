@@ -82,11 +82,13 @@ export default function GardenDetailPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log("🔍 Loading garden data:", { paramsId: params.id, type: typeof params.id })
         setLoading(true)
         const [gardenData, plantBedsData] = await Promise.all([
           getGarden(params.id as string),
           getPlantBeds(params.id as string),
         ])
+        console.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
         setGarden(gardenData)
         
         // Process plant beds to ensure they have visual dimensions
