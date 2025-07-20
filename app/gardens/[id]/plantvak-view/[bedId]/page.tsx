@@ -1544,224 +1544,57 @@ export default function PlantBedViewPage() {
                           Muis • Trackpad • Mobiel
                         </div>
                         
-                                                                        {/* 🚨 POGING 1/2 - SIMPELSTE OPLOSSING OOIT! */}
-                        <div className="absolute -bottom-16 -right-16 flex gap-4">
-                          
-                          {/* MEGA GROTE + BUTTON */}
-                          <div
-                            className="w-24 h-24 bg-green-400 border-8 border-yellow-300 rounded-full cursor-pointer hover:bg-green-500 hover:scale-110 flex items-center justify-center z-50 shadow-2xl animate-pulse"
-                            onClick={() => {
-                              console.log("🟢 MEGA + CLICKED!")
-                              
-                              // DIRECTE bloem groter maken
-                              setFlowerPositions(prev => prev.map(f => {
-                                if (f.id === flower.id) {
-                                  return { 
-                                    ...f, 
-                                    visual_width: (f.visual_width || 40) + 30,
-                                    visual_height: (f.visual_height || 40) + 30
-                                  }
-                                }
-                                return f
-                              }))
-                              
-                              alert("BLOEM IS 30PX GROTER GEMAAKT!")
-                            }}
-                          >
-                            <div className="text-white text-5xl font-black drop-shadow-lg">+</div>
-                          </div>
-                          
-                          {/* MEGA GROTE - BUTTON */}
-                          <div
-                            className="w-24 h-24 bg-red-400 border-8 border-yellow-300 rounded-full cursor-pointer hover:bg-red-500 hover:scale-110 flex items-center justify-center z-50 shadow-2xl animate-pulse"
-                            onClick={() => {
-                              console.log("🔴 MEGA - CLICKED!")
-                              
-                              // DIRECTE bloem kleiner maken
-                              setFlowerPositions(prev => prev.map(f => {
-                                if (f.id === flower.id) {
-                                  return { 
-                                    ...f, 
-                                    visual_width: Math.max(40, (f.visual_width || 40) - 30),
-                                    visual_height: Math.max(40, (f.visual_height || 40) - 30)
-                                  }
-                                }
-                                return f
-                              }))
-                              
-                              alert("BLOEM IS 30PX KLEINER GEMAAKT!")
-                            }}
-                          >
-                            <div className="text-white text-5xl font-black drop-shadow-lg">-</div>
-                          </div>
-                        </div>
+                                                                        {/* 🚨 POGING 2/2 - LAATSTE KANS PERFECTE DRAG! */}
+                        <div 
+                          className="absolute -bottom-8 -right-8 w-20 h-20 bg-yellow-400 border-4 border-black rounded-full cursor-se-resize hover:bg-yellow-300 flex items-center justify-center z-50 shadow-2xl animate-bounce"
                           onMouseDown={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
                             
-                            console.log("🔥 ULTIMATE DRAG START - LAATSTE POGING!")
-                            
-                            const currentFlower = flowerPositions.find(f => f.id === flower.id)
-                            if (!currentFlower) return
+                            console.log("🎯 LAATSTE KANS DRAG START!")
+                            alert("DRAG GESTART! Sleep nu!")
                             
                             const startX = e.clientX
                             const startY = e.clientY
-                            const startAreaSize = currentFlower.notes?.includes('area_size:') 
-                              ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
-                              : FLOWER_SIZE * 3
+                            const startSize = flower.visual_width || 40
                             
-                            let isDragging = true
-                            
-                            const handleDrag = (moveEvent: MouseEvent) => {
-                              if (!isDragging) return
-                              
+                            const handleMouseMove = (moveEvent: MouseEvent) => {
                               const deltaX = moveEvent.clientX - startX
                               const deltaY = moveEvent.clientY - startY
                               const delta = Math.max(deltaX, deltaY)
-                              const newAreaSize = Math.max(FLOWER_SIZE * 2, startAreaSize + delta)
+                              const newSize = Math.max(30, startSize + delta)
                               
-                              console.log("🔥 ULTIMATE DRAGGING:", newAreaSize)
+                              console.log("🎯 DRAGGING SIZE:", newSize)
                               
-                              // REAL-TIME update
+                              // DIRECT size update
                               setFlowerPositions(prev => prev.map(f => {
-                                if (f.id === currentFlower.id) {
-                                  return { ...f, notes: `area_size:${newAreaSize}` }
+                                if (f.id === flower.id) {
+                                  return { 
+                                    ...f, 
+                                    visual_width: newSize,
+                                    visual_height: newSize
+                                  }
                                 }
                                 return f
                               }))
                             }
                             
-                            const handleStop = () => {
-                              isDragging = false
-                              console.log("🔥 ULTIMATE DRAG STOP!")
-                              document.removeEventListener('mousemove', handleDrag)
-                              document.removeEventListener('mouseup', handleStop)
-                              document.removeEventListener('mouseleave', handleStop)
-                              
-                              toast({
-                                title: "🔥 ULTIMATE RESIZE DONE!",
-                                description: "Sleep werkt! Meer bloemen toegevoegd!",
-                              })
+                            const handleMouseUp = () => {
+                              console.log("🎯 DRAG STOP!")
+                              alert("DRAG GESTOPT!")
+                              document.removeEventListener('mousemove', handleMouseMove)
+                              document.removeEventListener('mouseup', handleMouseUp)
                             }
                             
-                            // GLOBAL listeners - werkt OVERAL
-                            document.addEventListener('mousemove', handleDrag, { passive: false })
-                            document.addEventListener('mouseup', handleStop, { passive: false })
-                            document.addEventListener('mouseleave', handleStop, { passive: false })
-                            
-                            toast({
-                              title: "🔥 ULTIMATE DRAG ACTIVE!",
-                              description: "Sleep nu om te resizen - loslaten om te stoppen!",
-                            })
+                            // GLOBAL listeners
+                            document.addEventListener('mousemove', handleMouseMove)
+                            document.addEventListener('mouseup', handleMouseUp)
                           }}
-                          onTouchStart={(e) => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            
-                            console.log("📱 ULTIMATE TOUCH START!")
-                            
-                            const currentFlower = flowerPositions.find(f => f.id === flower.id)
-                            if (!currentFlower) return
-                            
-                            const touch = e.touches[0]
-                            const startX = touch.clientX
-                            const startY = touch.clientY
-                            const startAreaSize = currentFlower.notes?.includes('area_size:') 
-                              ? parseInt(currentFlower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
-                              : FLOWER_SIZE * 3
-                            
-                            let isTouchDragging = true
-                            
-                            const handleTouchMove = (moveEvent: TouchEvent) => {
-                              if (!isTouchDragging) return
-                              moveEvent.preventDefault()
-                              
-                              const touch = moveEvent.touches[0]
-                              const deltaX = touch.clientX - startX
-                              const deltaY = touch.clientY - startY
-                              const delta = Math.max(deltaX, deltaY)
-                              const newAreaSize = Math.max(FLOWER_SIZE * 2, startAreaSize + delta)
-                              
-                              console.log("📱 ULTIMATE TOUCH DRAGGING:", newAreaSize)
-                              
-                              // REAL-TIME update
-                              setFlowerPositions(prev => prev.map(f => {
-                                if (f.id === currentFlower.id) {
-                                  return { ...f, notes: `area_size:${newAreaSize}` }
-                                }
-                                return f
-                              }))
-                            }
-                            
-                            const handleTouchEnd = () => {
-                              isTouchDragging = false
-                              console.log("📱 ULTIMATE TOUCH END!")
-                              document.removeEventListener('touchmove', handleTouchMove as any)
-                              document.removeEventListener('touchend', handleTouchEnd as any)
-                              
-                              toast({
-                                title: "📱 TOUCH RESIZE DONE!",
-                                description: "Touch sleep werkt! Meer bloemen toegevoegd!",
-                              })
-                            }
-                            
-                            // GLOBAL touch listeners
-                            document.addEventListener('touchmove', handleTouchMove as any, { passive: false })
-                            document.addEventListener('touchend', handleTouchEnd as any, { passive: false })
-                            
-                            toast({
-                              title: "📱 TOUCH DRAG ACTIVE!",
-                              description: "Sleep nu met vinger - loslaten om te stoppen!",
-                            })
-                          }}
-                                                       title="🖱️ DRAG HANDLE - Sleep om te resizen (muis/trackpad)"
-                           >
-                             <div className="text-white text-lg font-bold">⤢</div>
-                           </div>
-                           
-                                                       {/* SUPER GROTE BUTTONS - MOETEN WERKEN! */}
-                            <div className="flex flex-col gap-2 mt-2">
-                              <button
-                                className="w-20 h-20 bg-green-500 hover:bg-green-600 active:bg-green-700 border-4 border-white rounded-xl flex items-center justify-center z-40 shadow-2xl cursor-pointer animate-bounce"
-                                onClick={(e) => {
-                                  console.log("🟢 BUTTON CLICKED!")
-                                  alert("GROTER BUTTON WERKT!")
-                                  
-                                  // Simpele resize zonder complexe logica
-                                  setFlowerPositions(prev => prev.map(f => {
-                                    if (f.id === flower.id) {
-                                      const currentSize = f.visual_width || FLOWER_SIZE
-                                      return { ...f, visual_width: currentSize + 20, visual_height: currentSize + 20 }
-                                    }
-                                    return f
-                                  }))
-                                }}
-                                title="KLIK VOOR GROTER!"
-                              >
-                                <div className="text-white text-3xl font-black">+</div>
-                              </button>
-                              
-                              <button
-                                className="w-20 h-20 bg-red-500 hover:bg-red-600 active:bg-red-700 border-4 border-white rounded-xl flex items-center justify-center z-40 shadow-2xl cursor-pointer animate-bounce"
-                                onClick={(e) => {
-                                  console.log("🔴 BUTTON CLICKED!")
-                                  alert("KLEINER BUTTON WERKT!")
-                                  
-                                  // Simpele resize zonder complexe logica
-                                  setFlowerPositions(prev => prev.map(f => {
-                                    if (f.id === flower.id) {
-                                      const currentSize = f.visual_width || FLOWER_SIZE
-                                      return { ...f, visual_width: Math.max(FLOWER_SIZE, currentSize - 20), visual_height: Math.max(FLOWER_SIZE, currentSize - 20) }
-                                    }
-                                    return f
-                                  }))
-                                }}
-                                title="KLIK VOOR KLEINER!"
-                              >
-                                <div className="text-white text-3xl font-black">-</div>
-                              </button>
-                            </div>
-                         </div>
+                          title="SLEEP DEZE GELE HOEK OM PRECIES TE SIZEN!"
+                        >
+                          <div className="text-black text-2xl font-black">⤡</div>
+                        </div>
+                          
                         
                         {/* Show live area info during resize */}
                         {isBeingResized && (
