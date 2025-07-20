@@ -201,18 +201,8 @@ export async function createPlantBed(plantBed: {
   sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
   description?: string
 }): Promise<PlantBed | null> {
-  // Generate a simple ID for plant bed (format: PB001, PB002, etc.)
-  const existingBeds = await supabase.from("plant_beds").select("id").order("id", { ascending: false }).limit(1)
-  let newId = "PB001"
-  
-  if (existingBeds.data && existingBeds.data.length > 0) {
-    const lastId = existingBeds.data[0].id
-    const numberPart = parseInt(lastId.slice(2)) + 1
-    newId = `PB${numberPart.toString().padStart(3, '0')}`
-  }
-
+  // Let the database auto-generate the UUID
   const { data, error } = await supabase.from("plant_beds").insert({
-    id: newId,
     garden_id: plantBed.garden_id,
     name: plantBed.name,
     location: plantBed.location,
