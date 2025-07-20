@@ -36,6 +36,7 @@ const CANVAS_HEIGHT = 600
 const GRID_SIZE = 20
 const PLANTVAK_MIN_WIDTH = 100
 const PLANTVAK_MIN_HEIGHT = 80
+const METERS_TO_PIXELS = 50 // 1 meter = 50 pixels
 
 interface PlantBedPosition {
   id: string
@@ -54,6 +55,7 @@ export default function GardenDetailPage() {
   const [loading, setLoading] = useState(true)
   const [scale, setScale] = useState(1)
   const [showVisualView, setShowVisualView] = useState(true)
+  const [selectedBed, setSelectedBed] = useState<string | null>(null)
   const [draggedBed, setDraggedBed] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [hasChanges, setHasChanges] = useState(false)
@@ -61,10 +63,11 @@ export default function GardenDetailPage() {
   const [saving, setSaving] = useState(false)
   const canvasRef = useRef<HTMLDivElement>(null)
 
-  // New plant bed form state
+  // New plant bed form state with length and width
   const [newPlantBed, setNewPlantBed] = useState({
     name: '',
-    size: '',
+    length: '', // in meters
+    width: '', // in meters
     description: '',
     sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
     soil_type: ''
@@ -119,31 +122,65 @@ export default function GardenDetailPage() {
     return colors[index % colors.length]
   }
 
-  // Handle drag start
-  const handleMouseDown = useCallback((e: React.MouseEvent, bedId: string) => {
+  // Convert dimensions from string (e.g., "2m x 1.5m" or "2 x 1.5") to pixels
+  const getDimensionsFromSize = (size: string) => {
+    const match = size?.match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/)
+    if (match) {
+      const width = parseFloat(match[1]) * METERS_TO_PIXELS
+      const height = parseFloat(match[2]) * METERS_TO_PIXELS
+      return {
+        width: Math.max(PLANTVAK_MIN_WIDTH, width),
+        height: Math.max(PLANTVAK_MIN_HEIGHT, height)
+      }
+    }
+    return {
+      width: PLANTVAK_MIN_WIDTH,
+      height: PLANTVAK_MIN_HEIGHT
+    }
+  }
+
+  // Handle single click - select plant bed for dragging
+  const handlePlantBedClick = useCallback((e: React.MouseEvent, bedId: string) => {
     e.preventDefault()
     e.stopPropagation()
     
-    const bed = plantBeds.find(b => b.id === bedId)
-    if (!bed) return
+    if (selectedBed === bedId) {
+      // Already selected, start dragging
+      const bed = plantBeds.find(b => b.id === bedId)
+      if (!bed) return
 
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect) return
+      const rect = canvasRef.current?.getBoundingClientRect()
+      if (!rect) return
 
-    const offsetX = e.clientX - rect.left - (bed.position_x || 100) * scale
-    const offsetY = e.clientY - rect.top - (bed.position_y || 100) * scale
+      const offsetX = e.clientX - rect.left - (bed.position_x || 100) * scale
+      const offsetY = e.clientY - rect.top - (bed.position_y || 100) * scale
 
-    setDraggedBed(bedId)
-    setDragOffset({ x: offsetX / scale, y: offsetY / scale })
-  }, [plantBeds, scale])
+      setDraggedBed(bedId)
+      setDragOffset({ x: offsetX / scale, y: offsetY / scale })
+    } else {
+      // Select this plant bed
+      setSelectedBed(bedId)
+    }
+  }, [selectedBed, plantBeds, scale])
+
+  // Handle double click - navigate to plant bed details
+  const handlePlantBedDoubleClick = useCallback((bedId: string) => {
+    router.push(`/gardens/${garden?.id}/plantvak-view/${bedId}`)
+  }, [router, garden])
 
   // Handle drag move
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!draggedBed || !canvasRef.current) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const x = Math.max(0, Math.min((e.clientX - rect.left) / scale - dragOffset.x, CANVAS_WIDTH - PLANTVAK_MIN_WIDTH))
-    const y = Math.max(0, Math.min((e.clientY - rect.top) / scale - dragOffset.y, CANVAS_HEIGHT - PLANTVAK_MIN_HEIGHT))
+    const bed = plantBeds.find(b => b.id === draggedBed)
+    if (!bed) return
+
+    const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
+    const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
+
+    const x = Math.max(0, Math.min((e.clientX - rect.left) / scale - dragOffset.x, CANVAS_WIDTH - bedWidth))
+    const y = Math.max(0, Math.min((e.clientY - rect.top) / scale - dragOffset.y, CANVAS_HEIGHT - bedHeight))
 
     setPlantBeds(prev => prev.map(bed => 
       bed.id === draggedBed 
@@ -151,12 +188,19 @@ export default function GardenDetailPage() {
         : bed
     ))
     setHasChanges(true)
-  }, [draggedBed, dragOffset, scale])
+  }, [draggedBed, dragOffset, scale, plantBeds])
 
   // Handle drag end
   const handleMouseUp = useCallback(() => {
     setDraggedBed(null)
     setDragOffset({ x: 0, y: 0 })
+  }, [])
+
+  // Handle click outside to deselect
+  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      setSelectedBed(null)
+    }
   }, [])
 
   // Add event listeners for drag
@@ -223,16 +267,32 @@ export default function GardenDetailPage() {
 
   // Add new plant bed
   const addPlantBed = async () => {
-    if (!garden || !newPlantBed.name || !newPlantBed.size) {
+    if (!garden || !newPlantBed.name || !newPlantBed.length || !newPlantBed.width) {
       toast({
         title: "Incomplete gegevens",
-        description: "Vul alle verplichte velden in.",
+        description: "Vul naam, lengte en breedte in.",
         variant: "destructive",
       })
       return
     }
 
     try {
+      // Calculate dimensions from length and width
+      const length = parseFloat(newPlantBed.length)
+      const width = parseFloat(newPlantBed.width)
+      
+      if (isNaN(length) || isNaN(width) || length <= 0 || width <= 0) {
+        toast({
+          title: "Ongeldige afmetingen",
+          description: "Lengte en breedte moeten geldige getallen zijn groter dan 0.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const visualWidth = Math.max(PLANTVAK_MIN_WIDTH, length * METERS_TO_PIXELS)
+      const visualHeight = Math.max(PLANTVAK_MIN_HEIGHT, width * METERS_TO_PIXELS)
+
       // Find a good position for the new plant bed
       const existingPositions = plantBeds.map(bed => ({
         x: bed.position_x || 100,
@@ -250,42 +310,44 @@ export default function GardenDetailPage() {
       while (attempts < maxAttempts) {
         const overlaps = existingPositions.some(pos => 
           newX < pos.x + pos.width &&
-          newX + PLANTVAK_MIN_WIDTH > pos.x &&
+          newX + visualWidth > pos.x &&
           newY < pos.y + pos.height &&
-          newY + PLANTVAK_MIN_HEIGHT > pos.y
+          newY + visualHeight > pos.y
         )
 
         if (!overlaps) break
 
         newX += 50
-        if (newX + PLANTVAK_MIN_WIDTH > CANVAS_WIDTH) {
+        if (newX + visualWidth > CANVAS_WIDTH) {
           newX = 100
           newY += 50
         }
-        if (newY + PLANTVAK_MIN_HEIGHT > CANVAS_HEIGHT) {
+        if (newY + visualHeight > CANVAS_HEIGHT) {
           newY = 100
-          newX = Math.random() * (CANVAS_WIDTH - PLANTVAK_MIN_WIDTH)
-          newY = Math.random() * (CANVAS_HEIGHT - PLANTVAK_MIN_HEIGHT)
+          newX = Math.random() * (CANVAS_WIDTH - visualWidth)
+          newY = Math.random() * (CANVAS_HEIGHT - visualHeight)
         }
         attempts++
       }
 
+      const sizeString = `${length}m x ${width}m`
+      
       const plantBed = await createPlantBed({
         garden_id: garden.id,
         name: newPlantBed.name,
-        size: newPlantBed.size,
+        size: sizeString,
         description: newPlantBed.description,
         sun_exposure: newPlantBed.sun_exposure,
         soil_type: newPlantBed.soil_type,
       })
 
       if (plantBed) {
-        // Update the plant bed with position
+        // Update the plant bed with position and calculated dimensions
         const updatedBed = await updatePlantBed(plantBed.id, {
           position_x: newX,
           position_y: newY,
-          visual_width: 150,
-          visual_height: 100
+          visual_width: visualWidth,
+          visual_height: visualHeight
         })
 
         if (updatedBed) {
@@ -293,8 +355,8 @@ export default function GardenDetailPage() {
             ...updatedBed,
             position_x: updatedBed.position_x ?? newX,
             position_y: updatedBed.position_y ?? newY,
-            visual_width: updatedBed.visual_width ?? 150,
-            visual_height: updatedBed.visual_height ?? 100,
+            visual_width: updatedBed.visual_width ?? visualWidth,
+            visual_height: updatedBed.visual_height ?? visualHeight,
             rotation: updatedBed.rotation ?? 0,
             z_index: updatedBed.z_index ?? 0,
             color_code: updatedBed.color_code ?? '',
@@ -305,14 +367,15 @@ export default function GardenDetailPage() {
           setIsAddingPlantBed(false)
           setNewPlantBed({
             name: '',
-            size: '',
+            length: '',
+            width: '',
             description: '',
             sun_exposure: 'full-sun',
             soil_type: ''
           })
           toast({
             title: "Plantvak toegevoegd",
-            description: `${plantBed.name} is toegevoegd aan de tuin.`,
+            description: `${plantBed.name} (${sizeString}) is toegevoegd aan de tuin.`,
           })
         }
       }
@@ -386,7 +449,7 @@ export default function GardenDetailPage() {
               {garden.name}
             </h1>
             <p className="text-gray-600">
-              Klik op een plantvak om de bloemen te beheren
+              Klik om te selecteren, sleep om te verplaatsen, dubbelklik om te beheren
               {(garden.total_area || (garden.length && garden.width)) && (
                 <span className="ml-2 text-sm font-medium text-green-600">
                   • Tuingrootte: {garden.total_area || 
@@ -419,7 +482,7 @@ export default function GardenDetailPage() {
               <DialogHeader>
                 <DialogTitle>Nieuw Plantvak Toevoegen</DialogTitle>
                 <DialogDescription>
-                  Voeg een nieuw plantvak toe aan je tuin. Je kunt het later verplaatsen in de visuele weergave.
+                  Voeg een nieuw plantvak toe aan je tuin. Geef de afmetingen in meters op voor een schaalgetrouwe weergave.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -434,16 +497,35 @@ export default function GardenDetailPage() {
                     placeholder="Bijvoorbeeld: Voorste border"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <label htmlFor="size" className="text-sm font-medium">
-                    Grootte *
-                  </label>
-                  <Input
-                    id="size"
-                    value={newPlantBed.size}
-                    onChange={(e) => setNewPlantBed(prev => ({ ...prev, size: e.target.value }))}
-                    placeholder="Bijvoorbeeld: 2m x 1.5m"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <label htmlFor="length" className="text-sm font-medium">
+                      Lengte (m) *
+                    </label>
+                    <Input
+                      id="length"
+                      type="number"
+                      step="0.1"
+                      min="0.1"
+                      value={newPlantBed.length}
+                      onChange={(e) => setNewPlantBed(prev => ({ ...prev, length: e.target.value }))}
+                      placeholder="2.0"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="width" className="text-sm font-medium">
+                      Breedte (m) *
+                    </label>
+                    <Input
+                      id="width"
+                      type="number"
+                      step="0.1"
+                      min="0.1"
+                      value={newPlantBed.width}
+                      onChange={(e) => setNewPlantBed(prev => ({ ...prev, width: e.target.value }))}
+                      placeholder="1.5"
+                    />
+                  </div>
                 </div>
                 <div className="grid gap-2">
                   <label htmlFor="sun_exposure" className="text-sm font-medium">
@@ -572,7 +654,7 @@ export default function GardenDetailPage() {
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
-                Tuin Layout - Op Schaal
+                Tuin Layout - Op Schaal (1m = {METERS_TO_PIXELS}px)
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={zoomOut}>
@@ -601,6 +683,7 @@ export default function GardenDetailPage() {
                 }}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
+                onClick={handleCanvasClick}
               >
                 {/* Grid */}
                 <div
@@ -615,30 +698,39 @@ export default function GardenDetailPage() {
                 />
 
                 {/* Plant Beds */}
-                {plantBeds.map((bed) => (
-                  <div
-                    key={bed.id}
-                    className={`absolute border-2 rounded-lg cursor-move transition-all hover:shadow-xl hover:scale-105 hover:border-green-500 group ${
-                      draggedBed === bed.id ? 'shadow-2xl scale-110 border-green-500 z-50' : ''
-                    }`}
-                    style={{
-                      left: bed.position_x || 100,
-                      top: bed.position_y || 100,
-                      width: bed.visual_width || 150,
-                      height: bed.visual_height || 100,
-                    }}
-                    onMouseDown={(e) => handleMouseDown(e, bed.id)}
-                  >
-                    <Link
-                      href={`/gardens/${garden.id}/plantvak-view/${bed.id}`}
-                      className="block w-full h-full"
-                      onClick={(e) => {
-                        if (draggedBed) {
-                          e.preventDefault()
-                        }
+                {plantBeds.map((bed) => {
+                  const isSelected = selectedBed === bed.id
+                  const isDragging = draggedBed === bed.id
+                  
+                  // Calculate dimensions from size if visual dimensions not available
+                  let bedWidth = bed.visual_width || 150
+                  let bedHeight = bed.visual_height || 100
+                  
+                  if (bed.size && (!bed.visual_width || !bed.visual_height)) {
+                    const dims = getDimensionsFromSize(bed.size)
+                    bedWidth = dims.width
+                    bedHeight = dims.height
+                  }
+
+                  return (
+                    <div
+                      key={bed.id}
+                      className={`absolute border-2 rounded-lg cursor-pointer transition-all hover:shadow-xl hover:scale-105 hover:border-green-500 group ${
+                        isDragging ? 'shadow-2xl scale-110 border-green-500 z-50' : 
+                        isSelected ? 'border-blue-500 shadow-lg ring-2 ring-blue-200' : ''
+                      }`}
+                      style={{
+                        left: bed.position_x || 100,
+                        top: bed.position_y || 100,
+                        width: bedWidth,
+                        height: bedHeight,
                       }}
+                      onClick={(e) => handlePlantBedClick(e, bed.id)}
+                      onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
                     >
-                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors`}>
+                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors ${
+                        isSelected ? 'bg-blue-50' : ''
+                      }`}>
                         <div className="flex items-center justify-between">
                           <div className="text-xs font-medium text-gray-700 bg-white/90 px-2 py-1 rounded shadow-sm">
                             {bed.name}
@@ -656,11 +748,16 @@ export default function GardenDetailPage() {
                           </span>
                           <span>{bed.size || 'Onbekend'}</span>
                         </div>
+                        {isSelected && (
+                          <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
+                            Geselecteerd
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
                       </div>
-                    </Link>
-                  </div>
-                ))}
+                    </div>
+                  )
+                })}
 
                 {/* Empty State */}
                 {plantBeds.length === 0 && (
@@ -682,9 +779,14 @@ export default function GardenDetailPage() {
               </div>
             </div>
             <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
-              <p>💡 <strong>Tip:</strong> Sleep plantvakken om ze te verplaatsen, klik om bloemen te beheren</p>
+              <p>💡 <strong>Tip:</strong> Klik om te selecteren, sleep om te verplaatsen, dubbelklik om te beheren</p>
               <div className="flex items-center gap-4">
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
+                {selectedBed && (
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    {plantBeds.find(b => b.id === selectedBed)?.name} geselecteerd
+                  </Badge>
+                )}
                 {hasChanges && (
                   <Badge variant="secondary" className="bg-orange-100 text-orange-800">
                     Niet opgeslagen wijzigingen
