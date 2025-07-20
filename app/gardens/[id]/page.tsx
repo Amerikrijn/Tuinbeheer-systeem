@@ -108,17 +108,10 @@ export default function GardenDetailPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Link href={`/plant-beds/add-plant?garden_id=${garden.id}`}>
-              <Button variant="outline" className="bg-green-50 border-green-300 text-green-700 hover:bg-green-100">
-                <Plus className="h-4 w-4 mr-2" />
-                Planten/Bloemen Toevoegen
-              </Button>
-            </Link>
-
-            <Link href={`/plant-beds/new?garden_id=${garden.id}`}>
+            <Link href={`/gardens/${garden.id}/plantvak-view`}>
               <Button className="bg-green-600 hover:bg-green-700">
                 <Plus className="h-4 w-4 mr-2" />
-                Nieuw Plantvak
+                Plantvak Beheren
               </Button>
             </Link>
           </div>
@@ -181,9 +174,9 @@ export default function GardenDetailPage() {
                     <p className="text-gray-600 mb-4">{bed.description}</p>
                   )}
                   <div className="flex gap-2">
-                    <Link href={`/plant-beds/${bed.id}`}>
+                    <Link href={`/gardens/${garden.id}/plantvak-view`}>
                       <Button className="bg-green-600 hover:bg-green-700">
-                        Beheer Plantvak
+                        Plantvak Bekijken
                       </Button>
                     </Link>
                   </div>

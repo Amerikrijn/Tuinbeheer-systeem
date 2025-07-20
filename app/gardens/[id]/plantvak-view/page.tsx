@@ -1,461 +1,582 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { 
-  ArrowLeft, 
-  Save, 
-  Eye, 
-  ZoomIn, 
-  ZoomOut, 
-  RotateCcw, 
-  Settings,
-  Leaf,
-  TreePine,
+import { Input } from "@/components/ui/input"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Grid3X3,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Save,
+  Info,
+  Sun,
+  CloudSun,
+  Cloud,
+  ArrowLeft,
+  Flower,
   Plus,
-  Move,
-  Maximize,
-  CheckCircle,
-  AlertCircle,
-  Loader2
+  Leaf,
+  Trash2,
+  Palette,
 } from "lucide-react"
-import { getGarden, getPlantBeds } from "@/lib/database"
-import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
+import { useToast } from "@/hooks/use-toast"
+import Link from "next/link"
 
-interface PlantPosition {
-  id: string
-  x: number
-  y: number
-  scale: number
-  rotation: number
-}
-
-interface PlantBedPosition {
+interface FlowerPosition {
   id: string
   x: number
   y: number
   width: number
   height: number
-  plants: PlantPosition[]
+  name: string
+  color: string
+  type: string
+  status: 'healthy' | 'needs_attention' | 'blooming' | 'sick'
 }
 
-export default function PlantvakViewPage() {
-  const params = useParams()
-  const router = useRouter()
-  const [garden, setGarden] = useState<Garden | null>(null)
-  const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])
-  const [plantBedPositions, setPlantBedPositions] = useState<PlantBedPosition[]>([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [saveMessage, setSaveMessage] = useState<string | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [zoom, setZoom] = useState(1)
-  const [selectedPlantBed, setSelectedPlantBed] = useState<string | null>(null)
-  const [draggedPlant, setDraggedPlant] = useState<string | null>(null)
+interface PlantBed {
+  id: string
+  name: string
+  size: string
+  sunExposure: string
+  soilType: string
+  garden_id: string
+}
 
+const GRID_SIZE = 20
+const SCALE_MIN = 0.5
+const SCALE_MAX = 2
+const FLOWER_SIZE = 50
+const CANVAS_WIDTH = 800
+const CANVAS_HEIGHT = 600
+
+const FLOWER_TYPES = [
+  { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
+  { name: 'Tulp', color: '#FF4500', emoji: '🌷' },
+  { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
+  { name: 'Lavendel', color: '#9370DB', emoji: '🪻' },
+  { name: 'Dahlia', color: '#FF1493', emoji: '🌺' },
+  { name: 'Chrysant', color: '#FFA500', emoji: '🌼' },
+  { name: 'Narcis', color: '#FFFF00', emoji: '🌻' },
+  { name: 'Iris', color: '#4B0082', emoji: '🌸' },
+]
+
+export default function PlantVakViewPage() {
+  const router = useRouter()
+  const params = useParams()
+  const { toast } = useToast()
+  
+  const [plantBed, setPlantBed] = useState<PlantBed | null>(null)
+  const [flowerPositions, setFlowerPositions] = useState<FlowerPosition[]>([])
+  const [scale, setScale] = useState(1)
+  const [selectedFlower, setSelectedFlower] = useState<FlowerPosition | null>(null)
+  const [draggedFlower, setDraggedFlower] = useState<string | null>(null)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [hasChanges, setHasChanges] = useState(false)
+  const [isAddingFlower, setIsAddingFlower] = useState(false)
+  const [newFlower, setNewFlower] = useState({
+    name: '',
+    type: '',
+    color: '#FF69B4'
+  })
+  
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Load plant bed data
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true)
-        const [gardenData, plantBedsData] = await Promise.all([
-          getGarden(params.id as string),
-          getPlantBeds(params.id as string),
-        ])
-        setGarden(gardenData)
-        setPlantBeds(plantBedsData)
-        
-        // Initialize plant bed positions
-        const initialPositions: PlantBedPosition[] = plantBedsData.map((bed, index) => ({
-          id: bed.id,
-          x: (index % 3) * 300 + 50,
-          y: Math.floor(index / 3) * 200 + 50,
-          width: bed.visual_width || 250,
-          height: bed.visual_height || 150,
-          plants: bed.plants.map((plant, plantIndex) => ({
-            id: plant.id,
-            x: (plantIndex % 3) * 60 + 20,
-            y: Math.floor(plantIndex / 3) * 60 + 20,
-            scale: 1,
-            rotation: 0
-          }))
-        }))
-        setPlantBedPositions(initialPositions)
-      } catch (error) {
-        console.error("Error loading data:", error)
-        setErrorMessage("Fout bij het laden van de gegevens")
-      } finally {
-        setLoading(false)
+    const loadPlantBed = () => {
+      // Mock data - in real app this would come from the database
+      const mockPlantBed: PlantBed = {
+        id: params.id as string,
+        name: `Plantvak ${params.id}`,
+        size: "3x2 meter",
+        sunExposure: "Volle zon",
+        soilType: "Klei",
+        garden_id: params.id as string
+      }
+      
+      setPlantBed(mockPlantBed)
+      
+      // Load saved flower positions from localStorage (in real app this would be from database)
+      const savedPositions = localStorage.getItem(`plantvak-${params.id}-flowers`)
+      if (savedPositions) {
+        setFlowerPositions(JSON.parse(savedPositions))
       }
     }
-
-    loadData()
+    
+    loadPlantBed()
   }, [params.id])
 
-  const handleSave = async () => {
-    setSaving(true)
-    setSaveMessage(null)
-    setErrorMessage(null)
+  const zoomIn = () => {
+    setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
+  }
 
-    try {
-      // Simulate save operation
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      setSaveMessage("Plantvak layout succesvol opgeslagen!")
-      setTimeout(() => setSaveMessage(null), 3000)
-    } catch (error) {
-      setErrorMessage("Fout bij het opslaan van de layout")
-      console.error("Save error:", error)
-    } finally {
-      setSaving(false)
+  const zoomOut = () => {
+    setScale(prev => Math.max(prev - 0.1, SCALE_MIN))
+  }
+
+  const resetView = () => {
+    setScale(1)
+  }
+
+  const saveLayout = () => {
+    // Save to localStorage (in real app this would save to database)
+    localStorage.setItem(`plantvak-${params.id}-flowers`, JSON.stringify(flowerPositions))
+    setHasChanges(false)
+    toast({
+      title: "Layout opgeslagen",
+      description: "De bloemen posities zijn succesvol opgeslagen.",
+    })
+  }
+
+  const addFlower = () => {
+    if (!newFlower.name || !newFlower.type) {
+      toast({
+        title: "Incomplete gegevens",
+        description: "Vul alle velden in om een bloem toe te voegen.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
+    const newFlowerPosition: FlowerPosition = {
+      id: Date.now().toString(),
+      x: Math.random() * (CANVAS_WIDTH - FLOWER_SIZE),
+      y: Math.random() * (CANVAS_HEIGHT - FLOWER_SIZE),
+      width: FLOWER_SIZE,
+      height: FLOWER_SIZE,
+      name: newFlower.name,
+      color: selectedType?.color || newFlower.color,
+      type: newFlower.type,
+      status: 'healthy'
+    }
+
+    setFlowerPositions(prev => [...prev, newFlowerPosition])
+    setHasChanges(true)
+    setIsAddingFlower(false)
+    setNewFlower({ name: '', type: '', color: '#FF69B4' })
+    
+    toast({
+      title: "Bloem toegevoegd",
+      description: `${newFlower.name} is toegevoegd aan het plantvak.`,
+    })
+  }
+
+  const removeFlower = (flowerId: string) => {
+    setFlowerPositions(prev => prev.filter(f => f.id !== flowerId))
+    setHasChanges(true)
+    setSelectedFlower(null)
+    toast({
+      title: "Bloem verwijderd",
+      description: "De bloem is verwijderd uit het plantvak.",
+    })
+  }
+
+  const onMouseDown = (e: React.MouseEvent, flowerId: string) => {
+    e.preventDefault()
+    const flower = flowerPositions.find(f => f.id === flowerId)
+    if (!flower) return
+
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    setDraggedFlower(flowerId)
+    setDragOffset({
+      x: (e.clientX - rect.left) / scale - flower.x,
+      y: (e.clientY - rect.top) / scale - flower.y
+    })
+  }
+
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!draggedFlower || !containerRef.current) return
+
+    const rect = containerRef.current.getBoundingClientRect()
+    const newX = (e.clientX - rect.left) / scale - dragOffset.x
+    const newY = (e.clientY - rect.top) / scale - dragOffset.y
+
+    // Constrain to canvas bounds
+    const constrainedX = Math.max(0, Math.min(newX, CANVAS_WIDTH - FLOWER_SIZE))
+    const constrainedY = Math.max(0, Math.min(newY, CANVAS_HEIGHT - FLOWER_SIZE))
+
+    setFlowerPositions(prev =>
+      prev.map(flower =>
+        flower.id === draggedFlower
+          ? { ...flower, x: constrainedX, y: constrainedY }
+          : flower
+      )
+    )
+    setHasChanges(true)
+  }, [draggedFlower, dragOffset, scale])
+
+  const onMouseUp = useCallback(() => {
+    setDraggedFlower(null)
+    setDragOffset({ x: 0, y: 0 })
+  }, [])
+
+  const getSunExposureIcon = (exposure: string) => {
+    switch (exposure) {
+      case 'Volle zon':
+        return <Sun className="h-4 w-4 text-yellow-500" />
+      case 'Halfschaduw':
+        return <CloudSun className="h-4 w-4 text-yellow-400" />
+      default:
+        return <Cloud className="h-4 w-4 text-gray-500" />
     }
   }
 
-  const handlePlantBedMove = (bedId: string, newX: number, newY: number) => {
-    setPlantBedPositions(prev => 
-      prev.map(bed => 
-        bed.id === bedId 
-          ? { ...bed, x: newX, y: newY }
-          : bed
-      )
-    )
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'healthy':
+        return 'border-green-500 shadow-green-200'
+      case 'needs_attention':
+        return 'border-yellow-500 shadow-yellow-200'
+      case 'blooming':
+        return 'border-purple-500 shadow-purple-200'
+      case 'sick':
+        return 'border-red-500 shadow-red-200'
+      default:
+        return 'border-gray-500 shadow-gray-200'
+    }
   }
 
-  const handlePlantMove = (bedId: string, plantId: string, newX: number, newY: number) => {
-    setPlantBedPositions(prev => 
-      prev.map(bed => 
-        bed.id === bedId 
-          ? {
-              ...bed,
-              plants: bed.plants.map(plant =>
-                plant.id === plantId
-                  ? { ...plant, x: newX, y: newY }
-                  : plant
-              )
-            }
-          : bed
-      )
-    )
-  }
-
-  const handlePlantScale = (bedId: string, plantId: string, scale: number) => {
-    setPlantBedPositions(prev => 
-      prev.map(bed => 
-        bed.id === bedId 
-          ? {
-              ...bed,
-              plants: bed.plants.map(plant =>
-                plant.id === plantId
-                  ? { ...plant, scale: Math.max(0.5, Math.min(2, scale)) }
-                  : plant
-              )
-            }
-          : bed
-      )
-    )
-  }
-
-  const handleZoomIn = () => setZoom(prev => Math.min(prev * 1.2, 3))
-  const handleZoomOut = () => setZoom(prev => Math.max(prev / 1.2, 0.3))
-  const handleResetZoom = () => setZoom(1)
-
-  if (loading) {
+  if (!plantBed) {
     return (
       <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-96 bg-gray-200 rounded"></div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!garden) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="text-center py-12">
-          <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
-          <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
-          <Button onClick={() => router.push("/gardens")} className="bg-green-600 hover:bg-green-700">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Terug naar Tuinen
-          </Button>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <Leaf className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+            <h2 className="text-xl font-semibold text-gray-900">Plantvak wordt geladen...</h2>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+    <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200">
-        <div className="container mx-auto p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => router.push("/gardens")}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Terug
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push(`/gardens/${plantBed.garden_id}`)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Terug naar Tuin
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Grid3X3 className="h-8 w-8 text-green-600" />
+              {plantBed.name}
+            </h1>
+            <p className="text-gray-600">Sleep bloemen om ze te verplaatsen in het plantvak</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Dialog open={isAddingFlower} onOpenChange={setIsAddingFlower}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Bloem Toevoegen
               </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
+                <DialogDescription>
+                  Voeg een nieuwe bloem toe aan het plantvak
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Naam</label>
+                  <Input
+                    value={newFlower.name}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Bijv. Mijn mooie roos"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Type</label>
+                  <Select value={newFlower.type} onValueChange={(value) => {
+                    const selectedType = FLOWER_TYPES.find(type => type.name === value)
+                    setNewFlower(prev => ({ 
+                      ...prev, 
+                      type: value,
+                      color: selectedType?.color || prev.color
+                    }))
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecteer bloem type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FLOWER_TYPES.map((type) => (
+                        <SelectItem key={type.name} value={type.name}>
+                          <div className="flex items-center gap-2">
+                            <span>{type.emoji}</span>
+                            <span>{type.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={addFlower} className="flex-1">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Toevoegen
+                  </Button>
+                  <Button variant="outline" onClick={() => setIsAddingFlower(false)}>
+                    Annuleren
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button variant="outline" size="sm" onClick={zoomOut}>
+            <ZoomOut className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={zoomIn}>
+            <ZoomIn className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="sm" onClick={resetView}>
+            <RotateCcw className="h-4 w-4" />
+          </Button>
+          <Button onClick={saveLayout} disabled={!hasChanges}>
+            <Save className="h-4 w-4 mr-2" />
+            Opslaan
+          </Button>
+        </div>
+      </div>
+
+      {/* Plant Bed Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Leaf className="h-5 w-5 text-green-600" />
+            Plantvak Informatie
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="flex items-center gap-2">
+              {getSunExposureIcon(plantBed.sunExposure)}
               <div>
-                <h1 className="text-2xl font-bold flex items-center gap-2">
-                  <TreePine className="h-6 w-6 text-green-600" />
-                  {garden.name} - Plantvak Weergave
-                </h1>
-                <p className="text-gray-600">
-                  Visuele weergave van plantvakken met verplaatsbare planten
-                  {(garden.total_area || (garden.length && garden.width)) && (
-                    <span className="ml-2 text-sm font-medium text-green-600">
-                      • Tuingrootte: {garden.total_area || 
-                        (garden.length && garden.width && 
-                          `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
-                        )
-                      }
-                    </span>
-                  )}
-                </p>
+                <div className="font-medium">Zonlicht</div>
+                <div className="text-sm text-gray-600">{plantBed.sunExposure}</div>
               </div>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleZoomOut}
-                className="bg-white/80"
-              >
-                <ZoomOut className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleResetZoom}
-                className="bg-white/80"
-              >
-                {Math.round(zoom * 100)}%
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleZoomIn}
-                className="bg-white/80"
-              >
-                <ZoomIn className="h-4 w-4" />
-              </Button>
-              <Separator orientation="vertical" className="h-6" />
-              <Button 
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Opslaan...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Opslaan
-                  </>
-                )}
-              </Button>
+            <div>
+              <div className="font-medium">Grootte</div>
+              <div className="text-sm text-gray-600">{plantBed.size}</div>
+            </div>
+            <div>
+              <div className="font-medium">Grondsoort</div>
+              <div className="text-sm text-gray-600">{plantBed.soilType}</div>
+            </div>
+            <div>
+              <div className="font-medium">Aantal bloemen</div>
+              <div className="text-sm text-gray-600">{flowerPositions.length}</div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      {/* Status Messages */}
-      {saveMessage && (
-        <Alert className="mx-4 mt-4">
-          <CheckCircle className="h-4 w-4" />
-          <AlertDescription>{saveMessage}</AlertDescription>
-        </Alert>
-      )}
-
-      {errorMessage && (
-        <Alert variant="destructive" className="mx-4 mt-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{errorMessage}</AlertDescription>
-        </Alert>
-      )}
-
-      {/* Main Canvas */}
-      <div className="flex-1 p-4">
-        <div 
-          className="relative bg-white/60 backdrop-blur-sm border border-gray-200 rounded-lg shadow-lg overflow-hidden"
-          style={{ 
-            height: 'calc(100vh - 200px)',
-            transform: `scale(${zoom})`,
-            transformOrigin: 'top left'
-          }}
-        >
-          {/* Garden Canvas */}
-          <div className="absolute inset-0 bg-green-50/50">
-            {/* Grid pattern */}
-            <div 
-              className="absolute inset-0 opacity-20"
+      {/* Visual Plant Bed Canvas */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Grid3X3 className="h-5 w-5 text-blue-600" />
+            Bloemen Layout
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
+            <div
+              ref={containerRef}
+              className="relative bg-gradient-to-b from-green-50 to-green-100"
               style={{
-                backgroundImage: `
-                  linear-gradient(to right, #10b981 1px, transparent 1px),
-                  linear-gradient(to bottom, #10b981 1px, transparent 1px)
-                `,
-                backgroundSize: '50px 50px'
+                width: CANVAS_WIDTH,
+                height: CANVAS_HEIGHT,
+                transform: `scale(${scale})`,
+                transformOrigin: "top left",
+                maxWidth: "100%",
               }}
-            />
-            
-            {/* Plant Beds */}
-            {plantBedPositions.map((bedPosition) => {
-              const bed = plantBeds.find(b => b.id === bedPosition.id)
-              if (!bed) return null
-              
-              return (
-                <div
-                  key={bedPosition.id}
-                  className={`absolute border-2 rounded-lg cursor-move transition-all ${
-                    selectedPlantBed === bedPosition.id 
-                      ? 'border-green-500 bg-green-100/50 shadow-lg' 
-                      : 'border-gray-300 bg-white/70 hover:border-green-400'
-                  }`}
-                  style={{
-                    left: bedPosition.x,
-                    top: bedPosition.y,
-                    width: bedPosition.width,
-                    height: bedPosition.height
-                  }}
-                  onClick={() => setSelectedPlantBed(bedPosition.id)}
-                  onMouseDown={(e) => {
-                    const startX = e.clientX - bedPosition.x
-                    const startY = e.clientY - bedPosition.y
-                    
-                    const handleMouseMove = (e: MouseEvent) => {
-                      handlePlantBedMove(bedPosition.id, e.clientX - startX, e.clientY - startY)
-                    }
-                    
-                    const handleMouseUp = () => {
-                      document.removeEventListener('mousemove', handleMouseMove)
-                      document.removeEventListener('mouseup', handleMouseUp)
-                    }
-                    
-                    document.addEventListener('mousemove', handleMouseMove)
-                    document.addEventListener('mouseup', handleMouseUp)
-                  }}
-                >
-                  {/* Plant Bed Header */}
-                  <div className="absolute top-2 left-2 z-10">
-                    <Badge variant="outline" className="bg-white/80 text-xs">
-                      {bed.id}
-                    </Badge>
-                  </div>
-                  
-                  {/* Plant Bed Title */}
-                  <div className="absolute top-2 right-2 z-10">
-                    <div className="text-xs font-medium text-gray-700 bg-white/80 px-2 py-1 rounded">
-                      {bed.name}
+              onMouseMove={onMouseMove}
+              onMouseUp={onMouseUp}
+              onMouseLeave={onMouseUp}
+            >
+              {/* Grid */}
+              <div
+                className="absolute inset-0 pointer-events-none opacity-30"
+                style={{
+                  backgroundImage: `
+                    linear-gradient(to right, #10b98120 1px, transparent 1px),
+                    linear-gradient(to bottom, #10b98120 1px, transparent 1px)
+                  `,
+                  backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+                }}
+              />
+
+              {/* Flowers */}
+              {flowerPositions.map((flower) => {
+                const flowerType = FLOWER_TYPES.find(type => type.name === flower.type)
+                return (
+                  <div
+                    key={flower.id}
+                    className={`absolute cursor-move rounded-full border-4 ${getStatusColor(flower.status)} ${
+                      draggedFlower === flower.id ? "shadow-2xl ring-4 ring-green-500 z-10 scale-110" : "shadow-lg hover:shadow-xl"
+                    } transition-all duration-200 flex items-center justify-center text-2xl font-bold text-white`}
+                    style={{
+                      left: flower.x,
+                      top: flower.y,
+                      width: flower.width,
+                      height: flower.height,
+                      backgroundColor: flower.color,
+                    }}
+                    onMouseDown={(e) => onMouseDown(e, flower.id)}
+                    onClick={() => !draggedFlower && setSelectedFlower(flower)}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-1">{flowerType?.emoji || '🌸'}</div>
                     </div>
                   </div>
-                  
-                  {/* Plants */}
-                  {bedPosition.plants.map((plantPos) => {
-                    const plant = bed.plants.find(p => p.id === plantPos.id)
-                    if (!plant) return null
-                    
-                    return (
-                      <div
-                        key={plantPos.id}
-                        className={`absolute cursor-move transition-all ${
-                          draggedPlant === plantPos.id 
-                            ? 'z-20 shadow-lg' 
-                            : 'z-10 hover:shadow-md'
-                        }`}
-                        style={{
-                          left: plantPos.x,
-                          top: plantPos.y,
-                          transform: `scale(${plantPos.scale}) rotate(${plantPos.rotation}deg)`,
-                          transformOrigin: 'center'
-                        }}
-                        onMouseDown={(e) => {
-                          e.stopPropagation()
-                          setDraggedPlant(plantPos.id)
-                          
-                          const startX = e.clientX - plantPos.x
-                          const startY = e.clientY - plantPos.y
-                          
-                          const handleMouseMove = (e: MouseEvent) => {
-                            handlePlantMove(bedPosition.id, plantPos.id, e.clientX - startX, e.clientY - startY)
-                          }
-                          
-                          const handleMouseUp = () => {
-                            setDraggedPlant(null)
-                            document.removeEventListener('mousemove', handleMouseMove)
-                            document.removeEventListener('mouseup', handleMouseUp)
-                          }
-                          
-                          document.addEventListener('mousemove', handleMouseMove)
-                          document.addEventListener('mouseup', handleMouseUp)
-                        }}
-                        onWheel={(e) => {
-                          e.preventDefault()
-                          const delta = e.deltaY > 0 ? -0.1 : 0.1
-                          handlePlantScale(bedPosition.id, plantPos.id, plantPos.scale + delta)
-                        }}
-                      >
-                        {/* Plant Visual */}
-                        <div className="w-12 h-12 bg-green-200 border-2 border-green-400 rounded-full flex items-center justify-center shadow-sm">
-                          <Leaf className="h-6 w-6 text-green-600" />
-                        </div>
-                        
-                        {/* Plant Name */}
-                        <div className="absolute top-14 left-1/2 transform -translate-x-1/2 text-xs bg-white/90 px-2 py-1 rounded shadow text-center whitespace-nowrap">
-                          {plant.name}
-                        </div>
-                        
-                        {/* Plant Status */}
-                        <div className="absolute -top-2 -right-2">
-                          <div className={`w-4 h-4 rounded-full border-2 border-white ${
-                            plant.status === 'healthy' ? 'bg-green-500' :
-                            plant.status === 'needs_attention' ? 'bg-yellow-500' :
-                            'bg-red-500'
-                          }`} />
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </div>
+                )
+              })}
 
-      {/* Instructions */}
-      <div className="bg-white/80 backdrop-blur-sm border-t border-gray-200">
-        <div className="container mx-auto p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <Move className="h-4 w-4 text-blue-600" />
-              <span>Sleep plantvakken en planten om ze te verplaatsen</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Maximize className="h-4 w-4 text-purple-600" />
-              <span>Scroll op planten om ze te schalen</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Save className="h-4 w-4 text-green-600" />
-              <span>Sla wijzigingen op met de opslaan knop</span>
+              {/* Empty State */}
+              {flowerPositions.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center">
+                    <Flower className="h-20 w-20 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-xl font-medium text-gray-900 mb-2">Nog geen bloemen</h3>
+                    <p className="text-gray-600 mb-4">Voeg bloemen toe om je plantvak in te richten.</p>
+                    <Button onClick={() => setIsAddingFlower(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Eerste Bloem Toevoegen
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
+
+      {/* Legend */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Info className="h-5 w-5 text-blue-600" />
+            Legenda & Instructies
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium mb-3">Bloem Status</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-green-400 border-4 border-green-500 rounded-full"></div>
+                  <span>Gezond</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-yellow-400 border-4 border-yellow-500 rounded-full"></div>
+                  <span>Aandacht nodig</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-purple-400 border-4 border-purple-500 rounded-full"></div>
+                  <span>Bloeiend</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-red-400 border-4 border-red-500 rounded-full"></div>
+                  <span>Ziek</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-medium mb-3">Instructies</h4>
+              <div className="space-y-1 text-sm text-gray-600">
+                <div>• Klik op "Bloem Toevoegen" om nieuwe bloemen toe te voegen</div>
+                <div>• Sleep bloemen om ze te verplaatsen in het plantvak</div>
+                <div>• Klik op een bloem voor meer informatie en opties</div>
+                <div>• Gebruik zoom knoppen om in/uit te zoomen</div>
+                <div>• Vergeet niet te opslaan na wijzigingen</div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Flower Details Dialog */}
+      <Dialog open={!!selectedFlower} onOpenChange={() => setSelectedFlower(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Flower className="h-5 w-5" />
+              {selectedFlower?.name}
+            </DialogTitle>
+            <DialogDescription>
+              Bloem details en opties
+            </DialogDescription>
+          </DialogHeader>
+          {selectedFlower && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-sm font-medium">Type:</span>
+                  <div className="text-sm text-gray-600 flex items-center gap-1">
+                    <span>{FLOWER_TYPES.find(t => t.name === selectedFlower.type)?.emoji}</span>
+                    {selectedFlower.type}
+                  </div>
+                </div>
+                <div>
+                  <span className="text-sm font-medium">Kleur:</span>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-4 h-4 rounded-full border"
+                      style={{ backgroundColor: selectedFlower.color }}
+                    />
+                    <span className="text-sm text-gray-600">{selectedFlower.color}</span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-sm font-medium">Status:</span>
+                  <Badge variant="secondary">{selectedFlower.status}</Badge>
+                </div>
+                <div>
+                  <span className="text-sm font-medium">Positie:</span>
+                  <div className="text-sm text-gray-600">
+                    {Math.round(selectedFlower.x)}, {Math.round(selectedFlower.y)}
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => removeFlower(selectedFlower.id)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Verwijderen
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setSelectedFlower(null)}>
+                  Sluiten
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
