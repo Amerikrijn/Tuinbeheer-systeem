@@ -905,7 +905,7 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🌸 <strong>Standaard UI:</strong> Klik bloem (selecteren) → Sleep blauwe hoek (resizen) → Loslaten (vastleggen) → MEER bloemen komen erbij!
+              🌸 <strong>BELANGRIJK:</strong> 1) Klik bloem → 2) Sleep de BLAUWE HOEK (niet de bloem!) → 3) Loslaten → MEER bloemen!
               <span className="ml-2 text-sm font-medium text-pink-600">
                 • {plantBed.size || 'Op schaal'}
               </span>
@@ -1532,17 +1532,20 @@ export default function PlantBedViewPage() {
                           )
                         })()}
                         
-                        <div className="absolute -top-8 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10">
-                          Sleep hoek om gebied groter te maken
+                        <div className="absolute -top-12 -right-2 bg-yellow-500 text-black text-sm px-3 py-2 rounded z-10 animate-pulse font-bold">
+                          ⬇️ SLEEP DEZE BLAUWE HOEK ⬇️
                         </div>
                         
-                        {/* Grote, duidelijke resize handle */}
+                        {/* ZEER GROTE, DUIDELIJKE resize handle */}
                         <div
-                          className="absolute -bottom-3 -right-3 w-10 h-10 bg-blue-500 border-4 border-white rounded-full cursor-nw-resize hover:bg-blue-600 hover:scale-110 flex items-center justify-center z-10 shadow-lg"
-                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'uniform')}
-                          title="Sleep om het bloemengebied groter te maken - meer bloemen komen erbij!"
+                          className="absolute -bottom-5 -right-5 w-16 h-16 bg-blue-500 border-6 border-white rounded-full cursor-nw-resize hover:bg-blue-600 hover:scale-125 flex items-center justify-center z-20 shadow-2xl animate-pulse"
+                          onMouseDown={(e) => {
+                            console.log("🔵 RESIZE HANDLE MOUSEDOWN!")
+                            handleResizeStart(e, flower.id, 'uniform')
+                          }}
+                          title="SLEEP DEZE BLAUWE HOEK OM TE RESIZEN!"
                         >
-                          <div className="text-white text-sm font-bold">⤢</div>
+                          <div className="text-white text-lg font-bold">⤢</div>
                         </div>
                         
                         {/* Show live area info during resize */}
