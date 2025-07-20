@@ -905,9 +905,9 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🌸 <strong>BELANGRIJK:</strong> 1) Klik bloem → 2) DIRECT SLEPEN van blauwe hoek (GEEN extra klik!) → 3) Loslaten → MEER bloemen!
+              🌸 <strong>ALLE DEVICES:</strong> 1) Klik/tap bloem → 2) Klik/tap + of - buttons → MEER bloemen komen erbij!
               <span className="ml-2 text-sm font-medium text-pink-600">
-                • {plantBed.size || 'Op schaal'}
+                • {plantBed.size || 'Op schaal'} • 💻📱 Web/iPhone/Android
               </span>
             </p>
           </div>
@@ -1537,23 +1537,23 @@ export default function PlantBedViewPage() {
                           )
                         })()}
                         
-                        <div className="absolute -top-16 -right-2 bg-green-500 text-white text-sm px-3 py-2 rounded z-10 animate-bounce font-bold">
-                          📱 LAPTOP/TRACKPAD VRIENDELIJK
+                        <div className="absolute -top-16 -right-2 bg-purple-500 text-white text-sm px-3 py-1 rounded z-10 animate-bounce font-bold">
+                          💻📱 ALLE DEVICES
                         </div>
-                        <div className="absolute -top-8 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10 font-bold">
-                          Klik + sleep (laptop OK!)
+                        <div className="absolute -top-10 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded z-10 font-bold">
+                          Web • iPhone • Android
                         </div>
                         
                                                 {/* LAPTOP VRIENDELIJKE RESIZE BUTTONS */}
                         <div className="absolute -bottom-8 -right-8 flex gap-1">
-                          {/* Groter maken button */}
+                          {/* Groter maken button - TOUCH VRIENDELIJK */}
                           <button
-                            className="w-12 h-12 bg-green-500 hover:bg-green-600 border-4 border-white rounded-full flex items-center justify-center z-20 shadow-xl cursor-pointer"
+                            className="w-14 h-14 bg-green-500 hover:bg-green-600 active:bg-green-700 border-4 border-white rounded-full flex items-center justify-center z-20 shadow-xl cursor-pointer touch-manipulation"
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
                               
-                              console.log("🔵 LAPTOP RESIZE - GROTER!")
+                              console.log("🔵 MULTI-DEVICE RESIZE - GROTER!")
                               
                               const currentFlower = flowerPositions.find(f => f.id === flower.id)
                               if (!currentFlower) return
@@ -1579,19 +1579,28 @@ export default function PlantBedViewPage() {
                                 description: `Gebied nu ${newAreaSize}px - meer bloemen komen erbij!`,
                               })
                             }}
-                            title="Klik om gebied groter te maken (laptop vriendelijk!)"
+                            onTouchEnd={(e) => {
+                              // Same functionality for mobile touch
+                              e.preventDefault()
+                              e.stopPropagation()
+                              console.log("📱 TOUCH RESIZE - GROTER!")
+                              // Trigger same logic as click
+                              const event = new MouseEvent('click', { bubbles: true })
+                              e.currentTarget.dispatchEvent(event)
+                            }}
+                            title="Klik/tap om gebied groter te maken (alle devices!)"
                           >
                             <div className="text-white text-lg font-bold">+</div>
                           </button>
                           
-                          {/* Kleiner maken button */}
+                          {/* Kleiner maken button - TOUCH VRIENDELIJK */}
                           <button
-                            className="w-12 h-12 bg-red-500 hover:bg-red-600 border-4 border-white rounded-full flex items-center justify-center z-20 shadow-xl cursor-pointer"
+                            className="w-14 h-14 bg-red-500 hover:bg-red-600 active:bg-red-700 border-4 border-white rounded-full flex items-center justify-center z-20 shadow-xl cursor-pointer touch-manipulation"
                             onClick={(e) => {
                               e.preventDefault()
                               e.stopPropagation()
                               
-                              console.log("🔴 LAPTOP RESIZE - KLEINER!")
+                              console.log("🔴 MULTI-DEVICE RESIZE - KLEINER!")
                               
                               const currentFlower = flowerPositions.find(f => f.id === flower.id)
                               if (!currentFlower) return
@@ -1617,7 +1626,16 @@ export default function PlantBedViewPage() {
                                 description: `Gebied nu ${newAreaSize}px - bloemen verdwijnen automatisch!`,
                               })
                             }}
-                            title="Klik om gebied kleiner te maken"
+                            onTouchEnd={(e) => {
+                              // Same functionality for mobile touch
+                              e.preventDefault()
+                              e.stopPropagation()
+                              console.log("📱 TOUCH RESIZE - KLEINER!")
+                              // Trigger same logic as click
+                              const event = new MouseEvent('click', { bubbles: true })
+                              e.currentTarget.dispatchEvent(event)
+                            }}
+                            title="Klik/tap om gebied kleiner te maken (alle devices!)"
                           >
                             <div className="text-white text-lg font-bold">-</div>
                           </button>
@@ -1671,11 +1689,12 @@ export default function PlantBedViewPage() {
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
             <div>
-              <p>💡 <strong>DIRECT SLEPEN - GEEN KLIK EERST:</strong></p>
-              <p>🌸 <strong>Klik bloem</strong> → Selecteren (blauwe hoek verschijnt)</p>
-              <p>🔵 <strong>HOUD BLAUWE HOEK INGEDRUKT + SLEEP</strong> → Direct resizen!</p>
-              <p>❌ <strong>NIET: klik hoek → dan slepen</strong> (werkt niet!)</p>
-              <p>✅ <strong>WEL: direct slepen vanaf hoek</strong> (zoals Photoshop)</p>
+              <p>💡 <strong>MULTI-DEVICE RESIZE SYSTEEM:</strong></p>
+              <p>🌸 <strong>Klik/tap bloem</strong> → Selecteren (+ en - buttons verschijnen)</p>
+              <p>🟢 <strong>+ button</strong> → Gebied groter + meer bloemen</p>
+              <p>🔴 <strong>- button</strong> → Gebied kleiner + minder bloemen</p>
+              <p>💻 <strong>Web/laptop</strong> → Click buttons</p>
+              <p>📱 <strong>iPhone/Android</strong> → Tap buttons</p>
               <p>📛 <strong>Klik ergens anders</strong> → Deselecteren</p>
             </div>
             <div className="flex items-center gap-4">
