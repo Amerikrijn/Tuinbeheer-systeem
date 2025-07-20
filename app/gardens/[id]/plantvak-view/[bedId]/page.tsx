@@ -77,6 +77,8 @@ export default function PlantBedViewPage() {
   const [isResizing, setIsResizing] = useState<string | null>(null)
   const [resizeStartSize, setResizeStartSize] = useState({ width: 0, height: 0 })
   const [resizeStartPos, setResizeStartPos] = useState({ x: 0, y: 0 })
+  const [resizeMode, setResizeMode] = useState<'uniform' | 'width' | 'height'>('uniform')
+  const [duplicatePositions, setDuplicatePositions] = useState<{x: number, y: number}[]>([])
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingFlower, setIsAddingFlower] = useState(false)
   const [isEditingFlower, setIsEditingFlower] = useState(false)
@@ -436,7 +438,7 @@ export default function PlantBedViewPage() {
   }, [])
 
   // Handle resize start
-  const handleResizeStart = useCallback((e: React.MouseEvent, flowerId: string) => {
+  const handleResizeStart = useCallback((e: React.MouseEvent, flowerId: string, mode: 'uniform' | 'width' | 'height' = 'uniform') => {
     e.preventDefault()
     e.stopPropagation()
     
@@ -444,14 +446,16 @@ export default function PlantBedViewPage() {
     if (!flower) return
 
     setIsResizing(flowerId)
+    setResizeMode(mode)
     setResizeStartSize({ 
       width: flower.visual_width, 
       height: flower.visual_height 
     })
     setResizeStartPos({ x: e.clientX, y: e.clientY })
+    setDuplicatePositions([]) // Reset duplicate positions
   }, [flowerPositions])
 
-  // Handle resize move
+  // Handle resize move - with real-time duplication
   const handleResizeMove = useCallback((e: MouseEvent) => {
     if (!isResizing) return
 
@@ -460,79 +464,118 @@ export default function PlantBedViewPage() {
 
     const deltaX = e.clientX - resizeStartPos.x
     const deltaY = e.clientY - resizeStartPos.y
-    const delta = Math.max(deltaX, deltaY) // Use the larger delta for uniform scaling
-
-    const newSize = Math.max(20, Math.min(100, resizeStartSize.width + delta))
     
+    let newWidth = resizeStartSize.width
+    let newHeight = resizeStartSize.height
+
+    // Calculate new dimensions based on resize mode
+    if (resizeMode === 'uniform') {
+      const delta = Math.max(deltaX, deltaY)
+      newWidth = Math.max(20, Math.min(canvasWidth - flower.position_x, resizeStartSize.width + delta))
+      newHeight = Math.max(20, Math.min(canvasHeight - flower.position_y, resizeStartSize.height + delta))
+    } else if (resizeMode === 'width') {
+      newWidth = Math.max(20, Math.min(canvasWidth - flower.position_x, resizeStartSize.width + deltaX))
+    } else if (resizeMode === 'height') {
+      newHeight = Math.max(20, Math.min(canvasHeight - flower.position_y, resizeStartSize.height + deltaY))
+    }
+
+    // Calculate how many flowers should fit inside the resized area
+    const area = newWidth * newHeight
+    const originalArea = resizeStartSize.width * resizeStartSize.height
+    const areaRatio = area / originalArea
+    const targetFlowerCount = Math.floor(Math.sqrt(areaRatio)) // Square root for nice distribution
+
+    // Generate positions for duplicates in a grid pattern
+    const newDuplicatePositions: {x: number, y: number}[] = []
+    if (targetFlowerCount > 1) {
+      const cols = Math.ceil(Math.sqrt(targetFlowerCount))
+      const rows = Math.ceil(targetFlowerCount / cols)
+      const flowerSize = Math.min(newWidth / cols, newHeight / rows) * 0.8 // 80% to leave some space
+      
+      for (let i = 0; i < targetFlowerCount - 1; i++) { // -1 because we already have the original
+        const col = i % cols
+        const row = Math.floor(i / cols)
+        const x = flower.position_x + (col + 1) * (newWidth / cols)
+        const y = flower.position_y + (row + 1) * (newHeight / rows)
+        
+        // Make sure position is within canvas bounds
+        if (x + flowerSize <= canvasWidth && y + flowerSize <= canvasHeight) {
+          newDuplicatePositions.push({ x, y })
+        }
+      }
+    }
+
+    setDuplicatePositions(newDuplicatePositions)
+
+    // Update the flower being resized
     setFlowerPositions(prev =>
       prev.map(f =>
         f.id === isResizing
-          ? { ...f, visual_width: newSize, visual_height: newSize }
+          ? { ...f, visual_width: newWidth, visual_height: newHeight }
           : f
       )
     )
     setHasChanges(true)
-  }, [isResizing, flowerPositions, resizeStartSize, resizeStartPos])
+  }, [isResizing, flowerPositions, resizeStartSize, resizeStartPos, resizeMode, canvasWidth, canvasHeight])
 
-  // Handle resize end - with duplication if size increased significantly
+  // Handle resize end - create actual duplicates
   const handleResizeEnd = useCallback(async () => {
     if (!isResizing) return
 
     const flower = flowerPositions.find(f => f.id === isResizing)
-    if (!flower) return
+    if (!flower || !plantBed) return
 
-    // If flower was resized significantly larger, create duplicates
-    const sizeIncrease = flower.visual_width - resizeStartSize.width
-    const duplicateCount = Math.floor(sizeIncrease / 30) // Every 30px increase = 1 duplicate
-
-    if (duplicateCount > 0 && plantBed) {
-      try {
-        // Create duplicates
-        const duplicates: PlantWithPosition[] = []
-        for (let i = 0; i < Math.min(duplicateCount, 5); i++) { // Max 5 duplicates
-          const duplicate = await createVisualPlant({
-            plant_bed_id: plantBed.id,
-            name: flower.name,
-            color: flower.color || '#FF69B4',
-            status: flower.status || 'healthy',
-            position_x: flower.position_x + (i + 1) * 50, // Offset each duplicate
-            position_y: flower.position_y + (i % 2) * 50,
-            visual_width: resizeStartSize.width, // Original size for duplicates
-            visual_height: resizeStartSize.height,
-            emoji: flower.emoji || '🌸',
-            is_custom: flower.is_custom,
-            category: flower.category,
-            notes: flower.notes
-          })
-          if (duplicate) duplicates.push(duplicate)
-        }
-
-        // Reset original flower to original size
-        const resetOriginal = await updatePlantPosition(flower.id, {
-          visual_width: resizeStartSize.width,
-          visual_height: resizeStartSize.height
+    try {
+      // Create duplicates at the calculated positions
+      const duplicates: PlantWithPosition[] = []
+      for (const pos of duplicatePositions) {
+        const duplicate = await createVisualPlant({
+          plant_bed_id: plantBed.id,
+          name: flower.name,
+          color: flower.color || '#FF69B4',
+          status: flower.status || 'healthy',
+          position_x: pos.x,
+          position_y: pos.y,
+          visual_width: Math.min(flower.visual_width * 0.6, 60), // Smaller duplicates
+          visual_height: Math.min(flower.visual_height * 0.6, 60),
+          emoji: flower.emoji || '🌸',
+          is_custom: flower.is_custom,
+          category: flower.category,
+          notes: flower.notes
         })
-
-        if (resetOriginal) {
-          setFlowerPositions(prev => [
-            ...prev.map(f => f.id === isResizing ? resetOriginal : f),
-            ...duplicates
-          ])
-        }
-
-        toast({
-          title: "Bloemen gedupliceerd",
-          description: `${duplicateCount} extra bloemen toegevoegd door uit te trekken!`,
-        })
-      } catch (error) {
-        console.error("Error duplicating flowers:", error)
+        if (duplicate) duplicates.push(duplicate)
       }
+
+      // Add duplicates to state
+      if (duplicates.length > 0) {
+        setFlowerPositions(prev => [...prev, ...duplicates])
+        toast({
+          title: "Bloemen gedupliceerd! 🌸",
+          description: `${duplicates.length} extra bloemen toegevoegd door te vergroten!`,
+        })
+      }
+
+      // Save the resized original flower
+      await updatePlantPosition(flower.id, {
+        visual_width: flower.visual_width,
+        visual_height: flower.visual_height
+      })
+
+    } catch (error) {
+      console.error("Error creating duplicates:", error)
+      toast({
+        title: "Fout bij dupliceren",
+        description: "Er is een fout opgetreden bij het dupliceren van bloemen.",
+        variant: "destructive",
+      })
     }
 
     setIsResizing(null)
     setResizeStartSize({ width: 0, height: 0 })
     setResizeStartPos({ x: 0, y: 0 })
-  }, [isResizing, flowerPositions, resizeStartSize, plantBed])
+    setDuplicatePositions([])
+    setResizeMode('uniform')
+  }, [isResizing, flowerPositions, resizeStartSize, plantBed, duplicatePositions, toast])
 
   useEffect(() => {
     if (draggedFlower) {
@@ -1044,11 +1087,14 @@ export default function PlantBedViewPage() {
               {flowerPositions.map((flower) => {
                 const isSelected = selectedFlower?.id === flower.id
                 const isDragging = draggedFlower === flower.id
+                const isBeingResized = isResizing === flower.id
 
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute cursor-pointer rounded-full border-4 ${getStatusColor(flower.status || 'healthy')} ${
+                    className={`absolute cursor-pointer ${
+                      isBeingResized ? 'rounded-lg' : 'rounded-full'
+                    } border-4 ${getStatusColor(flower.status || 'healthy')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-110" : 
                       isSelected ? "ring-4 ring-blue-500 shadow-xl" :
                       "shadow-lg hover:shadow-xl"
@@ -1072,16 +1118,52 @@ export default function PlantBedViewPage() {
                         <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
                           Geselecteerd
                         </div>
-                        {/* Resize handle */}
+                        {/* Main resize handle - uniform scaling */}
                         <div
                           className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 border-2 border-white rounded-full cursor-nw-resize hover:bg-blue-600 flex items-center justify-center"
-                          onMouseDown={(e) => handleResizeStart(e, flower.id)}
-                          title="Sleep om grootte te wijzigen en te dupliceren"
+                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'uniform')}
+                          title="Sleep om uniform te vergroten en dupliceren"
                         >
                           <div className="w-2 h-2 bg-white rounded-full"></div>
                         </div>
+                        {/* Width resize handle */}
+                        <div
+                          className="absolute top-1/2 -right-1 w-3 h-6 bg-green-500 border-2 border-white rounded cursor-ew-resize hover:bg-green-600 transform -translate-y-1/2"
+                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'width')}
+                          title="Sleep om breedte te wijzigen"
+                        />
+                        {/* Height resize handle */}
+                        <div
+                          className="absolute -bottom-1 left-1/2 w-6 h-3 bg-green-500 border-2 border-white rounded cursor-ns-resize hover:bg-green-600 transform -translate-x-1/2"
+                          onMouseDown={(e) => handleResizeStart(e, flower.id, 'height')}
+                          title="Sleep om hoogte te wijzigen"
+                        />
                       </>
                     )}
+                  </div>
+                )
+              })}
+
+              {/* Preview duplicates during resize */}
+              {isResizing && duplicatePositions.map((pos, index) => {
+                const originalFlower = flowerPositions.find(f => f.id === isResizing)
+                if (!originalFlower) return null
+                
+                const previewSize = Math.min(originalFlower.visual_width * 0.6, 60)
+                
+                return (
+                  <div
+                    key={`preview-${index}`}
+                    className="absolute border-2 border-dashed border-blue-400 bg-blue-100 opacity-60 rounded-full flex items-center justify-center pointer-events-none"
+                    style={{
+                      left: pos.x,
+                      top: pos.y,
+                      width: previewSize,
+                      height: previewSize,
+                      backgroundColor: originalFlower.color + '40', // Add transparency
+                    }}
+                  >
+                    <div className="text-sm opacity-80">{originalFlower.emoji || '🌸'}</div>
                   </div>
                 )
               })}
@@ -1103,7 +1185,12 @@ export default function PlantBedViewPage() {
             </div>
           </div>
           <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
-            <p>💡 <strong>Tip:</strong> Klik om te selecteren, sleep om te verplaatsen, dubbelklik om te bewerken. Sleep de blauwe cirkel om te vergroten en dupliceren!</p>
+            <div>
+              <p>💡 <strong>Resize Tips:</strong></p>
+              <p>🔵 <strong>Blauwe cirkel:</strong> Uniform vergroten + auto-duplicatie</p>
+              <p>🟢 <strong>Groene handels:</strong> Alleen breedte/hoogte wijzigen</p>
+              <p>👆 <strong>Basis:</strong> Klik = selecteren, Sleep = verplaatsen, Dubbelklik = bewerken</p>
+            </div>
             <div className="flex items-center gap-4">
               <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
               {selectedFlower && (
