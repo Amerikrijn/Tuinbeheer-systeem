@@ -201,6 +201,8 @@ export async function createPlantBed(plantBed: {
   sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
   description?: string
 }): Promise<PlantBed | null> {
+  console.log("🌱 Creating plant bed:", plantBed)
+  
   // Let the database auto-generate the UUID
   const { data, error } = await supabase.from("plant_beds").insert({
     garden_id: plantBed.garden_id,
@@ -214,16 +216,17 @@ export async function createPlantBed(plantBed: {
   }).select().single()
 
   if (error) {
+    console.error("❌ Error creating plant bed:", error)
     if (isMissingRelation(error)) {
       console.warn(
         "Supabase table `plant_beds` not found yet – cannot create a plant bed until the migration is applied.",
       )
       throw error
     }
-    console.error("Error creating plant bed:", error)
     throw error
   }
 
+  console.log("✅ Plant bed created successfully:", data)
   return data
 }
 

@@ -315,7 +315,16 @@ export default function GardenDetailPage() {
 
   // Add new plant bed
   const addPlantBed = async () => {
+    console.log("🔍 Adding plant bed:", { garden: garden?.id, newPlantBed })
+    
     if (!garden || !newPlantBed.name || !newPlantBed.length || !newPlantBed.width) {
+      console.log("❌ Validation failed:", { 
+        garden: !!garden, 
+        gardenId: garden?.id,
+        name: newPlantBed.name, 
+        length: newPlantBed.length, 
+        width: newPlantBed.width 
+      })
       toast({
         title: "Incomplete gegevens",
         description: "Vul naam, lengte en breedte in.",
@@ -340,6 +349,15 @@ export default function GardenDetailPage() {
 
       const visualWidth = Math.max(PLANTVAK_MIN_WIDTH, metersToPixels(length))
       const visualHeight = Math.max(PLANTVAK_MIN_HEIGHT, metersToPixels(width))
+      
+      console.log("📐 Plantvak afmetingen:", {
+        length: `${length}m`,
+        width: `${width}m`, 
+        visualWidth: `${visualWidth}px (horizontaal)`,
+        visualHeight: `${visualHeight}px (verticaal)`,
+        ratio: `${(visualWidth / visualHeight).toFixed(2)}:1`,
+        sizeString: `${length}m x ${width}m`
+      })
 
       // Find a good position for the new plant bed
       const existingPositions = plantBeds.map(bed => ({
