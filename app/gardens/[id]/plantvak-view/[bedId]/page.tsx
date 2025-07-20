@@ -474,141 +474,17 @@ export default function PlantBedViewPage() {
     }
   }
 
-  // Handle single click - toggle flower size (make it much simpler!)
-  const handleFlowerClick = useCallback(async (e: React.MouseEvent, flowerId: string) => {
+  // Handle single click - select flower
+  const handleFlowerClick = useCallback((e: React.MouseEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
     
     const flower = flowerPositions.find(f => f.id === flowerId)
-    if (!flower || !plantBed) return
+    if (!flower) return
 
-    // Simple toggle: if small -> make big, if big -> make small
-    const isCurrentlySmall = flower.visual_width <= FLOWER_SIZE * 1.5
-    
-    if (isCurrentlySmall) {
-      // VERGROTEN: Maak bloem groot en voeg veel bloemen toe
-      const newSize = FLOWER_SIZE * 4 // Veel groter!
-      
-      // Zorg dat het binnen canvas blijft
-      const maxX = canvasWidth - newSize
-      const maxY = canvasHeight - newSize
-      const adjustedX = Math.min(flower.position_x, Math.max(0, maxX))
-      const adjustedY = Math.min(flower.position_y, Math.max(0, maxY))
-      
-      try {
-        // Update de originele bloem
-        const updatedFlower = await updatePlantPosition(flower.id, {
-          position_x: adjustedX,
-          position_y: adjustedY,
-          visual_width: newSize,
-          visual_height: newSize
-        })
-        
-        if (updatedFlower) {
-          // Voeg 8-12 extra bloemen toe BINNEN het grote vlak
-          const extraFlowerCount = 8 + Math.floor(Math.random() * 5) // 8-12 bloemen
-          const newFlowers: PlantWithPosition[] = []
-          
-          for (let i = 0; i < extraFlowerCount; i++) {
-            // Positioneer bloemen in een mooie spreiding binnen het grote vlak
-            const angle = (i / extraFlowerCount) * 2 * Math.PI + Math.random() * 0.5
-            const radius = 20 + Math.random() * (newSize/2 - 40)
-            const centerX = adjustedX + newSize/2
-            const centerY = adjustedY + newSize/2
-            
-            const x = centerX + Math.cos(angle) * radius - 20
-            const y = centerY + Math.sin(angle) * radius - 20
-            
-            // Zorg dat ze binnen het grote vlak blijven
-            const constrainedX = Math.max(adjustedX + 5, Math.min(x, adjustedX + newSize - 45))
-            const constrainedY = Math.max(adjustedY + 5, Math.min(y, adjustedY + newSize - 45))
-            
-            const newFlower = await createVisualPlant({
-              plant_bed_id: plantBed.id,
-              name: flower.name,
-              color: flower.color || '#FF69B4',
-              status: flower.status || 'healthy',
-              position_x: constrainedX,
-              position_y: constrainedY,
-              visual_width: 40,
-              visual_height: 40,
-              emoji: flower.emoji || '🌸',
-              is_custom: flower.is_custom,
-              category: flower.category,
-              notes: flower.notes
-            })
-            
-            if (newFlower) newFlowers.push(newFlower)
-          }
-          
-          // Update state met alle nieuwe bloemen
-          setFlowerPositions(prev => prev.map(f => 
-            f.id === flowerId ? updatedFlower : f
-          ).concat(newFlowers))
-          
-          toast({
-            title: "🌸 Bloem vergroot!",
-            description: `${newFlowers.length} extra bloemen toegevoegd!`,
-          })
-        }
-      } catch (error) {
-        console.error("Error enlarging flower:", error)
-        toast({
-          title: "Fout bij vergroten",
-          description: "Er is een fout opgetreden bij het vergroten van de bloem.",
-          variant: "destructive",
-        })
-      }
-    } else {
-      // VERKLEINEN: Maak bloem klein en verwijder extra bloemen
-      try {
-        // Update de originele bloem naar kleine maat
-        const updatedFlower = await updatePlantPosition(flower.id, {
-          visual_width: FLOWER_SIZE,
-          visual_height: FLOWER_SIZE
-        })
-        
-        if (updatedFlower) {
-          // Zoek alle bloemen met dezelfde naam in de buurt (dit zijn waarschijnlijk de duplicaten)
-          const nearbyFlowers = flowerPositions.filter(f => 
-            f.id !== flowerId && 
-            f.name === flower.name &&
-            Math.abs(f.position_x - flower.position_x) < 200 &&
-            Math.abs(f.position_y - flower.position_y) < 200
-          )
-          
-          // Verwijder de extra bloemen
-          for (const nearbyFlower of nearbyFlowers) {
-            try {
-              await deletePlant(nearbyFlower.id)
-            } catch (error) {
-              console.error("Error deleting nearby flower:", error)
-            }
-          }
-          
-          // Update state
-          setFlowerPositions(prev => prev
-            .filter(f => !nearbyFlowers.some(nf => nf.id === f.id))
-            .map(f => f.id === flowerId ? updatedFlower : f)
-          )
-          
-          toast({
-            title: "🌸 Bloem verkleind",
-            description: `${nearbyFlowers.length} extra bloemen verwijderd`,
-          })
-        }
-      } catch (error) {
-        console.error("Error shrinking flower:", error)
-        toast({
-          title: "Fout bij verkleinen",
-          description: "Er is een fout opgetreden bij het verkleinen van de bloem.",
-          variant: "destructive",
-        })
-      }
-    }
-    
-    setHasChanges(true)
-  }, [flowerPositions, plantBed, canvasWidth, canvasHeight, toast])
+    // Select this flower for resizing
+    setSelectedFlower(flower)
+  }, [flowerPositions])
 
   // Handle mouse down - start dragging immediately
   const handleFlowerMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
