@@ -7,7 +7,7 @@ Een moderne webapplicatie voor het beheren van tuinen, plantvakken en bloemen. G
 ### Vereisten
 - Node.js 18+
 - Supabase account
-- Vercel account (voor deployment)
+- Vercel account (voor deployment) 
  
 ### Installatie
 ```bash
