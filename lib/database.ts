@@ -256,7 +256,9 @@ export async function createPlantBed(plantBed: {
   const existingIds = existingBeds?.map(bed => bed.id) || []
   const newId = generateNextId(existingIds)
   
+  console.log("🆔 Existing plant bed IDs:", existingIds)
   console.log("🆔 Generated plant bed ID:", newId)
+  console.log("🆔 ID type:", typeof newId, "length:", newId.length)
   
   // Insert with the generated ID
   const { data, error } = await supabase.from("plant_beds").insert({
@@ -272,14 +274,14 @@ export async function createPlantBed(plantBed: {
   }).select().single()
 
   if (error) {
-    console.error("❌ Error creating plant bed - DETAILED:", {
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-      code: error.code,
-      fullError: JSON.stringify(error, null, 2)
-    })
-    console.error("❌ Plant bed data that failed:", JSON.stringify({
+    console.error("❌ Error creating plant bed - DETAILED:")
+    console.error("Message:", error.message)
+    console.error("Details:", error.details)
+    console.error("Hint:", error.hint)
+    console.error("Code:", error.code)
+    console.error("Full Error:", error)
+    
+    console.error("❌ Plant bed data that was attempted to insert:", {
       id: newId,
       garden_id: plantBed.garden_id,
       name: plantBed.name,
@@ -289,7 +291,7 @@ export async function createPlantBed(plantBed: {
       sun_exposure: plantBed.sun_exposure || 'full-sun',
       description: plantBed.description || null,
       is_active: true
-    }, null, 2))
+    })
     if (isMissingRelation(error)) {
       console.warn(
         "Supabase table `plant_beds` not found yet – cannot create a plant bed until the migration is applied.",
