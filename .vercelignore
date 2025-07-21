@@ -1,0 +1,23 @@
+# Ignore mobile app and packages during Vercel deployment
+apps/mobile/
+packages/
+*.md
+!README.md
+
+# Development files
+launch-*.sh
+setup-cross-platform.sh
+CROSS_PLATFORM_OVERVIEW.md
+
+# Mobile-specific files
+apps/mobile/**/*
+packages/**/*
+
+# Keep only web-related files for deployment
+!app/
+!components/
+!lib/
+!public/
+!styles/
+!hooks/
+!database/

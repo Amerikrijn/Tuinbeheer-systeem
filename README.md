@@ -1,123 +1,225 @@
-# Tuinbeheer Systeem 🌱  
+# Tuinbeheer Systeem - Cross-Platform 🌱📱
 
-Een moderne webapplicatie voor het beheren van tuinen, plantvakken en bloemen. Gebouwd met Next.js 14, TypeScript, Supabase en Tailwind CSS.
+Een moderne cross-platform applicatie voor het beheren van tuinen, plantvakken en bloemen. Beschikbaar voor **Web**, **iOS** en **Android**.
 
-## 🚀 Quick Start 
+## 🚀 Platform Support
 
-### Vereisten  
-- Node.js 18+
-- Supabase account
-- Vercel account (voor deployment) 
- 
-### Installatie
-```bash
-# Clone repository
-git clone <repository-url>
-cd tuinbeheer-systeem
-
-# Installeer dependencies
-npm install
-
-# Setup environment variabelen
-cp .env.example .env.local
-# Vul je Supabase credentials in .env.local
-
-# Setup database
-npm run db:setup
-
-# Start development server
-npm run dev
-```
+- ✅ **Web** - Next.js 14 + TypeScript (Production Ready)
+- ✅ **iOS** - React Native + Expo (Development Ready)
+- ✅ **Android** - React Native + Expo (Development Ready)
+- ✅ **PWA** - Progressive Web App support
 
 ## 🏗️ Architectuur
 
-### Core Entiteiten
-- **Tuin** (Garden) - Hoofdcontainer voor plantvakken
-- **Plantvak** (Plant Bed) - Georganiseerde secties binnen tuinen  
-- **Bloem** (Plant) - Individuele planten met gedetailleerde informatie
+### Hybrid Monorepo Structuur
+```
+tuinbeheer-systeem/
+├── app/                   # 🌐 Next.js Web App (Root Level - Vercel Ready)
+├── components/            # Web UI componenten
+├── lib/                   # Web business logic
+├── apps/
+│   └── mobile/           # 📱 React Native Mobile App (iOS/Android)
+├── packages/
+│   └── shared/           # 🔗 Shared utilities (Future expansion)
+└── database/             # 🗄️ Database scripts
+```
+
+### Core Features
+- **Tuin Management** - Maak en beheer meerdere tuinen met afmetingen
+- **Visual Garden Designer** - Drag & drop plantvakken met schaalgetrouwe weergave
+- **Plant Bed Management** - Gedetailleerd beheer van plantvakken
+- **Plant/Flower Tracking** - Volg uw planten met foto's en notities
+- **Cross-Platform Ready** - Web app live, mobile app in development
 
 ### Tech Stack
-- **Frontend**: Next.js 14 + TypeScript
+- **Web**: Next.js 14, TypeScript, Tailwind CSS, shadcn/ui, Supabase
+- **Mobile**: React Native, Expo, TypeScript (Development)
 - **Database**: Supabase (PostgreSQL)
-- **Styling**: Tailwind CSS + shadcn/ui
-- **Deployment**: Vercel
+- **Deployment**: Vercel (Web), Expo Application Services (Mobile)
 
-## 📁 Project Structuur
+## 🌐 Web Application (Production)
 
+### Live Deployment
+The web application is **production-ready** and deployed on Vercel:
+- Full garden management functionality
+- Visual garden designer with drag & drop
+- Responsive design for all screen sizes
+- Real-time data synchronization
+
+### Quick Start - Web
+```bash
+# Clone and setup
+git clone <repository-url>
+cd tuinbeheer-systeem
+npm install
+
+# Setup environment variables
+cp .env.example .env.local
+# Add your Supabase credentials
+
+# Run development
+npm run dev
+# Open http://localhost:3000
+
+# Build for production
+npm run build
+npm run start
 ```
-├── app/                    # Next.js App Router
-│   ├── gardens/           # Tuin management
-│   ├── plant-beds/        # Plantvak management
-│   └── api/               # API routes
-├── components/            # UI componenten
-├── lib/                   # Business logic
-│   ├── services/         # Database services
-│   ├── types/            # TypeScript types
-│   └── validation/       # Form validation
-├── database/             # Database setup scripts
-└── supabase/             # Supabase configuration
+
+## 📱 Mobile Application (Development)
+
+### Development Setup
+```bash
+# Setup mobile development
+npm run mobile:setup
+
+# Start mobile app
+npm run mobile:start
+
+# Or start specific platform
+npm run mobile:android  # Android
+npm run mobile:ios      # iOS (macOS only)
 ```
+
+### Mobile Features (In Development)
+- **Touch-First Design**: Optimized for mobile interaction
+- **Native Camera**: Direct photo capture of plants
+- **GPS Integration**: Automatic location detection
+- **Push Notifications**: Care reminders and schedules
+- **Offline Support**: Work without internet
 
 ## 🗄️ Database Setup
 
-### Automatische Setup
 ```bash
+# Automatic setup
 npm run db:setup
+
+# Manual reset if needed
+npm run db:reset
 ```
 
-### Handmatige Setup
-1. Ga naar je Supabase project
-2. Open SQL Editor
-3. Voer uit: `database/01-schema.sql`
-4. Voer uit: `database/02-seed-data.sql`
-
-## 🔧 Available Scripts
-
-```bash
-npm run dev          # Development server
-npm run build        # Production build
-npm run start        # Production server
-npm run lint         # Code linting
-npm run type-check   # TypeScript checking
-npm run db:setup     # Database setup
-npm run db:reset     # Reset database
-```
-
-## 🌐 Deployment
-
-### Preview (Vercel)
-- Automatische deployment bij push naar `main`
-- Preview URL wordt gegenereerd
-
-### Production (Vercel)
-- Handmatige deployment naar productie
-- Gebruik `npm run build` voor optimized build
-
-## 📊 Features
-
-- ✅ Tuin management (CRUD)
-- ✅ Plantvak management (CRUD)
-- ✅ Bloem/Plant management (CRUD)
-- ✅ Visual garden designer
-- ✅ Search & filtering
-- ✅ Responsive design
-- ✅ Type-safe API
-- ✅ Real-time updates
-- ✅ Banking-level code quality
-
-## 🔒 Environment Variables
-
+### Environment Variables
+Create `.env.local`:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
+## 📦 Available Scripts
+
+### Web Development
+```bash
+npm run dev              # Development server
+npm run build            # Production build
+npm run start            # Production server
+npm run lint             # Code linting
+npm run type-check       # TypeScript checking
+```
+
+### Mobile Development
+```bash
+npm run mobile:setup     # Setup mobile environment
+npm run mobile:start     # Start Expo development server
+npm run mobile:android   # Android development
+npm run mobile:ios       # iOS development (macOS only)
+```
+
+### Database
+```bash
+npm run db:setup         # Setup database
+npm run db:reset         # Reset database
+npm run db:schema        # Update schema
+```
+
+## 🌐 Deployment
+
+### Web App (Production Ready)
+- **Vercel**: Automatic deployment from main branch
+- **Environment**: Production-optimized build
+- **Features**: All garden management features active
+
+### Mobile App (Development)
+```bash
+cd apps/mobile
+expo build:android       # Android APK
+expo build:ios           # iOS IPA (requires macOS + Apple Developer Account)
+```
+
+## 📊 Current Status
+
+| Feature | Web | Mobile | Status |
+|---------|-----|--------|--------|
+| Garden Management | ✅ | 🚧 | Web: Production / Mobile: Development |
+| Visual Designer | ✅ | 🚧 | Web: Full / Mobile: Touch-optimized |
+| Plant Tracking | ✅ | 🚧 | Web: Complete / Mobile: In Progress |
+| Photo Upload | ✅ | 🚧 | Web: Working / Mobile: Camera integration |
+| Real-time Sync | ✅ | 🚧 | Web: Active / Mobile: Planned |
+| Push Notifications | ❌ | 🚧 | Web: N/A / Mobile: Planned |
+| Offline Support | ⚠️ | 🚧 | Web: Limited / Mobile: Planned |
+
+**Legend**: ✅ Complete | 🚧 In Development | ❌ Not Applicable | ⚠️ Limited
+
+## 🔮 Roadmap
+
+### Phase 1: Web Production (✅ Complete)
+- [x] Full garden management system
+- [x] Visual garden designer
+- [x] Plant and flower tracking
+- [x] Responsive web design
+- [x] Production deployment
+
+### Phase 2: Mobile Development (🚧 Current)
+- [x] Basic mobile app structure
+- [x] Cross-platform architecture
+- [ ] Touch-optimized garden designer
+- [ ] Camera integration
+- [ ] Push notifications
+- [ ] Offline support
+
+### Phase 3: Advanced Features (📋 Planned)
+- [ ] Real-time collaboration
+- [ ] Advanced analytics
+- [ ] AI plant recognition
+- [ ] Weather integration
+- [ ] Social sharing
+
+## 🎯 Getting Started
+
+### For Users (Web)
+1. Visit the live web application
+2. Create your first garden
+3. Add plant beds with drag & drop
+4. Track your plants and flowers
+
+### For Developers (Mobile)
+1. Clone the repository
+2. Setup mobile development environment
+3. Run `npm run mobile:setup`
+4. Start development with `npm run mobile:start`
+
+## 💡 Architecture Benefits
+
+### Current Setup
+- **Web App**: Production-ready, fully functional
+- **Mobile App**: Development environment ready
+- **Shared Database**: Supabase backend for both platforms
+- **Independent Deployment**: Web and mobile can be deployed separately
+
+### Future Expansion
+- Easy to add shared code packages
+- Platform-specific optimizations
+- Scalable architecture
+- Modern development practices
+
 ## 🤝 Contributing
 
 1. Fork repository
 2. Create feature branch
-3. Make changes
+3. Develop and test features
 4. Submit pull request
+
+**Web contributions**: Ready for production features
+**Mobile contributions**: Help complete the mobile app
 
 ## 📄 License
 
@@ -125,4 +227,7 @@ MIT License - zie [LICENSE](LICENSE) voor details.
 
 ---
 
-**Tuinbeheer Systeem** - Moderne tuinbeheer voor de 21e eeuw 🌱
+**Tuinbeheer Systeem** - Van web naar cross-platform tuinbeheer 🌱📱💻
+
+**Web App**: Production Ready ✅  
+**Mobile Apps**: In Development 🚧
