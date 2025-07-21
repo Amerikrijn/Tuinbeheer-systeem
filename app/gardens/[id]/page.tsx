@@ -352,7 +352,7 @@ export default function GardenDetailPage() {
   const getDimensionsFromSize = (size: string) => {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
-      console.log("🔍 Plantvak schaal debug:", {
+      console.log("✅ Plantvak schaal debug:", {
         sizeString: size,
         lengthMeters: dimensions.lengthMeters,
         widthMeters: dimensions.widthMeters,
@@ -367,10 +367,11 @@ export default function GardenDetailPage() {
         height: dimensions.widthPixels
       }
     }
-    console.log("❌ Plantvak dimensies niet geparsed:", size)
+    console.log("❌ Plantvak dimensies niet geparsed, gebruik standaard 2x2m:", size)
+    // Default to 2x2 meters instead of minimum size
     return {
-      width: PLANTVAK_MIN_WIDTH,
-      height: PLANTVAK_MIN_HEIGHT
+      width: metersToPixels(2),
+      height: metersToPixels(2)
     }
   }
 
@@ -1113,7 +1114,6 @@ export default function GardenDetailPage() {
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
-                Tuin Layout
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={zoomOut}>
@@ -1180,8 +1180,8 @@ export default function GardenDetailPage() {
                   const isInDragMode = isDragMode && isSelected
                   
                   // Always recalculate dimensions from size to ensure correct scaling
-                  let bedWidth = PLANTVAK_MIN_WIDTH
-                  let bedHeight = PLANTVAK_MIN_HEIGHT
+                  let bedWidth = metersToPixels(2) // Default 2x2 meters
+                  let bedHeight = metersToPixels(2)
                   
                   if (bed.size) {
                     const dims = getDimensionsFromSize(bed.size)
@@ -1193,9 +1193,13 @@ export default function GardenDetailPage() {
                       size: bed.size,
                       calculatedWidth: bedWidth,
                       calculatedHeight: bedHeight,
+                      calculatedWidthMeters: bedWidth / METERS_TO_PIXELS,
+                      calculatedHeightMeters: bedHeight / METERS_TO_PIXELS,
                       storedVisualWidth: bed.visual_width,
                       storedVisualHeight: bed.visual_height
                     })
+                  } else {
+                    console.log("⚠️ Plantvak zonder size:", bed.name, "using default 2x2m")
                   }
 
                   return (

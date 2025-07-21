@@ -23,7 +23,23 @@ export const metersToPixels = (meters: number): number => meters * METERS_TO_PIX
 export const pixelsToMeters = (pixels: number): number => pixels / METERS_TO_PIXELS
 
 export const parsePlantBedDimensions = (sizeString: string) => {
-  const match = sizeString?.match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/)
+  // Try multiple patterns to match different formats
+  let match = sizeString?.match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/)
+  
+  // If no match, try to extract just numbers (e.g. "8m" becomes 8x8)
+  if (!match) {
+    const singleMatch = sizeString?.match(/(\d+(?:\.\d+)?)/)
+    if (singleMatch) {
+      const size = parseFloat(singleMatch[1])
+      return {
+        lengthMeters: size,
+        widthMeters: size,
+        lengthPixels: metersToPixels(size),
+        widthPixels: metersToPixels(size)
+      }
+    }
+  }
+  
   if (match) {
     return {
       lengthMeters: parseFloat(match[1]),
@@ -32,6 +48,8 @@ export const parsePlantBedDimensions = (sizeString: string) => {
       widthPixels: metersToPixels(parseFloat(match[2]))
     }
   }
+  
+  console.warn("Could not parse plant bed dimensions from:", sizeString)
   return null
 }
 
