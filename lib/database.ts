@@ -192,6 +192,35 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
   return { ...plantBed, plants: plants || [] }
 }
 
+// Generate unique ID for plant beds
+async function generatePlantBedId(gardenId: string): Promise<string> {
+  const { data: existingBeds, error } = await supabase
+    .from("plant_beds")
+    .select("id")
+    .eq("garden_id", gardenId)
+    .order("id", { ascending: false })
+    .limit(1)
+
+  if (error) {
+    console.error("Error fetching existing plant beds:", error)
+    const timestamp = Date.now().toString().slice(-6)
+    return `PB-${timestamp}`
+  }
+
+  let prefix = "PB"
+  let nextNumber = 1
+
+  if (existingBeds && existingBeds.length > 0) {
+    const lastId = existingBeds[0].id
+    const parts = lastId.split('-')
+    if (parts.length === 2 && !isNaN(parseInt(parts[1]))) {
+      prefix = parts[0]
+      nextNumber = parseInt(parts[1]) + 1
+    }
+  }
+  return `${prefix}-${String(nextNumber).padStart(3, '0')}`
+}
+
 export async function createPlantBed(plantBed: {
   garden_id: string
   name: string
@@ -203,13 +232,9 @@ export async function createPlantBed(plantBed: {
 }): Promise<PlantBed | null> {
   console.log("🌱 Creating plant bed:", plantBed)
   
-  // Validate garden_id is a valid UUID format (temporarily disabled for debugging)
-  // const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  // if (!uuidRegex.test(plantBed.garden_id)) {
-  //   console.error("❌ Invalid garden_id format:", plantBed.garden_id)
-  //   throw new Error(`Invalid garden_id format: ${plantBed.garden_id}`)
-  // }
-  console.log("🔍 Garden ID to be used:", { garden_id: plantBed.garden_id, type: typeof plantBed.garden_id })
+  // Generate unique ID for the plant bed
+  const plantBedId = await generatePlantBedId(plantBed.garden_id)
+  console.log("🔍 Generated plant bed ID:", plantBedId)
   
   // Check if garden exists first
   const { data: gardenExists, error: gardenCheckError } = await supabase
@@ -225,8 +250,9 @@ export async function createPlantBed(plantBed: {
   
   console.log("✅ Garden exists, proceeding with plant bed creation")
   
-  // Let the database auto-generate the UUID
+  // Insert with generated ID
   const { data, error } = await supabase.from("plant_beds").insert({
+    id: plantBedId,
     garden_id: plantBed.garden_id,
     name: plantBed.name,
     location: plantBed.location || null,

@@ -929,26 +929,13 @@ export default function GardenDetailPage() {
           
           {selectedBed && showVisualView && (
             <Button
-              variant={isDragMode ? "default" : "outline"}
+              variant="outline"
               size="sm"
-              onClick={() => {
-                setIsDragMode(!isDragMode)
-                if (!isDragMode) {
-                  toast({
-                    title: "Verplaatsen actief",
-                    description: "Sleep het geselecteerde plantvak naar een nieuwe positie.",
-                  })
-                } else {
-                  toast({
-                    title: "Verplaatsen gestopt",
-                    description: "Plantvak staat nu vast.",
-                  })
-                }
-              }}
-              className="flex items-center gap-2"
+              onClick={() => handleDeletePlantBed(selectedBed)}
+              className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
             >
-              <Move className="h-4 w-4" />
-              {isDragMode ? "Stop" : "Verplaats"}
+              <Trash2 className="h-4 w-4 mr-2" />
+              Verwijder Plantvak
             </Button>
           )}
           
@@ -1125,21 +1112,6 @@ export default function GardenDetailPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Mobile help text */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
-            <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak verplaatsen (mobiel):</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• <strong>1x tikken:</strong> Plantvak selecteren</li>
-              <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
-              <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
-              <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
-            </ul>
-            <div className="mt-2 pt-2 border-t border-blue-300">
-              <p className="text-xs text-blue-700">
-                🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m
-              </p>
-            </div>
-          </div>
           
 
           
