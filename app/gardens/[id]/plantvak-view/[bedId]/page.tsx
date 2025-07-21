@@ -1683,7 +1683,7 @@ export default function PlantBedViewPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5 text-purple-600" />
-              Bloemen Layout - Op Schaal (1m = {METERS_TO_PIXELS}px)
+              Bloemen Layout - {plantBed?.size || 'Op schaal'} (Schaal: 1m = {METERS_TO_PIXELS}px)
             </CardTitle>
             
             {/* Control buttons for selected flower */}
@@ -1770,6 +1770,11 @@ export default function PlantBedViewPage() {
               <li>• <strong>Dubbel tikken:</strong> Bloem bewerken</li>
               <li>• <strong>Knoppen:</strong> Gebruik knoppen hierboven</li>
             </ul>
+            <div className="mt-2 pt-2 border-t border-blue-300">
+              <p className="text-xs text-blue-700">
+                🌱 <strong>Plantvak:</strong> {plantBed?.size || 'Onbekend'}
+              </p>
+            </div>
           </div>
           
           {/* Desktop help text */}
@@ -1781,6 +1786,12 @@ export default function PlantBedViewPage() {
               <li>• <strong>Dubbel klik:</strong> Bloem bewerken</li>
               <li>• <strong>Knoppen:</strong> Voor grootte aanpassen</li>
             </ul>
+            <div className="mt-2 pt-2 border-t border-green-300">
+              <p className="text-xs text-green-700">
+                🌱 <strong>Plantvak:</strong> {plantBed?.size || 'Onbekend'} • 
+                <strong>Schaal:</strong> 1m = {METERS_TO_PIXELS} pixels
+              </p>
+            </div>
           </div>
           
           <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
