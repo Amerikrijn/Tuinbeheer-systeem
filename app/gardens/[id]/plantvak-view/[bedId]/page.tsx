@@ -1221,9 +1221,7 @@ export default function PlantBedViewPage() {
               <Flower className="h-8 w-8 text-pink-600" />
               {plantBed.name}
             </h1>
-            <p className="text-gray-600">
-              🚨 <strong>LAATSTE KANS</strong>
-            </p>
+
           </div>
         </div>
         <div className="flex items-center gap-2">
