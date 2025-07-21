@@ -1200,7 +1200,7 @@ export default function GardenDetailPage() {
                 )}
               </div>
             </div>
-                        <div className="mt-4 text-sm text-gray-600 flex items-center justify-end">
+            <div className="mt-4 text-sm text-gray-600 flex items-center justify-end">
               <div className="flex items-center gap-4">
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                 {selectedBed && (
