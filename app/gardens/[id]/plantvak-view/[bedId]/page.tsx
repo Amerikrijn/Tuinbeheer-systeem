@@ -524,7 +524,7 @@ export default function PlantBedViewPage() {
     return { clientX: 0, clientY: 0 }
   }
 
-  // Handle single click/tap - select flower or toggle modes
+  // Handle single click/tap - select flower and prepare for operations
   const handleFlowerClick = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -532,48 +532,51 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    // If flower is already selected, toggle between drag and resize modes
-    if (selectedFlower?.id === flowerId) {
-      if (!isDragMode && !isResizeMode) {
-        // First click after selection - enter drag mode
-        setIsDragMode(true)
-        toast({
-          title: "🖱️ Verplaatsen actief",
-          description: "Sleep de bloem naar een nieuwe positie. Klik opnieuw voor grootte aanpassen.",
-        })
-      } else if (isDragMode) {
-        // Second click - switch to resize mode
-        setIsDragMode(false)
-        setIsResizeMode(true)
-        toast({
-          title: "📏 Grootte aanpassen actief", 
-          description: "Sleep de blauwe hoeken om groter te maken. Klik opnieuw om te stoppen.",
-        })
+    // For touch devices, use the toggle behavior
+    if ('touches' in e) {
+      if (selectedFlower?.id === flowerId) {
+        if (!isDragMode && !isResizeMode) {
+          setIsDragMode(true)
+          toast({
+            title: "🖱️ Verplaatsen actief",
+            description: "Sleep de bloem naar een nieuwe positie. Klik opnieuw voor grootte aanpassen.",
+          })
+        } else if (isDragMode) {
+          setIsDragMode(false)
+          setIsResizeMode(true)
+          toast({
+            title: "📏 Grootte aanpassen actief", 
+            description: "Sleep de blauwe hoeken om groter te maken. Klik opnieuw om te stoppen.",
+          })
+        } else {
+          setIsDragMode(false)
+          setIsResizeMode(false)
+          setSelectedFlower(null)
+          toast({
+            title: "✅ Selectie opgeheven",
+            description: "Klik op een bloem om te selecteren.",
+          })
+        }
       } else {
-        // Third click - exit all modes
+        setSelectedFlower(flower)
         setIsDragMode(false)
         setIsResizeMode(false)
-        setSelectedFlower(null)
+        resizeModeRef.current = flowerId
         toast({
-          title: "✅ Selectie opgeheven",
-          description: "Klik op een bloem om te selecteren.",
+          title: "🎯 Bloem geselecteerd",
+          description: "Klik opnieuw om te verplaatsen of grootte aan te passen.",
         })
       }
     } else {
-      // Select new flower
+      // For mouse, just select the flower - dragging happens on mousedown
       setSelectedFlower(flower)
       setIsDragMode(false)
       setIsResizeMode(false)
       resizeModeRef.current = flowerId
-      
-      toast({
-        title: "🎯 Bloem geselecteerd",
-        description: "Klik opnieuw om te verplaatsen of grootte aan te passen.",
-      })
     }
   }, [flowerPositions, selectedFlower, isDragMode, isResizeMode, toast])
 
-  // Handle pointer down - start dragging or resizing if in respective mode
+  // Handle pointer down - start dragging immediately for mouse, conditionally for touch
   const handleFlowerPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -583,6 +586,10 @@ export default function PlantBedViewPage() {
     // Record touch start time for long press detection
     if ('touches' in e) {
       setTouchStartTime(Date.now())
+      // For touch, only start dragging if we're in drag mode and flower is selected
+      if (!isDragMode || selectedFlower?.id !== flowerId) {
+        return
+      }
     }
     
     // Clear any existing selections first if dragging a different flower
@@ -596,18 +603,27 @@ export default function PlantBedViewPage() {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // Only start operations if we're in the appropriate mode and flower is selected
-    if (selectedFlower?.id === flowerId) {
-      if (isDragMode) {
-        // Start dragging
-        setDraggedFlower(flowerId)
-        setDragOffset({
-          x: (clientX - rect.left) / scale - flower.position_x,
-          y: (clientY - rect.top) / scale - flower.position_y
-        })
+    // For mouse: start dragging immediately if flower is selected
+    // For touch: start dragging if in drag mode
+    if (selectedFlower?.id === flowerId || !('touches' in e)) {
+      // Start dragging
+      setDraggedFlower(flowerId)
+      setDragOffset({
+        x: (clientX - rect.left) / scale - flower.position_x,
+        y: (clientY - rect.top) / scale - flower.position_y
+      })
+      
+      // Select the flower if not already selected (for mouse)
+      if (!selectedFlower || selectedFlower.id !== flowerId) {
+        setSelectedFlower(flower)
+        resizeModeRef.current = flowerId
+      }
+      
+      // Show feedback for mouse users
+      if (!('touches' in e)) {
         toast({
           title: "🚀 Verplaatsen gestart",
-          description: "Sleep de bloem naar de gewenste positie.",
+          description: "Sleep naar gewenste positie en laat los.",
         })
       }
     }
@@ -1135,14 +1151,14 @@ export default function PlantBedViewPage() {
                 Bloem Toevoegen
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
                 <DialogDescription>
                   Voeg een nieuwe bloem toe aan dit plantvak. Je kunt het later verplaatsen door te slepen.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
                 <div className="grid gap-2">
                   <label htmlFor="name" className="text-sm font-medium">
                     Naam *
@@ -1309,14 +1325,14 @@ export default function PlantBedViewPage() {
 
           {/* Edit Flower Dialog */}
           <Dialog open={isEditingFlower} onOpenChange={setIsEditingFlower}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Bloem Bewerken</DialogTitle>
                 <DialogDescription>
                   Wijzig de eigenschappen van deze bloem.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
                 <div className="grid gap-2">
                   <label htmlFor="edit-name" className="text-sm font-medium">
                     Naam *
@@ -1553,7 +1569,7 @@ export default function PlantBedViewPage() {
 
       {/* Edit Plant Bed Dialog */}
       <Dialog open={isEditingPlantBed} onOpenChange={setIsEditingPlantBed}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Plantvak Bewerken</DialogTitle>
           </DialogHeader>
@@ -1747,10 +1763,23 @@ export default function PlantBedViewPage() {
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
             <h4 className="font-medium text-blue-900 mb-1">📱 Mobiele bediening:</h4>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• <strong>Tikken:</strong> Bloem selecteren</li>
-              <li>• <strong>Lang indrukken:</strong> Direct verplaatsen activeren</li>
-              <li>• <strong>Knoppen:</strong> Gebruik de knoppen hierboven voor controle</li>
+              <li>• <strong>1x tikken:</strong> Bloem selecteren</li>
+              <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
+              <li>• <strong>3x tikken:</strong> Grootte aanpassen</li>
+              <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
               <li>• <strong>Dubbel tikken:</strong> Bloem bewerken</li>
+              <li>• <strong>Knoppen:</strong> Gebruik knoppen hierboven</li>
+            </ul>
+          </div>
+          
+          {/* Desktop help text */}
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg hidden md:block">
+            <h4 className="font-medium text-green-900 mb-1">💻 Laptop bediening:</h4>
+            <ul className="text-sm text-green-800 space-y-1">
+              <li>• <strong>Vasthouden en slepen:</strong> Direct verplaatsen</li>
+              <li>• <strong>Klik:</strong> Bloem selecteren</li>
+              <li>• <strong>Dubbel klik:</strong> Bloem bewerken</li>
+              <li>• <strong>Knoppen:</strong> Voor grootte aanpassen</li>
             </ul>
           </div>
           

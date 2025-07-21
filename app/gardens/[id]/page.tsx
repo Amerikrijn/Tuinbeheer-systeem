@@ -195,31 +195,36 @@ export default function GardenDetailPage() {
     return { clientX: 0, clientY: 0 }
   }
 
-  // Handle single click/tap - toggle drag mode
+  // Handle single click/tap - select bed (mobile) or prepare for drag (desktop)
   const handlePlantBedClick = useCallback((e: React.MouseEvent | React.TouchEvent, bedId: string) => {
     e.preventDefault()
     e.stopPropagation()
     
-    // If already in drag mode for this bed, exit drag mode
-    if (selectedBed === bedId && isDragMode) {
-      setIsDragMode(false)
-      setSelectedBed(null)
-      toast({
-        title: "Verplaatsen gestopt",
-        description: "Plantvak staat nu vast",
-      })
+    // For touch devices, use the old toggle behavior
+    if ('touches' in e) {
+      if (selectedBed === bedId && isDragMode) {
+        setIsDragMode(false)
+        setSelectedBed(null)
+        toast({
+          title: "Verplaatsen gestopt",
+          description: "Plantvak staat nu vast",
+        })
+      } else {
+        setSelectedBed(bedId)
+        setIsDragMode(true)
+        toast({
+          title: "Verplaatsen actief",
+          description: "Sleep het plantvak naar een nieuwe positie. Klik opnieuw om te stoppen.",
+        })
+      }
     } else {
-      // Select bed and enter drag mode
+      // For mouse, just select the bed - dragging happens on mousedown
       setSelectedBed(bedId)
-      setIsDragMode(true)
-      toast({
-        title: "Verplaatsen actief",
-        description: "Sleep het plantvak naar een nieuwe positie. Klik opnieuw om te stoppen.",
-      })
+      setIsDragMode(false)
     }
   }, [selectedBed, isDragMode, toast])
 
-  // Handle pointer down - start dragging if in drag mode
+  // Handle pointer down - start dragging immediately for mouse, conditionally for touch
   const handlePlantBedPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, bedId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -229,11 +234,10 @@ export default function GardenDetailPage() {
     // Record touch start time for long press detection
     if ('touches' in e) {
       setTouchStartTime(Date.now())
-    }
-    
-    // Only start dragging if we're in drag mode or this is a long press
-    if (!isDragMode && selectedBed !== bedId) {
-      return
+      // For touch, only start dragging if we're in drag mode
+      if (!isDragMode || selectedBed !== bedId) {
+        return
+      }
     }
 
     const bed = plantBeds.find(b => b.id === bedId)
@@ -242,7 +246,7 @@ export default function GardenDetailPage() {
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // Start dragging
+    // Start dragging immediately
     const offsetX = clientX - rect.left - (bed.position_x || 100) * scale
     const offsetY = clientY - rect.top - (bed.position_y || 100) * scale
 
@@ -250,7 +254,15 @@ export default function GardenDetailPage() {
     setDragOffset({ x: offsetX / scale, y: offsetY / scale })
     setSelectedBed(bedId)
     setIsDragMode(true)
-  }, [plantBeds, scale, isDragMode, selectedBed])
+    
+    // For mouse users, show immediate feedback
+    if (!('touches' in e)) {
+      toast({
+        title: "🖱️ Verplaatsen gestart",
+        description: "Sleep naar de gewenste positie en laat los.",
+      })
+    }
+  }, [plantBeds, scale, isDragMode, selectedBed, toast])
 
   // Handle long press for mobile (alternative to click for drag mode)
   const handlePlantBedTouchStart = useCallback((e: React.TouchEvent, bedId: string) => {
@@ -719,7 +731,7 @@ export default function GardenDetailPage() {
                 Plantvak Toevoegen
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nieuw Plantvak Toevoegen</DialogTitle>
                 <DialogDescription>
@@ -911,7 +923,28 @@ export default function GardenDetailPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
+            {/* Mobile help text */}
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
+            <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak verplaatsen (mobiel):</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• <strong>1x tikken:</strong> Plantvak selecteren</li>
+              <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
+              <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
+              <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
+            </ul>
+          </div>
+          
+          {/* Desktop help text */}
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg hidden md:block">
+            <h4 className="font-medium text-green-900 mb-1">💻 Plantvak verplaatsen (laptop):</h4>
+            <ul className="text-sm text-green-800 space-y-1">
+              <li>• <strong>Vasthouden en slepen:</strong> Direct verplaatsen</li>
+              <li>• <strong>Klik:</strong> Plantvak selecteren</li>
+              <li>• <strong>Dubbel klik:</strong> Plantvak openen</li>
+            </ul>
+          </div>
+          
+          <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
               <div
                 ref={canvasRef}
                 className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 cursor-crosshair"
@@ -1136,7 +1169,7 @@ export default function GardenDetailPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
               <Trash2 className="h-5 w-5" />
