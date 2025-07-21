@@ -933,7 +933,20 @@ export default function GardenDetailPage() {
             </Button>
           )}
           
-          <Dialog open={isAddingPlantBed} onOpenChange={setIsAddingPlantBed}>
+          <Dialog open={isAddingPlantBed} onOpenChange={(open) => {
+            if (open) {
+              // Reset form when dialog opens
+              setNewPlantBed({
+                name: '',
+                length: '',
+                width: '',
+                description: '',
+                sun_exposure: 'full-sun',
+                soil_type: ''
+              })
+            }
+            setIsAddingPlantBed(open)
+          }}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
                 <Plus className="h-4 w-4 mr-2" />
