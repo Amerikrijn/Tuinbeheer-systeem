@@ -106,6 +106,14 @@ export default function GardenDetailPage() {
     const widthPixels = metersToPixels(lengthMeters)
     const heightPixels = metersToPixels(widthMeters)
     
+    console.log("🏡 Tuin schaal debug:", {
+      lengthMeters,
+      widthMeters,
+      widthPixels,
+      heightPixels,
+      metersToPixelsConstant: METERS_TO_PIXELS
+    })
+    
     return {
       width: widthPixels,
       height: heightPixels,
@@ -344,11 +352,22 @@ export default function GardenDetailPage() {
   const getDimensionsFromSize = (size: string) => {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
+      console.log("🔍 Plantvak schaal debug:", {
+        sizeString: size,
+        lengthMeters: dimensions.lengthMeters,
+        widthMeters: dimensions.widthMeters,
+        lengthPixels: dimensions.lengthPixels,
+        widthPixels: dimensions.widthPixels,
+        metersToPixelsConstant: METERS_TO_PIXELS,
+        expectedWidth: dimensions.lengthMeters * METERS_TO_PIXELS,
+        expectedHeight: dimensions.widthMeters * METERS_TO_PIXELS
+      })
       return {
         width: dimensions.lengthPixels,
         height: dimensions.widthPixels
       }
     }
+    console.log("❌ Plantvak dimensies niet geparsed:", size)
     return {
       width: PLANTVAK_MIN_WIDTH,
       height: PLANTVAK_MIN_HEIGHT
@@ -1156,18 +1175,23 @@ export default function GardenDetailPage() {
                   const isDragging = draggedBed === bed.id
                   const isInDragMode = isDragMode && isSelected
                   
-                  // Calculate dimensions from size if visual dimensions not available
-                  let bedWidth = bed.visual_width
-                  let bedHeight = bed.visual_height
+                  // Always recalculate dimensions from size to ensure correct scaling
+                  let bedWidth = PLANTVAK_MIN_WIDTH
+                  let bedHeight = PLANTVAK_MIN_HEIGHT
                   
-                  // Always recalculate from size to ensure correct scaling
                   if (bed.size) {
                     const dims = getDimensionsFromSize(bed.size)
                     bedWidth = dims.width
                     bedHeight = dims.height
-                  } else {
-                    bedWidth = bedWidth || PLANTVAK_MIN_WIDTH
-                    bedHeight = bedHeight || PLANTVAK_MIN_HEIGHT
+                    
+                    console.log("🎯 Plantvak rendering:", {
+                      name: bed.name,
+                      size: bed.size,
+                      calculatedWidth: bedWidth,
+                      calculatedHeight: bedHeight,
+                      storedVisualWidth: bed.visual_width,
+                      storedVisualHeight: bed.visual_height
+                    })
                   }
 
                   return (
