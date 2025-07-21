@@ -56,10 +56,14 @@ export const parsePlantBedDimensions = (sizeString: string) => {
 export const calculatePlantBedCanvasSize = (sizeString: string) => {
   const dimensions = parsePlantBedDimensions(sizeString)
   if (dimensions) {
+    // Ensure canvas is large enough to accommodate flower fields and expansion
+    const minWidth = 500  // Increased minimum for better flower field support
+    const minHeight = 400 // Increased minimum for better flower field support
+    
     return {
-      width: Math.max(400, dimensions.lengthPixels + PLANTVAK_CANVAS_PADDING),
-      height: Math.max(300, dimensions.widthPixels + PLANTVAK_CANVAS_PADDING + FLOWER_NAME_HEIGHT)
+      width: Math.max(minWidth, dimensions.lengthPixels + PLANTVAK_CANVAS_PADDING * 1.5),
+      height: Math.max(minHeight, dimensions.widthPixels + PLANTVAK_CANVAS_PADDING * 1.5 + FLOWER_NAME_HEIGHT)
     }
   }
-  return { width: 600, height: 450 }
+  return { width: 700, height: 550 } // Larger default canvas for better flower support
 }
