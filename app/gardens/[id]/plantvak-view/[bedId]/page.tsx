@@ -32,7 +32,7 @@ import {
   Minus,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed } from "@/lib/database"
+import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 import {
   METERS_TO_PIXELS,
@@ -153,6 +153,7 @@ export default function PlantBedViewPage() {
     size: 'medium' as 'small' | 'medium' | 'large'
   })
   const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
+  const [showDeletePlantBedDialog, setShowDeletePlantBedDialog] = useState(false)
   const [plantBedForm, setPlantBedForm] = useState({
     name: '',
     length: '',
@@ -514,6 +515,32 @@ export default function PlantBedViewPage() {
         description: "Er is een fout opgetreden bij het bijwerken van het plantvak.",
         variant: "destructive",
       })
+    }
+  }
+
+  // Delete plant bed
+  const handleDeletePlantBed = async () => {
+    if (!plantBed) return
+
+    try {
+      await deletePlantBed(plantBed.id)
+      
+      toast({
+        title: "Plantvak verwijderd",
+        description: "Het plantvak is succesvol verwijderd.",
+      })
+      
+      // Navigate back to garden
+      router.push(`/gardens/${params.id}`)
+    } catch (error) {
+      console.error("Error deleting plant bed:", error)
+      toast({
+        title: "Fout bij verwijderen",
+        description: "Er is een fout opgetreden bij het verwijderen van het plantvak.",
+        variant: "destructive",
+      })
+    } finally {
+      setShowDeletePlantBedDialog(false)
     }
   }
 
@@ -1547,78 +1574,47 @@ export default function PlantBedViewPage() {
         </div>
       </div>
 
-      {/* Plant Bed Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 justify-between">
+      {/* Plant Bed Information - Simplified */}
+      <Card className="bg-gray-50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Leaf className="h-5 w-5 text-green-600" />
-              Plantvak Informatie
+              <Leaf className="h-4 w-4 text-green-600" />
+              <span className="font-medium text-gray-900">Plantvak Informatie</span>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsEditingPlantBed(true)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-1 text-xs"
             >
-              <Edit className="h-4 w-4" />
+              <Edit className="h-3 w-3" />
               Bewerken
             </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div>
-              <h4 className="font-medium text-gray-700 mb-1">Naam</h4>
-              <p className="text-lg font-semibold">{plantBed?.name || 'Onbekend'}</p>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-700 mb-1">Lengte</h4>
-              <p className="text-lg font-semibold">
-                {plantBed?.size ? parseDimensions(plantBed.size).length + 'm' : 'Niet opgegeven'}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-700 mb-1">Breedte</h4>
-              <p className="text-lg font-semibold">
-                {plantBed?.size ? parseDimensions(plantBed.size).width + 'm' : 'Niet opgegeven'}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-700 mb-1">Zonligging</h4>
-              <div className="flex items-center gap-2">
-                {getSunExposureIcon(plantBed?.sun_exposure || 'full-sun')}
-                <span className="text-lg font-semibold">
-                  {plantBed?.sun_exposure === 'full-sun' ? 'Volle zon' :
-                   plantBed?.sun_exposure === 'partial-sun' ? 'Gedeeltelijke zon' :
-                   plantBed?.sun_exposure === 'shade' ? 'Schaduw' : 'Volle zon'}
-                </span>
-              </div>
-            </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div className="grid grid-cols-4 gap-4 text-sm">
             <div>
-              <h4 className="font-medium text-gray-700 mb-1">Bloemen</h4>
-              <p className="text-lg font-semibold">{flowerPositions.length}</p>
+              <span className="text-gray-600">Naam:</span>
+              <p className="font-medium">{plantBed?.name || 'Onbekend'}</p>
             </div>
             <div>
-              <h4 className="font-medium text-gray-700 mb-1">Grondsoort</h4>
-              <p className="text-lg font-semibold">
-                {plantBed?.soil_type === 'clay' ? 'Klei' :
-                 plantBed?.soil_type === 'sand' ? 'Zand' :
-                 plantBed?.soil_type === 'loam' ? 'Leem' :
-                 plantBed?.soil_type === 'peat' ? 'Veen' : 'Niet opgegeven'}
+              <span className="text-gray-600">Lengte:</span>
+              <p className="font-medium">
+                {plantBed?.size ? parseDimensions(plantBed.size).length + 'm' : '0m'}
               </p>
             </div>
-          </div>
-
-          {plantBed?.description && (
-            <div className="mt-6">
-              <h4 className="font-medium text-gray-700 mb-1">Beschrijving</h4>
-              <p className="text-gray-600">{plantBed.description}</p>
+            <div>
+              <span className="text-gray-600">Breedte:</span>
+              <p className="font-medium">
+                {plantBed?.size ? parseDimensions(plantBed.size).width + 'm' : '0m'}
+              </p>
             </div>
-          )}
+            <div>
+              <span className="text-gray-600">Bloemen:</span>
+              <p className="font-medium">{flowerPositions.length}</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -1724,7 +1720,63 @@ export default function PlantBedViewPage() {
               <Button onClick={updatePlantBedInfo} className="flex-1">
                 Opslaan
               </Button>
-              <Button variant="outline" onClick={() => setIsEditingPlantBed(false)} className="flex-1">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeletePlantBedDialog(true)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Verwijderen
+              </Button>
+              <Button variant="outline" onClick={() => setIsEditingPlantBed(false)}>
+                Annuleren
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Plant Bed Confirmation Dialog */}
+      <Dialog open={showDeletePlantBedDialog} onOpenChange={setShowDeletePlantBedDialog}>
+        <DialogContent className="w-[95vw] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="h-5 w-5" />
+              Plantvak Verwijderen
+            </DialogTitle>
+            <DialogDescription>
+              Weet je zeker dat je dit plantvak wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+              Alle bloemen in dit plantvak worden ook verwijderd.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span className="font-medium text-red-800">Te verwijderen:</span>
+              </div>
+              <p className="text-sm text-red-700">
+                <strong>{plantBed?.name}</strong> ({plantBed?.size || 'Onbekende grootte'})
+              </p>
+              <p className="text-sm text-red-700">
+                {flowerPositions.length} bloemen worden ook verwijderd
+              </p>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="destructive" 
+                onClick={handleDeletePlantBed}
+                className="flex-1"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Ja, Verwijderen
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeletePlantBedDialog(false)}
+                className="flex-1"
+              >
                 Annuleren
               </Button>
             </div>
@@ -1810,22 +1862,7 @@ export default function PlantBedViewPage() {
             </div>
           </div>
           
-          {/* Desktop help text */}
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg hidden md:block">
-            <h4 className="font-medium text-green-900 mb-1">💻 Laptop bediening:</h4>
-            <ul className="text-sm text-green-800 space-y-1">
-              <li>• <strong>Vasthouden en slepen:</strong> Direct verplaatsen</li>
-              <li>• <strong>Klik:</strong> Bloem selecteren</li>
-              <li>• <strong>Dubbel klik:</strong> Grootte aanpassen (+ / - knoppen)</li>
-              <li>• <strong>Knoppen:</strong> Voor verplaats/resize modus</li>
-            </ul>
-            <div className="mt-2 pt-2 border-t border-green-300">
-              <p className="text-xs text-green-700">
-                🌱 <strong>Plantvak:</strong> {plantBed?.size || 'Onbekend'} • 
-                <strong>Schaal:</strong> 1m = {METERS_TO_PIXELS} pixels
-              </p>
-            </div>
-          </div>
+
           
           <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
             <div
@@ -2136,41 +2173,7 @@ export default function PlantBedViewPage() {
         </CardContent>
       </Card>
 
-      {/* Legend */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Info className="h-5 w-5 text-blue-600" />
-            Legenda & Instructies
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-medium mb-3">Bloem Status</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-green-400 border-4 border-green-500 rounded-full"></div>
-                  <span>Gezond</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-yellow-400 border-4 border-yellow-500 rounded-full"></div>
-                  <span>Aandacht nodig</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-purple-400 border-4 border-purple-500 rounded-full"></div>
-                  <span>Bloeiend</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-red-400 border-4 border-red-500 rounded-full"></div>
-                  <span>Ziek</span>
-                </div>
-              </div>
-            </div>
 
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Resize Interface Overlay */}
       {showResizeInterface && selectedFlower && (
