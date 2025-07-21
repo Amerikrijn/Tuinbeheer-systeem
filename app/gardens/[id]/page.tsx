@@ -92,6 +92,16 @@ export default function GardenDetailPage() {
     
     const lengthMeters = parseFloat(garden.length)
     const widthMeters = parseFloat(garden.width)
+    
+    if (isNaN(lengthMeters) || isNaN(widthMeters) || lengthMeters <= 0 || widthMeters <= 0) {
+      return { 
+        width: DEFAULT_CANVAS_WIDTH, 
+        height: DEFAULT_CANVAS_HEIGHT,
+        widthMeters: DEFAULT_CANVAS_WIDTH / METERS_TO_PIXELS,
+        heightMeters: DEFAULT_CANVAS_HEIGHT / METERS_TO_PIXELS
+      }
+    }
+    
     const widthPixels = Math.max(DEFAULT_CANVAS_WIDTH, metersToPixels(lengthMeters))
     const heightPixels = Math.max(DEFAULT_CANVAS_HEIGHT, metersToPixels(widthMeters))
     
@@ -195,10 +205,13 @@ export default function GardenDetailPage() {
     const gardenLengthM = parseFloat(newLength)
     const gardenWidthM = parseFloat(newWidth)
     
-    if (isNaN(gardenLengthM) || isNaN(gardenWidthM)) return { fits: true, warnings: [] }
+    if (isNaN(gardenLengthM) || isNaN(gardenWidthM) || gardenLengthM <= 0 || gardenWidthM <= 0) {
+      return { fits: true, warnings: [] }
+    }
     
-    const gardenWidthPx = metersToPixels(gardenLengthM)
-    const gardenHeightPx = metersToPixels(gardenWidthM)
+    // Convert garden dimensions to pixels
+    const gardenLengthPx = metersToPixels(gardenLengthM)  // This is the WIDTH in pixels (horizontal)
+    const gardenWidthPx = metersToPixels(gardenWidthM)    // This is the HEIGHT in pixels (vertical)
     
     const warnings: string[] = []
     let allFit = true
@@ -209,12 +222,30 @@ export default function GardenDetailPage() {
       const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
       const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
       
+      // Calculate the edges of the plant bed
       const bedRightEdge = bedX + bedWidth
       const bedBottomEdge = bedY + bedHeight
       
-      if (bedRightEdge > gardenWidthPx || bedBottomEdge > gardenHeightPx) {
+      // Check if plant bed extends beyond garden boundaries
+      const fitsHorizontally = bedRightEdge <= gardenLengthPx
+      const fitsVertically = bedBottomEdge <= gardenWidthPx
+      
+      if (!fitsHorizontally || !fitsVertically) {
         allFit = false
-        warnings.push(`Plantvak "${bed.name}" past niet meer in de tuin (${bed.size || 'onbekende grootte'})`)
+        
+        // Calculate how much the bed extends beyond the garden
+        const overflowX = Math.max(0, bedRightEdge - gardenLengthPx)
+        const overflowY = Math.max(0, bedBottomEdge - gardenWidthPx)
+        
+        let overflowDescription = []
+        if (overflowX > 0) {
+          overflowDescription.push(`${(overflowX / METERS_TO_PIXELS).toFixed(1)}m te breed`)
+        }
+        if (overflowY > 0) {
+          overflowDescription.push(`${(overflowY / METERS_TO_PIXELS).toFixed(1)}m te diep`)
+        }
+        
+        warnings.push(`Plantvak "${bed.name}" (${bed.size || 'onbekende grootte'}) valt ${overflowDescription.join(' en ')} buiten de tuin`)
       }
     })
     
