@@ -1017,12 +1017,7 @@ export default function GardenDetailPage() {
               </div>
             </DialogContent>
           </Dialog>
-          {hasChanges && (
-            <Button onClick={saveLayout} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? "Opslaan..." : "Layout Opslaan"}
-            </Button>
-          )}
+
         </div>
       </div>
 
