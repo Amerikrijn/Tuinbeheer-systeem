@@ -148,6 +148,7 @@ export default function PlantBedViewPage() {
     type: '',
     color: '#FF69B4',
     customEmoji: '',
+    photoUrl: '',
     description: '',
     status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
     size: 'medium' as 'small' | 'medium' | 'large'
