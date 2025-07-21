@@ -102,8 +102,9 @@ export default function GardenDetailPage() {
       }
     }
     
-    const widthPixels = Math.max(DEFAULT_CANVAS_WIDTH, metersToPixels(lengthMeters))
-    const heightPixels = Math.max(DEFAULT_CANVAS_HEIGHT, metersToPixels(widthMeters))
+    // Use exact pixel conversion for garden dimensions
+    const widthPixels = metersToPixels(lengthMeters)
+    const heightPixels = metersToPixels(widthMeters)
     
     return {
       width: widthPixels,
@@ -1124,21 +1125,21 @@ export default function GardenDetailPage() {
             </div>
           </div>
           
-          <div className="relative overflow-auto rounded-lg border-2 border-dashed border-green-200">
+          <div className="relative overflow-auto rounded-lg border-2 border-dashed border-green-200" style={{ minHeight: "400px" }}>
               <div
                 ref={canvasRef}
                 className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 cursor-crosshair"
                 style={{
-                  width: CANVAS_WIDTH * scale,
-                  height: CANVAS_HEIGHT * scale,
-                  minWidth: "100%",
-                  minHeight: "400px",
+                  width: CANVAS_WIDTH,
+                  height: CANVAS_HEIGHT,
+                  transform: `scale(${scale})`,
+                  transformOrigin: "top left",
                 }}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handlePointerUp}
                 onClick={handleCanvasClick}
               >
-                {/* Grid */}
+                {/* Grid - 1m = 80px */}
                 <div
                   className="absolute inset-0 pointer-events-none opacity-20"
                   style={{
@@ -1146,7 +1147,7 @@ export default function GardenDetailPage() {
                       linear-gradient(to right, #10b98120 1px, transparent 1px),
                       linear-gradient(to bottom, #10b98120 1px, transparent 1px)
                     `,
-                    backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+                    backgroundSize: `${METERS_TO_PIXELS}px ${METERS_TO_PIXELS}px`,
                   }}
                 />
 
@@ -1157,13 +1158,17 @@ export default function GardenDetailPage() {
                   const isInDragMode = isDragMode && isSelected
                   
                   // Calculate dimensions from size if visual dimensions not available
-                  let bedWidth = bed.visual_width || 150
-                  let bedHeight = bed.visual_height || 100
+                  let bedWidth = bed.visual_width
+                  let bedHeight = bed.visual_height
                   
-                  if (bed.size && (!bed.visual_width || !bed.visual_height)) {
+                  // Always recalculate from size to ensure correct scaling
+                  if (bed.size) {
                     const dims = getDimensionsFromSize(bed.size)
                     bedWidth = dims.width
                     bedHeight = dims.height
+                  } else {
+                    bedWidth = bedWidth || PLANTVAK_MIN_WIDTH
+                    bedHeight = bedHeight || PLANTVAK_MIN_HEIGHT
                   }
 
                   return (
