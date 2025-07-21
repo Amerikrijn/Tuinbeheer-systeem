@@ -458,6 +458,16 @@ export default function PlantBedViewPage() {
       return
     }
 
+    // Prevent empty name
+    if (plantBedForm.name.trim().length === 0) {
+      toast({
+        title: "Naam vereist",
+        description: "Het plantvak moet een naam hebben.",
+        variant: "destructive",
+      })
+      return
+    }
+
     try {
       const sizeString = `${plantBedForm.length}m x ${plantBedForm.width}m`
       const length = parseFloat(plantBedForm.length)
@@ -1225,14 +1235,43 @@ export default function PlantBedViewPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Dialog open={isAddingFlower} onOpenChange={setIsAddingFlower}>
+          <Dialog open={isAddingFlower} onOpenChange={(open) => {
+            setIsAddingFlower(open)
+            if (!open) {
+              // Reset form when dialog closes
+              setNewFlower({
+                name: '',
+                type: '',
+                color: '#FF69B4',
+                customEmoji: '',
+                photoUrl: '',
+                description: '',
+                status: 'healthy',
+                size: 'medium'
+              })
+              setIsCustomFlower(false)
+            }
+          }}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => {
+                // Reset form when opening dialog
+                setNewFlower({
+                  name: '',
+                  type: '',
+                  color: '#FF69B4',
+                  customEmoji: '',
+                  photoUrl: '',
+                  description: '',
+                  status: 'healthy',
+                  size: 'medium'
+                })
+                setIsCustomFlower(false)
+              }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Bloem Toevoegen
               </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+                          </DialogTrigger>
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white z-50">
               <DialogHeader>
                 <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
                 <DialogDescription>
@@ -1396,7 +1435,21 @@ export default function PlantBedViewPage() {
                     <Plus className="h-4 w-4 mr-2" />
                     Toevoegen
                   </Button>
-                  <Button variant="outline" onClick={() => setIsAddingFlower(false)}>
+                  <Button variant="outline" onClick={() => {
+                    setIsAddingFlower(false)
+                    // Reset form state
+                    setNewFlower({
+                      name: '',
+                      type: '',
+                      color: '#FF69B4',
+                      customEmoji: '',
+                      photoUrl: '',
+                      description: '',
+                      status: 'healthy',
+                      size: 'medium'
+                    })
+                    setIsCustomFlower(false)
+                  }}>
                     Annuleren
                   </Button>
                 </div>
@@ -1405,8 +1458,25 @@ export default function PlantBedViewPage() {
           </Dialog>
 
           {/* Edit Flower Dialog */}
-          <Dialog open={isEditingFlower} onOpenChange={setIsEditingFlower}>
-            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+          <Dialog open={isEditingFlower} onOpenChange={(open) => {
+            setIsEditingFlower(open)
+            if (!open) {
+              // Reset form when dialog closes
+              setNewFlower({
+                name: '',
+                type: '',
+                color: '#FF69B4',
+                customEmoji: '',
+                photoUrl: '',
+                description: '',
+                status: 'healthy',
+                size: 'medium'
+              })
+              setIsEditCustomFlower(false)
+              setSelectedFlower(null)
+            }
+                                           }}>
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white z-50">
               <DialogHeader>
                 <DialogTitle>Bloem Bewerken</DialogTitle>
                 <DialogDescription>
@@ -1547,7 +1617,22 @@ export default function PlantBedViewPage() {
                     <Trash2 className="h-4 w-4 mr-2" />
                     Verwijderen
                   </Button>
-                  <Button variant="outline" onClick={() => setIsEditingFlower(false)}>
+                  <Button variant="outline" onClick={() => {
+                    setIsEditingFlower(false)
+                    // Reset form state
+                    setNewFlower({
+                      name: '',
+                      type: '',
+                      color: '#FF69B4',
+                      customEmoji: '',
+                      photoUrl: '',
+                      description: '',
+                      status: 'healthy',
+                      size: 'medium'
+                    })
+                    setIsEditCustomFlower(false)
+                    setSelectedFlower(null)
+                  }}>
                     Annuleren
                   </Button>
                 </div>
@@ -1622,8 +1707,30 @@ export default function PlantBedViewPage() {
               <label className="text-sm font-medium">Naam *</label>
               <Input
                 value={plantBedForm.name}
-                onChange={(e) => setPlantBedForm(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => {
+                  const newValue = e.target.value
+                  // Prevent clearing the name completely
+                  if (newValue.trim().length === 0 && plantBedForm.name.trim().length > 0) {
+                    toast({
+                      title: "Naam kan niet leeg zijn",
+                      description: "Het plantvak moet een naam hebben.",
+                      variant: "destructive",
+                    })
+                    return
+                  }
+                  setPlantBedForm(prev => ({ ...prev, name: newValue }))
+                }}
                 placeholder="Bijv. Rozen bed"
+                onBlur={(e) => {
+                  // Restore original name if field is empty on blur
+                  if (e.target.value.trim().length === 0 && plantBed?.name) {
+                    setPlantBedForm(prev => ({ ...prev, name: plantBed.name }))
+                    toast({
+                      title: "Naam hersteld",
+                      description: "De oorspronkelijke naam is hersteld.",
+                    })
+                  }
+                }}
               />
             </div>
 
@@ -1813,6 +1920,38 @@ export default function PlantBedViewPage() {
                 >
                   <Maximize2 className="h-3 w-3" />
                   {isResizeMode ? "Stop" : "Resize"}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (selectedFlower) {
+                      // Populate form with selected flower data
+                      setNewFlower({
+                        name: selectedFlower.name,
+                        type: selectedFlower.category || '',
+                        color: selectedFlower.color || '#FF69B4',
+                        customEmoji: selectedFlower.emoji || '',
+                        photoUrl: selectedFlower.photo_url || '',
+                        description: selectedFlower.notes || '',
+                        status: selectedFlower.status === 'diseased' ? 'sick' : 
+                               selectedFlower.status === 'healthy' ? 'healthy' :
+                               selectedFlower.status || 'healthy',
+                        size: 'medium'
+                      })
+                      setIsEditCustomFlower(selectedFlower.is_custom || false)
+                      setIsEditingFlower(true)
+                      toast({
+                        title: "✏️ Bloem bewerken",
+                        description: "Wijzig de eigenschappen van deze bloem.",
+                      })
+                    }
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Edit className="h-3 w-3" />
+                  Bewerken
                 </Button>
                 
                 <Button
