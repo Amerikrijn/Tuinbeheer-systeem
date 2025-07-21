@@ -106,35 +106,43 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const maxSubFlowers = Math.floor(fieldArea / (baseFlowerArea * 2)) // Not too crowded
         const actualSubFlowers = Math.min(maxSubFlowers, Math.max(3, Math.floor(fieldSize / 40)))
 
-        // Create sub-flowers within the field
-        for (let i = 0; i < actualSubFlowers; i++) {
-          const angle = (i / actualSubFlowers) * 2 * Math.PI + (Math.random() - 0.5) * 0.5
-          const radius = Math.random() * (fieldSize / 3) + fieldSize / 6
-          const subFlowerSize = 20 + Math.random() * 20 // Varied sizes
-          
-          const subX = fieldX + fieldSize / 2 + Math.cos(angle) * radius - subFlowerSize / 2
-          const subY = fieldY + fieldSize / 2 + Math.sin(angle) * radius - subFlowerSize / 2
-          
-          // Keep sub-flowers within the field bounds
-          if (subX >= fieldX + 5 && subY >= fieldY + 5 && 
-              subX + subFlowerSize <= fieldX + fieldSize - 5 && 
-              subY + subFlowerSize <= fieldY + fieldSize - 5) {
-            instances.push({
-              id: `${plant.id}-sub-${i}`,
-              name: plant.name,
-              color: plant.color || '#FF69B4',
-              emoji: plant.emoji,
-              size: subFlowerSize,
-              x: subX,
-              y: subY,
-              opacity: 0.8 + Math.random() * 0.2,
-              rotation: Math.random() * 360,
-              isMainFlower: false,
-              canFillContainer: false,
-              isFlowerField: false
-            })
-          }
-        }
+                 // Create sub-flowers within the field with consistent positioning
+         const margin = Math.max(10, fieldSize * 0.1) // Margin from field edges
+         const usableFieldWidth = fieldSize - (margin * 2)
+         const usableFieldHeight = fieldSize - (margin * 2)
+         
+         for (let i = 0; i < actualSubFlowers; i++) {
+           // Use deterministic positioning based on plant ID and index for consistency
+           const seedValue = plant.id.charCodeAt(0) + i * 137.5 // Golden angle for natural distribution
+           const angle = (seedValue * Math.PI / 180) % (2 * Math.PI)
+           const radiusPercent = 0.3 + (((seedValue * 7) % 100) / 100) * 0.4 // 30-70% of available radius
+           const maxRadius = Math.min(usableFieldWidth, usableFieldHeight) / 2
+           const radius = radiusPercent * maxRadius
+           
+           const subFlowerSize = Math.max(16, Math.min(30, fieldSize * 0.15)) // Size based on field size
+           
+           const subX = fieldX + fieldSize / 2 + Math.cos(angle) * radius - subFlowerSize / 2
+           const subY = fieldY + fieldSize / 2 + Math.sin(angle) * radius - subFlowerSize / 2
+           
+           // Ensure sub-flowers stay within field bounds
+           const clampedX = Math.max(fieldX + margin, Math.min(subX, fieldX + fieldSize - margin - subFlowerSize))
+           const clampedY = Math.max(fieldY + margin, Math.min(subY, fieldY + fieldSize - margin - subFlowerSize))
+           
+           instances.push({
+             id: `${plant.id}-sub-${i}`,
+             name: plant.name,
+             color: plant.color || '#FF69B4',
+             emoji: plant.emoji,
+             size: subFlowerSize,
+             x: clampedX,
+             y: clampedY,
+             opacity: 0.8 + (((seedValue * 3) % 20) / 100), // Consistent opacity based on seed
+             rotation: (seedValue * 5) % 360, // Consistent rotation
+             isMainFlower: false,
+             canFillContainer: false,
+             isFlowerField: false
+           })
+         }
 
       } else if (shouldShowFlowerField && !hasCustomSize) {
         // Single large flower that can fill most of the container (original behavior)
@@ -189,39 +197,53 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         }
 
       } else {
-        // Multiple flowers - distribute nicely (original behavior)
-        const instancesPerPlant = Math.max(1, Math.floor(calculateFlowerCount / plants.length))
-        const extraInstances = calculateFlowerCount % plants.length
-        const totalInstances = instancesPerPlant + (plantIndex < extraInstances ? 1 : 0)
+        // Regular flowers - use exact position and size from database if available
+        if (hasCustomSize && 'position_x' in plant && plant.position_x !== undefined && 'position_y' in plant && plant.position_y !== undefined) {
+          // Use exact database values for consistent positioning between views
+          const flowerSize = Math.min(plantWidth, plantHeight)
+          
+          // Ensure the flower stays within container bounds
+          const x = Math.max(padding, Math.min(plant.position_x, containerWidth - flowerSize - padding))
+          const y = Math.max(padding, Math.min(plant.position_y, containerHeight - flowerSize - padding))
 
-        // Use custom size if available, otherwise calculate based on container
-        const baseSize = hasCustomSize 
-          ? Math.min(plantWidth, plantHeight) 
-          : Math.min(40, Math.max(16, Math.min(usableWidth, usableHeight) / 4))
-        
-        for (let i = 0; i < totalInstances; i++) {
-          const sizeVariation = i === 0 ? 1.3 : 0.7 + (Math.random() * 0.6)
-          const flowerSize = baseSize * sizeVariation
+          instances.push({
+            id: `${plant.id}-main`,
+            name: plant.name,
+            color: plant.color || '#FF69B4',
+            emoji: plant.emoji,
+            size: flowerSize,
+            x,
+            y,
+            opacity: 1,
+            rotation: 0, // Keep consistent rotation
+            isMainFlower: true,
+            canFillContainer: flowerSize > 80,
+            isFlowerField: false
+          })
+        } else {
+          // Multiple flowers - distribute nicely (fallback behavior)
+          const instancesPerPlant = Math.max(1, Math.floor(calculateFlowerCount / plants.length))
+          const extraInstances = calculateFlowerCount % plants.length
+          const totalInstances = instancesPerPlant + (plantIndex < extraInstances ? 1 : 0)
 
-          // Position flowers
-          let x, y
-          if (hasCustomSize && 'position_x' in plant && plant.position_x !== undefined) {
-            // Use custom position if available
-            x = Math.max(padding, Math.min(plant.position_x, containerWidth - flowerSize - padding))
-            y = 'position_y' in plant && plant.position_y !== undefined
-              ? Math.max(padding, Math.min(plant.position_y, containerHeight - flowerSize - padding))
-              : (containerHeight - flowerSize) / 2
-          } else {
-            // Calculate position based on distribution
+          const baseSize = Math.min(40, Math.max(16, Math.min(usableWidth, usableHeight) / 4))
+          
+          for (let i = 0; i < totalInstances; i++) {
+            const sizeVariation = i === 0 ? 1.3 : 0.7 + (((plant.id.charCodeAt(0) + i * 43) % 60) / 100)
+            const flowerSize = baseSize * sizeVariation
+
+            // Use deterministic positioning for consistency
+            let x, y
             if (totalInstances === 1) {
               x = (usableWidth - flowerSize) / 2 + padding
               y = (usableHeight - flowerSize) / 2 + padding
             } else if (totalInstances === 2) {
               x = (i === 0 ? usableWidth * 0.25 : usableWidth * 0.75) - flowerSize / 2 + padding
-              y = (usableHeight - flowerSize) / 2 + padding + (Math.random() - 0.5) * 20
+              y = (usableHeight - flowerSize) / 2 + padding + (((plant.id.charCodeAt(0) + i) % 40) - 20)
             } else {
-              const angle = (i / totalInstances) * 2 * Math.PI + (Math.random() - 0.5) * 0.8
-              const radius = Math.min(usableWidth, usableHeight) / 4 + (Math.random() * 25)
+              const seedValue = plant.id.charCodeAt(0) + i * 73
+              const angle = (seedValue * 2 * Math.PI / 360) % (2 * Math.PI)
+              const radius = Math.min(usableWidth, usableHeight) / 4 + ((seedValue % 50) - 25)
               const centerX = usableWidth / 2 + padding
               const centerY = usableHeight / 2 + padding
               
@@ -232,22 +254,22 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             // Keep within bounds
             x = Math.max(padding, Math.min(x, containerWidth - flowerSize - padding))
             y = Math.max(padding, Math.min(y, containerHeight - flowerSize - padding))
-          }
 
-          instances.push({
-            id: `${plant.id}-${i}`,
-            name: plant.name,
-            color: plant.color || '#FF69B4',
-            emoji: plant.emoji,
-            size: flowerSize,
-            x,
-            y,
-            opacity: i === 0 ? 1 : 0.7 + (Math.random() * 0.3),
-            rotation: Math.random() * 360,
-            isMainFlower: i === 0,
-            canFillContainer: totalInstances === 1 && containerWidth > 80 && containerHeight > 80,
-            isFlowerField: false
-          })
+            instances.push({
+              id: `${plant.id}-${i}`,
+              name: plant.name,
+              color: plant.color || '#FF69B4',
+              emoji: plant.emoji,
+              size: flowerSize,
+              x,
+              y,
+              opacity: i === 0 ? 1 : 0.7 + (((plant.id.charCodeAt(0) + i * 17) % 30) / 100),
+              rotation: (plant.id.charCodeAt(0) + i * 91) % 360,
+              isMainFlower: i === 0,
+              canFillContainer: totalInstances === 1 && containerWidth > 80 && containerHeight > 80,
+              isFlowerField: false
+            })
+          }
         }
       }
     })
