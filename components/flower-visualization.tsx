@@ -207,16 +207,16 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           // Use exact database values for consistent positioning between views
           const flowerSize = Math.min(plantWidth, plantHeight)
           
-          // Scale positions proportionally to fit the container while maintaining relative positions
-          const scaleX = (containerWidth - padding * 2) / Math.max(plantWidth, containerWidth - padding * 2)
-          const scaleY = (containerHeight - padding * 2) / Math.max(plantHeight, containerHeight - padding * 2)
+          // Scale positions to fit the container while maintaining relative positions
+          const scaleX = (containerWidth - padding * 2) / Math.max(plantWidth, 100) // Minimum reference width
+          const scaleY = (containerHeight - padding * 2) / Math.max(plantHeight, 100) // Minimum reference height
           const scale = Math.min(scaleX, scaleY, 1) // Don't scale up, only down if needed
           
           const scaledX = plant.position_x * scale
           const scaledY = plant.position_y * scale
-          const scaledSize = flowerSize * scale
+          const scaledSize = Math.max(8, flowerSize * scale) // Minimum 8px for visibility
           
-          // Ensure the flower stays within container bounds
+          // Ensure the flower stays within container bounds with better constraint
           const x = Math.max(padding, Math.min(scaledX + padding, containerWidth - scaledSize - padding))
           const y = Math.max(padding, Math.min(scaledY + padding, containerHeight - scaledSize - padding))
 
@@ -225,7 +225,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             name: plant.name,
             color: plant.color || '#FF69B4',
             emoji: plant.emoji,
-            size: Math.max(12, scaledSize), // Ensure minimum visibility
+            size: Math.max(8, scaledSize), // Ensure minimum visibility
             x,
             y,
             opacity: 1,

@@ -4,6 +4,20 @@
 
 Deze updates verbeteren de bloemenvak functionaliteit volgens de gebruikerswensen:
 
+### ✅ NIEUW: Bloemen van Hetzelfde Type & Binnen Boundaries
+**Probleem**: Random bloemen werden toegevoegd en stonden soms buiten het plantvak
+**Oplossing**: Alleen bloemen van hetzelfde type toevoegen en alle bloemen binnen plantvak boundaries houden
+
+**Gewijzigde bestanden**:
+- `app/gardens/[id]/plantvak-view/[bedId]/page.tsx` - Auto-fill en cleanup functies verbeterd
+- `components/flower-visualization.tsx` - Betere boundary constraints
+
+**Functionaliteit**:
+- Auto-fill gebruikt nu hetzelfde bloem type als bestaande bloemen (meest voorkomende type)
+- Cleanup functie verplaatst bloemen die buiten het plantvak staan naar binnen
+- Drag constraints zorgen ervoor dat bloemen niet buiten het plantvak gesleept kunnen worden
+- Alleen activatie als er al bloemen zijn (geen random bloemen in lege plantvakken)
+
 ### ✅ 1. Automatisch Opslaan van Bloem Posities
 **Probleem**: Bloemen moesten handmatig opgeslagen worden na verplaatsen
 **Oplossing**: Automatisch opslaan direct na verplaatsen (net als plantvakken in tuinoverzicht)
@@ -126,10 +140,12 @@ Deze updates verbeteren de bloemenvak functionaliteit volgens de gebruikerswense
 ## Test Scenario's
 
 1. **Klein plantvak**: Voeg 1-2 bloemen toe → Mooi gecentreerd
-2. **Groot plantvak**: Open lege groot vak → Automatisch gevuld met bloemen
-3. **Bloem verplaatsen**: Sleep bloem → Automatisch opgeslagen
-4. **Bloemenveld uitbreiden**: Maak bloem groter → Meer sub-bloemen binnen boundaries
-5. **Tuinoverzicht**: Vergelijk posities → Consistent met plantvak detail
+2. **Groot plantvak met bestaande bloemen**: Open groot vak → Automatisch gevuld met meer bloemen van hetzelfde type
+3. **Bloem verplaatsen**: Sleep bloem → Automatisch opgeslagen, blijft binnen plantvak
+4. **Bloemen buiten boundaries**: Open plantvak → Bloemen automatisch naar binnen verplaatst
+5. **Bloemenveld uitbreiden**: Maak bloem groter → Meer sub-bloemen binnen boundaries
+6. **Tuinoverzicht**: Vergelijk posities → Consistent met plantvak detail
+7. **Lege grote plantvak**: Open leeg groot vak → Geen random bloemen toegevoegd
 
 ## Toekomstige Uitbreidingen
 
