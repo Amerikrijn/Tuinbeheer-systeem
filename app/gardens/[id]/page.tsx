@@ -34,8 +34,8 @@ import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS, 
-  GARDEN_CANVAS_WIDTH as CANVAS_WIDTH,
-  GARDEN_CANVAS_HEIGHT as CANVAS_HEIGHT,
+  GARDEN_CANVAS_WIDTH as DEFAULT_CANVAS_WIDTH,
+  GARDEN_CANVAS_HEIGHT as DEFAULT_CANVAS_HEIGHT,
   GARDEN_GRID_SIZE as GRID_SIZE,
   PLANTVAK_MIN_WIDTH,
   PLANTVAK_MIN_HEIGHT,
@@ -71,6 +71,32 @@ export default function GardenDetailPage() {
   const [deletingBedId, setDeletingBedId] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const canvasRef = useRef<HTMLDivElement>(null)
+
+  // Calculate canvas size based on garden dimensions
+  const getCanvasSize = () => {
+    if (!garden?.length || !garden?.width) {
+      return { 
+        width: DEFAULT_CANVAS_WIDTH, 
+        height: DEFAULT_CANVAS_HEIGHT,
+        widthMeters: DEFAULT_CANVAS_WIDTH / METERS_TO_PIXELS,
+        heightMeters: DEFAULT_CANVAS_HEIGHT / METERS_TO_PIXELS
+      }
+    }
+    
+    const lengthMeters = parseFloat(garden.length)
+    const widthMeters = parseFloat(garden.width)
+    const widthPixels = Math.max(DEFAULT_CANVAS_WIDTH, metersToPixels(lengthMeters))
+    const heightPixels = Math.max(DEFAULT_CANVAS_HEIGHT, metersToPixels(widthMeters))
+    
+    return {
+      width: widthPixels,
+      height: heightPixels,
+      widthMeters: lengthMeters,
+      heightMeters: widthMeters
+    }
+  }
+
+  const { width: CANVAS_WIDTH, height: CANVAS_HEIGHT, widthMeters, heightMeters } = getCanvasSize()
 
   // New plant bed form state with length and width
   const [newPlantBed, setNewPlantBed] = useState({
@@ -679,7 +705,7 @@ export default function GardenDetailPage() {
               Sleep om te verplaatsen, dubbelklik om te beheren
               {(garden.total_area || (garden.length && garden.width)) && (
                 <span className="ml-2 text-sm font-medium text-green-600">
-                  • Tuingrootte: {garden.total_area || 
+                  • Afmetingen: {garden.length}m × {garden.width}m • Oppervlakte: {garden.total_area || 
                     (garden.length && garden.width && 
                       `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
                     )
@@ -907,7 +933,7 @@ export default function GardenDetailPage() {
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
-                Tuin Layout - Op Schaal (1m = {METERS_TO_PIXELS}px)
+                Tuin Layout - {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m (Schaal: 1m = {METERS_TO_PIXELS}px)
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={zoomOut}>
@@ -932,6 +958,11 @@ export default function GardenDetailPage() {
               <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
               <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
             </ul>
+            <div className="mt-2 pt-2 border-t border-blue-300">
+              <p className="text-xs text-blue-700">
+                🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m
+              </p>
+            </div>
           </div>
           
           {/* Desktop help text */}
@@ -942,6 +973,12 @@ export default function GardenDetailPage() {
               <li>• <strong>Klik:</strong> Plantvak selecteren</li>
               <li>• <strong>Dubbel klik:</strong> Plantvak openen</li>
             </ul>
+            <div className="mt-2 pt-2 border-t border-green-300">
+              <p className="text-xs text-green-700">
+                🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m • 
+                <strong>Schaal:</strong> 1m = {METERS_TO_PIXELS} pixels
+              </p>
+            </div>
           </div>
           
           <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
