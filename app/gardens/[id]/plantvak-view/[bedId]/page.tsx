@@ -264,10 +264,10 @@ export default function PlantBedViewPage() {
       return
     }
 
-    if (isCustomFlower && !newFlower.customEmoji) {
+    if (isCustomFlower && !newFlower.customEmoji && !newFlower.photoUrl) {
       toast({
-        title: "Emoji vereist",
-        description: "Voeg een emoji toe voor je aangepaste bloem.",
+        title: "Emoji of foto vereist",
+        description: "Voeg een emoji of foto toe voor je aangepaste bloem.",
         variant: "destructive",
       })
       return
@@ -293,6 +293,7 @@ export default function PlantBedViewPage() {
         visual_width: flowerSize,
         visual_height: flowerSize,
         emoji: isCustomFlower ? newFlower.customEmoji : selectedType?.emoji || '🌸',
+        photo_url: isCustomFlower ? newFlower.photoUrl || null : null,
         is_custom: isCustomFlower,
         category: isCustomFlower ? 'Aangepast' : newFlower.type,
         notes: `${newFlower.description}${newFlower.description ? ' | ' : ''}Size: ${newFlower.size}`
@@ -307,6 +308,7 @@ export default function PlantBedViewPage() {
           type: '',
           color: '#FF69B4',
           customEmoji: '',
+          photoUrl: '',
           description: '',
           status: 'healthy',
           size: 'medium'
@@ -377,6 +379,7 @@ export default function PlantBedViewPage() {
           type: '',
           color: '#FF69B4',
           customEmoji: '',
+          photoUrl: '',
           description: '',
           status: 'healthy',
           size: 'medium'
