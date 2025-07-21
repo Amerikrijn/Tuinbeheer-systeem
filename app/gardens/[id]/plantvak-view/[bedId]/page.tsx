@@ -1547,78 +1547,47 @@ export default function PlantBedViewPage() {
         </div>
       </div>
 
-      {/* Plant Bed Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 justify-between">
+      {/* Plant Bed Information - Simplified */}
+      <Card className="bg-gray-50">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <Leaf className="h-5 w-5 text-green-600" />
-              Plantvak Informatie
+              <Leaf className="h-4 w-4 text-green-600" />
+              <span className="font-medium text-gray-900">Plantvak Informatie</span>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsEditingPlantBed(true)}
-              className="flex items-center gap-2"
+              className="flex items-center gap-1 text-xs"
             >
-              <Edit className="h-4 w-4" />
+              <Edit className="h-3 w-3" />
               Bewerken
             </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div>
-              <h4 className="font-medium text-gray-700 mb-1">Naam</h4>
-              <p className="text-lg font-semibold">{plantBed?.name || 'Onbekend'}</p>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-700 mb-1">Lengte</h4>
-              <p className="text-lg font-semibold">
-                {plantBed?.size ? parseDimensions(plantBed.size).length + 'm' : 'Niet opgegeven'}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-700 mb-1">Breedte</h4>
-              <p className="text-lg font-semibold">
-                {plantBed?.size ? parseDimensions(plantBed.size).width + 'm' : 'Niet opgegeven'}
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium text-gray-700 mb-1">Zonligging</h4>
-              <div className="flex items-center gap-2">
-                {getSunExposureIcon(plantBed?.sun_exposure || 'full-sun')}
-                <span className="text-lg font-semibold">
-                  {plantBed?.sun_exposure === 'full-sun' ? 'Volle zon' :
-                   plantBed?.sun_exposure === 'partial-sun' ? 'Gedeeltelijke zon' :
-                   plantBed?.sun_exposure === 'shade' ? 'Schaduw' : 'Volle zon'}
-                </span>
-              </div>
-            </div>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          <div className="grid grid-cols-4 gap-4 text-sm">
             <div>
-              <h4 className="font-medium text-gray-700 mb-1">Bloemen</h4>
-              <p className="text-lg font-semibold">{flowerPositions.length}</p>
+              <span className="text-gray-600">Naam:</span>
+              <p className="font-medium">{plantBed?.name || 'Onbekend'}</p>
             </div>
             <div>
-              <h4 className="font-medium text-gray-700 mb-1">Grondsoort</h4>
-              <p className="text-lg font-semibold">
-                {plantBed?.soil_type === 'clay' ? 'Klei' :
-                 plantBed?.soil_type === 'sand' ? 'Zand' :
-                 plantBed?.soil_type === 'loam' ? 'Leem' :
-                 plantBed?.soil_type === 'peat' ? 'Veen' : 'Niet opgegeven'}
+              <span className="text-gray-600">Lengte:</span>
+              <p className="font-medium">
+                {plantBed?.size ? parseDimensions(plantBed.size).length + 'm' : '0m'}
               </p>
             </div>
-          </div>
-
-          {plantBed?.description && (
-            <div className="mt-6">
-              <h4 className="font-medium text-gray-700 mb-1">Beschrijving</h4>
-              <p className="text-gray-600">{plantBed.description}</p>
+            <div>
+              <span className="text-gray-600">Breedte:</span>
+              <p className="font-medium">
+                {plantBed?.size ? parseDimensions(plantBed.size).width + 'm' : '0m'}
+              </p>
             </div>
-          )}
+            <div>
+              <span className="text-gray-600">Bloemen:</span>
+              <p className="font-medium">{flowerPositions.length}</p>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
