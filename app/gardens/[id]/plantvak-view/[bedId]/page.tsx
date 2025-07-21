@@ -1222,10 +1222,7 @@ export default function PlantBedViewPage() {
               {plantBed.name}
             </h1>
             <p className="text-gray-600">
-              🚨 <strong>LAATSTE KANS:</strong> 1) Klik bloem → 2) Sleep GELE hoek → MEER BLOEMEN komen erbij (niet 1 grote bloem!)
-              <span className="ml-2 text-sm font-medium text-pink-600">
-                • {plantBed.size || 'Op schaal'} • 🌸 MEER BLOEMEN + NAAM ZICHTBAAR
-              </span>
+              🚨 <strong>LAATSTE KANS</strong>
             </p>
           </div>
         </div>
@@ -1794,7 +1791,7 @@ export default function PlantBedViewPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5 text-purple-600" />
-              Bloemen Layout
+              Plantvak {plantBed?.name || ''}
             </CardTitle>
             
             {/* Control buttons for selected flower */}
