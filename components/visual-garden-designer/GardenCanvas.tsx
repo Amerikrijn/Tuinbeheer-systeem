@@ -173,8 +173,8 @@ const PlantBedVisual: React.FC<PlantBedVisualProps> = ({
                 style={{
                   left: plantPos.x,
                   top: plantPos.y,
-                  width: plantPos.size,
-                  height: plantPos.size,
+                  width: plantPos.size * scale,
+                  height: plantPos.size * scale,
                   backgroundColor: getPlantColor(plant),
                 }}
                 onMouseDown={(e) => handlePlantMouseDown(e, plant)}
@@ -185,7 +185,10 @@ const PlantBedVisual: React.FC<PlantBedVisualProps> = ({
                 title={`${plant.name} (${plant.color})`}
               >
                 <div className="w-full h-full flex items-center justify-center">
-                  <Flower2 className="h-2 w-2 text-white" />
+                  <Flower2 className={`text-white`} style={{ 
+                    width: Math.max(8, plantPos.size * scale * 0.4), 
+                    height: Math.max(8, plantPos.size * scale * 0.4) 
+                  }} />
                 </div>
               </div>
             );
@@ -295,8 +298,33 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
   
   const canvasRef = useRef<HTMLDivElement>(null);
   const GRID_SIZE = 20;
-  const CANVAS_WIDTH = 800;
-  const CANVAS_HEIGHT = 600;
+  
+  // Dynamic canvas dimensions based on garden size
+  const getCanvasDimensions = () => {
+    if (!garden) return { width: 800, height: 600 };
+    
+    // Parse garden dimensions
+    const length = parseFloat(garden.length || '10');
+    const width = parseFloat(garden.width || '8');
+    
+    if (isNaN(length) || isNaN(width)) {
+      return { width: 800, height: 600 };
+    }
+    
+    // Scale: 1 meter = 40 pixels for better overview
+    const SCALE_FACTOR = 40;
+    const minSize = 400;
+    const maxSize = 1200;
+    
+    return {
+      width: Math.min(maxSize, Math.max(minSize, length * SCALE_FACTOR)),
+      height: Math.min(maxSize, Math.max(minSize, width * SCALE_FACTOR))
+    };
+  };
+  
+  const baseDimensions = getCanvasDimensions();
+  const CANVAS_WIDTH = baseDimensions.width;
+  const CANVAS_HEIGHT = baseDimensions.height;
   
   // Canvas dimensions
   const canvasSize = {
@@ -343,12 +371,15 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
             const col = plantIndex % plantsPerRow;
             const plantSpacing = Math.min(bedPosition.width, bedPosition.height) / (plantsPerRow + 1);
             
+            // Smaller flower size for better overview, but scalable
+            const baseFlowerSize = Math.max(8, Math.min(15, plantSpacing * 0.6));
+            
             initialPlantPositions.push({
               id: plant.id,
               bedId: bed.id,
-              x: (col + 1) * plantSpacing - 10,
-              y: (row + 1) * plantSpacing - 10,
-              size: 20
+              x: (col + 1) * plantSpacing - baseFlowerSize / 2,
+              y: (row + 1) * plantSpacing - baseFlowerSize / 2,
+              size: baseFlowerSize
             });
           }
         });
@@ -645,7 +676,7 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
 
       {/* Plant Detail Dialog */}
       <Dialog open={!!selectedPlant} onOpenChange={() => setSelectedPlant(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md z-[100]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div 
@@ -709,7 +740,7 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
 
       {/* Bed Detail Dialog */}
       <Dialog open={!!selectedPlantBed && !selectedPlant} onOpenChange={() => setSelectedPlantBed(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md z-[100]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Badge variant="outline" className="text-lg font-bold px-3 py-1">
