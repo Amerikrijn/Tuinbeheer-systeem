@@ -513,12 +513,12 @@ export default function GardenDetailPage() {
     const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
     const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
     
-    // Add padding from edges to prevent placement in corners
-    const EDGE_PADDING = 10
-    const minX = EDGE_PADDING
-    const minY = EDGE_PADDING
-    const maxX = CANVAS_WIDTH - bedWidth - EDGE_PADDING
-    const maxY = CANVAS_HEIGHT - bedHeight - EDGE_PADDING
+    // Allow more flexible positioning with minimal padding
+    const EDGE_PADDING = 5
+    const minX = -bedWidth * 0.3  // Allow partial placement outside canvas
+    const minY = -bedHeight * 0.3  // Allow partial placement outside canvas
+    const maxX = CANVAS_WIDTH - bedWidth * 0.7  // Allow partial placement outside canvas
+    const maxY = CANVAS_HEIGHT - bedHeight * 0.7  // Allow partial placement outside canvas
 
     const x = Math.max(minX, Math.min((clientX - rect.left) / scale - dragOffset.x, maxX))
     const y = Math.max(minY, Math.min((clientY - rect.top) / scale - dragOffset.y, maxY))

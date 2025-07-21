@@ -4,9 +4,9 @@
 // Base scaling: 1 meter = 80 pixels (good balance between detail and overview)
 export const METERS_TO_PIXELS = 80
 
-// Garden view constants
-export const GARDEN_CANVAS_WIDTH = 800
-export const GARDEN_CANVAS_HEIGHT = 600
+// Garden view constants - increased for better plant bed positioning flexibility
+export const GARDEN_CANVAS_WIDTH = 1000
+export const GARDEN_CANVAS_HEIGHT = 800
 export const GARDEN_GRID_SIZE = 20
 export const PLANTVAK_MIN_WIDTH = 80  // 1m minimum
 export const PLANTVAK_MIN_HEIGHT = 80 // 1m minimum
