@@ -28,6 +28,7 @@ import {
   CloudSun,
   Cloud,
   Trash2,
+  Move,
 } from "lucide-react"
 import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
@@ -62,6 +63,8 @@ export default function GardenDetailPage() {
   const [selectedBed, setSelectedBed] = useState<string | null>(null)
   const [draggedBed, setDraggedBed] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [isDragMode, setIsDragMode] = useState(false)
+  const [touchStartTime, setTouchStartTime] = useState(0)
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingPlantBed, setIsAddingPlantBed] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -182,44 +185,124 @@ export default function GardenDetailPage() {
     }
   }
 
-  // Handle single click - select plant bed for dragging
-  const handlePlantBedClick = useCallback((e: React.MouseEvent, bedId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    // Select this plant bed
-    setSelectedBed(bedId)
-  }, [])
+  // Unified pointer event handling for both mouse and touch
+  const getPointerPosition = (e: React.MouseEvent | React.TouchEvent) => {
+    if ('touches' in e && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }
+    } else if ('clientX' in e) {
+      return { clientX: e.clientX, clientY: e.clientY }
+    }
+    return { clientX: 0, clientY: 0 }
+  }
 
-  // Handle mouse down - start dragging immediately
-  const handlePlantBedMouseDown = useCallback((e: React.MouseEvent, bedId: string) => {
+  // Handle single click/tap - toggle drag mode
+  const handlePlantBedClick = useCallback((e: React.MouseEvent | React.TouchEvent, bedId: string) => {
     e.preventDefault()
     e.stopPropagation()
     
+    // If already in drag mode for this bed, exit drag mode
+    if (selectedBed === bedId && isDragMode) {
+      setIsDragMode(false)
+      setSelectedBed(null)
+      toast({
+        title: "Verplaatsen gestopt",
+        description: "Plantvak staat nu vast",
+      })
+    } else {
+      // Select bed and enter drag mode
+      setSelectedBed(bedId)
+      setIsDragMode(true)
+      toast({
+        title: "Verplaatsen actief",
+        description: "Sleep het plantvak naar een nieuwe positie. Klik opnieuw om te stoppen.",
+      })
+    }
+  }, [selectedBed, isDragMode, toast])
+
+  // Handle pointer down - start dragging if in drag mode
+  const handlePlantBedPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, bedId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const { clientX, clientY } = getPointerPosition(e)
+    
+    // Record touch start time for long press detection
+    if ('touches' in e) {
+      setTouchStartTime(Date.now())
+    }
+    
+    // Only start dragging if we're in drag mode or this is a long press
+    if (!isDragMode && selectedBed !== bedId) {
+      return
+    }
+
     const bed = plantBeds.find(b => b.id === bedId)
     if (!bed) return
 
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // Select the bed
-    setSelectedBed(bedId)
-    
     // Start dragging
-    const offsetX = e.clientX - rect.left - (bed.position_x || 100) * scale
-    const offsetY = e.clientY - rect.top - (bed.position_y || 100) * scale
+    const offsetX = clientX - rect.left - (bed.position_x || 100) * scale
+    const offsetY = clientY - rect.top - (bed.position_y || 100) * scale
 
     setDraggedBed(bedId)
     setDragOffset({ x: offsetX / scale, y: offsetY / scale })
-  }, [plantBeds, scale])
+    setSelectedBed(bedId)
+    setIsDragMode(true)
+  }, [plantBeds, scale, isDragMode, selectedBed])
 
-  // Handle double click - navigate to plant bed details
+  // Handle long press for mobile (alternative to click for drag mode)
+  const handlePlantBedTouchStart = useCallback((e: React.TouchEvent, bedId: string) => {
+    setTouchStartTime(Date.now())
+    
+    // Set a timer for long press detection
+    const longPressTimer = setTimeout(() => {
+      if (!isDragMode && selectedBed !== bedId) {
+        setSelectedBed(bedId)
+        setIsDragMode(true)
+        
+        // Provide haptic feedback if available
+        if (navigator.vibrate) {
+          navigator.vibrate(50)
+        }
+        
+        toast({
+          title: "Verplaatsen actief",
+          description: "Lang indrukken gedetecteerd. Sleep het plantvak naar een nieuwe positie.",
+        })
+      }
+    }, 500) // 500ms for long press
+
+    // Store timer to clear it if touch ends early
+    ;(e.target as any).longPressTimer = longPressTimer
+  }, [isDragMode, selectedBed, toast])
+
+  const handlePlantBedTouchEnd = useCallback((e: React.TouchEvent, bedId: string) => {
+    const touchDuration = Date.now() - touchStartTime
+    
+    // Clear long press timer
+    if ((e.target as any).longPressTimer) {
+      clearTimeout((e.target as any).longPressTimer)
+    }
+    
+    // If it was a quick tap (not long press), handle as click
+    if (touchDuration < 500) {
+      handlePlantBedClick(e, bedId)
+    }
+  }, [touchStartTime, handlePlantBedClick])
+
+  // Handle double click/tap - navigate to plant bed details
   const handlePlantBedDoubleClick = useCallback((bedId: string) => {
+    // Exit drag mode first
+    setIsDragMode(false)
+    setSelectedBed(null)
+    
     router.push(`/gardens/${garden?.id}/plantvak-view/${bedId}`)
   }, [router, garden])
 
-  // Handle drag move
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  // Handle drag move - unified for mouse and touch
+  const handlePointerMove = useCallback((clientX: number, clientY: number) => {
     if (!draggedBed || !canvasRef.current) return
 
     const rect = canvasRef.current.getBoundingClientRect()
@@ -229,8 +312,8 @@ export default function GardenDetailPage() {
     const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
     const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
 
-    const x = Math.max(0, Math.min((e.clientX - rect.left) / scale - dragOffset.x, CANVAS_WIDTH - bedWidth))
-    const y = Math.max(0, Math.min((e.clientY - rect.top) / scale - dragOffset.y, CANVAS_HEIGHT - bedHeight))
+    const x = Math.max(0, Math.min((clientX - rect.left) / scale - dragOffset.x, CANVAS_WIDTH - bedWidth))
+    const y = Math.max(0, Math.min((clientY - rect.top) / scale - dragOffset.y, CANVAS_HEIGHT - bedHeight))
 
     setPlantBeds(prev => prev.map(bed => 
       bed.id === draggedBed 
@@ -240,38 +323,58 @@ export default function GardenDetailPage() {
     setHasChanges(true)
   }, [draggedBed, dragOffset, scale, plantBeds])
 
+  // Mouse move handler
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    handlePointerMove(e.clientX, e.clientY)
+  }, [handlePointerMove])
+
   // Handle drag end
-  const handleMouseUp = useCallback(() => {
+  const handlePointerUp = useCallback(() => {
+    if (draggedBed) {
+      toast({
+        title: "Plantvak verplaatst",
+        description: "Vergeet niet op te slaan!",
+      })
+    }
     setDraggedBed(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [])
+  }, [draggedBed, toast])
 
   // Handle click outside to deselect
-  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+  const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (e.target === e.currentTarget) {
       setSelectedBed(null)
+      setIsDragMode(false)
     }
   }, [])
 
-  // Add event listeners for drag
+  // Add event listeners for drag - support both mouse and touch
   useEffect(() => {
     if (draggedBed) {
       const handleMouseMoveGlobal = (e: MouseEvent) => {
-        const mockReactEvent = {
-          clientX: e.clientX,
-          clientY: e.clientY
-        } as React.MouseEvent
-        handleMouseMove(mockReactEvent)
+        handlePointerMove(e.clientX, e.clientY)
+      }
+      
+      const handleTouchMoveGlobal = (e: TouchEvent) => {
+        e.preventDefault() // Prevent scrolling while dragging
+        if (e.touches.length > 0) {
+          handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
+        }
       }
       
       document.addEventListener('mousemove', handleMouseMoveGlobal)
-      document.addEventListener('mouseup', handleMouseUp)
+      document.addEventListener('mouseup', handlePointerUp)
+      document.addEventListener('touchmove', handleTouchMoveGlobal, { passive: false })
+      document.addEventListener('touchend', handlePointerUp)
+      
       return () => {
         document.removeEventListener('mousemove', handleMouseMoveGlobal)
-        document.removeEventListener('mouseup', handleMouseUp)
+        document.removeEventListener('mouseup', handlePointerUp)
+        document.removeEventListener('touchmove', handleTouchMoveGlobal)
+        document.removeEventListener('touchend', handlePointerUp)
       }
     }
-  }, [draggedBed, handleMouseMove, handleMouseUp])
+  }, [draggedBed, handlePointerMove, handlePointerUp])
 
   // Save layout changes
   const saveLayout = async () => {
@@ -583,6 +686,32 @@ export default function GardenDetailPage() {
             <Grid3X3 className="h-4 w-4 mr-2" />
             {showVisualView ? "Lijst Weergave" : "Visuele Weergave"}
           </Button>
+          
+          {selectedBed && showVisualView && (
+            <Button
+              variant={isDragMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setIsDragMode(!isDragMode)
+                if (!isDragMode) {
+                  toast({
+                    title: "Verplaatsen actief",
+                    description: "Sleep het geselecteerde plantvak naar een nieuwe positie.",
+                  })
+                } else {
+                  toast({
+                    title: "Verplaatsen gestopt",
+                    description: "Plantvak staat nu vast.",
+                  })
+                }
+              }}
+              className="flex items-center gap-2"
+            >
+              <Move className="h-4 w-4" />
+              {isDragMode ? "Stop" : "Verplaats"}
+            </Button>
+          )}
+          
           <Dialog open={isAddingPlantBed} onOpenChange={setIsAddingPlantBed}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
@@ -794,7 +923,7 @@ export default function GardenDetailPage() {
                   maxWidth: "100%",
                 }}
                 onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
+                onMouseUp={handlePointerUp}
                 onClick={handleCanvasClick}
               >
                 {/* Grid */}
@@ -813,6 +942,7 @@ export default function GardenDetailPage() {
                 {plantBeds.map((bed) => {
                   const isSelected = selectedBed === bed.id
                   const isDragging = draggedBed === bed.id
+                  const isInDragMode = isDragMode && isSelected
                   
                   // Calculate dimensions from size if visual dimensions not available
                   let bedWidth = bed.visual_width || 150
@@ -827,9 +957,11 @@ export default function GardenDetailPage() {
                   return (
                     <div
                       key={bed.id}
-                      className={`absolute border-2 rounded-lg cursor-pointer transition-all hover:shadow-xl hover:scale-105 hover:border-green-500 group ${
-                        isDragging ? 'shadow-2xl scale-110 border-green-500 z-50' : 
-                        isSelected ? 'border-blue-500 shadow-lg ring-2 ring-blue-200' : ''
+                      className={`absolute border-2 rounded-lg transition-all group ${
+                        isDragging ? 'shadow-2xl scale-110 border-green-500 z-50 cursor-grabbing' : 
+                        isInDragMode ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-grab animate-pulse' :
+                        isSelected ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-pointer' :
+                        'cursor-pointer hover:shadow-xl hover:scale-105 hover:border-green-500'
                       }`}
                       style={{
                         left: bed.position_x || 100,
@@ -839,7 +971,9 @@ export default function GardenDetailPage() {
                       }}
                       onClick={(e) => handlePlantBedClick(e, bed.id)}
                       onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
-                      onMouseDown={(e) => handlePlantBedMouseDown(e, bed.id)}
+                      onMouseDown={(e) => handlePlantBedPointerDown(e, bed.id)}
+                      onTouchStart={(e) => handlePlantBedTouchStart(e, bed.id)}
+                      onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                     >
                       <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors ${
                         isSelected ? 'bg-blue-50' : ''
@@ -848,6 +982,11 @@ export default function GardenDetailPage() {
                           <div className="text-xs font-medium text-gray-700 bg-white/90 px-2 py-1 rounded shadow-sm">
                             {bed.name}
                           </div>
+                          {isInDragMode && (
+                            <div className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
+                              🖱️ Sleep me!
+                            </div>
+                          )}
                           {bed.sun_exposure && (
                             <div className="bg-white/90 p-1 rounded shadow-sm">
                               {getSunExposureIcon(bed.sun_exposure)}
