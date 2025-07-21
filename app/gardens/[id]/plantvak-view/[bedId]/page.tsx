@@ -218,6 +218,211 @@ export default function PlantBedViewPage() {
     }
   }, [params.id, params.bedId])
 
+  // Smart auto-fill for flower beds based on size
+  const autoFillFlowerBed = useCallback(async () => {
+    if (!plantBed || flowerPositions.length === 0) return // Only if there are existing flowers
+    
+    const currentFlowerCount = flowerPositions.length
+    
+    // Get the plantvak dimensions from the size string
+    const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
+    if (!dimensions) return
+    
+    const plantvakWidthMeters = dimensions.lengthMeters
+    const plantvakHeightMeters = dimensions.widthMeters
+    const plantvakAreaMeters = plantvakWidthMeters * plantvakHeightMeters
+    
+    // Calculate target flower count based on plantvak area in square meters
+    let targetFlowerCount = currentFlowerCount // Start with current count
+    
+    if (plantvakAreaMeters <= 4) {
+      // Small beds (≤ 2x2m): 1-3 flowers
+      targetFlowerCount = Math.min(3, Math.max(1, currentFlowerCount))
+    } else if (plantvakAreaMeters <= 9) {
+      // Medium beds (≤ 3x3m): 2-5 flowers  
+      targetFlowerCount = Math.min(5, Math.max(2, currentFlowerCount + 1))
+    } else if (plantvakAreaMeters <= 16) {
+      // Large beds (≤ 4x4m): 3-7 flowers
+      targetFlowerCount = Math.min(7, Math.max(3, currentFlowerCount + 2))
+    } else {
+      // Very large beds (> 4x4m): 4-10 flowers max
+      targetFlowerCount = Math.min(10, Math.max(4, currentFlowerCount + 2))
+    }
+    
+    // Only add flowers if we're below target and the bed is reasonably large
+    if (currentFlowerCount < targetFlowerCount && plantvakAreaMeters > 2) {
+      const flowersToAdd = Math.min(2, targetFlowerCount - currentFlowerCount) // Max 2 at a time
+      
+      // Use the same type as existing flowers (take the most common type)
+      const flowerTypes = flowerPositions.reduce((acc, flower) => {
+        acc[flower.name] = (acc[flower.name] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+      
+      const mostCommonFlowerName = Object.keys(flowerTypes).reduce((a, b) => 
+        flowerTypes[a] > flowerTypes[b] ? a : b
+      )
+      
+      const templateFlower = flowerPositions.find(f => f.name === mostCommonFlowerName)
+      if (!templateFlower) return
+      
+      const plantvakWidth = dimensions.lengthPixels
+      const plantvakHeight = dimensions.widthPixels
+      const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+      const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+      
+      for (let i = 0; i < flowersToAdd; i++) {
+        const margin = 25
+        const flowerSize = templateFlower.visual_width || FLOWER_SIZE_MEDIUM
+        
+        // Ensure we have enough space for the flower
+        const availableWidth = plantvakWidth - margin * 2 - flowerSize
+        const availableHeight = plantvakHeight - margin * 2 - flowerSize
+        
+        if (availableWidth <= 0 || availableHeight <= 0) {
+          console.log("Not enough space in plantvak for more flowers")
+          break
+        }
+        
+        const positionX = plantvakStartX + margin + Math.random() * availableWidth
+        const positionY = plantvakStartY + margin + Math.random() * availableHeight
+        
+        try {
+          const newFlower = await createVisualPlant({
+            plant_bed_id: plantBed.id,
+            name: templateFlower.name,
+            color: templateFlower.color || '#FF69B4',
+            status: templateFlower.status || 'healthy',
+            position_x: positionX,
+            position_y: positionY,
+            visual_width: flowerSize,
+            visual_height: flowerSize,
+            emoji: templateFlower.emoji,
+            is_custom: templateFlower.is_custom || false,
+            category: templateFlower.category,
+            notes: `Extra ${templateFlower.name} - ${plantvakAreaMeters.toFixed(1)}m²`
+          })
+          
+          if (newFlower) {
+            setFlowerPositions(prev => [...prev, newFlower])
+          }
+        } catch (error) {
+          console.error("Error auto-adding flower:", error)
+        }
+      }
+      
+      if (flowersToAdd > 0) {
+        toast({
+          title: "🌸 Bloemen toegevoegd!",
+          description: `${flowersToAdd} ${templateFlower.name} toegevoegd aan ${plantvakAreaMeters.toFixed(1)}m² plantvak.`,
+        })
+      }
+    }
+  }, [plantBed, canvasWidth, canvasHeight, flowerPositions, toast])
+
+  // Clean up flowers that are outside the plantvak boundaries
+  const cleanupFlowersOutsideBoundaries = useCallback(async () => {
+    if (!plantBed || flowerPositions.length === 0) return
+    
+    const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
+    if (!dimensions) return
+    
+    const plantvakWidth = dimensions.lengthPixels
+    const plantvakHeight = dimensions.widthPixels
+    const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+    const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+    const plantvakEndX = plantvakStartX + plantvakWidth
+    const plantvakEndY = plantvakStartY + plantvakHeight
+    
+    const flowersOutside = flowerPositions.filter(flower => {
+      const flowerEndX = flower.position_x + (flower.visual_width || FLOWER_SIZE_MEDIUM)
+      const flowerEndY = flower.position_y + (flower.visual_height || FLOWER_SIZE_MEDIUM)
+      
+      return (
+        flower.position_x < plantvakStartX || 
+        flower.position_y < plantvakStartY ||
+        flowerEndX > plantvakEndX ||
+        flowerEndY > plantvakEndY
+      )
+    })
+    
+    if (flowersOutside.length > 0) {
+      console.log(`Found ${flowersOutside.length} flowers outside plantvak boundaries, moving them inside...`)
+      
+      // Move flowers inside the boundaries with better distribution
+      for (let i = 0; i < flowersOutside.length; i++) {
+        const flower = flowersOutside[i]
+        const flowerSize = flower.visual_width || FLOWER_SIZE_MEDIUM
+        const margin = 15
+        
+        const availableWidth = plantvakWidth - margin * 2 - flowerSize
+        const availableHeight = plantvakHeight - margin * 2 - flowerSize
+        
+        let newX, newY
+        
+        if (availableWidth <= 0 || availableHeight <= 0) {
+          // If not enough space, center the flower
+          newX = plantvakStartX + (plantvakWidth - flowerSize) / 2
+          newY = plantvakStartY + (plantvakHeight - flowerSize) / 2
+        } else {
+          // Distribute flowers nicely within the plantvak
+          if (flowersOutside.length <= 4) {
+            // Use grid for few flowers
+            const cols = Math.ceil(Math.sqrt(flowersOutside.length))
+            const rows = Math.ceil(flowersOutside.length / cols)
+            const col = i % cols
+            const row = Math.floor(i / cols)
+            
+            newX = plantvakStartX + margin + (col + 0.5) * (availableWidth / cols)
+            newY = plantvakStartY + margin + (row + 0.5) * (availableHeight / rows)
+          } else {
+            // Use random positioning for many flowers
+            newX = plantvakStartX + margin + Math.random() * availableWidth
+            newY = plantvakStartY + margin + Math.random() * availableHeight
+          }
+        }
+        
+        try {
+          await updatePlantPosition(flower.id, {
+            position_x: newX,
+            position_y: newY,
+            visual_width: flower.visual_width,
+            visual_height: flower.visual_height,
+            notes: flower.notes
+          })
+          
+          // Update local state
+          setFlowerPositions(prev => prev.map(f => 
+            f.id === flower.id 
+              ? { ...f, position_x: newX, position_y: newY }
+              : f
+          ))
+        } catch (error) {
+          console.error("Error moving flower inside boundaries:", error)
+        }
+      }
+      
+      if (flowersOutside.length > 0) {
+        toast({
+          title: "🌸 Bloemen binnen plantvak geplaatst",
+          description: `${flowersOutside.length} bloemen zijn binnen het plantvak geplaatst.`,
+        })
+      }
+    }
+  }, [plantBed, flowerPositions, canvasWidth, canvasHeight, toast])
+
+  // Auto-fill large flower beds after data is loaded and cleanup
+  useEffect(() => {
+    if (!loading && plantBed && flowerPositions.length >= 0) {
+      const timer = setTimeout(async () => {
+        await cleanupFlowersOutsideBoundaries() // First cleanup existing flowers
+        await autoFillFlowerBed() // Then add more if needed
+      }, 1500) // Slightly longer delay for cleanup
+      
+      return () => clearTimeout(timer)
+    }
+  }, [loading, plantBed, cleanupFlowersOutsideBoundaries, autoFillFlowerBed])
+
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
   }
@@ -281,13 +486,64 @@ export default function PlantBedViewPage() {
 
       const flowerSize = getFlowerSize(newFlower.size)
       
+      // Position within plantvak boundaries (not canvas boundaries)
+      const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
+      let initialX, initialY
+      
+      if (dimensions) {
+        // Use actual plantvak dimensions
+        const plantvakWidth = dimensions.lengthPixels
+        const plantvakHeight = dimensions.widthPixels
+        const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+        const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+        
+        const margin = 25
+        const usableWidth = plantvakWidth - (margin * 2) - flowerSize
+        const usableHeight = plantvakHeight - (margin * 2) - flowerSize
+        
+        if (usableWidth <= 0 || usableHeight <= 0) {
+          // Fallback to center if not enough space
+          initialX = plantvakStartX + (plantvakWidth - flowerSize) / 2
+          initialY = plantvakStartY + (plantvakHeight - flowerSize) / 2
+        } else {
+          const existingFlowers = flowerPositions.length
+          
+          if (existingFlowers === 0) {
+            // First flower goes in center of plantvak
+            initialX = plantvakStartX + (plantvakWidth - flowerSize) / 2
+            initialY = plantvakStartY + (plantvakHeight - flowerSize) / 2
+          } else if (existingFlowers < 4) {
+            // For first few flowers, use grid positioning within plantvak
+            const cols = Math.ceil(Math.sqrt(existingFlowers + 1))
+            const rows = Math.ceil((existingFlowers + 1) / cols)
+            const col = existingFlowers % cols
+            const row = Math.floor(existingFlowers / cols)
+            
+            initialX = plantvakStartX + margin + (col + 0.5) * (usableWidth / cols)
+            initialY = plantvakStartY + margin + (row + 0.5) * (usableHeight / rows)
+          } else {
+            // For more flowers, use random positioning within plantvak
+            initialX = plantvakStartX + margin + Math.random() * usableWidth
+            initialY = plantvakStartY + margin + Math.random() * usableHeight
+          }
+        }
+      } else {
+        // Fallback to canvas positioning if no plantvak dimensions
+        const margin = 30
+        const usableWidth = canvasWidth - (margin * 2) - flowerSize
+        const usableHeight = canvasHeight - (margin * 2) - flowerSize
+        
+        initialX = margin + Math.random() * Math.max(0, usableWidth)
+        initialY = margin + Math.random() * Math.max(0, usableHeight)
+      }
+      
       const newPlant = await createVisualPlant({
         plant_bed_id: plantBed.id,
         name: newFlower.name,
         color: newFlower.color,
         status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
-        position_x: Math.random() * (canvasWidth - flowerSize),
-        position_y: Math.random() * (canvasHeight - flowerSize),
+        position_x: initialX,
+        position_y: initialY,
         visual_width: flowerSize,
         visual_height: flowerSize,
         emoji: isCustomFlower ? (newFlower.customEmoji || undefined) : selectedType?.emoji || undefined,
@@ -792,7 +1048,7 @@ export default function PlantBedViewPage() {
 
   // Handle drag move - unified for mouse and touch
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
-    if (!draggedFlower || !containerRef.current) return
+    if (!draggedFlower || !containerRef.current || !plantBed) return
 
     const rect = containerRef.current.getBoundingClientRect()
     const newX = (clientX - rect.left) / scale - dragOffset.x
@@ -804,9 +1060,31 @@ export default function PlantBedViewPage() {
       const draggedFlowerData = prev.find(f => f.id === draggedFlower)
       if (!draggedFlowerData) return prev
 
-      // Constrain to canvas bounds using the flower's actual size
-      const constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width))
-      const constrainedY = Math.max(0, Math.min(newY, canvasHeight - draggedFlowerData.visual_height))
+      // Get plantvak boundaries
+      const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
+      let constrainedX, constrainedY
+      
+      if (dimensions) {
+        // Constrain to plantvak bounds
+        const plantvakWidth = dimensions.lengthPixels
+        const plantvakHeight = dimensions.widthPixels
+        const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+        const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+        const margin = 10
+        
+        constrainedX = Math.max(
+          plantvakStartX + margin, 
+          Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
+        )
+        constrainedY = Math.max(
+          plantvakStartY + margin, 
+          Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
+        )
+      } else {
+        // Fallback to canvas bounds if no plantvak dimensions
+        constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width))
+        constrainedY = Math.max(0, Math.min(newY, canvasHeight - draggedFlowerData.visual_height))
+      }
 
       // Only update the specific dragged flower
       return prev.map(f => {
@@ -818,7 +1096,7 @@ export default function PlantBedViewPage() {
     })
     
     setHasChanges(true)
-  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
+  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight, plantBed])
 
   // Mouse move handler
   const onMouseMove = useCallback((e: React.MouseEvent) => {
@@ -855,17 +1133,39 @@ export default function PlantBedViewPage() {
     setHasChanges(true)
   }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
 
-  // Handle drag end
-  const handlePointerUp = useCallback(() => {
+  // Handle drag end with auto-save
+  const handlePointerUp = useCallback(async () => {
     if (draggedFlower) {
-      toast({
-        title: "✅ Bloem verplaatst",
-        description: "Vergeet niet op te slaan!",
-      })
+      // Auto-save the flower position immediately
+      try {
+        const flower = flowerPositions.find(f => f.id === draggedFlower)
+        if (flower) {
+          await updatePlantPosition(draggedFlower, {
+            position_x: flower.position_x,
+            position_y: flower.position_y,
+            visual_width: flower.visual_width,
+            visual_height: flower.visual_height,
+            notes: flower.notes
+          })
+          
+          setHasChanges(false)
+          toast({
+            title: "✅ Bloem verplaatst",
+            description: "Positie automatisch opgeslagen!",
+          })
+        }
+      } catch (error) {
+        console.error("Error auto-saving flower position:", error)
+        toast({
+          title: "❌ Fout bij opslaan",
+          description: "Positie kon niet worden opgeslagen. Probeer opnieuw.",
+          variant: "destructive",
+        })
+      }
     }
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedFlower, toast])
+  }, [draggedFlower, flowerPositions, toast])
 
   // Legacy mouse up handler
   const onMouseUp = useCallback(() => {
@@ -1012,15 +1312,15 @@ export default function PlantBedViewPage() {
         const x = centerX + Math.cos(angle) * radius - 20
         const y = centerY + Math.sin(angle) * radius - 20
         
-        // Keep within the area and canvas bounds
-        const constrainedX = Math.max(
-          Math.max(10, flower.position_x - newAreaSize/2 + 30), 
-          Math.min(x, Math.min(canvasWidth - 50, flower.position_x + newAreaSize/2 - 30))
-        )
-        const constrainedY = Math.max(
-          Math.max(10, flower.position_y - newAreaSize/2 + 30), 
-          Math.min(y, Math.min(canvasHeight - 50, flower.position_y + newAreaSize/2 - 30))
-        )
+        // Keep within the area and canvas bounds - improved boundary constraints
+        const margin = 20
+        const areaLeft = Math.max(margin, flower.position_x - newAreaSize/2 + margin)
+        const areaRight = Math.min(canvasWidth - margin - 30, flower.position_x + newAreaSize/2 - margin)
+        const areaTop = Math.max(margin, flower.position_y - newAreaSize/2 + margin)
+        const areaBottom = Math.min(canvasHeight - margin - 30, flower.position_y + newAreaSize/2 - margin)
+        
+        const constrainedX = Math.max(areaLeft, Math.min(x, areaRight))
+        const constrainedY = Math.max(areaTop, Math.min(y, areaBottom))
         
         try {
           const newFlower = await createVisualPlant({
