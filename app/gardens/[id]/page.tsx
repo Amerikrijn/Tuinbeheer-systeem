@@ -744,7 +744,11 @@ export default function GardenDetailPage() {
         soil_type: newPlantBed.soil_type,
       })
 
+      // Generate a unique ID for the plant bed (max 10 chars)
+      const plantBedId = `${Date.now().toString(36).slice(-4)}${Math.random().toString(36).substr(2, 4)}`
+      
       const plantBed = await createPlantBed({
+        id: plantBedId,
         garden_id: garden.id,
         name: newPlantBed.name,
         size: sizeString,
