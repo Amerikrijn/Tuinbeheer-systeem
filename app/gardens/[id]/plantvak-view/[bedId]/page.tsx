@@ -218,26 +218,40 @@ export default function PlantBedViewPage() {
     }
   }, [params.id, params.bedId])
 
-  // Auto-fill large flower beds with more flowers of the same type
+  // Smart auto-fill for flower beds based on size
   const autoFillFlowerBed = useCallback(async () => {
     if (!plantBed || flowerPositions.length === 0) return // Only if there are existing flowers
     
-    const bedArea = canvasWidth * canvasHeight
     const currentFlowerCount = flowerPositions.length
     
     // Get the plantvak dimensions from the size string
     const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
     if (!dimensions) return
     
-    const plantvakWidth = dimensions.lengthPixels
-    const plantvakHeight = dimensions.widthPixels
+    const plantvakWidthMeters = dimensions.lengthMeters
+    const plantvakHeightMeters = dimensions.widthMeters
+    const plantvakAreaMeters = plantvakWidthMeters * plantvakHeightMeters
     
-    // Calculate ideal flower count based on plantvak size (not canvas size)
-    const plantvakArea = plantvakWidth * plantvakHeight
-    const targetFlowerCount = Math.min(15, Math.max(currentFlowerCount, Math.floor(plantvakArea / 6000))) // 1 flower per ~6000px²
+    // Calculate target flower count based on plantvak area in square meters
+    let targetFlowerCount = currentFlowerCount // Start with current count
     
-    if (currentFlowerCount < targetFlowerCount && plantvakArea > 50000) { // Only for plantvakken larger than 50k px²
-      const flowersToAdd = Math.min(3, targetFlowerCount - currentFlowerCount) // Add fewer at a time
+    if (plantvakAreaMeters <= 4) {
+      // Small beds (≤ 2x2m): 1-3 flowers
+      targetFlowerCount = Math.min(3, Math.max(1, currentFlowerCount))
+    } else if (plantvakAreaMeters <= 9) {
+      // Medium beds (≤ 3x3m): 2-5 flowers  
+      targetFlowerCount = Math.min(5, Math.max(2, currentFlowerCount + 1))
+    } else if (plantvakAreaMeters <= 16) {
+      // Large beds (≤ 4x4m): 3-7 flowers
+      targetFlowerCount = Math.min(7, Math.max(3, currentFlowerCount + 2))
+    } else {
+      // Very large beds (> 4x4m): 4-10 flowers max
+      targetFlowerCount = Math.min(10, Math.max(4, currentFlowerCount + 2))
+    }
+    
+    // Only add flowers if we're below target and the bed is reasonably large
+    if (currentFlowerCount < targetFlowerCount && plantvakAreaMeters > 2) {
+      const flowersToAdd = Math.min(2, targetFlowerCount - currentFlowerCount) // Max 2 at a time
       
       // Use the same type as existing flowers (take the most common type)
       const flowerTypes = flowerPositions.reduce((acc, flower) => {
@@ -252,16 +266,26 @@ export default function PlantBedViewPage() {
       const templateFlower = flowerPositions.find(f => f.name === mostCommonFlowerName)
       if (!templateFlower) return
       
+      const plantvakWidth = dimensions.lengthPixels
+      const plantvakHeight = dimensions.widthPixels
+      const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+      const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+      
       for (let i = 0; i < flowersToAdd; i++) {
-        const margin = 30
+        const margin = 25
         const flowerSize = templateFlower.visual_width || FLOWER_SIZE_MEDIUM
         
-        // Position within the plantvak boundaries (centered in canvas)
-        const plantvakStartX = (canvasWidth - plantvakWidth) / 2
-        const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+        // Ensure we have enough space for the flower
+        const availableWidth = plantvakWidth - margin * 2 - flowerSize
+        const availableHeight = plantvakHeight - margin * 2 - flowerSize
         
-        const positionX = plantvakStartX + margin + Math.random() * (plantvakWidth - margin * 2 - flowerSize)
-        const positionY = plantvakStartY + margin + Math.random() * (plantvakHeight - margin * 2 - flowerSize)
+        if (availableWidth <= 0 || availableHeight <= 0) {
+          console.log("Not enough space in plantvak for more flowers")
+          break
+        }
+        
+        const positionX = plantvakStartX + margin + Math.random() * availableWidth
+        const positionY = plantvakStartY + margin + Math.random() * availableHeight
         
         try {
           const newFlower = await createVisualPlant({
@@ -276,7 +300,7 @@ export default function PlantBedViewPage() {
             emoji: templateFlower.emoji,
             is_custom: templateFlower.is_custom || false,
             category: templateFlower.category,
-            notes: `Extra ${templateFlower.name} voor groot plantvak`
+            notes: `Extra ${templateFlower.name} - ${plantvakAreaMeters.toFixed(1)}m²`
           })
           
           if (newFlower) {
@@ -289,8 +313,8 @@ export default function PlantBedViewPage() {
       
       if (flowersToAdd > 0) {
         toast({
-          title: "🌸 Meer bloemen toegevoegd!",
-          description: `${flowersToAdd} extra ${templateFlower.name} bloemen toegevoegd aan het plantvak.`,
+          title: "🌸 Bloemen toegevoegd!",
+          description: `${flowersToAdd} ${templateFlower.name} toegevoegd aan ${plantvakAreaMeters.toFixed(1)}m² plantvak.`,
         })
       }
     }
@@ -325,19 +349,38 @@ export default function PlantBedViewPage() {
     if (flowersOutside.length > 0) {
       console.log(`Found ${flowersOutside.length} flowers outside plantvak boundaries, moving them inside...`)
       
-      // Move flowers inside the boundaries
-      for (const flower of flowersOutside) {
+      // Move flowers inside the boundaries with better distribution
+      for (let i = 0; i < flowersOutside.length; i++) {
+        const flower = flowersOutside[i]
         const flowerSize = flower.visual_width || FLOWER_SIZE_MEDIUM
-        const margin = 20
+        const margin = 15
         
-        const newX = Math.max(
-          plantvakStartX + margin,
-          Math.min(flower.position_x, plantvakEndX - flowerSize - margin)
-        )
-        const newY = Math.max(
-          plantvakStartY + margin,
-          Math.min(flower.position_y, plantvakEndY - flowerSize - margin)
-        )
+        const availableWidth = plantvakWidth - margin * 2 - flowerSize
+        const availableHeight = plantvakHeight - margin * 2 - flowerSize
+        
+        let newX, newY
+        
+        if (availableWidth <= 0 || availableHeight <= 0) {
+          // If not enough space, center the flower
+          newX = plantvakStartX + (plantvakWidth - flowerSize) / 2
+          newY = plantvakStartY + (plantvakHeight - flowerSize) / 2
+        } else {
+          // Distribute flowers nicely within the plantvak
+          if (flowersOutside.length <= 4) {
+            // Use grid for few flowers
+            const cols = Math.ceil(Math.sqrt(flowersOutside.length))
+            const rows = Math.ceil(flowersOutside.length / cols)
+            const col = i % cols
+            const row = Math.floor(i / cols)
+            
+            newX = plantvakStartX + margin + (col + 0.5) * (availableWidth / cols)
+            newY = plantvakStartY + margin + (row + 0.5) * (availableHeight / rows)
+          } else {
+            // Use random positioning for many flowers
+            newX = plantvakStartX + margin + Math.random() * availableWidth
+            newY = plantvakStartY + margin + Math.random() * availableHeight
+          }
+        }
         
         try {
           await updatePlantPosition(flower.id, {
@@ -443,32 +486,55 @@ export default function PlantBedViewPage() {
 
       const flowerSize = getFlowerSize(newFlower.size)
       
-      // Better initial positioning - avoid edges and distribute nicely
-      const margin = 30
-      const usableWidth = canvasWidth - (margin * 2) - flowerSize
-      const usableHeight = canvasHeight - (margin * 2) - flowerSize
-      
-      // For larger beds, use better distribution
-      const existingFlowers = flowerPositions.length
+      // Position within plantvak boundaries (not canvas boundaries)
+      const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
       let initialX, initialY
       
-      if (existingFlowers === 0) {
-        // First flower goes in center
-        initialX = (canvasWidth - flowerSize) / 2
-        initialY = (canvasHeight - flowerSize) / 2
-      } else if (existingFlowers < 4) {
-        // For first few flowers, use grid positioning
-        const cols = Math.ceil(Math.sqrt(existingFlowers + 1))
-        const rows = Math.ceil((existingFlowers + 1) / cols)
-        const col = existingFlowers % cols
-        const row = Math.floor(existingFlowers / cols)
+      if (dimensions) {
+        // Use actual plantvak dimensions
+        const plantvakWidth = dimensions.lengthPixels
+        const plantvakHeight = dimensions.widthPixels
+        const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+        const plantvakStartY = (canvasHeight - plantvakHeight) / 2
         
-        initialX = margin + (col + 0.5) * (usableWidth / cols)
-        initialY = margin + (row + 0.5) * (usableHeight / rows)
+        const margin = 25
+        const usableWidth = plantvakWidth - (margin * 2) - flowerSize
+        const usableHeight = plantvakHeight - (margin * 2) - flowerSize
+        
+        if (usableWidth <= 0 || usableHeight <= 0) {
+          // Fallback to center if not enough space
+          initialX = plantvakStartX + (plantvakWidth - flowerSize) / 2
+          initialY = plantvakStartY + (plantvakHeight - flowerSize) / 2
+        } else {
+          const existingFlowers = flowerPositions.length
+          
+          if (existingFlowers === 0) {
+            // First flower goes in center of plantvak
+            initialX = plantvakStartX + (plantvakWidth - flowerSize) / 2
+            initialY = plantvakStartY + (plantvakHeight - flowerSize) / 2
+          } else if (existingFlowers < 4) {
+            // For first few flowers, use grid positioning within plantvak
+            const cols = Math.ceil(Math.sqrt(existingFlowers + 1))
+            const rows = Math.ceil((existingFlowers + 1) / cols)
+            const col = existingFlowers % cols
+            const row = Math.floor(existingFlowers / cols)
+            
+            initialX = plantvakStartX + margin + (col + 0.5) * (usableWidth / cols)
+            initialY = plantvakStartY + margin + (row + 0.5) * (usableHeight / rows)
+          } else {
+            // For more flowers, use random positioning within plantvak
+            initialX = plantvakStartX + margin + Math.random() * usableWidth
+            initialY = plantvakStartY + margin + Math.random() * usableHeight
+          }
+        }
       } else {
-        // For more flowers, use random but well-distributed positioning
-        initialX = margin + Math.random() * usableWidth
-        initialY = margin + Math.random() * usableHeight
+        // Fallback to canvas positioning if no plantvak dimensions
+        const margin = 30
+        const usableWidth = canvasWidth - (margin * 2) - flowerSize
+        const usableHeight = canvasHeight - (margin * 2) - flowerSize
+        
+        initialX = margin + Math.random() * Math.max(0, usableWidth)
+        initialY = margin + Math.random() * Math.max(0, usableHeight)
       }
       
       const newPlant = await createVisualPlant({
