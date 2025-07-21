@@ -37,6 +37,7 @@ import { useToast } from "@/hooks/use-toast"
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 import { uploadImage, type UploadResult } from "@/lib/storage"
+import { FlowerVisualization } from "@/components/flower-visualization"
 import {
   METERS_TO_PIXELS,
   PLANTVAK_CANVAS_PADDING,
@@ -637,13 +638,14 @@ export default function PlantBedViewPage() {
     })
   }, [scale, toast])
 
-  // Handle flower resize via interface
+  // Handle flower resize via interface - supports flower fields
   const handleFlowerResize = useCallback(async (flowerId: string, sizeChange: number) => {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
     const currentSize = Math.min(flower.visual_width, flower.visual_height)
-    const newSize = Math.max(FLOWER_SIZE_SMALL, Math.min(FLOWER_SIZE_LARGE * 2, currentSize + sizeChange))
+    const maxSize = Math.min(canvasWidth * 0.9, canvasHeight * 0.9) // Can grow to almost fill the entire plantvak
+    const newSize = Math.max(FLOWER_SIZE_SMALL, Math.min(maxSize, currentSize + sizeChange))
     
     const updatedFlower = {
       ...flower,
@@ -666,9 +668,13 @@ export default function PlantBedViewPage() {
       setSelectedFlower(updatedFlower)
       setHasChanges(true)
 
+      // Special message for large flower fields
+      const isLargeField = newSize > 100
       toast({
-        title: "✅ Grootte aangepast",
-        description: `${flower.name} is nu ${newSize}px groot.`,
+        title: isLargeField ? "🌸 Bloemenveld aangepast!" : "✅ Grootte aangepast",
+        description: isLargeField 
+          ? `${flower.name} is nu een groot bloemenveld van ${newSize}px! Meer bloemen verschijnen automatisch.`
+          : `${flower.name} is nu ${newSize}px groot.`,
       })
     } catch (error) {
       console.error('Failed to resize flower:', error)
@@ -678,7 +684,7 @@ export default function PlantBedViewPage() {
         variant: "destructive",
       })
     }
-  }, [flowerPositions, toast])
+  }, [flowerPositions, canvasWidth, canvasHeight, toast])
 
   // Close resize interface
   const closeResizeInterface = useCallback(() => {
@@ -2190,7 +2196,15 @@ export default function PlantBedViewPage() {
                 }}
               />
 
-              {/* Flowers */}
+              {/* Use FlowerVisualization Component for consistent display */}
+              <FlowerVisualization 
+                plantBed={plantBed}
+                plants={flowerPositions}
+                containerWidth={canvasWidth}
+                containerHeight={canvasHeight}
+              />
+
+              {/* Interactive overlay for selected flowers */}
               {flowerPositions.map((flower) => {
                 const isSelected = selectedFlower?.id === flower.id
                 const isDragging = draggedFlower === flower.id
@@ -2199,19 +2213,19 @@ export default function PlantBedViewPage() {
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute rounded-full border-4 ${getStatusColor(flower.status || 'healthy')} ${
+                    className={`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'healthy')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105 cursor-grabbing" : 
                       isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab animate-pulse" :
                       isSelected && isResizeMode ? "ring-4 ring-blue-500 shadow-xl cursor-default" :
                       isSelected ? "ring-4 ring-blue-500 shadow-xl cursor-pointer" :
                       "shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
-                    } transition-all duration-200 flex items-center justify-center text-white relative overflow-hidden`}
+                    } transition-all duration-200 flex items-center justify-center text-white relative overflow-hidden bg-opacity-0 border-opacity-50`}
                     style={{
                       left: flower.position_x,
                       top: flower.position_y,
                       width: flower.visual_width,
                       height: flower.visual_height,
-                      backgroundColor: flower.color,
+                      backgroundColor: 'transparent',
                     }}
                     onClick={(e) => handleFlowerClick(e, flower.id)}
                     onDoubleClick={() => handleFlowerDoubleClick(flower)}
@@ -2530,14 +2544,17 @@ export default function PlantBedViewPage() {
               size="sm"
               onClick={() => handleFlowerResize(selectedFlower.id, 10)}
               className="h-8 w-8 p-0"
-              disabled={selectedFlower.visual_width >= FLOWER_SIZE_LARGE * 2}
+              disabled={selectedFlower.visual_width >= Math.min(canvasWidth * 0.9, canvasHeight * 0.9)}
             >
               <Plus className="h-4 w-4" />
             </Button>
           </div>
           
           <div className="text-xs text-gray-500 mt-1 text-center">
-            Dubbelklik = grootte aanpassen
+            {selectedFlower.visual_width > 100 
+              ? "🌸 Bloemenveld - meer bloemen bij groter maken"
+              : "Dubbelklik = grootte aanpassen"
+            }
           </div>
         </div>
       )}
