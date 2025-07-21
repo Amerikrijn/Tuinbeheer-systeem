@@ -4,19 +4,24 @@
 
 Deze updates verbeteren de bloemenvak functionaliteit volgens de gebruikerswensen:
 
-### ✅ NIEUW: Bloemen van Hetzelfde Type & Binnen Boundaries
-**Probleem**: Random bloemen werden toegevoegd en stonden soms buiten het plantvak
-**Oplossing**: Alleen bloemen van hetzelfde type toevoegen en alle bloemen binnen plantvak boundaries houden
+### ✅ NIEUW: Intelligente Bloem Schaling & Perfecte Boundaries
+**Probleem**: Te veel bloemen, random bloemen, bloemen buiten het plantvak
+**Oplossing**: Slimme schaling op basis van plantvak grootte en strikte boundary enforcement
 
 **Gewijzigde bestanden**:
-- `app/gardens/[id]/plantvak-view/[bedId]/page.tsx` - Auto-fill en cleanup functies verbeterd
-- `components/flower-visualization.tsx` - Betere boundary constraints
+- `app/gardens/[id]/plantvak-view/[bedId]/page.tsx` - Volledig herwerkte auto-fill logica
+- `components/flower-visualization.tsx` - Conservatieve bloem tellingen
 
 **Functionaliteit**:
-- Auto-fill gebruikt nu hetzelfde bloem type als bestaande bloemen (meest voorkomende type)
-- Cleanup functie verplaatst bloemen die buiten het plantvak staan naar binnen
-- Drag constraints zorgen ervoor dat bloemen niet buiten het plantvak gesleept kunnen worden
-- Alleen activatie als er al bloemen zijn (geen random bloemen in lege plantvakken)
+- **Slimme Schaling**: 
+  - ≤ 2x2m (≤4m²): 1-3 bloemen
+  - ≤ 3x3m (≤9m²): 2-5 bloemen  
+  - ≤ 4x4m (≤16m²): 3-7 bloemen
+  - > 4x4m (>16m²): 4-10 bloemen max
+- **Perfecte Boundaries**: Alle bloemen binnen plantvak afmetingen (niet canvas)
+- **Hetzelfde Type**: Gebruikt meest voorkomende bloem type als template
+- **Maximaal 2 per keer**: Voegt max 2 bloemen tegelijk toe (niet 5-8)
+- **Grid Distributie**: Betere verdeling bij cleanup van verkeerd geplaatste bloemen
 
 ### ✅ 1. Automatisch Opslaan van Bloem Posities
 **Probleem**: Bloemen moesten handmatig opgeslagen worden na verplaatsen
