@@ -1156,11 +1156,7 @@ export default function GardenDetailPage() {
                           <div className="text-xs font-medium text-gray-700 bg-white/90 px-2 py-1 rounded shadow-sm">
                             {bed.name}
                           </div>
-                          {isInDragMode && (
-                            <div className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
-                              🖱️ Sleep me!
-                            </div>
-                          )}
+
                           {bed.sun_exposure && (
                             <div className="bg-white/90 p-1 rounded shadow-sm">
                               {getSunExposureIcon(bed.sun_exposure)}

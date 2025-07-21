@@ -1813,41 +1813,7 @@ export default function PlantBedViewPage() {
             )}
           </div>
         </CardHeader>
-        <CardContent>
-          {/* Mobile help text */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
-            <h4 className="font-medium text-blue-900 mb-1">📱 Mobiele bediening:</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• <strong>1x tikken:</strong> Bloem selecteren</li>
-              <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
-              <li>• <strong>3x tikken:</strong> Grootte aanpassen</li>
-              <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
-              <li>• <strong>Dubbel tikken:</strong> Grootte aanpassen (+ / -)</li>
-              <li>• <strong>Knoppen:</strong> Gebruik knoppen hierboven</li>
-            </ul>
-            <div className="mt-2 pt-2 border-t border-blue-300">
-              <p className="text-xs text-blue-700">
-                🌱 <strong>Plantvak:</strong> {plantBed?.size || 'Onbekend'}
-              </p>
-            </div>
-          </div>
-          
-          {/* Desktop help text */}
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg hidden md:block">
-            <h4 className="font-medium text-green-900 mb-1">💻 Laptop bediening:</h4>
-            <ul className="text-sm text-green-800 space-y-1">
-              <li>• <strong>Vasthouden en slepen:</strong> Direct verplaatsen</li>
-              <li>• <strong>Klik:</strong> Bloem selecteren</li>
-              <li>• <strong>Dubbel klik:</strong> Grootte aanpassen (+ / - knoppen)</li>
-              <li>• <strong>Knoppen:</strong> Voor verplaats/resize modus</li>
-            </ul>
-            <div className="mt-2 pt-2 border-t border-green-300">
-              <p className="text-xs text-green-700">
-                🌱 <strong>Plantvak:</strong> {plantBed?.size || 'Onbekend'} • 
-                <strong>Schaal:</strong> 1m = {METERS_TO_PIXELS} pixels
-              </p>
-            </div>
-          </div>
+                <CardContent>
           
           <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
             <div
@@ -1951,11 +1917,7 @@ export default function PlantBedViewPage() {
                     </div>
 
                     {/* Mode indicators */}
-                    {isSelected && isDragMode && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
-                        🖱️ Sleep me!
-                      </div>
-                    )}
+
                     
                     {isSelected && isResizeMode && (
                       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
