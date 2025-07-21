@@ -1,0 +1,310 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import { useRouter, useParams } from "next/navigation"
+import Link from "next/link"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { ArrowLeft, TreePine, Plus, Search, Eye, Leaf, Sun, MapPin } from "lucide-react"
+import { getGarden, getPlantBeds } from "@/lib/database"
+import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
+import { useToast } from "@/hooks/use-toast"
+
+export default function PlantBedsPage() {
+  const router = useRouter()
+  const params = useParams()
+  const { toast } = useToast()
+  const [garden, setGarden] = useState<Garden | null>(null)
+  const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState("")
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true)
+        const [gardenData, plantBedsData] = await Promise.all([
+          getGarden(params.id as string),
+          getPlantBeds(params.id as string),
+        ])
+        setGarden(gardenData)
+        setPlantBeds(plantBedsData)
+      } catch (error) {
+        console.error("Error loading data:", error)
+        toast({
+          title: "Fout",
+          description: "Kon gegevens niet laden.",
+          variant: "destructive",
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [params.id, toast])
+
+  const filteredPlantBeds = plantBeds.filter(
+    (bed) =>
+      bed.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bed.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bed.id.toLowerCase().includes(searchTerm.toLowerCase()),
+  )
+
+  const getSunExposureIcon = (exposure: string) => {
+    switch (exposure) {
+      case "full-sun":
+        return <Sun className="h-4 w-4 text-yellow-500" />
+      case "partial-sun":
+        return <Sun className="h-4 w-4 text-orange-500" />
+      case "shade":
+        return <Sun className="h-4 w-4 text-gray-500" />
+      default:
+        return <Sun className="h-4 w-4 text-gray-400" />
+    }
+  }
+
+  const getSunExposureText = (exposure: string) => {
+    switch (exposure) {
+      case "full-sun":
+        return "Volle zon"
+      case "partial-sun":
+        return "Gedeeltelijke zon"
+      case "shade":
+        return "Schaduw"
+      default:
+        return "Onbekend"
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!garden) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center py-12">
+          <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
+          <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
+          <Link href="/gardens">
+            <Button className="bg-green-600 hover:bg-green-700">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Terug naar Tuinen
+            </Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={() => router.push("/gardens")} className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Tuinen
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Leaf className="h-8 w-8 text-green-600" />
+              Plantvakken - {garden.name}
+            </h1>
+            <div className="flex items-center gap-2 text-gray-600 mt-1">
+              <MapPin className="h-4 w-4" />
+              {garden.location}
+            </div>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Link href="/plant-beds/new">
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Plantvak Toevoegen
+            </Button>
+          </Link>
+          <Link href={`/gardens/${garden.id}/plant-beds/new`}>
+            <Button className="bg-green-600 hover:bg-green-700">
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuw Plantvak
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <Input
+          placeholder="Zoek plantvakken..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      {/* Plant Beds Grid */}
+      {filteredPlantBeds.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredPlantBeds.map((bed) => (
+            <Card key={bed.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Badge variant="outline" className="text-xs font-mono">
+                        {bed.id}
+                      </Badge>
+                      {bed.name}
+                    </CardTitle>
+                    {bed.location && (
+                      <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+                        <MapPin className="h-3 w-3" />
+                        {bed.location}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                {bed.description && <p className="text-sm text-gray-600 line-clamp-2">{bed.description}</p>}
+
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  {bed.size && (
+                    <div>
+                      <div className="font-medium">Grootte</div>
+                      <div className="text-gray-600">{bed.size}</div>
+                    </div>
+                  )}
+                  {bed.soil_type && (
+                    <div>
+                      <div className="font-medium">Grondtype</div>
+                      <div className="text-gray-600">{bed.soil_type}</div>
+                    </div>
+                  )}
+                </div>
+
+                {bed.sun_exposure && (
+                  <div className="flex items-center gap-2 text-sm">
+                    {getSunExposureIcon(bed.sun_exposure)}
+                    <span className="text-gray-600">{getSunExposureText(bed.sun_exposure)}</span>
+                  </div>
+                )}
+
+                <Separator />
+
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <Leaf className="h-4 w-4 text-green-600" />
+                    <span className="font-medium">{bed.plants.length}</span>
+                    <span className="text-gray-600">planten</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${bed.plants.length > 0 ? "bg-green-500" : "bg-gray-300"}`} />
+                    <span className="text-xs text-gray-600">{bed.plants.length > 0 ? "Actief" : "Leeg"}</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Link href={`/gardens/${garden.id}/plant-beds/${bed.id}`} className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full bg-transparent">
+                      <Eye className="h-3 w-3 mr-1" />
+                      Bekijk
+                    </Button>
+                  </Link>
+                  <Link href={`/gardens/${garden.id}/plant-beds/${bed.id}/plants`}>
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                      <Leaf className="h-3 w-3 mr-1" />
+                      Planten
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12">
+          <Leaf className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+          <h3 className="text-xl font-medium text-gray-900 mb-2">
+            {searchTerm ? "Geen plantvakken gevonden" : "Nog geen plantvakken"}
+          </h3>
+          <p className="text-gray-600 mb-6">
+            {searchTerm
+              ? `Geen plantvakken gevonden voor "${searchTerm}"`
+              : "Begin met het toevoegen van je eerste plantvak"}
+          </p>
+          {!searchTerm && (
+            <div className="flex gap-2 justify-center">
+              <Link href="/plant-beds/new">
+                <Button className="bg-green-600 hover:bg-green-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Plantvak Toevoegen
+                </Button>
+              </Link>
+              <Link href={`/gardens/${garden.id}/plant-beds/new`}>
+                <Button className="bg-green-600 hover:bg-green-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Eerste Plantvak Toevoegen
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Summary Stats */}
+      {plantBeds.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Overzicht Plantvakken</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
+              <div>
+                <div className="text-2xl font-bold text-green-600">{plantBeds.length}</div>
+                <div className="text-sm text-gray-600">Totaal Plantvakken</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {plantBeds.reduce((sum, bed) => sum + bed.plants.length, 0)}
+                </div>
+                <div className="text-sm text-gray-600">Totaal Planten</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-purple-600">
+                  {plantBeds.filter((bed) => bed.plants.length > 0).length}
+                </div>
+                <div className="text-sm text-gray-600">Actieve Vakken</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-orange-600">
+                  {Math.round((plantBeds.filter((bed) => bed.plants.length > 0).length / plantBeds.length) * 100) || 0}%
+                </div>
+                <div className="text-sm text-gray-600">Bezettingsgraad</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  )
+}

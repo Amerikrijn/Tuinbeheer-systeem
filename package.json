@@ -1,5 +1,5 @@
 {
-  "name": "my-v0-project",
+  "name": "tuinbeheer-systeem",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -16,7 +16,12 @@
     "lint:fix": "next lint --fix",
     "db:setup": "node database/setup.js setup --seed",
     "db:reset": "node database/setup.js reset",
-    "db:schema": "node database/setup.js setup"
+    "db:schema": "node database/setup.js setup",
+    "mobile:setup": "cd apps/mobile && npm install",
+    "mobile:start": "cd apps/mobile && npm start",
+    "mobile:android": "cd apps/mobile && npm run android",
+    "mobile:ios": "cd apps/mobile && npm run ios",
+    "shared:build": "cd packages/shared && npm install && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
