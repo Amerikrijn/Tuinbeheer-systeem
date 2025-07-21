@@ -879,6 +879,18 @@ export default function GardenDetailPage() {
           
 
           
+          {selectedBed && showVisualView && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleDeletePlantBed(selectedBed)}
+              className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Verwijder Plantvak
+            </Button>
+          )}
+
           <Dialog open={isAddingPlantBed} onOpenChange={setIsAddingPlantBed}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
