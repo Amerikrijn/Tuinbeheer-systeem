@@ -1223,31 +1223,40 @@ export default function GardenDetailPage() {
                       onTouchStart={(e) => handlePlantBedTouchStart(e, bed.id)}
                       onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                     >
-                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors ${
+                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-center items-center p-3 group-hover:bg-green-50 transition-colors ${
                         isSelected ? 'bg-blue-50' : ''
                       }`}>
-                        <div className="flex items-center justify-between">
-                          <div className="text-xs font-medium text-gray-700 bg-white/90 px-2 py-1 rounded shadow-sm">
+                        {/* Main content - centered */}
+                        <div className="text-center space-y-2">
+                          {/* Plant bed name */}
+                          <div className="text-sm font-bold text-gray-800 bg-white/95 px-3 py-1 rounded-lg shadow-sm border">
                             {bed.name}
                           </div>
-                          {isInDragMode && (
-                            <div className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
-                              🖱️ Sleep me!
-                            </div>
-                          )}
-                          {bed.sun_exposure && (
-                            <div className="bg-white/90 p-1 rounded shadow-sm">
-                              {getSunExposureIcon(bed.sun_exposure)}
-                            </div>
-                          )}
-                        </div>
-                        <div className="text-xs bg-white/90 px-2 py-1 rounded shadow-sm flex items-center justify-between">
-                          <span className="flex items-center gap-1">
+                          
+                          {/* Dimensions */}
+                          <div className="text-xs font-medium text-gray-600 bg-white/90 px-2 py-1 rounded shadow-sm">
+                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
+                          </div>
+                          
+                          {/* Plant count */}
+                          <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
                             <span>{bed.plants.length}</span>
                             <span>🌸</span>
-                          </span>
-                          <span>{bed.size || 'Onbekend'}</span>
+                          </div>
                         </div>
+
+                        {/* Corner elements */}
+                        {isInDragMode && (
+                          <div className="absolute top-1 right-1 text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
+                            🖱️
+                          </div>
+                        )}
+                        
+                        {bed.sun_exposure && (
+                          <div className="absolute top-1 left-1 bg-white/90 p-1 rounded shadow-sm">
+                            {getSunExposureIcon(bed.sun_exposure)}
+                          </div>
+                        )}
                         {isSelected && (
                           <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
                             Geselecteerd
