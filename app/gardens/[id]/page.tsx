@@ -1113,7 +1113,7 @@ export default function GardenDetailPage() {
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
-                Tuin Layout - {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m (Schaal: 1m = {METERS_TO_PIXELS}px)
+                Tuin Layout
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={zoomOut}>
