@@ -91,7 +91,7 @@ const FLOWER_STATUS_OPTIONS = [
   }
 
   // Helper function to get emoji based on plant name or category (optional)
-  const getPlantEmoji = (name?: string, category?: string): string | null => {
+  const getPlantEmoji = (name?: string, category?: string): string | undefined => {
   const plantName = (name || '').toLowerCase()
   const plantCategory = (category || '').toLowerCase()
   
@@ -114,7 +114,7 @@ const FLOWER_STATUS_OPTIONS = [
   if (plantCategory.includes('groente') || plantCategory.includes('vegetable')) return '🥬'
   
   // Default: no emoji, show name instead
-  return null
+  return undefined
 }
 
 export default function PlantBedViewPage() {
@@ -289,7 +289,7 @@ export default function PlantBedViewPage() {
         position_y: Math.random() * (canvasHeight - flowerSize),
         visual_width: flowerSize,
         visual_height: flowerSize,
-        emoji: isCustomFlower ? (newFlower.customEmoji || null) : selectedType?.emoji || null,
+        emoji: isCustomFlower ? (newFlower.customEmoji || undefined) : selectedType?.emoji || undefined,
         photo_url: isCustomFlower ? (uploadedImageUrl || newFlower.photoUrl || null) : null,
         is_custom: isCustomFlower,
         category: isCustomFlower ? 'Aangepast' : newFlower.type,
@@ -349,7 +349,7 @@ export default function PlantBedViewPage() {
         name: newFlower.name,
         color: newFlower.color,
         status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
-        emoji: isEditCustomFlower ? (newFlower.customEmoji || null) : selectedType?.emoji || null,
+        emoji: isEditCustomFlower ? (newFlower.customEmoji || undefined) : selectedType?.emoji || undefined,
         photo_url: isEditCustomFlower ? (uploadedImageUrl || newFlower.photoUrl || null) : null,
         is_custom: isEditCustomFlower,
         category: isEditCustomFlower ? 'Aangepast' : newFlower.type,
@@ -1026,7 +1026,7 @@ export default function PlantBedViewPage() {
             position_y: constrainedY,
             visual_width: FLOWER_SIZE, // Same size as main flower!
             visual_height: FLOWER_SIZE,
-            emoji: flower.emoji || '🌸',
+            emoji: flower.emoji,
             is_custom: flower.is_custom,
             category: flower.category,
             notes: `sub_flower_of:${flower.id}`
@@ -2392,7 +2392,7 @@ export default function PlantBedViewPage() {
                                        position_y: Math.max(10, Math.min(y, canvasHeight - 50)),
                                        visual_width: FLOWER_SIZE,
                                        visual_height: FLOWER_SIZE,
-                                       emoji: flower.emoji || '🌸',
+                                       emoji: flower.emoji,
                                        is_custom: false,
                                        category: flower.category,
                                        notes: `sub_flower_of:${flower.id}`

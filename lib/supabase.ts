@@ -173,7 +173,7 @@ export interface PlantWithPosition extends Plant {
   position_y: number;
   visual_width: number;
   visual_height: number;
-  emoji: string;
+  emoji?: string;
 }
 
 // ===================================================================
