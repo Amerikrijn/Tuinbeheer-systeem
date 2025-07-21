@@ -2136,41 +2136,7 @@ export default function PlantBedViewPage() {
         </CardContent>
       </Card>
 
-      {/* Legend */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Info className="h-5 w-5 text-blue-600" />
-            Legenda & Instructies
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-medium mb-3">Bloem Status</h4>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-green-400 border-4 border-green-500 rounded-full"></div>
-                  <span>Gezond</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-yellow-400 border-4 border-yellow-500 rounded-full"></div>
-                  <span>Aandacht nodig</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-purple-400 border-4 border-purple-500 rounded-full"></div>
-                  <span>Bloeiend</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-red-400 border-4 border-red-500 rounded-full"></div>
-                  <span>Ziek</span>
-                </div>
-              </div>
-            </div>
 
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Resize Interface Overlay */}
       {showResizeInterface && selectedFlower && (
