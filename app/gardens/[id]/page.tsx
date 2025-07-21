@@ -237,7 +237,7 @@ export default function GardenDetailPage() {
         const overflowX = Math.max(0, bedRightEdge - gardenLengthPx)
         const overflowY = Math.max(0, bedBottomEdge - gardenWidthPx)
         
-        let overflowDescription = []
+        const overflowDescription: string[] = []
         if (overflowX > 0) {
           overflowDescription.push(`${(overflowX / METERS_TO_PIXELS).toFixed(1)}m te breed`)
         }
