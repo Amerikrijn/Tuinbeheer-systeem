@@ -31,7 +31,7 @@ import {
   Move,
 } from "lucide-react"
 import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
-import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
+import type { Garden, PlantBedWithPlants, PlantWithPosition, Plant } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS, 
   GARDEN_CANVAS_WIDTH as DEFAULT_CANVAS_WIDTH,
@@ -42,6 +42,7 @@ import {
   metersToPixels,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
+import { FlowerVisualization } from "@/components/flower-visualization"
 
 interface PlantBedPosition {
   id: string
@@ -532,10 +533,111 @@ export default function GardenDetailPage() {
     setHasChanges(true)
   }, [draggedBed, dragOffset, scale, plantBeds, CANVAS_WIDTH, CANVAS_HEIGHT])
 
-  // Mouse move handler
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    handlePointerMove(e.clientX, e.clientY)
-  }, [handlePointerMove])
+  // Check if plant bed got larger and add more flowers for playful effect
+  const checkAndAddMoreFlowers = useCallback(async (bed: PlantBedWithPlants) => {
+    try {
+      if (!bed.size) return
+      
+      const dimensions = parsePlantBedDimensions(bed.size)
+      if (!dimensions) return
+      
+      const area = dimensions.lengthMeters * dimensions.widthMeters
+      const currentFlowerCount = bed.plants.length
+      
+      // Calculate desired flower count based on area
+      let desiredFlowerCount = 1
+      if (area > 4) desiredFlowerCount = 2
+      if (area > 8) desiredFlowerCount = 3
+      if (area > 15) desiredFlowerCount = 4
+      if (area > 25) desiredFlowerCount = 6
+      if (area > 40) desiredFlowerCount = 8
+      
+      // Add more flowers if the bed got bigger
+      if (desiredFlowerCount > currentFlowerCount) {
+        const flowersToAdd = desiredFlowerCount - currentFlowerCount
+        const newFlowers = await createSampleFlowers(bed.id, dimensions.lengthMeters, dimensions.widthMeters)
+        
+        // Take only the additional flowers we need
+        const additionalFlowers = newFlowers.slice(0, flowersToAdd).map((flower, index) => ({
+          ...flower,
+          id: `auto-${bed.id}-${currentFlowerCount + index}-${Date.now()}`,
+          name: `${flower.name} ${currentFlowerCount + index + 1}` // Make names unique
+        }))
+        
+        if (additionalFlowers.length > 0) {
+          // Update the plant bed with new flowers
+          setPlantBeds(prev => prev.map(plantBed => {
+            if (plantBed.id === bed.id) {
+              return {
+                ...plantBed,
+                plants: [...plantBed.plants, ...additionalFlowers]
+              }
+            }
+            return plantBed
+          }))
+          
+          toast({
+            title: "🌸 Meer bloemen!",
+            description: `Het plantvak is groter geworden! ${additionalFlowers.length} nieuwe bloemen toegevoegd.`,
+          })
+        }
+      }
+    } catch (error) {
+      console.error("Error adding more flowers:", error)
+    }
+  }, [toast])
+
+  // Create sample flowers for a new plant bed
+  const createSampleFlowers = useCallback(async (plantBedId: string, length: number, width: number): Promise<Plant[]> => {
+    try {
+      // Determine number of sample flowers based on size
+      const area = length * width
+      let flowerCount = 1
+      if (area > 4) flowerCount = 2
+      if (area > 8) flowerCount = 3
+      if (area > 15) flowerCount = 4
+      
+      const sampleFlowerTypes = [
+        { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
+        { name: 'Tulp', color: '#FF4500', emoji: '🌷' },
+        { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
+        { name: 'Lavendel', color: '#9370DB', emoji: '🪻' },
+      ]
+      
+      const createdFlowers: Plant[] = []
+      
+      for (let i = 0; i < flowerCount; i++) {
+        const flowerType = sampleFlowerTypes[i % sampleFlowerTypes.length]
+        
+        // Create a sample flower (this would normally use createVisualPlant)
+        // For now, we'll create a mock flower object
+        const mockFlower: Plant = {
+          id: `sample-${plantBedId}-${i}`,
+          plant_bed_id: plantBedId,
+          name: flowerType.name,
+          color: flowerType.color,
+          emoji: flowerType.emoji,
+          status: 'healthy' as const,
+          position_x: 0, // Will be positioned by FlowerVisualization
+          position_y: 0,
+          visual_width: 24,
+          visual_height: 24,
+          is_custom: false,
+          category: flowerType.name,
+          notes: 'Sample flower',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        
+        createdFlowers.push(mockFlower)
+      }
+      
+      return createdFlowers
+    } catch (error) {
+      console.error("Error creating sample flowers:", error)
+      return []
+    }
+  }, [])
 
   // Handle drag end with auto-save
   const handlePointerUp = useCallback(async () => {
@@ -569,9 +671,23 @@ export default function GardenDetailPage() {
         setSaving(false)
       }
     }
+    
+    // Check if plant bed was resized and add more flowers if needed
+    if (draggedBed && hasChanges) {
+      const bedToUpdate = plantBeds.find(bed => bed.id === draggedBed)
+      if (bedToUpdate) {
+        await checkAndAddMoreFlowers(bedToUpdate)
+      }
+    }
+    
     setDraggedBed(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedBed, hasChanges, plantBeds, toast])
+  }, [draggedBed, hasChanges, plantBeds, toast, checkAndAddMoreFlowers])
+
+  // Mouse move handler
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    handlePointerMove(e.clientX, e.clientY)
+  }, [handlePointerMove])
 
   // Handle click outside to deselect
   const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -768,6 +884,9 @@ export default function GardenDetailPage() {
         })
 
         if (updatedBed) {
+          // Create sample flowers for the new plant bed
+          const sampleFlowers = await createSampleFlowers(plantBed.id, length, width)
+          
           const bedWithPlants: PlantBedWithPlants = {
             ...updatedBed,
             position_x: updatedBed.position_x ?? newX,
@@ -778,7 +897,7 @@ export default function GardenDetailPage() {
             z_index: updatedBed.z_index ?? 0,
             color_code: updatedBed.color_code ?? '',
             visual_updated_at: updatedBed.visual_updated_at ?? new Date().toISOString(),
-            plants: []
+            plants: sampleFlowers
           }
           setPlantBeds(prev => [...prev, bedWithPlants])
           setIsAddingPlantBed(false)
@@ -792,7 +911,7 @@ export default function GardenDetailPage() {
           })
           toast({
             title: "Plantvak toegevoegd",
-            description: `${plantBed.name} (${sizeString}) is toegevoegd aan de tuin.`,
+            description: `${plantBed.name} (${sizeString}) is toegevoegd met ${sampleFlowers.length} voorbeeldbloemen.`,
           })
         }
       }
@@ -1241,11 +1360,17 @@ export default function GardenDetailPage() {
                         </div>
 
                         {/* Main area for plants/flowers - this space is left for the flowers */}
-                        <div className="flex-1 flex items-center justify-center">
+                        <div className="flex-1 flex items-center justify-center relative overflow-hidden">
+                          {/* Flower Visualization System */}
+                          <FlowerVisualization 
+                            plantBed={bed}
+                            plants={bed.plants}
+                            containerWidth={bedWidth}
+                            containerHeight={bedHeight}
+                          />
                           {bed.plants.length === 0 && (
                             <div className="text-gray-400 text-xs">Geen planten</div>
                           )}
-                          {/* TODO: Here will come the flower/plant visualization */}
                         </div>
 
                         {/* Bottom info bar */}
