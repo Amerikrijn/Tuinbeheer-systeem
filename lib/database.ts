@@ -435,6 +435,7 @@ export async function updatePlantPosition(id: string, updates: {
   is_custom?: boolean
   category?: string
   notes?: string
+  photo_url?: string | null
 }): Promise<PlantWithPosition | null> {
   const { data, error } = await supabase
     .from("plants")
