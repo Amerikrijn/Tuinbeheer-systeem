@@ -2189,18 +2189,7 @@ export default function PlantBedViewPage() {
                 </div>
               </div>
             </div>
-            <div>
-              <h4 className="font-medium mb-3">🎯 Standaard UI Pattern!</h4>
-              <div className="space-y-2 text-sm text-gray-600">
-                <p>• <strong>Klik bloem</strong> = selecteren + blauwe hoek + naam zichtbaar</p>
-                <p>• <strong>Sleep blauwe hoek</strong> = actief resizen (gebied groter)</p>
-                <p>• <strong>Loslaten</strong> = resize vastleggen + meer bloemen komen erbij!</p>
-                <p>• <strong>Klik ergens anders</strong> = deselecteren</p>
-                <p>• <strong>Sleep bloem zelf</strong> om te verplaatsen</p>
-                <p>• <strong>Dubbelklik</strong> om eigenschappen te bewerken</p>
-                <p>• Vergeet niet te <strong>opslaan</strong> na wijzigingen</p>
-              </div>
-            </div>
+
           </div>
         </CardContent>
       </Card>
