@@ -138,6 +138,7 @@ export default function PlantBedViewPage() {
   const [duplicatePositions, setDuplicatePositions] = useState<{x: number, y: number}[]>([])
   const [isDragMode, setIsDragMode] = useState(false)
   const [isResizeMode, setIsResizeMode] = useState(false)
+  const [saving, setSaving] = useState(false)
   const [showResizeInterface, setShowResizeInterface] = useState(false)
   const [resizeInterfacePosition, setResizeInterfacePosition] = useState({ x: 0, y: 0 })
   const [touchStartTime, setTouchStartTime] = useState(0)
@@ -855,17 +856,48 @@ export default function PlantBedViewPage() {
     setHasChanges(true)
   }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
 
-  // Handle drag end
-  const handlePointerUp = useCallback(() => {
-    if (draggedFlower) {
+  // Handle drag end with auto-save
+  const handlePointerUp = useCallback(async () => {
+    if (draggedFlower && hasChanges) {
+      // Auto-save when dragging stops
+      setSaving(true)
+      try {
+        const flowerToUpdate = flowerPositions.find(f => f.id === draggedFlower)
+        if (flowerToUpdate) {
+          await updatePlantPosition(flowerToUpdate.id, {
+            position_x: flowerToUpdate.position_x,
+            position_y: flowerToUpdate.position_y,
+            visual_width: flowerToUpdate.visual_width,
+            visual_height: flowerToUpdate.visual_height,
+            notes: flowerToUpdate.notes
+          })
+          
+          setHasChanges(false)
+          toast({
+            title: "✅ Bloem verplaatst en opgeslagen",
+            description: "Positie automatisch opgeslagen!",
+          })
+        }
+      } catch (error) {
+        console.error("Error auto-saving flower position:", error)
+        toast({
+          title: "❌ Fout bij opslaan",
+          description: "Kon positie niet opslaan. Probeer handmatig op te slaan.",
+          variant: "destructive",
+        })
+      } finally {
+        setSaving(false)
+      }
+    } else if (draggedFlower) {
       toast({
         title: "✅ Bloem verplaatst",
-        description: "Vergeet niet op te slaan!",
+        description: "Geen wijzigingen om op te slaan",
       })
     }
+    
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedFlower, toast])
+  }, [draggedFlower, hasChanges, flowerPositions, toast])
 
   // Legacy mouse up handler
   const onMouseUp = useCallback(() => {
@@ -2056,6 +2088,12 @@ export default function PlantBedViewPage() {
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5 text-purple-600" />
               Plantvak {plantBed?.name || ''}
+              {saving && (
+                <div className="flex items-center gap-2 ml-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
+                  <span className="text-sm text-green-600">Opslaan...</span>
+                </div>
+              )}
             </CardTitle>
             
             {/* Control buttons for selected flower */}
