@@ -218,6 +218,76 @@ export default function PlantBedViewPage() {
     }
   }, [params.id, params.bedId])
 
+  // Auto-fill large flower beds with more flowers
+  const autoFillFlowerBed = useCallback(async () => {
+    if (!plantBed) return
+    
+    const bedArea = canvasWidth * canvasHeight
+    const currentFlowerCount = flowerPositions.length
+    
+    // Calculate ideal flower count based on bed size
+    const targetFlowerCount = Math.min(20, Math.max(1, Math.floor(bedArea / 8000))) // 1 flower per ~8000px²
+    
+    if (currentFlowerCount < targetFlowerCount && bedArea > 100000) { // Only for beds larger than 100k px²
+      const flowersToAdd = Math.min(5, targetFlowerCount - currentFlowerCount) // Add up to 5 at a time
+      
+      const flowerTypes = [
+        { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
+        { name: 'Tulp', color: '#FF4500', emoji: '🌷' },
+        { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
+        { name: 'Lavendel', color: '#9370DB', emoji: '🪻' },
+        { name: 'Dahlia', color: '#FF1493', emoji: '🌺' }
+      ]
+      
+      for (let i = 0; i < flowersToAdd; i++) {
+        const flowerType = flowerTypes[i % flowerTypes.length]
+        const margin = 40
+        const flowerSize = FLOWER_SIZE_MEDIUM
+        
+        try {
+          const newFlower = await createVisualPlant({
+            plant_bed_id: plantBed.id,
+            name: `${flowerType.name} ${currentFlowerCount + i + 1}`,
+            color: flowerType.color,
+            status: 'healthy',
+            position_x: margin + Math.random() * (canvasWidth - margin * 2 - flowerSize),
+            position_y: margin + Math.random() * (canvasHeight - margin * 2 - flowerSize),
+            visual_width: flowerSize,
+            visual_height: flowerSize,
+            emoji: flowerType.emoji,
+            is_custom: false,
+            category: flowerType.name,
+            notes: 'Auto-generated flower for large bed'
+          })
+          
+          if (newFlower) {
+            setFlowerPositions(prev => [...prev, newFlower])
+          }
+        } catch (error) {
+          console.error("Error auto-adding flower:", error)
+        }
+      }
+      
+      if (flowersToAdd > 0) {
+        toast({
+          title: "🌸 Bloemenveld gevuld!",
+          description: `${flowersToAdd} bloemen automatisch toegevoegd aan het grote plantvak.`,
+        })
+      }
+    }
+  }, [plantBed, canvasWidth, canvasHeight, flowerPositions.length, toast])
+
+  // Auto-fill large flower beds after data is loaded
+  useEffect(() => {
+    if (!loading && plantBed && flowerPositions.length >= 0) {
+      const timer = setTimeout(() => {
+        autoFillFlowerBed()
+      }, 1000) // Delay to ensure everything is loaded
+      
+      return () => clearTimeout(timer)
+    }
+  }, [loading, plantBed, autoFillFlowerBed])
+
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
   }
@@ -281,13 +351,41 @@ export default function PlantBedViewPage() {
 
       const flowerSize = getFlowerSize(newFlower.size)
       
+      // Better initial positioning - avoid edges and distribute nicely
+      const margin = 30
+      const usableWidth = canvasWidth - (margin * 2) - flowerSize
+      const usableHeight = canvasHeight - (margin * 2) - flowerSize
+      
+      // For larger beds, use better distribution
+      const existingFlowers = flowerPositions.length
+      let initialX, initialY
+      
+      if (existingFlowers === 0) {
+        // First flower goes in center
+        initialX = (canvasWidth - flowerSize) / 2
+        initialY = (canvasHeight - flowerSize) / 2
+      } else if (existingFlowers < 4) {
+        // For first few flowers, use grid positioning
+        const cols = Math.ceil(Math.sqrt(existingFlowers + 1))
+        const rows = Math.ceil((existingFlowers + 1) / cols)
+        const col = existingFlowers % cols
+        const row = Math.floor(existingFlowers / cols)
+        
+        initialX = margin + (col + 0.5) * (usableWidth / cols)
+        initialY = margin + (row + 0.5) * (usableHeight / rows)
+      } else {
+        // For more flowers, use random but well-distributed positioning
+        initialX = margin + Math.random() * usableWidth
+        initialY = margin + Math.random() * usableHeight
+      }
+      
       const newPlant = await createVisualPlant({
         plant_bed_id: plantBed.id,
         name: newFlower.name,
         color: newFlower.color,
         status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
-        position_x: Math.random() * (canvasWidth - flowerSize),
-        position_y: Math.random() * (canvasHeight - flowerSize),
+        position_x: initialX,
+        position_y: initialY,
         visual_width: flowerSize,
         visual_height: flowerSize,
         emoji: isCustomFlower ? (newFlower.customEmoji || undefined) : selectedType?.emoji || undefined,
@@ -855,17 +953,39 @@ export default function PlantBedViewPage() {
     setHasChanges(true)
   }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
 
-  // Handle drag end
-  const handlePointerUp = useCallback(() => {
+  // Handle drag end with auto-save
+  const handlePointerUp = useCallback(async () => {
     if (draggedFlower) {
-      toast({
-        title: "✅ Bloem verplaatst",
-        description: "Vergeet niet op te slaan!",
-      })
+      // Auto-save the flower position immediately
+      try {
+        const flower = flowerPositions.find(f => f.id === draggedFlower)
+        if (flower) {
+          await updatePlantPosition(draggedFlower, {
+            position_x: flower.position_x,
+            position_y: flower.position_y,
+            visual_width: flower.visual_width,
+            visual_height: flower.visual_height,
+            notes: flower.notes
+          })
+          
+          setHasChanges(false)
+          toast({
+            title: "✅ Bloem verplaatst",
+            description: "Positie automatisch opgeslagen!",
+          })
+        }
+      } catch (error) {
+        console.error("Error auto-saving flower position:", error)
+        toast({
+          title: "❌ Fout bij opslaan",
+          description: "Positie kon niet worden opgeslagen. Probeer opnieuw.",
+          variant: "destructive",
+        })
+      }
     }
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedFlower, toast])
+  }, [draggedFlower, flowerPositions, toast])
 
   // Legacy mouse up handler
   const onMouseUp = useCallback(() => {
@@ -1012,15 +1132,15 @@ export default function PlantBedViewPage() {
         const x = centerX + Math.cos(angle) * radius - 20
         const y = centerY + Math.sin(angle) * radius - 20
         
-        // Keep within the area and canvas bounds
-        const constrainedX = Math.max(
-          Math.max(10, flower.position_x - newAreaSize/2 + 30), 
-          Math.min(x, Math.min(canvasWidth - 50, flower.position_x + newAreaSize/2 - 30))
-        )
-        const constrainedY = Math.max(
-          Math.max(10, flower.position_y - newAreaSize/2 + 30), 
-          Math.min(y, Math.min(canvasHeight - 50, flower.position_y + newAreaSize/2 - 30))
-        )
+        // Keep within the area and canvas bounds - improved boundary constraints
+        const margin = 20
+        const areaLeft = Math.max(margin, flower.position_x - newAreaSize/2 + margin)
+        const areaRight = Math.min(canvasWidth - margin - 30, flower.position_x + newAreaSize/2 - margin)
+        const areaTop = Math.max(margin, flower.position_y - newAreaSize/2 + margin)
+        const areaBottom = Math.min(canvasHeight - margin - 30, flower.position_y + newAreaSize/2 - margin)
+        
+        const constrainedX = Math.max(areaLeft, Math.min(x, areaRight))
+        const constrainedY = Math.max(areaTop, Math.min(y, areaBottom))
         
         try {
           const newFlower = await createVisualPlant({
