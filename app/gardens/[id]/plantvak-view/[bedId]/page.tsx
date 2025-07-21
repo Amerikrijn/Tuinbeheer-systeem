@@ -148,6 +148,7 @@ export default function PlantBedViewPage() {
     type: '',
     color: '#FF69B4',
     customEmoji: '',
+    photoUrl: '',
     description: '',
     status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
     size: 'medium' as 'small' | 'medium' | 'large'
@@ -263,10 +264,10 @@ export default function PlantBedViewPage() {
       return
     }
 
-    if (isCustomFlower && !newFlower.customEmoji) {
+    if (isCustomFlower && !newFlower.customEmoji && !newFlower.photoUrl) {
       toast({
-        title: "Emoji vereist",
-        description: "Voeg een emoji toe voor je aangepaste bloem.",
+        title: "Emoji of foto vereist",
+        description: "Voeg een emoji of foto toe voor je aangepaste bloem.",
         variant: "destructive",
       })
       return
@@ -292,6 +293,7 @@ export default function PlantBedViewPage() {
         visual_width: flowerSize,
         visual_height: flowerSize,
         emoji: isCustomFlower ? newFlower.customEmoji : selectedType?.emoji || '🌸',
+        photo_url: isCustomFlower ? newFlower.photoUrl || null : null,
         is_custom: isCustomFlower,
         category: isCustomFlower ? 'Aangepast' : newFlower.type,
         notes: `${newFlower.description}${newFlower.description ? ' | ' : ''}Size: ${newFlower.size}`
@@ -306,6 +308,7 @@ export default function PlantBedViewPage() {
           type: '',
           color: '#FF69B4',
           customEmoji: '',
+          photoUrl: '',
           description: '',
           status: 'healthy',
           size: 'medium'
@@ -376,6 +379,7 @@ export default function PlantBedViewPage() {
           type: '',
           color: '#FF69B4',
           customEmoji: '',
+          photoUrl: '',
           description: '',
           status: 'healthy',
           size: 'medium'
@@ -1217,12 +1221,7 @@ export default function PlantBedViewPage() {
               <Flower className="h-8 w-8 text-pink-600" />
               {plantBed.name}
             </h1>
-            <p className="text-gray-600">
-              🚨 <strong>LAATSTE KANS:</strong> 1) Klik bloem → 2) Sleep GELE hoek → MEER BLOEMEN komen erbij (niet 1 grote bloem!)
-              <span className="ml-2 text-sm font-medium text-pink-600">
-                • {plantBed.size || 'Op schaal'} • 🌸 MEER BLOEMEN + NAAM ZICHTBAAR
-              </span>
-            </p>
+
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -1593,21 +1592,15 @@ export default function PlantBedViewPage() {
             </Button>
           </div>
           
-          <div className="grid grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-gray-600">Naam:</span>
               <p className="font-medium">{plantBed?.name || 'Onbekend'}</p>
             </div>
             <div>
-              <span className="text-gray-600">Lengte:</span>
+              <span className="text-gray-600">Afmetingen:</span>
               <p className="font-medium">
-                {plantBed?.size ? parseDimensions(plantBed.size).length + 'm' : '0m'}
-              </p>
-            </div>
-            <div>
-              <span className="text-gray-600">Breedte:</span>
-              <p className="font-medium">
-                {plantBed?.size ? parseDimensions(plantBed.size).width + 'm' : '0m'}
+                {plantBed?.size || `${(canvasWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(canvasHeight / METERS_TO_PIXELS).toFixed(1)}m`}
               </p>
             </div>
             <div>
@@ -1790,7 +1783,7 @@ export default function PlantBedViewPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5 text-purple-600" />
-              Bloemen Layout - {plantBed?.size || 'Op schaal'} (Schaal: 1m = {METERS_TO_PIXELS}px)
+              Plantvak {plantBed?.name || ''}
             </CardTitle>
             
             {/* Control buttons for selected flower */}
