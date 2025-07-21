@@ -148,27 +148,27 @@ export default function GardenDetailPage() {
           })
         }
         
-        // Process plant beds to ensure they have visual dimensions
+        // Process plant beds to ensure they have correct visual dimensions
         const processedBeds = plantBedsData.map(bed => {
           let visualWidth = bed.visual_width
           let visualHeight = bed.visual_height
           
-          // If no visual dimensions, calculate from size
-          if (!visualWidth || !visualHeight) {
-            if (bed.size) {
-              const dims = getDimensionsFromSize(bed.size)
-              visualWidth = dims.width
-              visualHeight = dims.height
-              
-              // Update the database with calculated dimensions
+          // Always recalculate from size to ensure correct scaling
+          if (bed.size) {
+            const dims = getDimensionsFromSize(bed.size)
+            visualWidth = dims.width
+            visualHeight = dims.height
+            
+            // Update the database with recalculated dimensions if they're different
+            if (bed.visual_width !== visualWidth || bed.visual_height !== visualHeight) {
               updatePlantBed(bed.id, {
                 visual_width: visualWidth,
                 visual_height: visualHeight
               }).catch(console.error)
-            } else {
-              visualWidth = PLANTVAK_MIN_WIDTH
-              visualHeight = PLANTVAK_MIN_HEIGHT
             }
+          } else if (!visualWidth || !visualHeight) {
+            visualWidth = PLANTVAK_MIN_WIDTH
+            visualHeight = PLANTVAK_MIN_HEIGHT
           }
           
           return {
@@ -345,8 +345,8 @@ export default function GardenDetailPage() {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
       return {
-        width: Math.max(PLANTVAK_MIN_WIDTH, dimensions.lengthPixels),
-        height: Math.max(PLANTVAK_MIN_HEIGHT, dimensions.widthPixels)
+        width: dimensions.lengthPixels,
+        height: dimensions.widthPixels
       }
     }
     return {
@@ -665,8 +665,8 @@ export default function GardenDetailPage() {
         return
       }
 
-      const visualWidth = Math.max(PLANTVAK_MIN_WIDTH, metersToPixels(length))
-      const visualHeight = Math.max(PLANTVAK_MIN_HEIGHT, metersToPixels(width))
+      const visualWidth = metersToPixels(length)
+      const visualHeight = metersToPixels(width)
       
       console.log("📐 Plantvak afmetingen:", {
         length: `${length}m`,
