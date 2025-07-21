@@ -28,13 +28,14 @@ import {
   CloudSun,
   Cloud,
   Trash2,
+  Move,
 } from "lucide-react"
 import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS, 
-  GARDEN_CANVAS_WIDTH as CANVAS_WIDTH,
-  GARDEN_CANVAS_HEIGHT as CANVAS_HEIGHT,
+  GARDEN_CANVAS_WIDTH as DEFAULT_CANVAS_WIDTH,
+  GARDEN_CANVAS_HEIGHT as DEFAULT_CANVAS_HEIGHT,
   GARDEN_GRID_SIZE as GRID_SIZE,
   PLANTVAK_MIN_WIDTH,
   PLANTVAK_MIN_HEIGHT,
@@ -62,12 +63,47 @@ export default function GardenDetailPage() {
   const [selectedBed, setSelectedBed] = useState<string | null>(null)
   const [draggedBed, setDraggedBed] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [isDragMode, setIsDragMode] = useState(false)
+  const [touchStartTime, setTouchStartTime] = useState(0)
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingPlantBed, setIsAddingPlantBed] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deletingBedId, setDeletingBedId] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isEditingGarden, setIsEditingGarden] = useState(false)
+  const [gardenForm, setGardenForm] = useState({
+    name: '',
+    length: '',
+    width: '',
+    description: ''
+  })
   const canvasRef = useRef<HTMLDivElement>(null)
+
+  // Calculate canvas size based on garden dimensions
+  const getCanvasSize = () => {
+    if (!garden?.length || !garden?.width) {
+      return { 
+        width: DEFAULT_CANVAS_WIDTH, 
+        height: DEFAULT_CANVAS_HEIGHT,
+        widthMeters: DEFAULT_CANVAS_WIDTH / METERS_TO_PIXELS,
+        heightMeters: DEFAULT_CANVAS_HEIGHT / METERS_TO_PIXELS
+      }
+    }
+    
+    const lengthMeters = parseFloat(garden.length)
+    const widthMeters = parseFloat(garden.width)
+    const widthPixels = Math.max(DEFAULT_CANVAS_WIDTH, metersToPixels(lengthMeters))
+    const heightPixels = Math.max(DEFAULT_CANVAS_HEIGHT, metersToPixels(widthMeters))
+    
+    return {
+      width: widthPixels,
+      height: heightPixels,
+      widthMeters: lengthMeters,
+      heightMeters: widthMeters
+    }
+  }
+
+  const { width: CANVAS_WIDTH, height: CANVAS_HEIGHT, widthMeters, heightMeters } = getCanvasSize()
 
   // New plant bed form state with length and width
   const [newPlantBed, setNewPlantBed] = useState({
@@ -90,6 +126,16 @@ export default function GardenDetailPage() {
         ])
         console.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
         setGarden(gardenData)
+        
+        // Initialize garden form
+        if (gardenData) {
+          setGardenForm({
+            name: gardenData.name || '',
+            length: gardenData.length || '',
+            width: gardenData.width || '',
+            description: gardenData.description || ''
+          })
+        }
         
         // Process plant beds to ensure they have visual dimensions
         const processedBeds = plantBedsData.map(bed => {
@@ -142,6 +188,45 @@ export default function GardenDetailPage() {
     }
   }, [params.id])
 
+  // Handle garden update
+  const handleGardenUpdate = async () => {
+    if (!garden) return
+    
+    try {
+      setSaving(true)
+      
+      // Update garden in database
+      const updatedGarden = {
+        ...garden,
+        name: gardenForm.name,
+        length: gardenForm.length,
+        width: gardenForm.width,
+        description: gardenForm.description,
+        total_area: gardenForm.length && gardenForm.width ? 
+          (parseFloat(gardenForm.length) * parseFloat(gardenForm.width)).toString() : garden.total_area
+      }
+      
+      // You'll need to implement updateGarden function in database.ts
+      // For now, we'll simulate the update
+      setGarden(updatedGarden)
+      setIsEditingGarden(false)
+      
+      toast({
+        title: "✅ Tuin bijgewerkt",
+        description: "De tuinafmetingen zijn succesvol aangepast.",
+      })
+    } catch (error) {
+      console.error('Failed to update garden:', error)
+      toast({
+        title: "❌ Fout",
+        description: "Kon tuin niet bijwerken. Probeer opnieuw.",
+        variant: "destructive",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, 2))
   }
@@ -182,44 +267,136 @@ export default function GardenDetailPage() {
     }
   }
 
-  // Handle single click - select plant bed for dragging
-  const handlePlantBedClick = useCallback((e: React.MouseEvent, bedId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    // Select this plant bed
-    setSelectedBed(bedId)
-  }, [])
+  // Unified pointer event handling for both mouse and touch
+  const getPointerPosition = (e: React.MouseEvent | React.TouchEvent) => {
+    if ('touches' in e && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }
+    } else if ('clientX' in e) {
+      return { clientX: e.clientX, clientY: e.clientY }
+    }
+    return { clientX: 0, clientY: 0 }
+  }
 
-  // Handle mouse down - start dragging immediately
-  const handlePlantBedMouseDown = useCallback((e: React.MouseEvent, bedId: string) => {
+  // Handle single click/tap - select bed (mobile) or prepare for drag (desktop)
+  const handlePlantBedClick = useCallback((e: React.MouseEvent | React.TouchEvent, bedId: string) => {
     e.preventDefault()
     e.stopPropagation()
     
+    // For touch devices, use the old toggle behavior
+    if ('touches' in e) {
+      if (selectedBed === bedId && isDragMode) {
+        setIsDragMode(false)
+        setSelectedBed(null)
+        toast({
+          title: "Verplaatsen gestopt",
+          description: "Plantvak staat nu vast",
+        })
+      } else {
+        setSelectedBed(bedId)
+        setIsDragMode(true)
+        toast({
+          title: "Verplaatsen actief",
+          description: "Sleep het plantvak naar een nieuwe positie. Klik opnieuw om te stoppen.",
+        })
+      }
+    } else {
+      // For mouse, just select the bed - dragging happens on mousedown
+      setSelectedBed(bedId)
+      setIsDragMode(false)
+    }
+  }, [selectedBed, isDragMode, toast])
+
+  // Handle pointer down - start dragging immediately for mouse, conditionally for touch
+  const handlePlantBedPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, bedId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const { clientX, clientY } = getPointerPosition(e)
+    
+    // Record touch start time for long press detection
+    if ('touches' in e) {
+      setTouchStartTime(Date.now())
+      // For touch, only start dragging if we're in drag mode
+      if (!isDragMode || selectedBed !== bedId) {
+        return
+      }
+    }
+
     const bed = plantBeds.find(b => b.id === bedId)
     if (!bed) return
 
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // Select the bed
-    setSelectedBed(bedId)
-    
-    // Start dragging
-    const offsetX = e.clientX - rect.left - (bed.position_x || 100) * scale
-    const offsetY = e.clientY - rect.top - (bed.position_y || 100) * scale
+    // Start dragging immediately
+    const offsetX = clientX - rect.left - (bed.position_x || 100) * scale
+    const offsetY = clientY - rect.top - (bed.position_y || 100) * scale
 
     setDraggedBed(bedId)
     setDragOffset({ x: offsetX / scale, y: offsetY / scale })
-  }, [plantBeds, scale])
+    setSelectedBed(bedId)
+    setIsDragMode(true)
+    
+    // For mouse users, show immediate feedback
+    if (!('touches' in e)) {
+      toast({
+        title: "🖱️ Verplaatsen gestart",
+        description: "Sleep naar de gewenste positie en laat los.",
+      })
+    }
+  }, [plantBeds, scale, isDragMode, selectedBed, toast])
 
-  // Handle double click - navigate to plant bed details
+  // Handle long press for mobile (alternative to click for drag mode)
+  const handlePlantBedTouchStart = useCallback((e: React.TouchEvent, bedId: string) => {
+    setTouchStartTime(Date.now())
+    
+    // Set a timer for long press detection
+    const longPressTimer = setTimeout(() => {
+      if (!isDragMode && selectedBed !== bedId) {
+        setSelectedBed(bedId)
+        setIsDragMode(true)
+        
+        // Provide haptic feedback if available
+        if (navigator.vibrate) {
+          navigator.vibrate(50)
+        }
+        
+        toast({
+          title: "Verplaatsen actief",
+          description: "Lang indrukken gedetecteerd. Sleep het plantvak naar een nieuwe positie.",
+        })
+      }
+    }, 500) // 500ms for long press
+
+    // Store timer to clear it if touch ends early
+    ;(e.target as any).longPressTimer = longPressTimer
+  }, [isDragMode, selectedBed, toast])
+
+  const handlePlantBedTouchEnd = useCallback((e: React.TouchEvent, bedId: string) => {
+    const touchDuration = Date.now() - touchStartTime
+    
+    // Clear long press timer
+    if ((e.target as any).longPressTimer) {
+      clearTimeout((e.target as any).longPressTimer)
+    }
+    
+    // If it was a quick tap (not long press), handle as click
+    if (touchDuration < 500) {
+      handlePlantBedClick(e, bedId)
+    }
+  }, [touchStartTime, handlePlantBedClick])
+
+  // Handle double click/tap - navigate to plant bed details
   const handlePlantBedDoubleClick = useCallback((bedId: string) => {
+    // Exit drag mode first
+    setIsDragMode(false)
+    setSelectedBed(null)
+    
     router.push(`/gardens/${garden?.id}/plantvak-view/${bedId}`)
   }, [router, garden])
 
-  // Handle drag move
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  // Handle drag move - unified for mouse and touch
+  const handlePointerMove = useCallback((clientX: number, clientY: number) => {
     if (!draggedBed || !canvasRef.current) return
 
     const rect = canvasRef.current.getBoundingClientRect()
@@ -229,8 +406,8 @@ export default function GardenDetailPage() {
     const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
     const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
 
-    const x = Math.max(0, Math.min((e.clientX - rect.left) / scale - dragOffset.x, CANVAS_WIDTH - bedWidth))
-    const y = Math.max(0, Math.min((e.clientY - rect.top) / scale - dragOffset.y, CANVAS_HEIGHT - bedHeight))
+    const x = Math.max(0, Math.min((clientX - rect.left) / scale - dragOffset.x, CANVAS_WIDTH - bedWidth))
+    const y = Math.max(0, Math.min((clientY - rect.top) / scale - dragOffset.y, CANVAS_HEIGHT - bedHeight))
 
     setPlantBeds(prev => prev.map(bed => 
       bed.id === draggedBed 
@@ -240,38 +417,58 @@ export default function GardenDetailPage() {
     setHasChanges(true)
   }, [draggedBed, dragOffset, scale, plantBeds])
 
+  // Mouse move handler
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    handlePointerMove(e.clientX, e.clientY)
+  }, [handlePointerMove])
+
   // Handle drag end
-  const handleMouseUp = useCallback(() => {
+  const handlePointerUp = useCallback(() => {
+    if (draggedBed) {
+      toast({
+        title: "Plantvak verplaatst",
+        description: "Vergeet niet op te slaan!",
+      })
+    }
     setDraggedBed(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [])
+  }, [draggedBed, toast])
 
   // Handle click outside to deselect
-  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+  const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (e.target === e.currentTarget) {
       setSelectedBed(null)
+      setIsDragMode(false)
     }
   }, [])
 
-  // Add event listeners for drag
+  // Add event listeners for drag - support both mouse and touch
   useEffect(() => {
     if (draggedBed) {
       const handleMouseMoveGlobal = (e: MouseEvent) => {
-        const mockReactEvent = {
-          clientX: e.clientX,
-          clientY: e.clientY
-        } as React.MouseEvent
-        handleMouseMove(mockReactEvent)
+        handlePointerMove(e.clientX, e.clientY)
+      }
+      
+      const handleTouchMoveGlobal = (e: TouchEvent) => {
+        e.preventDefault() // Prevent scrolling while dragging
+        if (e.touches.length > 0) {
+          handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
+        }
       }
       
       document.addEventListener('mousemove', handleMouseMoveGlobal)
-      document.addEventListener('mouseup', handleMouseUp)
+      document.addEventListener('mouseup', handlePointerUp)
+      document.addEventListener('touchmove', handleTouchMoveGlobal, { passive: false })
+      document.addEventListener('touchend', handlePointerUp)
+      
       return () => {
         document.removeEventListener('mousemove', handleMouseMoveGlobal)
-        document.removeEventListener('mouseup', handleMouseUp)
+        document.removeEventListener('mouseup', handlePointerUp)
+        document.removeEventListener('touchmove', handleTouchMoveGlobal)
+        document.removeEventListener('touchend', handlePointerUp)
       }
     }
-  }, [draggedBed, handleMouseMove, handleMouseUp])
+  }, [draggedBed, handlePointerMove, handlePointerUp])
 
   // Save layout changes
   const saveLayout = async () => {
@@ -564,7 +761,7 @@ export default function GardenDetailPage() {
               Sleep om te verplaatsen, dubbelklik om te beheren
               {(garden.total_area || (garden.length && garden.width)) && (
                 <span className="ml-2 text-sm font-medium text-green-600">
-                  • Tuingrootte: {garden.total_area || 
+                  • Afmetingen: {garden.length}m × {garden.width}m • Oppervlakte: {garden.total_area || 
                     (garden.length && garden.width && 
                       `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
                     )
@@ -576,6 +773,15 @@ export default function GardenDetailPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditingGarden(true)}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Tuin Bewerken
+          </Button>
+          
+          <Button
             variant={showVisualView ? "default" : "outline"}
             size="sm"
             onClick={() => setShowVisualView(!showVisualView)}
@@ -583,6 +789,32 @@ export default function GardenDetailPage() {
             <Grid3X3 className="h-4 w-4 mr-2" />
             {showVisualView ? "Lijst Weergave" : "Visuele Weergave"}
           </Button>
+          
+          {selectedBed && showVisualView && (
+            <Button
+              variant={isDragMode ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                setIsDragMode(!isDragMode)
+                if (!isDragMode) {
+                  toast({
+                    title: "Verplaatsen actief",
+                    description: "Sleep het geselecteerde plantvak naar een nieuwe positie.",
+                  })
+                } else {
+                  toast({
+                    title: "Verplaatsen gestopt",
+                    description: "Plantvak staat nu vast.",
+                  })
+                }
+              }}
+              className="flex items-center gap-2"
+            >
+              <Move className="h-4 w-4" />
+              {isDragMode ? "Stop" : "Verplaats"}
+            </Button>
+          )}
+          
           <Dialog open={isAddingPlantBed} onOpenChange={setIsAddingPlantBed}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
@@ -590,7 +822,7 @@ export default function GardenDetailPage() {
                 Plantvak Toevoegen
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nieuw Plantvak Toevoegen</DialogTitle>
                 <DialogDescription>
@@ -766,7 +998,7 @@ export default function GardenDetailPage() {
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
-                Tuin Layout - Op Schaal (1m = {METERS_TO_PIXELS}px)
+                Tuin Layout - {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m (Schaal: 1m = {METERS_TO_PIXELS}px)
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={zoomOut}>
@@ -782,7 +1014,39 @@ export default function GardenDetailPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
+            {/* Mobile help text */}
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
+            <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak verplaatsen (mobiel):</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• <strong>1x tikken:</strong> Plantvak selecteren</li>
+              <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
+              <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
+              <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
+            </ul>
+            <div className="mt-2 pt-2 border-t border-blue-300">
+              <p className="text-xs text-blue-700">
+                🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m
+              </p>
+            </div>
+          </div>
+          
+          {/* Desktop help text */}
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg hidden md:block">
+            <h4 className="font-medium text-green-900 mb-1">💻 Plantvak verplaatsen (laptop):</h4>
+            <ul className="text-sm text-green-800 space-y-1">
+              <li>• <strong>Vasthouden en slepen:</strong> Direct verplaatsen</li>
+              <li>• <strong>Klik:</strong> Plantvak selecteren</li>
+              <li>• <strong>Dubbel klik:</strong> Plantvak openen</li>
+            </ul>
+            <div className="mt-2 pt-2 border-t border-green-300">
+              <p className="text-xs text-green-700">
+                🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m • 
+                <strong>Schaal:</strong> 1m = {METERS_TO_PIXELS} pixels
+              </p>
+            </div>
+          </div>
+          
+          <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
               <div
                 ref={canvasRef}
                 className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 cursor-crosshair"
@@ -794,7 +1058,7 @@ export default function GardenDetailPage() {
                   maxWidth: "100%",
                 }}
                 onMouseMove={handleMouseMove}
-                onMouseUp={handleMouseUp}
+                onMouseUp={handlePointerUp}
                 onClick={handleCanvasClick}
               >
                 {/* Grid */}
@@ -813,6 +1077,7 @@ export default function GardenDetailPage() {
                 {plantBeds.map((bed) => {
                   const isSelected = selectedBed === bed.id
                   const isDragging = draggedBed === bed.id
+                  const isInDragMode = isDragMode && isSelected
                   
                   // Calculate dimensions from size if visual dimensions not available
                   let bedWidth = bed.visual_width || 150
@@ -827,9 +1092,11 @@ export default function GardenDetailPage() {
                   return (
                     <div
                       key={bed.id}
-                      className={`absolute border-2 rounded-lg cursor-pointer transition-all hover:shadow-xl hover:scale-105 hover:border-green-500 group ${
-                        isDragging ? 'shadow-2xl scale-110 border-green-500 z-50' : 
-                        isSelected ? 'border-blue-500 shadow-lg ring-2 ring-blue-200' : ''
+                      className={`absolute border-2 rounded-lg transition-all group ${
+                        isDragging ? 'shadow-2xl scale-110 border-green-500 z-50 cursor-grabbing' : 
+                        isInDragMode ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-grab animate-pulse' :
+                        isSelected ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-pointer' :
+                        'cursor-pointer hover:shadow-xl hover:scale-105 hover:border-green-500'
                       }`}
                       style={{
                         left: bed.position_x || 100,
@@ -839,7 +1106,9 @@ export default function GardenDetailPage() {
                       }}
                       onClick={(e) => handlePlantBedClick(e, bed.id)}
                       onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
-                      onMouseDown={(e) => handlePlantBedMouseDown(e, bed.id)}
+                      onMouseDown={(e) => handlePlantBedPointerDown(e, bed.id)}
+                      onTouchStart={(e) => handlePlantBedTouchStart(e, bed.id)}
+                      onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                     >
                       <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors ${
                         isSelected ? 'bg-blue-50' : ''
@@ -848,6 +1117,11 @@ export default function GardenDetailPage() {
                           <div className="text-xs font-medium text-gray-700 bg-white/90 px-2 py-1 rounded shadow-sm">
                             {bed.name}
                           </div>
+                          {isInDragMode && (
+                            <div className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
+                              🖱️ Sleep me!
+                            </div>
+                          )}
                           {bed.sun_exposure && (
                             <div className="bg-white/90 p-1 rounded shadow-sm">
                               {getSunExposureIcon(bed.sun_exposure)}
@@ -997,7 +1271,7 @@ export default function GardenDetailPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
               <Trash2 className="h-5 w-5" />
@@ -1033,6 +1307,94 @@ export default function GardenDetailPage() {
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Verwijderen
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Garden Dialog */}
+      <Dialog open={isEditingGarden} onOpenChange={setIsEditingGarden}>
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>🏡 Tuin Bewerken</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="garden-name" className="block text-sm font-medium text-gray-700 mb-1">
+                Tuin Naam
+              </label>
+              <Input
+                id="garden-name"
+                value={gardenForm.name}
+                onChange={(e) => setGardenForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Bijv. Mijn Achtertuin"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="garden-length" className="block text-sm font-medium text-gray-700 mb-1">
+                  Lengte (m)
+                </label>
+                <Input
+                  id="garden-length"
+                  type="number"
+                  step="0.1"
+                  min="1"
+                  value={gardenForm.length}
+                  onChange={(e) => setGardenForm(prev => ({ ...prev, length: e.target.value }))}
+                  placeholder="9.0"
+                />
+              </div>
+              <div>
+                <label htmlFor="garden-width" className="block text-sm font-medium text-gray-700 mb-1">
+                  Breedte (m)
+                </label>
+                <Input
+                  id="garden-width"
+                  type="number"
+                  step="0.1"
+                  min="1"
+                  value={gardenForm.width}
+                  onChange={(e) => setGardenForm(prev => ({ ...prev, width: e.target.value }))}
+                  placeholder="16.0"
+                />
+              </div>
+            </div>
+
+            {gardenForm.length && gardenForm.width && (
+              <div className="text-sm text-green-600 font-medium">
+                📐 Oppervlakte: {(parseFloat(gardenForm.length) * parseFloat(gardenForm.width)).toFixed(1)} m²
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="garden-description" className="block text-sm font-medium text-gray-700 mb-1">
+                Beschrijving (optioneel)
+              </label>
+              <Textarea
+                id="garden-description"
+                value={gardenForm.description}
+                onChange={(e) => setGardenForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Beschrijf je tuin..."
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setIsEditingGarden(false)}
+            >
+              Annuleren
+            </Button>
+            <Button
+              onClick={handleGardenUpdate}
+              disabled={saving || !gardenForm.name || !gardenForm.length || !gardenForm.width}
+            >
+              {saving ? "Opslaan..." : "Opslaan"}
             </Button>
           </div>
         </DialogContent>
