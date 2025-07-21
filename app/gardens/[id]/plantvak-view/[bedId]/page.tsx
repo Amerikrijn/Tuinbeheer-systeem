@@ -37,6 +37,7 @@ import { useToast } from "@/hooks/use-toast"
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 import { uploadImage, type UploadResult } from "@/lib/storage"
+import { FlowerVisualization } from "@/components/flower-visualization"
 import {
   METERS_TO_PIXELS,
   PLANTVAK_CANVAS_PADDING,
@@ -2190,7 +2191,15 @@ export default function PlantBedViewPage() {
                 }}
               />
 
-              {/* Flowers */}
+              {/* Use FlowerVisualization Component for consistent display */}
+              <FlowerVisualization 
+                plantBed={plantBed}
+                plants={flowerPositions}
+                containerWidth={canvasWidth}
+                containerHeight={canvasHeight}
+              />
+
+              {/* Interactive overlay for selected flowers */}
               {flowerPositions.map((flower) => {
                 const isSelected = selectedFlower?.id === flower.id
                 const isDragging = draggedFlower === flower.id
@@ -2199,19 +2208,19 @@ export default function PlantBedViewPage() {
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute rounded-full border-4 ${getStatusColor(flower.status || 'healthy')} ${
+                    className={`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'healthy')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105 cursor-grabbing" : 
                       isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab animate-pulse" :
                       isSelected && isResizeMode ? "ring-4 ring-blue-500 shadow-xl cursor-default" :
                       isSelected ? "ring-4 ring-blue-500 shadow-xl cursor-pointer" :
                       "shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
-                    } transition-all duration-200 flex items-center justify-center text-white relative overflow-hidden`}
+                    } transition-all duration-200 flex items-center justify-center text-white relative overflow-hidden bg-opacity-0 border-opacity-50`}
                     style={{
                       left: flower.position_x,
                       top: flower.position_y,
                       width: flower.visual_width,
                       height: flower.visual_height,
-                      backgroundColor: flower.color,
+                      backgroundColor: 'transparent',
                     }}
                     onClick={(e) => handleFlowerClick(e, flower.id)}
                     onDoubleClick={() => handleFlowerDoubleClick(flower)}
