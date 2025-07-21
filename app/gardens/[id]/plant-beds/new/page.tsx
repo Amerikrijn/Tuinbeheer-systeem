@@ -72,7 +72,7 @@ export default function NewPlantBedPage() {
 
     if (!newPlantBed.id.trim()) nextErrors.id = "Plantvak ID is verplicht"
     if (!newPlantBed.name.trim()) nextErrors.name = "Plantvak naam is verplicht"
-    if (!newPlantBed.location.trim()) nextErrors.location = "Locatie is verplicht"
+    // Location is optional - removed validation
 
     // Validate ID format (letters, numbers, hyphens only)
     if (newPlantBed.id && !/^[a-zA-Z0-9-]+$/.test(newPlantBed.id)) {
@@ -106,6 +106,7 @@ export default function NewPlantBedPage() {
     setLoading(true)
     try {
       const plantBed = await createPlantBed({
+        id: newPlantBed.id,
         garden_id: garden.id,
         name: newPlantBed.name,
         location: newPlantBed.location || undefined,

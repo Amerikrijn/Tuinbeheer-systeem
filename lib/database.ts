@@ -193,6 +193,7 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
 }
 
 export async function createPlantBed(plantBed: {
+  id: string
   garden_id: string
   name: string
   location?: string
@@ -225,8 +226,9 @@ export async function createPlantBed(plantBed: {
   
   console.log("✅ Garden exists, proceeding with plant bed creation")
   
-  // Let the database auto-generate the UUID
+  // Insert plant bed with user-provided ID
   const { data, error } = await supabase.from("plant_beds").insert({
+    id: plantBed.id,
     garden_id: plantBed.garden_id,
     name: plantBed.name,
     location: plantBed.location || null,
@@ -248,6 +250,7 @@ export async function createPlantBed(plantBed: {
     console.error("❌ Raw error object:", error)
     console.error("❌ Error properties:", Object.keys(error))
     console.error("❌ Plant bed data that failed:", JSON.stringify({
+      id: plantBed.id,
       garden_id: plantBed.garden_id,
       name: plantBed.name,
       location: plantBed.location || null,
