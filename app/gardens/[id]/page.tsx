@@ -92,6 +92,16 @@ export default function GardenDetailPage() {
     
     const lengthMeters = parseFloat(garden.length)
     const widthMeters = parseFloat(garden.width)
+    
+    if (isNaN(lengthMeters) || isNaN(widthMeters) || lengthMeters <= 0 || widthMeters <= 0) {
+      return { 
+        width: DEFAULT_CANVAS_WIDTH, 
+        height: DEFAULT_CANVAS_HEIGHT,
+        widthMeters: DEFAULT_CANVAS_WIDTH / METERS_TO_PIXELS,
+        heightMeters: DEFAULT_CANVAS_HEIGHT / METERS_TO_PIXELS
+      }
+    }
+    
     const widthPixels = Math.max(DEFAULT_CANVAS_WIDTH, metersToPixels(lengthMeters))
     const heightPixels = Math.max(DEFAULT_CANVAS_HEIGHT, metersToPixels(widthMeters))
     
@@ -188,9 +198,86 @@ export default function GardenDetailPage() {
     }
   }, [params.id])
 
+  // Check if plant beds fit in new garden dimensions
+  const validatePlantBedsInGarden = (newLength: string, newWidth: string) => {
+    if (!newLength || !newWidth || plantBeds.length === 0) return { fits: true, warnings: [] }
+    
+    const gardenLengthM = parseFloat(newLength)
+    const gardenWidthM = parseFloat(newWidth)
+    
+    if (isNaN(gardenLengthM) || isNaN(gardenWidthM) || gardenLengthM <= 0 || gardenWidthM <= 0) {
+      return { fits: true, warnings: [] }
+    }
+    
+    // Convert garden dimensions to pixels
+    const gardenLengthPx = metersToPixels(gardenLengthM)  // This is the WIDTH in pixels (horizontal)
+    const gardenWidthPx = metersToPixels(gardenWidthM)    // This is the HEIGHT in pixels (vertical)
+    
+    const warnings: string[] = []
+    let allFit = true
+    
+    plantBeds.forEach(bed => {
+      const bedX = bed.position_x || 100
+      const bedY = bed.position_y || 100
+      const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
+      const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
+      
+      // Calculate the edges of the plant bed
+      const bedRightEdge = bedX + bedWidth
+      const bedBottomEdge = bedY + bedHeight
+      
+      // Check if plant bed extends beyond garden boundaries
+      const fitsHorizontally = bedRightEdge <= gardenLengthPx
+      const fitsVertically = bedBottomEdge <= gardenWidthPx
+      
+      if (!fitsHorizontally || !fitsVertically) {
+        allFit = false
+        
+        // Calculate how much the bed extends beyond the garden
+        const overflowX = Math.max(0, bedRightEdge - gardenLengthPx)
+        const overflowY = Math.max(0, bedBottomEdge - gardenWidthPx)
+        
+        const overflowDescription: string[] = []
+        if (overflowX > 0) {
+          overflowDescription.push(`${(overflowX / METERS_TO_PIXELS).toFixed(1)}m te breed`)
+        }
+        if (overflowY > 0) {
+          overflowDescription.push(`${(overflowY / METERS_TO_PIXELS).toFixed(1)}m te diep`)
+        }
+        
+        warnings.push(`Plantvak "${bed.name}" (${bed.size || 'onbekende grootte'}) valt ${overflowDescription.join(' en ')} buiten de tuin`)
+      }
+    })
+    
+    return { fits: allFit, warnings }
+  }
+
   // Handle garden update
   const handleGardenUpdate = async () => {
     if (!garden) return
+    
+    // Validate that plant beds still fit
+    const validation = validatePlantBedsInGarden(gardenForm.length, gardenForm.width)
+    
+    if (!validation.fits) {
+      toast({
+        title: "⚠️ Plantvakken passen niet meer",
+        description: `${validation.warnings.length} plantvak(ken) vallen buiten de nieuwe tuinafmetingen. Verplaats ze eerst of maak de tuin groter.`,
+        variant: "destructive",
+      })
+      
+      // Show detailed warnings
+      validation.warnings.forEach((warning, index) => {
+        setTimeout(() => {
+          toast({
+            title: `Plantvak ${index + 1}/${validation.warnings.length}`,
+            description: warning,
+            variant: "destructive",
+          })
+        }, (index + 1) * 1000)
+      })
+      return
+    }
     
     try {
       setSaving(true)
@@ -1364,9 +1451,43 @@ export default function GardenDetailPage() {
             </div>
 
             {gardenForm.length && gardenForm.width && (
-              <div className="text-sm text-green-600 font-medium">
-                📐 Oppervlakte: {(parseFloat(gardenForm.length) * parseFloat(gardenForm.width)).toFixed(1)} m²
-              </div>
+              <>
+                <div className="text-sm text-green-600 font-medium">
+                  📐 Oppervlakte: {(parseFloat(gardenForm.length) * parseFloat(gardenForm.width)).toFixed(1)} m²
+                </div>
+                
+                {(() => {
+                  const validation = validatePlantBedsInGarden(gardenForm.length, gardenForm.width)
+                  if (!validation.fits) {
+                    return (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-red-800 font-medium mb-2">
+                          <span>⚠️</span>
+                          <span>Plantvakken passen niet meer!</span>
+                        </div>
+                        <div className="text-sm text-red-700 space-y-1">
+                          {validation.warnings.map((warning, index) => (
+                            <div key={index}>• {warning}</div>
+                          ))}
+                        </div>
+                        <div className="text-xs text-red-600 mt-2">
+                          💡 Tip: Verplaats de plantvakken eerst of maak de tuin groter
+                        </div>
+                      </div>
+                    )
+                  } else if (plantBeds.length > 0) {
+                    return (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-green-800 font-medium">
+                          <span>✅</span>
+                          <span>Alle plantvakken passen nog in de tuin</span>
+                        </div>
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
+              </>
             )}
 
             <div>
