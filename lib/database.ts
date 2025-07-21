@@ -392,7 +392,7 @@ export async function createVisualPlant(plant: {
   position_y: number
   visual_width: number
   visual_height: number
-  emoji: string
+  emoji?: string
   photo_url?: string | null
   is_custom?: boolean
   category?: string
