@@ -311,8 +311,8 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
       return { width: 800, height: 600 };
     }
     
-    // Scale: 1 meter = 40 pixels for better overview
-    const SCALE_FACTOR = 40;
+    // Scale: 1 meter = 80 pixels (consistent with garden view)
+    const SCALE_FACTOR = 80;
     const minSize = 400;
     const maxSize = 1200;
     
@@ -341,14 +341,14 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
       setPlantBeds(beds);
       setGarden(gardenData);
 
-      // Initialize positions
+      // Initialize positions with consistent scaling (80px per meter)
       const initialPositions: PlantBedPosition[] = beds.map((bed, index) => {
         const sizeMap = {
-          "Klein (< 5m²)": { width: 80, height: 60 },
-          "Gemiddeld (5-15m²)": { width: 120, height: 100 },
-          "Groot (15-30m²)": { width: 160, height: 140 },
+          "Klein (< 5m²)": { width: 160, height: 120 },    // ~2m x 1.5m
+          "Gemiddeld (5-15m²)": { width: 240, height: 200 }, // ~3m x 2.5m  
+          "Groot (15-30m²)": { width: 320, height: 280 },   // ~4m x 3.5m
         } as const;
-        const size = sizeMap[bed.size as keyof typeof sizeMap] ?? { width: 100, height: 80 };
+        const size = sizeMap[bed.size as keyof typeof sizeMap] ?? { width: 200, height: 160 };
         return {
           id: bed.id,
           x: 100 + (index % 3) * 200,
