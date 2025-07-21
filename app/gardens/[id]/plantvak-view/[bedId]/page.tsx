@@ -26,6 +26,10 @@ import {
   Trash2,
   Palette,
   Edit,
+  Move,
+  Maximize2,
+  X,
+  Minus,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed } from "@/lib/database"
@@ -45,7 +49,7 @@ import {
 const GRID_SIZE = 10
 const SCALE_MIN = 0.5
 const SCALE_MAX = 3
-const FLOWER_SIZE = FLOWER_SIZE_MEDIUM // Default to medium size
+const FLOWER_SIZE = FLOWER_SIZE_MEDIUM // Default to medium size (now 45px)
 
 const FLOWER_TYPES = [
   { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
@@ -127,6 +131,12 @@ export default function PlantBedViewPage() {
   const [resizeStartPos, setResizeStartPos] = useState({ x: 0, y: 0 })
   const [resizeMode, setResizeMode] = useState<'uniform' | 'width' | 'height'>('uniform')
   const [duplicatePositions, setDuplicatePositions] = useState<{x: number, y: number}[]>([])
+  const [isDragMode, setIsDragMode] = useState(false)
+  const [isResizeMode, setIsResizeMode] = useState(false)
+  const [showResizeInterface, setShowResizeInterface] = useState(false)
+  const [resizeInterfacePosition, setResizeInterfacePosition] = useState({ x: 0, y: 0 })
+  const [touchStartTime, setTouchStartTime] = useState(0)
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingFlower, setIsAddingFlower] = useState(false)
   const [isEditingFlower, setIsEditingFlower] = useState(false)
@@ -507,31 +517,160 @@ export default function PlantBedViewPage() {
     }
   }
 
-  // Handle single click - SELECT flower (standard UI pattern)
-  const handleFlowerClick = useCallback((e: React.MouseEvent, flowerId: string) => {
+  // Unified pointer event handling for both mouse and touch
+  const getPointerPosition = (e: React.MouseEvent | React.TouchEvent) => {
+    if ('touches' in e && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }
+    } else if ('clientX' in e) {
+      return { clientX: e.clientX, clientY: e.clientY }
+    }
+    return { clientX: 0, clientY: 0 }
+  }
+
+  // Handle single click/tap - select flower and prepare for operations
+  const handleFlowerClick = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
     
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    // Standard UI: Click = Select (resize handles appear)
-    console.log("🎯 SELECTING flower for resize")
+    // For touch devices, use the toggle behavior
+    if ('touches' in e) {
+      if (selectedFlower?.id === flowerId) {
+        if (!isDragMode && !isResizeMode) {
+          setIsDragMode(true)
+          toast({
+            title: "🖱️ Verplaatsen actief",
+            description: "Sleep de bloem naar een nieuwe positie. Klik opnieuw voor grootte aanpassen.",
+          })
+        } else if (isDragMode) {
+          setIsDragMode(false)
+          setIsResizeMode(true)
+          toast({
+            title: "📏 Grootte aanpassen actief", 
+            description: "Sleep de blauwe hoeken om groter te maken. Klik opnieuw om te stoppen.",
+          })
+        } else {
+          setIsDragMode(false)
+          setIsResizeMode(false)
+          setSelectedFlower(null)
+          toast({
+            title: "✅ Selectie opgeheven",
+            description: "Klik op een bloem om te selecteren.",
+          })
+        }
+      } else {
+        setSelectedFlower(flower)
+        setIsDragMode(false)
+        setIsResizeMode(false)
+        resizeModeRef.current = flowerId
+        toast({
+          title: "🎯 Bloem geselecteerd",
+          description: "Klik opnieuw om te verplaatsen of grootte aan te passen.",
+        })
+      }
+    } else {
+      // For mouse, just select the flower - dragging happens on mousedown
+      setSelectedFlower(flower)
+      setIsDragMode(false)
+      setIsResizeMode(false)
+      resizeModeRef.current = flowerId
+    }
+  }, [flowerPositions, selectedFlower, isDragMode, isResizeMode, toast])
+
+  // Handle double click - show resize interface
+  const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
+    console.log('Double click on flower:', flower.name)
+    
+    // Get flower position on screen
+    const containerRect = containerRef.current?.getBoundingClientRect()
+    if (!containerRect) return
+
+    const flowerScreenX = containerRect.left + (flower.position_x * scale) + (flower.visual_width * scale) / 2
+    const flowerScreenY = containerRect.top + (flower.position_y * scale) + (flower.visual_height * scale) / 2
+
     setSelectedFlower(flower)
-    resizeModeRef.current = flowerId
+    setShowResizeInterface(true)
+    setResizeInterfacePosition({ 
+      x: flowerScreenX, 
+      y: flowerScreenY 
+    })
+    setIsDragMode(false)
+    setIsResizeMode(false)
     
     toast({
-      title: "🎯 Bloem geselecteerd",
-      description: "Sleep de blauwe hoek om het gebied groter te maken",
+      title: "🔧 Grootte aanpassen",
+      description: "Gebruik de + en - knoppen om de bloem groter of kleiner te maken.",
     })
+  }, [scale, toast])
+
+  // Handle flower resize via interface
+  const handleFlowerResize = useCallback(async (flowerId: string, sizeChange: number) => {
+    const flower = flowerPositions.find(f => f.id === flowerId)
+    if (!flower) return
+
+    const currentSize = Math.min(flower.visual_width, flower.visual_height)
+    const newSize = Math.max(FLOWER_SIZE_SMALL, Math.min(FLOWER_SIZE_LARGE * 2, currentSize + sizeChange))
+    
+    const updatedFlower = {
+      ...flower,
+      visual_width: newSize,
+      visual_height: newSize
+    }
+
+    try {
+      await updatePlantPosition(flowerId, {
+        position_x: flower.position_x,
+        position_y: flower.position_y,
+        visual_width: newSize,
+        visual_height: newSize,
+        notes: flower.notes
+      })
+
+      setFlowerPositions(prev => prev.map(f => 
+        f.id === flowerId ? updatedFlower : f
+      ))
+      setSelectedFlower(updatedFlower)
+      setHasChanges(true)
+
+      toast({
+        title: "✅ Grootte aangepast",
+        description: `${flower.name} is nu ${newSize}px groot.`,
+      })
+    } catch (error) {
+      console.error('Failed to resize flower:', error)
+      toast({
+        title: "❌ Fout",
+        description: "Kon grootte niet aanpassen. Probeer opnieuw.",
+        variant: "destructive",
+      })
+    }
   }, [flowerPositions, toast])
 
-  // Handle mouse down - start dragging immediately
-  const handleFlowerMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
+  // Close resize interface
+  const closeResizeInterface = useCallback(() => {
+    setShowResizeInterface(false)
+    setSelectedFlower(null)
+  }, [])
+
+  // Handle pointer down - start dragging immediately for mouse, conditionally for touch
+  const handleFlowerPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
     
-    // Clear any existing selections first
+    const { clientX, clientY } = getPointerPosition(e)
+    
+    // Record touch start time for long press detection
+    if ('touches' in e) {
+      setTouchStartTime(Date.now())
+      // For touch, only start dragging if we're in drag mode and flower is selected
+      if (!isDragMode || selectedFlower?.id !== flowerId) {
+        return
+      }
+    }
+    
+    // Clear any existing selections first if dragging a different flower
     if (draggedFlower && draggedFlower !== flowerId) {
       return // Prevent multiple flowers from being dragged at once
     }
@@ -542,38 +681,114 @@ export default function PlantBedViewPage() {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // DON'T select the flower here - let click handler do it!
-    // This was causing the bug where first click was seen as second click
+    // For mouse: start dragging immediately if flower is selected
+    // For touch: start dragging if in drag mode
+    if (selectedFlower?.id === flowerId || !('touches' in e)) {
+      // Start dragging
+      setDraggedFlower(flowerId)
+      setDragOffset({
+        x: (clientX - rect.left) / scale - flower.position_x,
+        y: (clientY - rect.top) / scale - flower.position_y
+      })
+      
+      // Select the flower if not already selected (for mouse)
+      if (!selectedFlower || selectedFlower.id !== flowerId) {
+        setSelectedFlower(flower)
+        resizeModeRef.current = flowerId
+      }
+      
+      // Show feedback for mouse users
+      if (!('touches' in e)) {
+        toast({
+          title: "🚀 Verplaatsen gestart",
+          description: "Sleep naar gewenste positie en laat los.",
+        })
+      }
+    }
+  }, [flowerPositions, scale, draggedFlower, selectedFlower, isDragMode, containerRef, toast])
+
+  // Handle long press for mobile (alternative activation)
+  const handleFlowerTouchStart = useCallback((e: React.TouchEvent, flowerId: string) => {
+    setTouchStartTime(Date.now())
     
-    // Start dragging this specific flower
-    setDraggedFlower(flowerId)
-    setDragOffset({
-      x: (e.clientX - rect.left) / scale - flower.position_x,
-      y: (e.clientY - rect.top) / scale - flower.position_y
-    })
-  }, [flowerPositions, scale, draggedFlower])
+    // Set a timer for long press detection
+    const timer = setTimeout(() => {
+      const flower = flowerPositions.find(f => f.id === flowerId)
+      if (!flower) return
+      
+      // Long press activates selection and drag mode
+      setSelectedFlower(flower)
+      setIsDragMode(true)
+      setIsResizeMode(false)
+      
+      // Provide haptic feedback if available
+      if (navigator.vibrate) {
+        navigator.vibrate(50)
+      }
+      
+      toast({
+        title: "🔥 Lang indrukken gedetecteerd",
+        description: "Bloem geselecteerd voor verplaatsen. Sleep nu!",
+      })
+    }, 500) // 500ms for long press
 
-  // Handle double click - open edit dialog
-  const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
-    setSelectedFlower(flower)
-    setIsEditCustomFlower(flower.is_custom || false)
-    setNewFlower({
-      name: flower.name,
-      type: flower.category || '',
-      color: flower.color || '#FF69B4',
-      customEmoji: flower.emoji || '',
-      description: flower.notes || '',
-      status: flower.status === 'needs_attention' ? 'needs_attention' : 
-             flower.status === 'diseased' ? 'sick' : 
-             flower.status === 'dead' ? 'sick' : 'healthy',
-      size: flower.visual_width <= FLOWER_SIZE_SMALL ? 'small' :
-            flower.visual_width >= FLOWER_SIZE_LARGE ? 'large' : 'medium'
-    })
-    setIsEditingFlower(true)
-  }, [])
+    setLongPressTimer(timer)
+  }, [flowerPositions, toast])
 
-  // Handle drag move
+  const handleFlowerTouchEnd = useCallback((e: React.TouchEvent, flowerId: string) => {
+    const touchDuration = Date.now() - touchStartTime
+    
+    // Clear long press timer
+    if (longPressTimer) {
+      clearTimeout(longPressTimer)
+      setLongPressTimer(null)
+    }
+    
+    // If it was a quick tap (not long press), handle as click
+    if (touchDuration < 500) {
+      handleFlowerClick(e, flowerId)
+    }
+  }, [touchStartTime, longPressTimer, handleFlowerClick])
+
+
+
+  // Handle drag move - unified for mouse and touch
+  const handlePointerMove = useCallback((clientX: number, clientY: number) => {
+    if (!draggedFlower || !containerRef.current) return
+
+    const rect = containerRef.current.getBoundingClientRect()
+    const newX = (clientX - rect.left) / scale - dragOffset.x
+    const newY = (clientY - rect.top) / scale - dragOffset.y
+
+    // Use functional update to avoid dependency issues
+    setFlowerPositions(prev => {
+      // Find the dragged flower to get its dimensions
+      const draggedFlowerData = prev.find(f => f.id === draggedFlower)
+      if (!draggedFlowerData) return prev
+
+      // Constrain to canvas bounds using the flower's actual size
+      const constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width))
+      const constrainedY = Math.max(0, Math.min(newY, canvasHeight - draggedFlowerData.visual_height))
+
+      // Only update the specific dragged flower
+      return prev.map(f => {
+        if (f.id === draggedFlower) {
+          return { ...f, position_x: constrainedX, position_y: constrainedY }
+        }
+        return f // Keep other flowers unchanged with same object reference
+      })
+    })
+    
+    setHasChanges(true)
+  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
+
+  // Mouse move handler
   const onMouseMove = useCallback((e: React.MouseEvent) => {
+    handlePointerMove(e.clientX, e.clientY)
+  }, [handlePointerMove])
+
+  // Legacy function for compatibility
+  const onMouseMoveOld = useCallback((e: React.MouseEvent) => {
     if (!draggedFlower || !containerRef.current) return
 
     const rect = containerRef.current.getBoundingClientRect()
@@ -603,19 +818,28 @@ export default function PlantBedViewPage() {
   }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
 
   // Handle drag end
-  const onMouseUp = useCallback(() => {
+  const handlePointerUp = useCallback(() => {
     if (draggedFlower) {
-      console.log('Ending drag for:', draggedFlower)
+      toast({
+        title: "✅ Bloem verplaatst",
+        description: "Vergeet niet op te slaan!",
+      })
     }
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedFlower])
+  }, [draggedFlower, toast])
 
-  // Handle click outside to deselect (standard UI pattern)
-  const handleCanvasClick = useCallback((e: React.MouseEvent) => {
+  // Legacy mouse up handler
+  const onMouseUp = useCallback(() => {
+    handlePointerUp()
+  }, [handlePointerUp])
+
+  // Handle click outside to deselect - unified for mouse and touch
+  const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (e.target === e.currentTarget) {
-      console.log("🔄 DESELECTING flower (clicked on canvas)")
       setSelectedFlower(null)
+      setIsDragMode(false)
+      setIsResizeMode(false)
       setIsResizing(null)
       resizeModeRef.current = null
       
@@ -625,6 +849,34 @@ export default function PlantBedViewPage() {
       })
     }
   }, [toast])
+
+  // Add global event listeners for drag - support both mouse and touch
+  useEffect(() => {
+    if (draggedFlower) {
+      const handleMouseMoveGlobal = (e: MouseEvent) => {
+        handlePointerMove(e.clientX, e.clientY)
+      }
+      
+      const handleTouchMoveGlobal = (e: TouchEvent) => {
+        e.preventDefault() // Prevent scrolling while dragging
+        if (e.touches.length > 0) {
+          handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
+        }
+      }
+      
+      document.addEventListener('mousemove', handleMouseMoveGlobal)
+      document.addEventListener('mouseup', handlePointerUp)
+      document.addEventListener('touchmove', handleTouchMoveGlobal, { passive: false })
+      document.addEventListener('touchend', handlePointerUp)
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMoveGlobal)
+        document.removeEventListener('mouseup', handlePointerUp)
+        document.removeEventListener('touchmove', handleTouchMoveGlobal)
+        document.removeEventListener('touchend', handlePointerUp)
+      }
+    }
+  }, [draggedFlower, handlePointerMove, handlePointerUp])
 
   // Handle resize start
   const handleResizeStart = useCallback((e: React.MouseEvent, flowerId: string, mode: 'uniform' | 'width' | 'height' = 'uniform') => {
@@ -954,14 +1206,14 @@ export default function PlantBedViewPage() {
                 Bloem Toevoegen
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
                 <DialogDescription>
                   Voeg een nieuwe bloem toe aan dit plantvak. Je kunt het later verplaatsen door te slepen.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
                 <div className="grid gap-2">
                   <label htmlFor="name" className="text-sm font-medium">
                     Naam *
@@ -1128,14 +1380,14 @@ export default function PlantBedViewPage() {
 
           {/* Edit Flower Dialog */}
           <Dialog open={isEditingFlower} onOpenChange={setIsEditingFlower}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Bloem Bewerken</DialogTitle>
                 <DialogDescription>
                   Wijzig de eigenschappen van deze bloem.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
                 <div className="grid gap-2">
                   <label htmlFor="edit-name" className="text-sm font-medium">
                     Naam *
@@ -1372,7 +1624,7 @@ export default function PlantBedViewPage() {
 
       {/* Edit Plant Bed Dialog */}
       <Dialog open={isEditingPlantBed} onOpenChange={setIsEditingPlantBed}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-[95vw] max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Plantvak Bewerken</DialogTitle>
           </DialogHeader>
@@ -1483,12 +1735,120 @@ export default function PlantBedViewPage() {
       {/* Canvas */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Palette className="h-5 w-5 text-purple-600" />
-            Bloemen Layout - Op Schaal (1m = {METERS_TO_PIXELS}px)
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5 text-purple-600" />
+              Bloemen Layout - {plantBed?.size || 'Op schaal'} (Schaal: 1m = {METERS_TO_PIXELS}px)
+            </CardTitle>
+            
+            {/* Control buttons for selected flower */}
+            {selectedFlower && (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={isDragMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    setIsDragMode(!isDragMode)
+                    setIsResizeMode(false)
+                    if (!isDragMode) {
+                      toast({
+                        title: "🖱️ Verplaatsen actief",
+                        description: "Sleep de bloem naar een nieuwe positie.",
+                      })
+                    } else {
+                      toast({
+                        title: "Verplaatsen gestopt",
+                        description: "Bloem staat nu vast.",
+                      })
+                    }
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Move className="h-3 w-3" />
+                  {isDragMode ? "Stop" : "Verplaats"}
+                </Button>
+                
+                <Button
+                  variant={isResizeMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    setIsResizeMode(!isResizeMode)
+                    setIsDragMode(false)
+                    if (!isResizeMode) {
+                      toast({
+                        title: "📏 Grootte aanpassen actief",
+                        description: "Sleep de blauwe hoeken om groter te maken.",
+                      })
+                    } else {
+                      toast({
+                        title: "Grootte aanpassen gestopt",
+                        description: "Bloem grootte staat nu vast.",
+                      })
+                    }
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <Maximize2 className="h-3 w-3" />
+                  {isResizeMode ? "Stop" : "Resize"}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedFlower(null)
+                    setIsDragMode(false)
+                    setIsResizeMode(false)
+                    toast({
+                      title: "✅ Selectie opgeheven",
+                      description: "Klik op een bloem om te selecteren.",
+                    })
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <X className="h-3 w-3" />
+                  Deselecteer
+                </Button>
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
+          {/* Mobile help text */}
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
+            <h4 className="font-medium text-blue-900 mb-1">📱 Mobiele bediening:</h4>
+            <ul className="text-sm text-blue-800 space-y-1">
+              <li>• <strong>1x tikken:</strong> Bloem selecteren</li>
+              <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
+              <li>• <strong>3x tikken:</strong> Grootte aanpassen</li>
+              <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
+              <li>• <strong>Dubbel tikken:</strong> Grootte aanpassen (+ / -)</li>
+              <li>• <strong>Knoppen:</strong> Gebruik knoppen hierboven</li>
+            </ul>
+            <div className="mt-2 pt-2 border-t border-blue-300">
+              <p className="text-xs text-blue-700">
+                🌱 <strong>Plantvak:</strong> {plantBed?.size || 'Onbekend'}
+              </p>
+            </div>
+          </div>
+          
+          {/* Desktop help text */}
+          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg hidden md:block">
+            <h4 className="font-medium text-green-900 mb-1">💻 Laptop bediening:</h4>
+            <ul className="text-sm text-green-800 space-y-1">
+              <li>• <strong>Vasthouden en slepen:</strong> Direct verplaatsen</li>
+              <li>• <strong>Klik:</strong> Bloem selecteren</li>
+              <li>• <strong>Dubbel klik:</strong> Grootte aanpassen (+ / - knoppen)</li>
+              <li>• <strong>Knoppen:</strong> Voor verplaats/resize modus</li>
+            </ul>
+            <div className="mt-2 pt-2 border-t border-green-300">
+              <p className="text-xs text-green-700">
+                🌱 <strong>Plantvak:</strong> {plantBed?.size || 'Onbekend'} • 
+                <strong>Schaal:</strong> 1m = {METERS_TO_PIXELS} pixels
+              </p>
+            </div>
+          </div>
+          
           <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
             <div
               ref={containerRef}
@@ -1504,6 +1864,12 @@ export default function PlantBedViewPage() {
               onMouseUp={onMouseUp}
               onMouseLeave={onMouseUp}
               onClick={handleCanvasClick}
+              onTouchMove={(e) => {
+                if (e.touches.length > 0) {
+                  handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
+                }
+              }}
+              onTouchEnd={handlePointerUp}
             >
               {/* Grid */}
               <div
@@ -1526,10 +1892,12 @@ export default function PlantBedViewPage() {
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute ${isSelected ? 'cursor-default' : 'cursor-pointer'} rounded-full border-4 ${getStatusColor(flower.status || 'healthy')} ${
-                      isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105" : 
-                      isSelected ? "ring-4 ring-blue-500 shadow-xl" :
-                      "shadow-lg hover:shadow-xl hover:scale-105"
+                    className={`absolute rounded-full border-4 ${getStatusColor(flower.status || 'healthy')} ${
+                      isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105 cursor-grabbing" : 
+                      isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab animate-pulse" :
+                      isSelected && isResizeMode ? "ring-4 ring-blue-500 shadow-xl cursor-default" :
+                      isSelected ? "ring-4 ring-blue-500 shadow-xl cursor-pointer" :
+                      "shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
                     } transition-all duration-200 flex items-center justify-center text-white relative overflow-hidden`}
                     style={{
                       left: flower.position_x,
@@ -1540,13 +1908,16 @@ export default function PlantBedViewPage() {
                     }}
                     onClick={(e) => handleFlowerClick(e, flower.id)}
                     onDoubleClick={() => handleFlowerDoubleClick(flower)}
-                    onMouseDown={(e) => {
-                      // ALLEEN drag als bloem NIET geselecteerd is (geen resize handle)
-                      if (!isSelected) {
-                        handleFlowerMouseDown(e, flower.id)
-                      }
-                    }}
-                    title={isSelected ? "Geselecteerd - sleep blauwe hoek om te resizen" : "Klik om te selecteren"}
+                    onMouseDown={(e) => handleFlowerPointerDown(e, flower.id)}
+                    onTouchStart={(e) => handleFlowerTouchStart(e, flower.id)}
+                    onTouchEnd={(e) => handleFlowerTouchEnd(e, flower.id)}
+                    title={
+                      isDragging ? "Sleep naar gewenste positie" :
+                      isSelected && isDragMode ? "Sleep me naar een nieuwe positie!" :
+                      isSelected && isResizeMode ? "Sleep de blauwe hoeken om groter te maken" :
+                      isSelected ? "Klik opnieuw om te verplaatsen of grootte aan te passen" :
+                      "Klik om te selecteren"
+                    }
                   >
                     <div className="text-center w-full h-full flex flex-col items-center justify-center">
                       <div 
@@ -1579,8 +1950,21 @@ export default function PlantBedViewPage() {
                       )}
                     </div>
 
-                    {/* RESIZE HANDLE - alleen als geselecteerd */}
-                    {isSelected && (
+                    {/* Mode indicators */}
+                    {isSelected && isDragMode && (
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
+                        🖱️ Sleep me!
+                      </div>
+                    )}
+                    
+                    {isSelected && isResizeMode && (
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
+                        📏 Resize actief!
+                      </div>
+                    )}
+
+                    {/* RESIZE HANDLE - alleen als geselecteerd en in resize mode */}
+                    {isSelected && isResizeMode && (
                       <>
                         {/* Invisible area visualization */}
                         {(() => {
@@ -1829,6 +2213,62 @@ export default function PlantBedViewPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Resize Interface Overlay */}
+      {showResizeInterface && selectedFlower && (
+        <div 
+          className="fixed z-50 bg-white rounded-lg shadow-2xl border-2 border-blue-500 p-4"
+          style={{
+            left: resizeInterfacePosition.x - 100,
+            top: resizeInterfacePosition.y - 60,
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="text-sm font-medium text-gray-700">
+              🌸 {selectedFlower.name}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closeResizeInterface}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleFlowerResize(selectedFlower.id, -10)}
+              className="h-8 w-8 p-0"
+              disabled={selectedFlower.visual_width <= FLOWER_SIZE_SMALL}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            
+            <div className="text-sm text-gray-600 min-w-[60px] text-center">
+              {Math.min(selectedFlower.visual_width, selectedFlower.visual_height)}px
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleFlowerResize(selectedFlower.id, 10)}
+              className="h-8 w-8 p-0"
+              disabled={selectedFlower.visual_width >= FLOWER_SIZE_LARGE * 2}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="text-xs text-gray-500 mt-1 text-center">
+            Dubbelklik = grootte aanpassen
+          </div>
+        </div>
+      )}
     </div>
   )
 }
