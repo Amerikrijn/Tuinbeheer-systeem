@@ -1,12 +1,7 @@
 {
-  "name": "tuinbeheer-systeem-monorepo",
+  "name": "tuinbeheer-systeem",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "apps/web",
-    "apps/mobile",
-    "packages/shared"
-  ],
   "scripts": {
     "build": "next build",
     "dev": "next dev",
@@ -22,13 +17,11 @@
     "db:setup": "node database/setup.js setup --seed",
     "db:reset": "node database/setup.js reset",
     "db:schema": "node database/setup.js setup",
-    "mobile:start": "cd apps/mobile && expo start",
-    "mobile:android": "cd apps/mobile && expo start --android",
-    "mobile:ios": "cd apps/mobile && expo start --ios",
-    "mobile:web": "cd apps/mobile && expo start --web",
-    "shared:build": "cd packages/shared && npm run build",
-    "setup:mobile": "cd apps/mobile && npm install",
-    "setup:all": "npm install && npm run setup:mobile && cd packages/shared && npm install"
+    "mobile:setup": "cd apps/mobile && npm install",
+    "mobile:start": "cd apps/mobile && npm start",
+    "mobile:android": "cd apps/mobile && npm run android",
+    "mobile:ios": "cd apps/mobile && npm run ios",
+    "shared:build": "cd packages/shared && npm install && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

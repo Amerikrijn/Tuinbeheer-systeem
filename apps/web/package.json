@@ -19,7 +19,6 @@
     "db:schema": "node database/setup.js setup"
   },
   "dependencies": {
-    "@tuinbeheer/shared": "workspace:*",
     "@hookform/resolvers": "^3.9.1",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
