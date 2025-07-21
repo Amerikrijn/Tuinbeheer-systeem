@@ -192,6 +192,41 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
   return { ...plantBed, plants: plants || [] }
 }
 
+// Helper function to generate plant bed ID
+async function generatePlantBedId(gardenId: string): Promise<string> {
+  // Get existing plant beds for this garden to determine the next number
+  const { data: existingBeds, error } = await supabase
+    .from("plant_beds")
+    .select("id")
+    .eq("garden_id", gardenId)
+    .order("id", { ascending: false })
+    .limit(1)
+
+  if (error) {
+    console.error("Error fetching existing plant beds:", error)
+    // Fallback to a timestamp-based ID if we can't query existing ones
+    const timestamp = Date.now().toString().slice(-6)
+    return `PB-${timestamp}`
+  }
+
+  // Determine prefix based on existing beds or use default
+  let prefix = "PB" // Default prefix
+  let nextNumber = 1
+
+  if (existingBeds && existingBeds.length > 0) {
+    const lastId = existingBeds[0].id
+    const match = lastId.match(/^([A-Z]+)-(\d+)$/)
+    if (match) {
+      prefix = match[1]
+      nextNumber = parseInt(match[2]) + 1
+    }
+  }
+
+  // Format number with leading zeros (3 digits)
+  const formattedNumber = nextNumber.toString().padStart(3, '0')
+  return `${prefix}-${formattedNumber}`
+}
+
 export async function createPlantBed(plantBed: {
   garden_id: string
   name: string
@@ -225,8 +260,13 @@ export async function createPlantBed(plantBed: {
   
   console.log("✅ Garden exists, proceeding with plant bed creation")
   
-  // Let the database auto-generate the UUID
+  // Generate a unique ID for the plant bed
+  const plantBedId = await generatePlantBedId(plantBed.garden_id)
+  console.log("🆔 Generated plant bed ID:", plantBedId)
+  
+  // Insert with the generated ID
   const { data, error } = await supabase.from("plant_beds").insert({
+    id: plantBedId, // Add the generated ID
     garden_id: plantBed.garden_id,
     name: plantBed.name,
     location: plantBed.location || null,
