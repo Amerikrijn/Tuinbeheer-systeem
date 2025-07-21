@@ -1,7 +1,12 @@
 {
-  "name": "my-v0-project",
+  "name": "tuinbeheer-systeem-monorepo",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/web",
+    "apps/mobile",
+    "packages/shared"
+  ],
   "scripts": {
     "build": "next build",
     "dev": "next dev",
@@ -16,7 +21,14 @@
     "lint:fix": "next lint --fix",
     "db:setup": "node database/setup.js setup --seed",
     "db:reset": "node database/setup.js reset",
-    "db:schema": "node database/setup.js setup"
+    "db:schema": "node database/setup.js setup",
+    "mobile:start": "cd apps/mobile && expo start",
+    "mobile:android": "cd apps/mobile && expo start --android",
+    "mobile:ios": "cd apps/mobile && expo start --ios",
+    "mobile:web": "cd apps/mobile && expo start --web",
+    "shared:build": "cd packages/shared && npm run build",
+    "setup:mobile": "cd apps/mobile && npm install",
+    "setup:all": "npm install && npm run setup:mobile && cd packages/shared && npm install"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
