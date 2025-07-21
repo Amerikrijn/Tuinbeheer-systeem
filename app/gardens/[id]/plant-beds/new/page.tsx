@@ -67,11 +67,8 @@ export default function NewPlantBedPage() {
     { value: "shade", label: "Schaduw (minder dan 3 uur zonlicht)" },
   ]
 
-  const [warnings, setWarnings] = React.useState<Record<string, string>>({})
-
   const validateForm = () => {
     const nextErrors: Record<string, string> = {}
-    const nextWarnings: Record<string, string> = {}
 
     if (!newPlantBed.id.trim()) nextErrors.id = "Plantvak ID is verplicht"
     if (!newPlantBed.name.trim()) nextErrors.name = "Plantvak naam is verplicht"
@@ -82,22 +79,7 @@ export default function NewPlantBedPage() {
       nextErrors.id = "ID mag alleen letters, cijfers en streepjes bevatten"
     }
 
-    // Validate plantvak size (warn for large beds)
-    if (newPlantBed.size) {
-      const sizeMatch = newPlantBed.size.match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/);
-      if (sizeMatch) {
-        const length = parseFloat(sizeMatch[1]);
-        const width = parseFloat(sizeMatch[2]);
-        const area = length * width;
-        
-        if (area > 12) { // More than 12 m² (e.g., 4x4 = 16m²)
-          nextWarnings.size = `Groot plantvak (${area}m²). Overweeg het op te splitsen in kleinere vakken voor beter beheer.`;
-        }
-      }
-    }
-
     setErrors(nextErrors)
-    setWarnings(nextWarnings)
     return Object.keys(nextErrors).length === 0
   }
 
@@ -305,14 +287,7 @@ export default function NewPlantBedPage() {
                           size: e.target.value,
                         }))
                       }
-                      className={warnings.size ? "border-yellow-500" : ""}
                     />
-                    {warnings.size && (
-                      <div className="flex items-center gap-1 text-yellow-600 text-sm">
-                        <AlertCircle className="h-4 w-4" />
-                        {warnings.size}
-                      </div>
-                    )}
                   </div>
 
                   <div className="space-y-2">
