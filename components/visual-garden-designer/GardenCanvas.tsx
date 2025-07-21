@@ -676,7 +676,7 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
 
       {/* Plant Detail Dialog */}
       <Dialog open={!!selectedPlant} onOpenChange={() => setSelectedPlant(null)}>
-        <DialogContent className="sm:max-w-md z-[100]">
+        <DialogContent className="sm:max-w-md" style={{ zIndex: 9999 }}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <div 
@@ -740,7 +740,7 @@ const GardenCanvas: React.FC<GardenCanvasProps> = ({
 
       {/* Bed Detail Dialog */}
       <Dialog open={!!selectedPlantBed && !selectedPlant} onOpenChange={() => setSelectedPlantBed(null)}>
-        <DialogContent className="sm:max-w-md z-[100]">
+        <DialogContent className="sm:max-w-md" style={{ zIndex: 9999 }}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Badge variant="outline" className="text-lg font-bold px-3 py-1">

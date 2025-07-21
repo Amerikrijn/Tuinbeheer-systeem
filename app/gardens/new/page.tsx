@@ -66,6 +66,22 @@ export default function NewGardenPage() {
     if (newGarden.totalArea && !Number.isFinite(Number(newGarden.totalArea)))
       nextErrors.totalArea = "Totale oppervlakte moet een getal zijn"
 
+    // Validate minimum garden size for plant beds
+    if (newGarden.length && newGarden.width) {
+      const length = parseFloat(newGarden.length)
+      const width = parseFloat(newGarden.width)
+      if (!isNaN(length) && !isNaN(width)) {
+        if (length < 2 || width < 2) {
+          nextErrors.length = length < 2 ? "Minimale lengte is 2 meter voor plantvakken" : nextErrors.length
+          nextErrors.width = width < 2 ? "Minimale breedte is 2 meter voor plantvakken" : nextErrors.width
+        }
+        const area = length * width
+        if (area < 4) {
+          nextErrors.totalArea = "Tuin moet minimaal 4m² zijn voor plantvakken"
+        }
+      }
+    }
+
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
   }
