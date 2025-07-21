@@ -352,7 +352,7 @@ export default function GardenDetailPage() {
   const getDimensionsFromSize = (size: string) => {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
-      console.log("🔍 Plantvak schaal debug:", {
+      console.log("✅ Plantvak schaal debug:", {
         sizeString: size,
         lengthMeters: dimensions.lengthMeters,
         widthMeters: dimensions.widthMeters,
@@ -367,10 +367,11 @@ export default function GardenDetailPage() {
         height: dimensions.widthPixels
       }
     }
-    console.log("❌ Plantvak dimensies niet geparsed:", size)
+    console.log("❌ Plantvak dimensies niet geparsed, gebruik standaard 2x2m:", size)
+    // Default to 2x2 meters instead of minimum size
     return {
-      width: PLANTVAK_MIN_WIDTH,
-      height: PLANTVAK_MIN_HEIGHT
+      width: metersToPixels(2),
+      height: metersToPixels(2)
     }
   }
 
@@ -513,12 +514,12 @@ export default function GardenDetailPage() {
     const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
     const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
     
-    // Add padding from edges to prevent placement in corners
-    const EDGE_PADDING = 10
-    const minX = EDGE_PADDING
-    const minY = EDGE_PADDING
-    const maxX = CANVAS_WIDTH - bedWidth - EDGE_PADDING
-    const maxY = CANVAS_HEIGHT - bedHeight - EDGE_PADDING
+    // Allow more flexible positioning with minimal padding
+    const EDGE_PADDING = 5
+    const minX = -bedWidth * 0.3  // Allow partial placement outside canvas
+    const minY = -bedHeight * 0.3  // Allow partial placement outside canvas
+    const maxX = CANVAS_WIDTH - bedWidth * 0.7  // Allow partial placement outside canvas
+    const maxY = CANVAS_HEIGHT - bedHeight * 0.7  // Allow partial placement outside canvas
 
     const x = Math.max(minX, Math.min((clientX - rect.left) / scale - dragOffset.x, maxX))
     const y = Math.max(minY, Math.min((clientY - rect.top) / scale - dragOffset.y, maxY))
@@ -1113,7 +1114,6 @@ export default function GardenDetailPage() {
             <div className="flex justify-between items-center">
               <CardTitle className="flex items-center gap-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
-                Tuin Layout - {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m (Schaal: 1m = {METERS_TO_PIXELS}px)
               </CardTitle>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={zoomOut}>
@@ -1180,8 +1180,8 @@ export default function GardenDetailPage() {
                   const isInDragMode = isDragMode && isSelected
                   
                   // Always recalculate dimensions from size to ensure correct scaling
-                  let bedWidth = PLANTVAK_MIN_WIDTH
-                  let bedHeight = PLANTVAK_MIN_HEIGHT
+                  let bedWidth = metersToPixels(2) // Default 2x2 meters
+                  let bedHeight = metersToPixels(2)
                   
                   if (bed.size) {
                     const dims = getDimensionsFromSize(bed.size)
@@ -1193,9 +1193,13 @@ export default function GardenDetailPage() {
                       size: bed.size,
                       calculatedWidth: bedWidth,
                       calculatedHeight: bedHeight,
+                      calculatedWidthMeters: bedWidth / METERS_TO_PIXELS,
+                      calculatedHeightMeters: bedHeight / METERS_TO_PIXELS,
                       storedVisualWidth: bed.visual_width,
                       storedVisualHeight: bed.visual_height
                     })
+                  } else {
+                    console.log("⚠️ Plantvak zonder size:", bed.name, "using default 2x2m")
                   }
 
                   return (
@@ -1219,30 +1223,48 @@ export default function GardenDetailPage() {
                       onTouchStart={(e) => handlePlantBedTouchStart(e, bed.id)}
                       onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                     >
-                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors ${
+                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors relative ${
                         isSelected ? 'bg-blue-50' : ''
                       }`}>
-                        <div className="flex items-center justify-between">
-                          <div className="text-xs font-medium text-gray-700 bg-white/90 px-2 py-1 rounded shadow-sm">
-                            {bed.name}
-                          </div>
-                          {isInDragMode && (
-                            <div className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
-                              🖱️ Sleep me!
-                            </div>
-                          )}
+                        {/* Top corner elements */}
+                        <div className="flex items-start justify-between">
                           {bed.sun_exposure && (
                             <div className="bg-white/90 p-1 rounded shadow-sm">
                               {getSunExposureIcon(bed.sun_exposure)}
                             </div>
                           )}
+                          {isInDragMode && (
+                            <div className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
+                              🖱️
+                            </div>
+                          )}
                         </div>
-                        <div className="text-xs bg-white/90 px-2 py-1 rounded shadow-sm flex items-center justify-between">
-                          <span className="flex items-center gap-1">
-                            <span>{bed.plants.length}</span>
-                            <span>🌸</span>
-                          </span>
-                          <span>{bed.size || 'Onbekend'}</span>
+
+                        {/* Main area for plants/flowers - this space is left for the flowers */}
+                        <div className="flex-1 flex items-center justify-center">
+                          {bed.plants.length === 0 && (
+                            <div className="text-gray-400 text-xs">Geen planten</div>
+                          )}
+                          {/* TODO: Here will come the flower/plant visualization */}
+                        </div>
+
+                        {/* Bottom info bar */}
+                        <div className="bg-white/95 rounded-lg p-2 shadow-sm border space-y-1">
+                          {/* Plant bed name */}
+                          <div className="text-sm font-bold text-gray-800 truncate">
+                            {bed.name}
+                          </div>
+                          
+                          {/* Dimensions and plant count */}
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600 font-medium">
+                              {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
+                            </span>
+                            <span className="text-gray-500 flex items-center gap-1">
+                              <span>{bed.plants.length}</span>
+                              <span>🌸</span>
+                            </span>
+                          </div>
                         </div>
                         {isSelected && (
                           <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
