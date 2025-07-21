@@ -1937,7 +1937,8 @@ export default function PlantBedViewPage() {
                         description: selectedFlower.notes || '',
                         status: selectedFlower.status === 'diseased' ? 'sick' : 
                                selectedFlower.status === 'healthy' ? 'healthy' :
-                               selectedFlower.status || 'healthy',
+                               selectedFlower.status === 'needs_attention' ? 'needs_attention' :
+                               'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
                         size: 'medium'
                       })
                       setIsEditCustomFlower(selectedFlower.is_custom || false)
