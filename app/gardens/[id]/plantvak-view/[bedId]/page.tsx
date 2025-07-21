@@ -1744,29 +1744,7 @@ export default function PlantBedViewPage() {
             {/* Control buttons for selected flower */}
             {selectedFlower && (
               <div className="flex items-center gap-2">
-                <Button
-                  variant={isDragMode ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => {
-                    setIsDragMode(!isDragMode)
-                    setIsResizeMode(false)
-                    if (!isDragMode) {
-                      toast({
-                        title: "🖱️ Verplaatsen actief",
-                        description: "Sleep de bloem naar een nieuwe positie.",
-                      })
-                    } else {
-                      toast({
-                        title: "Verplaatsen gestopt",
-                        description: "Bloem staat nu vast.",
-                      })
-                    }
-                  }}
-                  className="flex items-center gap-1"
-                >
-                  <Move className="h-3 w-3" />
-                  {isDragMode ? "Stop" : "Verplaats"}
-                </Button>
+
                 
                 <Button
                   variant={isResizeMode ? "default" : "outline"}
