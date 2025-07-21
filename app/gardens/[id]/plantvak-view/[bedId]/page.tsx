@@ -1594,21 +1594,15 @@ export default function PlantBedViewPage() {
             </Button>
           </div>
           
-          <div className="grid grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-gray-600">Naam:</span>
               <p className="font-medium">{plantBed?.name || 'Onbekend'}</p>
             </div>
             <div>
-              <span className="text-gray-600">Lengte:</span>
+              <span className="text-gray-600">Afmetingen:</span>
               <p className="font-medium">
-                {plantBed?.size ? parseDimensions(plantBed.size).length + 'm' : '0m'}
-              </p>
-            </div>
-            <div>
-              <span className="text-gray-600">Breedte:</span>
-              <p className="font-medium">
-                {plantBed?.size ? parseDimensions(plantBed.size).width + 'm' : '0m'}
+                {plantBed?.size || `${(canvasWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(canvasHeight / METERS_TO_PIXELS).toFixed(1)}m`}
               </p>
             </div>
             <div>
