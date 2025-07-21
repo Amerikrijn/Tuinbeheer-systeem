@@ -877,30 +877,7 @@ export default function GardenDetailPage() {
             {showVisualView ? "Lijst Weergave" : "Visuele Weergave"}
           </Button>
           
-          {selectedBed && showVisualView && (
-            <Button
-              variant={isDragMode ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setIsDragMode(!isDragMode)
-                if (!isDragMode) {
-                  toast({
-                    title: "Verplaatsen actief",
-                    description: "Sleep het geselecteerde plantvak naar een nieuwe positie.",
-                  })
-                } else {
-                  toast({
-                    title: "Verplaatsen gestopt",
-                    description: "Plantvak staat nu vast.",
-                  })
-                }
-              }}
-              className="flex items-center gap-2"
-            >
-              <Move className="h-4 w-4" />
-              {isDragMode ? "Stop" : "Verplaats"}
-            </Button>
-          )}
+
           
           <Dialog open={isAddingPlantBed} onOpenChange={setIsAddingPlantBed}>
             <DialogTrigger asChild>
@@ -1101,37 +1078,6 @@ export default function GardenDetailPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Mobile help text */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
-            <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak verplaatsen (mobiel):</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• <strong>1x tikken:</strong> Plantvak selecteren</li>
-              <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
-              <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
-              <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
-            </ul>
-            <div className="mt-2 pt-2 border-t border-blue-300">
-              <p className="text-xs text-blue-700">
-                🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m
-              </p>
-            </div>
-          </div>
-          
-          {/* Desktop help text */}
-          <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg hidden md:block">
-            <h4 className="font-medium text-green-900 mb-1">💻 Plantvak verplaatsen (laptop):</h4>
-            <ul className="text-sm text-green-800 space-y-1">
-              <li>• <strong>Vasthouden en slepen:</strong> Direct verplaatsen</li>
-              <li>• <strong>Klik:</strong> Plantvak selecteren</li>
-              <li>• <strong>Dubbel klik:</strong> Plantvak openen</li>
-            </ul>
-            <div className="mt-2 pt-2 border-t border-green-300">
-              <p className="text-xs text-green-700">
-                🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m • 
-                <strong>Schaal:</strong> 1m = {METERS_TO_PIXELS} pixels
-              </p>
-            </div>
-          </div>
           
           <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
               <div
@@ -1252,8 +1198,7 @@ export default function GardenDetailPage() {
                 )}
               </div>
             </div>
-            <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
-              <p>💡 <strong>Tip:</strong> Sleep om te verplaatsen, dubbelklik om te beheren</p>
+                        <div className="mt-4 text-sm text-gray-600 flex items-center justify-end">
               <div className="flex items-center gap-4">
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                 {selectedBed && (
