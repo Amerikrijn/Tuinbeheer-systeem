@@ -29,7 +29,6 @@ import {
   Move,
   Maximize2,
   X,
-  Plus,
   Minus,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
@@ -50,7 +49,7 @@ import {
 const GRID_SIZE = 10
 const SCALE_MIN = 0.5
 const SCALE_MAX = 3
-const FLOWER_SIZE = FLOWER_SIZE_MEDIUM // Default to medium size
+const FLOWER_SIZE = FLOWER_SIZE_MEDIUM // Default to medium size (now 45px)
 
 const FLOWER_TYPES = [
   { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
@@ -751,30 +750,7 @@ export default function PlantBedViewPage() {
     }
   }, [touchStartTime, longPressTimer, handleFlowerClick])
 
-  // Handle double click/tap - open edit dialog
-  const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
-    // Exit any active modes first
-    setIsDragMode(false)
-    setIsResizeMode(false)
-    setSelectedFlower(null)
-    
-    // Open edit dialog
-    setSelectedFlower(flower)
-    setIsEditCustomFlower(flower.is_custom || false)
-    setNewFlower({
-      name: flower.name,
-      type: flower.category || '',
-      color: flower.color || '#FF69B4',
-      customEmoji: flower.emoji || '',
-      description: flower.notes || '',
-      status: flower.status === 'needs_attention' ? 'needs_attention' : 
-             flower.status === 'diseased' ? 'sick' : 
-             flower.status === 'dead' ? 'sick' : 'healthy',
-      size: flower.visual_width <= FLOWER_SIZE_SMALL ? 'small' :
-            flower.visual_width >= FLOWER_SIZE_LARGE ? 'large' : 'medium'
-    })
-    setIsEditingFlower(true)
-  }, [])
+
 
   // Handle drag move - unified for mouse and touch
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
@@ -1846,7 +1822,7 @@ export default function PlantBedViewPage() {
               <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
               <li>• <strong>3x tikken:</strong> Grootte aanpassen</li>
               <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
-              <li>• <strong>Dubbel tikken:</strong> Bloem bewerken</li>
+              <li>• <strong>Dubbel tikken:</strong> Grootte aanpassen (+ / -)</li>
               <li>• <strong>Knoppen:</strong> Gebruik knoppen hierboven</li>
             </ul>
             <div className="mt-2 pt-2 border-t border-blue-300">
@@ -1862,8 +1838,8 @@ export default function PlantBedViewPage() {
             <ul className="text-sm text-green-800 space-y-1">
               <li>• <strong>Vasthouden en slepen:</strong> Direct verplaatsen</li>
               <li>• <strong>Klik:</strong> Bloem selecteren</li>
-              <li>• <strong>Dubbel klik:</strong> Bloem bewerken</li>
-              <li>• <strong>Knoppen:</strong> Voor grootte aanpassen</li>
+              <li>• <strong>Dubbel klik:</strong> Grootte aanpassen (+ / - knoppen)</li>
+              <li>• <strong>Knoppen:</strong> Voor verplaats/resize modus</li>
             </ul>
             <div className="mt-2 pt-2 border-t border-green-300">
               <p className="text-xs text-green-700">
@@ -2237,6 +2213,62 @@ export default function PlantBedViewPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Resize Interface Overlay */}
+      {showResizeInterface && selectedFlower && (
+        <div 
+          className="fixed z-50 bg-white rounded-lg shadow-2xl border-2 border-blue-500 p-4"
+          style={{
+            left: resizeInterfacePosition.x - 100,
+            top: resizeInterfacePosition.y - 60,
+            transform: 'translate(-50%, -50%)'
+          }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="text-sm font-medium text-gray-700">
+              🌸 {selectedFlower.name}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={closeResizeInterface}
+              className="h-6 w-6 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleFlowerResize(selectedFlower.id, -10)}
+              className="h-8 w-8 p-0"
+              disabled={selectedFlower.visual_width <= FLOWER_SIZE_SMALL}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            
+            <div className="text-sm text-gray-600 min-w-[60px] text-center">
+              {Math.min(selectedFlower.visual_width, selectedFlower.visual_height)}px
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleFlowerResize(selectedFlower.id, 10)}
+              className="h-8 w-8 p-0"
+              disabled={selectedFlower.visual_width >= FLOWER_SIZE_LARGE * 2}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="text-xs text-gray-500 mt-1 text-center">
+            Dubbelklik = grootte aanpassen
+          </div>
+        </div>
+      )}
     </div>
   )
 }
