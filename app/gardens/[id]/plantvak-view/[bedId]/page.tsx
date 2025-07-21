@@ -2145,16 +2145,7 @@ export default function PlantBedViewPage() {
               )}
             </div>
           </div>
-          <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
-            <div>
-              <p>🚨 <strong>LAATSTE KANS - MEER BLOEMEN SYSTEEM!</strong></p>
-              <p>🌸 <strong>Klik bloem</strong> → Selecteren (NAAM + gele hoek verschijnen)</p>
-              <p>🟡 <strong>Sleep gele hoek</strong> → Gebied groter + MEER BLOEMEN komen erbij!</p>
-              <p>📛 <strong>NIET 1 grote bloem</strong> → Maar VEEL kleine bloemen!</p>
-              <p>🏷️ <strong>Naam altijd zichtbaar</strong> → Witte label boven bloem</p>
-              <p>🎯 <strong>Real-time</strong> → Tijdens slepen komen bloemen erbij</p>
-              <p>📛 <strong>Klik ergens anders</strong> → Deselecteren</p>
-            </div>
+          <div className="mt-4 text-sm text-gray-600 flex items-center justify-end">
             <div className="flex items-center gap-4">
               <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
               {hasChanges && (
