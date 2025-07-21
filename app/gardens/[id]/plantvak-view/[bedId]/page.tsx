@@ -1790,7 +1790,7 @@ export default function PlantBedViewPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5 text-purple-600" />
-              Bloemen Layout - {plantBed?.size || 'Op schaal'} (Schaal: 1m = {METERS_TO_PIXELS}px)
+              Bloemen Layout
             </CardTitle>
             
             {/* Control buttons for selected flower */}
