@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, Eye, AlertCircle, Sparkles, Trash2 } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Leaf, AlertCircle } from "lucide-react"
 import { getGardens, deleteGarden } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -257,57 +257,7 @@ function HomePageContent() {
         </>
       )}
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
-        <Card className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <Sparkles className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Snelle Acties</h3>
-              <p className="text-sm text-gray-600">Veelgebruikte functies</p>
-            </div>
-          </div>
-          <div className="space-y-3">
-            <Button variant="outline" className="w-full justify-start" asChild>
-              <Link href="/gardens/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Nieuwe Tuin Aanmaken
-              </Link>
-            </Button>
 
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-green-100 rounded-full">
-              <Calendar className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-gray-900">Tuin Statistieken</h3>
-              <p className="text-sm text-gray-600">Overzicht van uw tuinen</p>
-            </div>
-          </div>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Totaal Tuinen</span>
-              <Badge variant="secondary">{gardens.length}</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Totaal Plantbedden</span>
-              <Badge variant="secondary">
-                {gardens.length}
-              </Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-600">Zoekresultaten</span>
-              <Badge variant="secondary">{filteredGardens.length}</Badge>
-            </div>
-          </div>
-        </Card>
-      </div>
     </div>
   )
 }
