@@ -1223,40 +1223,49 @@ export default function GardenDetailPage() {
                       onTouchStart={(e) => handlePlantBedTouchStart(e, bed.id)}
                       onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                     >
-                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-center items-center p-3 group-hover:bg-green-50 transition-colors ${
+                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors relative ${
                         isSelected ? 'bg-blue-50' : ''
                       }`}>
-                        {/* Main content - centered */}
-                        <div className="text-center space-y-2">
+                        {/* Top corner elements */}
+                        <div className="flex items-start justify-between">
+                          {bed.sun_exposure && (
+                            <div className="bg-white/90 p-1 rounded shadow-sm">
+                              {getSunExposureIcon(bed.sun_exposure)}
+                            </div>
+                          )}
+                          {isInDragMode && (
+                            <div className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
+                              🖱️
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Main area for plants/flowers - this space is left for the flowers */}
+                        <div className="flex-1 flex items-center justify-center">
+                          {bed.plants.length === 0 && (
+                            <div className="text-gray-400 text-xs">Geen planten</div>
+                          )}
+                          {/* TODO: Here will come the flower/plant visualization */}
+                        </div>
+
+                        {/* Bottom info bar */}
+                        <div className="bg-white/95 rounded-lg p-2 shadow-sm border space-y-1">
                           {/* Plant bed name */}
-                          <div className="text-sm font-bold text-gray-800 bg-white/95 px-3 py-1 rounded-lg shadow-sm border">
+                          <div className="text-sm font-bold text-gray-800 truncate">
                             {bed.name}
                           </div>
                           
-                          {/* Dimensions */}
-                          <div className="text-xs font-medium text-gray-600 bg-white/90 px-2 py-1 rounded shadow-sm">
-                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
-                          </div>
-                          
-                          {/* Plant count */}
-                          <div className="text-xs text-gray-500 flex items-center justify-center gap-1">
-                            <span>{bed.plants.length}</span>
-                            <span>🌸</span>
+                          {/* Dimensions and plant count */}
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600 font-medium">
+                              {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
+                            </span>
+                            <span className="text-gray-500 flex items-center gap-1">
+                              <span>{bed.plants.length}</span>
+                              <span>🌸</span>
+                            </span>
                           </div>
                         </div>
-
-                        {/* Corner elements */}
-                        {isInDragMode && (
-                          <div className="absolute top-1 right-1 text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
-                            🖱️
-                          </div>
-                        )}
-                        
-                        {bed.sun_exposure && (
-                          <div className="absolute top-1 left-1 bg-white/90 p-1 rounded shadow-sm">
-                            {getSunExposureIcon(bed.sun_exposure)}
-                          </div>
-                        )}
                         {isSelected && (
                           <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
                             Geselecteerd
