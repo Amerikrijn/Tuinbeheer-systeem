@@ -102,8 +102,17 @@ export default function GardenDetailPage() {
       }
     }
     
-    const widthPixels = Math.max(DEFAULT_CANVAS_WIDTH, metersToPixels(lengthMeters))
-    const heightPixels = Math.max(DEFAULT_CANVAS_HEIGHT, metersToPixels(widthMeters))
+    // Use exact pixel conversion for garden dimensions
+    const widthPixels = metersToPixels(lengthMeters)
+    const heightPixels = metersToPixels(widthMeters)
+    
+    console.log("🏡 Tuin schaal debug:", {
+      lengthMeters,
+      widthMeters,
+      widthPixels,
+      heightPixels,
+      metersToPixelsConstant: METERS_TO_PIXELS
+    })
     
     return {
       width: widthPixels,
@@ -147,27 +156,27 @@ export default function GardenDetailPage() {
           })
         }
         
-        // Process plant beds to ensure they have visual dimensions
+        // Process plant beds to ensure they have correct visual dimensions
         const processedBeds = plantBedsData.map(bed => {
           let visualWidth = bed.visual_width
           let visualHeight = bed.visual_height
           
-          // If no visual dimensions, calculate from size
-          if (!visualWidth || !visualHeight) {
-            if (bed.size) {
-              const dims = getDimensionsFromSize(bed.size)
-              visualWidth = dims.width
-              visualHeight = dims.height
-              
-              // Update the database with calculated dimensions
+          // Always recalculate from size to ensure correct scaling
+          if (bed.size) {
+            const dims = getDimensionsFromSize(bed.size)
+            visualWidth = dims.width
+            visualHeight = dims.height
+            
+            // Update the database with recalculated dimensions if they're different
+            if (bed.visual_width !== visualWidth || bed.visual_height !== visualHeight) {
               updatePlantBed(bed.id, {
                 visual_width: visualWidth,
                 visual_height: visualHeight
               }).catch(console.error)
-            } else {
-              visualWidth = PLANTVAK_MIN_WIDTH
-              visualHeight = PLANTVAK_MIN_HEIGHT
             }
+          } else if (!visualWidth || !visualHeight) {
+            visualWidth = PLANTVAK_MIN_WIDTH
+            visualHeight = PLANTVAK_MIN_HEIGHT
           }
           
           return {
@@ -343,11 +352,22 @@ export default function GardenDetailPage() {
   const getDimensionsFromSize = (size: string) => {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
+      console.log("🎯 Plantvak schaal debug:", {
+        sizeString: size,
+        lengthMeters: dimensions.lengthMeters,
+        widthMeters: dimensions.widthMeters,
+        lengthPixels: dimensions.lengthPixels,
+        widthPixels: dimensions.widthPixels,
+        metersToPixelsConstant: METERS_TO_PIXELS,
+        expectedWidth: dimensions.lengthMeters * METERS_TO_PIXELS,
+        expectedHeight: dimensions.widthMeters * METERS_TO_PIXELS
+      })
       return {
-        width: Math.max(PLANTVAK_MIN_WIDTH, dimensions.lengthPixels),
-        height: Math.max(PLANTVAK_MIN_HEIGHT, dimensions.widthPixels)
+        width: dimensions.lengthPixels,
+        height: dimensions.widthPixels
       }
     }
+    console.log("❌ Plantvak dimensies niet geparsed:", size)
     return {
       width: PLANTVAK_MIN_WIDTH,
       height: PLANTVAK_MIN_HEIGHT
@@ -492,9 +512,16 @@ export default function GardenDetailPage() {
 
     const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
     const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
+    
+    // Add padding from edges to prevent placement in corners
+    const EDGE_PADDING = 10
+    const minX = EDGE_PADDING
+    const minY = EDGE_PADDING
+    const maxX = CANVAS_WIDTH - bedWidth - EDGE_PADDING
+    const maxY = CANVAS_HEIGHT - bedHeight - EDGE_PADDING
 
-    const x = Math.max(0, Math.min((clientX - rect.left) / scale - dragOffset.x, CANVAS_WIDTH - bedWidth))
-    const y = Math.max(0, Math.min((clientY - rect.top) / scale - dragOffset.y, CANVAS_HEIGHT - bedHeight))
+    const x = Math.max(minX, Math.min((clientX - rect.left) / scale - dragOffset.x, maxX))
+    const y = Math.max(minY, Math.min((clientY - rect.top) / scale - dragOffset.y, maxY))
 
     setPlantBeds(prev => prev.map(bed => 
       bed.id === draggedBed 
@@ -502,24 +529,48 @@ export default function GardenDetailPage() {
         : bed
     ))
     setHasChanges(true)
-  }, [draggedBed, dragOffset, scale, plantBeds])
+  }, [draggedBed, dragOffset, scale, plantBeds, CANVAS_WIDTH, CANVAS_HEIGHT])
 
   // Mouse move handler
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     handlePointerMove(e.clientX, e.clientY)
   }, [handlePointerMove])
 
-  // Handle drag end
-  const handlePointerUp = useCallback(() => {
-    if (draggedBed) {
-      toast({
-        title: "Plantvak verplaatst",
-        description: "Vergeet niet op te slaan!",
-      })
+  // Handle drag end with auto-save
+  const handlePointerUp = useCallback(async () => {
+    if (draggedBed && hasChanges) {
+      // Auto-save when dragging stops
+      setSaving(true)
+      try {
+        const bedToUpdate = plantBeds.find(bed => bed.id === draggedBed)
+        if (bedToUpdate) {
+          await updatePlantBed(bedToUpdate.id, {
+            position_x: bedToUpdate.position_x,
+            position_y: bedToUpdate.position_y,
+            visual_width: bedToUpdate.visual_width,
+            visual_height: bedToUpdate.visual_height
+          })
+          
+          setHasChanges(false)
+          toast({
+            title: "Plantvak verplaatst",
+            description: "Positie automatisch opgeslagen!",
+          })
+        }
+      } catch (error) {
+        console.error("Error auto-saving plant bed position:", error)
+        toast({
+          title: "Fout bij opslaan",
+          description: "Positie kon niet worden opgeslagen.",
+          variant: "destructive",
+        })
+      } finally {
+        setSaving(false)
+      }
     }
     setDraggedBed(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedBed, toast])
+  }, [draggedBed, hasChanges, plantBeds, toast])
 
   // Handle click outside to deselect
   const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -633,8 +684,8 @@ export default function GardenDetailPage() {
         return
       }
 
-      const visualWidth = Math.max(PLANTVAK_MIN_WIDTH, metersToPixels(length))
-      const visualHeight = Math.max(PLANTVAK_MIN_HEIGHT, metersToPixels(width))
+      const visualWidth = metersToPixels(length)
+      const visualHeight = metersToPixels(width)
       
       console.log("📐 Plantvak afmetingen:", {
         length: `${length}m`,
@@ -846,7 +897,7 @@ export default function GardenDetailPage() {
             </h1>
             {(garden.total_area || (garden.length && garden.width)) && (
               <p className="text-gray-600">
-                <span className="ml-2 text-sm font-medium text-green-600">
+                <span className="text-sm font-medium text-green-600">
                   • Afmetingen: {garden.length}m × {garden.width}m • Oppervlakte: {garden.total_area || 
                     (garden.length && garden.width && 
                       `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
@@ -876,8 +927,6 @@ export default function GardenDetailPage() {
             {showVisualView ? "Lijst Weergave" : "Visuele Weergave"}
           </Button>
           
-
-          
           {selectedBed && showVisualView && (
             <Button
               variant="outline"
@@ -889,8 +938,21 @@ export default function GardenDetailPage() {
               Verwijder Plantvak
             </Button>
           )}
-
-          <Dialog open={isAddingPlantBed} onOpenChange={setIsAddingPlantBed}>
+          
+          <Dialog open={isAddingPlantBed} onOpenChange={(open) => {
+            if (open) {
+              // Reset form when dialog opens
+              setNewPlantBed({
+                name: '',
+                length: '',
+                width: '',
+                description: '',
+                sun_exposure: 'full-sun',
+                soil_type: ''
+              })
+            }
+            setIsAddingPlantBed(open)
+          }}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm">
                 <Plus className="h-4 w-4 mr-2" />
@@ -1085,7 +1147,7 @@ export default function GardenDetailPage() {
           </CardHeader>
           <CardContent>
           
-          <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
+          <div className="relative overflow-auto rounded-lg border-2 border-dashed border-green-200" style={{ minHeight: "400px" }}>
               <div
                 ref={canvasRef}
                 className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 cursor-crosshair"
@@ -1094,13 +1156,12 @@ export default function GardenDetailPage() {
                   height: CANVAS_HEIGHT,
                   transform: `scale(${scale})`,
                   transformOrigin: "top left",
-                  maxWidth: "100%",
                 }}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handlePointerUp}
                 onClick={handleCanvasClick}
               >
-                {/* Grid */}
+                {/* Grid - 1m = 80px */}
                 <div
                   className="absolute inset-0 pointer-events-none opacity-20"
                   style={{
@@ -1108,7 +1169,7 @@ export default function GardenDetailPage() {
                       linear-gradient(to right, #10b98120 1px, transparent 1px),
                       linear-gradient(to bottom, #10b98120 1px, transparent 1px)
                     `,
-                    backgroundSize: `${GRID_SIZE}px ${GRID_SIZE}px`,
+                    backgroundSize: `${METERS_TO_PIXELS}px ${METERS_TO_PIXELS}px`,
                   }}
                 />
 
@@ -1118,14 +1179,23 @@ export default function GardenDetailPage() {
                   const isDragging = draggedBed === bed.id
                   const isInDragMode = isDragMode && isSelected
                   
-                  // Calculate dimensions from size if visual dimensions not available
-                  let bedWidth = bed.visual_width || 150
-                  let bedHeight = bed.visual_height || 100
+                  // Always recalculate dimensions from size to ensure correct scaling
+                  let bedWidth = PLANTVAK_MIN_WIDTH
+                  let bedHeight = PLANTVAK_MIN_HEIGHT
                   
-                  if (bed.size && (!bed.visual_width || !bed.visual_height)) {
+                  if (bed.size) {
                     const dims = getDimensionsFromSize(bed.size)
                     bedWidth = dims.width
                     bedHeight = dims.height
+                    
+                    console.log("🎯 Plantvak rendering:", {
+                      name: bed.name,
+                      size: bed.size,
+                      calculatedWidth: bedWidth,
+                      calculatedHeight: bedHeight,
+                      storedVisualWidth: bed.visual_width,
+                      storedVisualHeight: bed.visual_height
+                    })
                   }
 
                   return (
