@@ -378,7 +378,7 @@ export async function getPlantsWithPositions(plantBedId: string): Promise<PlantW
     position_y: plant.position_y ?? Math.random() * 300,
     visual_width: plant.visual_width ?? 40,
     visual_height: plant.visual_height ?? 40,
-    emoji: plant.emoji ?? '🌸'
+    emoji: plant.emoji
   })) as PlantWithPosition[]
 }
 
@@ -392,7 +392,7 @@ export async function createVisualPlant(plant: {
   position_y: number
   visual_width: number
   visual_height: number
-  emoji: string
+  emoji?: string
   photo_url?: string | null
   is_custom?: boolean
   category?: string
