@@ -32,7 +32,7 @@ import {
   Minus,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed } from "@/lib/database"
+import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 import {
   METERS_TO_PIXELS,
@@ -153,6 +153,7 @@ export default function PlantBedViewPage() {
     size: 'medium' as 'small' | 'medium' | 'large'
   })
   const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
+  const [showDeletePlantBedDialog, setShowDeletePlantBedDialog] = useState(false)
   const [plantBedForm, setPlantBedForm] = useState({
     name: '',
     length: '',
@@ -514,6 +515,32 @@ export default function PlantBedViewPage() {
         description: "Er is een fout opgetreden bij het bijwerken van het plantvak.",
         variant: "destructive",
       })
+    }
+  }
+
+  // Delete plant bed
+  const handleDeletePlantBed = async () => {
+    if (!plantBed) return
+
+    try {
+      await deletePlantBed(plantBed.id)
+      
+      toast({
+        title: "Plantvak verwijderd",
+        description: "Het plantvak is succesvol verwijderd.",
+      })
+      
+      // Navigate back to garden
+      router.push(`/gardens/${params.id}`)
+    } catch (error) {
+      console.error("Error deleting plant bed:", error)
+      toast({
+        title: "Fout bij verwijderen",
+        description: "Er is een fout opgetreden bij het verwijderen van het plantvak.",
+        variant: "destructive",
+      })
+    } finally {
+      setShowDeletePlantBedDialog(false)
     }
   }
 
@@ -1693,7 +1720,63 @@ export default function PlantBedViewPage() {
               <Button onClick={updatePlantBedInfo} className="flex-1">
                 Opslaan
               </Button>
-              <Button variant="outline" onClick={() => setIsEditingPlantBed(false)} className="flex-1">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeletePlantBedDialog(true)}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Verwijderen
+              </Button>
+              <Button variant="outline" onClick={() => setIsEditingPlantBed(false)}>
+                Annuleren
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Plant Bed Confirmation Dialog */}
+      <Dialog open={showDeletePlantBedDialog} onOpenChange={setShowDeletePlantBedDialog}>
+        <DialogContent className="w-[95vw] max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Trash2 className="h-5 w-5" />
+              Plantvak Verwijderen
+            </DialogTitle>
+            <DialogDescription>
+              Weet je zeker dat je dit plantvak wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.
+              Alle bloemen in dit plantvak worden ook verwijderd.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span className="font-medium text-red-800">Te verwijderen:</span>
+              </div>
+              <p className="text-sm text-red-700">
+                <strong>{plantBed?.name}</strong> ({plantBed?.size || 'Onbekende grootte'})
+              </p>
+              <p className="text-sm text-red-700">
+                {flowerPositions.length} bloemen worden ook verwijderd
+              </p>
+            </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="destructive" 
+                onClick={handleDeletePlantBed}
+                className="flex-1"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Ja, Verwijderen
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeletePlantBedDialog(false)}
+                className="flex-1"
+              >
                 Annuleren
               </Button>
             </div>
