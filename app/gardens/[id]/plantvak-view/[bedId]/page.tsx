@@ -29,6 +29,8 @@ import {
   Move,
   Maximize2,
   X,
+  Plus,
+  Minus,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed } from "@/lib/database"
@@ -132,6 +134,8 @@ export default function PlantBedViewPage() {
   const [duplicatePositions, setDuplicatePositions] = useState<{x: number, y: number}[]>([])
   const [isDragMode, setIsDragMode] = useState(false)
   const [isResizeMode, setIsResizeMode] = useState(false)
+  const [showResizeInterface, setShowResizeInterface] = useState(false)
+  const [resizeInterfacePosition, setResizeInterfacePosition] = useState({ x: 0, y: 0 })
   const [touchStartTime, setTouchStartTime] = useState(0)
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
@@ -575,6 +579,81 @@ export default function PlantBedViewPage() {
       resizeModeRef.current = flowerId
     }
   }, [flowerPositions, selectedFlower, isDragMode, isResizeMode, toast])
+
+  // Handle double click - show resize interface
+  const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
+    console.log('Double click on flower:', flower.name)
+    
+    // Get flower position on screen
+    const containerRect = containerRef.current?.getBoundingClientRect()
+    if (!containerRect) return
+
+    const flowerScreenX = containerRect.left + (flower.position_x * scale) + (flower.visual_width * scale) / 2
+    const flowerScreenY = containerRect.top + (flower.position_y * scale) + (flower.visual_height * scale) / 2
+
+    setSelectedFlower(flower)
+    setShowResizeInterface(true)
+    setResizeInterfacePosition({ 
+      x: flowerScreenX, 
+      y: flowerScreenY 
+    })
+    setIsDragMode(false)
+    setIsResizeMode(false)
+    
+    toast({
+      title: "🔧 Grootte aanpassen",
+      description: "Gebruik de + en - knoppen om de bloem groter of kleiner te maken.",
+    })
+  }, [scale, toast])
+
+  // Handle flower resize via interface
+  const handleFlowerResize = useCallback(async (flowerId: string, sizeChange: number) => {
+    const flower = flowerPositions.find(f => f.id === flowerId)
+    if (!flower) return
+
+    const currentSize = Math.min(flower.visual_width, flower.visual_height)
+    const newSize = Math.max(FLOWER_SIZE_SMALL, Math.min(FLOWER_SIZE_LARGE * 2, currentSize + sizeChange))
+    
+    const updatedFlower = {
+      ...flower,
+      visual_width: newSize,
+      visual_height: newSize
+    }
+
+    try {
+      await updatePlantPosition(flowerId, {
+        position_x: flower.position_x,
+        position_y: flower.position_y,
+        visual_width: newSize,
+        visual_height: newSize,
+        notes: flower.notes
+      })
+
+      setFlowerPositions(prev => prev.map(f => 
+        f.id === flowerId ? updatedFlower : f
+      ))
+      setSelectedFlower(updatedFlower)
+      setHasChanges(true)
+
+      toast({
+        title: "✅ Grootte aangepast",
+        description: `${flower.name} is nu ${newSize}px groot.`,
+      })
+    } catch (error) {
+      console.error('Failed to resize flower:', error)
+      toast({
+        title: "❌ Fout",
+        description: "Kon grootte niet aanpassen. Probeer opnieuw.",
+        variant: "destructive",
+      })
+    }
+  }, [flowerPositions, toast])
+
+  // Close resize interface
+  const closeResizeInterface = useCallback(() => {
+    setShowResizeInterface(false)
+    setSelectedFlower(null)
+  }, [])
 
   // Handle pointer down - start dragging immediately for mouse, conditionally for touch
   const handleFlowerPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
