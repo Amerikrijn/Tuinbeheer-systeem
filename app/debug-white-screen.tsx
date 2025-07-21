@@ -101,7 +101,7 @@ export function WhiteScreenDetector() {
       window.removeEventListener('error', handleError)
       window.removeEventListener('unhandledrejection', handleUnhandledRejection)
     }
-  }, [isWhiteScreen])
+  }, [isWhiteScreen, isProduction])
 
   // If white screen is detected, show debug info
   if (isWhiteScreen) {
