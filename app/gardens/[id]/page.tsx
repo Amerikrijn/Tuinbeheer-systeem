@@ -844,9 +844,8 @@ export default function GardenDetailPage() {
               <TreePine className="h-8 w-8 text-green-600" />
               {garden.name}
             </h1>
-            <p className="text-gray-600">
-              Sleep om te verplaatsen, dubbelklik om te beheren
-              {(garden.total_area || (garden.length && garden.width)) && (
+            {(garden.total_area || (garden.length && garden.width)) && (
+              <p className="text-gray-600">
                 <span className="ml-2 text-sm font-medium text-green-600">
                   • Afmetingen: {garden.length}m × {garden.width}m • Oppervlakte: {garden.total_area || 
                     (garden.length && garden.width && 
@@ -854,8 +853,8 @@ export default function GardenDetailPage() {
                     )
                   }
                 </span>
-              )}
-            </p>
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
