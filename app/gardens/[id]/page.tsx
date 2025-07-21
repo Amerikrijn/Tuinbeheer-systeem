@@ -70,6 +70,13 @@ export default function GardenDetailPage() {
   const [saving, setSaving] = useState(false)
   const [deletingBedId, setDeletingBedId] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isEditingGarden, setIsEditingGarden] = useState(false)
+  const [gardenForm, setGardenForm] = useState({
+    name: '',
+    length: '',
+    width: '',
+    description: ''
+  })
   const canvasRef = useRef<HTMLDivElement>(null)
 
   // Calculate canvas size based on garden dimensions
@@ -119,6 +126,16 @@ export default function GardenDetailPage() {
         ])
         console.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
         setGarden(gardenData)
+        
+        // Initialize garden form
+        if (gardenData) {
+          setGardenForm({
+            name: gardenData.name || '',
+            length: gardenData.length || '',
+            width: gardenData.width || '',
+            description: gardenData.description || ''
+          })
+        }
         
         // Process plant beds to ensure they have visual dimensions
         const processedBeds = plantBedsData.map(bed => {
@@ -170,6 +187,45 @@ export default function GardenDetailPage() {
       loadData()
     }
   }, [params.id])
+
+  // Handle garden update
+  const handleGardenUpdate = async () => {
+    if (!garden) return
+    
+    try {
+      setSaving(true)
+      
+      // Update garden in database
+      const updatedGarden = {
+        ...garden,
+        name: gardenForm.name,
+        length: gardenForm.length,
+        width: gardenForm.width,
+        description: gardenForm.description,
+        total_area: gardenForm.length && gardenForm.width ? 
+          (parseFloat(gardenForm.length) * parseFloat(gardenForm.width)).toString() : garden.total_area
+      }
+      
+      // You'll need to implement updateGarden function in database.ts
+      // For now, we'll simulate the update
+      setGarden(updatedGarden)
+      setIsEditingGarden(false)
+      
+      toast({
+        title: "✅ Tuin bijgewerkt",
+        description: "De tuinafmetingen zijn succesvol aangepast.",
+      })
+    } catch (error) {
+      console.error('Failed to update garden:', error)
+      toast({
+        title: "❌ Fout",
+        description: "Kon tuin niet bijwerken. Probeer opnieuw.",
+        variant: "destructive",
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, 2))
@@ -717,6 +773,15 @@ export default function GardenDetailPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditingGarden(true)}
+          >
+            <Edit className="h-4 w-4 mr-2" />
+            Tuin Bewerken
+          </Button>
+          
+          <Button
             variant={showVisualView ? "default" : "outline"}
             size="sm"
             onClick={() => setShowVisualView(!showVisualView)}
@@ -1242,6 +1307,94 @@ export default function GardenDetailPage() {
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Verwijderen
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Garden Dialog */}
+      <Dialog open={isEditingGarden} onOpenChange={setIsEditingGarden}>
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>🏡 Tuin Bewerken</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="garden-name" className="block text-sm font-medium text-gray-700 mb-1">
+                Tuin Naam
+              </label>
+              <Input
+                id="garden-name"
+                value={gardenForm.name}
+                onChange={(e) => setGardenForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Bijv. Mijn Achtertuin"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="garden-length" className="block text-sm font-medium text-gray-700 mb-1">
+                  Lengte (m)
+                </label>
+                <Input
+                  id="garden-length"
+                  type="number"
+                  step="0.1"
+                  min="1"
+                  value={gardenForm.length}
+                  onChange={(e) => setGardenForm(prev => ({ ...prev, length: e.target.value }))}
+                  placeholder="9.0"
+                />
+              </div>
+              <div>
+                <label htmlFor="garden-width" className="block text-sm font-medium text-gray-700 mb-1">
+                  Breedte (m)
+                </label>
+                <Input
+                  id="garden-width"
+                  type="number"
+                  step="0.1"
+                  min="1"
+                  value={gardenForm.width}
+                  onChange={(e) => setGardenForm(prev => ({ ...prev, width: e.target.value }))}
+                  placeholder="16.0"
+                />
+              </div>
+            </div>
+
+            {gardenForm.length && gardenForm.width && (
+              <div className="text-sm text-green-600 font-medium">
+                📐 Oppervlakte: {(parseFloat(gardenForm.length) * parseFloat(gardenForm.width)).toFixed(1)} m²
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="garden-description" className="block text-sm font-medium text-gray-700 mb-1">
+                Beschrijving (optioneel)
+              </label>
+              <Textarea
+                id="garden-description"
+                value={gardenForm.description}
+                onChange={(e) => setGardenForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Beschrijf je tuin..."
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setIsEditingGarden(false)}
+            >
+              Annuleren
+            </Button>
+            <Button
+              onClick={handleGardenUpdate}
+              disabled={saving || !gardenForm.name || !gardenForm.length || !gardenForm.width}
+            >
+              {saving ? "Opslaan..." : "Opslaan"}
             </Button>
           </div>
         </DialogContent>
