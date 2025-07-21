@@ -3,6 +3,17 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   
+  // Exclude mobile app and packages from Next.js compilation
+  webpack: (config, { isServer }) => {
+    // Ignore mobile app and packages directories
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: ['**/apps/mobile/**', '**/packages/**', '**/node_modules/**']
+    }
+    
+    return config
+  },
+  
   // Explicitly define environment variables for client-side
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
