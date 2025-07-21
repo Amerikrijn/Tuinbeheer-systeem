@@ -32,19 +32,22 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
   // Calculate how many flowers should be displayed based on plant bed size
   const calculateFlowerCount = useMemo(() => {
     const area = containerWidth * containerHeight
-    const baseFlowerSize = 24 // Base size in pixels
-    const baseArea = baseFlowerSize * baseFlowerSize
     
-    // More flowers for larger areas - better scaling for larger beds
-    const densityFactor = Math.sqrt(area / baseArea) * 1.2
-    const playfulMultiplier = containerWidth > 200 && containerHeight > 200 ? 2.0 : 1.5
-    
-    // Ensure we have enough flowers to fill larger beds nicely
-    const minFlowersForLargeBeds = containerWidth > 300 && containerHeight > 300 ? 12 : 
-                                   containerWidth > 200 && containerHeight > 200 ? 8 : 3
-    
-    return Math.max(minFlowersForLargeBeds, Math.floor(densityFactor * playfulMultiplier))
-  }, [containerWidth, containerHeight])
+    // Much more conservative flower count based on container area
+    if (area <= 10000) {
+      // Very small containers: 1-2 flowers
+      return Math.min(2, Math.max(1, plants.length))
+    } else if (area <= 25000) {
+      // Small containers: 2-4 flowers
+      return Math.min(4, Math.max(2, plants.length))
+    } else if (area <= 50000) {
+      // Medium containers: 3-6 flowers
+      return Math.min(6, Math.max(3, plants.length))
+    } else {
+      // Large containers: 4-8 flowers max
+      return Math.min(8, Math.max(4, plants.length))
+    }
+  }, [containerWidth, containerHeight, plants.length])
 
   // Check if we should show a single large flower field that fills the container
   const shouldShowFlowerField = useMemo(() => {
