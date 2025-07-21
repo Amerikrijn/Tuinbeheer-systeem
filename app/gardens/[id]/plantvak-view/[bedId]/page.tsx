@@ -90,12 +90,12 @@ const FLOWER_STATUS_OPTIONS = [
     }
   }
 
-  // Helper function to get emoji based on plant name or category
-  const getPlantEmoji = (name?: string, category?: string): string => {
+  // Helper function to get emoji based on plant name or category (optional)
+  const getPlantEmoji = (name?: string, category?: string): string | undefined => {
   const plantName = (name || '').toLowerCase()
   const plantCategory = (category || '').toLowerCase()
   
-  // Match by name
+  // Match by name - only return emoji for common flower types
   if (plantName.includes('roos') || plantName.includes('rose')) return '🌹'
   if (plantName.includes('tulp') || plantName.includes('tulip')) return '🌷'
   if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
@@ -108,12 +108,13 @@ const FLOWER_STATUS_OPTIONS = [
   if (plantName.includes('begonia')) return '🌸'
   
   // Match by category
-  if (plantCategory.includes('bloem') || plantCategory.includes('flower')) return '🌸'
+  if (plantCategory.includes('roos') || plantCategory.includes('rose')) return '🌹'
+  if (plantCategory.includes('tulp')) return '🌷'
   if (plantCategory.includes('kruid') || plantCategory.includes('herb')) return '🌿'
   if (plantCategory.includes('groente') || plantCategory.includes('vegetable')) return '🥬'
   
-  // Default
-  return '🌸'
+  // Default: no emoji, show name instead
+  return undefined
 }
 
 export default function PlantBedViewPage() {
@@ -260,19 +261,10 @@ export default function PlantBedViewPage() {
   }
 
   const addFlower = async () => {
-    if (!plantBed || !newFlower.name || (!newFlower.type && !isCustomFlower)) {
+    if (!plantBed || !newFlower.name) {
       toast({
         title: "Incomplete gegevens",
-        description: "Vul alle velden in om een bloem toe te voegen.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (isCustomFlower && !newFlower.customEmoji && !newFlower.photoUrl && !uploadedImageUrl) {
-      toast({
-        title: "Emoji of foto vereist",
-        description: "Voeg een emoji of foto toe voor je aangepaste bloem.",
+        description: "Vul de bloemnaam in om een bloem toe te voegen.",
         variant: "destructive",
       })
       return
@@ -297,7 +289,7 @@ export default function PlantBedViewPage() {
         position_y: Math.random() * (canvasHeight - flowerSize),
         visual_width: flowerSize,
         visual_height: flowerSize,
-        emoji: isCustomFlower ? (newFlower.customEmoji || '🌸') : selectedType?.emoji || '🌸',
+        emoji: isCustomFlower ? (newFlower.customEmoji || undefined) : selectedType?.emoji || undefined,
         photo_url: isCustomFlower ? (uploadedImageUrl || newFlower.photoUrl || null) : null,
         is_custom: isCustomFlower,
         category: isCustomFlower ? 'Aangepast' : newFlower.type,
@@ -336,22 +328,13 @@ export default function PlantBedViewPage() {
   }
 
   const updateFlower = async () => {
-    if (!selectedFlower || !newFlower.name || (!newFlower.type && !isEditCustomFlower)) {
+    if (!selectedFlower || !newFlower.name) {
       toast({
         title: "Incomplete gegevens",
-        description: "Vul alle velden in om de bloem te wijzigen.",
+        description: "Vul de bloemnaam in om de bloem te wijzigen.",
         variant: "destructive",
       })
-      return
-    }
-
-    if (isEditCustomFlower && !newFlower.customEmoji && !newFlower.photoUrl && !uploadedImageUrl) {
-      toast({
-        title: "Emoji of foto vereist",
-        description: "Voeg een emoji of foto toe voor je aangepaste bloem.",
-        variant: "destructive",
-      })
-      return
+            return
     }
 
     try {
@@ -366,7 +349,7 @@ export default function PlantBedViewPage() {
         name: newFlower.name,
         color: newFlower.color,
         status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
-        emoji: isEditCustomFlower ? (newFlower.customEmoji || '🌸') : selectedType?.emoji || '🌸',
+        emoji: isEditCustomFlower ? (newFlower.customEmoji || undefined) : selectedType?.emoji || undefined,
         photo_url: isEditCustomFlower ? (uploadedImageUrl || newFlower.photoUrl || null) : null,
         is_custom: isEditCustomFlower,
         category: isEditCustomFlower ? 'Aangepast' : newFlower.type,
@@ -1043,7 +1026,7 @@ export default function PlantBedViewPage() {
             position_y: constrainedY,
             visual_width: FLOWER_SIZE, // Same size as main flower!
             visual_height: FLOWER_SIZE,
-            emoji: flower.emoji || '🌸',
+            emoji: flower.emoji,
             is_custom: flower.is_custom,
             category: flower.category,
             notes: `sub_flower_of:${flower.id}`
@@ -1281,23 +1264,23 @@ export default function PlantBedViewPage() {
                 Bloem Toevoegen
               </Button>
                           </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white z-50">
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white z-50 border border-gray-200 shadow-xl">
               <DialogHeader>
                 <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
                 <DialogDescription>
                   Voeg een nieuwe bloem toe aan dit plantvak. Je kunt het later verplaatsen door te slepen.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
+              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2 bg-white">
                 <div className="grid gap-2">
                   <label htmlFor="name" className="text-sm font-medium">
-                    Naam *
+                    Bloemnaam *
                   </label>
                   <Input
                     id="name"
                     value={newFlower.name}
                     onChange={(e) => setNewFlower(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Bijvoorbeeld: Mijn mooie roos"
+                    placeholder="Bijvoorbeeld: Rode Roos, Gele Tulp, Zonnebloem"
                   />
                 </div>
 
@@ -1315,7 +1298,7 @@ export default function PlantBedViewPage() {
 
                 {!isCustomFlower ? (
                   <div>
-                    <label className="text-sm font-medium">Type *</label>
+                    <label className="text-sm font-medium">Type (optioneel)</label>
                     <Select value={newFlower.type} onValueChange={(value) => {
                       const selectedType = FLOWER_TYPES.find(type => type.name === value)
                       setNewFlower(prev => ({ 
@@ -1325,13 +1308,12 @@ export default function PlantBedViewPage() {
                       }))
                     }}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecteer bloem type" />
+                        <SelectValue placeholder="Selecteer bloem type (optioneel)" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white">
                         {FLOWER_TYPES.map((type) => (
                           <SelectItem key={type.name} value={type.name}>
                             <div className="flex items-center gap-2">
-                              <span>{type.emoji}</span>
                               <span>{type.name}</span>
                             </div>
                           </SelectItem>
@@ -1569,23 +1551,23 @@ export default function PlantBedViewPage() {
               setUploadedImageUrl('')
             }
                                            }}>
-            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white z-50">
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white z-50 border border-gray-200 shadow-xl">
               <DialogHeader>
                 <DialogTitle>Bloem Bewerken</DialogTitle>
                 <DialogDescription>
                   Wijzig de eigenschappen van deze bloem.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
+              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2 bg-white">
                 <div className="grid gap-2">
                   <label htmlFor="edit-name" className="text-sm font-medium">
-                    Naam *
+                    Bloemnaam *
                   </label>
                   <Input
                     id="edit-name"
                     value={newFlower.name}
                     onChange={(e) => setNewFlower(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Bijvoorbeeld: Mijn mooie roos"
+                    placeholder="Bijvoorbeeld: Rode Roos, Gele Tulp, Zonnebloem"
                   />
                 </div>
 
@@ -1603,7 +1585,7 @@ export default function PlantBedViewPage() {
 
                 {!isEditCustomFlower ? (
                   <div>
-                    <label className="text-sm font-medium">Type *</label>
+                    <label className="text-sm font-medium">Type (optioneel)</label>
                     <Select value={newFlower.type} onValueChange={(value) => {
                       const selectedType = FLOWER_TYPES.find(type => type.name === value)
                       setNewFlower(prev => ({ 
@@ -1613,13 +1595,12 @@ export default function PlantBedViewPage() {
                       }))
                     }}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecteer bloem type" />
+                        <SelectValue placeholder="Selecteer bloem type (optioneel)" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white">
                         {FLOWER_TYPES.map((type) => (
                           <SelectItem key={type.name} value={type.name}>
                             <div className="flex items-center gap-2">
-                              <span>{type.emoji}</span>
                               <span>{type.name}</span>
                             </div>
                           </SelectItem>
@@ -2262,8 +2243,15 @@ export default function PlantBedViewPage() {
                               height: flower.visual_height + 'px'
                             }}
                           />
+                        ) : flower.emoji ? (
+                          flower.emoji
                         ) : (
-                          flower.emoji || '🌸'
+                          <div className="text-center text-white font-bold leading-tight" style={{ 
+                            fontSize: Math.max(8, Math.min(16, flower.visual_width * 0.2)) + 'px',
+                            textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
+                          }}>
+                            {flower.name}
+                          </div>
                         )}
                       </div>
                       
@@ -2404,7 +2392,7 @@ export default function PlantBedViewPage() {
                                        position_y: Math.max(10, Math.min(y, canvasHeight - 50)),
                                        visual_width: FLOWER_SIZE,
                                        visual_height: FLOWER_SIZE,
-                                       emoji: flower.emoji || '🌸',
+                                       emoji: flower.emoji,
                                        is_custom: false,
                                        category: flower.category,
                                        notes: `sub_flower_of:${flower.id}`
