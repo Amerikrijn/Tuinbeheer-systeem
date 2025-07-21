@@ -492,9 +492,16 @@ export default function GardenDetailPage() {
 
     const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
     const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
+    
+    // Add padding from edges to prevent placement in corners
+    const EDGE_PADDING = 10
+    const minX = EDGE_PADDING
+    const minY = EDGE_PADDING
+    const maxX = CANVAS_WIDTH - bedWidth - EDGE_PADDING
+    const maxY = CANVAS_HEIGHT - bedHeight - EDGE_PADDING
 
-    const x = Math.max(0, Math.min((clientX - rect.left) / scale - dragOffset.x, CANVAS_WIDTH - bedWidth))
-    const y = Math.max(0, Math.min((clientY - rect.top) / scale - dragOffset.y, CANVAS_HEIGHT - bedHeight))
+    const x = Math.max(minX, Math.min((clientX - rect.left) / scale - dragOffset.x, maxX))
+    const y = Math.max(minY, Math.min((clientY - rect.top) / scale - dragOffset.y, maxY))
 
     setPlantBeds(prev => prev.map(bed => 
       bed.id === draggedBed 
@@ -502,24 +509,48 @@ export default function GardenDetailPage() {
         : bed
     ))
     setHasChanges(true)
-  }, [draggedBed, dragOffset, scale, plantBeds])
+  }, [draggedBed, dragOffset, scale, plantBeds, CANVAS_WIDTH, CANVAS_HEIGHT])
 
   // Mouse move handler
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     handlePointerMove(e.clientX, e.clientY)
   }, [handlePointerMove])
 
-  // Handle drag end
-  const handlePointerUp = useCallback(() => {
-    if (draggedBed) {
-      toast({
-        title: "Plantvak verplaatst",
-        description: "Vergeet niet op te slaan!",
-      })
+  // Handle drag end with auto-save
+  const handlePointerUp = useCallback(async () => {
+    if (draggedBed && hasChanges) {
+      // Auto-save when dragging stops
+      setSaving(true)
+      try {
+        const bedToUpdate = plantBeds.find(bed => bed.id === draggedBed)
+        if (bedToUpdate) {
+          await updatePlantBed(bedToUpdate.id, {
+            position_x: bedToUpdate.position_x,
+            position_y: bedToUpdate.position_y,
+            visual_width: bedToUpdate.visual_width,
+            visual_height: bedToUpdate.visual_height
+          })
+          
+          setHasChanges(false)
+          toast({
+            title: "Plantvak verplaatst",
+            description: "Positie automatisch opgeslagen!",
+          })
+        }
+      } catch (error) {
+        console.error("Error auto-saving plant bed position:", error)
+        toast({
+          title: "Fout bij opslaan",
+          description: "Positie kon niet worden opgeslagen.",
+          variant: "destructive",
+        })
+      } finally {
+        setSaving(false)
+      }
     }
     setDraggedBed(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedBed, toast])
+  }, [draggedBed, hasChanges, plantBeds, toast])
 
   // Handle click outside to deselect
   const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -844,18 +875,17 @@ export default function GardenDetailPage() {
               <TreePine className="h-8 w-8 text-green-600" />
               {garden.name}
             </h1>
-            <p className="text-gray-600">
-              Sleep om te verplaatsen, dubbelklik om te beheren
-              {(garden.total_area || (garden.length && garden.width)) && (
-                <span className="ml-2 text-sm font-medium text-green-600">
+            {(garden.total_area || (garden.length && garden.width)) && (
+              <p className="text-gray-600">
+                <span className="text-sm font-medium text-green-600">
                   • Afmetingen: {garden.length}m × {garden.width}m • Oppervlakte: {garden.total_area || 
                     (garden.length && garden.width && 
                       `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
                     )
                   }
                 </span>
-              )}
-            </p>
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -1037,46 +1067,7 @@ export default function GardenDetailPage() {
         </div>
       </div>
 
-      {/* Garden Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TreePine className="h-5 w-5 text-green-600" />
-            Tuin Informatie
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-gray-500" />
-              <div>
-                <div className="font-medium">Locatie</div>
-                <div className="text-sm text-gray-600">{garden.location}</div>
-              </div>
-            </div>
-            <div>
-              <div className="font-medium">Grootte</div>
-              <div className="text-sm text-gray-600">
-                {garden.total_area || 
-                  (garden.length && garden.width && 
-                    `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
-                  ) || 'Niet opgegeven'
-                }
-              </div>
-            </div>
-            <div>
-              <div className="font-medium">Plantvakken</div>
-              <div className="text-sm text-gray-600">{plantBeds.length}</div>
-            </div>
-            <div>
-              <div className="font-medium">Totaal bloemen</div>
-              <div className="text-sm text-gray-600">
-                {plantBeds.reduce((total, bed) => total + bed.plants.length, 0)}
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {showVisualView ? (
         /* Visual Garden Layout */
@@ -1133,16 +1124,15 @@ export default function GardenDetailPage() {
             </div>
           </div>
           
-          <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
+          <div className="relative overflow-auto rounded-lg border-2 border-dashed border-green-200">
               <div
                 ref={canvasRef}
                 className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 cursor-crosshair"
                 style={{
-                  width: CANVAS_WIDTH,
-                  height: CANVAS_HEIGHT,
-                  transform: `scale(${scale})`,
-                  transformOrigin: "top left",
-                  maxWidth: "100%",
+                  width: CANVAS_WIDTH * scale,
+                  height: CANVAS_HEIGHT * scale,
+                  minWidth: "100%",
+                  minHeight: "400px",
                 }}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handlePointerUp}
@@ -1253,7 +1243,7 @@ export default function GardenDetailPage() {
               </div>
             </div>
             <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
-              <p>💡 <strong>Tip:</strong> Sleep om te verplaatsen, dubbelklik om te beheren</p>
+              <p>💡 <strong>Tip:</strong> Dubbelklik om te beheren</p>
               <div className="flex items-center gap-4">
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                 {selectedBed && (
