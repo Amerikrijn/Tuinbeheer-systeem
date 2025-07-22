@@ -40,6 +40,7 @@ import {
   PLANTVAK_MIN_WIDTH,
   PLANTVAK_MIN_HEIGHT,
   metersToPixels,
+  pixelsToMeters,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { FlowerVisualization } from "@/components/flower-visualization"
@@ -442,7 +443,7 @@ export default function GardenDetailPage() {
       startBedY: bed.position_y || 100,
       startBedWidth: bedWidth,
       startBedHeight: bedHeight,
-      resizeHandle: resizeHandle as any || null
+      resizeHandle: (resizeHandle as 'se' | 'sw' | 'ne' | 'nw' | 'e' | 'w' | 'n' | 's') || null
     })
 
     setSelectedBed(bedId)
@@ -604,7 +605,7 @@ export default function GardenDetailPage() {
     } catch (error) {
       console.error("Error adding more flowers:", error)
     }
-  }, [toast])
+  }, [toast, createSampleFlowers])
 
   // Create sample flowers for a new plant bed
   const createSampleFlowers = useCallback(async (plantBedId: string, length: number, width: number): Promise<Plant[]> => {
@@ -709,7 +710,7 @@ export default function GardenDetailPage() {
         setSaving(false)
       }
     }
-  }, [dragState, hasChanges, plantBeds, updatePlantBed, toast, checkAndAddMoreFlowers])
+  }, [dragState, hasChanges, plantBeds, toast, checkAndAddMoreFlowers])
 
   // Removed old rotation handlers - keeping it simple for now
 
@@ -747,7 +748,7 @@ export default function GardenDetailPage() {
     if (plantBeds.length > 0) {
       checkAllBedsForFlowers()
     }
-  }, [plantBeds.length, checkAndAddMoreFlowers]) // Only run when number of beds changes
+  }, [plantBeds, checkAndAddMoreFlowers]) // Run when beds change
 
   // Save layout changes
   const saveLayout = async () => {

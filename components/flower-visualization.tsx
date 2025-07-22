@@ -185,7 +185,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     })
 
     setFlowerInstances(instances)
-  }, [plants, containerWidth, containerHeight, calculateFlowerCount])
+  }, [plants, containerWidth, containerHeight, calculateFlowerCount, generateDistributedPositions])
 
   // Group flowers by plant for name display
   const plantGroups = useMemo(() => {
