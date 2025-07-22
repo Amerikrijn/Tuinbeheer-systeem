@@ -365,16 +365,7 @@ export default function GardenDetailPage() {
   const getDimensionsFromSize = (size: string) => {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
-                          console.log("✅ Plantvak schaal debug:", {
-        sizeString: size,
-        lengthMeters: dimensions.lengthMeters,
-        widthMeters: dimensions.widthMeters,
-        lengthPixels: dimensions.lengthPixels,
-        widthPixels: dimensions.widthPixels,
-        metersToPixelsConstant: METERS_TO_PIXELS,
-        expectedWidth: dimensions.lengthMeters * METERS_TO_PIXELS,
-        expectedHeight: dimensions.widthMeters * METERS_TO_PIXELS
-      })
+                          console.log(`✅ PLANTVAK SCHAAL: ${size} -> L:${dimensions.lengthMeters}m W:${dimensions.widthMeters}m -> ${dimensions.lengthPixels}px x ${dimensions.widthPixels}px`)
       
       // EXTRA DEBUG: Test de return waarden
       const returnValue = {
@@ -1330,12 +1321,7 @@ export default function GardenDetailPage() {
                     bedHeight = dims.height
                     
                     // DEBUG VOOR ALLE PLANTVAKKEN
-                    console.log(`🔥 FINAL DIMENSIONS FOR ${bed.name}:`, {
-                      size: bed.size,
-                      calculatedDims: dims,
-                      finalBedWidth: bedWidth,
-                      finalBedHeight: bedHeight
-                    })
+                    console.log(`🔥 FINAL ${bed.name}: ${bed.size} -> CALC: ${dims.width}x${dims.height} -> FINAL: ${bedWidth}x${bedHeight}`)
                     
                     // HARDCODED TEST: Force Rozenbed to be clearly rectangular
                     if (bed.name === 'Rozenbed') {
@@ -1358,16 +1344,7 @@ export default function GardenDetailPage() {
                       })
                     }
                     
-                    console.log("🎯 Plantvak rendering:", {
-                      name: bed.name,
-                      size: bed.size,
-                      calculatedWidth: bedWidth,
-                      calculatedHeight: bedHeight,
-                      calculatedWidthMeters: bedWidth / METERS_TO_PIXELS,
-                      calculatedHeightMeters: bedHeight / METERS_TO_PIXELS,
-                      storedVisualWidth: bed.visual_width,
-                      storedVisualHeight: bed.visual_height
-                    })
+                    console.log(`🎯 RENDERING ${bed.name}: ${bed.size} -> ${bedWidth}px x ${bedHeight}px (stored: ${bed.visual_width}x${bed.visual_height})`)
                   } else {
                     console.log("⚠️ Plantvak zonder size:", bed.name, "using default 2x2m")
                   }
