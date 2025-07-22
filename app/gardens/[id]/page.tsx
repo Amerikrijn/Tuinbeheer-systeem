@@ -1487,32 +1487,7 @@ export default function GardenDetailPage() {
                               }}
                             />
                             
-                            {/* Old rotation handle - keeping for now */}
-                            <div
-                              className="absolute -top-2 -left-2 w-6 h-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center cursor-grab text-xs font-bold shadow-lg border-2 border-white"
-                              onMouseDown={(e) => {
-                                e.stopPropagation()
-                                if (!canvasRef.current) return
-                                
-                                const canvas = canvasRef.current
-                                const rect = canvas.getBoundingClientRect()
-                                const mouseX = (e.clientX - rect.left) / scale
-                                const mouseY = (e.clientY - rect.top) / scale
-                                
-                                const bedWidth = bed.visual_width || metersToPixels(2)
-                                const bedHeight = bed.visual_height || metersToPixels(2)
-                                const centerX = (bed.position_x || 100) + bedWidth / 2
-                                const centerY = (bed.position_y || 100) + bedHeight / 2
-                                
-                                const startAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
-                                setRotationStartAngle(startAngle)
-                                setRotatingBed(bed.id)
-                                setIsRotateMode(true)
-                              }}
-                              title="Sleep om te roteren"
-                            >
-                              ↻
-                            </div>
+                            {/* Rotation removed - keeping it simple for now */}
                           </>
                         )}
                         <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />

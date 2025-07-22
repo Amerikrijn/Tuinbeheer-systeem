@@ -421,7 +421,7 @@ export default function PlantBedViewPage() {
       
       return () => clearTimeout(timer)
     }
-  }, [loading, plantBed, cleanupFlowersOutsideBoundaries, autoFillFlowerBed])
+  }, [loading, plantBed, cleanupFlowersOutsideBoundaries, autoFillFlowerBed, flowerPositions.length])
 
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
@@ -1416,8 +1416,8 @@ export default function PlantBedViewPage() {
   useEffect(() => {
     const cleanup = () => {
       // Remove all event listeners to prevent sticky behavior
-      document.removeEventListener('mousemove', handleResizeMove as any)
-      document.removeEventListener('mouseup', handleResizeEnd as any)
+      document.removeEventListener('mousemove', handleResizeMove)
+      document.removeEventListener('mouseup', handleResizeEnd)
     }
 
     if (draggedFlower) {
@@ -1444,11 +1444,11 @@ export default function PlantBedViewPage() {
       // Clean up any drag listeners first
       cleanup()
       
-      document.addEventListener('mousemove', handleResizeMove as any)
-      document.addEventListener('mouseup', handleResizeEnd as any)
+      document.addEventListener('mousemove', handleResizeMove)
+      document.addEventListener('mouseup', handleResizeEnd)
       return () => {
-        document.removeEventListener('mousemove', handleResizeMove as any)
-        document.removeEventListener('mouseup', handleResizeEnd as any)
+        document.removeEventListener('mousemove', handleResizeMove)
+        document.removeEventListener('mouseup', handleResizeEnd)
       }
     }
 

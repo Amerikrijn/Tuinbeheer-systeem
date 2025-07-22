@@ -131,7 +131,7 @@ export default function NewGardenPage() {
       } else {
         router.push("/gardens")
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Supabase createGarden error:", JSON.stringify(err, null, 2))
       toast({
         title: "Fout",
