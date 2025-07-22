@@ -65,6 +65,13 @@ export interface Bloem {
   care_instructions?: string
   watering_frequency?: number
   fertilizer_schedule?: string
+  // Visual designer properties
+  position_x?: number
+  position_y?: number
+  visual_width?: number
+  visual_height?: number
+  emoji?: string
+  is_custom?: boolean
   created_at: string
   updated_at: string
 }
