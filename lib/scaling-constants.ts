@@ -23,8 +23,8 @@ export const metersToPixels = (meters: number): number => meters * METERS_TO_PIX
 export const pixelsToMeters = (pixels: number): number => pixels / METERS_TO_PIXELS
 
 export const parsePlantBedDimensions = (sizeString: string) => {
-  // Try multiple patterns to match different formats
-  const match = sizeString?.match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/)
+  // Try multiple patterns to match different formats, including units like "m", "meter", etc.
+  const match = sizeString?.match(/(\d+(?:\.\d+)?)\s*m?\s*[xX×]\s*(\d+(?:\.\d+)?)\s*m?/)
   
   // If no match, try to extract just numbers (e.g. "8m" becomes 8x8)
   if (!match) {
