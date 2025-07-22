@@ -750,7 +750,9 @@ export default function GardenDetailPage() {
     // Calculate current angle
     const currentAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
     const deltaAngle = currentAngle - rotationStartAngle
-    const newRotation = Math.round(((bed.rotation || 0) + deltaAngle) % 360)
+    // Reduce rotation sensitivity by dividing by 3 (slower rotation)
+    const adjustedDelta = deltaAngle / 3
+    const newRotation = Math.round(((bed.rotation || 0) + adjustedDelta) % 360)
 
     // Update plant bed rotation
     setPlantBeds(prev => prev.map(b => 
