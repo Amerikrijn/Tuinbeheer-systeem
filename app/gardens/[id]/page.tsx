@@ -1368,8 +1368,9 @@ export default function GardenDetailPage() {
                       style={{
                         left: bed.position_x || 100,
                         top: bed.position_y || 100,
-                        width: bedWidth,
-                        height: bedHeight,
+                        width: bed.name === 'Rozenbed' ? '120px' : bedWidth,
+                        height: bed.name === 'Rozenbed' ? '300px' : bedHeight,
+                        backgroundColor: bed.name === 'Rozenbed' ? 'red' : undefined,
                       }}
                       onClick={(e) => handlePlantBedClick(e, bed.id)}
                       onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
@@ -1412,7 +1413,7 @@ export default function GardenDetailPage() {
                         <div className="bg-white/95 rounded-lg p-2 shadow-sm border space-y-1">
                           {/* Plant bed name */}
                           <div className="text-sm font-bold text-gray-800 truncate">
-                            {bed.name}
+                            🔥 TEST: {bed.name} 🔥
                           </div>
                           
                           {/* Dimensions and plant count */}
