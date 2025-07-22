@@ -158,7 +158,7 @@ export default function GardenDetailPage() {
         }
         
         // Process plant beds to ensure they have correct visual dimensions
-        const processedBeds = plantBedsData.map(bed => {
+        const processedBeds = await Promise.all(plantBedsData.map(async bed => {
           let visualWidth = bed.visual_width
           let visualHeight = bed.visual_height
           
@@ -170,10 +170,22 @@ export default function GardenDetailPage() {
             
             // Update the database with recalculated dimensions if they're different
             if (bed.visual_width !== visualWidth || bed.visual_height !== visualHeight) {
-              updatePlantBed(bed.id, {
-                visual_width: visualWidth,
-                visual_height: visualHeight
-              }).catch(console.error)
+              console.log(`🔧 Updating plantvak ${bed.name} dimensions:`, {
+                oldWidth: bed.visual_width,
+                oldHeight: bed.visual_height,
+                newWidth: visualWidth,
+                newHeight: visualHeight,
+                size: bed.size
+              })
+              try {
+                await updatePlantBed(bed.id, {
+                  visual_width: visualWidth,
+                  visual_height: visualHeight
+                })
+                console.log(`✅ Successfully updated plantvak ${bed.name} dimensions`)
+              } catch (error) {
+                console.error(`❌ Failed to update plantvak ${bed.name} dimensions:`, error)
+              }
             }
           } else if (!visualWidth || !visualHeight) {
             visualWidth = PLANTVAK_MIN_WIDTH
@@ -191,7 +203,7 @@ export default function GardenDetailPage() {
             color_code: bed.color_code ?? '',
             visual_updated_at: bed.visual_updated_at ?? new Date().toISOString(),
           }
-        })
+        }))
         
         setPlantBeds(processedBeds)
       } catch (error) {
@@ -353,19 +365,12 @@ export default function GardenDetailPage() {
   const getDimensionsFromSize = (size: string) => {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
-      console.log("✅ Plantvak schaal debug:", {
-        sizeString: size,
-        lengthMeters: dimensions.lengthMeters,
-        widthMeters: dimensions.widthMeters,
-        lengthPixels: dimensions.lengthPixels,
-        widthPixels: dimensions.widthPixels,
-        metersToPixelsConstant: METERS_TO_PIXELS,
-        expectedWidth: dimensions.lengthMeters * METERS_TO_PIXELS,
-        expectedHeight: dimensions.widthMeters * METERS_TO_PIXELS
-      })
+      console.log(`✅ Plantvak dimensies: ${size} -> ${dimensions.lengthPixels}px × ${dimensions.widthPixels}px`)
+      // Fix: In size strings like "4x3 meter", the first number (lengthMeters) is the visual width,
+      // and the second number (widthMeters) is the visual height
       return {
-        width: dimensions.lengthPixels,
-        height: dimensions.widthPixels
+        width: dimensions.lengthPixels,  // First number = visual width (horizontal)
+        height: dimensions.widthPixels   // Second number = visual height (vertical)
       }
     }
     console.log("❌ Plantvak dimensies niet geparsed, gebruik standaard 2x2m:", size)
@@ -1307,16 +1312,9 @@ export default function GardenDetailPage() {
                     bedWidth = dims.width
                     bedHeight = dims.height
                     
-                    console.log("🎯 Plantvak rendering:", {
-                      name: bed.name,
-                      size: bed.size,
-                      calculatedWidth: bedWidth,
-                      calculatedHeight: bedHeight,
-                      calculatedWidthMeters: bedWidth / METERS_TO_PIXELS,
-                      calculatedHeightMeters: bedHeight / METERS_TO_PIXELS,
-                      storedVisualWidth: bed.visual_width,
-                      storedVisualHeight: bed.visual_height
-                    })
+
+                    
+                    console.log(`🎯 RENDERING ${bed.name}: ${bed.size} -> ${bedWidth}px x ${bedHeight}px (stored: ${bed.visual_width}x${bed.visual_height})`)
                   } else {
                     console.log("⚠️ Plantvak zonder size:", bed.name, "using default 2x2m")
                   }
@@ -1385,6 +1383,8 @@ export default function GardenDetailPage() {
                             <span className="text-gray-600 font-medium">
                               {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
                             </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
                             <span className="text-gray-500 flex items-center gap-1">
                               <span>{bed.plants.length}</span>
                               <span>🌸</span>
