@@ -132,7 +132,8 @@ export default function GardenDetailPage() {
     width: '', // in meters
     description: '',
     sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
-    soil_type: ''
+    soil_type: '',
+    rotation: 0 // rotation in degrees
   })
 
   useEffect(() => {
@@ -772,6 +773,35 @@ export default function GardenDetailPage() {
     }
   }
 
+  // Update plant bed rotation
+  const updatePlantBedRotation = async (bedId: string, newRotation: number) => {
+    try {
+      const updatedBed = await updatePlantBed(bedId, {
+        rotation: newRotation
+      })
+      
+      if (updatedBed) {
+        setPlantBeds(prev => prev.map(bed => 
+          bed.id === bedId 
+            ? { ...bed, rotation: updatedBed.rotation ?? newRotation }
+            : bed
+        ))
+        
+        toast({
+          title: "Rotatie bijgewerkt",
+          description: `Plantvak geroteerd naar ${newRotation}°`,
+        })
+      }
+    } catch (error) {
+      console.error("Error updating rotation:", error)
+      toast({
+        title: "Fout bij roteren",
+        description: "Er is een fout opgetreden bij het roteren van het plantvak.",
+        variant: "destructive",
+      })
+    }
+  }
+
   // Add new plant bed
   const addPlantBed = async () => {
     console.log("🔍 Adding plant bed:", { garden: garden?.id, newPlantBed })
@@ -885,7 +915,8 @@ export default function GardenDetailPage() {
           position_x: newX,
           position_y: newY,
           visual_width: visualWidth,
-          visual_height: visualHeight
+          visual_height: visualHeight,
+          rotation: newPlantBed.rotation || 0
         })
 
         if (updatedBed) {
@@ -912,7 +943,8 @@ export default function GardenDetailPage() {
             width: '',
             description: '',
             sun_exposure: 'full-sun',
-            soil_type: ''
+            soil_type: '',
+            rotation: 0
           })
           toast({
             title: "Plantvak toegevoegd",
@@ -1090,7 +1122,8 @@ export default function GardenDetailPage() {
                 width: '',
                 description: '',
                 sun_exposure: 'full-sun',
-                soil_type: ''
+                soil_type: '',
+                rotation: 0
               })
             }
             setIsAddingPlantBed(open)
@@ -1197,6 +1230,51 @@ export default function GardenDetailPage() {
                   />
                 </div>
                 <div className="grid gap-2">
+                  <label htmlFor="rotation" className="text-sm font-medium">
+                    Rotatie (graden)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="rotation"
+                      type="number"
+                      min="-180"
+                      max="180"
+                      step="15"
+                      value={newPlantBed.rotation}
+                      onChange={(e) => setNewPlantBed(prev => ({ ...prev, rotation: parseInt(e.target.value) || 0 }))}
+                      placeholder="0"
+                      className="w-20"
+                    />
+                    <span className="text-sm text-gray-500">°</span>
+                    <div className="flex gap-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setNewPlantBed(prev => ({ ...prev, rotation: (prev.rotation - 15) % 360 }))}
+                      >
+                        ↺
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setNewPlantBed(prev => ({ ...prev, rotation: (prev.rotation + 15) % 360 }))}
+                      >
+                        ↻
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setNewPlantBed(prev => ({ ...prev, rotation: 0 }))}
+                      >
+                        ⌂
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid gap-2">
                   <label htmlFor="description" className="text-sm font-medium">
                     Beschrijving
                   </label>
@@ -1255,12 +1333,13 @@ export default function GardenDetailPage() {
           <CardContent>
             {/* Mobile help text */}
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
-            <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak verplaatsen (mobiel):</h4>
+            <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak beheren (mobiel):</h4>
             <ul className="text-sm text-blue-800 space-y-1">
               <li>• <strong>1x tikken:</strong> Plantvak selecteren</li>
               <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
               <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
               <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
+              <li>• <strong>Geselecteerd:</strong> Rotatie knoppen verschijnen</li>
             </ul>
             <div className="mt-2 pt-2 border-t border-blue-300">
               <p className="text-xs text-blue-700">
@@ -1333,6 +1412,8 @@ export default function GardenDetailPage() {
                         top: bed.position_y || 100,
                         width: bedWidth,
                         height: bedHeight,
+                        transform: `rotate(${bed.rotation || 0}deg)`,
+                        transformOrigin: 'center center',
                       }}
                       onClick={(e) => handlePlantBedClick(e, bed.id)}
                       onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
@@ -1422,7 +1503,7 @@ export default function GardenDetailPage() {
               </div>
             </div>
             <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
-              <p>💡 <strong>Tip:</strong> Dubbelklik om te beheren</p>
+              <p>💡 <strong>Tip:</strong> Selecteer voor rotatie, dubbelklik om te beheren</p>
               <div className="flex items-center gap-4">
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                 {selectedBed && (
@@ -1430,6 +1511,46 @@ export default function GardenDetailPage() {
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                       {plantBeds.find(b => b.id === selectedBed)?.name} geselecteerd
                     </Badge>
+                    <div className="flex items-center gap-1 border rounded-md p-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const currentBed = plantBeds.find(b => b.id === selectedBed)
+                          const currentRotation = currentBed?.rotation || 0
+                          updatePlantBedRotation(selectedBed, (currentRotation - 15 + 360) % 360)
+                        }}
+                        className="h-6 w-6 p-0"
+                        title="Draai 15° tegen de klok in"
+                      >
+                        ↺
+                      </Button>
+                      <span className="text-xs text-gray-600 min-w-[30px] text-center">
+                        {plantBeds.find(b => b.id === selectedBed)?.rotation || 0}°
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const currentBed = plantBeds.find(b => b.id === selectedBed)
+                          const currentRotation = currentBed?.rotation || 0
+                          updatePlantBedRotation(selectedBed, (currentRotation + 15) % 360)
+                        }}
+                        className="h-6 w-6 p-0"
+                        title="Draai 15° met de klok mee"
+                      >
+                        ↻
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => updatePlantBedRotation(selectedBed, 0)}
+                        className="h-6 w-6 p-0"
+                        title="Reset rotatie"
+                      >
+                        ⌂
+                      </Button>
+                    </div>
                     <Button
                       variant="outline"
                       size="sm"
