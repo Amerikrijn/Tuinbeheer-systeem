@@ -376,6 +376,18 @@ export default function GardenDetailPage() {
     }
   }
 
+  // Get the correct dimensions for a plant bed - always use size if available
+  const getBedDimensions = useCallback((bed: PlantBedWithPlants) => {
+    if (bed.size) {
+      return getDimensionsFromSize(bed.size)
+    }
+    // Fallback to visual dimensions or defaults
+    return {
+      width: bed.visual_width || PLANTVAK_MIN_WIDTH,
+      height: bed.visual_height || PLANTVAK_MIN_HEIGHT
+    }
+  }, [])
+
   // Handle plantvak rotation
   const handlePlantBedRotate = useCallback(async (bedId: string) => {
     const bed = plantBeds.find(b => b.id === bedId)
@@ -557,8 +569,9 @@ export default function GardenDetailPage() {
     const bed = plantBeds.find(b => b.id === draggedBed)
     if (!bed) return
 
-    const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
-    const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
+    const bedDimensions = getBedDimensions(bed)
+    const bedWidth = bedDimensions.width
+    const bedHeight = bedDimensions.height
     
     // Allow more flexible positioning with minimal padding
     const EDGE_PADDING = 5
@@ -576,7 +589,7 @@ export default function GardenDetailPage() {
         : bed
     ))
     setHasChanges(true)
-  }, [draggedBed, dragOffset, scale, plantBeds, CANVAS_WIDTH, CANVAS_HEIGHT])
+  }, [draggedBed, dragOffset, scale, plantBeds, CANVAS_WIDTH, CANVAS_HEIGHT, getBedDimensions])
 
   // Check if plant bed got larger and add more flowers for playful effect
   const checkAndAddMoreFlowers = useCallback(async (bed: PlantBedWithPlants) => {
@@ -1355,28 +1368,21 @@ export default function GardenDetailPage() {
                   const isDragging = draggedBed === bed.id
                   const isInDragMode = isDragMode && isSelected
                   
-                  // Always recalculate dimensions from size to ensure correct scaling
-                  let bedWidth = metersToPixels(2) // Default 2x2 meters
-                  let bedHeight = metersToPixels(2)
+                  // Get correct dimensions using the helper function
+                  const bedDimensions = getBedDimensions(bed)
+                  const bedWidth = bedDimensions.width
+                  const bedHeight = bedDimensions.height
                   
-                  if (bed.size) {
-                    const dims = getDimensionsFromSize(bed.size)
-                    bedWidth = dims.width
-                    bedHeight = dims.height
-                    
-                    console.log("🎯 Plantvak rendering:", {
-                      name: bed.name,
-                      size: bed.size,
-                      calculatedWidth: bedWidth,
-                      calculatedHeight: bedHeight,
-                      calculatedWidthMeters: bedWidth / METERS_TO_PIXELS,
-                      calculatedHeightMeters: bedHeight / METERS_TO_PIXELS,
-                      storedVisualWidth: bed.visual_width,
-                      storedVisualHeight: bed.visual_height
-                    })
-                  } else {
-                    console.log("⚠️ Plantvak zonder size:", bed.name, "using default 2x2m")
-                  }
+                  console.log("🎯 Plantvak rendering:", {
+                    name: bed.name,
+                    size: bed.size,
+                    calculatedWidth: bedWidth,
+                    calculatedHeight: bedHeight,
+                    calculatedWidthMeters: bedWidth / METERS_TO_PIXELS,
+                    calculatedHeightMeters: bedHeight / METERS_TO_PIXELS,
+                    storedVisualWidth: bed.visual_width,
+                    storedVisualHeight: bed.visual_height
+                  })
 
                   return (
                     <div
