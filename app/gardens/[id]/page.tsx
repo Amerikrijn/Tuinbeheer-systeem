@@ -1321,6 +1321,27 @@ export default function GardenDetailPage() {
                     bedWidth = dims.width
                     bedHeight = dims.height
                     
+                    // HARDCODED TEST: Force Rozenbed to be clearly rectangular
+                    if (bed.name === 'Rozenbed') {
+                      bedWidth = 120  // Small width
+                      bedHeight = 300 // Large height - should be clearly visible
+                      console.log("🔥 ROZENBED HARDCODED TEST:", {
+                        originalSize: bed.size,
+                        forcedWidth: bedWidth,
+                        forcedHeight: bedHeight
+                      })
+                    }
+                    
+                    // Extra debug voor eerste plantvak
+                    if (bed.name === 'Rozenbed') {
+                      console.log("🔥 ROZENBED DEBUG:", {
+                        originalSize: bed.size,
+                        calculatedDims: dims,
+                        finalBedWidth: bedWidth,
+                        finalBedHeight: bedHeight
+                      })
+                    }
+                    
                     console.log("🎯 Plantvak rendering:", {
                       name: bed.name,
                       size: bed.size,
@@ -1399,6 +1420,13 @@ export default function GardenDetailPage() {
                             <span className="text-gray-600 font-medium">
                               {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
                             </span>
+                          </div>
+                          {/* DEBUG INFO */}
+                          <div className="text-xs text-red-500 font-mono bg-red-50 p-1 rounded">
+                            DEBUG: {bedWidth}×{bedHeight}px
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span></span>
                             <span className="text-gray-500 flex items-center gap-1">
                               <span>{bed.plants.length}</span>
                               <span>🌸</span>
