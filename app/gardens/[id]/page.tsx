@@ -365,7 +365,7 @@ export default function GardenDetailPage() {
   const getDimensionsFromSize = (size: string) => {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
-      console.log("✅ Plantvak schaal debug:", {
+                          console.log("✅ Plantvak schaal debug:", {
         sizeString: size,
         lengthMeters: dimensions.lengthMeters,
         widthMeters: dimensions.widthMeters,
@@ -375,6 +375,14 @@ export default function GardenDetailPage() {
         expectedWidth: dimensions.lengthMeters * METERS_TO_PIXELS,
         expectedHeight: dimensions.widthMeters * METERS_TO_PIXELS
       })
+      
+      // EXTRA DEBUG: Test de return waarden
+      const returnValue = {
+        width: dimensions.lengthPixels,  // First number = visual width (horizontal)
+        height: dimensions.widthPixels   // Second number = visual height (vertical)
+      }
+      console.log("🔥 RETURN VALUE:", returnValue)
+      alert(`PLANTVAK DEBUG: ${size} -> width:${returnValue.width}px, height:${returnValue.height}px`)
       // Fix: In size strings like "4x3 meter", the first number (lengthMeters) is the visual width,
       // and the second number (widthMeters) is the visual height
       return {
@@ -1320,6 +1328,14 @@ export default function GardenDetailPage() {
                     const dims = getDimensionsFromSize(bed.size)
                     bedWidth = dims.width
                     bedHeight = dims.height
+                    
+                    // DEBUG VOOR ALLE PLANTVAKKEN
+                    console.log(`🔥 FINAL DIMENSIONS FOR ${bed.name}:`, {
+                      size: bed.size,
+                      calculatedDims: dims,
+                      finalBedWidth: bedWidth,
+                      finalBedHeight: bedHeight
+                    })
                     
                     // HARDCODED TEST: Force Rozenbed to be clearly rectangular
                     if (bed.name === 'Rozenbed') {
