@@ -399,9 +399,12 @@ export default function GardenDetailPage() {
     e.preventDefault()
     e.stopPropagation()
     
-    // Just select the bed - dragging works immediately on mouse/touch down
-    setSelectedBed(bedId)
-  }, [])
+    // Only handle click if we're not currently dragging
+    if (!draggedBed) {
+      setSelectedBed(bedId)
+      console.log(`👆 Clicked bed ${bedId}`)
+    }
+  }, [draggedBed])
 
   // Simplified drag start - works immediately for both mouse and touch
   const handlePlantBedPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, bedId: string) => {
@@ -425,10 +428,12 @@ export default function GardenDetailPage() {
     setDragOffset({ x: offsetX / scale, y: offsetY / scale })
     setSelectedBed(bedId)
     
+    console.log(`🚀 Started dragging bed ${bedId} at position ${bed.position_x}, ${bed.position_y} with offset ${(offsetX / scale).toFixed(1)}, ${(offsetY / scale).toFixed(1)}`)
+    
     // Show compact feedback
     toast({
-      title: "Verplaatsen...",
-      description: "Sleep en laat los",
+      title: "🖱️ Verplaatsen",
+      description: `${bed.name} - sleep en laat los`,
     })
   }, [plantBeds, scale, toast])
 
@@ -465,6 +470,8 @@ export default function GardenDetailPage() {
     const x = Math.max(minX, Math.min((clientX - rect.left) / scale - dragOffset.x, maxX))
     const y = Math.max(minY, Math.min((clientY - rect.top) / scale - dragOffset.y, maxY))
 
+    console.log(`🖱️ Moving bed ${draggedBed} to ${x.toFixed(1)}, ${y.toFixed(1)}`)
+
     setPlantBeds(prev => prev.map(bed => 
       bed.id === draggedBed 
         ? { ...bed, position_x: x, position_y: y }
@@ -473,26 +480,32 @@ export default function GardenDetailPage() {
     setHasChanges(true)
   }, [draggedBed, dragOffset, scale, plantBeds, CANVAS_WIDTH, CANVAS_HEIGHT])
 
-  // Check if plant bed got larger and add more flowers for playful effect
+  // Check if plant bed needs more flowers and add them
   const checkAndAddMoreFlowers = useCallback(async (bed: PlantBedWithPlants) => {
     try {
-      if (!bed.size) return
+      if (!bed.size) {
+        console.log(`⚠️ Bed ${bed.name} has no size, skipping flower check`)
+        return
+      }
       
       const dimensions = parsePlantBedDimensions(bed.size)
-      if (!dimensions) return
+      if (!dimensions) {
+        console.log(`⚠️ Could not parse dimensions for bed ${bed.name}: ${bed.size}`)
+        return
+      }
       
       const area = dimensions.lengthMeters * dimensions.widthMeters
       const currentFlowerCount = bed.plants.length
       
-      // Calculate desired flower count based on area
-      let desiredFlowerCount = 1
-      if (area > 4) desiredFlowerCount = 2
-      if (area > 8) desiredFlowerCount = 3
-      if (area > 15) desiredFlowerCount = 4
-      if (area > 25) desiredFlowerCount = 6
-      if (area > 40) desiredFlowerCount = 8
+      // Calculate desired flower count based on area (more generous)
+      let desiredFlowerCount = Math.max(1, Math.floor(area / 2)) // 1 flower per 2m²
+      if (area > 2) desiredFlowerCount = Math.max(2, Math.floor(area / 1.5))
+      if (area > 6) desiredFlowerCount = Math.max(3, Math.floor(area / 1.2))
+      if (area > 12) desiredFlowerCount = Math.max(4, Math.floor(area))
       
-      // Add more flowers if the bed got bigger
+      console.log(`🌸 Bed ${bed.name}: ${area.toFixed(1)}m² → wants ${desiredFlowerCount} flowers, has ${currentFlowerCount}`)
+      
+      // Add more flowers if needed
       if (desiredFlowerCount > currentFlowerCount) {
         const flowersToAdd = desiredFlowerCount - currentFlowerCount
         const newFlowers = await createSampleFlowers(bed.id, dimensions.lengthMeters, dimensions.widthMeters)
@@ -516,9 +529,11 @@ export default function GardenDetailPage() {
             return plantBed
           }))
           
+          console.log(`✅ Added ${additionalFlowers.length} flowers to ${bed.name}`)
+          
           toast({
             title: "🌸 Meer bloemen!",
-            description: `Het plantvak is groter geworden! ${additionalFlowers.length} nieuwe bloemen toegevoegd.`,
+            description: `${additionalFlowers.length} nieuwe bloemen toegevoegd aan ${bed.name}`,
           })
         }
       }
@@ -640,14 +655,16 @@ export default function GardenDetailPage() {
       }
     }
     
-    // Check if plant bed was resized and add more flowers if needed
-    if (draggedBed && hasChanges) {
+    // Always check if plant bed needs more flowers after any change
+    if (draggedBed) {
       const bedToUpdate = plantBeds.find(bed => bed.id === draggedBed)
       if (bedToUpdate) {
+        console.log(`🔍 Checking flowers for ${bedToUpdate.name} after drag end`)
         await checkAndAddMoreFlowers(bedToUpdate)
       }
     }
     
+    console.log(`🏁 Drag ended for bed ${draggedBed}`)
     setDraggedBed(null)
     setDragOffset({ x: 0, y: 0 })
     setRotatingBed(null)
@@ -738,6 +755,22 @@ export default function GardenDetailPage() {
       }
     }
   }, [draggedBed, handlePointerMove, handlePointerUp])
+
+  // Auto-check for missing flowers when plant beds change
+  useEffect(() => {
+    const checkAllBedsForFlowers = async () => {
+      for (const bed of plantBeds) {
+        if (bed.plants.length === 0 && bed.size) {
+          console.log(`🌱 Auto-checking empty bed: ${bed.name}`)
+          await checkAndAddMoreFlowers(bed)
+        }
+      }
+    }
+    
+    if (plantBeds.length > 0) {
+      checkAllBedsForFlowers()
+    }
+  }, [plantBeds.length, checkAndAddMoreFlowers]) // Only run when number of beds changes
 
   // Save layout changes
   const saveLayout = async () => {
@@ -1353,7 +1386,6 @@ export default function GardenDetailPage() {
                         transform: `rotate(${bed.rotation || 0}deg)`,
                         transformOrigin: 'center center',
                       }}
-                      onClick={(e) => handlePlantBedClick(e, bed.id)}
                       onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
                       onMouseDown={(e) => handlePlantBedPointerDown(e, bed.id)}
                       onTouchStart={(e) => handlePlantBedTouchStart(e, bed.id)}
