@@ -65,6 +65,9 @@ export default function GardenDetailPage() {
   const [draggedBed, setDraggedBed] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const [isDragMode, setIsDragMode] = useState(false)
+  const [isRotateMode, setIsRotateMode] = useState(false)
+  const [rotatingBed, setRotatingBed] = useState<string | null>(null)
+  const [rotationStartAngle, setRotationStartAngle] = useState(0)
   const [touchStartTime, setTouchStartTime] = useState(0)
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingPlantBed, setIsAddingPlantBed] = useState(false)
@@ -132,8 +135,7 @@ export default function GardenDetailPage() {
     width: '', // in meters
     description: '',
     sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
-    soil_type: '',
-    rotation: 0 // rotation in degrees
+    soil_type: ''
   })
 
   useEffect(() => {
@@ -647,6 +649,34 @@ export default function GardenDetailPage() {
 
   // Handle drag end with auto-save
   const handlePointerUp = useCallback(async () => {
+    // Handle rotation end
+    if (rotatingBed && hasChanges) {
+      setSaving(true)
+      try {
+        const bedToUpdate = plantBeds.find(bed => bed.id === rotatingBed)
+        if (bedToUpdate) {
+          await updatePlantBed(bedToUpdate.id, {
+            rotation: bedToUpdate.rotation
+          })
+          
+          setHasChanges(false)
+          toast({
+            title: "Plantvak geroteerd",
+            description: `Rotatie naar ${bedToUpdate.rotation || 0}° opgeslagen!`,
+          })
+        }
+      } catch (error) {
+        console.error("Error auto-saving plant bed rotation:", error)
+        toast({
+          title: "Fout bij opslaan",
+          description: "Rotatie kon niet worden opgeslagen.",
+          variant: "destructive",
+        })
+      } finally {
+        setSaving(false)
+      }
+    }
+
     if (draggedBed && hasChanges) {
       // Auto-save when dragging stops
       setSaving(true)
@@ -688,12 +718,57 @@ export default function GardenDetailPage() {
     
     setDraggedBed(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedBed, hasChanges, plantBeds, toast, checkAndAddMoreFlowers])
+    setRotatingBed(null)
+    setIsRotateMode(false)
+  }, [draggedBed, rotatingBed, hasChanges, plantBeds, toast, checkAndAddMoreFlowers])
+
+  // Calculate angle between two points (for rotation)
+  const calculateAngle = useCallback((centerX: number, centerY: number, pointX: number, pointY: number) => {
+    const deltaX = pointX - centerX
+    const deltaY = pointY - centerY
+    return Math.atan2(deltaY, deltaX) * (180 / Math.PI)
+  }, [])
+
+  // Handle rotation interaction
+  const handleRotationMove = useCallback((clientX: number, clientY: number) => {
+    if (!rotatingBed || !canvasRef.current) return
+
+    const canvas = canvasRef.current
+    const rect = canvas.getBoundingClientRect()
+    const mouseX = (clientX - rect.left) / scale
+    const mouseY = (clientY - rect.top) / scale
+
+    const bed = plantBeds.find(b => b.id === rotatingBed)
+    if (!bed) return
+
+    // Calculate bed center
+    const bedWidth = bed.visual_width || metersToPixels(2)
+    const bedHeight = bed.visual_height || metersToPixels(2)
+    const centerX = (bed.position_x || 100) + bedWidth / 2
+    const centerY = (bed.position_y || 100) + bedHeight / 2
+
+    // Calculate current angle
+    const currentAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
+    const deltaAngle = currentAngle - rotationStartAngle
+    const newRotation = Math.round(((bed.rotation || 0) + deltaAngle) % 360)
+
+    // Update plant bed rotation
+    setPlantBeds(prev => prev.map(b => 
+      b.id === rotatingBed 
+        ? { ...b, rotation: newRotation }
+        : b
+    ))
+    setHasChanges(true)
+  }, [rotatingBed, scale, plantBeds, rotationStartAngle, calculateAngle])
 
   // Mouse move handler
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    handlePointerMove(e.clientX, e.clientY)
-  }, [handlePointerMove])
+    if (rotatingBed) {
+      handleRotationMove(e.clientX, e.clientY)
+    } else {
+      handlePointerMove(e.clientX, e.clientY)
+    }
+  }, [handlePointerMove, rotatingBed, handleRotationMove])
 
   // Handle click outside to deselect
   const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -916,7 +991,7 @@ export default function GardenDetailPage() {
           position_y: newY,
           visual_width: visualWidth,
           visual_height: visualHeight,
-          rotation: newPlantBed.rotation || 0
+          rotation: 0
         })
 
         if (updatedBed) {
@@ -943,8 +1018,7 @@ export default function GardenDetailPage() {
             width: '',
             description: '',
             sun_exposure: 'full-sun',
-            soil_type: '',
-            rotation: 0
+            soil_type: ''
           })
           toast({
             title: "Plantvak toegevoegd",
@@ -1122,8 +1196,7 @@ export default function GardenDetailPage() {
                 width: '',
                 description: '',
                 sun_exposure: 'full-sun',
-                soil_type: '',
-                rotation: 0
+                soil_type: ''
               })
             }
             setIsAddingPlantBed(open)
@@ -1229,51 +1302,7 @@ export default function GardenDetailPage() {
                     placeholder="Bijvoorbeeld: Kleigrond, zandgrond"
                   />
                 </div>
-                <div className="grid gap-2">
-                  <label htmlFor="rotation" className="text-sm font-medium">
-                    Rotatie (graden)
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="rotation"
-                      type="number"
-                      min="-180"
-                      max="180"
-                      step="15"
-                      value={newPlantBed.rotation}
-                      onChange={(e) => setNewPlantBed(prev => ({ ...prev, rotation: parseInt(e.target.value) || 0 }))}
-                      placeholder="0"
-                      className="w-20"
-                    />
-                    <span className="text-sm text-gray-500">°</span>
-                    <div className="flex gap-1">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setNewPlantBed(prev => ({ ...prev, rotation: (prev.rotation - 15) % 360 }))}
-                      >
-                        ↺
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setNewPlantBed(prev => ({ ...prev, rotation: (prev.rotation + 15) % 360 }))}
-                      >
-                        ↻
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setNewPlantBed(prev => ({ ...prev, rotation: 0 }))}
-                      >
-                        ⌂
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+
                 <div className="grid gap-2">
                   <label htmlFor="description" className="text-sm font-medium">
                     Beschrijving
@@ -1339,7 +1368,7 @@ export default function GardenDetailPage() {
               <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
               <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
               <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
-              <li>• <strong>Geselecteerd:</strong> Rotatie knoppen verschijnen</li>
+              <li>• <strong>🟠 Rotatie handvat:</strong> Sleep om te roteren</li>
             </ul>
             <div className="mt-2 pt-2 border-t border-blue-300">
               <p className="text-xs text-blue-700">
@@ -1380,6 +1409,7 @@ export default function GardenDetailPage() {
                 {plantBeds.map((bed) => {
                   const isSelected = selectedBed === bed.id
                   const isDragging = draggedBed === bed.id
+                  const isRotating = rotatingBed === bed.id
                   const isInDragMode = isDragMode && isSelected
                   
                   // Always recalculate dimensions from size to ensure correct scaling
@@ -1403,6 +1433,7 @@ export default function GardenDetailPage() {
                       key={bed.id}
                       className={`absolute border-2 rounded-lg transition-all group ${
                         isDragging ? 'shadow-2xl scale-110 border-green-500 z-50 cursor-grabbing' : 
+                        isRotating ? 'shadow-2xl border-orange-500 z-50 ring-4 ring-orange-200 animate-pulse' :
                         isInDragMode ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-grab animate-pulse' :
                         isSelected ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-pointer' :
                         'cursor-pointer hover:shadow-xl hover:scale-105 hover:border-green-500'
@@ -1434,6 +1465,11 @@ export default function GardenDetailPage() {
                           {isInDragMode && (
                             <div className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
                               🖱️
+                            </div>
+                          )}
+                          {isRotating && (
+                            <div className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded shadow-sm animate-spin">
+                              ↻ {bed.rotation || 0}°
                             </div>
                           )}
                         </div>
@@ -1473,9 +1509,37 @@ export default function GardenDetailPage() {
                           </div>
                         </div>
                         {isSelected && (
-                          <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
-                            Geselecteerd
-                          </div>
+                          <>
+                            <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
+                              Geselecteerd
+                            </div>
+                            {/* Rotation handle */}
+                            <div
+                              className="absolute -top-2 -left-2 w-6 h-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center cursor-grab text-xs font-bold shadow-lg border-2 border-white"
+                              onMouseDown={(e) => {
+                                e.stopPropagation()
+                                if (!canvasRef.current) return
+                                
+                                const canvas = canvasRef.current
+                                const rect = canvas.getBoundingClientRect()
+                                const mouseX = (e.clientX - rect.left) / scale
+                                const mouseY = (e.clientY - rect.top) / scale
+                                
+                                const bedWidth = bed.visual_width || metersToPixels(2)
+                                const bedHeight = bed.visual_height || metersToPixels(2)
+                                const centerX = (bed.position_x || 100) + bedWidth / 2
+                                const centerY = (bed.position_y || 100) + bedHeight / 2
+                                
+                                const startAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
+                                setRotationStartAngle(startAngle)
+                                setRotatingBed(bed.id)
+                                setIsRotateMode(true)
+                              }}
+                              title="Sleep om te roteren"
+                            >
+                              ↻
+                            </div>
+                          </>
                         )}
                         <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
                       </div>
@@ -1503,54 +1567,17 @@ export default function GardenDetailPage() {
               </div>
             </div>
             <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
-              <p>💡 <strong>Tip:</strong> Selecteer voor rotatie, dubbelklik om te beheren</p>
+              <p>💡 <strong>Tip:</strong> Selecteer plantvak → oranje handvat slepen = roteren</p>
               <div className="flex items-center gap-4">
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                 {selectedBed && (
                   <>
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                       {plantBeds.find(b => b.id === selectedBed)?.name} geselecteerd
-                    </Badge>
-                    <div className="flex items-center gap-1 border rounded-md p-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const currentBed = plantBeds.find(b => b.id === selectedBed)
-                          const currentRotation = currentBed?.rotation || 0
-                          updatePlantBedRotation(selectedBed, (currentRotation - 15 + 360) % 360)
-                        }}
-                        className="h-6 w-6 p-0"
-                        title="Draai 15° tegen de klok in"
-                      >
-                        ↺
-                      </Button>
-                      <span className="text-xs text-gray-600 min-w-[30px] text-center">
+                      <span className="ml-2 text-xs">
                         {plantBeds.find(b => b.id === selectedBed)?.rotation || 0}°
                       </span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const currentBed = plantBeds.find(b => b.id === selectedBed)
-                          const currentRotation = currentBed?.rotation || 0
-                          updatePlantBedRotation(selectedBed, (currentRotation + 15) % 360)
-                        }}
-                        className="h-6 w-6 p-0"
-                        title="Draai 15° met de klok mee"
-                      >
-                        ↻
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => updatePlantBedRotation(selectedBed, 0)}
-                        className="h-6 w-6 p-0"
-                        title="Reset rotatie"
-                      >
-                        ⌂
-                      </Button>
-                    </div>
+                    </Badge>
                     <Button
                       variant="outline"
                       size="sm"
