@@ -23,12 +23,15 @@ export const metersToPixels = (meters: number): number => meters * METERS_TO_PIX
 export const pixelsToMeters = (pixels: number): number => pixels / METERS_TO_PIXELS
 
 export const parsePlantBedDimensions = (sizeString: string) => {
+  if (!sizeString) return null
+  
   // Try multiple patterns to match different formats
-  const match = sizeString?.match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/)
+  // Support formats like: "1,2 x 8", "1.2 x 8", "1,2x8", "1.2×8", etc.
+  const match = sizeString?.replace(/,/g, '.').match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/)
   
   // If no match, try to extract just numbers (e.g. "8m" becomes 8x8)
   if (!match) {
-    const singleMatch = sizeString?.match(/(\d+(?:\.\d+)?)/)
+    const singleMatch = sizeString?.replace(/,/g, '.').match(/(\d+(?:\.\d+)?)/)
     if (singleMatch) {
       const size = parseFloat(singleMatch[1])
       return {
@@ -41,11 +44,13 @@ export const parsePlantBedDimensions = (sizeString: string) => {
   }
   
   if (match) {
+    const length = parseFloat(match[1])
+    const width = parseFloat(match[2])
     return {
-      lengthMeters: parseFloat(match[1]),
-      widthMeters: parseFloat(match[2]),
-      lengthPixels: metersToPixels(parseFloat(match[1])),
-      widthPixels: metersToPixels(parseFloat(match[2]))
+      lengthMeters: length,
+      widthMeters: width,
+      lengthPixels: metersToPixels(length),
+      widthPixels: metersToPixels(width)
     }
   }
   

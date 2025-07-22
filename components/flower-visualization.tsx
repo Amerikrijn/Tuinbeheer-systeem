@@ -238,48 +238,58 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             isFlowerField: false
           })
         } else {
-          // Multiple flowers - distribute nicely to fill the bed (fallback behavior)
+          // Multiple flowers - distribute evenly across the entire bed area
           const instancesPerPlant = Math.max(1, Math.floor(calculateFlowerCount / plants.length))
           const extraInstances = calculateFlowerCount % plants.length
           const totalInstances = instancesPerPlant + (plantIndex < extraInstances ? 1 : 0)
 
-          const baseSize = Math.min(35, Math.max(14, Math.min(usableWidth, usableHeight) / 6))
+          const baseSize = Math.min(35, Math.max(14, Math.min(usableWidth, usableHeight) / 8))
           
           for (let i = 0; i < totalInstances; i++) {
-            const sizeVariation = i === 0 ? 1.4 : 0.6 + (((plant.id.charCodeAt(0) + i * 43) % 70) / 100)
+            const sizeVariation = i === 0 ? 1.2 : 0.7 + (((plant.id.charCodeAt(0) + i * 43) % 50) / 100)
             const flowerSize = baseSize * sizeVariation
 
-            // Use improved positioning for better distribution
+            // Improved distribution that spreads flowers across the entire area
             let x, y
             if (totalInstances === 1) {
-              x = (usableWidth - flowerSize) / 2 + padding
-              y = (usableHeight - flowerSize) / 2 + padding
+              // Single flower - place slightly off-center for more natural look
+              x = (usableWidth - flowerSize) / 2 + padding + ((plant.id.charCodeAt(0) % 40) - 20)
+              y = (usableHeight - flowerSize) / 2 + padding + (((plant.id.charCodeAt(0) * 7) % 40) - 20)
             } else if (totalInstances <= 4) {
-              // Grid layout for small numbers
+              // Grid layout for small numbers with natural variation
               const cols = Math.ceil(Math.sqrt(totalInstances))
               const rows = Math.ceil(totalInstances / cols)
               const col = i % cols
               const row = Math.floor(i / cols)
               
-              x = padding + (col + 0.5) * (usableWidth / cols) - flowerSize / 2
-              y = padding + (row + 0.5) * (usableHeight / rows) - flowerSize / 2
+              // Create a more spread out grid with deterministic variation
+              const randomX = ((plant.id.charCodeAt(0) + i * 23) % 40) / 100 * 0.4
+              const randomY = ((plant.id.charCodeAt(0) + i * 31) % 40) / 100 * 0.4
+              x = padding + (col + 0.3 + randomX) * (usableWidth / cols) - flowerSize / 2
+              y = padding + (row + 0.3 + randomY) * (usableHeight / rows) - flowerSize / 2
               
-              // Add some natural variation
-              const variation = 15
+              // Add deterministic variation based on plant ID
+              const variation = 25
               x += ((plant.id.charCodeAt(0) + i * 37) % (variation * 2)) - variation
               y += ((plant.id.charCodeAt(0) + i * 53) % (variation * 2)) - variation
             } else {
-              // Improved circular/spiral distribution for larger numbers
-              const seedValue = plant.id.charCodeAt(0) + i * 137.5 // Golden angle
-              const angle = (seedValue * Math.PI / 180) % (2 * Math.PI)
-              const radiusPercent = 0.1 + (i / totalInstances) * 0.8 // Spiral outward
-              const maxRadius = Math.min(usableWidth, usableHeight) / 2.5
-              const radius = radiusPercent * maxRadius
-              const centerX = usableWidth / 2 + padding
-              const centerY = usableHeight / 2 + padding
+              // For larger numbers, use a more even distribution pattern
+              const seedValue = plant.id.charCodeAt(0) + i * 137.5 // Golden angle for natural distribution
               
-              x = centerX + Math.cos(angle) * radius - flowerSize / 2
-              y = centerY + Math.sin(angle) * radius - flowerSize / 2
+              // Use a combination of grid and random placement
+              const gridCols = Math.ceil(Math.sqrt(totalInstances))
+              const gridRows = Math.ceil(totalInstances / gridCols)
+              const col = i % gridCols
+              const row = Math.floor(i / gridCols)
+              
+              // Base grid position
+              const baseX = padding + (col + 0.5) * (usableWidth / gridCols)
+              const baseY = padding + (row + 0.5) * (usableHeight / gridRows)
+              
+              // Add variation based on seed value
+              const variationRange = Math.min(usableWidth / gridCols, usableHeight / gridRows) * 0.3
+              x = baseX + (((seedValue * 13) % 200) - 100) / 100 * variationRange - flowerSize / 2
+              y = baseY + (((seedValue * 17) % 200) - 100) / 100 * variationRange - flowerSize / 2
             }
             
             // Keep within bounds with better constraint
