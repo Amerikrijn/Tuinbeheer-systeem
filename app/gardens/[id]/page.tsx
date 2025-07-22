@@ -203,7 +203,7 @@ export default function GardenDetailPage() {
             color_code: bed.color_code ?? '',
             visual_updated_at: bed.visual_updated_at ?? new Date().toISOString(),
           }
-        })
+        }))
         
         setPlantBeds(processedBeds)
       } catch (error) {
