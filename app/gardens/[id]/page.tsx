@@ -365,15 +365,7 @@ export default function GardenDetailPage() {
   const getDimensionsFromSize = (size: string) => {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
-                          console.log(`✅ PLANTVAK SCHAAL: ${size} -> L:${dimensions.lengthMeters}m W:${dimensions.widthMeters}m -> ${dimensions.lengthPixels}px x ${dimensions.widthPixels}px`)
-      
-      // EXTRA DEBUG: Test de return waarden
-      const returnValue = {
-        width: dimensions.lengthPixels,  // First number = visual width (horizontal)
-        height: dimensions.widthPixels   // Second number = visual height (vertical)
-      }
-      console.log("🔥 RETURN VALUE:", returnValue)
-      alert(`PLANTVAK DEBUG: ${size} -> width:${returnValue.width}px, height:${returnValue.height}px`)
+      console.log(`✅ Plantvak dimensies: ${size} -> ${dimensions.lengthPixels}px × ${dimensions.widthPixels}px`)
       // Fix: In size strings like "4x3 meter", the first number (lengthMeters) is the visual width,
       // and the second number (widthMeters) is the visual height
       return {
@@ -1320,29 +1312,7 @@ export default function GardenDetailPage() {
                     bedWidth = dims.width
                     bedHeight = dims.height
                     
-                    // DEBUG VOOR ALLE PLANTVAKKEN
-                    console.log(`🔥 FINAL ${bed.name}: ${bed.size} -> CALC: ${dims.width}x${dims.height} -> FINAL: ${bedWidth}x${bedHeight}`)
-                    
-                    // HARDCODED TEST: Force Rozenbed to be clearly rectangular
-                    if (bed.name === 'Rozenbed') {
-                      bedWidth = 120  // Small width
-                      bedHeight = 300 // Large height - should be clearly visible
-                      console.log("🔥 ROZENBED HARDCODED TEST:", {
-                        originalSize: bed.size,
-                        forcedWidth: bedWidth,
-                        forcedHeight: bedHeight
-                      })
-                    }
-                    
-                    // Extra debug voor eerste plantvak
-                    if (bed.name === 'Rozenbed') {
-                      console.log("🔥 ROZENBED DEBUG:", {
-                        originalSize: bed.size,
-                        calculatedDims: dims,
-                        finalBedWidth: bedWidth,
-                        finalBedHeight: bedHeight
-                      })
-                    }
+
                     
                     console.log(`🎯 RENDERING ${bed.name}: ${bed.size} -> ${bedWidth}px x ${bedHeight}px (stored: ${bed.visual_width}x${bed.visual_height})`)
                   } else {
@@ -1361,9 +1331,8 @@ export default function GardenDetailPage() {
                       style={{
                         left: bed.position_x || 100,
                         top: bed.position_y || 100,
-                        width: bed.name === 'Rozenbed' ? '120px' : bedWidth,
-                        height: bed.name === 'Rozenbed' ? '300px' : bedHeight,
-                        backgroundColor: bed.name === 'Rozenbed' ? 'red' : undefined,
+                        width: bedWidth,
+                        height: bedHeight,
                       }}
                       onClick={(e) => handlePlantBedClick(e, bed.id)}
                       onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
@@ -1406,7 +1375,7 @@ export default function GardenDetailPage() {
                         <div className="bg-white/95 rounded-lg p-2 shadow-sm border space-y-1">
                           {/* Plant bed name */}
                           <div className="text-sm font-bold text-gray-800 truncate">
-                            🔥 TEST: {bed.name} 🔥
+                            {bed.name}
                           </div>
                           
                           {/* Dimensions and plant count */}
@@ -1415,12 +1384,7 @@ export default function GardenDetailPage() {
                               {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
                             </span>
                           </div>
-                          {/* DEBUG INFO */}
-                          <div className="text-xs text-red-500 font-mono bg-red-50 p-1 rounded">
-                            DEBUG: {bedWidth}×{bedHeight}px
-                          </div>
                           <div className="flex items-center justify-between text-xs">
-                            <span></span>
                             <span className="text-gray-500 flex items-center gap-1">
                               <span>{bed.plants.length}</span>
                               <span>🌸</span>
