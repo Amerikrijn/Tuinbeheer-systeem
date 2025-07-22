@@ -545,6 +545,58 @@ export default function GardenDetailPage() {
     setHasChanges(true)
   }, [dragState, CANVAS_WIDTH, CANVAS_HEIGHT])
 
+  // Create sample flowers for a new plant bed
+  const createSampleFlowers = useCallback(async (plantBedId: string, length: number, width: number): Promise<Plant[]> => {
+    try {
+      // Determine number of sample flowers based on size
+      const area = length * width
+      let flowerCount = 1
+      if (area > 4) flowerCount = 2
+      if (area > 8) flowerCount = 3
+      if (area > 15) flowerCount = 4
+      
+      const sampleFlowerTypes = [
+        { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
+        { name: 'Tulp', color: '#FF4500', emoji: '🌷' },
+        { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
+        { name: 'Lavendel', color: '#9370DB', emoji: '🪻' },
+      ]
+      
+      const createdFlowers: Plant[] = []
+      
+      for (let i = 0; i < flowerCount; i++) {
+        const flowerType = sampleFlowerTypes[i % sampleFlowerTypes.length]
+        
+        // Create a sample flower (this would normally use createVisualPlant)
+        // For now, we'll create a mock flower object
+        const mockFlower: Plant = {
+          id: `sample-${plantBedId}-${i}`,
+          plant_bed_id: plantBedId,
+          name: flowerType.name,
+          color: flowerType.color,
+          emoji: flowerType.emoji,
+          status: 'healthy' as const,
+          position_x: 0, // Will be positioned by FlowerVisualization
+          position_y: 0,
+          visual_width: 24,
+          visual_height: 24,
+          is_custom: false,
+          category: flowerType.name,
+          notes: 'Sample flower',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }
+        
+        createdFlowers.push(mockFlower)
+      }
+      
+      return createdFlowers
+    } catch (error) {
+      console.error("Error creating sample flowers:", error)
+      return []
+    }
+  }, [])
+
   // Check if plant bed needs more flowers and add them
   const checkAndAddMoreFlowers = useCallback(async (bed: PlantBedWithPlants) => {
     try {
@@ -606,58 +658,6 @@ export default function GardenDetailPage() {
       console.error("Error adding more flowers:", error)
     }
   }, [toast, createSampleFlowers])
-
-  // Create sample flowers for a new plant bed
-  const createSampleFlowers = useCallback(async (plantBedId: string, length: number, width: number): Promise<Plant[]> => {
-    try {
-      // Determine number of sample flowers based on size
-      const area = length * width
-      let flowerCount = 1
-      if (area > 4) flowerCount = 2
-      if (area > 8) flowerCount = 3
-      if (area > 15) flowerCount = 4
-      
-      const sampleFlowerTypes = [
-        { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
-        { name: 'Tulp', color: '#FF4500', emoji: '🌷' },
-        { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
-        { name: 'Lavendel', color: '#9370DB', emoji: '🪻' },
-      ]
-      
-      const createdFlowers: Plant[] = []
-      
-      for (let i = 0; i < flowerCount; i++) {
-        const flowerType = sampleFlowerTypes[i % sampleFlowerTypes.length]
-        
-        // Create a sample flower (this would normally use createVisualPlant)
-        // For now, we'll create a mock flower object
-        const mockFlower: Plant = {
-          id: `sample-${plantBedId}-${i}`,
-          plant_bed_id: plantBedId,
-          name: flowerType.name,
-          color: flowerType.color,
-          emoji: flowerType.emoji,
-          status: 'healthy' as const,
-          position_x: 0, // Will be positioned by FlowerVisualization
-          position_y: 0,
-          visual_width: 24,
-          visual_height: 24,
-          is_custom: false,
-          category: flowerType.name,
-          notes: 'Sample flower',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }
-        
-        createdFlowers.push(mockFlower)
-      }
-      
-      return createdFlowers
-    } catch (error) {
-      console.error("Error creating sample flowers:", error)
-      return []
-    }
-  }, [])
 
   // Handle mouse up (end drag or resize)
   const handleMouseUp = useCallback(async () => {

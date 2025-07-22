@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
 
 interface FlowerVisualizationProps {
@@ -46,7 +46,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
   }, [containerWidth, containerHeight, plants.length])
 
   // Better distribution algorithm
-  const generateDistributedPositions = (count: number, padding: number) => {
+  const generateDistributedPositions = useCallback((count: number, padding: number) => {
     const positions: { x: number; y: number }[] = []
     const usableWidth = containerWidth - (padding * 2)
     const usableHeight = containerHeight - (padding * 2)
@@ -102,7 +102,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     }
     
     return positions
-  }
+  }, [containerWidth, containerHeight])
 
   // Generate flower instances with better distribution
   useEffect(() => {
