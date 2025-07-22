@@ -537,11 +537,8 @@ export default function GardenDetailPage() {
       handlePlantBedClick(e, bedId)
     }
     
-    // Reset drag state if touch ended
-    if (draggedBed === bedId) {
-      handlePointerUp()
-    }
-  }, [touchStartTime, handlePlantBedClick, draggedBed, handlePointerUp])
+    // Reset drag state if touch ended - we'll handle this in the global event listener
+  }, [touchStartTime, handlePlantBedClick])
 
   // Handle double click/tap - navigate to plant bed details
   const handlePlantBedDoubleClick = useCallback((bedId: string) => {
