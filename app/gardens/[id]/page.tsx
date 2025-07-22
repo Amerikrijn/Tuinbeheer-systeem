@@ -62,13 +62,29 @@ export default function GardenDetailPage() {
   const [scale, setScale] = useState(1)
   const [showVisualView, setShowVisualView] = useState(true)
   const [selectedBed, setSelectedBed] = useState<string | null>(null)
-  const [draggedBed, setDraggedBed] = useState<string | null>(null)
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
-  // Removed isDragMode - drag works immediately now
-  const [isRotateMode, setIsRotateMode] = useState(false)
-  const [rotatingBed, setRotatingBed] = useState<string | null>(null)
-  const [rotationStartAngle, setRotationStartAngle] = useState(0)
-  // Removed touchStartTime - not needed with simplified drag
+  
+  // Simplified drag state for better plant bed editing
+  const [dragState, setDragState] = useState<{
+    type: 'none' | 'move' | 'resize'
+    bedId: string | null
+    startX: number
+    startY: number
+    startBedX: number
+    startBedY: number
+    startBedWidth: number
+    startBedHeight: number
+    resizeHandle: 'se' | 'sw' | 'ne' | 'nw' | 'e' | 'w' | 'n' | 's' | null
+  }>({
+    type: 'none',
+    bedId: null,
+    startX: 0,
+    startY: 0,
+    startBedX: 0,
+    startBedY: 0,
+    startBedWidth: 0,
+    startBedHeight: 0,
+    resizeHandle: null
+  })
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingPlantBed, setIsAddingPlantBed] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -394,54 +410,48 @@ export default function GardenDetailPage() {
     return { clientX: 0, clientY: 0 }
   }
 
-  // Handle single click/tap - just select the bed (dragging starts on mouse/touch down)
-  const handlePlantBedClick = useCallback((e: React.MouseEvent | React.TouchEvent, bedId: string) => {
+  // Handle mouse down on plant bed (start drag or resize)
+  const handlePlantBedMouseDown = useCallback((e: React.MouseEvent, bedId: string, resizeHandle?: string) => {
     e.preventDefault()
     e.stopPropagation()
-    
-    // Only handle click if we're not currently dragging
-    if (!draggedBed) {
-      setSelectedBed(bedId)
-      console.log(`👆 Clicked bed ${bedId}`)
-    }
-  }, [draggedBed])
 
-  // Simplified drag start - works immediately for both mouse and touch
-  const handlePlantBedPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, bedId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    const { clientX, clientY } = getPointerPosition(e)
-    
     const bed = plantBeds.find(b => b.id === bedId)
     if (!bed) return
 
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // Calculate offset from mouse/touch to top-left of bed
-    const offsetX = clientX - rect.left - (bed.position_x || 100) * scale
-    const offsetY = clientY - rect.top - (bed.position_y || 100) * scale
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
 
-    // Start dragging immediately for both mouse and touch
-    setDraggedBed(bedId)
-    setDragOffset({ x: offsetX / scale, y: offsetY / scale })
-    setSelectedBed(bedId)
+    let bedWidth = metersToPixels(2)
+    let bedHeight = metersToPixels(2)
     
-    console.log(`🚀 Started dragging bed ${bedId} at position ${bed.position_x}, ${bed.position_y} with offset ${(offsetX / scale).toFixed(1)}, ${(offsetY / scale).toFixed(1)}`)
-    
-    // Show compact feedback
-    toast({
-      title: "🖱️ Verplaatsen",
-      description: `${bed.name} - sleep en laat los`,
+    if (bed.size) {
+      const dims = getDimensionsFromSize(bed.size)
+      bedWidth = dims.width
+      bedHeight = dims.height
+    }
+
+    setDragState({
+      type: resizeHandle ? 'resize' : 'move',
+      bedId,
+      startX: mouseX,
+      startY: mouseY,
+      startBedX: bed.position_x || 100,
+      startBedY: bed.position_y || 100,
+      startBedWidth: bedWidth,
+      startBedHeight: bedHeight,
+      resizeHandle: resizeHandle as any || null
     })
-  }, [plantBeds, scale, toast])
 
-  // Simplified touch handler - just use the same as mouse
-  const handlePlantBedTouchStart = useCallback((e: React.TouchEvent, bedId: string) => {
-    // Use the same logic as mouse down
-    handlePlantBedPointerDown(e, bedId)
-  }, [handlePlantBedPointerDown])
+    setSelectedBed(bedId)
+
+    toast({
+      title: resizeHandle ? "🔧 Vergroten/verkleinen" : "🖱️ Verplaatsen",
+      description: `${bed.name}`,
+    })
+  }, [plantBeds, toast])
 
   // Handle double click/tap - navigate to plant bed details
   const handlePlantBedDoubleClick = useCallback((bedId: string) => {
@@ -449,36 +459,90 @@ export default function GardenDetailPage() {
     router.push(`/gardens/${garden?.id}/plantvak-view/${bedId}`)
   }, [router, garden])
 
-  // Handle drag move - unified for mouse and touch
-  const handlePointerMove = useCallback((clientX: number, clientY: number) => {
-    if (!draggedBed || !canvasRef.current) return
+  // Handle mouse move (drag or resize)
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (dragState.type === 'none' || !dragState.bedId) return
 
-    const rect = canvasRef.current.getBoundingClientRect()
-    const bed = plantBeds.find(b => b.id === draggedBed)
-    if (!bed) return
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
 
-    const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
-    const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
-    
-    // Allow more flexible positioning with minimal padding
-    const EDGE_PADDING = 5
-    const minX = -bedWidth * 0.3  // Allow partial placement outside canvas
-    const minY = -bedHeight * 0.3  // Allow partial placement outside canvas
-    const maxX = CANVAS_WIDTH - bedWidth * 0.7  // Allow partial placement outside canvas
-    const maxY = CANVAS_HEIGHT - bedHeight * 0.7  // Allow partial placement outside canvas
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    const deltaX = mouseX - dragState.startX
+    const deltaY = mouseY - dragState.startY
 
-    const x = Math.max(minX, Math.min((clientX - rect.left) / scale - dragOffset.x, maxX))
-    const y = Math.max(minY, Math.min((clientY - rect.top) / scale - dragOffset.y, maxY))
+    if (dragState.type === 'move') {
+      // Move the plant bed
+      const newX = Math.max(0, Math.min(dragState.startBedX + deltaX, CANVAS_WIDTH - dragState.startBedWidth))
+      const newY = Math.max(0, Math.min(dragState.startBedY + deltaY, CANVAS_HEIGHT - dragState.startBedHeight))
 
-    console.log(`🖱️ Moving bed ${draggedBed} to ${x.toFixed(1)}, ${y.toFixed(1)}`)
+      setPlantBeds(prev => prev.map(bed => 
+        bed.id === dragState.bedId 
+          ? { ...bed, position_x: newX, position_y: newY }
+          : bed
+      ))
+    } else if (dragState.type === 'resize') {
+      // Resize the plant bed
+      let newWidth = dragState.startBedWidth
+      let newHeight = dragState.startBedHeight
+      let newX = dragState.startBedX
+      let newY = dragState.startBedY
 
-    setPlantBeds(prev => prev.map(bed => 
-      bed.id === draggedBed 
-        ? { ...bed, position_x: x, position_y: y }
-        : bed
-    ))
+      const handle = dragState.resizeHandle
+      const minSize = metersToPixels(1) // Minimum 1m
+
+      if (handle?.includes('e')) {
+        newWidth = Math.max(minSize, dragState.startBedWidth + deltaX)
+      }
+      if (handle?.includes('w')) {
+        newWidth = Math.max(minSize, dragState.startBedWidth - deltaX)
+        newX = dragState.startBedX + (dragState.startBedWidth - newWidth)
+      }
+      if (handle?.includes('s')) {
+        newHeight = Math.max(minSize, dragState.startBedHeight + deltaY)
+      }
+      if (handle?.includes('n')) {
+        newHeight = Math.max(minSize, dragState.startBedHeight - deltaY)
+        newY = dragState.startBedY + (dragState.startBedHeight - newHeight)
+      }
+
+      // Keep within canvas bounds
+      if (newX + newWidth > CANVAS_WIDTH) {
+        newWidth = CANVAS_WIDTH - newX
+      }
+      if (newY + newHeight > CANVAS_HEIGHT) {
+        newHeight = CANVAS_HEIGHT - newY
+      }
+      if (newX < 0) {
+        newWidth += newX
+        newX = 0
+      }
+      if (newY < 0) {
+        newHeight += newY
+        newY = 0
+      }
+
+      // Update the plant bed
+      const newWidthMeters = pixelsToMeters(newWidth)
+      const newHeightMeters = pixelsToMeters(newHeight)
+      const newSize = `${newWidthMeters.toFixed(1)}m × ${newHeightMeters.toFixed(1)}m`
+
+      setPlantBeds(prev => prev.map(bed => 
+        bed.id === dragState.bedId 
+          ? { 
+              ...bed, 
+              position_x: newX, 
+              position_y: newY,
+              visual_width: newWidth,
+              visual_height: newHeight,
+              size: newSize
+            }
+          : bed
+      ))
+    }
+
     setHasChanges(true)
-  }, [draggedBed, dragOffset, scale, plantBeds, CANVAS_WIDTH, CANVAS_HEIGHT])
+  }, [dragState, CANVAS_WIDTH, CANVAS_HEIGHT])
 
   // Check if plant bed needs more flowers and add them
   const checkAndAddMoreFlowers = useCallback(async (bed: PlantBedWithPlants) => {
@@ -594,132 +658,60 @@ export default function GardenDetailPage() {
     }
   }, [])
 
-  // Handle drag end with auto-save
-  const handlePointerUp = useCallback(async () => {
-    // Handle rotation end
-    if (rotatingBed && hasChanges) {
-      setSaving(true)
-      try {
-        const bedToUpdate = plantBeds.find(bed => bed.id === rotatingBed)
-        if (bedToUpdate) {
-          await updatePlantBed(bedToUpdate.id, {
-            rotation: bedToUpdate.rotation
-          })
-          
-          setHasChanges(false)
-          toast({
-            title: "↻ Geroteerd",
-            description: `${bedToUpdate.rotation || 0}°`,
-          })
-        }
-      } catch (error) {
-        console.error("Error auto-saving plant bed rotation:", error)
-        toast({
-          title: "Fout bij opslaan",
-          description: "Rotatie kon niet worden opgeslagen.",
-          variant: "destructive",
-        })
-      } finally {
-        setSaving(false)
-      }
-    }
+  // Handle mouse up (end drag or resize)
+  const handleMouseUp = useCallback(async () => {
+    if (dragState.type === 'none') return
 
-    if (draggedBed && hasChanges) {
-      // Auto-save when dragging stops
+    const bedId = dragState.bedId
+    setDragState({
+      type: 'none',
+      bedId: null,
+      startX: 0,
+      startY: 0,
+      startBedX: 0,
+      startBedY: 0,
+      startBedWidth: 0,
+      startBedHeight: 0,
+      resizeHandle: null
+    })
+
+    if (bedId && hasChanges) {
+      // Auto-save
       setSaving(true)
       try {
-        const bedToUpdate = plantBeds.find(bed => bed.id === draggedBed)
+        const bedToUpdate = plantBeds.find(bed => bed.id === bedId)
         if (bedToUpdate) {
           await updatePlantBed(bedToUpdate.id, {
             position_x: bedToUpdate.position_x,
             position_y: bedToUpdate.position_y,
             visual_width: bedToUpdate.visual_width,
-            visual_height: bedToUpdate.visual_height
+            visual_height: bedToUpdate.visual_height,
+            size: bedToUpdate.size
           })
           
           setHasChanges(false)
           toast({
             title: "✓ Opgeslagen",
-            description: "Nieuwe positie",
+            description: "Plantvak bijgewerkt",
           })
+
+          // Check for more flowers
+          await checkAndAddMoreFlowers(bedToUpdate)
         }
       } catch (error) {
-        console.error("Error auto-saving plant bed position:", error)
+        console.error("Error saving plant bed:", error)
         toast({
           title: "Fout bij opslaan",
-          description: "Positie kon niet worden opgeslagen.",
+          description: "Kon niet opslaan.",
           variant: "destructive",
         })
       } finally {
         setSaving(false)
       }
     }
-    
-    // Always check if plant bed needs more flowers after any change
-    if (draggedBed) {
-      const bedToUpdate = plantBeds.find(bed => bed.id === draggedBed)
-      if (bedToUpdate) {
-        console.log(`🔍 Checking flowers for ${bedToUpdate.name} after drag end`)
-        await checkAndAddMoreFlowers(bedToUpdate)
-      }
-    }
-    
-    console.log(`🏁 Drag ended for bed ${draggedBed}`)
-    setDraggedBed(null)
-    setDragOffset({ x: 0, y: 0 })
-    setRotatingBed(null)
-    setIsRotateMode(false)
-  }, [draggedBed, rotatingBed, hasChanges, plantBeds, toast, checkAndAddMoreFlowers])
+  }, [dragState, hasChanges, plantBeds, updatePlantBed, toast, checkAndAddMoreFlowers])
 
-  // Calculate angle between two points (for rotation)
-  const calculateAngle = useCallback((centerX: number, centerY: number, pointX: number, pointY: number) => {
-    const deltaX = pointX - centerX
-    const deltaY = pointY - centerY
-    return Math.atan2(deltaY, deltaX) * (180 / Math.PI)
-  }, [])
-
-  // Handle rotation interaction
-  const handleRotationMove = useCallback((clientX: number, clientY: number) => {
-    if (!rotatingBed || !canvasRef.current) return
-
-    const canvas = canvasRef.current
-    const rect = canvas.getBoundingClientRect()
-    const mouseX = (clientX - rect.left) / scale
-    const mouseY = (clientY - rect.top) / scale
-
-    const bed = plantBeds.find(b => b.id === rotatingBed)
-    if (!bed) return
-
-    // Calculate bed center
-    const bedWidth = bed.visual_width || metersToPixels(2)
-    const bedHeight = bed.visual_height || metersToPixels(2)
-    const centerX = (bed.position_x || 100) + bedWidth / 2
-    const centerY = (bed.position_y || 100) + bedHeight / 2
-
-    // Calculate current angle
-    const currentAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
-    const deltaAngle = currentAngle - rotationStartAngle
-    // Reduce rotation sensitivity by dividing by 3 (slower rotation)
-    const adjustedDelta = deltaAngle / 3
-    const newRotation = Math.round(((bed.rotation || 0) + adjustedDelta) % 360)
-
-    // Update plant bed rotation
-    setPlantBeds(prev => prev.map(b => 
-      b.id === rotatingBed 
-        ? { ...b, rotation: newRotation }
-        : b
-    ))
-    setHasChanges(true)
-  }, [rotatingBed, scale, plantBeds, rotationStartAngle, calculateAngle])
-
-  // Mouse move handler
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (rotatingBed) {
-      handleRotationMove(e.clientX, e.clientY)
-    } else {
-      handlePointerMove(e.clientX, e.clientY)
-    }
-  }, [handlePointerMove, rotatingBed, handleRotationMove])
+  // Removed old rotation handlers - keeping it simple for now
 
   // Handle click outside to deselect
   const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -728,33 +720,18 @@ export default function GardenDetailPage() {
     }
   }, [])
 
-  // Add event listeners for drag - support both mouse and touch
+  // Add global mouse event listeners for drag and resize
   useEffect(() => {
-    if (draggedBed) {
-      const handleMouseMoveGlobal = (e: MouseEvent) => {
-        handlePointerMove(e.clientX, e.clientY)
-      }
-      
-      const handleTouchMoveGlobal = (e: TouchEvent) => {
-        e.preventDefault() // Prevent scrolling while dragging
-        if (e.touches.length > 0) {
-          handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
-        }
-      }
-      
-      document.addEventListener('mousemove', handleMouseMoveGlobal)
-      document.addEventListener('mouseup', handlePointerUp)
-      document.addEventListener('touchmove', handleTouchMoveGlobal, { passive: false })
-      document.addEventListener('touchend', handlePointerUp)
+    if (dragState.type !== 'none') {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
       
       return () => {
-        document.removeEventListener('mousemove', handleMouseMoveGlobal)
-        document.removeEventListener('mouseup', handlePointerUp)
-        document.removeEventListener('touchmove', handleTouchMoveGlobal)
-        document.removeEventListener('touchend', handlePointerUp)
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
       }
     }
-  }, [draggedBed, handlePointerMove, handlePointerUp])
+  }, [dragState.type, handleMouseMove, handleMouseUp])
 
   // Auto-check for missing flowers when plant beds change
   useEffect(() => {
@@ -1330,8 +1307,6 @@ export default function GardenDetailPage() {
                   transform: `scale(${scale})`,
                   transformOrigin: "top left",
                 }}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handlePointerUp}
                 onClick={handleCanvasClick}
               >
                 {/* Grid - 1m = 80px */}
@@ -1349,9 +1324,8 @@ export default function GardenDetailPage() {
                 {/* Plant Beds */}
                 {plantBeds.map((bed) => {
                   const isSelected = selectedBed === bed.id
-                  const isDragging = draggedBed === bed.id
-                  const isRotating = rotatingBed === bed.id
-                  // Removed isInDragMode - drag works immediately now
+                  const isDragging = dragState.type !== 'none' && dragState.bedId === bed.id
+                  const isResizing = dragState.type === 'resize' && dragState.bedId === bed.id
                   
                   // Always recalculate dimensions from size to ensure correct scaling
                   let bedWidth = metersToPixels(2) // Default 2x2 meters
@@ -1374,7 +1348,7 @@ export default function GardenDetailPage() {
                       key={bed.id}
                       className={`absolute border-2 rounded-lg transition-all duration-200 group ${
                         isDragging ? 'shadow-2xl scale-105 border-green-500 z-50 cursor-grabbing ring-2 ring-green-300' : 
-                        isRotating ? 'shadow-2xl border-orange-500 z-50 ring-4 ring-orange-200 animate-pulse' :
+                        isResizing ? 'shadow-2xl border-blue-500 z-50 ring-4 ring-blue-200' :
                         isSelected ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-grab' :
                         'cursor-grab hover:shadow-lg hover:scale-102 hover:border-green-400 hover:ring-1 hover:ring-green-200'
                       }`}
@@ -1387,8 +1361,7 @@ export default function GardenDetailPage() {
                         transformOrigin: 'center center',
                       }}
                       onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
-                      onMouseDown={(e) => handlePlantBedPointerDown(e, bed.id)}
-                      onTouchStart={(e) => handlePlantBedTouchStart(e, bed.id)}
+                      onMouseDown={(e) => handlePlantBedMouseDown(e, bed.id)}
                     >
                       <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors relative ${
                         isSelected ? 'bg-blue-50' : ''
@@ -1400,14 +1373,14 @@ export default function GardenDetailPage() {
                               {getSunExposureIcon(bed.sun_exposure)}
                             </div>
                           )}
-                          {isDragging && (
+                          {isDragging && dragState.type === 'move' && (
                             <div className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded shadow-sm animate-bounce">
-                              🖱️ Sleep
+                              🖱️ Verplaatsen
                             </div>
                           )}
-                          {isRotating && (
-                            <div className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded shadow-sm animate-spin">
-                              ↻ {bed.rotation || 0}°
+                          {isResizing && (
+                            <div className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-pulse">
+                              🔧 Vergroten
                             </div>
                           )}
                         </div>
@@ -1451,7 +1424,69 @@ export default function GardenDetailPage() {
                             <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
                               Geselecteerd
                             </div>
-                            {/* Rotation handle */}
+                            
+                            {/* Resize handles */}
+                            {/* Corner handles */}
+                            <div
+                              className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border border-white rounded-sm cursor-nw-resize hover:bg-blue-600"
+                              onMouseDown={(e) => {
+                                e.stopPropagation()
+                                handlePlantBedMouseDown(e, bed.id, 'nw')
+                              }}
+                            />
+                            <div
+                              className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border border-white rounded-sm cursor-ne-resize hover:bg-blue-600"
+                              onMouseDown={(e) => {
+                                e.stopPropagation()
+                                handlePlantBedMouseDown(e, bed.id, 'ne')
+                              }}
+                            />
+                            <div
+                              className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border border-white rounded-sm cursor-sw-resize hover:bg-blue-600"
+                              onMouseDown={(e) => {
+                                e.stopPropagation()
+                                handlePlantBedMouseDown(e, bed.id, 'sw')
+                              }}
+                            />
+                            <div
+                              className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border border-white rounded-sm cursor-se-resize hover:bg-blue-600"
+                              onMouseDown={(e) => {
+                                e.stopPropagation()
+                                handlePlantBedMouseDown(e, bed.id, 'se')
+                              }}
+                            />
+                            
+                            {/* Edge handles */}
+                            <div
+                              className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-blue-500 border border-white rounded-sm cursor-n-resize hover:bg-blue-600"
+                              onMouseDown={(e) => {
+                                e.stopPropagation()
+                                handlePlantBedMouseDown(e, bed.id, 'n')
+                              }}
+                            />
+                            <div
+                              className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-blue-500 border border-white rounded-sm cursor-s-resize hover:bg-blue-600"
+                              onMouseDown={(e) => {
+                                e.stopPropagation()
+                                handlePlantBedMouseDown(e, bed.id, 's')
+                              }}
+                            />
+                            <div
+                              className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-blue-500 border border-white rounded-sm cursor-w-resize hover:bg-blue-600"
+                              onMouseDown={(e) => {
+                                e.stopPropagation()
+                                handlePlantBedMouseDown(e, bed.id, 'w')
+                              }}
+                            />
+                            <div
+                              className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-blue-500 border border-white rounded-sm cursor-e-resize hover:bg-blue-600"
+                              onMouseDown={(e) => {
+                                e.stopPropagation()
+                                handlePlantBedMouseDown(e, bed.id, 'e')
+                              }}
+                            />
+                            
+                            {/* Old rotation handle - keeping for now */}
                             <div
                               className="absolute -top-2 -left-2 w-6 h-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center cursor-grab text-xs font-bold shadow-lg border-2 border-white"
                               onMouseDown={(e) => {
