@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Banking-Grade Test Suite" tests="29" failures="2" errors="0" time="20.016">
+  <testsuite name="🏦 Banking-Grade Database Service Tests" errors="0" failures="2" skipped="0" timestamp="2025-07-22T21:56:43" time="19.831" tests="29">
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should create garden with valid data" name="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should create garden with valid data" time="0.254">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should fail to create garden with missing required fields" name="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should fail to create garden with missing required fields" time="0.027">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should handle SQL injection attempts" name="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should handle SQL injection attempts" time="0.253">
+      <failure>Error: expect(received).not.toEqual(expected) // deep equality
+
+Expected: not &quot;&apos;; DROP TABLE gardens; --&quot;
+
+    at /workspace/tests/database.test.ts:99:40
+    at Generator.next (&lt;anonymous&gt;)
+    at fulfilled (/workspace/tests/database.test.ts:17:58)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should retrieve all gardens with pagination" name="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should retrieve all gardens with pagination" time="0.593">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should retrieve garden by ID" name="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should retrieve garden by ID" time="0.364">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should handle non-existent garden ID gracefully" name="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should handle non-existent garden ID gracefully" time="0.238">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should update garden with valid data" name="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should update garden with valid data" time="0.363">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should soft delete garden" name="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should soft delete garden" time="0.764">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should retrieve garden with plant beds" name="🏦 Banking-Grade Database Service Tests 🌱 Tuin (Garden) Service should retrieve garden with plant beds" time="0.466">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should create plant bed with valid data" name="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should create plant bed with valid data" time="0.365">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should fail to create plant bed with invalid garden ID" name="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should fail to create plant bed with invalid garden ID" time="0.36">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should retrieve plant beds by garden ID" name="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should retrieve plant beds by garden ID" time="0.618">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should update plant bed properties" name="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should update plant bed properties" time="0.479">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should soft delete plant bed" name="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should soft delete plant bed" time="0.911">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should retrieve plant bed with plants" name="🏦 Banking-Grade Database Service Tests 🌿 Plantvak (Plant Bed) Service should retrieve plant bed with plants" time="0.58">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌸 Bloem (Plant) Service should create plant with valid data" name="🏦 Banking-Grade Database Service Tests 🌸 Bloem (Plant) Service should create plant with valid data" time="0.479">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌸 Bloem (Plant) Service should retrieve plants by plant bed ID" name="🏦 Banking-Grade Database Service Tests 🌸 Bloem (Plant) Service should retrieve plants by plant bed ID" time="0.699">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌸 Bloem (Plant) Service should update plant properties" name="🏦 Banking-Grade Database Service Tests 🌸 Bloem (Plant) Service should update plant properties" time="0.597">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌸 Bloem (Plant) Service should delete plant" name="🏦 Banking-Grade Database Service Tests 🌸 Bloem (Plant) Service should delete plant" time="1.016">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🌸 Bloem (Plant) Service should search plants with filters" name="🏦 Banking-Grade Database Service Tests 🌸 Bloem (Plant) Service should search plants with filters" time="0.717">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 📊 Performance Tests should handle bulk operations efficiently" name="🏦 Banking-Grade Database Service Tests 📊 Performance Tests should handle bulk operations efficiently" time="0.483">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 📊 Performance Tests should handle concurrent database operations" name="🏦 Banking-Grade Database Service Tests 📊 Performance Tests should handle concurrent database operations" time="0.737">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🔒 Security Tests should prevent SQL injection in all operations" name="🏦 Banking-Grade Database Service Tests 🔒 Security Tests should prevent SQL injection in all operations" time="0.352">
+      <failure>Error: expect(received).not.toEqual(expected) // deep equality
+
+Expected: not &quot;&apos;; DROP TABLE gardens; --&quot;
+
+    at /workspace/tests/database.test.ts:411:46
+    at Generator.next (&lt;anonymous&gt;)
+    at fulfilled (/workspace/tests/database.test.ts:17:58)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)</failure>
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🔒 Security Tests should validate input data types and formats" name="🏦 Banking-Grade Database Service Tests 🔒 Security Tests should validate input data types and formats" time="0.023">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🔄 Error Handling and Recovery should handle database connection failures gracefully" name="🏦 Banking-Grade Database Service Tests 🔄 Error Handling and Recovery should handle database connection failures gracefully" time="0.235">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🔄 Error Handling and Recovery should retry failed operations with exponential backoff" name="🏦 Banking-Grade Database Service Tests 🔄 Error Handling and Recovery should retry failed operations with exponential backoff" time="3.003">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🔄 Error Handling and Recovery should maintain data consistency during failures" name="🏦 Banking-Grade Database Service Tests 🔄 Error Handling and Recovery should maintain data consistency during failures" time="0.604">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🔗 Integration Tests should maintain referential integrity across all operations" name="🏦 Banking-Grade Database Service Tests 🔗 Integration Tests should maintain referential integrity across all operations" time="1.745">
+    </testcase>
+    <testcase classname="🏦 Banking-Grade Database Service Tests 🔗 Integration Tests should handle complex queries efficiently" name="🏦 Banking-Grade Database Service Tests 🔗 Integration Tests should handle complex queries efficiently" time="0.916">
+    </testcase>
+  </testsuite>
+</testsuites>
