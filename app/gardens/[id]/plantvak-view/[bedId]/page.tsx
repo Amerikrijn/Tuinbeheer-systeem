@@ -411,17 +411,17 @@ export default function PlantBedViewPage() {
     }
   }, [plantBed, flowerPositions, canvasWidth, canvasHeight, toast])
 
-  // Auto-fill large flower beds after data is loaded and cleanup
-  useEffect(() => {
-    if (!loading && plantBed && flowerPositions.length >= 0) {
-      const timer = setTimeout(async () => {
-        await cleanupFlowersOutsideBoundaries() // First cleanup existing flowers
-        await autoFillFlowerBed() // Then add more if needed
-      }, 1500) // Slightly longer delay for cleanup
-      
-      return () => clearTimeout(timer)
-    }
-  }, [loading, plantBed, cleanupFlowersOutsideBoundaries, autoFillFlowerBed])
+  // Disabled auto-cleanup and auto-fill - user wants manual control
+  // useEffect(() => {
+  //   if (!loading && plantBed && flowerPositions.length >= 0) {
+  //     const timer = setTimeout(async () => {
+  //       await cleanupFlowersOutsideBoundaries() // This was causing flowers to jump back
+  //       // Removed autoFillFlowerBed() - user wants only 1 flower per plantvak
+  //     }, 1500) // Slightly longer delay for cleanup
+  //     
+  //     return () => clearTimeout(timer)
+  //   }
+  // }, [loading, plantBed, cleanupFlowersOutsideBoundaries])
 
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
@@ -457,56 +457,20 @@ export default function PlantBedViewPage() {
 
       const flowerSize = getFlowerSize(newFlower.size)
       
-      // Position within plantvak boundaries (not canvas boundaries)
-      const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
-      let initialX, initialY
+      // DEBUG: Log canvas dimensions and positioning
+      console.log('🌸 ADD FLOWER DEBUG:', {
+        canvasWidth,
+        canvasHeight,
+        flowerSize,
+        plantBedSize: plantBed?.size,
+        existingFlowers: flowerPositions.length
+      })
       
-      if (dimensions) {
-        // Use actual plantvak dimensions
-        const plantvakWidth = dimensions.lengthPixels
-        const plantvakHeight = dimensions.widthPixels
-        const plantvakStartX = (canvasWidth - plantvakWidth) / 2
-        const plantvakStartY = (canvasHeight - plantvakHeight) / 2
-        
-        const margin = 25
-        const usableWidth = plantvakWidth - (margin * 2) - flowerSize
-        const usableHeight = plantvakHeight - (margin * 2) - flowerSize
-        
-        if (usableWidth <= 0 || usableHeight <= 0) {
-          // Fallback to center if not enough space
-          initialX = plantvakStartX + (plantvakWidth - flowerSize) / 2
-          initialY = plantvakStartY + (plantvakHeight - flowerSize) / 2
-        } else {
-          const existingFlowers = flowerPositions.length
-          
-          if (existingFlowers === 0) {
-            // First flower goes in center of plantvak
-            initialX = plantvakStartX + (plantvakWidth - flowerSize) / 2
-            initialY = plantvakStartY + (plantvakHeight - flowerSize) / 2
-          } else if (existingFlowers < 4) {
-            // For first few flowers, use grid positioning within plantvak
-            const cols = Math.ceil(Math.sqrt(existingFlowers + 1))
-            const rows = Math.ceil((existingFlowers + 1) / cols)
-            const col = existingFlowers % cols
-            const row = Math.floor(existingFlowers / cols)
-            
-            initialX = plantvakStartX + margin + (col + 0.5) * (usableWidth / cols)
-            initialY = plantvakStartY + margin + (row + 0.5) * (usableHeight / rows)
-          } else {
-            // For more flowers, use random positioning within plantvak
-            initialX = plantvakStartX + margin + Math.random() * usableWidth
-            initialY = plantvakStartY + margin + Math.random() * usableHeight
-          }
-        }
-      } else {
-        // Fallback to canvas positioning if no plantvak dimensions
-        const margin = 30
-        const usableWidth = canvasWidth - (margin * 2) - flowerSize
-        const usableHeight = canvasHeight - (margin * 2) - flowerSize
-        
-        initialX = margin + Math.random() * Math.max(0, usableWidth)
-        initialY = margin + Math.random() * Math.max(0, usableHeight)
-      }
+      // SIMPLE FIX: Just place in top-left corner first to test
+      const initialX = 50  // Simple fixed position
+      const initialY = 50  // Simple fixed position
+      
+      console.log('🎯 PLACING FLOWER AT:', { initialX, initialY })
       
       const newPlant = await createVisualPlant({
         plant_bed_id: plantBed.id,
@@ -787,7 +751,7 @@ export default function PlantBedViewPage() {
     return { clientX: 0, clientY: 0 }
   }
 
-  // Handle single click/tap - select flower and prepare for operations
+  // Handle single click/tap - select flower (like plant bed click)
   const handleFlowerClick = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -795,55 +759,43 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    // For touch devices, use the toggle behavior
+    // For touch devices, use the old toggle behavior
     if ('touches' in e) {
-      if (selectedFlower?.id === flowerId) {
-        if (!isDragMode && !isResizeMode) {
-          setIsDragMode(true)
-          toast({
-            title: "🖱️ Verplaatsen actief",
-            description: "Sleep de bloem naar een nieuwe positie. Klik opnieuw voor grootte aanpassen.",
-          })
-        } else if (isDragMode) {
-          setIsDragMode(false)
-          setIsResizeMode(true)
-          toast({
-            title: "📏 Grootte aanpassen actief", 
-            description: "Sleep de blauwe hoeken om groter te maken. Klik opnieuw om te stoppen.",
-          })
-        } else {
-          setIsDragMode(false)
-          setIsResizeMode(false)
-          setSelectedFlower(null)
-          toast({
-            title: "✅ Selectie opgeheven",
-            description: "Klik op een bloem om te selecteren.",
-          })
-        }
+      if (selectedFlower?.id === flowerId && isDragMode) {
+        setIsDragMode(false)
+        setSelectedFlower(null)
+        toast({
+          title: "Verplaatsen gestopt",
+          description: "Bloem staat nu vast",
+        })
       } else {
         setSelectedFlower(flower)
-        setIsDragMode(false)
-        setIsResizeMode(false)
-        resizeModeRef.current = flowerId
+        setIsDragMode(true)
         toast({
-          title: "🎯 Bloem geselecteerd",
-          description: "Klik opnieuw om te verplaatsen of grootte aan te passen.",
+          title: "Verplaatsen actief",
+          description: "Sleep de bloem naar een nieuwe positie. Klik opnieuw om te stoppen.",
         })
       }
     } else {
       // For mouse, just select the flower - dragging happens on mousedown
       setSelectedFlower(flower)
       setIsDragMode(false)
-      setIsResizeMode(false)
-      resizeModeRef.current = flowerId
     }
-  }, [flowerPositions, selectedFlower, isDragMode, isResizeMode, toast])
+    
+    // Make sure resize interface is hidden
+    setShowResizeInterface(false)
+    setIsResizeMode(false)
+  }, [flowerPositions, selectedFlower, isDragMode, toast])
 
-  // Handle double click - show resize interface
+  // Handle double click - show plus/minus resize controls
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
     console.log('Double click on flower:', flower.name)
     
-    // Get flower position on screen
+    // Stop any dragging first
+    setIsDragMode(false)
+    setDraggedFlower(null)
+    
+    // Get flower position on screen for positioning the controls
     const containerRect = containerRef.current?.getBoundingClientRect()
     if (!containerRect) return
 
@@ -919,7 +871,7 @@ export default function PlantBedViewPage() {
     setSelectedFlower(null)
   }, [])
 
-  // Handle pointer down - start dragging immediately for mouse, conditionally for touch
+  // Handle pointer down - start dragging immediately for mouse, conditionally for touch (like plant bed)
   const handleFlowerPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -929,76 +881,67 @@ export default function PlantBedViewPage() {
     // Record touch start time for long press detection
     if ('touches' in e) {
       setTouchStartTime(Date.now())
-      // For touch, only start dragging if we're in drag mode and flower is selected
+      // For touch, only start dragging if we're in drag mode
       if (!isDragMode || selectedFlower?.id !== flowerId) {
         return
       }
     }
-    
-    // Clear any existing selections first if dragging a different flower
-    if (draggedFlower && draggedFlower !== flowerId) {
-      return // Prevent multiple flowers from being dragged at once
-    }
-    
+
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // For mouse: start dragging immediately if flower is selected
-    // For touch: start dragging if in drag mode
-    if (selectedFlower?.id === flowerId || !('touches' in e)) {
-      // Start dragging
-      setDraggedFlower(flowerId)
-      setDragOffset({
-        x: (clientX - rect.left) / scale - flower.position_x,
-        y: (clientY - rect.top) / scale - flower.position_y
-      })
-      
-      // Select the flower if not already selected (for mouse)
-      if (!selectedFlower || selectedFlower.id !== flowerId) {
-        setSelectedFlower(flower)
-        resizeModeRef.current = flowerId
-      }
-      
-      // Show feedback for mouse users
-      if (!('touches' in e)) {
-        toast({
-          title: "🚀 Verplaatsen gestart",
-          description: "Sleep naar gewenste positie en laat los.",
-        })
-      }
-    }
-  }, [flowerPositions, scale, draggedFlower, selectedFlower, isDragMode, containerRef, toast])
+    // Start dragging immediately
+    const offsetX = clientX - rect.left - flower.position_x * scale
+    const offsetY = clientY - rect.top - flower.position_y * scale
 
-  // Handle long press for mobile (alternative activation)
+    setDraggedFlower(flowerId)
+    setDragOffset({ x: offsetX / scale, y: offsetY / scale })
+    setSelectedFlower(flower)
+    setHasChanges(true)
+
+    toast({
+      title: "🖱️ Verplaatsen",
+      description: `${flower.name}`,
+    })
+  }, [flowerPositions, scale, isDragMode, selectedFlower, toast])
+
+  // Handle touch start for mobile - prepare for drag after click
   const handleFlowerTouchStart = useCallback((e: React.TouchEvent, flowerId: string) => {
     setTouchStartTime(Date.now())
     
-    // Set a timer for long press detection
+    // Clear any existing long press timer
+    if (longPressTimer) {
+      clearTimeout(longPressTimer)
+    }
+    
+    // Set a timer for long press detection (backup method)
     const timer = setTimeout(() => {
       const flower = flowerPositions.find(f => f.id === flowerId)
       if (!flower) return
       
-      // Long press activates selection and drag mode
-      setSelectedFlower(flower)
-      setIsDragMode(true)
-      setIsResizeMode(false)
-      
-      // Provide haptic feedback if available
-      if (navigator.vibrate) {
-        navigator.vibrate(50)
+      // Long press as backup - but single tap is primary method now
+      if (!isDragMode) {
+        setSelectedFlower(flower)
+        setIsDragMode(true)
+        setIsResizeMode(false)
+        
+        // Provide haptic feedback if available
+        if (navigator.vibrate) {
+          navigator.vibrate(50)
+        }
+        
+        toast({
+          title: "🔥 Lang indrukken gedetecteerd",
+          description: "Bloem geselecteerd voor verplaatsen. Sleep nu!",
+        })
       }
-      
-      toast({
-        title: "🔥 Lang indrukken gedetecteerd",
-        description: "Bloem geselecteerd voor verplaatsen. Sleep nu!",
-      })
     }, 500) // 500ms for long press
 
     setLongPressTimer(timer)
-  }, [flowerPositions, toast])
+  }, [flowerPositions, longPressTimer, isDragMode, toast])
 
   const handleFlowerTouchEnd = useCallback((e: React.TouchEvent, flowerId: string) => {
     const touchDuration = Date.now() - touchStartTime
@@ -1014,6 +957,23 @@ export default function PlantBedViewPage() {
       handleFlowerClick(e, flowerId)
     }
   }, [touchStartTime, longPressTimer, handleFlowerClick])
+
+  // Enhanced touch move handler for mobile dragging
+  const handleFlowerTouchMove = useCallback((e: React.TouchEvent, flowerId: string) => {
+    // Only handle if this flower is selected and in drag mode
+    if (selectedFlower?.id === flowerId && isDragMode && !draggedFlower) {
+      const { clientX, clientY } = getPointerPosition(e)
+      const rect = containerRef.current?.getBoundingClientRect()
+      if (!rect) return
+
+      // Start dragging
+      setDraggedFlower(flowerId)
+      setDragOffset({
+        x: (clientX - rect.left) / scale - selectedFlower.position_x,
+        y: (clientY - rect.top) / scale - selectedFlower.position_y
+      })
+    }
+  }, [selectedFlower, isDragMode, draggedFlower, scale, containerRef])
 
 
 
@@ -1031,31 +991,16 @@ export default function PlantBedViewPage() {
       const draggedFlowerData = prev.find(f => f.id === draggedFlower)
       if (!draggedFlowerData) return prev
 
-      // Get plantvak boundaries
-      const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
-      let constrainedX, constrainedY
-      
-      if (dimensions) {
-        // Constrain to plantvak bounds
-        const plantvakWidth = dimensions.lengthPixels
-        const plantvakHeight = dimensions.widthPixels
-        const plantvakStartX = (canvasWidth - plantvakWidth) / 2
-        const plantvakStartY = (canvasHeight - plantvakHeight) / 2
-        const margin = 10
-        
-        constrainedX = Math.max(
-          plantvakStartX + margin, 
-          Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
-        )
-        constrainedY = Math.max(
-          plantvakStartY + margin, 
-          Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
-        )
-      } else {
-        // Fallback to canvas bounds if no plantvak dimensions
-        constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width))
-        constrainedY = Math.max(0, Math.min(newY, canvasHeight - draggedFlowerData.visual_height))
-      }
+      // Allow navigation over the entire plantvak area (full canvas)
+      // Ensure flowers stay within valid canvas boundaries
+      const constrainedX = Math.max(
+        0, 
+        Math.min(newX, canvasWidth - draggedFlowerData.visual_width)
+      )
+      const constrainedY = Math.max(
+        0, 
+        Math.min(newY, canvasHeight - draggedFlowerData.visual_height)
+      )
 
       // Only update the specific dragged flower
       return prev.map(f => {
@@ -1104,49 +1049,92 @@ export default function PlantBedViewPage() {
     setHasChanges(true)
   }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
 
-  // Handle drag end with auto-save
+  // Handle mouse up (end drag) with auto-save (like plant bed behavior)
   const handlePointerUp = useCallback(async () => {
-    if (draggedFlower) {
-      // Auto-save the flower position immediately
-      try {
-        const flower = flowerPositions.find(f => f.id === draggedFlower)
-        if (flower) {
+    if (!draggedFlower) return
+    
+    // Auto-save when dragging stops
+    if (draggedFlower && hasChanges) {
+      const flowerToUpdate = flowerPositions.find(f => f.id === draggedFlower)
+      if (flowerToUpdate) {
+        // Auto-save the position immediately
+        try {
           await updatePlantPosition(draggedFlower, {
-            position_x: flower.position_x,
-            position_y: flower.position_y,
-            visual_width: flower.visual_width,
-            visual_height: flower.visual_height,
-            notes: flower.notes
+            position_x: flowerToUpdate.position_x,
+            position_y: flowerToUpdate.position_y,
+            visual_width: flowerToUpdate.visual_width,
+            visual_height: flowerToUpdate.visual_height,
+            notes: flowerToUpdate.notes
           })
           
           setHasChanges(false)
           
-          // Show save confirmation only once per session
-          if (!sessionStorage.getItem('flowerSaveShown')) {
-            toast({
-              title: "✅ Bloem verplaatst",
-              description: "Positie automatisch opgeslagen!",
-            })
-            sessionStorage.setItem('flowerSaveShown', 'true')
-          }
+          toast({
+            title: "✅ Bloem verplaatst",
+            description: "Positie automatisch opgeslagen!",
+          })
+        } catch (error) {
+          console.error("Error auto-saving flower position:", error)
+          toast({
+            title: "❌ Fout bij opslaan",
+            description: `Positie kon niet worden opgeslagen: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
+            variant: "destructive",
+          })
         }
-      } catch (error) {
-        console.error("Error auto-saving flower position:", error)
-        toast({
-          title: "❌ Fout bij opslaan",
-          description: "Positie kon niet worden opgeslagen. Probeer opnieuw.",
-          variant: "destructive",
-        })
       }
     }
+    
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedFlower, flowerPositions, toast])
+  }, [draggedFlower, hasChanges, flowerPositions, toast])
 
   // Legacy mouse up handler
   const onMouseUp = useCallback(() => {
     handlePointerUp()
   }, [handlePointerUp])
+
+
+
+  // Save all flower positions to database
+  const handleSavePositions = useCallback(async () => {
+    if (!hasChanges) {
+      toast({
+        title: "Geen wijzigingen",
+        description: "Er zijn geen posities om op te slaan.",
+      })
+      return
+    }
+
+    try {
+      // Save all flower positions that have been moved
+      const savePromises = flowerPositions.map(async (flower) => {
+        return await updatePlantPosition(flower.id, {
+          position_x: flower.position_x,
+          position_y: flower.position_y,
+          visual_width: flower.visual_width,
+          visual_height: flower.visual_height,
+          notes: flower.notes
+        })
+      })
+
+      await Promise.all(savePromises)
+      
+      setHasChanges(false)
+      setSelectedFlower(null)
+      
+      toast({
+        title: "✅ Posities opgeslagen",
+        description: "Alle bloemenposities zijn succesvol opgeslagen.",
+      })
+    } catch (error) {
+      console.error("Error saving flower positions:", error)
+      toast({
+        title: "❌ Fout bij opslaan",
+        description: `Kon posities niet opslaan: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
+        variant: "destructive",
+      })
+    }
+  }, [hasChanges, flowerPositions, toast])
 
   // Handle click outside to deselect - unified for mouse and touch
   const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -2368,13 +2356,13 @@ export default function PlantBedViewPage() {
                 }}
               />
 
-              {/* Use FlowerVisualization Component for consistent display */}
-              <FlowerVisualization 
+              {/* TEMPORARILY DISABLED FlowerVisualization to debug positioning */}
+              {/* <FlowerVisualization 
                 plantBed={plantBed}
                 plants={flowerPositions}
                 containerWidth={canvasWidth}
                 containerHeight={canvasHeight}
-              />
+              /> */}
 
               {/* Interactive overlay for selected flowers */}
               {flowerPositions.map((flower) => {
@@ -2403,13 +2391,14 @@ export default function PlantBedViewPage() {
                     onDoubleClick={() => handleFlowerDoubleClick(flower)}
                     onMouseDown={(e) => handleFlowerPointerDown(e, flower.id)}
                     onTouchStart={(e) => handleFlowerTouchStart(e, flower.id)}
+                    onTouchMove={(e) => handleFlowerTouchMove(e, flower.id)}
                     onTouchEnd={(e) => handleFlowerTouchEnd(e, flower.id)}
                     title={
-                      isDragging ? "Sleep naar gewenste positie" :
+                      isDragging ? "Sleep naar gewenste positie en laat los om op te slaan" :
                       isSelected && isDragMode ? "Sleep me naar een nieuwe positie!" :
                       isSelected && isResizeMode ? "Sleep de blauwe hoeken om groter te maken" :
-                      isSelected ? "Klik opnieuw om te verplaatsen of grootte aan te passen" :
-                      "Klik om te selecteren"
+                      isSelected ? "Sleep om te verplaatsen, dubbel klik om te vergroten" :
+                      "Klik om te selecteren, sleep om te verplaatsen, dubbel klik om te vergroten"
                     }
                   >
                     <div className="text-center w-full h-full flex flex-col items-center justify-center">
