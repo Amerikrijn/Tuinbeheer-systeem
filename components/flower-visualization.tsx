@@ -36,21 +36,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     
     const plantName = (name || '').toLowerCase()
     
-    // Exacte matches voor specifieke bloemen
-    if (plantName.includes('roos') || plantName.includes('rose')) return '🌹'
-    if (plantName.includes('tulp') || plantName.includes('tulip')) return '🌷'
-    if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
-    if (plantName.includes('lavendel') || plantName.includes('lavender')) return '🪻'
-    if (plantName.includes('dahlia')) return '🌺'
-    if (plantName.includes('chrysant') || plantName.includes('chrysanthemum')) return '🌼'
-    if (plantName.includes('narcis') || plantName.includes('daffodil')) return '🌻'
-    if (plantName.includes('iris')) return '🌸'
-    if (plantName.includes('petunia')) return '🌺'
-    if (plantName.includes('begonia')) return '🌸'
-    if (plantName.includes('lelie') || plantName.includes('lily')) return '🌺'
-    if (plantName.includes('anjer') || plantName.includes('carnation')) return '🌸'
-    
-    // Eenjarige bloemen
+    // Exacte matches voor eenjarige bloemen
     if (plantName.includes('zinnia')) return '🌻'
     if (plantName.includes('marigold') || plantName.includes('tagetes')) return '🌼'
     if (plantName.includes('impatiens')) return '🌸'
@@ -60,35 +46,16 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     if (plantName.includes('lobelia')) return '🌸'
     if (plantName.includes('alyssum')) return '🤍'
     if (plantName.includes('cosmos')) return '🌸'
-    
-    // Vaste planten
-    if (plantName.includes('aster')) return '🌸'
-    if (plantName.includes('rudbeckia')) return '🌻'
-    if (plantName.includes('echinacea')) return '🌸'
-    if (plantName.includes('delphinium')) return '🌸'
-    if (plantName.includes('phlox')) return '🌸'
-    if (plantName.includes('sedum')) return '🌸'
-    if (plantName.includes('hosta')) return '🌿'
-    if (plantName.includes('heuchera')) return '🌿'
-    
-    // Voorjaarsbollen
-    if (plantName.includes('hyacint') || plantName.includes('hyacinth')) return '🌷'
-    if (plantName.includes('krokus') || plantName.includes('crocus')) return '🌷'
-    if (plantName.includes('sneeuwklokje') || plantName.includes('snowdrop')) return '🤍'
-    if (plantName.includes('muscari')) return '🌷'
-    
-    // Zomerbollen
-    if (plantName.includes('gladiool') || plantName.includes('gladiolus')) return '🌺'
-    
-    // Kruiden
-    if (plantName.includes('oregano')) return '🌿'
-    if (plantName.includes('tijm') || plantName.includes('thyme')) return '🌿'
-    if (plantName.includes('rozemarijn') || plantName.includes('rosemary')) return '🌿'
-    if (plantName.includes('basilicum') || plantName.includes('basil')) return '🌿'
-    if (plantName.includes('peterselie') || plantName.includes('parsley')) return '🌿'
-    if (plantName.includes('bieslook') || plantName.includes('chives')) return '🌿'
-    if (plantName.includes('dille') || plantName.includes('dill')) return '🌿'
-    if (plantName.includes('munt') || plantName.includes('mint')) return '🌿'
+    if (plantName.includes('petunia')) return '🌺'
+    if (plantName.includes('begonia')) return '🌸'
+    if (plantName.includes('viooltje') || plantName.includes('viola')) return '🌸'
+    if (plantName.includes('stiefmoedje') || plantName.includes('pansy')) return '🌸'
+    if (plantName.includes('snapdragon') || plantName.includes('leeuwenbek')) return '🌸'
+    if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
+    if (plantName.includes('calendula') || plantName.includes('goudsbloem')) return '🌼'
+    if (plantName.includes('nicotiana') || plantName.includes('siertabak')) return '🤍'
+    if (plantName.includes('cleome') || plantName.includes('spinnenbloem')) return '🌸'
+    if (plantName.includes('celosia') || plantName.includes('hanekam')) return '🌺'
     
     // Default fallback
     return '🌸'

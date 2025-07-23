@@ -57,58 +57,32 @@ const SCALE_MAX = 3
 const FLOWER_SIZE = FLOWER_SIZE_MEDIUM // Default to medium size (now 45px)
 
 const STANDARD_FLOWERS = [
-  // Klassieke tuinbloemen
-  { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
-  { name: 'Tulp', color: '#FF4500', emoji: '🌷' },
-  { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
-  { name: 'Lavendel', color: '#9370DB', emoji: '🪻' },
-  { name: 'Dahlia', color: '#FF1493', emoji: '🌺' },
-  { name: 'Chrysant', color: '#FFA500', emoji: '🌼' },
-  { name: 'Narcis', color: '#FFFF00', emoji: '🌻' },
-  { name: 'Iris', color: '#4B0082', emoji: '🌸' },
-  { name: 'Petunia', color: '#FF6B6B', emoji: '🌺' },
-  { name: 'Begonia', color: '#FF8C69', emoji: '🌸' },
-  { name: 'Lelie', color: '#FF69B4', emoji: '🌺' },
-  { name: 'Anjer', color: '#FF1493', emoji: '🌸' },
-  
-  // Eenjarige bloemen
+  // Eenjarige bloemen (Annual flowers only)
   { name: 'Zinnia', color: '#FF6347', emoji: '🌻' },
   { name: 'Marigold', color: '#FFA500', emoji: '🌼' },
+  { name: 'Tagetes', color: '#FFA500', emoji: '🌼' },
   { name: 'Impatiens', color: '#FF69B4', emoji: '🌸' },
   { name: 'Ageratum', color: '#6495ED', emoji: '🌸' },
   { name: 'Salvia', color: '#DC143C', emoji: '🌺' },
   { name: 'Verbena', color: '#9370DB', emoji: '🌸' },
   { name: 'Lobelia', color: '#4169E1', emoji: '🌸' },
   { name: 'Alyssum', color: '#FFFFFF', emoji: '🤍' },
-  { name: 'Tagetes', color: '#FFA500', emoji: '🌼' },
   { name: 'Cosmos', color: '#FFB6C1', emoji: '🌸' },
-  
-  // Vaste planten
-  { name: 'Aster', color: '#9370DB', emoji: '🌸' },
-  { name: 'Rudbeckia', color: '#FFD700', emoji: '🌻' },
-  { name: 'Echinacea', color: '#FF69B4', emoji: '🌸' },
-  { name: 'Delphinium', color: '#4169E1', emoji: '🌸' },
-  { name: 'Phlox', color: '#FF69B4', emoji: '🌸' },
-  { name: 'Sedum', color: '#FF6347', emoji: '🌸' },
-  { name: 'Hosta', color: '#32CD32', emoji: '🌿' },
-  { name: 'Heuchera', color: '#8B4513', emoji: '🌿' },
-  
-  // Voorjaarsbollen
-  { name: 'Hyacint', color: '#9370DB', emoji: '🌷' },
-  { name: 'Krokus', color: '#9370DB', emoji: '🌷' },
-  { name: 'Sneeuwklokje', color: '#FFFFFF', emoji: '🤍' },
-  { name: 'Muscari', color: '#4169E1', emoji: '🌷' },
-  
-  // Zomerbollen
-  { name: 'Gladiool', color: '#FF69B4', emoji: '🌺' },
-  { name: 'Begonia (knol)', color: '#FF6347', emoji: '🌸' },
-  { name: 'Dahlia (knol)', color: '#FF1493', emoji: '🌺' },
-  
-  // Kruiden met bloemen
-  { name: 'Oregano', color: '#9370DB', emoji: '🌿' },
-  { name: 'Tijm', color: '#9370DB', emoji: '🌿' },
-  { name: 'Rozemarijn', color: '#6495ED', emoji: '🌿' },
-  { name: 'Basilicum', color: '#FFFFFF', emoji: '🌿' },
+  { name: 'Petunia', color: '#FF6B6B', emoji: '🌺' },
+  { name: 'Begonia', color: '#FF8C69', emoji: '🌸' },
+  { name: 'Viooltje', color: '#9370DB', emoji: '🌸' },
+  { name: 'Stiefmoedje', color: '#9370DB', emoji: '🌸' },
+  { name: 'Snapdragon', color: '#FF69B4', emoji: '🌸' },
+  { name: 'Leeuwenbek', color: '#FF69B4', emoji: '🌸' },
+  { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
+  { name: 'Calendula', color: '#FFA500', emoji: '🌼' },
+  { name: 'Goudsbloem', color: '#FFA500', emoji: '🌼' },
+  { name: 'Nicotiana', color: '#FFFFFF', emoji: '🤍' },
+  { name: 'Siertabak', color: '#FFFFFF', emoji: '🤍' },
+  { name: 'Cleome', color: '#FF69B4', emoji: '🌸' },
+  { name: 'Spinnenbloem', color: '#FF69B4', emoji: '🌸' },
+  { name: 'Celosia', color: '#FF6347', emoji: '🌺' },
+  { name: 'Hanekam', color: '#FF6347', emoji: '🌺' },
 ]
 
 const DEFAULT_FLOWER_EMOJI = '🌼'
@@ -141,21 +115,7 @@ const FLOWER_STATUS_OPTIONS = [
   const plantName = (name || '').toLowerCase()
   const plantCategory = (category || '').toLowerCase()
   
-  // Exacte matches voor specifieke bloemen
-  if (plantName.includes('roos') || plantName.includes('rose')) return '🌹'
-  if (plantName.includes('tulp') || plantName.includes('tulip')) return '🌷'
-  if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
-  if (plantName.includes('lavendel') || plantName.includes('lavender')) return '🪻'
-  if (plantName.includes('dahlia')) return '🌺'
-  if (plantName.includes('chrysant') || plantName.includes('chrysanthemum')) return '🌼'
-  if (plantName.includes('narcis') || plantName.includes('daffodil')) return '🌻'
-  if (plantName.includes('iris')) return '🌸'
-  if (plantName.includes('petunia')) return '🌺'
-  if (plantName.includes('begonia')) return '🌸'
-  if (plantName.includes('lelie') || plantName.includes('lily')) return '🌺'
-  if (plantName.includes('anjer') || plantName.includes('carnation')) return '🌸'
-  
-  // Eenjarige bloemen
+  // Exacte matches voor eenjarige bloemen
   if (plantName.includes('zinnia')) return '🌻'
   if (plantName.includes('marigold') || plantName.includes('tagetes')) return '🌼'
   if (plantName.includes('impatiens')) return '🌸'
@@ -165,44 +125,19 @@ const FLOWER_STATUS_OPTIONS = [
   if (plantName.includes('lobelia')) return '🌸'
   if (plantName.includes('alyssum')) return '🤍'
   if (plantName.includes('cosmos')) return '🌸'
-  
-  // Vaste planten
-  if (plantName.includes('aster')) return '🌸'
-  if (plantName.includes('rudbeckia')) return '🌻'
-  if (plantName.includes('echinacea')) return '🌸'
-  if (plantName.includes('delphinium')) return '🌸'
-  if (plantName.includes('phlox')) return '🌸'
-  if (plantName.includes('sedum')) return '🌸'
-  if (plantName.includes('hosta')) return '🌿'
-  if (plantName.includes('heuchera')) return '🌿'
-  
-  // Voorjaarsbollen
-  if (plantName.includes('hyacint') || plantName.includes('hyacinth')) return '🌷'
-  if (plantName.includes('krokus') || plantName.includes('crocus')) return '🌷'
-  if (plantName.includes('sneeuwklokje') || plantName.includes('snowdrop')) return '🤍'
-  if (plantName.includes('muscari')) return '🌷'
-  
-  // Zomerbollen
-  if (plantName.includes('gladiool') || plantName.includes('gladiolus')) return '🌺'
-  
-  // Kruiden
-  if (plantName.includes('oregano')) return '🌿'
-  if (plantName.includes('tijm') || plantName.includes('thyme')) return '🌿'
-  if (plantName.includes('rozemarijn') || plantName.includes('rosemary')) return '🌿'
-  if (plantName.includes('basilicum') || plantName.includes('basil')) return '🌿'
-  if (plantName.includes('peterselie') || plantName.includes('parsley')) return '🌿'
-  if (plantName.includes('bieslook') || plantName.includes('chives')) return '🌿'
-  if (plantName.includes('dille') || plantName.includes('dill')) return '🌿'
-  if (plantName.includes('munt') || plantName.includes('mint')) return '🌿'
+  if (plantName.includes('petunia')) return '🌺'
+  if (plantName.includes('begonia')) return '🌸'
+  if (plantName.includes('viooltje') || plantName.includes('viola')) return '🌸'
+  if (plantName.includes('stiefmoedje') || plantName.includes('pansy')) return '🌸'
+  if (plantName.includes('snapdragon') || plantName.includes('leeuwenbek')) return '🌸'
+  if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
+  if (plantName.includes('calendula') || plantName.includes('goudsbloem')) return '🌼'
+  if (plantName.includes('nicotiana') || plantName.includes('siertabak')) return '🤍'
+  if (plantName.includes('cleome') || plantName.includes('spinnenbloem')) return '🌸'
+  if (plantName.includes('celosia') || plantName.includes('hanekam')) return '🌺'
   
   // Match by category
-  if (plantCategory.includes('roos') || plantCategory.includes('rose')) return '🌹'
-  if (plantCategory.includes('tulp')) return '🌷'
-  if (plantCategory.includes('kruid') || plantCategory.includes('herb')) return '🌿'
-  if (plantCategory.includes('groente') || plantCategory.includes('vegetable')) return '🥬'
   if (plantCategory.includes('eenjarig') || plantCategory.includes('annual')) return '🌸'
-  if (plantCategory.includes('vast') || plantCategory.includes('perennial')) return '🌸'
-  if (plantCategory.includes('bol') || plantCategory.includes('bulb')) return '🌷'
   
   // Default: no emoji, show name instead
   return undefined
@@ -1427,7 +1362,7 @@ export default function PlantBedViewPage() {
                 Bloem Toevoegen
               </Button>
                           </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white z-50 border border-gray-200 shadow-xl">
+            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl">
               <DialogHeader>
                 <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
                 <DialogDescription>
@@ -1482,16 +1417,16 @@ export default function PlantBedViewPage() {
                     <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     {/* Show suggestions only when typing and there's input */}
                     {newFlower.name && newFlower.name.length > 0 && (
-                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                      <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-md shadow-xl max-h-60 overflow-auto">
                         {STANDARD_FLOWERS
                           .filter(flower => 
                             flower.name.toLowerCase().includes(newFlower.name.toLowerCase())
                           )
-                          .slice(0, 5)
+                          .slice(0, 8)
                           .map((flower) => (
                             <div
                               key={flower.name}
-                              className="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
+                              className="px-3 py-2 cursor-pointer hover:bg-green-50 hover:text-green-800 flex items-center gap-2 transition-colors"
                               onClick={() => {
                                 setNewFlower(prev => ({
                                   ...prev,
@@ -1504,10 +1439,17 @@ export default function PlantBedViewPage() {
                                 setIsCustomFlower(false)
                               }}
                             >
-                              <span>{flower.emoji}</span>
-                              <span>{flower.name}</span>
+                              <span className="text-lg">{flower.emoji}</span>
+                              <span className="font-medium">{flower.name}</span>
                             </div>
                           ))}
+                        {STANDARD_FLOWERS.filter(flower => 
+                          flower.name.toLowerCase().includes(newFlower.name.toLowerCase())
+                        ).length === 0 && (
+                          <div className="px-3 py-2 text-gray-500 text-sm italic">
+                            Geen eenjarige bloemen gevonden. Typ een eigen naam.
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
