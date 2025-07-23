@@ -32,7 +32,7 @@ export interface Plantvak {
   soil_type?: string
   sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
   description?: string
-  is_active: boolean
+  is_active?: boolean
   created_at: string
   updated_at: string
   // Visual properties
@@ -60,11 +60,18 @@ export interface Bloem {
   bloom_period?: string
   planting_date?: string
   expected_harvest_date?: string
-  status: 'healthy' | 'needs_attention' | 'diseased' | 'dead' | 'harvested'
+  status?: 'healthy' | 'needs_attention' | 'diseased' | 'dead' | 'harvested'
   notes?: string
   care_instructions?: string
   watering_frequency?: number
   fertilizer_schedule?: string
+  // Visual designer properties
+  position_x?: number
+  position_y?: number
+  visual_width?: number
+  visual_height?: number
+  emoji?: string
+  is_custom?: boolean
   created_at: string
   updated_at: string
 }
