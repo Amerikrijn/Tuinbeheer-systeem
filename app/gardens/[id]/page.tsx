@@ -1299,7 +1299,7 @@ export default function GardenDetailPage() {
                       onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                       onClick={(e) => handlePlantBedClick(e, bed.id)}
                     >
-                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-3 group-hover:bg-green-100 transition-colors relative border border-gray-200 ${
+                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 ${
                         isSelected ? 'bg-blue-100 border-blue-300' : ''
                       }`}>
                         {/* Top corner elements */}
@@ -1321,8 +1321,8 @@ export default function GardenDetailPage() {
                           )}
                         </div>
 
-                        {/* Main area for plants/flowers - this space is left for the flowers */}
-                        <div className="flex-1 flex items-center justify-center relative overflow-hidden border-2 border-dashed border-gray-300 rounded-lg bg-gradient-to-br from-green-25 to-green-50">
+                        {/* Main area for plants/flowers - full height for flowers */}
+                        <div className="w-full h-full flex items-center justify-center relative overflow-hidden border-2 border-dashed border-gray-300 rounded-lg bg-gradient-to-br from-green-25 to-green-50">
                           {/* Plantvak visual indicator */}
                           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent pointer-events-none"></div>
                           
@@ -1346,27 +1346,7 @@ export default function GardenDetailPage() {
                           <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none"></div>
                         </div>
 
-                        {/* Bottom info bar */}
-                        <div className="bg-white/98 rounded-lg p-2 shadow-md border-2 border-gray-300 space-y-1 backdrop-blur-sm">
-                          {/* Plant bed name */}
-                          <div className="text-sm font-bold text-gray-900 truncate flex items-center gap-2">
-                            <span className="w-3 h-3 rounded-full bg-green-500"></span>
-                            {bed.name}
-                          </div>
-                          
-                          {/* Dimensions and plant count */}
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-700 font-semibold bg-gray-100 px-2 py-1 rounded">
-                              📏 {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600 flex items-center gap-1 bg-green-50 px-2 py-1 rounded font-medium">
-                              <span>🌸</span>
-                              <span>{bed.plants.length} bloemen</span>
-                            </span>
-                          </div>
-                        </div>
+
                         
                         {isSelected && (
                           <>
@@ -1431,6 +1411,23 @@ export default function GardenDetailPage() {
                           </>
                         )}
                         <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
+                        
+                        {/* Hover tooltip with plantvak info */}
+                        <div className="absolute -bottom-16 left-0 right-0 bg-white/95 rounded-lg p-2 shadow-lg border border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 backdrop-blur-sm">
+                          <div className="text-sm font-bold text-gray-900 truncate flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                            {bed.name}
+                          </div>
+                          <div className="flex items-center justify-between text-xs mt-1">
+                            <span className="text-gray-700 font-medium">
+                              📏 {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
+                            </span>
+                            <span className="text-gray-600 flex items-center gap-1">
+                              <span>🌸</span>
+                              <span>{bed.plants.length}</span>
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )
