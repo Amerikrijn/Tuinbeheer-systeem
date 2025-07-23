@@ -143,33 +143,29 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             zIndex: flower.isMainFlower ? 10 : 8,
           }}
         >
-          {/* Flower as rounded square */}
+          {/* Small flower emoji without background */}
           <div
-            className="w-full h-full flex items-center justify-center border border-white/30 rounded-lg shadow-lg"
+            className="w-full h-full flex items-center justify-center"
             style={{
-              backgroundColor: flower.color,
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15), inset 0 2px 0 rgba(255,255,255,0.3)',
+              fontSize: Math.max(16, flower.size * 0.9),
+              filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
             }}
           >
-            {/* Content - emoji or first letter of name */}
-            <div
-              className="text-white font-bold text-center leading-none select-none"
-              style={{
-                fontSize: Math.max(10, flower.size * 0.35),
-                textShadow: '0 1px 2px rgba(0,0,0,0.6)',
-              }}
-            >
-              {flower.emoji || flower.name.charAt(0).toUpperCase()}
-            </div>
+            {/* Use flower emoji or create a simple flower symbol */}
+            <span className="select-none">
+              {flower.emoji && (flower.emoji.includes('🌸') || flower.emoji.includes('🌺') || flower.emoji.includes('🌻') || flower.emoji.includes('🌷') || flower.emoji.includes('🌹') || flower.emoji.includes('💐') || flower.emoji.includes('🌼')) 
+                ? flower.emoji 
+                : '🌸'}
+            </span>
           </div>
 
           {/* Glow effect for main flowers */}
           {flower.isMainFlower && (
             <div
-              className="absolute inset-0 rounded-xl opacity-25 blur-md -z-10"
+              className="absolute inset-0 rounded-full opacity-20 blur-sm -z-10"
               style={{
                 backgroundColor: flower.color,
-                transform: 'scale(1.3)',
+                transform: 'scale(1.5)',
               }}
             />
           )}
@@ -178,7 +174,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           {(flower.isMainFlower || Math.random() > 0.8) && (
             <>
               <div
-                className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
+                className="absolute w-1 h-1 bg-yellow-300 rounded-full animate-pulse opacity-60"
                 style={{
                   top: flower.size * 0.2,
                   left: flower.size * 0.3,
@@ -186,7 +182,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
                 }}
               />
               <div
-                className="absolute w-1 h-1 bg-yellow-200 rounded-full animate-pulse"
+                className="absolute w-1 h-1 bg-white rounded-full animate-pulse opacity-60"
                 style={{
                   top: flower.size * 0.7,
                   right: flower.size * 0.3,
@@ -198,23 +194,23 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         </div>
       ))}
 
-      {/* Playful floating particles - more when container is larger */}
+      {/* Subtle natural particles - like pollen or small leaves */}
       {containerWidth > 100 && containerHeight > 100 && (
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(Math.min(8, Math.floor(calculateFlowerCount / 2)))].map((_, i) => (
+          {[...Array(Math.min(5, Math.floor(calculateFlowerCount / 3)))].map((_, i) => (
             <div
               key={`particle-${i}`}
-              className="absolute rounded-full opacity-40 animate-bounce"
+              className="absolute opacity-30 animate-pulse"
               style={{
-                width: 3 + Math.random() * 4,
-                height: 3 + Math.random() * 4,
-                backgroundColor: ['#FFD700', '#FF69B4', '#98FB98', '#87CEEB', '#DDA0DD'][Math.floor(Math.random() * 5)],
-                left: Math.random() * (containerWidth - 8),
-                top: Math.random() * (containerHeight - 8),
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
+                fontSize: '8px',
+                left: Math.random() * (containerWidth - 16),
+                top: Math.random() * (containerHeight - 16),
+                animationDelay: `${Math.random() * 4}s`,
+                animationDuration: `${3 + Math.random() * 2}s`,
               }}
-            />
+            >
+              {['🌿', '🍃', '✨', '🌱'][Math.floor(Math.random() * 4)]}
+            </div>
           ))}
         </div>
       )}
@@ -230,20 +226,20 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             }}
           />
           
-          {/* Floating hearts for extra cuteness */}
-          {[...Array(3)].map((_, i) => (
+          {/* Floating butterflies and bees for natural garden feel */}
+          {[...Array(2)].map((_, i) => (
             <div
-              key={`heart-${i}`}
-              className="absolute text-pink-300 opacity-30 animate-pulse select-none"
+              key={`nature-${i}`}
+              className="absolute opacity-40 animate-bounce select-none"
               style={{
-                fontSize: 12 + Math.random() * 8,
+                fontSize: 10 + Math.random() * 6,
                 left: Math.random() * (containerWidth - 20),
                 top: Math.random() * (containerHeight - 20),
-                animationDelay: `${Math.random() * 4}s`,
-                animationDuration: `${3 + Math.random() * 2}s`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${4 + Math.random() * 3}s`,
               }}
             >
-              ♥
+              {['🦋', '🐝'][Math.floor(Math.random() * 2)]}
             </div>
           ))}
         </div>
