@@ -13,7 +13,6 @@ import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle } from "luc
 import { getGardens, deleteGarden } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { debugEnvironmentVariables } from "@/lib/debug-vercel-env"
 import { useToast } from "@/hooks/use-toast"
 
 function HomePageContent() {
@@ -27,10 +26,6 @@ function HomePageContent() {
     async function loadGardens() {
       try {
         console.log('[HomePage] Loading gardens...')
-        
-        // Run debug diagnostics
-        const debugInfo = debugEnvironmentVariables()
-        console.log('[HomePage] Debug info:', debugInfo)
         
         setLoading(true)
         setError(null)

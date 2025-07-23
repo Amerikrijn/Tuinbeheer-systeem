@@ -20,7 +20,8 @@ const PATTERNS = {
   PLANT_ID: /^[A-Z0-9\-]+$/i,
   COLOR_HEX: /^#[0-9A-Fa-f]{6}$/,
   DECIMAL: /^\d+(\.\d+)?$/,
-  DATE: /^\d{4}-\d{2}-\d{2}$/
+  DATE: /^\d{4}-\d{2}-\d{2}$/,
+  SIZE_FORMAT: /^\d+(\.\d+)?x\d+(\.\d+)?m$/i
 }
 
 // Validation error messages
@@ -32,6 +33,7 @@ const MESSAGES = {
   INVALID_NUMBER: 'Moet een geldig nummer zijn',
   INVALID_COLOR: 'Ongeldige kleurcode (bijv. #FF0000)',
   INVALID_PLANT_ID: 'Plantvak ID mag alleen letters, cijfers en streepjes bevatten',
+  INVALID_SIZE_FORMAT: 'Ongeldige afmeting (bijv. 2x3m)',
   MIN_LENGTH: (min: number) => `Minimaal ${min} karakters vereist`,
   MAX_LENGTH: (max: number) => `Maximaal ${max} karakters toegestaan`,
   MIN_VALUE: (min: number) => `Minimale waarde is ${min}`,
@@ -41,17 +43,27 @@ const MESSAGES = {
 
 // Validation helper functions
 function isRequired(value: any): boolean {
-  return value !== null && value !== undefined && value !== ''
+  if (value === null || value === undefined) return false
+  if (typeof value === 'string' && value.trim() === '') return false
+  return true
 }
 
-function isValidEmail(email: string): boolean {
+export function validateRequired(value: any): boolean {
+  return isRequired(value)
+}
+
+export function validateEmail(email: string): boolean {
   return PATTERNS.EMAIL.test(email)
 }
 
-function isValidDate(date: string): boolean {
+export function validatePhoneNumber(phone: string): boolean {
+  return PATTERNS.PHONE.test(phone)
+}
+
+export function validateDate(date: string): boolean {
   if (!PATTERNS.DATE.test(date)) return false
   const parsedDate = new Date(date)
-  return !isNaN(parsedDate.getTime())
+  return !isNaN(parsedDate.getTime()) && parsedDate.toISOString().substr(0, 10) === date
 }
 
 function isValidNumber(value: string | number): boolean {
@@ -69,6 +81,42 @@ function isValidLength(value: string, min?: number, max?: number): boolean {
   if (min !== undefined && value.length < min) return false
   if (max !== undefined && value.length > max) return false
   return true
+}
+
+// Sanitization function
+export function sanitizeInput(
+  input: any, 
+  options: {
+    allowedTags?: string[]
+    maxLength?: number
+    trim?: boolean
+  } = {}
+): string {
+  if (input === null || input === undefined) return ''
+  
+  let sanitized = String(input)
+  
+  // Remove potentially dangerous HTML/script tags
+  if (!options.allowedTags || options.allowedTags.length === 0) {
+    sanitized = sanitized.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    sanitized = sanitized.replace(/<[^>]*>/g, '')
+  } else {
+    // Keep only allowed tags (simplified implementation)
+    const allowedPattern = new RegExp(`<(?!/?(?:${options.allowedTags.join('|')})\s*/?)[^>]+>`, 'gi')
+    sanitized = sanitized.replace(allowedPattern, '')
+  }
+  
+  // Trim whitespace
+  if (options.trim !== false) {
+    sanitized = sanitized.trim()
+  }
+  
+  // Limit length
+  if (options.maxLength && sanitized.length > options.maxLength) {
+    sanitized = sanitized.substring(0, options.maxLength)
+  }
+  
+  return sanitized
 }
 
 // Generic validator class
@@ -101,66 +149,50 @@ class Validator {
       return
     }
 
-    if (value && !isValidLength(value, options.minLength, options.maxLength)) {
-      if (options.minLength) {
+    if (!isRequired(value)) return // Skip validation if not required and empty
+
+    if (!isValidLength(value, options.minLength, options.maxLength)) {
+      if (options.minLength && value.length < options.minLength) {
         this.addError(field, MESSAGES.MIN_LENGTH(options.minLength))
       }
-      if (options.maxLength) {
+      if (options.maxLength && value.length > options.maxLength) {
         this.addError(field, MESSAGES.MAX_LENGTH(options.maxLength))
       }
     }
 
-    if (value && options.pattern && !options.pattern.test(value)) {
-      this.addError(field, options.patternMessage || 'Ongeldige invoer')
+    if (options.pattern && !options.pattern.test(value)) {
+      this.addError(field, options.patternMessage || 'Ongeldige waarde')
     }
   }
 
   validateNumber(
     field: string,
-    value: string | number,
+    value: number | undefined,
     options: {
       required?: boolean
       min?: number
       max?: number
-      integer?: boolean
     } = {}
   ): void {
-    if (options.required && !isRequired(value)) {
+    if (options.required && (value === undefined || value === null)) {
       this.addError(field, MESSAGES.REQUIRED)
       return
     }
 
-    if (value !== '' && value !== null && value !== undefined) {
-      if (!isValidNumber(value)) {
-        this.addError(field, MESSAGES.INVALID_NUMBER)
-        return
-      }
+    if (value === undefined || value === null) return
 
-      const numValue = Number(value)
-      if (options.integer && !Number.isInteger(numValue)) {
-        this.addError(field, 'Moet een geheel getal zijn')
-        return
-      }
-
-      if (!isInRange(numValue, options.min, options.max)) {
-        if (options.min !== undefined && numValue < options.min) {
-          this.addError(field, MESSAGES.MIN_VALUE(options.min))
-        }
-        if (options.max !== undefined && numValue > options.max) {
-          this.addError(field, MESSAGES.MAX_VALUE(options.max))
-        }
-      }
-    }
-  }
-
-  validateDate(field: string, value: string, required: boolean = false): void {
-    if (required && !isRequired(value)) {
-      this.addError(field, MESSAGES.REQUIRED)
+    if (!isValidNumber(value)) {
+      this.addError(field, MESSAGES.INVALID_NUMBER)
       return
     }
 
-    if (value && !isValidDate(value)) {
-      this.addError(field, MESSAGES.INVALID_DATE)
+    if (!isInRange(value, options.min, options.max)) {
+      if (options.min !== undefined && value < options.min) {
+        this.addError(field, MESSAGES.MIN_VALUE(options.min))
+      }
+      if (options.max !== undefined && value > options.max) {
+        this.addError(field, MESSAGES.MAX_VALUE(options.max))
+      }
     }
   }
 
@@ -170,15 +202,30 @@ class Validator {
       return
     }
 
-    if (value && !isValidEmail(value)) {
+    if (!isRequired(value)) return
+
+    if (!validateEmail(value)) {
       this.addError(field, MESSAGES.INVALID_EMAIL)
     }
   }
 
-  validateOption<T>(
-    field: string, 
-    value: T, 
-    options: T[], 
+  validateDate(field: string, value: string, required: boolean = false): void {
+    if (required && !isRequired(value)) {
+      this.addError(field, MESSAGES.REQUIRED)
+      return
+    }
+
+    if (!isRequired(value)) return
+
+    if (!validateDate(value)) {
+      this.addError(field, MESSAGES.INVALID_DATE)
+    }
+  }
+
+  validateOption<T extends string>(
+    field: string,
+    value: T,
+    options: T[],
     required: boolean = false
   ): void {
     if (required && !isRequired(value)) {
@@ -186,19 +233,10 @@ class Validator {
       return
     }
 
-    if (value && !options.includes(value)) {
-      this.addError(field, MESSAGES.INVALID_OPTION(options.map(String)))
-    }
-  }
+    if (!isRequired(value)) return
 
-  validateColor(field: string, value: string, required: boolean = false): void {
-    if (required && !isRequired(value)) {
-      this.addError(field, MESSAGES.REQUIRED)
-      return
-    }
-
-    if (value && !PATTERNS.COLOR_HEX.test(value)) {
-      this.addError(field, MESSAGES.INVALID_COLOR)
+    if (!options.includes(value)) {
+      this.addError(field, MESSAGES.INVALID_OPTION(options))
     }
   }
 
@@ -210,159 +248,71 @@ class Validator {
   }
 }
 
-// Tuin validation
-function validateTuin(data: TuinFormData): ValidationResult {
+// Specific validation functions
+export function validateTuinFormData(data: Partial<TuinFormData>): ValidationResult {
   const validator = new Validator()
 
-  // Required fields
-  validator.validateString('name', data.name, { 
-    required: true, 
-    minLength: 2, 
-    maxLength: 100 
-  })
-  
-  validator.validateString('location', data.location, { 
-    required: true, 
-    minLength: 2, 
-    maxLength: 100 
+  validator.validateString('name', data.name || '', {
+    required: true,
+    minLength: 2,
+    maxLength: 100
   })
 
-  // Optional fields
-  if (data.description) {
-    validator.validateString('description', data.description, { 
-      maxLength: 500 
-    })
-  }
+  validator.validateString('location', data.location || '', {
+    required: true,
+    maxLength: 200
+  })
 
-  if (data.total_area) {
-    validator.validateString('total_area', data.total_area, { 
-      maxLength: 50 
-    })
-  }
-
-  if (data.length) {
-    validator.validateNumber('length', data.length, { 
-      min: 0, 
-      max: 10000 
-    })
-  }
-
-  if (data.width) {
-    validator.validateNumber('width', data.width, { 
-      min: 0, 
-      max: 10000 
-    })
-  }
-
-  if (data.garden_type) {
-    validator.validateOption('garden_type', data.garden_type, [
-      'vegetable', 'flower', 'herb', 'mixed', 'ornamental'
-    ])
-  }
+  validator.validateString('description', data.description || '', {
+    maxLength: 1000
+  })
 
   if (data.established_date) {
     validator.validateDate('established_date', data.established_date)
   }
 
-  if (data.notes) {
-    validator.validateString('notes', data.notes, { 
-      maxLength: 1000 
-    })
+  return validator.getResult()
+}
+
+export function validatePlantvakFormData(data: Partial<PlantvakFormData>): ValidationResult {
+  const validator = new Validator()
+
+  validator.validateString('id', data.id || '', { required: true })
+  validator.validateString('name', data.name || '', { required: true, maxLength: 100 })
+  validator.validateString('location', data.location || '', { required: true, maxLength: 200 })
+  validator.validateString('size', data.size || '', { required: true })
+  validator.validateString('soilType', data.soilType || '', { required: true })
+  
+  validator.validateOption('sunExposure', data.sunExposure as any, ['full-sun', 'partial-sun', 'shade'], true)
+
+  // Validate size format
+  if (data.size && !PATTERNS.SIZE_FORMAT.test(data.size)) {
+    validator.addError('size', MESSAGES.INVALID_SIZE_FORMAT)
   }
 
   return validator.getResult()
 }
 
-// Plantvak validation
-function validatePlantvak(data: PlantvakFormData): ValidationResult {
+export function validateBloemFormData(data: Partial<BloemFormData>): ValidationResult {
   const validator = new Validator()
 
-  // Required fields
-  validator.validateString('id', data.id, { 
-    required: true, 
-    minLength: 1, 
-    maxLength: 20,
-    pattern: PATTERNS.PLANT_ID,
-    patternMessage: MESSAGES.INVALID_PLANT_ID
+  validator.validateString('name', data.name || '', {
+    required: true,
+    maxLength: 100
   })
 
-  validator.validateString('name', data.name, { 
-    required: true, 
-    minLength: 2, 
-    maxLength: 100 
-  })
-
-  validator.validateString('location', data.location, { 
-    required: true, 
-    minLength: 2, 
-    maxLength: 100 
-  })
-
-  validator.validateString('size', data.size, { 
-    required: true, 
-    minLength: 1, 
-    maxLength: 50 
-  })
-
-  validator.validateString('soilType', data.soilType, { 
-    required: true, 
-    minLength: 2, 
-    maxLength: 50 
-  })
-
-  validator.validateOption('sunExposure', data.sunExposure, [
-    'full-sun', 'partial-sun', 'shade'
-  ], true)
-
-  validator.validateString('description', data.description, { 
-    required: true, 
-    minLength: 10, 
-    maxLength: 500 
-  })
-
-  return validator.getResult()
-}
-
-// Bloem validation
-function validateBloem(data: BloemFormData): ValidationResult {
-  const validator = new Validator()
-
-  // Required fields
-  validator.validateString('name', data.name, { 
-    required: true, 
-    minLength: 2, 
-    maxLength: 100 
-  })
-
-  validator.validateOption('status', data.status, [
-    'healthy', 'needs_attention', 'diseased', 'dead', 'harvested'
-  ], true)
-
-  // Optional fields
   if (data.scientific_name) {
-    validator.validateString('scientific_name', data.scientific_name, { 
-      maxLength: 100 
-    })
+    validator.validateString('scientific_name', data.scientific_name, { maxLength: 200 })
   }
 
-  if (data.variety) {
-    validator.validateString('variety', data.variety, { 
-      maxLength: 100 
-    })
+  if (data.color && !PATTERNS.COLOR_HEX.test(data.color)) {
+    validator.addError('color', MESSAGES.INVALID_COLOR)
   }
 
-  if (data.color) {
-    validator.validateString('color', data.color, { 
-      maxLength: 50 
-    })
-  }
-
-  if (data.height) {
-    validator.validateNumber('height', data.height, { 
-      min: 0, 
-      max: 1000 
-    })
-  }
+  validator.validateNumber('height', data.height, {
+    min: 0,
+    max: 1000
+  })
 
   if (data.planting_date) {
     validator.validateDate('planting_date', data.planting_date)
@@ -372,84 +322,12 @@ function validateBloem(data: BloemFormData): ValidationResult {
     validator.validateDate('expected_harvest_date', data.expected_harvest_date)
   }
 
-  if (data.notes) {
-    validator.validateString('notes', data.notes, { 
-      maxLength: 1000 
-    })
-  }
-
-  if (data.care_instructions) {
-    validator.validateString('care_instructions', data.care_instructions, { 
-      maxLength: 1000 
-    })
-  }
-
-  if (data.watering_frequency) {
-    validator.validateNumber('watering_frequency', data.watering_frequency, { 
-      min: 0, 
-      max: 365,
-      integer: true
-    })
-  }
-
-  if (data.fertilizer_schedule) {
-    validator.validateString('fertilizer_schedule', data.fertilizer_schedule, { 
-      maxLength: 200 
-    })
-  }
-
-  // Cross-field validation
-  if (data.planting_date && data.expected_harvest_date) {
-    const plantingDate = new Date(data.planting_date)
-    const harvestDate = new Date(data.expected_harvest_date)
-    
-    if (harvestDate <= plantingDate) {
-      validator.addError('expected_harvest_date', 'Oogstdatum moet na de plantdatum liggen')
-    }
-  }
+  validator.validateOption('status', data.status as any, [
+    'healthy', 'needs_attention', 'diseased', 'dead', 'harvested'
+  ], true)
 
   return validator.getResult()
 }
 
-// Generic form validation
-function validateForm<T>(
-  data: T,
-  validationRules: Record<keyof T, (value: any) => string | null>
-): ValidationResult {
-  const errors: ValidationError[] = []
-
-  for (const [field, rule] of Object.entries(validationRules)) {
-    const value = data[field as keyof T]
-    const error = (rule as (value: any) => string | null)(value)
-    
-    if (error) {
-      errors.push({ field, message: error })
-    }
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  }
-}
-
-// Utility functions for common validations
-export const ValidationUtils = {
-  isRequired,
-  isValidEmail,
-  isValidDate,
-  isValidNumber,
-  isInRange,
-  isValidLength,
-  patterns: PATTERNS,
-  messages: MESSAGES
-}
-
-// Export validation functions
-export {
-  validateTuin,
-  validatePlantvak,
-  validateBloem,
-  validateForm,
-  Validator
-}
+// Export types for external use
+export type { ValidationResult, ValidationError }

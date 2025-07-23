@@ -15,8 +15,8 @@ export async function getGardens(): Promise<Garden[]> {
     return []
   }
 
-  console.log("Gardens fetched successfully:", result.data?.length || 0)
-  return result.data || []
+  console.log("Gardens fetched successfully:", result.data?.data?.length || 0)
+  return result.data?.data || []
 }
 
 export async function getGarden(id?: string): Promise<Garden | null> {
@@ -24,12 +24,12 @@ export async function getGarden(id?: string): Promise<Garden | null> {
     // Get the first active garden if no ID provided
     const result = await DatabaseService.Tuin.getAll()
     
-    if (!result.success || !result.data || result.data.length === 0) {
+    if (!result.success || !result.data || result.data.data.length === 0) {
       console.error("Error fetching default garden:", result.error)
       return null
     }
 
-    return result.data[0]
+    return result.data.data[0]
   }
 
   const result = await DatabaseService.Tuin.getById(id)
