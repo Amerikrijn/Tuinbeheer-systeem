@@ -114,8 +114,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           if (sizeMatch) {
             const lengthM = parseFloat(sizeMatch[1])
             const widthM = parseFloat(sizeMatch[2])
-            // Use same calculation as in plantvak-view
-            originalCanvasWidth = lengthM * 80 + 200 // 80px per meter + padding
+            // Use same calculation as in plantvak-view: 80px per meter + 200px padding
+            originalCanvasWidth = lengthM * 80 + 200
             originalCanvasHeight = widthM * 80 + 200
           }
         }
