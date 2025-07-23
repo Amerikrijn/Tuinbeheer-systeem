@@ -214,35 +214,28 @@ export default function PlantBedsPage() {
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <Leaf className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">{Math.max(1, bed.plants.length)}</span>
+                    <span className="font-medium">{bed.plants.length}</span>
                     <span className="text-gray-600">bloemen</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500" />
-                    <span className="text-xs text-gray-600">Bloemen</span>
+                    <div className={`w-2 h-2 rounded-full ${bed.plants.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span className="text-xs text-gray-600">{bed.plants.length > 0 ? 'Bloemen' : 'Leeg'}</span>
                   </div>
                 </div>
 
-                {/* Show flower emojis preview */}
-                <div className="flex items-center gap-1 flex-wrap">
-                  {bed.plants.length > 0 ? (
-                    bed.plants.slice(0, 6).map((plant, index) => (
+                {/* Show flower emojis preview only if there are actual plants */}
+                {bed.plants.length > 0 && (
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {bed.plants.slice(0, 6).map((plant, index) => (
                       <span key={index} className="text-lg" title={plant.name}>
                         {plant.emoji || '🌸'}
                       </span>
-                    ))
-                  ) : (
-                    // Show default flower emojis even when empty
-                    <>
-                      <span className="text-lg" title="Standaard bloemen">🌸</span>
-                      <span className="text-lg" title="Standaard bloemen">🌺</span>
-                      <span className="text-lg" title="Standaard bloemen">🌻</span>
-                    </>
-                  )}
-                  {bed.plants.length > 6 && (
-                    <span className="text-xs text-gray-500 ml-1">+{bed.plants.length - 6}</span>
-                  )}
-                </div>
+                    ))}
+                    {bed.plants.length > 6 && (
+                      <span className="text-xs text-gray-500 ml-1">+{bed.plants.length - 6}</span>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex gap-2 pt-2">
                   <Link href={`/gardens/${garden.id}/plant-beds/${bed.id}`} className="flex-1">
