@@ -403,17 +403,11 @@ export default function GardenDetailPage() {
       if (selectedBed === bedId && isDragMode) {
         setIsDragMode(false)
         setSelectedBed(null)
-        toast({
-          title: "Verplaatsen gestopt",
-          description: "Plantvak staat nu vast",
-        })
+        // Removed feedback toast - no more notifications when moving
       } else {
         setSelectedBed(bedId)
         setIsDragMode(true)
-        toast({
-          title: "Verplaatsen actief",
-          description: "Sleep het plantvak naar een nieuwe positie. Klik opnieuw om te stoppen.",
-        })
+        // Removed feedback toast - no more notifications when moving  
       }
     } else {
       // For mouse, just select the bed - dragging happens on mousedown
@@ -453,10 +447,7 @@ export default function GardenDetailPage() {
     setSelectedBed(bedId)
     setHasChanges(true)
 
-    toast({
-      title: "🖱️ Verplaatsen",
-      description: `${bed.name}`,
-    })
+    // Removed feedback toast - no more notifications when moving
   }, [plantBeds, scale, toast, isDragMode, selectedBed])
 
   const handlePlantBedTouchEnd = useCallback((e: React.TouchEvent, bedId: string) => {
@@ -633,25 +624,26 @@ export default function GardenDetailPage() {
     if ((draggedBed || rotatingBed) && hasChanges) {
       const bedToUpdate = plantBeds.find(bed => bed.id === (draggedBed || rotatingBed))
       if (bedToUpdate) {
-        // Auto-save the position immediately
+        // Auto-save the position and rotation immediately
         try {
           await updatePlantBed(bedToUpdate.id, {
             position_x: bedToUpdate.position_x,
             position_y: bedToUpdate.position_y,
             visual_width: bedToUpdate.visual_width,
-            visual_height: bedToUpdate.visual_height
+            visual_height: bedToUpdate.visual_height,
+            rotation: bedToUpdate.rotation // Also save rotation
           })
           
           setHasChanges(false)
           
-          // Show save confirmation only once per session
-          if (!sessionStorage.getItem('gardenSaveShown')) {
-            toast({
-              title: "✅ Plantvak verplaatst",
-              description: "Positie automatisch opgeslagen!",
-            })
-            sessionStorage.setItem('gardenSaveShown', 'true')
-          }
+          // Show save confirmation only once per session (removed feedback as requested)
+          // if (!sessionStorage.getItem('gardenSaveShown')) {
+          //   toast({
+          //     title: "✅ Plantvak verplaatst",
+          //     description: "Positie automatisch opgeslagen!",
+          //   })
+          //   sessionStorage.setItem('gardenSaveShown', 'true')
+          // }
         } catch (error) {
           console.error("Error auto-saving plant bed position:", error)
           toast({
@@ -700,8 +692,8 @@ export default function GardenDetailPage() {
     // Calculate current angle
     const currentAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
     const deltaAngle = currentAngle - rotationStartAngle
-    // Improved rotation sensitivity (smoother)
-    const adjustedDelta = deltaAngle / 2
+    // Much slower rotation for better control (divide by 4 instead of 2)
+    const adjustedDelta = deltaAngle / 4
     const newRotation = Math.round(((bed.rotation || 0) + adjustedDelta) % 360)
 
     // Update plant bed rotation
@@ -739,6 +731,7 @@ export default function GardenDetailPage() {
       setSelectedBed(null)
       setIsDragMode(false)
       setIsRotateMode(false)
+      // No feedback needed when deselecting
     }
   }, [])
 

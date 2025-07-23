@@ -181,6 +181,21 @@ export default function PlantBedViewPage() {
   // Calculate canvas size based on plant bed size using consistent scaling
   const getCanvasSize = () => {
     if (!plantBed?.size) return { width: 600, height: 450 }
+    
+    const dimensions = parsePlantBedDimensions(plantBed.size)
+    if (dimensions) {
+      // Ensure proper aspect ratio and enough space for movement
+      const padding = PLANTVAK_CANVAS_PADDING
+      const minWidth = 500
+      const minHeight = 400
+      
+      // Calculate canvas size maintaining proper aspect ratio
+      const canvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
+      const canvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
+      
+      return { width: canvasWidth, height: canvasHeight }
+    }
+    
     return calculatePlantBedCanvasSize(plantBed.size)
   }
 
@@ -766,17 +781,11 @@ export default function PlantBedViewPage() {
       if (selectedFlower?.id === flowerId && isDragMode) {
         setIsDragMode(false)
         setSelectedFlower(null)
-        toast({
-          title: "Verplaatsen gestopt",
-          description: "Bloem staat nu vast",
-        })
+        // Removed feedback toast - no more notifications when moving
       } else {
         setSelectedFlower(flower)
         setIsDragMode(true)
-        toast({
-          title: "Verplaatsen actief",
-          description: "Sleep de bloem naar een nieuwe positie. Klik opnieuw om te stoppen.",
-        })
+        // Removed feedback toast - no more notifications when moving
       }
     } else {
       // For mouse, just select the flower - dragging happens on mousedown
@@ -813,10 +822,7 @@ export default function PlantBedViewPage() {
     setIsDragMode(false)
     setIsResizeMode(false)
     
-    toast({
-      title: "🔧 Grootte aanpassen",
-      description: "Gebruik de + en - knoppen om de bloem groter of kleiner te maken.",
-    })
+            // Removed feedback toast - users can see the interface
   }, [scale, toast])
 
   // Handle flower resize via interface - supports flower fields
@@ -904,10 +910,7 @@ export default function PlantBedViewPage() {
     setSelectedFlower(flower)
     setHasChanges(true)
 
-    toast({
-      title: "🖱️ Verplaatsen",
-      description: `${flower.name}`,
-    })
+    // Removed feedback toast - no more notifications when moving
   }, [flowerPositions, scale, isDragMode, selectedFlower, toast])
 
   // Handle touch start for mobile - prepare for drag after click
@@ -993,15 +996,30 @@ export default function PlantBedViewPage() {
       const draggedFlowerData = prev.find(f => f.id === draggedFlower)
       if (!draggedFlowerData) return prev
 
-      // Allow navigation over the entire plantvak area (full canvas)
-      // Ensure flowers stay within valid canvas boundaries
+      // Get plantvak dimensions for proper boundaries
+      const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
+      let plantvakStartX = 0
+      let plantvakStartY = 0
+      let plantvakWidth = canvasWidth
+      let plantvakHeight = canvasHeight
+      
+      if (dimensions) {
+        // Center the plantvak within the canvas
+        plantvakWidth = dimensions.lengthPixels
+        plantvakHeight = dimensions.widthPixels
+        plantvakStartX = (canvasWidth - plantvakWidth) / 2
+        plantvakStartY = (canvasHeight - plantvakHeight) / 2
+      }
+
+      // Allow movement within the entire plantvak area with small margin
+      const margin = 5
       const constrainedX = Math.max(
-        0, 
-        Math.min(newX, canvasWidth - draggedFlowerData.visual_width)
+        plantvakStartX + margin, 
+        Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
       )
       const constrainedY = Math.max(
-        0, 
-        Math.min(newY, canvasHeight - draggedFlowerData.visual_height)
+        plantvakStartY + margin, 
+        Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
       )
 
       // Only update the specific dragged flower
@@ -1071,10 +1089,7 @@ export default function PlantBedViewPage() {
           
           setHasChanges(false)
           
-          toast({
-            title: "✅ Bloem verplaatst",
-            description: "Positie automatisch opgeslagen!",
-          })
+          // Removed feedback toast - no more notifications when moving
         } catch (error) {
           console.error("Error auto-saving flower position:", error)
           toast({
@@ -1147,12 +1162,9 @@ export default function PlantBedViewPage() {
       setIsResizing(null)
       resizeModeRef.current = null
       
-      toast({
-        title: "✅ Selectie opgeheven",
-        description: "Klik op een bloem om te selecteren",
-      })
+      // Removed feedback toast - no more notifications when deselecting
     }
-  }, [toast])
+  }, [])
 
   // Add global event listeners for drag - support both mouse and touch
   useEffect(() => {
@@ -2243,13 +2255,46 @@ export default function PlantBedViewPage() {
                 }}
               />
 
-              {/* TEMPORARILY DISABLED FlowerVisualization to debug positioning */}
-              {/* <FlowerVisualization 
+              {/* Plantvak boundary visualization */}
+              {(() => {
+                const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
+                if (!dimensions) return null
+                
+                const plantvakWidth = dimensions.lengthPixels
+                const plantvakHeight = dimensions.widthPixels
+                const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+                const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+                
+                return (
+                  <div
+                    className="absolute border-2 border-dashed border-green-400 bg-green-50/20 rounded-lg pointer-events-none"
+                    style={{
+                      left: plantvakStartX,
+                      top: plantvakStartY,
+                      width: plantvakWidth,
+                      height: plantvakHeight,
+                    }}
+                  >
+                    {/* Plantvak name and info - always within the plantvak area */}
+                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border">
+                      <div className="text-sm font-bold text-green-800">
+                        {plantBed.name}
+                      </div>
+                      <div className="text-xs text-green-600">
+                        {plantBed.size} • {flowerPositions.length} bloemen
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* FlowerVisualization - shows flowers within plantvak boundaries */}
+              <FlowerVisualization 
                 plantBed={plantBed}
                 plants={flowerPositions}
                 containerWidth={canvasWidth}
                 containerHeight={canvasHeight}
-              /> */}
+              />
 
               {/* Interactive overlay for selected flowers */}
               {flowerPositions.map((flower) => {
