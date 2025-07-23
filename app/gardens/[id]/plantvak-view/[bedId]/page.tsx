@@ -1106,25 +1106,45 @@ export default function PlantBedViewPage() {
     setHasChanges(true)
   }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
 
-  // Handle drag end - just stop dragging, don't auto-save (like garden behavior)
-  const handlePointerUp = useCallback(() => {
+  // Handle drag end - auto-save immediately (like garden behavior)
+  const handlePointerUp = useCallback(async () => {
     if (draggedFlower) {
-      // Mark that we have changes but don't auto-save yet
-      setHasChanges(true)
-      
-      toast({
-        title: "✅ Bloem verplaatst",
-        description: "Klik 'Opslaan' om de nieuwe positie vast te leggen.",
-      })
+      // Auto-save the flower position immediately
+      try {
+        const flower = flowerPositions.find(f => f.id === draggedFlower)
+        if (flower) {
+          await updatePlantPosition(draggedFlower, {
+            position_x: flower.position_x,
+            position_y: flower.position_y,
+            visual_width: flower.visual_width,
+            visual_height: flower.visual_height,
+            notes: flower.notes
+          })
+          
+          setHasChanges(false)
+          
+          toast({
+            title: "✅ Bloem verplaatst",
+            description: "Positie automatisch opgeslagen!",
+          })
+        }
+      } catch (error) {
+        console.error("Error auto-saving flower position:", error)
+        toast({
+          title: "❌ Fout bij opslaan",
+          description: `Positie kon niet worden opgeslagen: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
+          variant: "destructive",
+        })
+      }
     }
     
-    // Reset all drag states - stop moving but keep selection
+    // Reset all drag states - stop moving and deselect
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
     setIsDragMode(false)
     setIsResizeMode(false)
-    // Keep selectedFlower so user can see what was moved
-  }, [draggedFlower, toast])
+    setSelectedFlower(null)
+  }, [draggedFlower, flowerPositions, toast])
 
   // Legacy mouse up handler
   const onMouseUp = useCallback(() => {
@@ -1433,16 +1453,6 @@ export default function PlantBedViewPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {hasChanges && (
-            <Button
-              onClick={handleSavePositions}
-              className="bg-green-600 hover:bg-green-700"
-              size="sm"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Opslaan
-            </Button>
-          )}
           <Dialog open={isAddingFlower} onOpenChange={(open) => {
             setIsAddingFlower(open)
             if (!open) {
