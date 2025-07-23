@@ -9,9 +9,27 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Leaf, Plus, AlertCircle, Calendar } from "lucide-react"
+import { ArrowLeft, Leaf, Plus, AlertCircle, Calendar, ChevronDown } from "lucide-react"
 import { getGarden, getPlantBed, createPlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
+
+// Standard flower types with emojis
+const STANDARD_FLOWERS = [
+  { name: 'Roos', emoji: '🌹', color: '#FF69B4' },
+  { name: 'Tulp', emoji: '🌷', color: '#FF4500' },
+  { name: 'Zonnebloem', emoji: '🌻', color: '#FFD700' },
+  { name: 'Lavendel', emoji: '🪻', color: '#9370DB' },
+  { name: 'Dahlia', emoji: '🌺', color: '#FF1493' },
+  { name: 'Chrysant', emoji: '🌼', color: '#FFA500' },
+  { name: 'Narcis', emoji: '🌻', color: '#FFFF00' },
+  { name: 'Iris', emoji: '🌸', color: '#4B0082' },
+  { name: 'Petunia', emoji: '🌺', color: '#FF6B6B' },
+  { name: 'Begonia', emoji: '🌸', color: '#FF8C69' },
+  { name: 'Lelie', emoji: '🌺', color: '#FF69B4' },
+  { name: 'Anjer', emoji: '🌸', color: '#FF1493' },
+]
+
+const DEFAULT_FLOWER_EMOJI = '🌼'
 
 interface NewPlant {
   name: string
@@ -26,6 +44,8 @@ interface NewPlant {
   careInstructions: string
   wateringFrequency: string
   fertilizerSchedule: string
+  emoji: string
+  isStandardFlower: boolean
 }
 
 export default function NewPlantPage() {
@@ -66,6 +86,8 @@ export default function NewPlantPage() {
     careInstructions: "",
     wateringFrequency: "",
     fertilizerSchedule: "",
+    emoji: DEFAULT_FLOWER_EMOJI,
+    isStandardFlower: false,
   })
 
   React.useEffect(() => {
@@ -126,6 +148,7 @@ export default function NewPlantPage() {
         care_instructions: newPlant.careInstructions || undefined,
         watering_frequency: newPlant.wateringFrequency ? Number.parseInt(newPlant.wateringFrequency) : undefined,
         fertilizer_schedule: newPlant.fertilizerSchedule || undefined,
+        emoji: newPlant.emoji,
       })
 
       toast({
@@ -159,6 +182,8 @@ export default function NewPlantPage() {
       careInstructions: "",
       wateringFrequency: "",
       fertilizerSchedule: "",
+      emoji: DEFAULT_FLOWER_EMOJI,
+      isStandardFlower: false,
     })
     setErrors({})
   }
@@ -219,20 +244,77 @@ export default function NewPlantPage() {
               <form onSubmit={handleSubmit} onReset={handleReset} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Plantnaam *</Label>
-                    <Input
-                      id="name"
-                      placeholder="Bijv. Tomaat, Basilicum, Roos"
-                      value={newPlant.name}
-                      onChange={(e) =>
-                        setNewPlant((p) => ({
-                          ...p,
-                          name: e.target.value,
-                        }))
-                      }
-                      className={errors.name ? "border-destructive" : ""}
-                      required
-                    />
+                    <Label htmlFor="name">Bloemnaam *</Label>
+                    <div className="relative">
+                      <Input
+                        id="name"
+                        placeholder="Typ een nieuwe bloem of kies uit de lijst..."
+                        value={newPlant.name}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setNewPlant((p) => ({
+                            ...p,
+                            name: value,
+                          }))
+                          
+                          // Check if it matches a standard flower
+                          const selectedFlower = STANDARD_FLOWERS.find(f => 
+                            f.name.toLowerCase() === value.toLowerCase()
+                          )
+                          if (selectedFlower) {
+                            setNewPlant((p) => ({
+                              ...p,
+                              name: value,
+                              emoji: selectedFlower.emoji,
+                              color: selectedFlower.color,
+                              isStandardFlower: true,
+                            }))
+                          } else {
+                            setNewPlant((p) => ({
+                              ...p,
+                              name: value,
+                              emoji: p.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : p.emoji,
+                              isStandardFlower: false,
+                            }))
+                          }
+                        }}
+                        className={`${errors.name ? "border-destructive" : ""} pr-8`}
+                        required
+                        autoComplete="off"
+                      />
+                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                      {/* Show suggestions only when typing and there's input */}
+                      {newPlant.name && newPlant.name.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {STANDARD_FLOWERS
+                            .filter(flower => 
+                              flower.name.toLowerCase().includes(newPlant.name.toLowerCase())
+                            )
+                            .slice(0, 5)
+                            .map((flower) => (
+                              <div
+                                key={flower.name}
+                                className="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
+                                onClick={() => {
+                                  setNewPlant((p) => ({
+                                    ...p,
+                                    name: flower.name,
+                                    emoji: flower.emoji,
+                                    color: flower.color,
+                                    isStandardFlower: true,
+                                  }))
+                                }}
+                              >
+                                <span>{flower.emoji}</span>
+                                <span>{flower.name}</span>
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Tip: Begin te typen om uit standaard bloemen te kiezen, of typ een eigen naam
+                    </p>
                     {errors.name && (
                       <div className="flex items-center gap-1 text-destructive text-sm">
                         <AlertCircle className="h-4 w-4" />
@@ -253,6 +335,7 @@ export default function NewPlantPage() {
                           scientificName: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -268,6 +351,7 @@ export default function NewPlantPage() {
                           variety: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -283,6 +367,7 @@ export default function NewPlantPage() {
                           color: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -299,6 +384,7 @@ export default function NewPlantPage() {
                           height: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -338,6 +424,7 @@ export default function NewPlantPage() {
                           plantingDate: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -353,6 +440,7 @@ export default function NewPlantPage() {
                           expectedHarvestDate: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -369,6 +457,7 @@ export default function NewPlantPage() {
                           wateringFrequency: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -384,7 +473,20 @@ export default function NewPlantPage() {
                           fertilizerSchedule: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="emoji">Emoji</Label>
+                    <div className="flex items-center gap-2 p-2 border rounded-md bg-gray-50">
+                      <span className="text-2xl">{newPlant.emoji}</span>
+                      <span className="text-sm text-gray-600">
+                        {newPlant.isStandardFlower 
+                          ? "Automatisch toegewezen voor standaard bloem" 
+                          : "Standaard emoji voor aangepaste bloem"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -402,6 +504,7 @@ export default function NewPlantPage() {
                         careInstructions: e.target.value,
                       }))
                     }
+                    autoComplete="off"
                   />
                 </div>
 
@@ -419,6 +522,7 @@ export default function NewPlantPage() {
                         notes: e.target.value,
                       }))
                     }
+                    autoComplete="off"
                   />
                 </div>
 

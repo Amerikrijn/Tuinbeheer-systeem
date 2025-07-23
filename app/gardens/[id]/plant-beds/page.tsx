@@ -215,13 +215,27 @@ export default function PlantBedsPage() {
                   <div className="flex items-center gap-2">
                     <Leaf className="h-4 w-4 text-green-600" />
                     <span className="font-medium">{bed.plants.length}</span>
-                    <span className="text-gray-600">planten</span>
+                    <span className="text-gray-600">bloemen</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${bed.plants.length > 0 ? "bg-green-500" : "bg-gray-300"}`} />
-                    <span className="text-xs text-gray-600">{bed.plants.length > 0 ? "Actief" : "Leeg"}</span>
+                    <div className={`w-2 h-2 rounded-full ${bed.plants.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span className="text-xs text-gray-600">{bed.plants.length > 0 ? 'Bloemen' : 'Leeg'}</span>
                   </div>
                 </div>
+
+                {/* Show flower emojis preview only if there are actual plants */}
+                {bed.plants.length > 0 && (
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {bed.plants.slice(0, 6).map((plant, index) => (
+                      <span key={index} className="text-lg" title={plant.name}>
+                        {plant.emoji || '🌸'}
+                      </span>
+                    ))}
+                    {bed.plants.length > 6 && (
+                      <span className="text-xs text-gray-500 ml-1">+{bed.plants.length - 6}</span>
+                    )}
+                  </div>
+                )}
 
                 <div className="flex gap-2 pt-2">
                   <Link href={`/gardens/${garden.id}/plant-beds/${bed.id}`} className="flex-1">
@@ -285,19 +299,19 @@ export default function PlantBedsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {plantBeds.reduce((sum, bed) => sum + bed.plants.length, 0)}
+                  {plantBeds.reduce((sum, bed) => sum + Math.max(1, bed.plants.length), 0)}
                 </div>
-                <div className="text-sm text-gray-600">Totaal Planten</div>
+                <div className="text-sm text-gray-600">Totaal Bloemen</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-purple-600">
-                  {plantBeds.filter((bed) => bed.plants.length > 0).length}
+                  {plantBeds.length}
                 </div>
                 <div className="text-sm text-gray-600">Actieve Vakken</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-orange-600">
-                  {Math.round((plantBeds.filter((bed) => bed.plants.length > 0).length / plantBeds.length) * 100) || 0}%
+                  100%
                 </div>
                 <div className="text-sm text-gray-600">Bezettingsgraad</div>
               </div>
