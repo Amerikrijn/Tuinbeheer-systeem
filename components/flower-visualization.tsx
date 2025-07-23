@@ -130,18 +130,19 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const scaledWidth = plantWidth * scaleX
         const scaledHeight = plantHeight * scaleY
         
-        // Calculate flower size based on scaled dimensions - make them bigger to match plantvak-view
-        const flowerSize = Math.max(16, Math.min(48, Math.min(scaledWidth, scaledHeight) * 1.2))
+        // Calculate flower size - make them much bigger and more proportional
+        const baseSize = Math.min(containerWidth, containerHeight) * 0.08 // 8% of container size
+        const flowerSize = Math.max(24, Math.min(64, baseSize))
         
-        // Position the flower at its exact scaled location
+        // Position the flower at its exact scaled location - use the actual position from plantvak-view
         instances.push({
           id: `${plant.id}-flower-exact`,
           name: plant.name,
           color: plant.color || '#FF69B4',
           emoji: getPlantEmoji(plant.name, plant.emoji),
           size: flowerSize,
-          x: scaledX + scaledWidth / 2, // Center within the scaled flower area
-          y: scaledY + scaledHeight / 2,
+          x: scaledX, // Use exact scaled position from plantvak-view
+          y: scaledY,
           opacity: 1,
           rotation: 0,
           isMainFlower: true,
