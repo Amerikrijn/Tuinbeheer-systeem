@@ -796,7 +796,7 @@ export default function PlantBedViewPage() {
     // Make sure resize interface is hidden
     setShowResizeInterface(false)
     setIsResizeMode(false)
-  }, [flowerPositions, selectedFlower, isDragMode, toast])
+  }, [flowerPositions, selectedFlower, isDragMode])
 
   // Handle double click - show plus/minus resize controls
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
@@ -822,8 +822,8 @@ export default function PlantBedViewPage() {
     setIsDragMode(false)
     setIsResizeMode(false)
     
-            // Removed feedback toast - users can see the interface
-  }, [scale, toast])
+                  // Removed feedback toast - users can see the interface
+    }, [scale])
 
   // Handle flower resize via interface - supports flower fields
   const handleFlowerResize = useCallback(async (flowerId: string, sizeChange: number) => {
@@ -911,7 +911,7 @@ export default function PlantBedViewPage() {
     setHasChanges(true)
 
     // Removed feedback toast - no more notifications when moving
-  }, [flowerPositions, scale, isDragMode, selectedFlower, toast])
+  }, [flowerPositions, scale, isDragMode, selectedFlower])
 
   // Handle touch start for mobile - prepare for drag after click
   const handleFlowerTouchStart = useCallback((e: React.TouchEvent, flowerId: string) => {
@@ -1256,7 +1256,7 @@ export default function PlantBedViewPage() {
       }
       return f
     }))
-  }, [isResizing, resizeStartSize, resizeStartPos, canvasWidth, canvasHeight, flowerPositions])
+  }, [isResizing, resizeStartSize, resizeStartPos, canvasWidth, canvasHeight, flowerPositions, plantBed])
 
   // Handle resize end - save the updated flower size to database
   const handleResizeEnd = useCallback(async () => {
@@ -1323,12 +1323,12 @@ export default function PlantBedViewPage() {
       // Clean up any drag listeners first
       cleanup()
       
-      document.addEventListener('mousemove', handleResizeMove as any)
-      document.addEventListener('mouseup', handleResizeEnd as any)
-      return () => {
-        document.removeEventListener('mousemove', handleResizeMove as any)
-        document.removeEventListener('mouseup', handleResizeEnd as any)
-      }
+      document.addEventListener('mousemove', handleResizeMove)
+      document.addEventListener('mouseup', handleResizeEnd)
+              return () => {
+          document.removeEventListener('mousemove', handleResizeMove)
+          document.removeEventListener('mouseup', handleResizeEnd)
+        }
     }
 
     // Cleanup on unmount or when neither drag nor resize is active

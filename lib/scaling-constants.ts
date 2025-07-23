@@ -61,10 +61,10 @@ export const calculatePlantBedCanvasSize = (sizeString: string) => {
     const minWidth = 600  // Increased minimum for better aspect ratio
     const minHeight = 450 // Increased minimum for better aspect ratio
     
-    // Calculate canvas size maintaining aspect ratio of the plantvak
-    const aspectRatio = dimensions.lengthPixels / dimensions.widthPixels
-    let canvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
-    let canvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
+         // Calculate canvas size maintaining aspect ratio of the plantvak
+     const aspectRatio = dimensions.lengthPixels / dimensions.widthPixels
+     let canvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
+     const canvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
     
     // Ensure minimum aspect ratio is maintained
     if (canvasWidth / canvasHeight < 1.2) {

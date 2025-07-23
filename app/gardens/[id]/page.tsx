@@ -414,7 +414,7 @@ export default function GardenDetailPage() {
       setSelectedBed(bedId)
       setIsDragMode(false)
     }
-  }, [selectedBed, isDragMode, toast])
+  }, [selectedBed, isDragMode])
 
   // Handle pointer down - start dragging immediately for mouse, conditionally for touch
   const handlePlantBedPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, bedId: string) => {
@@ -448,14 +448,15 @@ export default function GardenDetailPage() {
     setHasChanges(true)
 
     // Removed feedback toast - no more notifications when moving
-  }, [plantBeds, scale, toast, isDragMode, selectedBed])
+  }, [plantBeds, scale, isDragMode, selectedBed])
 
   const handlePlantBedTouchEnd = useCallback((e: React.TouchEvent, bedId: string) => {
     const touchDuration = Date.now() - touchStartTime
     
     // Clear long press timer
-    if ((e.target as any).longPressTimer) {
-      clearTimeout((e.target as any).longPressTimer)
+    const target = e.target as HTMLElement & { longPressTimer?: NodeJS.Timeout }
+    if (target.longPressTimer) {
+      clearTimeout(target.longPressTimer)
     }
     
     // If it was a quick tap (not long press), handle as click
