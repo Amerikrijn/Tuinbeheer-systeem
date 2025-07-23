@@ -29,22 +29,27 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
   // Calculate how many flowers should be displayed based on plant bed size
   const calculateFlowerCount = useMemo(() => {
-    const area = containerWidth * containerHeight
+    // Base calculation: 2x2 vak = 6 bloemen
+    // Dus per 100x100 pixels ongeveer 6 bloemen
+    const baseArea = 100 * 100 // 2x2 reference size
+    const baseBloemenCount = 6
     
-    // Much more conservative flower count based on container area
-    if (area <= 10000) {
-      // Very small containers: 1-2 flowers
-      return Math.min(2, Math.max(1, plants.length))
-    } else if (area <= 25000) {
-      // Small containers: 2-4 flowers
-      return Math.min(4, Math.max(2, plants.length))
-    } else if (area <= 50000) {
-      // Medium containers: 3-6 flowers
-      return Math.min(6, Math.max(3, plants.length))
-    } else {
-      // Large containers: 4-8 flowers max
-      return Math.min(8, Math.max(4, plants.length))
+    const currentArea = containerWidth * containerHeight
+    const scaleFactor = currentArea / baseArea
+    
+    // Calculate flower count based on area scaling
+    let flowerCount = Math.round(baseBloemenCount * scaleFactor)
+    
+    // Minimum and maximum bounds
+    flowerCount = Math.max(2, flowerCount) // Minimum 2 bloemen
+    flowerCount = Math.min(20, flowerCount) // Maximum 20 bloemen
+    
+    // If we have multiple plant types, distribute flowers among them
+    if (plants.length > 1) {
+      return Math.max(flowerCount, plants.length * 2) // At least 2 flowers per plant type
     }
+    
+    return flowerCount
   }, [containerWidth, containerHeight, plants.length])
 
 
@@ -61,60 +66,86 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     const usableWidth = containerWidth - (padding * 2)
     const usableHeight = containerHeight - (padding * 2)
 
+    // Calculate flowers per plant type
+    const flowersPerPlant = Math.max(1, Math.floor(calculateFlowerCount / plants.length))
+    const extraFlowers = calculateFlowerCount % plants.length
+
     plants.forEach((plant, plantIndex) => {
-      // Check if this plant has custom sizing (from the detailed view)
-      const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
-      const plantWidth = hasCustomSize ? plant.visual_width! : 0
-      const plantHeight = hasCustomSize ? plant.visual_height! : 0
-
-      // Render all flowers as regular flowers (no more flower fields)
-      // Use exact position and size from database if available
-      if (hasCustomSize && 'position_x' in plant && plant.position_x !== undefined && 'position_y' in plant && plant.position_y !== undefined) {
-        // Use exact database values for consistent positioning between views
-        const flowerSize = Math.min(plantWidth, plantHeight)
+      // How many flowers for this specific plant
+      const flowerCountForThisPlant = flowersPerPlant + (plantIndex < extraFlowers ? 1 : 0)
+      
+      // Base flower size - smaller so multiple fit nicely
+      const baseFlowerSize = Math.max(12, Math.min(24, Math.min(usableWidth, usableHeight) / 8))
+      
+      // Create multiple flowers for this plant
+      for (let i = 0; i < flowerCountForThisPlant; i++) {
+        // Vary flower size slightly for natural look
+        const sizeVariation = 0.8 + (((plant.id.charCodeAt(0) + i * 17) % 40) / 100) // 0.8 to 1.2 multiplier
+        const flowerSize = baseFlowerSize * sizeVariation
         
-        // Scale positions to fit the container while maintaining relative positions
-        const scaleX = (containerWidth - padding * 2) / Math.max(plantWidth, 100) // Minimum reference width
-        const scaleY = (containerHeight - padding * 2) / Math.max(plantHeight, 100) // Minimum reference height
-        const scale = Math.min(scaleX, scaleY, 1) // Don't scale up, only down if needed
+        // Position flowers using improved distribution
+        let x, y
         
-        const scaledX = plant.position_x * scale
-        const scaledY = plant.position_y * scale
-        const scaledSize = Math.max(16, flowerSize * scale) // Minimum 16px for visibility
+        if (flowerCountForThisPlant === 1) {
+          // Single flower - center it
+          x = (usableWidth - flowerSize) / 2 + padding
+          y = (usableHeight - flowerSize) / 2 + padding
+        } else if (flowerCountForThisPlant <= 4) {
+          // Small number - use grid layout
+          const cols = Math.ceil(Math.sqrt(flowerCountForThisPlant))
+          const rows = Math.ceil(flowerCountForThisPlant / cols)
+          const col = i % cols
+          const row = Math.floor(i / cols)
+          
+          x = padding + (col + 0.5) * (usableWidth / cols) - flowerSize / 2
+          y = padding + (row + 0.5) * (usableHeight / rows) - flowerSize / 2
+          
+          // Add natural variation
+          const variation = 12
+          x += ((plant.id.charCodeAt(0) + i * 37) % (variation * 2)) - variation
+          y += ((plant.id.charCodeAt(0) + i * 53) % (variation * 2)) - variation
+        } else {
+          // Many flowers - use spiral/random distribution
+          const seedValue = plant.id.charCodeAt(0) + i * 137.5 // Golden angle for natural distribution
+          const angle = (seedValue * Math.PI / 180) % (2 * Math.PI)
+          
+          // Create zones: some flowers in center, others spread out
+          const zone = i % 3
+          let radiusPercent
+          if (zone === 0) {
+            radiusPercent = 0.1 + ((seedValue * 3) % 30) / 100 // Center zone
+          } else if (zone === 1) {
+            radiusPercent = 0.3 + ((seedValue * 5) % 40) / 100 // Middle zone  
+          } else {
+            radiusPercent = 0.6 + ((seedValue * 7) % 35) / 100 // Outer zone
+          }
+          
+          const maxRadius = Math.min(usableWidth, usableHeight) / 2.2
+          const radius = radiusPercent * maxRadius
+          const centerX = usableWidth / 2 + padding
+          const centerY = usableHeight / 2 + padding
+          
+          x = centerX + Math.cos(angle) * radius - flowerSize / 2
+          y = centerY + Math.sin(angle) * radius - flowerSize / 2
+        }
         
-        // Ensure the flower stays within container bounds with better constraint
-        const x = Math.max(padding, Math.min(scaledX + padding, containerWidth - scaledSize - padding))
-        const y = Math.max(padding, Math.min(scaledY + padding, containerHeight - scaledSize - padding))
-
+        // Keep within bounds
+        x = Math.max(padding, Math.min(x, containerWidth - flowerSize - padding))
+        y = Math.max(padding, Math.min(y, containerHeight - flowerSize - padding))
+        
+        // Create flower instance
         instances.push({
-          id: `${plant.id}-main`,
+          id: `${plant.id}-flower-${i}`,
           name: plant.name,
           color: plant.color || '#FF69B4',
           emoji: plant.emoji,
-          size: Math.max(16, scaledSize), // Ensure minimum visibility
+          size: flowerSize,
           x,
           y,
-          opacity: 1,
-          rotation: 0, // Keep consistent rotation
-          isMainFlower: true,
-          canFillContainer: scaledSize > 40
-        })
-      } else {
-        // For plants without custom positioning, create a single centered flower
-        const baseSize = Math.min(50, Math.max(20, Math.min(usableWidth, usableHeight) / 4))
-        
-        instances.push({
-          id: `${plant.id}-main`,
-          name: plant.name,
-          color: plant.color || '#FF69B4',
-          emoji: plant.emoji,
-          size: baseSize,
-          x: (containerWidth - baseSize) / 2,
-          y: (containerHeight - baseSize) / 2,
-          opacity: 1,
-          rotation: 0,
-          isMainFlower: true,
-          canFillContainer: containerWidth > 80 && containerHeight > 80
+          opacity: 0.8 + (((plant.id.charCodeAt(0) + i * 23) % 20) / 100), // 0.8 to 1.0
+          rotation: (plant.id.charCodeAt(0) + i * 91) % 360,
+          isMainFlower: i === 0, // First flower of each plant is "main"
+          canFillContainer: false
         })
       }
     })
@@ -195,21 +226,21 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       ))}
 
       {/* Subtle natural particles - like pollen or small leaves */}
-      {containerWidth > 100 && containerHeight > 100 && (
+      {containerWidth > 150 && containerHeight > 150 && (
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(Math.min(5, Math.floor(calculateFlowerCount / 3)))].map((_, i) => (
+          {[...Array(Math.min(3, Math.floor(calculateFlowerCount / 6)))].map((_, i) => (
             <div
               key={`particle-${i}`}
-              className="absolute opacity-30 animate-pulse"
+              className="absolute opacity-20 animate-pulse"
               style={{
-                fontSize: '8px',
+                fontSize: '6px',
                 left: Math.random() * (containerWidth - 16),
                 top: Math.random() * (containerHeight - 16),
                 animationDelay: `${Math.random() * 4}s`,
                 animationDuration: `${3 + Math.random() * 2}s`,
               }}
             >
-              {['🌿', '🍃', '✨', '🌱'][Math.floor(Math.random() * 4)]}
+              {['🌿', '🍃', '✨'][Math.floor(Math.random() * 3)]}
             </div>
           ))}
         </div>
@@ -227,16 +258,16 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           />
           
           {/* Floating butterflies and bees for natural garden feel */}
-          {[...Array(2)].map((_, i) => (
+          {containerWidth > 200 && containerHeight > 200 && [...Array(1)].map((_, i) => (
             <div
               key={`nature-${i}`}
-              className="absolute opacity-40 animate-bounce select-none"
+              className="absolute opacity-30 animate-bounce select-none"
               style={{
-                fontSize: 10 + Math.random() * 6,
+                fontSize: 8 + Math.random() * 4,
                 left: Math.random() * (containerWidth - 20),
                 top: Math.random() * (containerHeight - 20),
-                animationDelay: `${Math.random() * 5}s`,
-                animationDuration: `${4 + Math.random() * 3}s`,
+                animationDelay: `${Math.random() * 6}s`,
+                animationDuration: `${5 + Math.random() * 3}s`,
               }}
             >
               {['🦋', '🐝'][Math.floor(Math.random() * 2)]}
