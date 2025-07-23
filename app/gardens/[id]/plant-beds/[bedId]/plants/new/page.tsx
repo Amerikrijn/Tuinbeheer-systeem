@@ -38,6 +38,21 @@ export default function NewPlantPage() {
   const [loading, setLoading] = React.useState(false)
   const [errors, setErrors] = React.useState<Record<string, string>>({})
 
+  // Clear any dialog states that might be stuck
+  React.useEffect(() => {
+    // Clear any session storage that might cause overlay issues
+    if (typeof window !== 'undefined') {
+      document.body.style.overflow = 'unset'
+      // Remove any potential stuck modal states
+      const dialogs = document.querySelectorAll('[role="dialog"]')
+      dialogs.forEach(dialog => {
+        if (dialog.getAttribute('data-state') === 'open') {
+          dialog.setAttribute('data-state', 'closed')
+        }
+      })
+    }
+  }, [])
+
   const [newPlant, setNewPlant] = React.useState<NewPlant>({
     name: "",
     scientificName: "",

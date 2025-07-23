@@ -75,7 +75,6 @@ export default function GardenDetailPage() {
   
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingPlantBed, setIsAddingPlantBed] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [deletingBedId, setDeletingBedId] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isEditingGarden, setIsEditingGarden] = useState(false)
@@ -309,8 +308,6 @@ export default function GardenDetailPage() {
     }
     
     try {
-      setSaving(true)
-      
       // Update garden in database
       const updatedGarden = {
         ...garden,
@@ -338,8 +335,6 @@ export default function GardenDetailPage() {
         description: "Kon tuin niet bijwerken. Probeer opnieuw.",
         variant: "destructive",
       })
-    } finally {
-      setSaving(false)
     }
   }
 
@@ -630,14 +625,43 @@ export default function GardenDetailPage() {
     }
   }, [toast, createSampleFlowers])
 
-  // Handle mouse up (end drag or resize)
+  // Handle mouse up (end drag or resize) with auto-save
   const handleMouseUp = useCallback(async () => {
     if (!draggedBed && !rotatingBed) return
     
-    // Check if plant bed was resized and add more flowers if needed
-    if (draggedBed && hasChanges) {
-      const bedToUpdate = plantBeds.find(bed => bed.id === draggedBed)
+    // Auto-save when dragging or rotating stops
+    if ((draggedBed || rotatingBed) && hasChanges) {
+      const bedToUpdate = plantBeds.find(bed => bed.id === (draggedBed || rotatingBed))
       if (bedToUpdate) {
+        // Auto-save the position immediately
+        try {
+          await updatePlantBed(bedToUpdate.id, {
+            position_x: bedToUpdate.position_x,
+            position_y: bedToUpdate.position_y,
+            visual_width: bedToUpdate.visual_width,
+            visual_height: bedToUpdate.visual_height
+          })
+          
+          setHasChanges(false)
+          
+          // Show save confirmation only once per session
+          if (!sessionStorage.getItem('gardenSaveShown')) {
+            toast({
+              title: "✅ Plantvak verplaatst",
+              description: "Positie automatisch opgeslagen!",
+            })
+            sessionStorage.setItem('gardenSaveShown', 'true')
+          }
+        } catch (error) {
+          console.error("Error auto-saving plant bed position:", error)
+          toast({
+            title: "❌ Fout bij opslaan",
+            description: "Positie kon niet worden opgeslagen. Probeer opnieuw.",
+            variant: "destructive",
+          })
+        }
+        
+        // Check if plant bed was resized and add more flowers if needed
         await checkAndAddMoreFlowers(bedToUpdate)
       }
     }
@@ -646,7 +670,7 @@ export default function GardenDetailPage() {
     setDragOffset({ x: 0, y: 0 })
     setRotatingBed(null)
     setIsRotateMode(false)
-  }, [draggedBed, rotatingBed, hasChanges, plantBeds, checkAndAddMoreFlowers])
+  }, [draggedBed, rotatingBed, hasChanges, plantBeds, checkAndAddMoreFlowers, toast])
 
   // Calculate angle between two points (for rotation)
   const calculateAngle = useCallback((centerX: number, centerY: number, pointX: number, pointY: number) => {
@@ -769,47 +793,7 @@ export default function GardenDetailPage() {
     }
   }, [plantBeds, checkAndAddMoreFlowers]) // Run when beds change
 
-  // Save layout changes
-  const saveLayout = async () => {
-    if (!hasChanges) return
-
-    setSaving(true)
-    try {
-      const updates = plantBeds.map(bed => ({
-        id: bed.id,
-        position_x: bed.position_x,
-        position_y: bed.position_y,
-        visual_width: bed.visual_width,
-        visual_height: bed.visual_height
-      }))
-
-      await Promise.all(
-        updates.map(update => 
-          updatePlantBed(update.id, {
-            position_x: update.position_x,
-            position_y: update.position_y,
-            visual_width: update.visual_width,
-            visual_height: update.visual_height
-          })
-        )
-      )
-
-      setHasChanges(false)
-      toast({
-        title: "Layout opgeslagen",
-        description: "De tuinindeling is succesvol opgeslagen.",
-      })
-    } catch (error) {
-      console.error("Error saving layout:", error)
-      toast({
-        title: "Fout bij opslaan",
-        description: "Er is een fout opgetreden bij het opslaan van de layout.",
-        variant: "destructive",
-      })
-    } finally {
-      setSaving(false)
-    }
-  }
+  // Note: Manual save layout function removed - now using auto-save on drag end
 
   // Update plant bed rotation
   const updatePlantBedRotation = async (bedId: string, newRotation: number) => {
@@ -1265,12 +1249,7 @@ export default function GardenDetailPage() {
               </div>
             </DialogContent>
           </Dialog>
-          {hasChanges && (
-            <Button onClick={saveLayout} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
-              <Save className="h-4 w-4 mr-2" />
-              {saving ? "Opslaan..." : "Layout Opslaan"}
-            </Button>
-          )}
+
         </div>
       </div>
 
@@ -1788,9 +1767,9 @@ export default function GardenDetailPage() {
             </Button>
             <Button
               onClick={handleGardenUpdate}
-              disabled={saving || !gardenForm.name || !gardenForm.length || !gardenForm.width}
+              disabled={!gardenForm.name || !gardenForm.length || !gardenForm.width}
             >
-              {saving ? "Opslaan..." : "Opslaan"}
+              Opslaan
             </Button>
           </div>
         </DialogContent>
