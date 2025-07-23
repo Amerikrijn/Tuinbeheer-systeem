@@ -34,11 +34,11 @@ import {
   Upload,
   Image as ImageIcon,
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+// useToast removed - no more toast notifications
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 import { uploadImage, type UploadResult } from "@/lib/storage"
-import { FlowerVisualization } from "@/components/flower-visualization"
+// FlowerVisualization import removed - using interactive overlay instead
 import {
   METERS_TO_PIXELS,
   PLANTVAK_CANVAS_PADDING,
@@ -126,7 +126,7 @@ const FLOWER_STATUS_OPTIONS = [
 export default function PlantBedViewPage() {
   const router = useRouter()
   const params = useParams()
-  const { toast } = useToast()
+  // toast removed - no more notifications
   
   const [garden, setGarden] = useState<Garden | null>(null)
   const [plantBed, setPlantBed] = useState<PlantBedWithPlants | null>(null)
@@ -181,6 +181,21 @@ export default function PlantBedViewPage() {
   // Calculate canvas size based on plant bed size using consistent scaling
   const getCanvasSize = () => {
     if (!plantBed?.size) return { width: 600, height: 450 }
+    
+    const dimensions = parsePlantBedDimensions(plantBed.size)
+    if (dimensions) {
+      // Ensure proper aspect ratio and enough space for movement
+      const padding = PLANTVAK_CANVAS_PADDING
+      const minWidth = 500
+      const minHeight = 400
+      
+      // Calculate canvas size maintaining proper aspect ratio
+      const canvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
+      const canvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
+      
+      return { width: canvasWidth, height: canvasHeight }
+    }
+    
     return calculatePlantBedCanvasSize(plantBed.size)
   }
 
@@ -316,14 +331,9 @@ export default function PlantBedViewPage() {
         }
       }
       
-      if (flowersToAdd > 0) {
-        toast({
-          title: "🌸 Bloemen toegevoegd!",
-          description: `${flowersToAdd} ${templateFlower.name} toegevoegd aan ${plantvakAreaMeters.toFixed(1)}m² plantvak.`,
-        })
-      }
+      // Removed toast notification
     }
-  }, [plantBed, canvasWidth, canvasHeight, flowerPositions, toast])
+  }, [plantBed, canvasWidth, canvasHeight, flowerPositions])
 
   // Clean up flowers that are outside the plantvak boundaries
   const cleanupFlowersOutsideBoundaries = useCallback(async () => {
@@ -407,14 +417,9 @@ export default function PlantBedViewPage() {
         }
       }
       
-      if (flowersOutside.length > 0) {
-        toast({
-          title: "🌸 Bloemen binnen plantvak geplaatst",
-          description: `${flowersOutside.length} bloemen zijn binnen het plantvak geplaatst.`,
-        })
-      }
+      // Removed toast notification
     }
-  }, [plantBed, flowerPositions, canvasWidth, canvasHeight, toast])
+  }, [plantBed, flowerPositions, canvasWidth, canvasHeight])
 
   // Disabled auto-cleanup and auto-fill - user wants manual control
   // useEffect(() => {
@@ -444,11 +449,7 @@ export default function PlantBedViewPage() {
 
   const addFlower = async () => {
     if (!plantBed || !newFlower.name) {
-      toast({
-        title: "Incomplete gegevens",
-        description: "Vul de bloemnaam in om een bloem toe te voegen.",
-        variant: "destructive",
-      })
+        // Removed toast notification
       return
     }
 
@@ -508,28 +509,17 @@ export default function PlantBedViewPage() {
           isStandardFlower: false
         })
         
-        toast({
-          title: "Bloem toegevoegd",
-          description: `${newFlower.name} is toegevoegd aan het plantvak.`,
-        })
+        // Removed toast notification
       }
     } catch (error) {
       console.error("Error creating flower:", error)
-      toast({
-        title: "Fout bij toevoegen",
-        description: "Er is een fout opgetreden bij het toevoegen van de bloem.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     }
   }
 
   const updateFlower = async () => {
     if (!selectedFlower || !newFlower.name) {
-      toast({
-        title: "Incomplete gegevens",
-        description: "Vul de bloemnaam in om de bloem te wijzigen.",
-        variant: "destructive",
-      })
+        // Removed toast notification
             return
     }
 
@@ -570,18 +560,11 @@ export default function PlantBedViewPage() {
           isStandardFlower: false
         })
         
-        toast({
-          title: "Bloem gewijzigd",
-          description: `${newFlower.name} is succesvol gewijzigd.`,
-        })
+        // Removed toast notification
       }
     } catch (error) {
       console.error("Error updating flower:", error)
-      toast({
-        title: "Fout bij wijzigen",
-        description: "Er is een fout opgetreden bij het wijzigen van de bloem.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     }
   }
 
@@ -591,17 +574,10 @@ export default function PlantBedViewPage() {
       setFlowerPositions(prev => prev.filter(f => f.id !== flowerId))
       setSelectedFlower(null)
       setIsEditingFlower(false)
-      toast({
-        title: "Bloem verwijderd",
-        description: "De bloem is verwijderd uit het plantvak.",
-      })
+        // Removed toast notification
     } catch (error) {
       console.error("Error deleting flower:", error)
-      toast({
-        title: "Fout bij verwijderen",
-        description: "Er is een fout opgetreden bij het verwijderen van de bloem.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     }
   }
 
@@ -635,21 +611,13 @@ export default function PlantBedViewPage() {
   // Update plant bed
   const updatePlantBedInfo = async () => {
     if (!plantBed || !plantBedForm.name?.trim() || !plantBedForm.length || !plantBedForm.width) {
-      toast({
-        title: "Incomplete gegevens",
-        description: "Vul alle velden in om het plantvak bij te werken.",
-        variant: "destructive",
-      })
+        // Removed toast notification
       return
     }
 
     // Prevent empty name
     if (plantBedForm.name.trim().length === 0) {
-      toast({
-        title: "Naam vereist",
-        description: "Het plantvak moet een naam hebben.",
-        variant: "destructive",
-      })
+        // Removed toast notification
       return
     }
 
@@ -659,11 +627,7 @@ export default function PlantBedViewPage() {
       const width = parseFloat(plantBedForm.width)
       
       if (isNaN(length) || isNaN(width) || length <= 0 || width <= 0) {
-        toast({
-          title: "Ongeldige afmetingen",
-          description: "Lengte en breedte moeten geldige getallen zijn groter dan 0.",
-          variant: "destructive",
-        })
+        // Removed toast notification
         return
       }
       
@@ -696,24 +660,13 @@ export default function PlantBedViewPage() {
         }
         setPlantBed(bedWithPlants)
         setIsEditingPlantBed(false)
-        toast({
-          title: "Plantvak bijgewerkt",
-          description: "De plantvak informatie is succesvol bijgewerkt.",
-        })
+        // Removed toast notification
       } else {
-        toast({
-          title: "Waarschuwing",
-          description: "Het plantvak is mogelijk niet bijgewerkt. Probeer het opnieuw.",
-          variant: "destructive",
-        })
+        // Removed toast notification
       }
     } catch (error) {
       console.error("Error updating plant bed:", error)
-      toast({
-        title: "Fout bij bijwerken",
-        description: "Er is een fout opgetreden bij het bijwerken van het plantvak.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     }
   }
 
@@ -724,20 +677,13 @@ export default function PlantBedViewPage() {
     try {
       await deletePlantBed(plantBed.id)
       
-      toast({
-        title: "Plantvak verwijderd",
-        description: "Het plantvak is succesvol verwijderd.",
-      })
+        // Removed toast notification
       
       // Navigate back to garden
       router.push(`/gardens/${params.id}`)
     } catch (error) {
       console.error("Error deleting plant bed:", error)
-      toast({
-        title: "Fout bij verwijderen",
-        description: "Er is een fout opgetreden bij het verwijderen van het plantvak.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     } finally {
       setShowDeletePlantBedDialog(false)
     }
@@ -766,17 +712,11 @@ export default function PlantBedViewPage() {
       if (selectedFlower?.id === flowerId && isDragMode) {
         setIsDragMode(false)
         setSelectedFlower(null)
-        toast({
-          title: "Verplaatsen gestopt",
-          description: "Bloem staat nu vast",
-        })
+        // Removed feedback toast - no more notifications when moving
       } else {
         setSelectedFlower(flower)
         setIsDragMode(true)
-        toast({
-          title: "Verplaatsen actief",
-          description: "Sleep de bloem naar een nieuwe positie. Klik opnieuw om te stoppen.",
-        })
+        // Removed feedback toast - no more notifications when moving
       }
     } else {
       // For mouse, just select the flower - dragging happens on mousedown
@@ -787,7 +727,7 @@ export default function PlantBedViewPage() {
     // Make sure resize interface is hidden
     setShowResizeInterface(false)
     setIsResizeMode(false)
-  }, [flowerPositions, selectedFlower, isDragMode, toast])
+  }, [flowerPositions, selectedFlower, isDragMode])
 
   // Handle double click - show plus/minus resize controls
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
@@ -813,11 +753,8 @@ export default function PlantBedViewPage() {
     setIsDragMode(false)
     setIsResizeMode(false)
     
-    toast({
-      title: "🔧 Grootte aanpassen",
-      description: "Gebruik de + en - knoppen om de bloem groter of kleiner te maken.",
-    })
-  }, [scale, toast])
+                  // Removed feedback toast - users can see the interface
+    }, [scale])
 
   // Handle flower resize via interface - supports flower fields
   const handleFlowerResize = useCallback(async (flowerId: string, sizeChange: number) => {
@@ -851,21 +788,12 @@ export default function PlantBedViewPage() {
 
       // Special message for large flower fields
       const isLargeField = newSize > 100
-      toast({
-        title: isLargeField ? "🌸 Bloemenveld aangepast!" : "✅ Grootte aangepast",
-        description: isLargeField 
-          ? `${flower.name} is nu een groot bloemenveld van ${newSize}px! Meer bloemen verschijnen automatisch.`
-          : `${flower.name} is nu ${newSize}px groot.`,
-      })
+        // Removed toast notification
     } catch (error) {
       console.error('Failed to resize flower:', error)
-      toast({
-        title: "❌ Fout",
-        description: "Kon grootte niet aanpassen. Probeer opnieuw.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     }
-  }, [flowerPositions, canvasWidth, canvasHeight, toast])
+  }, [flowerPositions, canvasWidth, canvasHeight])
 
   // Close resize interface
   const closeResizeInterface = useCallback(() => {
@@ -904,11 +832,8 @@ export default function PlantBedViewPage() {
     setSelectedFlower(flower)
     setHasChanges(true)
 
-    toast({
-      title: "🖱️ Verplaatsen",
-      description: `${flower.name}`,
-    })
-  }, [flowerPositions, scale, isDragMode, selectedFlower, toast])
+    // Removed feedback toast - no more notifications when moving
+  }, [flowerPositions, scale, isDragMode, selectedFlower])
 
   // Handle touch start for mobile - prepare for drag after click
   const handleFlowerTouchStart = useCallback((e: React.TouchEvent, flowerId: string) => {
@@ -935,15 +860,12 @@ export default function PlantBedViewPage() {
           navigator.vibrate(50)
         }
         
-        toast({
-          title: "🔥 Lang indrukken gedetecteerd",
-          description: "Bloem geselecteerd voor verplaatsen. Sleep nu!",
-        })
+        // Removed toast notification
       }
     }, 500) // 500ms for long press
 
     setLongPressTimer(timer)
-  }, [flowerPositions, longPressTimer, isDragMode, toast])
+  }, [flowerPositions, longPressTimer, isDragMode])
 
   const handleFlowerTouchEnd = useCallback((e: React.TouchEvent, flowerId: string) => {
     const touchDuration = Date.now() - touchStartTime
@@ -993,15 +915,30 @@ export default function PlantBedViewPage() {
       const draggedFlowerData = prev.find(f => f.id === draggedFlower)
       if (!draggedFlowerData) return prev
 
-      // Allow navigation over the entire plantvak area (full canvas)
-      // Ensure flowers stay within valid canvas boundaries
+      // Get plantvak dimensions for proper boundaries
+      const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
+      let plantvakStartX = 0
+      let plantvakStartY = 0
+      let plantvakWidth = canvasWidth
+      let plantvakHeight = canvasHeight
+      
+      if (dimensions) {
+        // Center the plantvak within the canvas
+        plantvakWidth = dimensions.lengthPixels
+        plantvakHeight = dimensions.widthPixels
+        plantvakStartX = (canvasWidth - plantvakWidth) / 2
+        plantvakStartY = (canvasHeight - plantvakHeight) / 2
+      }
+
+      // Allow movement within the entire plantvak area with small margin
+      const margin = 5
       const constrainedX = Math.max(
-        0, 
-        Math.min(newX, canvasWidth - draggedFlowerData.visual_width)
+        plantvakStartX + margin, 
+        Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
       )
       const constrainedY = Math.max(
-        0, 
-        Math.min(newY, canvasHeight - draggedFlowerData.visual_height)
+        plantvakStartY + margin, 
+        Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
       )
 
       // Only update the specific dragged flower
@@ -1071,24 +1008,17 @@ export default function PlantBedViewPage() {
           
           setHasChanges(false)
           
-          toast({
-            title: "✅ Bloem verplaatst",
-            description: "Positie automatisch opgeslagen!",
-          })
+          // Removed feedback toast - no more notifications when moving
         } catch (error) {
           console.error("Error auto-saving flower position:", error)
-          toast({
-            title: "❌ Fout bij opslaan",
-            description: `Positie kon niet worden opgeslagen: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
-            variant: "destructive",
-          })
+        // Removed toast notification
         }
       }
     }
     
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [draggedFlower, hasChanges, flowerPositions, toast])
+  }, [draggedFlower, hasChanges, flowerPositions])
 
   // Legacy mouse up handler
   const onMouseUp = useCallback(() => {
@@ -1100,10 +1030,7 @@ export default function PlantBedViewPage() {
   // Save all flower positions to database
   const handleSavePositions = useCallback(async () => {
     if (!hasChanges) {
-      toast({
-        title: "Geen wijzigingen",
-        description: "Er zijn geen posities om op te slaan.",
-      })
+        // Removed toast notification
       return
     }
 
@@ -1124,19 +1051,12 @@ export default function PlantBedViewPage() {
       setHasChanges(false)
       setSelectedFlower(null)
       
-      toast({
-        title: "✅ Posities opgeslagen",
-        description: "Alle bloemenposities zijn succesvol opgeslagen.",
-      })
+        // Removed toast notification
     } catch (error) {
       console.error("Error saving flower positions:", error)
-      toast({
-        title: "❌ Fout bij opslaan",
-        description: `Kon posities niet opslaan: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
-        variant: "destructive",
-      })
+        // Removed toast notification
     }
-  }, [hasChanges, flowerPositions, toast])
+  }, [hasChanges, flowerPositions])
 
   // Handle click outside to deselect - unified for mouse and touch
   const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -1147,12 +1067,9 @@ export default function PlantBedViewPage() {
       setIsResizing(null)
       resizeModeRef.current = null
       
-      toast({
-        title: "✅ Selectie opgeheven",
-        description: "Klik op een bloem om te selecteren",
-      })
+      // Removed feedback toast - no more notifications when deselecting
     }
-  }, [toast])
+  }, [])
 
   // Add global event listeners for drag - support both mouse and touch
   useEffect(() => {
@@ -1209,11 +1126,8 @@ export default function PlantBedViewPage() {
     setResizeStartPos({ x: e.clientX, y: e.clientY })
     setDuplicatePositions([]) // Reset duplicate positions
     
-    toast({
-      title: "🎯 Resize actief!",
-      description: "Sleep om het gebied groter te maken - veel meer bloemen komen erbij!",
-    })
-  }, [flowerPositions, toast])
+        // Removed toast notification
+  }, [flowerPositions])
 
   // Handle resize move - Update flower size directly (no new flowers)
   const handleResizeMove = useCallback(async (e: MouseEvent) => {
@@ -1244,7 +1158,7 @@ export default function PlantBedViewPage() {
       }
       return f
     }))
-  }, [isResizing, resizeStartSize, resizeStartPos, canvasWidth, canvasHeight, flowerPositions])
+  }, [isResizing, resizeStartSize, resizeStartPos, canvasWidth, canvasHeight, flowerPositions, plantBed])
 
   // Handle resize end - save the updated flower size to database
   const handleResizeEnd = useCallback(async () => {
@@ -1265,20 +1179,13 @@ export default function PlantBedViewPage() {
           visual_height: currentFlower.visual_height
         })
 
-        toast({
-          title: "🌸 Bloem vergroot!",
-          description: `${currentFlower.name} is nu ${Math.round(currentFlower.visual_width)}px groot`,
-        })
+        // Removed toast notification
       }
     } catch (error) {
       console.error("Error saving flower size:", error)
-      toast({
-        title: "Fout bij opslaan",
-        description: "Er is een fout opgetreden bij het opslaan van de grootte.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     }
-  }, [isResizing, flowerPositions, toast])
+  }, [isResizing, flowerPositions])
 
   useEffect(() => {
     const cleanup = () => {
@@ -1311,12 +1218,12 @@ export default function PlantBedViewPage() {
       // Clean up any drag listeners first
       cleanup()
       
-      document.addEventListener('mousemove', handleResizeMove as any)
-      document.addEventListener('mouseup', handleResizeEnd as any)
-      return () => {
-        document.removeEventListener('mousemove', handleResizeMove as any)
-        document.removeEventListener('mouseup', handleResizeEnd as any)
-      }
+      document.addEventListener('mousemove', handleResizeMove)
+      document.addEventListener('mouseup', handleResizeEnd)
+              return () => {
+          document.removeEventListener('mousemove', handleResizeMove)
+          document.removeEventListener('mouseup', handleResizeEnd)
+        }
     }
 
     // Cleanup on unmount or when neither drag nor resize is active
@@ -1924,11 +1831,7 @@ export default function PlantBedViewPage() {
                   const newValue = e.target.value
                   // Prevent clearing the name completely
                   if (newValue.trim().length === 0 && plantBedForm.name.trim().length > 0) {
-                    toast({
-                      title: "Naam kan niet leeg zijn",
-                      description: "Het plantvak moet een naam hebben.",
-                      variant: "destructive",
-                    })
+        // Removed toast notification
                     return
                   }
                   setPlantBedForm(prev => ({ ...prev, name: newValue }))
@@ -1938,10 +1841,7 @@ export default function PlantBedViewPage() {
                   // Restore original name if field is empty on blur
                   if (e.target.value.trim().length === 0 && plantBed?.name) {
                     setPlantBedForm(prev => ({ ...prev, name: plantBed.name }))
-                    toast({
-                      title: "Naam hersteld",
-                      description: "De oorspronkelijke naam is hersteld.",
-                    })
+        // Removed toast notification
                   }
                 }}
               />
@@ -2118,15 +2018,9 @@ export default function PlantBedViewPage() {
                     setIsResizeMode(!isResizeMode)
                     setIsDragMode(false)
                     if (!isResizeMode) {
-                      toast({
-                        title: "📏 Grootte aanpassen actief",
-                        description: "Sleep de blauwe hoeken om groter te maken.",
-                      })
+        // Removed toast notification
                     } else {
-                      toast({
-                        title: "Grootte aanpassen gestopt",
-                        description: "Bloem grootte staat nu vast.",
-                      })
+        // Removed toast notification
                     }
                   }}
                   className="flex items-center gap-1"
@@ -2155,10 +2049,7 @@ export default function PlantBedViewPage() {
                         isStandardFlower: !selectedFlower.is_custom
                       })
                       setIsEditingFlower(true)
-                      toast({
-                        title: "✏️ Bloem bewerken",
-                        description: "Wijzig de eigenschappen van deze bloem.",
-                      })
+        // Removed toast notification
                     }
                   }}
                   className="flex items-center gap-1"
@@ -2174,10 +2065,7 @@ export default function PlantBedViewPage() {
                     setSelectedFlower(null)
                     setIsDragMode(false)
                     setIsResizeMode(false)
-                    toast({
-                      title: "✅ Selectie opgeheven",
-                      description: "Klik op een bloem om te selecteren.",
-                    })
+        // Removed toast notification
                   }}
                   className="flex items-center gap-1"
                 >
@@ -2243,13 +2131,40 @@ export default function PlantBedViewPage() {
                 }}
               />
 
-              {/* TEMPORARILY DISABLED FlowerVisualization to debug positioning */}
-              {/* <FlowerVisualization 
-                plantBed={plantBed}
-                plants={flowerPositions}
-                containerWidth={canvasWidth}
-                containerHeight={canvasHeight}
-              /> */}
+              {/* Plantvak boundary visualization */}
+              {(() => {
+                const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
+                if (!dimensions) return null
+                
+                const plantvakWidth = dimensions.lengthPixels
+                const plantvakHeight = dimensions.widthPixels
+                const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+                const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+                
+                return (
+                  <div
+                    className="absolute border-2 border-dashed border-green-400 bg-green-50/20 rounded-lg pointer-events-none"
+                    style={{
+                      left: plantvakStartX,
+                      top: plantvakStartY,
+                      width: plantvakWidth,
+                      height: plantvakHeight,
+                    }}
+                  >
+                    {/* Plantvak name and info - always within the plantvak area */}
+                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border">
+                      <div className="text-sm font-bold text-green-800">
+                        {plantBed.name}
+                      </div>
+                      <div className="text-xs text-green-600">
+                        {plantBed.size} • {flowerPositions.length} bloemen
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
+              {/* FlowerVisualization removed - using interactive overlay instead */}
 
               {/* Interactive overlay for selected flowers */}
               {flowerPositions.map((flower) => {
