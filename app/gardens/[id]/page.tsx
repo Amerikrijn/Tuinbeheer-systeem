@@ -523,12 +523,12 @@ export default function GardenDetailPage() {
     const bedWidth = bed.visual_width || PLANTVAK_MIN_WIDTH
     const bedHeight = bed.visual_height || PLANTVAK_MIN_HEIGHT
     
-    // Allow more flexible positioning with minimal padding
-    const EDGE_PADDING = 5
-    const minX = -bedWidth * 0.3  // Allow partial placement outside canvas
-    const minY = -bedHeight * 0.3  // Allow partial placement outside canvas
-    const maxX = CANVAS_WIDTH - bedWidth * 0.7  // Allow partial placement outside canvas
-    const maxY = CANVAS_HEIGHT - bedHeight * 0.7  // Allow partial placement outside canvas
+    // Allow placement all the way to corners with small safety margin
+    const SAFETY_MARGIN = 10  // Small margin to keep handles accessible
+    const minX = -bedWidth + SAFETY_MARGIN  // Allow almost complete placement outside canvas
+    const minY = -bedHeight + SAFETY_MARGIN  // Allow almost complete placement outside canvas
+    const maxX = CANVAS_WIDTH - SAFETY_MARGIN  // Allow placement to right edge
+    const maxY = CANVAS_HEIGHT - SAFETY_MARGIN  // Allow placement to bottom edge
 
     const x = Math.max(minX, Math.min((clientX - rect.left) / scale - dragOffset.x, maxX))
     const y = Math.max(minY, Math.min((clientY - rect.top) / scale - dragOffset.y, maxY))
@@ -729,9 +729,9 @@ export default function GardenDetailPage() {
     return Math.atan2(deltaY, deltaX) * (180 / Math.PI)
   }, [])
 
-  // Handle rotation interaction
+  // Handle rotation interaction - improved
   const handleRotationMove = useCallback((clientX: number, clientY: number) => {
-    if (!rotatingBed || !canvasRef.current) return
+    if (!rotatingBed || !canvasRef.current || draggedBed) return // Don't rotate while dragging
 
     const canvas = canvasRef.current
     const rect = canvas.getBoundingClientRect()
@@ -750,8 +750,8 @@ export default function GardenDetailPage() {
     // Calculate current angle
     const currentAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
     const deltaAngle = currentAngle - rotationStartAngle
-    // Reduce rotation sensitivity by dividing by 3 (slower rotation)
-    const adjustedDelta = deltaAngle / 3
+    // Improved rotation sensitivity (smoother)
+    const adjustedDelta = deltaAngle / 2
     const newRotation = Math.round(((bed.rotation || 0) + adjustedDelta) % 360)
 
     // Update plant bed rotation
@@ -761,7 +761,7 @@ export default function GardenDetailPage() {
         : b
     ))
     setHasChanges(true)
-  }, [rotatingBed, scale, plantBeds, rotationStartAngle, calculateAngle])
+  }, [rotatingBed, scale, plantBeds, rotationStartAngle, calculateAngle, draggedBed])
 
   // Mouse move handler
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
@@ -1515,11 +1515,12 @@ export default function GardenDetailPage() {
                             <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
                               Geselecteerd
                             </div>
-                            {/* Rotation handle */}
+                            {/* Rotation handle - improved */}
                             <div
-                              className="absolute -top-2 -left-2 w-6 h-6 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center cursor-grab text-xs font-bold shadow-lg border-2 border-white"
+                              className="absolute -top-2 -left-2 w-8 h-8 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center cursor-grab text-sm font-bold shadow-xl border-2 border-white z-20"
                               onMouseDown={(e) => {
                                 e.stopPropagation()
+                                e.preventDefault()
                                 if (!canvasRef.current) return
                                 
                                 const canvas = canvasRef.current
@@ -1536,6 +1537,35 @@ export default function GardenDetailPage() {
                                 setRotationStartAngle(startAngle)
                                 setRotatingBed(bed.id)
                                 setIsRotateMode(true)
+                                
+                                // Stop any dragging when rotating
+                                setDraggedBed(null)
+                                setIsDragMode(false)
+                              }}
+                              onTouchStart={(e) => {
+                                e.stopPropagation()
+                                e.preventDefault()
+                                if (!canvasRef.current) return
+                                
+                                const touch = e.touches[0]
+                                const canvas = canvasRef.current
+                                const rect = canvas.getBoundingClientRect()
+                                const touchX = (touch.clientX - rect.left) / scale
+                                const touchY = (touch.clientY - rect.top) / scale
+                                
+                                const bedWidth = bed.visual_width || metersToPixels(2)
+                                const bedHeight = bed.visual_height || metersToPixels(2)
+                                const centerX = (bed.position_x || 100) + bedWidth / 2
+                                const centerY = (bed.position_y || 100) + bedHeight / 2
+                                
+                                const startAngle = calculateAngle(centerX, centerY, touchX, touchY)
+                                setRotationStartAngle(startAngle)
+                                setRotatingBed(bed.id)
+                                setIsRotateMode(true)
+                                
+                                // Stop any dragging when rotating
+                                setDraggedBed(null)
+                                setIsDragMode(false)
                               }}
                               title="Sleep om te roteren"
                             >
