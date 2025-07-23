@@ -799,7 +799,8 @@ export default function PlantBedViewPage() {
     setSelectedFlower(flower)
     setIsDragMode(false) // Don't automatically enter drag mode
     setIsResizeMode(false)
-    resizeModeRef.current = flowerId
+    setShowResizeInterface(false) // Make sure resize interface is hidden
+    resizeModeRef.current = null // Clear resize mode
     
     // Provide feedback
     toast({
@@ -923,7 +924,8 @@ export default function PlantBedViewPage() {
     setSelectedFlower(flower)
     setIsDragMode(true)
     setIsResizeMode(false)
-    resizeModeRef.current = flowerId
+    setShowResizeInterface(false) // Make sure resize interface is hidden during drag
+    resizeModeRef.current = null // Clear resize mode during drag
     
     toast({
       title: "🚀 Verplaatsen gestart",
