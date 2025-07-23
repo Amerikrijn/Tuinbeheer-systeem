@@ -281,6 +281,7 @@ export default function NewPlantPage() {
                         className={errors.name ? "border-destructive" : ""}
                         required
                         list="standard-flowers"
+                        autoComplete="off"
                       />
                       <datalist id="standard-flowers">
                         {STANDARD_FLOWERS.map((flower) => (
@@ -313,6 +314,7 @@ export default function NewPlantPage() {
                           scientificName: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -328,6 +330,7 @@ export default function NewPlantPage() {
                           variety: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -343,6 +346,7 @@ export default function NewPlantPage() {
                           color: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -359,6 +363,7 @@ export default function NewPlantPage() {
                           height: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -398,6 +403,7 @@ export default function NewPlantPage() {
                           plantingDate: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -413,6 +419,7 @@ export default function NewPlantPage() {
                           expectedHarvestDate: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -429,6 +436,7 @@ export default function NewPlantPage() {
                           wateringFrequency: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -444,6 +452,7 @@ export default function NewPlantPage() {
                           fertilizerSchedule: e.target.value,
                         }))
                       }
+                      autoComplete="off"
                     />
                   </div>
 
@@ -474,6 +483,7 @@ export default function NewPlantPage() {
                         careInstructions: e.target.value,
                       }))
                     }
+                    autoComplete="off"
                   />
                 </div>
 
@@ -491,6 +501,7 @@ export default function NewPlantPage() {
                         notes: e.target.value,
                       }))
                     }
+                    autoComplete="off"
                   />
                 </div>
 
