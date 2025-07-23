@@ -74,8 +74,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       // How many flowers for this specific plant
       const flowerCountForThisPlant = flowersPerPlant + (plantIndex < extraFlowers ? 1 : 0)
       
-      // Fixed flower size - larger to accommodate name text
-      const flowerSize = Math.max(24, Math.min(40, Math.min(usableWidth, usableHeight) / 4))
+      // Fixed flower size - larger to accommodate flower box with name text
+      const flowerSize = Math.max(30, Math.min(50, Math.min(usableWidth, usableHeight) / 3.5))
       
       // Create multiple flowers for this plant
       for (let i = 0; i < flowerCountForThisPlant; i++) {
@@ -156,16 +156,22 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             zIndex: flower.isMainFlower ? 10 : 8,
           }}
         >
-          {/* Small flower emoji without background */}
+          {/* Individual flower box with border */}
           <div
-            className="w-full h-full flex flex-col items-center justify-center"
+            className="w-full h-full border-2 border-gray-300 rounded-lg bg-white/80 backdrop-blur-sm shadow-sm flex flex-col items-center justify-center"
             style={{
-              fontSize: Math.max(16, flower.size * 0.9),
-              filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
+              borderColor: `${flower.color}40`, // Semi-transparent border in flower color
+              backgroundColor: `${flower.color}08`, // Very light background tint
             }}
           >
             {/* Use flower emoji or create a simple flower symbol */}
-            <span className="select-none">
+            <span 
+              className="select-none"
+              style={{
+                fontSize: Math.max(12, flower.size * 0.4),
+                filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
+              }}
+            >
               {flower.emoji && (flower.emoji.includes('🌸') || flower.emoji.includes('🌺') || flower.emoji.includes('🌻') || flower.emoji.includes('🌷') || flower.emoji.includes('🌹') || flower.emoji.includes('💐') || flower.emoji.includes('🌼')) 
                 ? flower.emoji 
                 : '🌸'}
@@ -173,13 +179,14 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             
             {/* Flower name below the emoji */}
             <div 
-              className="text-xs font-medium text-gray-700 mt-1 text-center select-none whitespace-nowrap"
+              className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
               style={{
-                fontSize: Math.max(8, flower.size * 0.3),
-                textShadow: '0 1px 2px rgba(255,255,255,0.8)',
-                maxWidth: flower.size * 1.5,
+                fontSize: Math.max(6, flower.size * 0.2),
+                maxWidth: flower.size * 0.9,
                 overflow: 'hidden',
-                textOverflow: 'ellipsis'
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                lineHeight: '1.1'
               }}
             >
               {flower.name}
