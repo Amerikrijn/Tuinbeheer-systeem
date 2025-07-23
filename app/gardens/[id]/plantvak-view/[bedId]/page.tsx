@@ -1484,6 +1484,7 @@ export default function PlantBedViewPage() {
                         }
                       }}
                       list="standard-flowers-add"
+                      autoComplete="off"
                     />
                     <datalist id="standard-flowers-add">
                       {STANDARD_FLOWERS.map((flower) => (
@@ -1688,6 +1689,7 @@ export default function PlantBedViewPage() {
                         }
                       }}
                       list="standard-flowers-edit"
+                      autoComplete="off"
                     />
                     <datalist id="standard-flowers-edit">
                       {STANDARD_FLOWERS.map((flower) => (
@@ -1712,6 +1714,7 @@ export default function PlantBedViewPage() {
                         placeholder="🌺"
                         maxLength={2}
                         className="text-2xl text-center"
+                        autoComplete="off"
                       />
                       <p className="text-xs text-gray-500 mt-1">Kies een emoji voor je bloem</p>
                     </div>
