@@ -56,13 +56,24 @@ export const parsePlantBedDimensions = (sizeString: string) => {
 export const calculatePlantBedCanvasSize = (sizeString: string) => {
   const dimensions = parsePlantBedDimensions(sizeString)
   if (dimensions) {
-    // Ensure canvas is large enough to accommodate flower fields and expansion
-    const minWidth = 500  // Increased minimum for better flower field support
-    const minHeight = 400 // Increased minimum for better flower field support
+    // Ensure canvas maintains proper aspect ratio and has enough space
+    const padding = PLANTVAK_CANVAS_PADDING
+    const minWidth = 600  // Increased minimum for better aspect ratio
+    const minHeight = 450 // Increased minimum for better aspect ratio
+    
+         // Calculate canvas size maintaining aspect ratio of the plantvak
+     const aspectRatio = dimensions.lengthPixels / dimensions.widthPixels
+     let canvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
+     const canvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
+    
+    // Ensure minimum aspect ratio is maintained
+    if (canvasWidth / canvasHeight < 1.2) {
+      canvasWidth = canvasHeight * 1.2
+    }
     
     return {
-      width: Math.max(minWidth, dimensions.lengthPixels + PLANTVAK_CANVAS_PADDING * 1.5),
-      height: Math.max(minHeight, dimensions.widthPixels + PLANTVAK_CANVAS_PADDING * 1.5 + FLOWER_NAME_HEIGHT)
+      width: canvasWidth,
+      height: canvasHeight + FLOWER_NAME_HEIGHT
     }
   }
   return { width: 700, height: 550 } // Larger default canvas for better flower support
