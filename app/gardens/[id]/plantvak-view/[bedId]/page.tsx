@@ -28,6 +28,7 @@ import {
   Edit,
   Move,
   Maximize2,
+  ChevronDown,
   X,
   Minus,
   Upload,
@@ -70,7 +71,7 @@ const STANDARD_FLOWERS = [
   { name: 'Anjer', color: '#FF1493', emoji: '🌸' },
 ]
 
-const DEFAULT_FLOWER_EMOJI = '🌸'
+const DEFAULT_FLOWER_EMOJI = '🌼'
 
 const DEFAULT_FLOWER_COLORS = [
   '#FF69B4', '#FF4500', '#FFD700', '#9370DB', '#FF1493', 
@@ -1483,8 +1484,10 @@ export default function PlantBedViewPage() {
                           setIsCustomFlower(true)
                         }
                       }}
+                      className="pr-8"
                       autoComplete="off"
                     />
+                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     {/* Show suggestions only when typing and there's input */}
                     {newFlower.name && newFlower.name.length > 0 && (
                       <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
@@ -1710,8 +1713,10 @@ export default function PlantBedViewPage() {
                           }))
                         }
                       }}
+                      className="pr-8"
                       autoComplete="off"
                     />
+                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     {/* Show suggestions only when typing and there's input */}
                     {newFlower.name && newFlower.name.length > 0 && (
                       <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
