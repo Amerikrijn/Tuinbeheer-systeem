@@ -57,6 +57,7 @@ const SCALE_MAX = 3
 const FLOWER_SIZE = FLOWER_SIZE_MEDIUM // Default to medium size (now 45px)
 
 const STANDARD_FLOWERS = [
+  // Klassieke tuinbloemen
   { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
   { name: 'Tulp', color: '#FF4500', emoji: '🌷' },
   { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
@@ -69,6 +70,45 @@ const STANDARD_FLOWERS = [
   { name: 'Begonia', color: '#FF8C69', emoji: '🌸' },
   { name: 'Lelie', color: '#FF69B4', emoji: '🌺' },
   { name: 'Anjer', color: '#FF1493', emoji: '🌸' },
+  
+  // Eenjarige bloemen
+  { name: 'Zinnia', color: '#FF6347', emoji: '🌻' },
+  { name: 'Marigold', color: '#FFA500', emoji: '🌼' },
+  { name: 'Impatiens', color: '#FF69B4', emoji: '🌸' },
+  { name: 'Ageratum', color: '#6495ED', emoji: '🌸' },
+  { name: 'Salvia', color: '#DC143C', emoji: '🌺' },
+  { name: 'Verbena', color: '#9370DB', emoji: '🌸' },
+  { name: 'Lobelia', color: '#4169E1', emoji: '🌸' },
+  { name: 'Alyssum', color: '#FFFFFF', emoji: '🤍' },
+  { name: 'Tagetes', color: '#FFA500', emoji: '🌼' },
+  { name: 'Cosmos', color: '#FFB6C1', emoji: '🌸' },
+  
+  // Vaste planten
+  { name: 'Aster', color: '#9370DB', emoji: '🌸' },
+  { name: 'Rudbeckia', color: '#FFD700', emoji: '🌻' },
+  { name: 'Echinacea', color: '#FF69B4', emoji: '🌸' },
+  { name: 'Delphinium', color: '#4169E1', emoji: '🌸' },
+  { name: 'Phlox', color: '#FF69B4', emoji: '🌸' },
+  { name: 'Sedum', color: '#FF6347', emoji: '🌸' },
+  { name: 'Hosta', color: '#32CD32', emoji: '🌿' },
+  { name: 'Heuchera', color: '#8B4513', emoji: '🌿' },
+  
+  // Voorjaarsbollen
+  { name: 'Hyacint', color: '#9370DB', emoji: '🌷' },
+  { name: 'Krokus', color: '#9370DB', emoji: '🌷' },
+  { name: 'Sneeuwklokje', color: '#FFFFFF', emoji: '🤍' },
+  { name: 'Muscari', color: '#4169E1', emoji: '🌷' },
+  
+  // Zomerbollen
+  { name: 'Gladiool', color: '#FF69B4', emoji: '🌺' },
+  { name: 'Begonia (knol)', color: '#FF6347', emoji: '🌸' },
+  { name: 'Dahlia (knol)', color: '#FF1493', emoji: '🌺' },
+  
+  // Kruiden met bloemen
+  { name: 'Oregano', color: '#9370DB', emoji: '🌿' },
+  { name: 'Tijm', color: '#9370DB', emoji: '🌿' },
+  { name: 'Rozemarijn', color: '#6495ED', emoji: '🌿' },
+  { name: 'Basilicum', color: '#FFFFFF', emoji: '🌿' },
 ]
 
 const DEFAULT_FLOWER_EMOJI = '🌼'
@@ -101,23 +141,68 @@ const FLOWER_STATUS_OPTIONS = [
   const plantName = (name || '').toLowerCase()
   const plantCategory = (category || '').toLowerCase()
   
-  // Match by name - only return emoji for common flower types
+  // Exacte matches voor specifieke bloemen
   if (plantName.includes('roos') || plantName.includes('rose')) return '🌹'
   if (plantName.includes('tulp') || plantName.includes('tulip')) return '🌷'
   if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
   if (plantName.includes('lavendel') || plantName.includes('lavender')) return '🪻'
   if (plantName.includes('dahlia')) return '🌺'
-  if (plantName.includes('chrysant')) return '🌼'
+  if (plantName.includes('chrysant') || plantName.includes('chrysanthemum')) return '🌼'
   if (plantName.includes('narcis') || plantName.includes('daffodil')) return '🌻'
   if (plantName.includes('iris')) return '🌸'
   if (plantName.includes('petunia')) return '🌺'
   if (plantName.includes('begonia')) return '🌸'
+  if (plantName.includes('lelie') || plantName.includes('lily')) return '🌺'
+  if (plantName.includes('anjer') || plantName.includes('carnation')) return '🌸'
+  
+  // Eenjarige bloemen
+  if (plantName.includes('zinnia')) return '🌻'
+  if (plantName.includes('marigold') || plantName.includes('tagetes')) return '🌼'
+  if (plantName.includes('impatiens')) return '🌸'
+  if (plantName.includes('ageratum')) return '🌸'
+  if (plantName.includes('salvia')) return '🌺'
+  if (plantName.includes('verbena')) return '🌸'
+  if (plantName.includes('lobelia')) return '🌸'
+  if (plantName.includes('alyssum')) return '🤍'
+  if (plantName.includes('cosmos')) return '🌸'
+  
+  // Vaste planten
+  if (plantName.includes('aster')) return '🌸'
+  if (plantName.includes('rudbeckia')) return '🌻'
+  if (plantName.includes('echinacea')) return '🌸'
+  if (plantName.includes('delphinium')) return '🌸'
+  if (plantName.includes('phlox')) return '🌸'
+  if (plantName.includes('sedum')) return '🌸'
+  if (plantName.includes('hosta')) return '🌿'
+  if (plantName.includes('heuchera')) return '🌿'
+  
+  // Voorjaarsbollen
+  if (plantName.includes('hyacint') || plantName.includes('hyacinth')) return '🌷'
+  if (plantName.includes('krokus') || plantName.includes('crocus')) return '🌷'
+  if (plantName.includes('sneeuwklokje') || plantName.includes('snowdrop')) return '🤍'
+  if (plantName.includes('muscari')) return '🌷'
+  
+  // Zomerbollen
+  if (plantName.includes('gladiool') || plantName.includes('gladiolus')) return '🌺'
+  
+  // Kruiden
+  if (plantName.includes('oregano')) return '🌿'
+  if (plantName.includes('tijm') || plantName.includes('thyme')) return '🌿'
+  if (plantName.includes('rozemarijn') || plantName.includes('rosemary')) return '🌿'
+  if (plantName.includes('basilicum') || plantName.includes('basil')) return '🌿'
+  if (plantName.includes('peterselie') || plantName.includes('parsley')) return '🌿'
+  if (plantName.includes('bieslook') || plantName.includes('chives')) return '🌿'
+  if (plantName.includes('dille') || plantName.includes('dill')) return '🌿'
+  if (plantName.includes('munt') || plantName.includes('mint')) return '🌿'
   
   // Match by category
   if (plantCategory.includes('roos') || plantCategory.includes('rose')) return '🌹'
   if (plantCategory.includes('tulp')) return '🌷'
   if (plantCategory.includes('kruid') || plantCategory.includes('herb')) return '🌿'
   if (plantCategory.includes('groente') || plantCategory.includes('vegetable')) return '🥬'
+  if (plantCategory.includes('eenjarig') || plantCategory.includes('annual')) return '🌸'
+  if (plantCategory.includes('vast') || plantCategory.includes('perennial')) return '🌸'
+  if (plantCategory.includes('bol') || plantCategory.includes('bulb')) return '🌷'
   
   // Default: no emoji, show name instead
   return undefined
