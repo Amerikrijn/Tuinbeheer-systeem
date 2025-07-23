@@ -62,7 +62,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     }
 
     const instances: FlowerInstance[] = []
-    const padding = 8 // Padding from edges
+    const padding = 12 // Padding from edges - increased for better flower containment
     const usableWidth = containerWidth - (padding * 2)
     const usableHeight = containerHeight - (padding * 2)
 
@@ -86,52 +86,68 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         // Position flowers using improved distribution
         let x, y
         
-        if (flowerCountForThisPlant === 1) {
-          // Single flower - center it
-          x = (usableWidth - flowerSize) / 2 + padding
-          y = (usableHeight - flowerSize) / 2 + padding
-        } else if (flowerCountForThisPlant <= 4) {
-          // Small number - use grid layout
-          const cols = Math.ceil(Math.sqrt(flowerCountForThisPlant))
-          const rows = Math.ceil(flowerCountForThisPlant / cols)
-          const col = i % cols
-          const row = Math.floor(i / cols)
-          
-          x = padding + (col + 0.5) * (usableWidth / cols) - flowerSize / 2
-          y = padding + (row + 0.5) * (usableHeight / rows) - flowerSize / 2
-          
-          // Add natural variation
-          const variation = 12
-          x += ((plant.id.charCodeAt(0) + i * 37) % (variation * 2)) - variation
-          y += ((plant.id.charCodeAt(0) + i * 53) % (variation * 2)) - variation
-        } else {
-          // Many flowers - use spiral/random distribution
-          const seedValue = plant.id.charCodeAt(0) + i * 137.5 // Golden angle for natural distribution
-          const angle = (seedValue * Math.PI / 180) % (2 * Math.PI)
-          
-          // Create zones: some flowers in center, others spread out
-          const zone = i % 3
-          let radiusPercent
-          if (zone === 0) {
-            radiusPercent = 0.1 + ((seedValue * 3) % 30) / 100 // Center zone
-          } else if (zone === 1) {
-            radiusPercent = 0.3 + ((seedValue * 5) % 40) / 100 // Middle zone  
-          } else {
-            radiusPercent = 0.6 + ((seedValue * 7) % 35) / 100 // Outer zone
-          }
-          
-          const maxRadius = Math.min(usableWidth, usableHeight) / 2.2
-          const radius = radiusPercent * maxRadius
-          const centerX = usableWidth / 2 + padding
-          const centerY = usableHeight / 2 + padding
-          
-          x = centerX + Math.cos(angle) * radius - flowerSize / 2
-          y = centerY + Math.sin(angle) * radius - flowerSize / 2
-        }
+                 // Calculate safe area (accounting for flower size)
+         const safeMargin = Math.max(flowerSize / 2, 8) // Ensure flowers don't touch edges
+         const safeWidth = usableWidth - (safeMargin * 2)
+         const safeHeight = usableHeight - (safeMargin * 2)
+         const safeStartX = padding + safeMargin
+         const safeStartY = padding + safeMargin
+         
+         if (flowerCountForThisPlant === 1) {
+           // Single flower - center it
+           x = safeStartX + safeWidth / 2
+           y = safeStartY + safeHeight / 2
+         } else if (flowerCountForThisPlant <= 4) {
+           // Small number - use grid layout
+           const cols = Math.ceil(Math.sqrt(flowerCountForThisPlant))
+           const rows = Math.ceil(flowerCountForThisPlant / cols)
+           const col = i % cols
+           const row = Math.floor(i / cols)
+           
+           x = safeStartX + (col + 0.5) * (safeWidth / cols)
+           y = safeStartY + (row + 0.5) * (safeHeight / rows)
+           
+           // Add natural variation but keep within safe bounds
+           const maxVariation = Math.min(8, safeWidth / (cols * 4), safeHeight / (rows * 4))
+           const variationX = ((plant.id.charCodeAt(0) + i * 37) % (maxVariation * 2)) - maxVariation
+           const variationY = ((plant.id.charCodeAt(0) + i * 53) % (maxVariation * 2)) - maxVariation
+           
+           x += variationX
+           y += variationY
+         } else {
+           // Many flowers - use spiral/random distribution within safe area
+           const seedValue = plant.id.charCodeAt(0) + i * 137.5 // Golden angle for natural distribution
+           const angle = (seedValue * Math.PI / 180) % (2 * Math.PI)
+           
+           // Create zones: some flowers in center, others spread out
+           const zone = i % 3
+           let radiusPercent
+           if (zone === 0) {
+             radiusPercent = 0.1 + ((seedValue * 3) % 25) / 100 // Center zone
+           } else if (zone === 1) {
+             radiusPercent = 0.3 + ((seedValue * 5) % 30) / 100 // Middle zone  
+           } else {
+             radiusPercent = 0.6 + ((seedValue * 7) % 25) / 100 // Outer zone
+           }
+           
+           // Use safe area for radius calculation
+           const maxRadius = Math.min(safeWidth, safeHeight) / 2.5
+           const radius = radiusPercent * maxRadius
+           const centerX = safeStartX + safeWidth / 2
+           const centerY = safeStartY + safeHeight / 2
+           
+           x = centerX + Math.cos(angle) * radius
+           y = centerY + Math.sin(angle) * radius
+         }
         
-        // Keep within bounds
-        x = Math.max(padding, Math.min(x, containerWidth - flowerSize - padding))
-        y = Math.max(padding, Math.min(y, containerHeight - flowerSize - padding))
+        // Keep within bounds with stricter constraints
+        const minX = padding + flowerSize / 2
+        const maxX = containerWidth - padding - flowerSize / 2
+        const minY = padding + flowerSize / 2  
+        const maxY = containerHeight - padding - flowerSize / 2
+        
+        x = Math.max(minX, Math.min(x, maxX))
+        y = Math.max(minY, Math.min(y, maxY))
         
         // Create flower instance
         instances.push({
