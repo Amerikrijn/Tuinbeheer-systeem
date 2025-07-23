@@ -1049,16 +1049,14 @@ export default function PlantBedViewPage() {
       if (!draggedFlowerData) return prev
 
       // Allow navigation over the entire plantvak area (full canvas)
-      // Remove tight plantvak boundary constraints to allow flowers to move freely
-      const margin = 5 // Small margin to prevent flowers from going completely off-screen
-      
+      // Ensure flowers stay within valid canvas boundaries
       const constrainedX = Math.max(
-        margin, 
-        Math.min(newX, canvasWidth - draggedFlowerData.visual_width - margin)
+        0, 
+        Math.min(newX, canvasWidth - draggedFlowerData.visual_width)
       )
       const constrainedY = Math.max(
-        margin, 
-        Math.min(newY, canvasHeight - draggedFlowerData.visual_height - margin)
+        0, 
+        Math.min(newY, canvasHeight - draggedFlowerData.visual_height)
       )
 
       // Only update the specific dragged flower
@@ -1115,30 +1113,68 @@ export default function PlantBedViewPage() {
       try {
         const flower = flowerPositions.find(f => f.id === draggedFlower)
         if (flower) {
-          await updatePlantPosition(draggedFlower, {
-            position_x: flower.position_x,
-            position_y: flower.position_y,
-            visual_width: flower.visual_width,
-            visual_height: flower.visual_height,
-            notes: flower.notes
-          })
+          // Validate positions before saving
+          const isValidPosition = (
+            flower.position_x >= 0 && 
+            flower.position_y >= 0 && 
+            flower.position_x + flower.visual_width <= canvasWidth &&
+            flower.position_y + flower.visual_height <= canvasHeight &&
+            !isNaN(flower.position_x) && 
+            !isNaN(flower.position_y) &&
+            !isNaN(flower.visual_width) && 
+            !isNaN(flower.visual_height)
+          )
+          
+          if (!isValidPosition) {
+            console.warn('Invalid flower position detected, adjusting:', {
+              position_x: flower.position_x,
+              position_y: flower.position_y,
+              visual_width: flower.visual_width,
+              visual_height: flower.visual_height,
+              canvasWidth,
+              canvasHeight
+            })
+            
+            // Adjust invalid positions
+            const adjustedPosition = {
+              position_x: Math.max(0, Math.min(flower.position_x, canvasWidth - flower.visual_width)),
+              position_y: Math.max(0, Math.min(flower.position_y, canvasHeight - flower.visual_height)),
+              visual_width: Math.max(20, Math.min(flower.visual_width, canvasWidth)),
+              visual_height: Math.max(20, Math.min(flower.visual_height, canvasHeight))
+            }
+            
+            // Update local state with corrected position
+            setFlowerPositions(prev => prev.map(f => 
+              f.id === draggedFlower ? { ...f, ...adjustedPosition } : f
+            ))
+            
+            await updatePlantPosition(draggedFlower, {
+              ...adjustedPosition,
+              notes: flower.notes
+            })
+          } else {
+            await updatePlantPosition(draggedFlower, {
+              position_x: flower.position_x,
+              position_y: flower.position_y,
+              visual_width: flower.visual_width,
+              visual_height: flower.visual_height,
+              notes: flower.notes
+            })
+          }
           
           setHasChanges(false)
           
-          // Show save confirmation only once per session
-          if (!sessionStorage.getItem('flowerSaveShown')) {
-            toast({
-              title: "✅ Bloem verplaatst",
-              description: "Positie automatisch opgeslagen!",
-            })
-            sessionStorage.setItem('flowerSaveShown', 'true')
-          }
+          toast({
+            title: "✅ Bloem verplaatst",
+            description: "Positie automatisch opgeslagen!",
+          })
         }
       } catch (error) {
         console.error("Error auto-saving flower position:", error)
+        console.error("Full error details:", error)
         toast({
           title: "❌ Fout bij opslaan",
-          description: "Positie kon niet worden opgeslagen. Probeer opnieuw.",
+          description: `Positie kon niet worden opgeslagen: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
           variant: "destructive",
         })
       }
@@ -1151,7 +1187,7 @@ export default function PlantBedViewPage() {
     setIsResizeMode(false)
     setSelectedFlower(null)
     resizeModeRef.current = null
-  }, [draggedFlower, flowerPositions, toast])
+  }, [draggedFlower, flowerPositions, canvasWidth, canvasHeight, toast])
 
   // Legacy mouse up handler
   const onMouseUp = useCallback(() => {
