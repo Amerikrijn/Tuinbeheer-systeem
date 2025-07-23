@@ -1443,70 +1443,59 @@ export default function PlantBedViewPage() {
               </DialogHeader>
               <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2 bg-white">
                 <div className="grid gap-2">
-                  <label className="text-sm font-medium">
-                    Bloem type *
-                  </label>
-                  <Select 
-                    value={newFlower.isStandardFlower ? "true" : "false"} 
-                    onValueChange={(value) => {
-                      const isStandard = value === "true"
-                      setNewFlower(prev => ({
-                        ...prev,
-                        isStandardFlower: isStandard,
-                        name: isStandard ? '' : prev.name,
-                        emoji: DEFAULT_FLOWER_EMOJI,
-                        type: ''
-                      }))
-                      setIsCustomFlower(!isStandard)
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecteer bloem type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white">
-                      <SelectItem value="true">Standaard bloem</SelectItem>
-                      <SelectItem value="false">Aangepaste bloem</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid gap-2">
                   <label htmlFor="name" className="text-sm font-medium">
                     Bloemnaam *
                   </label>
-                  {newFlower.isStandardFlower ? (
-                    <Select value={newFlower.name} onValueChange={(value) => {
-                      const selectedFlower = STANDARD_FLOWERS.find(f => f.name === value)
-                      setNewFlower(prev => ({ 
-                        ...prev, 
-                        name: value,
-                        emoji: selectedFlower?.emoji || DEFAULT_FLOWER_EMOJI,
-                        color: selectedFlower?.color || prev.color,
-                        type: value
-                      }))
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer standaard bloem" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {STANDARD_FLOWERS.map((flower) => (
-                          <SelectItem key={flower.name} value={flower.name}>
-                            <div className="flex items-center gap-2">
-                              <span>{flower.emoji}</span>
-                              <span>{flower.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
+                  <div className="relative">
                     <Input
                       id="name"
+                      placeholder="Typ een nieuwe bloem of kies uit de lijst..."
                       value={newFlower.name}
-                      onChange={(e) => setNewFlower(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Bijvoorbeeld: Aangepaste bloem, Speciale variëteit"
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setNewFlower(prev => ({
+                          ...prev,
+                          name: value,
+                        }))
+                        
+                        // Check if it matches a standard flower
+                        const selectedFlower = STANDARD_FLOWERS.find(f => 
+                          f.name.toLowerCase() === value.toLowerCase()
+                        )
+                        if (selectedFlower) {
+                          setNewFlower(prev => ({
+                            ...prev,
+                            name: value,
+                            emoji: selectedFlower.emoji,
+                            color: selectedFlower.color,
+                            type: value,
+                            isStandardFlower: true,
+                          }))
+                          setIsCustomFlower(false)
+                        } else {
+                          setNewFlower(prev => ({
+                            ...prev,
+                            name: value,
+                            emoji: prev.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : prev.emoji,
+                            type: '',
+                            isStandardFlower: false,
+                          }))
+                          setIsCustomFlower(true)
+                        }
+                      }}
+                      list="standard-flowers-add"
                     />
-                  )}
+                    <datalist id="standard-flowers-add">
+                      {STANDARD_FLOWERS.map((flower) => (
+                        <option key={flower.name} value={flower.name}>
+                          {flower.emoji} {flower.name}
+                        </option>
+                      ))}
+                    </datalist>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Tip: Begin te typen om uit standaard bloemen te kiezen, of typ een eigen naam
+                  </p>
                 </div>
 
                 <div className="grid gap-2">
@@ -1663,52 +1652,57 @@ export default function PlantBedViewPage() {
                   <label htmlFor="edit-name" className="text-sm font-medium">
                     Bloemnaam *
                   </label>
-                  <Input
-                    id="edit-name"
-                    value={newFlower.name}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Bijvoorbeeld: Rode Roos, Gele Tulp, Zonnebloem"
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="editCustomFlower"
-                    checked={isEditCustomFlower}
-                    onChange={(e) => setIsEditCustomFlower(e.target.checked)}
-                  />
-                  <label htmlFor="editCustomFlower" className="text-sm font-medium">
-                    Aangepaste bloem maken
-                  </label>
-                </div>
-
-                {!isEditCustomFlower ? (
-                  <div>
-                    <label className="text-sm font-medium">Type (optioneel)</label>
-                    <Select value={newFlower.type} onValueChange={(value) => {
-                      const selectedType = STANDARD_FLOWERS.find(type => type.name === value)
-                      setNewFlower(prev => ({ 
-                        ...prev, 
-                        type: value,
-                        color: selectedType?.color || prev.color
-                      }))
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer bloem type (optioneel)" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {STANDARD_FLOWERS.map((type) => (
-                          <SelectItem key={type.name} value={type.name}>
-                            <div className="flex items-center gap-2">
-                              <span>{type.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="relative">
+                    <Input
+                      id="edit-name"
+                      placeholder="Typ een nieuwe bloem of kies uit de lijst..."
+                      value={newFlower.name}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setNewFlower(prev => ({
+                          ...prev,
+                          name: value,
+                        }))
+                        
+                        // Check if it matches a standard flower
+                        const selectedFlower = STANDARD_FLOWERS.find(f => 
+                          f.name.toLowerCase() === value.toLowerCase()
+                        )
+                        if (selectedFlower) {
+                          setNewFlower(prev => ({
+                            ...prev,
+                            name: value,
+                            emoji: selectedFlower.emoji,
+                            color: selectedFlower.color,
+                            type: value,
+                            isStandardFlower: true,
+                          }))
+                        } else {
+                          setNewFlower(prev => ({
+                            ...prev,
+                            name: value,
+                            emoji: prev.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : prev.emoji,
+                            type: '',
+                            isStandardFlower: false,
+                          }))
+                        }
+                      }}
+                      list="standard-flowers-edit"
+                    />
+                    <datalist id="standard-flowers-edit">
+                      {STANDARD_FLOWERS.map((flower) => (
+                        <option key={flower.name} value={flower.name}>
+                          {flower.emoji} {flower.name}
+                        </option>
+                      ))}
+                    </datalist>
                   </div>
-                ) : (
+                  <p className="text-xs text-gray-500">
+                    Tip: Begin te typen om uit standaard bloemen te kiezen, of typ een eigen naam
+                  </p>
+                </div>
+
+                {!newFlower.isStandardFlower && (
                   <div className="space-y-3">
                     <div>
                       <label className="text-sm font-medium">Emoji (optioneel)</label>
@@ -1721,7 +1715,6 @@ export default function PlantBedViewPage() {
                       />
                       <p className="text-xs text-gray-500 mt-1">Kies een emoji voor je bloem</p>
                     </div>
-
                   </div>
                 )}
 
