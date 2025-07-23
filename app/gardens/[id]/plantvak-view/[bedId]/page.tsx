@@ -457,7 +457,7 @@ export default function PlantBedViewPage() {
 
       const flowerSize = getFlowerSize(newFlower.size)
       
-      // Position within plantvak boundaries (not canvas boundaries)
+      // Position within plantvak boundaries with proper spacing for flower + name
       const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
       let initialX, initialY
       
@@ -468,44 +468,38 @@ export default function PlantBedViewPage() {
         const plantvakStartX = (canvasWidth - plantvakWidth) / 2
         const plantvakStartY = (canvasHeight - plantvakHeight) / 2
         
-        const margin = 25
-        const usableWidth = plantvakWidth - (margin * 2) - flowerSize
-        const usableHeight = plantvakHeight - (margin * 2) - flowerSize
+        // Account for flower size + name height + margins
+        const margin = 15  // Smaller margin for better space usage
+        const nameHeight = 20  // Space for flower name below the flower
+        const totalFlowerHeight = flowerSize + nameHeight
         
-        if (usableWidth <= 0 || usableHeight <= 0) {
-          // Fallback to center if not enough space
-          initialX = plantvakStartX + (plantvakWidth - flowerSize) / 2
-          initialY = plantvakStartY + (plantvakHeight - flowerSize) / 2
+        // Calculate usable space within plantvak
+        const usableWidth = plantvakWidth - (margin * 2)
+        const usableHeight = plantvakHeight - (margin * 2)
+        
+        // Ensure flower fits within plantvak with name
+        const maxFlowerWidth = Math.min(flowerSize, usableWidth)
+        const maxFlowerHeight = Math.min(totalFlowerHeight, usableHeight)
+        
+        if (usableWidth <= 0 || usableHeight <= 0 || maxFlowerWidth <= 0 || maxFlowerHeight <= 0) {
+          // Fallback to center if not enough space - use smaller flower if needed
+          const adjustedFlowerSize = Math.min(flowerSize, Math.max(20, Math.min(usableWidth, usableHeight - nameHeight)))
+          initialX = plantvakStartX + (plantvakWidth - adjustedFlowerSize) / 2
+          initialY = plantvakStartY + (plantvakHeight - adjustedFlowerSize - nameHeight) / 2
         } else {
-          const existingFlowers = flowerPositions.length
-          
-          if (existingFlowers === 0) {
-            // First flower goes in center of plantvak
-            initialX = plantvakStartX + (plantvakWidth - flowerSize) / 2
-            initialY = plantvakStartY + (plantvakHeight - flowerSize) / 2
-          } else if (existingFlowers < 4) {
-            // For first few flowers, use grid positioning within plantvak
-            const cols = Math.ceil(Math.sqrt(existingFlowers + 1))
-            const rows = Math.ceil((existingFlowers + 1) / cols)
-            const col = existingFlowers % cols
-            const row = Math.floor(existingFlowers / cols)
-            
-            initialX = plantvakStartX + margin + (col + 0.5) * (usableWidth / cols)
-            initialY = plantvakStartY + margin + (row + 0.5) * (usableHeight / rows)
-          } else {
-            // For more flowers, use random positioning within plantvak
-            initialX = plantvakStartX + margin + Math.random() * usableWidth
-            initialY = plantvakStartY + margin + Math.random() * usableHeight
-          }
+          // Center the flower in the plantvak with proper spacing for name
+          initialX = plantvakStartX + (plantvakWidth - flowerSize) / 2
+          initialY = plantvakStartY + (plantvakHeight - totalFlowerHeight) / 2
         }
-      } else {
-        // Fallback to canvas positioning if no plantvak dimensions
-        const margin = 30
-        const usableWidth = canvasWidth - (margin * 2) - flowerSize
-        const usableHeight = canvasHeight - (margin * 2) - flowerSize
         
-        initialX = margin + Math.random() * Math.max(0, usableWidth)
-        initialY = margin + Math.random() * Math.max(0, usableHeight)
+        // Ensure flower is not placed outside plantvak boundaries
+        initialX = Math.max(plantvakStartX + margin, Math.min(initialX, plantvakStartX + plantvakWidth - flowerSize - margin))
+        initialY = Math.max(plantvakStartY + margin, Math.min(initialY, plantvakStartY + plantvakHeight - totalFlowerHeight - margin))
+        
+      } else {
+        // Fallback to canvas center if no plantvak dimensions
+        initialX = (canvasWidth - flowerSize) / 2
+        initialY = (canvasHeight - flowerSize - 20) / 2  // Account for name height
       }
       
       const newPlant = await createVisualPlant({
