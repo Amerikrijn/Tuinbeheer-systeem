@@ -203,7 +203,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
   })
 
     setFlowerInstances(instances)
-  }, [plants, containerWidth, containerHeight, calculateFlowersPerPlant])
+  }, [plants, containerWidth, containerHeight, calculateFlowersPerPlant, plantBed.size])
 
   // Render nothing if no plants
   if (plants.length === 0) {

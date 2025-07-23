@@ -597,7 +597,7 @@ export default function GardenDetailPage() {
     } catch (error) {
       console.error("Error adding more flowers:", error)
     }
-  }, [toast, createSampleFlowers])
+  }, [createSampleFlowers])
 
   // Handle mouse up (end drag or resize) with auto-save
   const handleMouseUp = useCallback(async () => {
