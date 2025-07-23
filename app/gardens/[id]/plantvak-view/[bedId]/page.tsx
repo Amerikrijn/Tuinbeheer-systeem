@@ -808,65 +808,31 @@ export default function PlantBedViewPage() {
     })
   }, [flowerPositions, toast])
 
-  // Handle double click - enlarge the flower
-  const handleFlowerDoubleClick = useCallback(async (flower: PlantWithPosition) => {
+  // Handle double click - show plus/minus resize controls
+  const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
     console.log('Double click on flower:', flower.name)
     
-    // Calculate new size - increase by 50% or set to minimum of 80px
-    const currentSize = Math.min(flower.visual_width, flower.visual_height)
-    const enlargeAmount = Math.max(20, currentSize * 0.5) // Increase by 50% or at least 20px
-    const maxSize = Math.min(canvasWidth * 0.8, canvasHeight * 0.8) // Can grow to 80% of canvas
-    const newSize = Math.min(maxSize, currentSize + enlargeAmount)
+    // Get flower position on screen for positioning the controls
+    const containerRect = containerRef.current?.getBoundingClientRect()
+    if (!containerRect) return
+
+    const flowerScreenX = containerRect.left + (flower.position_x * scale) + (flower.visual_width * scale) / 2
+    const flowerScreenY = containerRect.top + (flower.position_y * scale) + (flower.visual_height * scale) / 2
+
+    setSelectedFlower(flower)
+    setShowResizeInterface(true)
+    setResizeInterfacePosition({ 
+      x: flowerScreenX, 
+      y: flowerScreenY 
+    })
+    setIsDragMode(false)
+    setIsResizeMode(false)
     
-    // Don't enlarge if already at max size
-    if (currentSize >= maxSize) {
-      toast({
-        title: "🌸 Maximum grootte bereikt",
-        description: `${flower.name} is al op maximale grootte voor dit plantvak.`,
-      })
-      return
-    }
-
-    try {
-      // Update the flower size
-      await updatePlantPosition(flower.id, {
-        position_x: flower.position_x,
-        position_y: flower.position_y,
-        visual_width: newSize,
-        visual_height: newSize,
-        notes: flower.notes
-      })
-
-      // Update local state
-      const updatedFlower = {
-        ...flower,
-        visual_width: newSize,
-        visual_height: newSize
-      }
-
-      setFlowerPositions(prev => prev.map(f => 
-        f.id === flower.id ? updatedFlower : f
-      ))
-      setSelectedFlower(updatedFlower)
-      setHasChanges(true)
-
-      // Show success message
-      const isLargeField = newSize > 100
-      toast({
-        title: isLargeField ? "🌸 Bloemenveld vergroot!" : "✅ Bloem vergroot",
-        description: isLargeField 
-          ? `${flower.name} is nu een groot bloemenveld van ${Math.round(newSize)}px!`
-          : `${flower.name} is vergroot naar ${Math.round(newSize)}px.`,
-      })
-    } catch (error) {
-      console.error('Failed to enlarge flower:', error)
-      toast({
-        title: "❌ Fout",
-        description: "Kon bloem niet vergroten. Probeer opnieuw.",
-        variant: "destructive",
-      })
-    }
-  }, [canvasWidth, canvasHeight, toast])
+    toast({
+      title: "🔧 Grootte aanpassen",
+      description: "Gebruik de + en - knoppen om de bloem groter of kleiner te maken.",
+    })
+  }, [scale, toast])
 
   // Handle flower resize via interface - supports flower fields
   const handleFlowerResize = useCallback(async (flowerId: string, sizeChange: number) => {
@@ -1150,6 +1116,8 @@ export default function PlantBedViewPage() {
   const onMouseUp = useCallback(() => {
     handlePointerUp()
   }, [handlePointerUp])
+
+
 
   // Save all flower positions to database
   const handleSavePositions = useCallback(async () => {
