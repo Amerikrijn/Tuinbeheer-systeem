@@ -98,51 +98,33 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
       
       if (hasCustomPosition && hasCustomSize) {
-        // Use exact position and size from plantvak-view
-        const plantWidth = plant.visual_width!
-        const plantHeight = plant.visual_height!
+        // Use exact position and size from plantvak-view - SIMPLIFIED APPROACH
         const plantX = plant.position_x!
         const plantY = plant.position_y!
         
-        // Get the original plantvak canvas dimensions from plantvak-view
-        let originalCanvasWidth = 600 // Default fallback
-        let originalCanvasHeight = 450 // Default fallback
+        // Convert plantvak coordinates directly to container coordinates
+        // Assume plantvak-view uses a coordinate system where (0,0) is top-left
+        // and coordinates are in pixels relative to the plantvak canvas
         
-        if (plantBed.size) {
-          // Parse plantvak size to get original canvas dimensions
-          const sizeMatch = plantBed.size.match(/(\d+(?:\.\d+)?)\s*[xX×]\s*(\d+(?:\.\d+)?)/)
-          if (sizeMatch) {
-            const lengthM = parseFloat(sizeMatch[1])
-            const widthM = parseFloat(sizeMatch[2])
-            // Use same calculation as in plantvak-view: 80px per meter + 200px padding
-            originalCanvasWidth = lengthM * 80 + 200
-            originalCanvasHeight = widthM * 80 + 200
-          }
-        }
+        // Simple proportional scaling - map plantvak coordinates to container
+        const scaleX = containerWidth / 600  // Assume 600px plantvak width
+        const scaleY = containerHeight / 400 // Assume 400px plantvak height
         
-        // Calculate scaling factors to fit the flower in the current container
-        const scaleX = containerWidth / originalCanvasWidth
-        const scaleY = containerHeight / originalCanvasHeight
+        const finalX = plantX * scaleX
+        const finalY = plantY * scaleY
         
-        // Scale the position and size proportionally
-        const scaledX = plantX * scaleX
-        const scaledY = plantY * scaleY
-        const scaledWidth = plantWidth * scaleX
-        const scaledHeight = plantHeight * scaleY
+        // Make flowers much bigger - at least 10% of container size
+        const flowerSize = Math.max(32, Math.min(containerWidth, containerHeight) * 0.12)
         
-        // Calculate flower size - make them much bigger and more proportional
-        const baseSize = Math.min(containerWidth, containerHeight) * 0.08 // 8% of container size
-        const flowerSize = Math.max(24, Math.min(64, baseSize))
-        
-        // Position the flower at its exact scaled location - use the actual position from plantvak-view
+        // Position the flower exactly where it should be
         instances.push({
           id: `${plant.id}-flower-exact`,
           name: plant.name,
           color: plant.color || '#FF69B4',
           emoji: getPlantEmoji(plant.name, plant.emoji),
           size: flowerSize,
-          x: scaledX, // Use exact scaled position from plantvak-view
-          y: scaledY,
+          x: finalX,
+          y: finalY,
           opacity: 1,
           rotation: 0,
           isMainFlower: true,
