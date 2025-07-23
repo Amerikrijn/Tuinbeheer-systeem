@@ -1106,93 +1106,71 @@ export default function PlantBedViewPage() {
     setHasChanges(true)
   }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
 
-  // Handle drag end with auto-save
-  const handlePointerUp = useCallback(async () => {
+  // Handle drag end - just stop dragging, don't auto-save (like garden behavior)
+  const handlePointerUp = useCallback(() => {
     if (draggedFlower) {
-      // Auto-save the flower position immediately
-      try {
-        const flower = flowerPositions.find(f => f.id === draggedFlower)
-        if (flower) {
-          // Validate positions before saving
-          const isValidPosition = (
-            flower.position_x >= 0 && 
-            flower.position_y >= 0 && 
-            flower.position_x + flower.visual_width <= canvasWidth &&
-            flower.position_y + flower.visual_height <= canvasHeight &&
-            !isNaN(flower.position_x) && 
-            !isNaN(flower.position_y) &&
-            !isNaN(flower.visual_width) && 
-            !isNaN(flower.visual_height)
-          )
-          
-          if (!isValidPosition) {
-            console.warn('Invalid flower position detected, adjusting:', {
-              position_x: flower.position_x,
-              position_y: flower.position_y,
-              visual_width: flower.visual_width,
-              visual_height: flower.visual_height,
-              canvasWidth,
-              canvasHeight
-            })
-            
-            // Adjust invalid positions
-            const adjustedPosition = {
-              position_x: Math.max(0, Math.min(flower.position_x, canvasWidth - flower.visual_width)),
-              position_y: Math.max(0, Math.min(flower.position_y, canvasHeight - flower.visual_height)),
-              visual_width: Math.max(20, Math.min(flower.visual_width, canvasWidth)),
-              visual_height: Math.max(20, Math.min(flower.visual_height, canvasHeight))
-            }
-            
-            // Update local state with corrected position
-            setFlowerPositions(prev => prev.map(f => 
-              f.id === draggedFlower ? { ...f, ...adjustedPosition } : f
-            ))
-            
-            await updatePlantPosition(draggedFlower, {
-              ...adjustedPosition,
-              notes: flower.notes
-            })
-          } else {
-            await updatePlantPosition(draggedFlower, {
-              position_x: flower.position_x,
-              position_y: flower.position_y,
-              visual_width: flower.visual_width,
-              visual_height: flower.visual_height,
-              notes: flower.notes
-            })
-          }
-          
-          setHasChanges(false)
-          
-          toast({
-            title: "✅ Bloem verplaatst",
-            description: "Positie automatisch opgeslagen!",
-          })
-        }
-      } catch (error) {
-        console.error("Error auto-saving flower position:", error)
-        console.error("Full error details:", error)
-        toast({
-          title: "❌ Fout bij opslaan",
-          description: `Positie kon niet worden opgeslagen: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
-          variant: "destructive",
-        })
-      }
+      // Mark that we have changes but don't auto-save yet
+      setHasChanges(true)
+      
+      toast({
+        title: "✅ Bloem verplaatst",
+        description: "Klik 'Opslaan' om de nieuwe positie vast te leggen.",
+      })
     }
     
-    // Reset all drag and selection states - stop moving and deselect
+    // Reset all drag states - stop moving but keep selection
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
     setIsDragMode(false)
     setIsResizeMode(false)
-    setSelectedFlower(null)
-    resizeModeRef.current = null
-  }, [draggedFlower, flowerPositions, canvasWidth, canvasHeight, toast])
+    // Keep selectedFlower so user can see what was moved
+  }, [draggedFlower, toast])
 
   // Legacy mouse up handler
   const onMouseUp = useCallback(() => {
     handlePointerUp()
   }, [handlePointerUp])
+
+  // Save all flower positions to database
+  const handleSavePositions = useCallback(async () => {
+    if (!hasChanges) {
+      toast({
+        title: "Geen wijzigingen",
+        description: "Er zijn geen posities om op te slaan.",
+      })
+      return
+    }
+
+    try {
+      // Save all flower positions that have been moved
+      const savePromises = flowerPositions.map(async (flower) => {
+        return await updatePlantPosition(flower.id, {
+          position_x: flower.position_x,
+          position_y: flower.position_y,
+          visual_width: flower.visual_width,
+          visual_height: flower.visual_height,
+          notes: flower.notes
+        })
+      })
+
+      await Promise.all(savePromises)
+      
+      setHasChanges(false)
+      setSelectedFlower(null)
+      
+      toast({
+        title: "✅ Posities opgeslagen",
+        description: "Alle bloemenposities zijn succesvol opgeslagen.",
+      })
+    } catch (error) {
+      console.error("Error saving flower positions:", error)
+      toast({
+        title: "❌ Fout bij opslaan",
+        description: `Kon posities niet opslaan: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
+        variant: "destructive",
+      })
+    }
+  }, [hasChanges, flowerPositions, toast])
 
   // Handle click outside to deselect - unified for mouse and touch
   const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
@@ -1455,6 +1433,16 @@ export default function PlantBedViewPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {hasChanges && (
+            <Button
+              onClick={handleSavePositions}
+              className="bg-green-600 hover:bg-green-700"
+              size="sm"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Opslaan
+            </Button>
+          )}
           <Dialog open={isAddingFlower} onOpenChange={(open) => {
             setIsAddingFlower(open)
             if (!open) {
