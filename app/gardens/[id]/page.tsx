@@ -922,7 +922,6 @@ export default function GardenDetailPage() {
             soil_type: ''
           })
         // Removed toast notification
-          })
         }
       }
     } catch (error) {
