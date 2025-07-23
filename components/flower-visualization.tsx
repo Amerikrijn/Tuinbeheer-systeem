@@ -102,19 +102,13 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const plantX = plant.position_x!
         const plantY = plant.position_y!
         
-        // Convert plantvak coordinates directly to container coordinates
-        // Assume plantvak-view uses a coordinate system where (0,0) is top-left
-        // and coordinates are in pixels relative to the plantvak canvas
+        // DIRECT 1:1 mapping - no complex scaling
+        // Just use the exact percentage position from plantvak-view
+        const finalX = (plantX / 600) * containerWidth  // Direct percentage mapping
+        const finalY = (plantY / 400) * containerHeight // Direct percentage mapping
         
-        // Simple proportional scaling - map plantvak coordinates to container
-        const scaleX = containerWidth / 600  // Assume 600px plantvak width
-        const scaleY = containerHeight / 400 // Assume 400px plantvak height
-        
-        const finalX = plantX * scaleX
-        const finalY = plantY * scaleY
-        
-        // Make flowers much bigger - at least 10% of container size
-        const flowerSize = Math.max(32, Math.min(containerWidth, containerHeight) * 0.12)
+        // Make flowers MUCH bigger - 15% of container size minimum
+        const flowerSize = Math.max(48, Math.min(containerWidth, containerHeight) * 0.15)
         
         // Position the flower exactly where it should be
         instances.push({
