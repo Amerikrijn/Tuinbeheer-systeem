@@ -74,80 +74,46 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       // How many flowers for this specific plant
       const flowerCountForThisPlant = flowersPerPlant + (plantIndex < extraFlowers ? 1 : 0)
       
-      // Base flower size - smaller so multiple fit nicely
-      const baseFlowerSize = Math.max(12, Math.min(24, Math.min(usableWidth, usableHeight) / 8))
+      // Fixed flower size - smaller and consistent
+      const flowerSize = Math.max(16, Math.min(20, Math.min(usableWidth, usableHeight) / 6))
       
       // Create multiple flowers for this plant
       for (let i = 0; i < flowerCountForThisPlant; i++) {
-        // Vary flower size slightly for natural look
-        const sizeVariation = 0.8 + (((plant.id.charCodeAt(0) + i * 17) % 40) / 100) // 0.8 to 1.2 multiplier
-        const flowerSize = baseFlowerSize * sizeVariation
-        
-        // Position flowers using improved distribution
+        // Simple grid-based positioning that ALWAYS stays within bounds
         let x, y
         
-                 // Calculate safe area (accounting for flower size)
-         const safeMargin = Math.max(flowerSize / 2, 8) // Ensure flowers don't touch edges
-         const safeWidth = usableWidth - (safeMargin * 2)
-         const safeHeight = usableHeight - (safeMargin * 2)
-         const safeStartX = padding + safeMargin
-         const safeStartY = padding + safeMargin
-         
-         if (flowerCountForThisPlant === 1) {
-           // Single flower - center it
-           x = safeStartX + safeWidth / 2
-           y = safeStartY + safeHeight / 2
-         } else if (flowerCountForThisPlant <= 4) {
-           // Small number - use grid layout
-           const cols = Math.ceil(Math.sqrt(flowerCountForThisPlant))
-           const rows = Math.ceil(flowerCountForThisPlant / cols)
-           const col = i % cols
-           const row = Math.floor(i / cols)
-           
-           x = safeStartX + (col + 0.5) * (safeWidth / cols)
-           y = safeStartY + (row + 0.5) * (safeHeight / rows)
-           
-           // Add natural variation but keep within safe bounds
-           const maxVariation = Math.min(8, safeWidth / (cols * 4), safeHeight / (rows * 4))
-           const variationX = ((plant.id.charCodeAt(0) + i * 37) % (maxVariation * 2)) - maxVariation
-           const variationY = ((plant.id.charCodeAt(0) + i * 53) % (maxVariation * 2)) - maxVariation
-           
-           x += variationX
-           y += variationY
-         } else {
-           // Many flowers - use spiral/random distribution within safe area
-           const seedValue = plant.id.charCodeAt(0) + i * 137.5 // Golden angle for natural distribution
-           const angle = (seedValue * Math.PI / 180) % (2 * Math.PI)
-           
-           // Create zones: some flowers in center, others spread out
-           const zone = i % 3
-           let radiusPercent
-           if (zone === 0) {
-             radiusPercent = 0.1 + ((seedValue * 3) % 25) / 100 // Center zone
-           } else if (zone === 1) {
-             radiusPercent = 0.3 + ((seedValue * 5) % 30) / 100 // Middle zone  
-           } else {
-             radiusPercent = 0.6 + ((seedValue * 7) % 25) / 100 // Outer zone
-           }
-           
-           // Use safe area for radius calculation
-           const maxRadius = Math.min(safeWidth, safeHeight) / 2.5
-           const radius = radiusPercent * maxRadius
-           const centerX = safeStartX + safeWidth / 2
-           const centerY = safeStartY + safeHeight / 2
-           
-           x = centerX + Math.cos(angle) * radius
-           y = centerY + Math.sin(angle) * radius
-         }
+        if (flowerCountForThisPlant === 1) {
+          // Single flower - center it perfectly
+          x = containerWidth / 2
+          y = containerHeight / 2
+        } else {
+          // Multiple flowers - use simple grid with guaranteed bounds
+          const cols = Math.ceil(Math.sqrt(flowerCountForThisPlant))
+          const rows = Math.ceil(flowerCountForThisPlant / cols)
+          const col = i % cols
+          const row = Math.floor(i / cols)
+          
+          // Calculate grid cell size with proper margins
+          const cellWidth = usableWidth / cols
+          const cellHeight = usableHeight / rows
+          
+          // Position in center of each grid cell
+          x = padding + (col * cellWidth) + (cellWidth / 2)
+          y = padding + (row * cellHeight) + (cellHeight / 2)
+          
+          // Add small random offset but keep within cell bounds
+          const maxOffset = Math.min(8, cellWidth / 4, cellHeight / 4)
+          const offsetX = ((plant.id.charCodeAt(0) + i * 37) % (maxOffset * 2)) - maxOffset
+          const offsetY = ((plant.id.charCodeAt(0) + i * 53) % (maxOffset * 2)) - maxOffset
+          
+          x += offsetX
+          y += offsetY
+        }
         
-        // Keep within bounds with stricter constraints
-        const minX = padding + flowerSize / 2
-        const maxX = containerWidth - padding - flowerSize / 2
-        const minY = padding + flowerSize / 2  
-        const maxY = containerHeight - padding - flowerSize / 2
-        
-        x = Math.max(minX, Math.min(x, maxX))
-        y = Math.max(minY, Math.min(y, maxY))
+        // FINAL SAFETY CHECK - absolutely ensure flowers stay within container
+        const halfSize = flowerSize / 2
+        x = Math.max(halfSize + padding, Math.min(x, containerWidth - halfSize - padding))
+        y = Math.max(halfSize + padding, Math.min(y, containerHeight - halfSize - padding))
         
         // Create flower instance
         instances.push({
@@ -158,8 +124,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           size: flowerSize,
           x,
           y,
-          opacity: 0.8 + (((plant.id.charCodeAt(0) + i * 23) % 20) / 100), // 0.8 to 1.0
-          rotation: (plant.id.charCodeAt(0) + i * 91) % 360,
+          opacity: 1,
+          rotation: 0,
           isMainFlower: i === 0, // First flower of each plant is "main"
           canFillContainer: false
         })
