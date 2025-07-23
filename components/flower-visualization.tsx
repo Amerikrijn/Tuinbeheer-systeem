@@ -130,8 +130,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const scaledWidth = plantWidth * scaleX
         const scaledHeight = plantHeight * scaleY
         
-        // Calculate flower size based on scaled dimensions
-        const flowerSize = Math.max(8, Math.min(24, Math.min(scaledWidth, scaledHeight) * 0.8))
+        // Calculate flower size based on scaled dimensions - make them bigger to match plantvak-view
+        const flowerSize = Math.max(16, Math.min(48, Math.min(scaledWidth, scaledHeight) * 1.2))
         
         // Position the flower at its exact scaled location
         instances.push({
@@ -167,8 +167,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         // Calculate how many flowers should be in this specific plant box
         const flowersInThisPlant = calculateFlowersPerPlant(scaledWidth, scaledHeight)
         
-        // Flower size within this plant box
-        const flowerSize = Math.max(8, Math.min(20, Math.min(scaledWidth, scaledHeight) / Math.ceil(Math.sqrt(flowersInThisPlant)) / 1.2))
+        // Flower size within this plant box - make them bigger
+        const flowerSize = Math.max(12, Math.min(32, Math.min(scaledWidth, scaledHeight) / Math.ceil(Math.sqrt(flowersInThisPlant)) / 0.8))
         
         // Create flowers within this plant's boundaries
         for (let i = 0; i < flowersInThisPlant; i++) {
@@ -226,8 +226,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           })
         }
       } else {
-        // Fallback for plants without custom positioning - center in container
-        const flowerSize = Math.max(12, Math.min(20, Math.min(containerWidth, containerHeight) / 6))
+        // Fallback for plants without custom positioning - center in container, bigger size
+        const flowerSize = Math.max(16, Math.min(32, Math.min(containerWidth, containerHeight) / 4))
         
         // Create a simple grid layout for plants without positioning
         const cols = Math.ceil(Math.sqrt(plants.length))
