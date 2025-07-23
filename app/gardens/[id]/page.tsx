@@ -338,12 +338,12 @@ export default function GardenDetailPage() {
   const getPlantBedColor = (bedId: string) => {
     const index = plantBeds.findIndex(bed => bed.id === bedId)
     const colors = [
-      'bg-green-100 border-green-300',
-      'bg-blue-100 border-blue-300',
-      'bg-purple-100 border-purple-300',
-      'bg-yellow-100 border-yellow-300',
-      'bg-pink-100 border-pink-300',
-      'bg-indigo-100 border-indigo-300',
+      'bg-green-50 border-green-400 shadow-green-100',
+      'bg-blue-50 border-blue-400 shadow-blue-100',
+      'bg-purple-50 border-purple-400 shadow-purple-100',
+      'bg-yellow-50 border-yellow-400 shadow-yellow-100',
+      'bg-pink-50 border-pink-400 shadow-pink-100',
+      'bg-indigo-50 border-indigo-400 shadow-indigo-100',
     ]
     return colors[index % colors.length]
   }
@@ -1279,11 +1279,11 @@ export default function GardenDetailPage() {
                   return (
                     <div
                       key={bed.id}
-                      className={`absolute border-2 rounded-lg transition-all duration-200 group ${
-                        isDragging ? 'shadow-2xl scale-105 border-green-500 z-50 cursor-grabbing ring-2 ring-green-300' : 
-                        isRotating ? 'shadow-2xl border-orange-500 z-50 ring-4 ring-orange-200' :
-                        isSelected ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-grab' :
-                        'cursor-grab hover:shadow-lg hover:scale-102 hover:border-green-400 hover:ring-1 hover:ring-green-200'
+                      className={`absolute border-3 rounded-lg transition-all duration-200 group shadow-lg ${
+                        isDragging ? 'shadow-2xl scale-105 border-green-600 z-50 cursor-grabbing ring-4 ring-green-300' : 
+                        isRotating ? 'shadow-2xl border-orange-600 z-50 ring-4 ring-orange-200' :
+                        isSelected ? 'border-blue-600 shadow-xl ring-3 ring-blue-300 cursor-grab' :
+                        'cursor-grab hover:shadow-xl hover:scale-102 hover:border-green-500 hover:ring-2 hover:ring-green-300'
                       }`}
                       style={{
                         left: bed.position_x || 100,
@@ -1299,8 +1299,8 @@ export default function GardenDetailPage() {
                       onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                       onClick={(e) => handlePlantBedClick(e, bed.id)}
                     >
-                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors relative ${
-                        isSelected ? 'bg-blue-50' : ''
+                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-3 group-hover:bg-green-100 transition-colors relative border border-gray-200 ${
+                        isSelected ? 'bg-blue-100 border-blue-300' : ''
                       }`}>
                         {/* Top corner elements */}
                         <div className="flex items-start justify-between">
@@ -1322,7 +1322,10 @@ export default function GardenDetailPage() {
                         </div>
 
                         {/* Main area for plants/flowers - this space is left for the flowers */}
-                        <div className="flex-1 flex items-center justify-center relative overflow-hidden">
+                        <div className="flex-1 flex items-center justify-center relative overflow-hidden border-2 border-dashed border-gray-300 rounded-lg bg-gradient-to-br from-green-25 to-green-50">
+                          {/* Plantvak visual indicator */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent pointer-events-none"></div>
+                          
                           {/* Flower Visualization System */}
                           <FlowerVisualization 
                             plantBed={bed}
@@ -1331,27 +1334,36 @@ export default function GardenDetailPage() {
                             containerHeight={bedHeight}
                           />
                           {bed.plants.length === 0 && (
-                            <div className="text-gray-400 text-xs">Geen planten</div>
+                            <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
+                              🌱 Leeg plantvak
+                            </div>
                           )}
+                          
+                          {/* Corner decorations to emphasize the plant bed area */}
+                          <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none"></div>
+                          <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none"></div>
+                          <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none"></div>
+                          <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none"></div>
                         </div>
 
                         {/* Bottom info bar */}
-                        <div className="bg-white/95 rounded-lg p-2 shadow-sm border space-y-1">
+                        <div className="bg-white/98 rounded-lg p-2 shadow-md border-2 border-gray-300 space-y-1 backdrop-blur-sm">
                           {/* Plant bed name */}
-                          <div className="text-sm font-bold text-gray-800 truncate">
+                          <div className="text-sm font-bold text-gray-900 truncate flex items-center gap-2">
+                            <span className="w-3 h-3 rounded-full bg-green-500"></span>
                             {bed.name}
                           </div>
                           
                           {/* Dimensions and plant count */}
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600 font-medium">
-                              {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
+                            <span className="text-gray-700 font-semibold bg-gray-100 px-2 py-1 rounded">
+                              📏 {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-500 flex items-center gap-1">
-                              <span>{bed.plants.length}</span>
+                            <span className="text-gray-600 flex items-center gap-1 bg-green-50 px-2 py-1 rounded font-medium">
                               <span>🌸</span>
+                              <span>{bed.plants.length} bloemen</span>
                             </span>
                           </div>
                         </div>
