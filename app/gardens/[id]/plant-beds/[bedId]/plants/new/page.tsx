@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Leaf, Plus, AlertCircle, Calendar } from "lucide-react"
+import { ArrowLeft, Leaf, Plus, AlertCircle, Calendar, ChevronDown } from "lucide-react"
 import { getGarden, getPlantBed, createPlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 
@@ -29,7 +29,7 @@ const STANDARD_FLOWERS = [
   { name: 'Anjer', emoji: '🌸', color: '#FF1493' },
 ]
 
-const DEFAULT_FLOWER_EMOJI = '🌸'
+const DEFAULT_FLOWER_EMOJI = '🌼'
 
 interface NewPlant {
   name: string
@@ -278,10 +278,11 @@ export default function NewPlantPage() {
                             }))
                           }
                         }}
-                        className={errors.name ? "border-destructive" : ""}
+                        className={`${errors.name ? "border-destructive" : ""} pr-8`}
                         required
                         autoComplete="off"
                       />
+                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                       {/* Show suggestions only when typing and there's input */}
                       {newPlant.name && newPlant.name.length > 0 && (
                         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
