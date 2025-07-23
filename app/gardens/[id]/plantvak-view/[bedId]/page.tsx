@@ -787,7 +787,7 @@ export default function PlantBedViewPage() {
     return { clientX: 0, clientY: 0 }
   }
 
-  // Handle single click/tap - select flower, ready for dragging
+  // Handle single click/tap - select flower (like plant bed click)
   const handleFlowerClick = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -795,23 +795,41 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    // Single click selects the flower and makes it ready for dragging
-    setSelectedFlower(flower)
-    setIsDragMode(false) // Don't automatically enter drag mode
-    setIsResizeMode(false)
-    setShowResizeInterface(false) // Make sure resize interface is hidden
-    resizeModeRef.current = null // Clear resize mode
+    // For touch devices, use the old toggle behavior
+    if ('touches' in e) {
+      if (selectedFlower?.id === flowerId && isDragMode) {
+        setIsDragMode(false)
+        setSelectedFlower(null)
+        toast({
+          title: "Verplaatsen gestopt",
+          description: "Bloem staat nu vast",
+        })
+      } else {
+        setSelectedFlower(flower)
+        setIsDragMode(true)
+        toast({
+          title: "Verplaatsen actief",
+          description: "Sleep de bloem naar een nieuwe positie. Klik opnieuw om te stoppen.",
+        })
+      }
+    } else {
+      // For mouse, just select the flower - dragging happens on mousedown
+      setSelectedFlower(flower)
+      setIsDragMode(false)
+    }
     
-    // Provide feedback
-    toast({
-      title: "🎯 Bloem geselecteerd",
-      description: "Sleep om te verplaatsen, dubbel klik om te vergroten.",
-    })
-  }, [flowerPositions, toast])
+    // Make sure resize interface is hidden
+    setShowResizeInterface(false)
+    setIsResizeMode(false)
+  }, [flowerPositions, selectedFlower, isDragMode, toast])
 
   // Handle double click - show plus/minus resize controls
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
     console.log('Double click on flower:', flower.name)
+    
+    // Stop any dragging first
+    setIsDragMode(false)
+    setDraggedFlower(null)
     
     // Get flower position on screen for positioning the controls
     const containerRect = containerRef.current?.getBoundingClientRect()
@@ -889,7 +907,7 @@ export default function PlantBedViewPage() {
     setSelectedFlower(null)
   }, [])
 
-  // Handle pointer down - start dragging when mouse/touch down
+  // Handle pointer down - start dragging immediately for mouse, conditionally for touch (like plant bed)
   const handleFlowerPointerDown = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -899,39 +917,32 @@ export default function PlantBedViewPage() {
     // Record touch start time for long press detection
     if ('touches' in e) {
       setTouchStartTime(Date.now())
-      // For touch, we still handle dragging
+      // For touch, only start dragging if we're in drag mode
+      if (!isDragMode || selectedFlower?.id !== flowerId) {
+        return
+      }
     }
-    
-    // Clear any existing selections first if dragging a different flower
-    if (draggedFlower && draggedFlower !== flowerId) {
-      return // Prevent multiple flowers from being dragged at once
-    }
-    
+
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // Start dragging immediately when mouse/touch down
+    // Start dragging immediately
+    const offsetX = clientX - rect.left - flower.position_x * scale
+    const offsetY = clientY - rect.top - flower.position_y * scale
+
     setDraggedFlower(flowerId)
-    setDragOffset({
-      x: (clientX - rect.left) / scale - flower.position_x,
-      y: (clientY - rect.top) / scale - flower.position_y
-    })
-    
-    // Select the flower and enter drag mode
+    setDragOffset({ x: offsetX / scale, y: offsetY / scale })
     setSelectedFlower(flower)
-    setIsDragMode(true)
-    setIsResizeMode(false)
-    setShowResizeInterface(false) // Make sure resize interface is hidden during drag
-    resizeModeRef.current = null // Clear resize mode during drag
-    
+    setHasChanges(true)
+
     toast({
-      title: "🚀 Verplaatsen gestart",
-      description: "Sleep naar gewenste positie en laat los.",
+      title: "🖱️ Verplaatsen",
+      description: `${flower.name}`,
     })
-  }, [flowerPositions, scale, draggedFlower, containerRef, toast])
+  }, [flowerPositions, scale, isDragMode, selectedFlower, toast])
 
   // Handle touch start for mobile - prepare for drag after click
   const handleFlowerTouchStart = useCallback((e: React.TouchEvent, flowerId: string) => {
@@ -1074,19 +1085,22 @@ export default function PlantBedViewPage() {
     setHasChanges(true)
   }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight])
 
-  // Handle drag end - auto-save immediately (like garden behavior)
+  // Handle mouse up (end drag) with auto-save (like plant bed behavior)
   const handlePointerUp = useCallback(async () => {
-    if (draggedFlower) {
-      // Auto-save the flower position immediately
-      try {
-        const flower = flowerPositions.find(f => f.id === draggedFlower)
-        if (flower) {
+    if (!draggedFlower) return
+    
+    // Auto-save when dragging stops
+    if (draggedFlower && hasChanges) {
+      const flowerToUpdate = flowerPositions.find(f => f.id === draggedFlower)
+      if (flowerToUpdate) {
+        // Auto-save the position immediately
+        try {
           await updatePlantPosition(draggedFlower, {
-            position_x: flower.position_x,
-            position_y: flower.position_y,
-            visual_width: flower.visual_width,
-            visual_height: flower.visual_height,
-            notes: flower.notes
+            position_x: flowerToUpdate.position_x,
+            position_y: flowerToUpdate.position_y,
+            visual_width: flowerToUpdate.visual_width,
+            visual_height: flowerToUpdate.visual_height,
+            notes: flowerToUpdate.notes
           })
           
           setHasChanges(false)
@@ -1095,24 +1109,20 @@ export default function PlantBedViewPage() {
             title: "✅ Bloem verplaatst",
             description: "Positie automatisch opgeslagen!",
           })
+        } catch (error) {
+          console.error("Error auto-saving flower position:", error)
+          toast({
+            title: "❌ Fout bij opslaan",
+            description: `Positie kon niet worden opgeslagen: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
+            variant: "destructive",
+          })
         }
-      } catch (error) {
-        console.error("Error auto-saving flower position:", error)
-        toast({
-          title: "❌ Fout bij opslaan",
-          description: `Positie kon niet worden opgeslagen: ${error instanceof Error ? error.message : 'Onbekende fout'}`,
-          variant: "destructive",
-        })
       }
     }
     
-    // Reset all drag states - stop moving and deselect
     setDraggedFlower(null)
     setDragOffset({ x: 0, y: 0 })
-    setIsDragMode(false)
-    setIsResizeMode(false)
-    setSelectedFlower(null)
-  }, [draggedFlower, flowerPositions, toast])
+  }, [draggedFlower, hasChanges, flowerPositions, toast])
 
   // Legacy mouse up handler
   const onMouseUp = useCallback(() => {
