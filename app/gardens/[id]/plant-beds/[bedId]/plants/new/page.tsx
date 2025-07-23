@@ -242,77 +242,57 @@ export default function NewPlantPage() {
 
             <CardContent>
               <form onSubmit={handleSubmit} onReset={handleReset} className="space-y-6">
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="isStandardFlower">Bloem type *</Label>
-                    <Select
-                      value={newPlant.isStandardFlower ? "true" : "false"}
-                      onValueChange={(value) => {
-                        const isStandard = value === "true"
-                        setNewPlant((p) => ({
-                          ...p,
-                          isStandardFlower: isStandard,
-                          name: isStandard ? '' : p.name,
-                          emoji: isStandard ? DEFAULT_FLOWER_EMOJI : DEFAULT_FLOWER_EMOJI,
-                        }))
-                      }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer bloem type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">Standaard bloem</SelectItem>
-                        <SelectItem value="false">Aangepaste bloem</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="name">Bloemnaam *</Label>
-                    {newPlant.isStandardFlower ? (
-                      <Select
+                    <div className="relative">
+                      <Input
+                        id="name"
+                        placeholder="Typ een nieuwe bloem of kies uit de lijst..."
                         value={newPlant.name}
-                        onValueChange={(value) => {
-                          const selectedFlower = STANDARD_FLOWERS.find(f => f.name === value)
+                        onChange={(e) => {
+                          const value = e.target.value
                           setNewPlant((p) => ({
                             ...p,
                             name: value,
-                            emoji: selectedFlower?.emoji || DEFAULT_FLOWER_EMOJI,
-                            color: selectedFlower?.color || p.color,
                           }))
+                          
+                          // Check if it matches a standard flower
+                          const selectedFlower = STANDARD_FLOWERS.find(f => 
+                            f.name.toLowerCase() === value.toLowerCase()
+                          )
+                          if (selectedFlower) {
+                            setNewPlant((p) => ({
+                              ...p,
+                              name: value,
+                              emoji: selectedFlower.emoji,
+                              color: selectedFlower.color,
+                              isStandardFlower: true,
+                            }))
+                          } else {
+                            setNewPlant((p) => ({
+                              ...p,
+                              name: value,
+                              emoji: p.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : p.emoji,
+                              isStandardFlower: false,
+                            }))
+                          }
                         }}
-                      >
-                        <SelectTrigger className={errors.name ? "border-destructive" : ""}>
-                          <SelectValue placeholder="Selecteer standaard bloem" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {STANDARD_FLOWERS.map((flower) => (
-                            <SelectItem key={flower.name} value={flower.name}>
-                              <span className="flex items-center gap-2">
-                                <span>{flower.emoji}</span>
-                                <span>{flower.name}</span>
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    ) : (
-                      <Input
-                        id="name"
-                        placeholder="Bijv. Aangepaste bloem, Speciale variëteit"
-                        value={newPlant.name}
-                        onChange={(e) =>
-                          setNewPlant((p) => ({
-                            ...p,
-                            name: e.target.value,
-                          }))
-                        }
                         className={errors.name ? "border-destructive" : ""}
                         required
+                        list="standard-flowers"
                       />
-                    )}
+                      <datalist id="standard-flowers">
+                        {STANDARD_FLOWERS.map((flower) => (
+                          <option key={flower.name} value={flower.name}>
+                            {flower.emoji} {flower.name}
+                          </option>
+                        ))}
+                      </datalist>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Tip: Begin te typen om uit standaard bloemen te kiezen, of typ een eigen naam
+                    </p>
                     {errors.name && (
                       <div className="flex items-center gap-1 text-destructive text-sm">
                         <AlertCircle className="h-4 w-4" />
