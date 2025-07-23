@@ -280,16 +280,36 @@ export default function NewPlantPage() {
                         }}
                         className={errors.name ? "border-destructive" : ""}
                         required
-                        list="standard-flowers"
                         autoComplete="off"
                       />
-                      <datalist id="standard-flowers">
-                        {STANDARD_FLOWERS.map((flower) => (
-                          <option key={flower.name} value={flower.name}>
-                            {flower.emoji} {flower.name}
-                          </option>
-                        ))}
-                      </datalist>
+                      {/* Show suggestions only when typing and there's input */}
+                      {newPlant.name && newPlant.name.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                          {STANDARD_FLOWERS
+                            .filter(flower => 
+                              flower.name.toLowerCase().includes(newPlant.name.toLowerCase())
+                            )
+                            .slice(0, 5)
+                            .map((flower) => (
+                              <div
+                                key={flower.name}
+                                className="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
+                                onClick={() => {
+                                  setNewPlant((p) => ({
+                                    ...p,
+                                    name: flower.name,
+                                    emoji: flower.emoji,
+                                    color: flower.color,
+                                    isStandardFlower: true,
+                                  }))
+                                }}
+                              >
+                                <span>{flower.emoji}</span>
+                                <span>{flower.name}</span>
+                              </div>
+                            ))}
+                        </div>
+                      )}
                     </div>
                     <p className="text-xs text-gray-500">
                       Tip: Begin te typen om uit standaard bloemen te kiezen, of typ een eigen naam
