@@ -40,6 +40,7 @@ import {
   PLANTVAK_MIN_WIDTH,
   PLANTVAK_MIN_HEIGHT,
   metersToPixels,
+  pixelsToMeters,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { FlowerVisualization } from "@/components/flower-visualization"
@@ -62,13 +63,16 @@ export default function GardenDetailPage() {
   const [scale, setScale] = useState(1)
   const [showVisualView, setShowVisualView] = useState(true)
   const [selectedBed, setSelectedBed] = useState<string | null>(null)
+  
+  // Enhanced drag state for better plant bed editing
   const [draggedBed, setDraggedBed] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
-  const [isDragMode, setIsDragMode] = useState(false)
-  const [isRotateMode, setIsRotateMode] = useState(false)
   const [rotatingBed, setRotatingBed] = useState<string | null>(null)
   const [rotationStartAngle, setRotationStartAngle] = useState(0)
+  const [isDragMode, setIsDragMode] = useState(false)
+  const [isRotateMode, setIsRotateMode] = useState(false)
   const [touchStartTime, setTouchStartTime] = useState(0)
+  
   const [hasChanges, setHasChanges] = useState(false)
   const [isAddingPlantBed, setIsAddingPlantBed] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -452,42 +456,13 @@ export default function GardenDetailPage() {
     setDraggedBed(bedId)
     setDragOffset({ x: offsetX / scale, y: offsetY / scale })
     setSelectedBed(bedId)
-    setIsDragMode(true)
-    
-    // For mouse users, show immediate feedback
-    if (!('touches' in e)) {
-      toast({
-        title: "🖱️ Verplaatsen gestart",
-        description: "Sleep naar de gewenste positie en laat los.",
-      })
-    }
-  }, [plantBeds, scale, isDragMode, selectedBed, toast])
+    setHasChanges(true)
 
-  // Handle long press for mobile (alternative to click for drag mode)
-  const handlePlantBedTouchStart = useCallback((e: React.TouchEvent, bedId: string) => {
-    setTouchStartTime(Date.now())
-    
-    // Set a timer for long press detection
-    const longPressTimer = setTimeout(() => {
-      if (!isDragMode && selectedBed !== bedId) {
-        setSelectedBed(bedId)
-        setIsDragMode(true)
-        
-        // Provide haptic feedback if available
-        if (navigator.vibrate) {
-          navigator.vibrate(50)
-        }
-        
-        toast({
-          title: "Verplaatsen actief",
-          description: "Lang indrukken gedetecteerd. Sleep het plantvak naar een nieuwe positie.",
-        })
-      }
-    }, 500) // 500ms for long press
-
-    // Store timer to clear it if touch ends early
-    ;(e.target as any).longPressTimer = longPressTimer
-  }, [isDragMode, selectedBed, toast])
+    toast({
+      title: "🖱️ Verplaatsen",
+      description: `${bed.name}`,
+    })
+  }, [plantBeds, scale, toast, isDragMode, selectedBed])
 
   const handlePlantBedTouchEnd = useCallback((e: React.TouchEvent, bedId: string) => {
     const touchDuration = Date.now() - touchStartTime
@@ -512,7 +487,7 @@ export default function GardenDetailPage() {
     router.push(`/gardens/${garden?.id}/plantvak-view/${bedId}`)
   }, [router, garden])
 
-  // Handle drag move - unified for mouse and touch
+  // Handle drag move - unified for mouse and touch with improved boundaries
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
     if (!draggedBed || !canvasRef.current) return
 
@@ -540,60 +515,6 @@ export default function GardenDetailPage() {
     ))
     setHasChanges(true)
   }, [draggedBed, dragOffset, scale, plantBeds, CANVAS_WIDTH, CANVAS_HEIGHT])
-
-  // Check if plant bed got larger and add more flowers for playful effect
-  const checkAndAddMoreFlowers = useCallback(async (bed: PlantBedWithPlants) => {
-    try {
-      if (!bed.size) return
-      
-      const dimensions = parsePlantBedDimensions(bed.size)
-      if (!dimensions) return
-      
-      const area = dimensions.lengthMeters * dimensions.widthMeters
-      const currentFlowerCount = bed.plants.length
-      
-      // Calculate desired flower count based on area
-      let desiredFlowerCount = 1
-      if (area > 4) desiredFlowerCount = 2
-      if (area > 8) desiredFlowerCount = 3
-      if (area > 15) desiredFlowerCount = 4
-      if (area > 25) desiredFlowerCount = 6
-      if (area > 40) desiredFlowerCount = 8
-      
-      // Add more flowers if the bed got bigger
-      if (desiredFlowerCount > currentFlowerCount) {
-        const flowersToAdd = desiredFlowerCount - currentFlowerCount
-        const newFlowers = await createSampleFlowers(bed.id, dimensions.lengthMeters, dimensions.widthMeters)
-        
-        // Take only the additional flowers we need
-        const additionalFlowers = newFlowers.slice(0, flowersToAdd).map((flower, index) => ({
-          ...flower,
-          id: `auto-${bed.id}-${currentFlowerCount + index}-${Date.now()}`,
-          name: `${flower.name} ${currentFlowerCount + index + 1}` // Make names unique
-        }))
-        
-        if (additionalFlowers.length > 0) {
-          // Update the plant bed with new flowers
-          setPlantBeds(prev => prev.map(plantBed => {
-            if (plantBed.id === bed.id) {
-              return {
-                ...plantBed,
-                plants: [...plantBed.plants, ...additionalFlowers]
-              }
-            }
-            return plantBed
-          }))
-          
-          toast({
-            title: "🌸 Meer bloemen!",
-            description: `Het plantvak is groter geworden! ${additionalFlowers.length} nieuwe bloemen toegevoegd.`,
-          })
-        }
-      }
-    } catch (error) {
-      console.error("Error adding more flowers:", error)
-    }
-  }, [toast])
 
   // Create sample flowers for a new plant bed
   const createSampleFlowers = useCallback(async (plantBedId: string, length: number, width: number): Promise<Plant[]> => {
@@ -647,66 +568,71 @@ export default function GardenDetailPage() {
     }
   }, [])
 
-  // Handle drag end with auto-save
-  const handlePointerUp = useCallback(async () => {
-    // Handle rotation end
-    if (rotatingBed && hasChanges) {
-      setSaving(true)
-      try {
-        const bedToUpdate = plantBeds.find(bed => bed.id === rotatingBed)
-        if (bedToUpdate) {
-          await updatePlantBed(bedToUpdate.id, {
-            rotation: bedToUpdate.rotation
-          })
+  // Check if plant bed needs more flowers and add them
+  const checkAndAddMoreFlowers = useCallback(async (bed: PlantBedWithPlants) => {
+    try {
+      if (!bed.size) {
+        console.log(`⚠️ Bed ${bed.name} has no size, skipping flower check`)
+        return
+      }
+      
+      const dimensions = parsePlantBedDimensions(bed.size)
+      if (!dimensions) {
+        console.log(`⚠️ Could not parse dimensions for bed ${bed.name}: ${bed.size}`)
+        return
+      }
+      
+      const area = dimensions.lengthMeters * dimensions.widthMeters
+      const currentFlowerCount = bed.plants.length
+      
+      // Calculate desired flower count based on area (more generous)
+      let desiredFlowerCount = Math.max(1, Math.floor(area / 2)) // 1 flower per 2m²
+      if (area > 2) desiredFlowerCount = Math.max(2, Math.floor(area / 1.5))
+      if (area > 6) desiredFlowerCount = Math.max(3, Math.floor(area / 1.2))
+      if (area > 12) desiredFlowerCount = Math.max(4, Math.floor(area))
+      
+      console.log(`🌸 Bed ${bed.name}: ${area.toFixed(1)}m² → wants ${desiredFlowerCount} flowers, has ${currentFlowerCount}`)
+      
+      // Add more flowers if needed
+      if (desiredFlowerCount > currentFlowerCount) {
+        const flowersToAdd = desiredFlowerCount - currentFlowerCount
+        const newFlowers = await createSampleFlowers(bed.id, dimensions.lengthMeters, dimensions.widthMeters)
+        
+        // Take only the additional flowers we need
+        const additionalFlowers = newFlowers.slice(0, flowersToAdd).map((flower, index) => ({
+          ...flower,
+          id: `auto-${bed.id}-${currentFlowerCount + index}-${Date.now()}`,
+          name: `${flower.name} ${currentFlowerCount + index + 1}` // Make names unique
+        }))
+        
+        if (additionalFlowers.length > 0) {
+          // Update the plant bed with new flowers
+          setPlantBeds(prev => prev.map(plantBed => {
+            if (plantBed.id === bed.id) {
+              return {
+                ...plantBed,
+                plants: [...plantBed.plants, ...additionalFlowers]
+              }
+            }
+            return plantBed
+          }))
           
-          setHasChanges(false)
+          console.log(`✅ Added ${additionalFlowers.length} flowers to ${bed.name}`)
+          
           toast({
-            title: "Plantvak geroteerd",
-            description: `Rotatie naar ${bedToUpdate.rotation || 0}° opgeslagen!`,
+            title: "🌸 Meer bloemen!",
+            description: `${additionalFlowers.length} nieuwe bloemen toegevoegd aan ${bed.name}`,
           })
         }
-      } catch (error) {
-        console.error("Error auto-saving plant bed rotation:", error)
-        toast({
-          title: "Fout bij opslaan",
-          description: "Rotatie kon niet worden opgeslagen.",
-          variant: "destructive",
-        })
-      } finally {
-        setSaving(false)
       }
+    } catch (error) {
+      console.error("Error adding more flowers:", error)
     }
+  }, [toast, createSampleFlowers])
 
-    if (draggedBed && hasChanges) {
-      // Auto-save when dragging stops
-      setSaving(true)
-      try {
-        const bedToUpdate = plantBeds.find(bed => bed.id === draggedBed)
-        if (bedToUpdate) {
-          await updatePlantBed(bedToUpdate.id, {
-            position_x: bedToUpdate.position_x,
-            position_y: bedToUpdate.position_y,
-            visual_width: bedToUpdate.visual_width,
-            visual_height: bedToUpdate.visual_height
-          })
-          
-          setHasChanges(false)
-          toast({
-            title: "Plantvak verplaatst",
-            description: "Positie automatisch opgeslagen!",
-          })
-        }
-      } catch (error) {
-        console.error("Error auto-saving plant bed position:", error)
-        toast({
-          title: "Fout bij opslaan",
-          description: "Positie kon niet worden opgeslagen.",
-          variant: "destructive",
-        })
-      } finally {
-        setSaving(false)
-      }
-    }
+  // Handle mouse up (end drag or resize)
+  const handleMouseUp = useCallback(async () => {
+    if (!draggedBed && !rotatingBed) return
     
     // Check if plant bed was resized and add more flowers if needed
     if (draggedBed && hasChanges) {
@@ -720,7 +646,7 @@ export default function GardenDetailPage() {
     setDragOffset({ x: 0, y: 0 })
     setRotatingBed(null)
     setIsRotateMode(false)
-  }, [draggedBed, rotatingBed, hasChanges, plantBeds, toast, checkAndAddMoreFlowers])
+  }, [draggedBed, rotatingBed, hasChanges, plantBeds, checkAndAddMoreFlowers])
 
   // Calculate angle between two points (for rotation)
   const calculateAngle = useCallback((centerX: number, centerY: number, pointX: number, pointY: number) => {
@@ -772,41 +698,76 @@ export default function GardenDetailPage() {
     }
   }, [handlePointerMove, rotatingBed, handleRotationMove])
 
+  // Touch move handler
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    e.preventDefault()
+    const touch = e.touches[0]
+    if (rotatingBed) {
+      handleRotationMove(touch.clientX, touch.clientY)
+    } else {
+      handlePointerMove(touch.clientX, touch.clientY)
+    }
+  }, [handlePointerMove, rotatingBed, handleRotationMove])
+
   // Handle click outside to deselect
   const handleCanvasClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     if (e.target === e.currentTarget) {
       setSelectedBed(null)
       setIsDragMode(false)
+      setIsRotateMode(false)
     }
   }, [])
 
-  // Add event listeners for drag - support both mouse and touch
+  // Add global mouse event listeners for drag and resize
   useEffect(() => {
-    if (draggedBed) {
-      const handleMouseMoveGlobal = (e: MouseEvent) => {
-        handlePointerMove(e.clientX, e.clientY)
-      }
-      
-      const handleTouchMoveGlobal = (e: TouchEvent) => {
-        e.preventDefault() // Prevent scrolling while dragging
-        if (e.touches.length > 0) {
-          handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
+    if (draggedBed || rotatingBed) {
+      const handleGlobalMouseMove = (e: MouseEvent) => {
+        if (rotatingBed) {
+          handleRotationMove(e.clientX, e.clientY)
+        } else {
+          handlePointerMove(e.clientX, e.clientY)
         }
       }
       
-      document.addEventListener('mousemove', handleMouseMoveGlobal)
-      document.addEventListener('mouseup', handlePointerUp)
-      document.addEventListener('touchmove', handleTouchMoveGlobal, { passive: false })
-      document.addEventListener('touchend', handlePointerUp)
+      const handleGlobalTouchMove = (e: TouchEvent) => {
+        e.preventDefault()
+        const touch = e.touches[0]
+        if (rotatingBed) {
+          handleRotationMove(touch.clientX, touch.clientY)
+        } else {
+          handlePointerMove(touch.clientX, touch.clientY)
+        }
+      }
+
+      document.addEventListener('mousemove', handleGlobalMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      document.addEventListener('touchmove', handleGlobalTouchMove, { passive: false })
+      document.addEventListener('touchend', handleMouseUp)
       
       return () => {
-        document.removeEventListener('mousemove', handleMouseMoveGlobal)
-        document.removeEventListener('mouseup', handlePointerUp)
-        document.removeEventListener('touchmove', handleTouchMoveGlobal)
-        document.removeEventListener('touchend', handlePointerUp)
+        document.removeEventListener('mousemove', handleGlobalMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+        document.removeEventListener('touchmove', handleGlobalTouchMove)
+        document.removeEventListener('touchend', handleMouseUp)
       }
     }
-  }, [draggedBed, handlePointerMove, handlePointerUp])
+  }, [draggedBed, rotatingBed, handlePointerMove, handleRotationMove, handleMouseUp])
+
+  // Auto-check for missing flowers when plant beds change
+  useEffect(() => {
+    const checkAllBedsForFlowers = async () => {
+      for (const bed of plantBeds) {
+        if (bed.plants.length === 0 && bed.size) {
+          console.log(`🌱 Auto-checking empty bed: ${bed.name}`)
+          await checkAndAddMoreFlowers(bed)
+        }
+      }
+    }
+    
+    if (plantBeds.length > 0) {
+      checkAllBedsForFlowers()
+    }
+  }, [plantBeds, checkAndAddMoreFlowers]) // Run when beds change
 
   // Save layout changes
   const saveLayout = async () => {
@@ -1164,31 +1125,6 @@ export default function GardenDetailPage() {
             {showVisualView ? "Lijst Weergave" : "Visuele Weergave"}
           </Button>
           
-          {selectedBed && showVisualView && (
-            <Button
-              variant={isDragMode ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                setIsDragMode(!isDragMode)
-                if (!isDragMode) {
-                  toast({
-                    title: "Verplaatsen actief",
-                    description: "Sleep het geselecteerde plantvak naar een nieuwe positie.",
-                  })
-                } else {
-                  toast({
-                    title: "Verplaatsen gestopt",
-                    description: "Plantvak staat nu vast.",
-                  })
-                }
-              }}
-              className="flex items-center gap-2"
-            >
-              <Move className="h-4 w-4" />
-              {isDragMode ? "Stop" : "Verplaats"}
-            </Button>
-          )}
-          
           <Dialog open={isAddingPlantBed} onOpenChange={(open) => {
             if (open) {
               // Reset form when dialog opens
@@ -1338,8 +1274,6 @@ export default function GardenDetailPage() {
         </div>
       </div>
 
-
-
       {showVisualView ? (
         /* Visual Garden Layout */
         <Card>
@@ -1363,25 +1297,21 @@ export default function GardenDetailPage() {
           </CardHeader>
           <CardContent>
             {/* Mobile help text */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
-            <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak beheren (mobiel):</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• <strong>1x tikken:</strong> Plantvak selecteren</li>
-              <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
-              <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
-              <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
-              <li>• <strong>🟠 Rotatie handvat:</strong> Sleep om te roteren</li>
-            </ul>
-            <div className="mt-2 pt-2 border-t border-blue-300">
-              <p className="text-xs text-blue-700">
-                🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m
-              </p>
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
+              <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak beheren:</h4>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• <strong>Sleep:</strong> Verplaats plantvak direct</li>
+                <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
+                <li>• <strong>🟠 Rotatie handvat:</strong> Sleep om te roteren</li>
+              </ul>
+              <div className="mt-2 pt-2 border-t border-blue-300">
+                <p className="text-xs text-blue-700">
+                  🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m
+                </p>
+              </div>
             </div>
-          </div>
-          
-
-          
-          <div className="relative overflow-auto rounded-lg border-2 border-dashed border-green-200" style={{ minHeight: "400px" }}>
+            
+            <div className="relative overflow-auto rounded-lg border-2 border-dashed border-green-200" style={{ minHeight: "400px" }}>
               <div
                 ref={canvasRef}
                 className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 cursor-crosshair"
@@ -1391,9 +1321,9 @@ export default function GardenDetailPage() {
                   transform: `scale(${scale})`,
                   transformOrigin: "top left",
                 }}
-                onMouseMove={handleMouseMove}
-                onMouseUp={handlePointerUp}
                 onClick={handleCanvasClick}
+                onMouseMove={handleMouseMove}
+                onTouchMove={handleTouchMove}
               >
                 {/* Grid - 1m = 80px */}
                 <div
@@ -1412,7 +1342,6 @@ export default function GardenDetailPage() {
                   const isSelected = selectedBed === bed.id
                   const isDragging = draggedBed === bed.id
                   const isRotating = rotatingBed === bed.id
-                  const isInDragMode = isDragMode && isSelected
                   
                   // Always recalculate dimensions from size to ensure correct scaling
                   let bedWidth = metersToPixels(2) // Default 2x2 meters
@@ -1423,8 +1352,6 @@ export default function GardenDetailPage() {
                     bedWidth = dims.width
                     bedHeight = dims.height
                     
-
-                    
                     console.log(`🎯 RENDERING ${bed.name}: ${bed.size} -> ${bedWidth}px x ${bedHeight}px (stored: ${bed.visual_width}x${bed.visual_height})`)
                   } else {
                     console.log("⚠️ Plantvak zonder size:", bed.name, "using default 2x2m")
@@ -1433,12 +1360,11 @@ export default function GardenDetailPage() {
                   return (
                     <div
                       key={bed.id}
-                      className={`absolute border-2 rounded-lg transition-all group ${
-                        isDragging ? 'shadow-2xl scale-110 border-green-500 z-50 cursor-grabbing' : 
-                        isRotating ? 'shadow-2xl border-orange-500 z-50 ring-4 ring-orange-200 animate-pulse' :
-                        isInDragMode ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-grab animate-pulse' :
-                        isSelected ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-pointer' :
-                        'cursor-pointer hover:shadow-xl hover:scale-105 hover:border-green-500'
+                      className={`absolute border-2 rounded-lg transition-all duration-200 group ${
+                        isDragging ? 'shadow-2xl scale-105 border-green-500 z-50 cursor-grabbing ring-2 ring-green-300' : 
+                        isRotating ? 'shadow-2xl border-orange-500 z-50 ring-4 ring-orange-200' :
+                        isSelected ? 'border-blue-500 shadow-lg ring-2 ring-blue-200 cursor-grab' :
+                        'cursor-grab hover:shadow-lg hover:scale-102 hover:border-green-400 hover:ring-1 hover:ring-green-200'
                       }`}
                       style={{
                         left: bed.position_x || 100,
@@ -1448,11 +1374,11 @@ export default function GardenDetailPage() {
                         transform: `rotate(${bed.rotation || 0}deg)`,
                         transformOrigin: 'center center',
                       }}
-                      onClick={(e) => handlePlantBedClick(e, bed.id)}
                       onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
                       onMouseDown={(e) => handlePlantBedPointerDown(e, bed.id)}
-                      onTouchStart={(e) => handlePlantBedTouchStart(e, bed.id)}
+                      onTouchStart={(e) => handlePlantBedPointerDown(e, bed.id)}
                       onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
+                      onClick={(e) => handlePlantBedClick(e, bed.id)}
                     >
                       <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} flex flex-col justify-between p-2 group-hover:bg-green-50 transition-colors relative ${
                         isSelected ? 'bg-blue-50' : ''
@@ -1464,14 +1390,14 @@ export default function GardenDetailPage() {
                               {getSunExposureIcon(bed.sun_exposure)}
                             </div>
                           )}
-                          {isInDragMode && (
-                            <div className="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded shadow-sm animate-bounce">
-                              🖱️
+                          {isDragging && (
+                            <div className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded shadow-sm animate-bounce">
+                              🖱️ Verplaatsen
                             </div>
                           )}
                           {isRotating && (
-                            <div className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded shadow-sm animate-spin">
-                              ↻ {bed.rotation || 0}°
+                            <div className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded shadow-sm animate-pulse">
+                              🔄 Roteren
                             </div>
                           )}
                         </div>
@@ -1510,6 +1436,7 @@ export default function GardenDetailPage() {
                             </span>
                           </div>
                         </div>
+                        
                         {isSelected && (
                           <>
                             <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
@@ -1567,9 +1494,8 @@ export default function GardenDetailPage() {
                                 setDraggedBed(null)
                                 setIsDragMode(false)
                               }}
-                              title="Sleep om te roteren"
                             >
-                              ↻
+                              🔄
                             </div>
                           </>
                         )}
