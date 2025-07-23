@@ -457,28 +457,20 @@ export default function PlantBedViewPage() {
 
       const flowerSize = getFlowerSize(newFlower.size)
       
-      // CRITICAL FIX: Canvas IS the plantvak, not a plantvak within canvas
-      // Simply center the flower in the canvas which represents the entire plantvak
-      const margin = 20
-      const nameHeight = 20  // Space for flower name
+      // DEBUG: Log canvas dimensions and positioning
+      console.log('🌸 ADD FLOWER DEBUG:', {
+        canvasWidth,
+        canvasHeight,
+        flowerSize,
+        plantBedSize: plantBed?.size,
+        existingFlowers: flowerPositions.length
+      })
       
-      // Center flower in canvas with room for name
-      let initialX = (canvasWidth - flowerSize) / 2
-      let initialY = (canvasHeight - flowerSize - nameHeight) / 2
+      // SIMPLE FIX: Just place in top-left corner first to test
+      const initialX = 50  // Simple fixed position
+      const initialY = 50  // Simple fixed position
       
-      // Add small random offset if multiple flowers exist to avoid overlap
-      if (flowerPositions.length > 0) {
-        const offsetRange = 30
-        const randomX = (Math.random() - 0.5) * offsetRange
-        const randomY = (Math.random() - 0.5) * offsetRange
-        
-        initialX += randomX
-        initialY += randomY
-        
-        // Ensure flower stays within canvas bounds
-        initialX = Math.max(margin, Math.min(initialX, canvasWidth - flowerSize - margin))
-        initialY = Math.max(margin, Math.min(initialY, canvasHeight - flowerSize - nameHeight - margin))
-      }
+      console.log('🎯 PLACING FLOWER AT:', { initialX, initialY })
       
       const newPlant = await createVisualPlant({
         plant_bed_id: plantBed.id,
@@ -2364,13 +2356,13 @@ export default function PlantBedViewPage() {
                 }}
               />
 
-              {/* Use FlowerVisualization Component for consistent display */}
-              <FlowerVisualization 
+              {/* TEMPORARILY DISABLED FlowerVisualization to debug positioning */}
+              {/* <FlowerVisualization 
                 plantBed={plantBed}
                 plants={flowerPositions}
                 containerWidth={canvasWidth}
                 containerHeight={canvasHeight}
-              />
+              /> */}
 
               {/* Interactive overlay for selected flowers */}
               {flowerPositions.map((flower) => {
