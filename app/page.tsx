@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { uiLogger, AuditLogger } from "@/lib/logger"
-import type { Tuin } from "@/lib/types"
+import type { Tuin } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 

@@ -1,4 +1,7 @@
-import winston from 'winston'
+/**
+ * Banking-Standard Logging System
+ * Compatible with Next.js Edge Runtime and Browser Environment
+ */
 
 // Log levels following banking standards
 const LOG_LEVELS = {
@@ -9,72 +12,119 @@ const LOG_LEVELS = {
   trace: 4,
 }
 
-// Custom format for structured logging
-const logFormat = winston.format.combine(
-  winston.format.timestamp({
-    format: 'YYYY-MM-DD HH:mm:ss.SSS',
-  }),
-  winston.format.errors({ stack: true }),
-  winston.format.json(),
-  winston.format.printf(({ timestamp, level, message, ...meta }) => {
-    const logEntry = {
-      timestamp,
+type LogLevel = keyof typeof LOG_LEVELS
+type LogEntry = {
+  timestamp: string
+  level: string
+  message: string
+  context?: string
+  correlationId?: string
+  metadata?: Record<string, any>
+  error?: {
+    name: string
+    message: string
+    stack?: string
+  }
+}
+
+// Simple console-based logger for Next.js compatibility
+class NextJSLogger {
+  private level: LogLevel
+  private service: string
+  private version: string
+
+  constructor(options: { level?: LogLevel; service?: string; version?: string } = {}) {
+    this.level = options.level || (process.env.NODE_ENV === 'production' ? 'info' : 'debug')
+    this.service = options.service || 'tuinbeheer-systeem'
+    this.version = options.version || '0.1.0'
+  }
+
+  private shouldLog(level: LogLevel): boolean {
+    return LOG_LEVELS[level] <= LOG_LEVELS[this.level]
+  }
+
+  private getCorrelationId(): string | undefined {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      return window.sessionStorage.getItem('correlationId') || undefined
+    }
+    return undefined
+  }
+
+  private formatLogEntry(level: LogLevel, message: string, metadata?: Record<string, any>): LogEntry {
+    return {
+      timestamp: new Date().toISOString(),
       level: level.toUpperCase(),
       message,
-      ...meta,
+      correlationId: this.getCorrelationId(),
+      ...metadata,
     }
-    
-    // Add correlation ID if available
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      const correlationId = window.sessionStorage.getItem('correlationId')
-      if (correlationId) {
-        logEntry.correlationId = correlationId
-      }
+  }
+
+  private output(level: LogLevel, entry: LogEntry): void {
+    if (!this.shouldLog(level)) return
+
+    const logString = JSON.stringify(entry, null, process.env.NODE_ENV === 'development' ? 2 : 0)
+
+    switch (level) {
+      case 'error':
+        console.error(logString)
+        break
+      case 'warn':
+        console.warn(logString)
+        break
+      case 'info':
+        console.info(logString)
+        break
+      case 'debug':
+      case 'trace':
+        console.log(logString)
+        break
     }
-    
-    return JSON.stringify(logEntry)
-  })
-)
+  }
+
+  log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
+    const entry = this.formatLogEntry(level, message, {
+      service: this.service,
+      version: this.version,
+      ...metadata,
+    })
+    this.output(level, entry)
+  }
+
+  error(message: string, error?: Error, metadata?: Record<string, any>): void {
+    this.log('error', message, {
+      error: error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      } : undefined,
+      ...metadata,
+    })
+  }
+
+  warn(message: string, metadata?: Record<string, any>): void {
+    this.log('warn', message, metadata)
+  }
+
+  info(message: string, metadata?: Record<string, any>): void {
+    this.log('info', message, metadata)
+  }
+
+  debug(message: string, metadata?: Record<string, any>): void {
+    this.log('debug', message, metadata)
+  }
+
+  trace(message: string, metadata?: Record<string, any>): void {
+    this.log('trace', message, metadata)
+  }
+}
 
 // Create logger instance
-const logger = winston.createLogger({
-  levels: LOG_LEVELS,
+const logger = new NextJSLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  format: logFormat,
-  defaultMeta: {
-    service: 'tuinbeheer-systeem',
-    version: process.env.npm_package_version || '0.1.0',
-  },
-  transports: [
-    // Console transport for development
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.simple()
-      ),
-    }),
-  ],
+  service: 'tuinbeheer-systeem',
+  version: process.env.npm_package_version || '0.1.0',
 })
-
-// Add file transports for production
-if (process.env.NODE_ENV === 'production') {
-  logger.add(
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    })
-  )
-  
-  logger.add(
-    new winston.transports.File({
-      filename: 'logs/combined.log',
-      maxsize: 5242880, // 5MB
-      maxFiles: 5,
-    })
-  )
-}
 
 // Banking-standard audit logging
 export class AuditLogger {
@@ -137,7 +187,7 @@ export class AppLogger {
     this.context = context
   }
 
-  private log(level: keyof typeof LOG_LEVELS, message: string, metadata?: Record<string, any>): void {
+  private log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
     logger.log(level, message, {
       context: this.context,
       ...metadata,
@@ -145,12 +195,8 @@ export class AppLogger {
   }
 
   error(message: string, error?: Error, metadata?: Record<string, any>): void {
-    this.log('error', message, {
-      error: error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      } : undefined,
+    logger.error(message, error, {
+      context: this.context,
       ...metadata,
     })
   }
@@ -207,16 +253,10 @@ export class PerformanceLogger {
   }
 }
 
-// Error boundary logger
+// Pre-configured loggers for different contexts
 export const errorBoundaryLogger = new AppLogger('ErrorBoundary')
-
-// Database logger
 export const databaseLogger = new AppLogger('Database')
-
-// API logger
 export const apiLogger = new AppLogger('API')
-
-// UI logger
 export const uiLogger = new AppLogger('UI')
 
 export { logger }
