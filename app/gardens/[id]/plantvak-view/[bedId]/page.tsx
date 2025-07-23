@@ -1249,7 +1249,7 @@ export default function PlantBedViewPage() {
     })
   }, [flowerPositions, toast])
 
-  // Handle resize move - Create invisible area with more flowers inside!
+  // Handle resize move - Update flower size directly (no new flowers)
   const handleResizeMove = useCallback(async (e: MouseEvent) => {
     if (!isResizing || !plantBed) return
 
@@ -1259,117 +1259,28 @@ export default function PlantBedViewPage() {
     const deltaX = e.clientX - resizeStartPos.x
     const deltaY = e.clientY - resizeStartPos.y
     
-    // Calculate new AREA size (invisible boundary for flowers)
+    // Calculate new flower size based on drag distance
     const delta = Math.max(deltaX, deltaY)
-    let newAreaSize = Math.max(FLOWER_SIZE * 3, resizeStartSize.width + delta) // Start groter voor meer bloemen
+    let newSize = Math.max(FLOWER_SIZE_SMALL, resizeStartSize.width + delta)
     
-    // Constrain to canvas bounds
-    const maxSize = Math.min(canvasWidth - flower.position_x, canvasHeight - flower.position_y)
-    newAreaSize = Math.min(newAreaSize, maxSize)
+    // Constrain to reasonable bounds
+    const maxSize = Math.min(200, Math.min(canvasWidth - flower.position_x, canvasHeight - flower.position_y))
+    newSize = Math.min(newSize, maxSize)
 
-    // IMPORTANT: Keep the main flower the same size (FLOWER_SIZE)
-    // Only update a virtual area size for positioning sub-flowers
+    // Update the flower size directly in the state
     setFlowerPositions(prev => prev.map(f => {
       if (f.id === isResizing) {
-        return { ...f, 
-          visual_width: FLOWER_SIZE,  // Main flower stays same size!
-          visual_height: FLOWER_SIZE,
-          // Store area size in a custom property (we'll use notes for this)
-          notes: `area_size:${newAreaSize}` 
+        return { 
+          ...f, 
+          visual_width: newSize,
+          visual_height: newSize
         }
       }
       return f
     }))
+  }, [isResizing, resizeStartSize, resizeStartPos, canvasWidth, canvasHeight, flowerPositions])
 
-    // Calculate how many flowers should be in this area - VEEL MEER voor leuk effect!
-    const areaRatio = (newAreaSize * newAreaSize) / (FLOWER_SIZE * FLOWER_SIZE) // Area ratio
-    const targetExtraFlowers = Math.max(0, Math.floor(areaRatio * 0.8)) // Veel meer bloemen!
-    const maxExtraFlowers = 50 // Verhoogd voor leuk effect
-    const actualTargetFlowers = Math.min(targetExtraFlowers, maxExtraFlowers)
-
-    // Get current extra flowers in this area
-    const currentExtraFlowers = flowerPositions.filter(f => 
-      f.id !== isResizing && 
-      f.name === flower.name &&
-      Math.abs(f.position_x - flower.position_x) < newAreaSize &&
-      Math.abs(f.position_y - flower.position_y) < newAreaSize
-    )
-
-    const currentCount = currentExtraFlowers.length
-
-    if (actualTargetFlowers > currentCount) {
-      // ADD MORE FLOWERS within the invisible area - MEER voor leuk effect!
-      const flowersToAdd = Math.min(8, actualTargetFlowers - currentCount) // Meer bloemen per keer!
-      const newFlowers: PlantWithPosition[] = []
-
-      for (let i = 0; i < flowersToAdd; i++) {
-        // Position flowers randomly within the area
-        const angle = Math.random() * 2 * Math.PI
-        const radius = Math.random() * (newAreaSize / 2 - 30) // Keep some margin
-        const centerX = flower.position_x + FLOWER_SIZE / 2
-        const centerY = flower.position_y + FLOWER_SIZE / 2
-        
-        const x = centerX + Math.cos(angle) * radius - 20
-        const y = centerY + Math.sin(angle) * radius - 20
-        
-        // Keep within the area and canvas bounds - improved boundary constraints
-        const margin = 20
-        const areaLeft = Math.max(margin, flower.position_x - newAreaSize/2 + margin)
-        const areaRight = Math.min(canvasWidth - margin - 30, flower.position_x + newAreaSize/2 - margin)
-        const areaTop = Math.max(margin, flower.position_y - newAreaSize/2 + margin)
-        const areaBottom = Math.min(canvasHeight - margin - 30, flower.position_y + newAreaSize/2 - margin)
-        
-        const constrainedX = Math.max(areaLeft, Math.min(x, areaRight))
-        const constrainedY = Math.max(areaTop, Math.min(y, areaBottom))
-        
-        try {
-          const newFlower = await createVisualPlant({
-            plant_bed_id: plantBed.id,
-            name: flower.name,
-            color: flower.color || '#FF69B4',
-            status: flower.status || 'healthy',
-            position_x: constrainedX,
-            position_y: constrainedY,
-            visual_width: FLOWER_SIZE, // Same size as main flower!
-            visual_height: FLOWER_SIZE,
-            emoji: flower.emoji,
-            is_custom: flower.is_custom,
-            category: flower.category,
-            notes: `sub_flower_of:${flower.id}`
-          })
-          
-          if (newFlower) newFlowers.push(newFlower)
-        } catch (error) {
-          console.error("Error creating sub-flower:", error)
-        }
-      }
-
-      if (newFlowers.length > 0) {
-        setFlowerPositions(prev => [...prev, ...newFlowers])
-      }
-
-    } else if (actualTargetFlowers < currentCount) {
-      // REMOVE EXCESS FLOWERS
-      const flowersToRemove = Math.min(5, currentCount - actualTargetFlowers) // Remove meer per keer
-      const flowersToDelete = currentExtraFlowers.slice(0, flowersToRemove)
-
-      for (const flowerToDelete of flowersToDelete) {
-        try {
-          await deletePlant(flowerToDelete.id)
-        } catch (error) {
-          console.error("Error deleting sub-flower:", error)
-        }
-      }
-
-      setFlowerPositions(prev => prev.filter(f => 
-        !flowersToDelete.some(fd => fd.id === f.id)
-      ))
-    }
-    
-    setHasChanges(true)
-  }, [isResizing, resizeStartSize, resizeStartPos, canvasWidth, canvasHeight, flowerPositions, plantBed])
-
-  // Handle resize end - just save the main flower size
+  // Handle resize end - save the updated flower size to database
   const handleResizeEnd = useCallback(async () => {
     if (!isResizing) return
 
@@ -1388,20 +1299,10 @@ export default function PlantBedViewPage() {
           visual_height: currentFlower.visual_height
         })
 
-        // Count extra flowers for feedback
-        const extraFlowers = flowerPositions.filter(f => 
-          f.id !== currentResizingId && 
-          f.name === currentFlower.name &&
-          Math.abs(f.position_x - currentFlower.position_x) < currentFlower.visual_width * 1.5 &&
-          Math.abs(f.position_y - currentFlower.position_y) < currentFlower.visual_height * 1.5
-        )
-
-        if (extraFlowers.length > 0) {
-          toast({
-            title: "🌸 Bloem aangepast!",
-            description: `Grootte gewijzigd! Nu ${extraFlowers.length} extra bloemen.`,
-          })
-        }
+        toast({
+          title: "🌸 Bloem vergroot!",
+          description: `${currentFlower.name} is nu ${Math.round(currentFlower.visual_width)}px groot`,
+        })
       }
     } catch (error) {
       console.error("Error saving flower size:", error)
