@@ -13,6 +13,24 @@ import { ArrowLeft, Leaf, Plus, AlertCircle, Calendar } from "lucide-react"
 import { getGarden, getPlantBed, createPlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 
+// Standard flower types with emojis
+const STANDARD_FLOWERS = [
+  { name: 'Roos', emoji: '🌹', color: '#FF69B4' },
+  { name: 'Tulp', emoji: '🌷', color: '#FF4500' },
+  { name: 'Zonnebloem', emoji: '🌻', color: '#FFD700' },
+  { name: 'Lavendel', emoji: '🪻', color: '#9370DB' },
+  { name: 'Dahlia', emoji: '🌺', color: '#FF1493' },
+  { name: 'Chrysant', emoji: '🌼', color: '#FFA500' },
+  { name: 'Narcis', emoji: '🌻', color: '#FFFF00' },
+  { name: 'Iris', emoji: '🌸', color: '#4B0082' },
+  { name: 'Petunia', emoji: '🌺', color: '#FF6B6B' },
+  { name: 'Begonia', emoji: '🌸', color: '#FF8C69' },
+  { name: 'Lelie', emoji: '🌺', color: '#FF69B4' },
+  { name: 'Anjer', emoji: '🌸', color: '#FF1493' },
+]
+
+const DEFAULT_FLOWER_EMOJI = '🌸'
+
 interface NewPlant {
   name: string
   scientificName: string
@@ -26,6 +44,8 @@ interface NewPlant {
   careInstructions: string
   wateringFrequency: string
   fertilizerSchedule: string
+  emoji: string
+  isStandardFlower: boolean
 }
 
 export default function NewPlantPage() {
@@ -66,6 +86,8 @@ export default function NewPlantPage() {
     careInstructions: "",
     wateringFrequency: "",
     fertilizerSchedule: "",
+    emoji: DEFAULT_FLOWER_EMOJI,
+    isStandardFlower: false,
   })
 
   React.useEffect(() => {
@@ -126,6 +148,7 @@ export default function NewPlantPage() {
         care_instructions: newPlant.careInstructions || undefined,
         watering_frequency: newPlant.wateringFrequency ? Number.parseInt(newPlant.wateringFrequency) : undefined,
         fertilizer_schedule: newPlant.fertilizerSchedule || undefined,
+        emoji: newPlant.emoji,
       })
 
       toast({
@@ -159,6 +182,8 @@ export default function NewPlantPage() {
       careInstructions: "",
       wateringFrequency: "",
       fertilizerSchedule: "",
+      emoji: DEFAULT_FLOWER_EMOJI,
+      isStandardFlower: false,
     })
     setErrors({})
   }
@@ -217,22 +242,77 @@ export default function NewPlantPage() {
 
             <CardContent>
               <form onSubmit={handleSubmit} onReset={handleReset} className="space-y-6">
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Plantnaam *</Label>
-                    <Input
-                      id="name"
-                      placeholder="Bijv. Tomaat, Basilicum, Roos"
-                      value={newPlant.name}
-                      onChange={(e) =>
+                    <Label htmlFor="isStandardFlower">Bloem type *</Label>
+                    <Select
+                      value={newPlant.isStandardFlower ? "true" : "false"}
+                      onValueChange={(value) => {
+                        const isStandard = value === "true"
                         setNewPlant((p) => ({
                           ...p,
-                          name: e.target.value,
+                          isStandardFlower: isStandard,
+                          name: isStandard ? '' : p.name,
+                          emoji: isStandard ? DEFAULT_FLOWER_EMOJI : DEFAULT_FLOWER_EMOJI,
                         }))
-                      }
-                      className={errors.name ? "border-destructive" : ""}
-                      required
-                    />
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecteer bloem type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">Standaard bloem</SelectItem>
+                        <SelectItem value="false">Aangepaste bloem</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Bloemnaam *</Label>
+                    {newPlant.isStandardFlower ? (
+                      <Select
+                        value={newPlant.name}
+                        onValueChange={(value) => {
+                          const selectedFlower = STANDARD_FLOWERS.find(f => f.name === value)
+                          setNewPlant((p) => ({
+                            ...p,
+                            name: value,
+                            emoji: selectedFlower?.emoji || DEFAULT_FLOWER_EMOJI,
+                            color: selectedFlower?.color || p.color,
+                          }))
+                        }}
+                      >
+                        <SelectTrigger className={errors.name ? "border-destructive" : ""}>
+                          <SelectValue placeholder="Selecteer standaard bloem" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STANDARD_FLOWERS.map((flower) => (
+                            <SelectItem key={flower.name} value={flower.name}>
+                              <span className="flex items-center gap-2">
+                                <span>{flower.emoji}</span>
+                                <span>{flower.name}</span>
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      <Input
+                        id="name"
+                        placeholder="Bijv. Aangepaste bloem, Speciale variëteit"
+                        value={newPlant.name}
+                        onChange={(e) =>
+                          setNewPlant((p) => ({
+                            ...p,
+                            name: e.target.value,
+                          }))
+                        }
+                        className={errors.name ? "border-destructive" : ""}
+                        required
+                      />
+                    )}
                     {errors.name && (
                       <div className="flex items-center gap-1 text-destructive text-sm">
                         <AlertCircle className="h-4 w-4" />
@@ -385,6 +465,18 @@ export default function NewPlantPage() {
                         }))
                       }
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="emoji">Emoji</Label>
+                    <div className="flex items-center gap-2 p-2 border rounded-md bg-gray-50">
+                      <span className="text-2xl">{newPlant.emoji}</span>
+                      <span className="text-sm text-gray-600">
+                        {newPlant.isStandardFlower 
+                          ? "Automatisch toegewezen voor standaard bloem" 
+                          : "Standaard emoji voor aangepaste bloem"}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
