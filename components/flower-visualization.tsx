@@ -27,30 +27,26 @@ interface FlowerInstance {
 export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight }: FlowerVisualizationProps) {
   const [flowerInstances, setFlowerInstances] = useState<FlowerInstance[]>([])
 
-  // Calculate how many flowers should be displayed based on plant bed size
-  const calculateFlowerCount = useMemo(() => {
-    // Base calculation: 2x2 vak = 6 bloemen
-    // Dus per 100x100 pixels ongeveer 6 bloemen
-    const baseArea = 100 * 100 // 2x2 reference size
-    const baseBloemenCount = 6
-    
-    const currentArea = containerWidth * containerHeight
-    const scaleFactor = currentArea / baseArea
-    
-    // Calculate flower count based on area scaling
-    let flowerCount = Math.round(baseBloemenCount * scaleFactor)
-    
-    // Minimum and maximum bounds
-    flowerCount = Math.max(2, flowerCount) // Minimum 2 bloemen
-    flowerCount = Math.min(20, flowerCount) // Maximum 20 bloemen
-    
-    // If we have multiple plant types, distribute flowers among them
-    if (plants.length > 1) {
-      return Math.max(flowerCount, plants.length * 2) // At least 2 flowers per plant type
+  // Calculate how many flowers should be displayed for each individual plant based on its size
+  const calculateFlowersPerPlant = useMemo(() => {
+    return (plantWidth: number, plantHeight: number) => {
+      // Base calculation: 2x2 vak = 6 bloemen
+      const baseArea = 100 * 100 // 2x2 reference size
+      const baseBloemenCount = 6
+      
+      const plantArea = plantWidth * plantHeight
+      const scaleFactor = plantArea / baseArea
+      
+      // Calculate flower count based on area scaling
+      let flowerCount = Math.round(baseBloemenCount * scaleFactor)
+      
+      // Minimum and maximum bounds per plant
+      flowerCount = Math.max(1, flowerCount) // Minimum 1 bloem per plant
+      flowerCount = Math.min(15, flowerCount) // Maximum 15 bloemen per plant
+      
+      return flowerCount
     }
-    
-    return flowerCount
-  }, [containerWidth, containerHeight, plants.length])
+  }, [])
 
 
 
@@ -62,78 +58,102 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     }
 
     const instances: FlowerInstance[] = []
-    const padding = 12 // Padding from edges - increased for better flower containment
-    const usableWidth = containerWidth - (padding * 2)
-    const usableHeight = containerHeight - (padding * 2)
-
-    // Calculate flowers per plant type
-    const flowersPerPlant = Math.max(1, Math.floor(calculateFlowerCount / plants.length))
-    const extraFlowers = calculateFlowerCount % plants.length
+    const padding = 8
 
     plants.forEach((plant, plantIndex) => {
-      // How many flowers for this specific plant
-      const flowerCountForThisPlant = flowersPerPlant + (plantIndex < extraFlowers ? 1 : 0)
+      // Check if this plant has custom sizing (individual plant box)
+      const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
       
-      // Fixed flower size - larger to accommodate flower box with name text
-      const flowerSize = Math.max(30, Math.min(50, Math.min(usableWidth, usableHeight) / 3.5))
-      
-      // Create multiple flowers for this plant
-      for (let i = 0; i < flowerCountForThisPlant; i++) {
-        // Simple grid-based positioning that ALWAYS stays within bounds
-        let x, y
+      if (hasCustomSize) {
+        // Individual plant with its own box - use exact size and position
+        const plantWidth = plant.visual_width!
+        const plantHeight = plant.visual_height!
+        const plantX = 'position_x' in plant && plant.position_x !== undefined ? plant.position_x : 0
+        const plantY = 'position_y' in plant && plant.position_y !== undefined ? plant.position_y : 0
         
-        if (flowerCountForThisPlant === 1) {
-          // Single flower - center it perfectly
-          x = containerWidth / 2
-          y = containerHeight / 2
-        } else {
-          // Multiple flowers - use simple grid with guaranteed bounds
-          const cols = Math.ceil(Math.sqrt(flowerCountForThisPlant))
-          const rows = Math.ceil(flowerCountForThisPlant / cols)
-          const col = i % cols
-          const row = Math.floor(i / cols)
+        // Calculate how many flowers should be in this specific plant box
+        const flowersInThisPlant = calculateFlowersPerPlant(plantWidth, plantHeight)
+        
+        // Flower size within this plant box
+        const flowerSize = Math.max(16, Math.min(32, Math.min(plantWidth, plantHeight) / Math.ceil(Math.sqrt(flowersInThisPlant)) / 1.2))
+        
+        // Create flowers within this plant's boundaries
+        for (let i = 0; i < flowersInThisPlant; i++) {
+          let x, y
           
-          // Calculate grid cell size with proper margins
-          const cellWidth = usableWidth / cols
-          const cellHeight = usableHeight / rows
+          if (flowersInThisPlant === 1) {
+            // Single flower - center it in the plant box
+            x = plantX + plantWidth / 2
+            y = plantY + plantHeight / 2
+          } else {
+            // Multiple flowers - grid within the plant box
+            const cols = Math.ceil(Math.sqrt(flowersInThisPlant))
+            const rows = Math.ceil(flowersInThisPlant / cols)
+            const col = i % cols
+            const row = Math.floor(i / cols)
+            
+            // Available space within the plant box (with padding)
+            const availableWidth = plantWidth - (padding * 2)
+            const availableHeight = plantHeight - (padding * 2)
+            
+            // Grid cell size
+            const cellWidth = availableWidth / cols
+            const cellHeight = availableHeight / rows
+            
+            // Position in center of each grid cell within the plant box
+            x = plantX + padding + (col * cellWidth) + (cellWidth / 2)
+            y = plantY + padding + (row * cellHeight) + (cellHeight / 2)
+            
+            // Small random offset within the cell
+            const maxOffset = Math.min(6, cellWidth / 6, cellHeight / 6)
+            const offsetX = ((plant.id.charCodeAt(0) + i * 37) % (maxOffset * 2)) - maxOffset
+            const offsetY = ((plant.id.charCodeAt(0) + i * 53) % (maxOffset * 2)) - maxOffset
+            
+            x += offsetX
+            y += offsetY
+          }
           
-          // Position in center of each grid cell
-          x = padding + (col * cellWidth) + (cellWidth / 2)
-          y = padding + (row * cellHeight) + (cellHeight / 2)
+          // Ensure flowers stay within the plant box boundaries
+          const halfSize = flowerSize / 2
+          x = Math.max(plantX + halfSize + padding, Math.min(x, plantX + plantWidth - halfSize - padding))
+          y = Math.max(plantY + halfSize + padding, Math.min(y, plantY + plantHeight - halfSize - padding))
           
-          // Add small random offset but keep within cell bounds
-          const maxOffset = Math.min(8, cellWidth / 4, cellHeight / 4)
-          const offsetX = ((plant.id.charCodeAt(0) + i * 37) % (maxOffset * 2)) - maxOffset
-          const offsetY = ((plant.id.charCodeAt(0) + i * 53) % (maxOffset * 2)) - maxOffset
-          
-          x += offsetX
-          y += offsetY
+          instances.push({
+            id: `${plant.id}-flower-${i}`,
+            name: plant.name,
+            color: plant.color || '#FF69B4',
+            emoji: plant.emoji,
+            size: flowerSize,
+            x,
+            y,
+            opacity: 1,
+            rotation: 0,
+            isMainFlower: i === 0,
+            canFillContainer: false
+          })
         }
+      } else {
+        // Fallback for plants without custom positioning - center in container
+        const flowerSize = Math.max(24, Math.min(40, Math.min(containerWidth, containerHeight) / 4))
         
-        // FINAL SAFETY CHECK - absolutely ensure flowers stay within container
-        const halfSize = flowerSize / 2
-        x = Math.max(halfSize + padding, Math.min(x, containerWidth - halfSize - padding))
-        y = Math.max(halfSize + padding, Math.min(y, containerHeight - halfSize - padding))
-        
-        // Create flower instance
         instances.push({
-          id: `${plant.id}-flower-${i}`,
+          id: `${plant.id}-flower-0`,
           name: plant.name,
           color: plant.color || '#FF69B4',
           emoji: plant.emoji,
           size: flowerSize,
-          x,
-          y,
+          x: containerWidth / 2,
+          y: containerHeight / 2,
           opacity: 1,
           rotation: 0,
-          isMainFlower: i === 0, // First flower of each plant is "main"
+          isMainFlower: true,
           canFillContainer: false
         })
       }
     })
 
     setFlowerInstances(instances)
-  }, [plants, containerWidth, containerHeight, calculateFlowerCount])
+  }, [plants, containerWidth, containerHeight, calculateFlowersPerPlant])
 
   // Render nothing if no plants
   if (plants.length === 0) {
@@ -231,7 +251,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       {/* Subtle natural particles - like pollen or small leaves */}
       {containerWidth > 150 && containerHeight > 150 && (
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(Math.min(3, Math.floor(calculateFlowerCount / 6)))].map((_, i) => (
+          {[...Array(Math.min(2, Math.floor(plants.length / 2)))].map((_, i) => (
             <div
               key={`particle-${i}`}
               className="absolute opacity-20 animate-pulse"
