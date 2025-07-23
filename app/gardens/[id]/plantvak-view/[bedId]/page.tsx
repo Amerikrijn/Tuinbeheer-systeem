@@ -28,6 +28,7 @@ import {
   Edit,
   Move,
   Maximize2,
+  ChevronDown,
   X,
   Minus,
   Upload,
@@ -55,7 +56,7 @@ const SCALE_MIN = 0.5
 const SCALE_MAX = 3
 const FLOWER_SIZE = FLOWER_SIZE_MEDIUM // Default to medium size (now 45px)
 
-const FLOWER_TYPES = [
+const STANDARD_FLOWERS = [
   { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
   { name: 'Tulp', color: '#FF4500', emoji: '🌷' },
   { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
@@ -66,7 +67,11 @@ const FLOWER_TYPES = [
   { name: 'Iris', color: '#4B0082', emoji: '🌸' },
   { name: 'Petunia', color: '#FF6B6B', emoji: '🌺' },
   { name: 'Begonia', color: '#FF8C69', emoji: '🌸' },
+  { name: 'Lelie', color: '#FF69B4', emoji: '🌺' },
+  { name: 'Anjer', color: '#FF1493', emoji: '🌸' },
 ]
+
+const DEFAULT_FLOWER_EMOJI = '🌼'
 
 const DEFAULT_FLOWER_COLORS = [
   '#FF69B4', '#FF4500', '#FFD700', '#9370DB', '#FF1493', 
@@ -154,11 +159,11 @@ export default function PlantBedViewPage() {
     name: '',
     type: '',
     color: '#FF69B4',
-    customEmoji: '',
-    photoUrl: '',
+    emoji: DEFAULT_FLOWER_EMOJI,
     description: '',
     status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
-    size: 'medium' as 'small' | 'medium' | 'large'
+    size: 'medium' as 'small' | 'medium' | 'large',
+    isStandardFlower: false
   })
   const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
   const [showDeletePlantBedDialog, setShowDeletePlantBedDialog] = useState(false)
@@ -448,7 +453,7 @@ export default function PlantBedViewPage() {
     }
 
     try {
-      const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
+      const selectedType = STANDARD_FLOWERS.find(type => type.name === newFlower.type)
 
       // Map status to database format
       const dbStatus = newFlower.status === 'sick' ? 'diseased' : 
@@ -481,10 +486,10 @@ export default function PlantBedViewPage() {
         position_y: initialY,
         visual_width: flowerSize,
         visual_height: flowerSize,
-        emoji: isCustomFlower ? (newFlower.customEmoji || undefined) : selectedType?.emoji || undefined,
-        photo_url: isCustomFlower ? (uploadedImageUrl || newFlower.photoUrl || null) : null,
-        is_custom: isCustomFlower,
-        category: isCustomFlower ? 'Aangepast' : newFlower.type,
+        emoji: newFlower.emoji,
+        photo_url: null,
+        is_custom: !newFlower.isStandardFlower,
+        category: newFlower.isStandardFlower ? newFlower.type : 'Aangepast',
         notes: `${newFlower.description}${newFlower.description ? ' | ' : ''}Size: ${newFlower.size}`
       })
 
@@ -492,16 +497,15 @@ export default function PlantBedViewPage() {
         setFlowerPositions(prev => [...prev, newPlant])
         setIsAddingFlower(false)
         setIsCustomFlower(false)
-        setUploadedImageUrl('')
         setNewFlower({
           name: '',
           type: '',
           color: '#FF69B4',
-          customEmoji: '',
-          photoUrl: '',
+          emoji: DEFAULT_FLOWER_EMOJI,
           description: '',
           status: 'healthy',
-          size: 'medium'
+          size: 'medium',
+          isStandardFlower: false
         })
         
         toast({
@@ -530,7 +534,7 @@ export default function PlantBedViewPage() {
     }
 
     try {
-      const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
+      const selectedType = STANDARD_FLOWERS.find(type => type.name === newFlower.type)
 
       // Map status to database format
       const dbStatus = newFlower.status === 'sick' ? 'diseased' : 
@@ -541,10 +545,10 @@ export default function PlantBedViewPage() {
         name: newFlower.name,
         color: newFlower.color,
         status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
-        emoji: isEditCustomFlower ? (newFlower.customEmoji || undefined) : selectedType?.emoji || undefined,
-        photo_url: isEditCustomFlower ? (uploadedImageUrl || newFlower.photoUrl || null) : null,
-        is_custom: isEditCustomFlower,
-        category: isEditCustomFlower ? 'Aangepast' : newFlower.type,
+        emoji: newFlower.emoji,
+        photo_url: null,
+        is_custom: !newFlower.isStandardFlower,
+        category: newFlower.isStandardFlower ? newFlower.type : 'Aangepast',
         notes: newFlower.description
       })
 
@@ -555,17 +559,15 @@ export default function PlantBedViewPage() {
 
         setIsEditingFlower(false)
         setSelectedFlower(null)
-        setIsEditCustomFlower(false)
-        setUploadedImageUrl('')
         setNewFlower({
           name: '',
           type: '',
           color: '#FF69B4',
-          customEmoji: '',
-          photoUrl: '',
+          emoji: DEFAULT_FLOWER_EMOJI,
           description: '',
           status: 'healthy',
-          size: 'medium'
+          size: 'medium',
+          isStandardFlower: false
         })
         
         toast({
@@ -1405,14 +1407,13 @@ export default function PlantBedViewPage() {
                 name: '',
                 type: '',
                 color: '#FF69B4',
-                customEmoji: '',
-                photoUrl: '',
+                emoji: DEFAULT_FLOWER_EMOJI,
                 description: '',
                 status: 'healthy',
-                size: 'medium'
+                size: 'medium',
+                isStandardFlower: false
               })
               setIsCustomFlower(false)
-              setUploadedImageUrl('')
             }
           }}>
             <DialogTrigger asChild>
@@ -1422,14 +1423,13 @@ export default function PlantBedViewPage() {
                   name: '',
                   type: '',
                   color: '#FF69B4',
-                  customEmoji: '',
-                  photoUrl: '',
+                  emoji: DEFAULT_FLOWER_EMOJI,
                   description: '',
                   status: 'healthy',
-                  size: 'medium'
+                  size: 'medium',
+                  isStandardFlower: false
                 })
                 setIsCustomFlower(false)
-                setUploadedImageUrl('')
               }}>
                 <Plus className="h-4 w-4 mr-2" />
                 Bloem Toevoegen
@@ -1447,148 +1447,94 @@ export default function PlantBedViewPage() {
                   <label htmlFor="name" className="text-sm font-medium">
                     Bloemnaam *
                   </label>
-                  <Input
-                    id="name"
-                    value={newFlower.name}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Bijvoorbeeld: Rode Roos, Gele Tulp, Zonnebloem"
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="customFlower"
-                    checked={isCustomFlower}
-                    onChange={(e) => setIsCustomFlower(e.target.checked)}
-                  />
-                  <label htmlFor="customFlower" className="text-sm font-medium">
-                    Aangepaste bloem maken
-                  </label>
-                </div>
-
-                {!isCustomFlower ? (
-                  <div>
-                    <label className="text-sm font-medium">Type (optioneel)</label>
-                    <Select value={newFlower.type} onValueChange={(value) => {
-                      const selectedType = FLOWER_TYPES.find(type => type.name === value)
-                      setNewFlower(prev => ({ 
-                        ...prev, 
-                        type: value,
-                        color: selectedType?.color || prev.color
-                      }))
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer bloem type (optioneel)" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {FLOWER_TYPES.map((type) => (
-                          <SelectItem key={type.name} value={type.name}>
-                            <div className="flex items-center gap-2">
-                              <span>{type.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Emoji (optioneel)</label>
-                      <Input
-                        value={newFlower.customEmoji}
-                        onChange={(e) => setNewFlower(prev => ({ ...prev, customEmoji: e.target.value }))}
-                        placeholder="🌺"
-                        maxLength={2}
-                        className="text-2xl text-center"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Kies een emoji voor je bloem</p>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Foto (optioneel)</label>
-                      <div className="mt-2">
-                        {uploadedImageUrl ? (
-                          <div className="relative">
-                            <img 
-                              src={uploadedImageUrl} 
-                              alt="Uploaded flower" 
-                              className="w-20 h-20 object-cover rounded-lg border"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                              onClick={() => setUploadedImageUrl('')}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0]
-                                if (file) {
-                                  setIsUploading(true)
-                                  try {
-                                    const result = await uploadImage(file)
-                                    if (result.success && result.url) {
-                                      setUploadedImageUrl(result.url)
-                                      toast({
-                                        title: "Foto geüpload",
-                                        description: "Je foto is succesvol geüpload.",
-                                      })
-                                    } else {
-                                      toast({
-                                        title: "Upload mislukt",
-                                        description: result.error || "Er ging iets mis bij het uploaden.",
-                                        variant: "destructive",
-                                      })
-                                    }
-                                  } catch (error) {
-                                    toast({
-                                      title: "Upload mislukt",
-                                      description: "Er ging iets mis bij het uploaden.",
-                                      variant: "destructive",
-                                    })
-                                  } finally {
-                                    setIsUploading(false)
-                                  }
-                                }
+                  <div className="relative">
+                    <Input
+                      id="name"
+                      placeholder="Typ een nieuwe bloem of kies uit de lijst..."
+                      value={newFlower.name}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setNewFlower(prev => ({
+                          ...prev,
+                          name: value,
+                        }))
+                        
+                        // Check if it matches a standard flower
+                        const selectedFlower = STANDARD_FLOWERS.find(f => 
+                          f.name.toLowerCase() === value.toLowerCase()
+                        )
+                        if (selectedFlower) {
+                          setNewFlower(prev => ({
+                            ...prev,
+                            name: value,
+                            emoji: selectedFlower.emoji,
+                            color: selectedFlower.color,
+                            type: value,
+                            isStandardFlower: true,
+                          }))
+                          setIsCustomFlower(false)
+                        } else {
+                          setNewFlower(prev => ({
+                            ...prev,
+                            name: value,
+                            emoji: prev.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : prev.emoji,
+                            type: '',
+                            isStandardFlower: false,
+                          }))
+                          setIsCustomFlower(true)
+                        }
+                      }}
+                      className="pr-8"
+                      autoComplete="off"
+                    />
+                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    {/* Show suggestions only when typing and there's input */}
+                    {newFlower.name && newFlower.name.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                        {STANDARD_FLOWERS
+                          .filter(flower => 
+                            flower.name.toLowerCase().includes(newFlower.name.toLowerCase())
+                          )
+                          .slice(0, 5)
+                          .map((flower) => (
+                            <div
+                              key={flower.name}
+                              className="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
+                              onClick={() => {
+                                setNewFlower(prev => ({
+                                  ...prev,
+                                  name: flower.name,
+                                  emoji: flower.emoji,
+                                  color: flower.color,
+                                  type: flower.name,
+                                  isStandardFlower: true,
+                                }))
+                                setIsCustomFlower(false)
                               }}
-                              className="hidden"
-                              id="photo-upload"
-                              disabled={isUploading}
-                            />
-                            <label
-                              htmlFor="photo-upload"
-                              className="flex flex-col items-center cursor-pointer"
                             >
-                              {isUploading ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                                  <p className="text-sm text-gray-500 mt-2">Uploading...</p>
-                                </>
-                              ) : (
-                                <>
-                                  <ImageIcon className="h-8 w-8 text-gray-400" />
-                                  <p className="text-sm text-gray-500 mt-2">Klik om een foto te uploaden</p>
-                                  <p className="text-xs text-gray-400">PNG, JPG tot 5MB</p>
-                                </>
-                              )}
-                            </label>
-                          </div>
-                        )}
+                              <span>{flower.emoji}</span>
+                              <span>{flower.name}</span>
+                            </div>
+                          ))}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1">Upload een foto van je bloem (optioneel)</p>
-                    </div>
+                    )}
                   </div>
-                )}
+                  <p className="text-xs text-gray-500">
+                    Tip: Begin te typen om uit standaard bloemen te kiezen, of typ een eigen naam
+                  </p>
+                </div>
+
+                <div className="grid gap-2">
+                  <label className="text-sm font-medium">Emoji</label>
+                  <div className="flex items-center gap-2 p-2 border rounded-md bg-gray-50">
+                    <span className="text-2xl">{newFlower.emoji}</span>
+                    <span className="text-sm text-gray-600">
+                      {newFlower.isStandardFlower 
+                        ? "Automatisch toegewezen voor standaard bloem" 
+                        : "Standaard emoji voor aangepaste bloem"}
+                    </span>
+                  </div>
+                </div>
 
                 <div>
                   <label className="text-sm font-medium">Kleur</label>
@@ -1687,11 +1633,11 @@ export default function PlantBedViewPage() {
                       name: '',
                       type: '',
                       color: '#FF69B4',
-                      customEmoji: '',
-                      photoUrl: '',
+                      emoji: DEFAULT_FLOWER_EMOJI,
                       description: '',
                       status: 'healthy',
-                      size: 'medium'
+                      size: 'medium',
+                      isStandardFlower: false
                     })
                     setIsCustomFlower(false)
                   }}>
@@ -1711,15 +1657,13 @@ export default function PlantBedViewPage() {
                 name: '',
                 type: '',
                 color: '#FF69B4',
-                customEmoji: '',
-                photoUrl: '',
+                emoji: DEFAULT_FLOWER_EMOJI,
                 description: '',
                 status: 'healthy',
-                size: 'medium'
+                size: 'medium',
+                isStandardFlower: false
               })
-              setIsEditCustomFlower(false)
               setSelectedFlower(null)
-              setUploadedImageUrl('')
             }
                                            }}>
             <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white z-50 border border-gray-200 shadow-xl">
@@ -1734,148 +1678,93 @@ export default function PlantBedViewPage() {
                   <label htmlFor="edit-name" className="text-sm font-medium">
                     Bloemnaam *
                   </label>
-                  <Input
-                    id="edit-name"
-                    value={newFlower.name}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Bijvoorbeeld: Rode Roos, Gele Tulp, Zonnebloem"
-                  />
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="editCustomFlower"
-                    checked={isEditCustomFlower}
-                    onChange={(e) => setIsEditCustomFlower(e.target.checked)}
-                  />
-                  <label htmlFor="editCustomFlower" className="text-sm font-medium">
-                    Aangepaste bloem maken
-                  </label>
-                </div>
-
-                {!isEditCustomFlower ? (
-                  <div>
-                    <label className="text-sm font-medium">Type (optioneel)</label>
-                    <Select value={newFlower.type} onValueChange={(value) => {
-                      const selectedType = FLOWER_TYPES.find(type => type.name === value)
-                      setNewFlower(prev => ({ 
-                        ...prev, 
-                        type: value,
-                        color: selectedType?.color || prev.color
-                      }))
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer bloem type (optioneel)" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {FLOWER_TYPES.map((type) => (
-                          <SelectItem key={type.name} value={type.name}>
-                            <div className="flex items-center gap-2">
-                              <span>{type.name}</span>
+                  <div className="relative">
+                    <Input
+                      id="edit-name"
+                      placeholder="Typ een nieuwe bloem of kies uit de lijst..."
+                      value={newFlower.name}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        setNewFlower(prev => ({
+                          ...prev,
+                          name: value,
+                        }))
+                        
+                        // Check if it matches a standard flower
+                        const selectedFlower = STANDARD_FLOWERS.find(f => 
+                          f.name.toLowerCase() === value.toLowerCase()
+                        )
+                        if (selectedFlower) {
+                          setNewFlower(prev => ({
+                            ...prev,
+                            name: value,
+                            emoji: selectedFlower.emoji,
+                            color: selectedFlower.color,
+                            type: value,
+                            isStandardFlower: true,
+                          }))
+                        } else {
+                          setNewFlower(prev => ({
+                            ...prev,
+                            name: value,
+                            emoji: prev.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : prev.emoji,
+                            type: '',
+                            isStandardFlower: false,
+                          }))
+                        }
+                      }}
+                      className="pr-8"
+                      autoComplete="off"
+                    />
+                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+                    {/* Show suggestions only when typing and there's input */}
+                    {newFlower.name && newFlower.name.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                        {STANDARD_FLOWERS
+                          .filter(flower => 
+                            flower.name.toLowerCase().includes(newFlower.name.toLowerCase())
+                          )
+                          .slice(0, 5)
+                          .map((flower) => (
+                            <div
+                              key={flower.name}
+                              className="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
+                              onClick={() => {
+                                setNewFlower(prev => ({
+                                  ...prev,
+                                  name: flower.name,
+                                  emoji: flower.emoji,
+                                  color: flower.color,
+                                  type: flower.name,
+                                  isStandardFlower: true,
+                                }))
+                              }}
+                            >
+                              <span>{flower.emoji}</span>
+                              <span>{flower.name}</span>
                             </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                          ))}
+                      </div>
+                    )}
                   </div>
-                ) : (
+                  <p className="text-xs text-gray-500">
+                    Tip: Begin te typen om uit standaard bloemen te kiezen, of typ een eigen naam
+                  </p>
+                </div>
+
+                {!newFlower.isStandardFlower && (
                   <div className="space-y-3">
                     <div>
                       <label className="text-sm font-medium">Emoji (optioneel)</label>
                       <Input
-                        value={newFlower.customEmoji}
-                        onChange={(e) => setNewFlower(prev => ({ ...prev, customEmoji: e.target.value }))}
+                        value={newFlower.emoji}
+                        onChange={(e) => setNewFlower(prev => ({ ...prev, emoji: e.target.value }))}
                         placeholder="🌺"
                         maxLength={2}
                         className="text-2xl text-center"
+                        autoComplete="off"
                       />
                       <p className="text-xs text-gray-500 mt-1">Kies een emoji voor je bloem</p>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Foto (optioneel)</label>
-                      <div className="mt-2">
-                        {(uploadedImageUrl || newFlower.photoUrl) ? (
-                          <div className="relative">
-                            <img 
-                              src={uploadedImageUrl || newFlower.photoUrl || ''} 
-                              alt="Flower photo" 
-                              className="w-20 h-20 object-cover rounded-lg border"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                              onClick={() => {
-                                setUploadedImageUrl('')
-                                setNewFlower(prev => ({ ...prev, photoUrl: '' }))
-                              }}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0]
-                                if (file) {
-                                  setIsUploading(true)
-                                  try {
-                                    const result = await uploadImage(file)
-                                    if (result.success && result.url) {
-                                      setUploadedImageUrl(result.url)
-                                      toast({
-                                        title: "Foto geüpload",
-                                        description: "Je foto is succesvol geüpload.",
-                                      })
-                                    } else {
-                                      toast({
-                                        title: "Upload mislukt",
-                                        description: result.error || "Er ging iets mis bij het uploaden.",
-                                        variant: "destructive",
-                                      })
-                                    }
-                                  } catch (error) {
-                                    toast({
-                                      title: "Upload mislukt",
-                                      description: "Er ging iets mis bij het uploaden.",
-                                      variant: "destructive",
-                                    })
-                                  } finally {
-                                    setIsUploading(false)
-                                  }
-                                }
-                              }}
-                              className="hidden"
-                              id="photo-upload-edit"
-                              disabled={isUploading}
-                            />
-                            <label
-                              htmlFor="photo-upload-edit"
-                              className="flex flex-col items-center cursor-pointer"
-                            >
-                              {isUploading ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                                  <p className="text-sm text-gray-500 mt-2">Uploading...</p>
-                                </>
-                              ) : (
-                                <>
-                                  <ImageIcon className="h-8 w-8 text-gray-400" />
-                                  <p className="text-sm text-gray-500 mt-2">Klik om een foto te uploaden</p>
-                                  <p className="text-xs text-gray-400">PNG, JPG tot 5MB</p>
-                                </>
-                              )}
-                            </label>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">Upload een foto van je bloem (optioneel)</p>
                     </div>
                   </div>
                 )}
@@ -1954,13 +1843,12 @@ export default function PlantBedViewPage() {
                       name: '',
                       type: '',
                       color: '#FF69B4',
-                      customEmoji: '',
-                      photoUrl: '',
+                      emoji: DEFAULT_FLOWER_EMOJI,
                       description: '',
                       status: 'healthy',
-                      size: 'medium'
+                      size: 'medium',
+                      isStandardFlower: false
                     })
-                    setIsEditCustomFlower(false)
                     setSelectedFlower(null)
                   }}>
                     Annuleren
@@ -2257,16 +2145,15 @@ export default function PlantBedViewPage() {
                         name: selectedFlower.name,
                         type: selectedFlower.category || '',
                         color: selectedFlower.color || '#FF69B4',
-                        customEmoji: selectedFlower.emoji || '',
-                        photoUrl: selectedFlower.photo_url || '',
+                        emoji: selectedFlower.emoji || DEFAULT_FLOWER_EMOJI,
                         description: selectedFlower.notes || '',
                         status: selectedFlower.status === 'diseased' ? 'sick' : 
                                selectedFlower.status === 'healthy' ? 'healthy' :
                                selectedFlower.status === 'needs_attention' ? 'needs_attention' :
                                'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
-                        size: 'medium'
+                        size: 'medium',
+                        isStandardFlower: !selectedFlower.is_custom
                       })
-                      setIsEditCustomFlower(selectedFlower.is_custom || false)
                       setIsEditingFlower(true)
                       toast({
                         title: "✏️ Bloem bewerken",
