@@ -403,9 +403,6 @@ export class TuinService {
   }
 }
 
-// Export the main service class and error types
-export { DatabaseService } from './database.service'
-
 // For backward compatibility, create a unified DatabaseService
 export const DatabaseService = {
   Tuin: TuinService,

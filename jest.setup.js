@@ -14,6 +14,23 @@ jest.mock('next/navigation', () => ({
   usePathname: () => '/',
 }))
 
+// Mock Next.js server components
+jest.mock('next/server', () => ({
+  NextRequest: jest.fn().mockImplementation((url, options) => ({
+    url,
+    method: options?.method || 'GET',
+    headers: new Map(Object.entries(options?.headers || {})),
+    json: jest.fn().mockResolvedValue({}),
+    ...options,
+  })),
+  NextResponse: {
+    json: jest.fn().mockImplementation((data, options) => ({
+      json: jest.fn().mockResolvedValue(data),
+      status: options?.status || 200,
+    })),
+  },
+}))
+
 // Mock Supabase
 jest.mock('@/lib/supabase', () => ({
   supabase: {
