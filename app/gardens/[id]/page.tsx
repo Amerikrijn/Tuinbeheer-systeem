@@ -1279,153 +1279,151 @@ export default function GardenDetailPage() {
                   return (
                     <div
                       key={bed.id}
-                      className={`absolute border-3 rounded-lg transition-all duration-200 group shadow-lg ${
-                        isDragging ? 'shadow-2xl scale-105 border-green-600 z-50 cursor-grabbing ring-4 ring-green-300' : 
-                        isRotating ? 'shadow-2xl border-orange-600 z-50 ring-4 ring-orange-200' :
-                        isSelected ? 'border-blue-600 shadow-xl ring-3 ring-blue-300 cursor-grab' :
-                        'cursor-grab hover:shadow-xl hover:scale-102 hover:border-green-500 hover:ring-2 hover:ring-green-300'
-                      }`}
+                      className="absolute"
                       style={{
                         left: bed.position_x || 100,
                         top: bed.position_y || 100,
-                        width: bedWidth,
-                        height: bedHeight,
-                        transform: `rotate(${bed.rotation || 0}deg)`,
-                        transformOrigin: 'center center',
                       }}
-                      onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
-                      onMouseDown={(e) => handlePlantBedPointerDown(e, bed.id)}
-                      onTouchStart={(e) => handlePlantBedPointerDown(e, bed.id)}
-                      onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
-                      onClick={(e) => handlePlantBedClick(e, bed.id)}
                     >
-                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 ${
-                        isSelected ? 'bg-blue-100 border-blue-300' : ''
-                      }`}>
-                        {/* Top corner elements */}
-                        <div className="flex items-start justify-between">
-                          {bed.sun_exposure && (
-                            <div className="bg-white/90 p-1 rounded shadow-sm">
-                              {getSunExposureIcon(bed.sun_exposure)}
-                            </div>
-                          )}
-                          {isDragging && (
-                            <div className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded shadow-sm animate-bounce">
-                              🖱️ Verplaatsen
-                            </div>
-                          )}
-                          {isRotating && (
-                            <div className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded shadow-sm animate-pulse">
-                              🔄 Roteren
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Main area for plants/flowers - full height for flowers */}
-                        <div className="w-full h-full flex items-center justify-center relative overflow-hidden border-2 border-dashed border-gray-300 rounded-lg bg-gradient-to-br from-green-25 to-green-50">
-                          {/* Plantvak visual indicator */}
-                          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent pointer-events-none"></div>
-                          
-                          {/* Flower Visualization System */}
-                          <FlowerVisualization 
-                            plantBed={bed}
-                            plants={bed.plants}
-                            containerWidth={bedWidth}
-                            containerHeight={bedHeight}
-                          />
-                          {bed.plants.length === 0 && (
-                            <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
-                              🌱 Leeg plantvak
-                            </div>
-                          )}
-                          
-                          {/* Corner decorations to emphasize the plant bed area */}
-                          <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none"></div>
-                          <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none"></div>
-                          <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none"></div>
-                          <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none"></div>
-                        </div>
-
-
-                        
-                        {isSelected && (
-                          <>
-                            <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
-                              Geselecteerd
-                            </div>
-                            {/* Rotation handle - improved */}
-                            <div
-                              className="absolute -top-2 -left-2 w-8 h-8 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center cursor-grab text-sm font-bold shadow-xl border-2 border-white z-20"
-                              onMouseDown={(e) => {
-                                e.stopPropagation()
-                                e.preventDefault()
-                                if (!canvasRef.current) return
-                                
-                                const canvas = canvasRef.current
-                                const rect = canvas.getBoundingClientRect()
-                                const mouseX = (e.clientX - rect.left) / scale
-                                const mouseY = (e.clientY - rect.top) / scale
-                                
-                                const bedWidth = bed.visual_width || metersToPixels(2)
-                                const bedHeight = bed.visual_height || metersToPixels(2)
-                                const centerX = (bed.position_x || 100) + bedWidth / 2
-                                const centerY = (bed.position_y || 100) + bedHeight / 2
-                                
-                                const startAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
-                                setRotationStartAngle(startAngle)
-                                setRotatingBed(bed.id)
-                                setIsRotateMode(true)
-                                
-                                // Stop any dragging when rotating
-                                setDraggedBed(null)
-                                setIsDragMode(false)
-                              }}
-                              onTouchStart={(e) => {
-                                e.stopPropagation()
-                                e.preventDefault()
-                                if (!canvasRef.current) return
-                                
-                                const touch = e.touches[0]
-                                const canvas = canvasRef.current
-                                const rect = canvas.getBoundingClientRect()
-                                const touchX = (touch.clientX - rect.left) / scale
-                                const touchY = (touch.clientY - rect.top) / scale
-                                
-                                const bedWidth = bed.visual_width || metersToPixels(2)
-                                const bedHeight = bed.visual_height || metersToPixels(2)
-                                const centerX = (bed.position_x || 100) + bedWidth / 2
-                                const centerY = (bed.position_y || 100) + bedHeight / 2
-                                
-                                const startAngle = calculateAngle(centerX, centerY, touchX, touchY)
-                                setRotationStartAngle(startAngle)
-                                setRotatingBed(bed.id)
-                                setIsRotateMode(true)
-                                
-                                // Stop any dragging when rotating
-                                setDraggedBed(null)
-                                setIsDragMode(false)
-                              }}
-                            >
-                              🔄
-                            </div>
-                          </>
-                        )}
-                        <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
-                        
-                        {/* Hover tooltip with plantvak info */}
-                        <div className="absolute -bottom-16 left-0 right-0 bg-white/95 rounded-lg p-2 shadow-lg border border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 backdrop-blur-sm">
-                          <div className="text-sm font-bold text-gray-900 truncate flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                            {bed.name}
+                      {/* Plantvak container */}
+                      <div
+                        className={`border-3 rounded-lg transition-all duration-200 group shadow-lg ${
+                          isDragging ? 'shadow-2xl scale-105 border-green-600 z-50 cursor-grabbing ring-4 ring-green-300' : 
+                          isRotating ? 'shadow-2xl border-orange-600 z-50 ring-4 ring-orange-200' :
+                          isSelected ? 'border-blue-600 shadow-xl ring-3 ring-blue-300 cursor-grab' :
+                          'cursor-grab hover:shadow-xl hover:scale-102 hover:border-green-500 hover:ring-2 hover:ring-green-300'
+                        }`}
+                        style={{
+                          width: bedWidth,
+                          height: bedHeight,
+                          transform: `rotate(${bed.rotation || 0}deg)`,
+                          transformOrigin: 'center center',
+                        }}
+                        onDoubleClick={() => handlePlantBedDoubleClick(bed.id)}
+                        onMouseDown={(e) => handlePlantBedPointerDown(e, bed.id)}
+                        onTouchStart={(e) => handlePlantBedPointerDown(e, bed.id)}
+                        onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
+                        onClick={(e) => handlePlantBedClick(e, bed.id)}
+                      >
+                        <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 ${
+                          isSelected ? 'bg-blue-100 border-blue-300' : ''
+                        }`}>
+                          {/* Top corner elements */}
+                          <div className="flex items-start justify-between">
+                            {bed.sun_exposure && (
+                              <div className="bg-white/90 p-1 rounded shadow-sm">
+                                {getSunExposureIcon(bed.sun_exposure)}
+                              </div>
+                            )}
+                            {isDragging && (
+                              <div className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded shadow-sm animate-bounce">
+                                🖱️ Verplaatsen
+                              </div>
+                            )}
+                            {isRotating && (
+                              <div className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded shadow-sm animate-pulse">
+                                🔄 Roteren
+                              </div>
+                            )}
                           </div>
-                          <div className="flex items-center justify-between text-xs mt-1">
-                            <span className="text-gray-700 font-medium">
-                              📏 {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
-                            </span>
-                            <span className="text-gray-600 flex items-center gap-1">
-                              <span>🌸</span>
-                              <span>{bed.plants.length}</span>
-                            </span>
+
+                          {/* Main area for plants/flowers - full height for flowers */}
+                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden border-2 border-dashed border-gray-300 rounded-lg bg-gradient-to-br from-green-25 to-green-50">
+                            {/* Plantvak visual indicator */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent pointer-events-none"></div>
+                            
+                            {/* Flower Visualization System */}
+                            <FlowerVisualization 
+                              plantBed={bed}
+                              plants={bed.plants}
+                              containerWidth={bedWidth}
+                              containerHeight={bedHeight}
+                            />
+                            {bed.plants.length === 0 && (
+                              <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
+                                🌱 Leeg plantvak
+                              </div>
+                            )}
+                            
+                            {/* Corner decorations to emphasize the plant bed area */}
+                            <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none"></div>
+                            <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none"></div>
+                            <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none"></div>
+                            <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none"></div>
+                          </div>
+
+
+                          
+                          {isSelected && (
+                            <>
+                              <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
+                                Geselecteerd
+                              </div>
+                              {/* Rotation handle - improved */}
+                              <div
+                                className="absolute -top-2 -left-2 w-8 h-8 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center cursor-grab text-sm font-bold shadow-xl border-2 border-white z-20"
+                                onMouseDown={(e) => {
+                                  e.stopPropagation()
+                                  e.preventDefault()
+                                  if (!canvasRef.current) return
+                                  
+                                  const canvas = canvasRef.current
+                                  const rect = canvas.getBoundingClientRect()
+                                  const mouseX = (e.clientX - rect.left) / scale
+                                  const mouseY = (e.clientY - rect.top) / scale
+                                  
+                                  const bedWidth = bed.visual_width || metersToPixels(2)
+                                  const bedHeight = bed.visual_height || metersToPixels(2)
+                                  const centerX = (bed.position_x || 100) + bedWidth / 2
+                                  const centerY = (bed.position_y || 100) + bedHeight / 2
+                                  
+                                  const startAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
+                                  setRotationStartAngle(startAngle)
+                                  setRotatingBed(bed.id)
+                                  setIsRotateMode(true)
+                                  
+                                  // Stop any dragging when rotating
+                                  setDraggedBed(null)
+                                  setIsDragMode(false)
+                                }}
+                                onTouchStart={(e) => {
+                                  e.stopPropagation()
+                                  e.preventDefault()
+                                  if (!canvasRef.current) return
+                                  
+                                  const touch = e.touches[0]
+                                  const canvas = canvasRef.current
+                                  const rect = canvas.getBoundingClientRect()
+                                  const touchX = (touch.clientX - rect.left) / scale
+                                  const touchY = (touch.clientY - rect.top) / scale
+                                  
+                                  const bedWidth = bed.visual_width || metersToPixels(2)
+                                  const bedHeight = bed.visual_height || metersToPixels(2)
+                                  const centerX = (bed.position_x || 100) + bedWidth / 2
+                                  const centerY = (bed.position_y || 100) + bedHeight / 2
+                                  
+                                  const startAngle = calculateAngle(centerX, centerY, touchX, touchY)
+                                  setRotationStartAngle(startAngle)
+                                  setRotatingBed(bed.id)
+                                  setIsRotateMode(true)
+                                  
+                                  // Stop any dragging when rotating
+                                  setDraggedBed(null)
+                                  setIsDragMode(false)
+                                }}
+                              >
+                                🔄
+                              </div>
+                            </>
+                          )}
+                          <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
+                        </div>
+                        
+                        {/* Plantvak info onder het vak */}
+                        <div className="mt-1 text-center">
+                          <div className="text-xs text-gray-600 font-medium">{bed.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {bed.plants.length} 🌸
                           </div>
                         </div>
                       </div>
