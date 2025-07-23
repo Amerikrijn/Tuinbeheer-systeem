@@ -411,17 +411,17 @@ export default function PlantBedViewPage() {
     }
   }, [plantBed, flowerPositions, canvasWidth, canvasHeight, toast])
 
-  // Auto-cleanup flowers outside boundaries only (no auto-fill)
-  useEffect(() => {
-    if (!loading && plantBed && flowerPositions.length >= 0) {
-      const timer = setTimeout(async () => {
-        await cleanupFlowersOutsideBoundaries() // Only cleanup existing flowers
-        // Removed autoFillFlowerBed() - user wants only 1 flower per plantvak
-      }, 1500) // Slightly longer delay for cleanup
-      
-      return () => clearTimeout(timer)
-    }
-  }, [loading, plantBed, cleanupFlowersOutsideBoundaries])
+  // Disabled auto-cleanup and auto-fill - user wants manual control
+  // useEffect(() => {
+  //   if (!loading && plantBed && flowerPositions.length >= 0) {
+  //     const timer = setTimeout(async () => {
+  //       await cleanupFlowersOutsideBoundaries() // This was causing flowers to jump back
+  //       // Removed autoFillFlowerBed() - user wants only 1 flower per plantvak
+  //     }, 1500) // Slightly longer delay for cleanup
+  //     
+  //     return () => clearTimeout(timer)
+  //   }
+  // }, [loading, plantBed, cleanupFlowersOutsideBoundaries])
 
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
