@@ -411,17 +411,17 @@ export default function PlantBedViewPage() {
     }
   }, [plantBed, flowerPositions, canvasWidth, canvasHeight, toast])
 
-  // Auto-fill large flower beds after data is loaded and cleanup
+  // Auto-cleanup flowers outside boundaries only (no auto-fill)
   useEffect(() => {
     if (!loading && plantBed && flowerPositions.length >= 0) {
       const timer = setTimeout(async () => {
-        await cleanupFlowersOutsideBoundaries() // First cleanup existing flowers
-        await autoFillFlowerBed() // Then add more if needed
+        await cleanupFlowersOutsideBoundaries() // Only cleanup existing flowers
+        // Removed autoFillFlowerBed() - user wants only 1 flower per plantvak
       }, 1500) // Slightly longer delay for cleanup
       
       return () => clearTimeout(timer)
     }
-  }, [loading, plantBed, cleanupFlowersOutsideBoundaries, autoFillFlowerBed])
+  }, [loading, plantBed, cleanupFlowersOutsideBoundaries])
 
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
