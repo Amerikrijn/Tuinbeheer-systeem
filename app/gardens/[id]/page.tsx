@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { useToast } from "@/hooks/use-toast"
+// useToast removed - no more toast notifications
 import {
   ArrowLeft,
   TreePine,
@@ -56,7 +56,7 @@ interface PlantBedPosition {
 export default function GardenDetailPage() {
   const router = useRouter()
   const params = useParams()
-  const { toast } = useToast()
+  // toast removed - no more notifications
   const [garden, setGarden] = useState<Garden | null>(null)
   const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])
   const [loading, setLoading] = useState(true)
@@ -288,20 +288,12 @@ export default function GardenDetailPage() {
     const validation = validatePlantBedsInGarden(gardenForm.length, gardenForm.width)
     
     if (!validation.fits) {
-      toast({
-        title: "⚠️ Plantvakken passen niet meer",
-        description: `${validation.warnings.length} plantvak(ken) vallen buiten de nieuwe tuinafmetingen. Verplaats ze eerst of maak de tuin groter.`,
-        variant: "destructive",
-      })
+        // Removed toast notification
       
       // Show detailed warnings
       validation.warnings.forEach((warning, index) => {
         setTimeout(() => {
-          toast({
-            title: `Plantvak ${index + 1}/${validation.warnings.length}`,
-            description: warning,
-            variant: "destructive",
-          })
+        // Removed toast notification
         }, (index + 1) * 1000)
       })
       return
@@ -324,17 +316,10 @@ export default function GardenDetailPage() {
       setGarden(updatedGarden)
       setIsEditingGarden(false)
       
-      toast({
-        title: "✅ Tuin bijgewerkt",
-        description: "De tuinafmetingen zijn succesvol aangepast.",
-      })
+        // Removed toast notification
     } catch (error) {
       console.error('Failed to update garden:', error)
-      toast({
-        title: "❌ Fout",
-        description: "Kon tuin niet bijwerken. Probeer opnieuw.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     }
   }
 
@@ -606,10 +591,7 @@ export default function GardenDetailPage() {
           
           console.log(`✅ Added ${additionalFlowers.length} flowers to ${bed.name}`)
           
-          toast({
-            title: "🌸 Meer bloemen!",
-            description: `${additionalFlowers.length} nieuwe bloemen toegevoegd aan ${bed.name}`,
-          })
+        // Removed toast notification
         }
       }
     } catch (error) {
@@ -639,19 +621,12 @@ export default function GardenDetailPage() {
           
           // Show save confirmation only once per session (removed feedback as requested)
           // if (!sessionStorage.getItem('gardenSaveShown')) {
-          //   toast({
-          //     title: "✅ Plantvak verplaatst",
-          //     description: "Positie automatisch opgeslagen!",
-          //   })
+        // Removed toast notification
           //   sessionStorage.setItem('gardenSaveShown', 'true')
           // }
         } catch (error) {
           console.error("Error auto-saving plant bed position:", error)
-          toast({
-            title: "❌ Fout bij opslaan",
-            description: "Positie kon niet worden opgeslagen. Probeer opnieuw.",
-            variant: "destructive",
-          })
+        // Removed toast notification
         }
         
         // Check if plant bed was resized and add more flowers if needed
@@ -663,7 +638,7 @@ export default function GardenDetailPage() {
     setDragOffset({ x: 0, y: 0 })
     setRotatingBed(null)
     setIsRotateMode(false)
-  }, [draggedBed, rotatingBed, hasChanges, plantBeds, checkAndAddMoreFlowers, toast])
+  }, [draggedBed, rotatingBed, hasChanges, plantBeds, checkAndAddMoreFlowers])
 
   // Calculate angle between two points (for rotation)
   const calculateAngle = useCallback((centerX: number, centerY: number, pointX: number, pointY: number) => {
@@ -803,18 +778,11 @@ export default function GardenDetailPage() {
             : bed
         ))
         
-        toast({
-          title: "Rotatie bijgewerkt",
-          description: `Plantvak geroteerd naar ${newRotation}°`,
-        })
+        // Removed toast notification
       }
     } catch (error) {
       console.error("Error updating rotation:", error)
-      toast({
-        title: "Fout bij roteren",
-        description: "Er is een fout opgetreden bij het roteren van het plantvak.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     }
   }
 
@@ -830,11 +798,7 @@ export default function GardenDetailPage() {
         length: newPlantBed.length, 
         width: newPlantBed.width 
       })
-      toast({
-        title: "Incomplete gegevens",
-        description: "Vul naam, lengte en breedte in.",
-        variant: "destructive",
-      })
+        // Removed toast notification
       return
     }
 
@@ -844,11 +808,7 @@ export default function GardenDetailPage() {
       const width = parseFloat(newPlantBed.width)
       
       if (isNaN(length) || isNaN(width) || length <= 0 || width <= 0) {
-        toast({
-          title: "Ongeldige afmetingen",
-          description: "Lengte en breedte moeten geldige getallen zijn groter dan 0.",
-          variant: "destructive",
-        })
+        // Removed toast notification
         return
       }
 
@@ -961,19 +921,13 @@ export default function GardenDetailPage() {
             sun_exposure: 'full-sun',
             soil_type: ''
           })
-          toast({
-            title: "Plantvak toegevoegd",
-            description: `${plantBed.name} (${sizeString}) is toegevoegd met ${sampleFlowers.length} voorbeeldbloemen.`,
+        // Removed toast notification
           })
         }
       }
     } catch (error) {
       console.error("Error creating plant bed:", error)
-      toast({
-        title: "Fout bij toevoegen",
-        description: "Er is een fout opgetreden bij het toevoegen van het plantvak.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     }
   }
 
@@ -994,17 +948,10 @@ export default function GardenDetailPage() {
       
       setPlantBeds(prev => prev.filter(bed => bed.id !== deletingBedId))
       
-      toast({
-        title: "Plantvak verwijderd",
-        description: "Het plantvak is succesvol verwijderd.",
-      })
+        // Removed toast notification
     } catch (error) {
       console.error("Error deleting plant bed:", error)
-      toast({
-        title: "Fout bij verwijderen",
-        description: "Er is een fout opgetreden bij het verwijderen van het plantvak.",
-        variant: "destructive",
-      })
+        // Removed toast notification
     } finally {
       setDeletingBedId(null)
       setShowDeleteDialog(false)
