@@ -38,7 +38,7 @@ import { useToast } from "@/hooks/use-toast"
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 import { uploadImage, type UploadResult } from "@/lib/storage"
-import { FlowerVisualization } from "@/components/flower-visualization"
+// FlowerVisualization import removed - using interactive overlay instead
 import {
   METERS_TO_PIXELS,
   PLANTVAK_CANVAS_PADDING,
@@ -2288,13 +2288,7 @@ export default function PlantBedViewPage() {
                 )
               })()}
 
-              {/* FlowerVisualization - shows flowers within plantvak boundaries */}
-              <FlowerVisualization 
-                plantBed={plantBed}
-                plants={flowerPositions}
-                containerWidth={canvasWidth}
-                containerHeight={canvasHeight}
-              />
+              {/* FlowerVisualization removed - using interactive overlay instead */}
 
               {/* Interactive overlay for selected flowers */}
               {flowerPositions.map((flower) => {
