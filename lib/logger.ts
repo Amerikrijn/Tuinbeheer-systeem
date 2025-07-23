@@ -175,6 +175,16 @@ class Logger {
 
   // Performance logging
   public performance(operation: string, duration: number, context?: LogContext): void {
+    // Get memory usage safely (only available in Node.js)
+    let memoryUsage = 0;
+    try {
+      if (typeof process !== 'undefined' && process.memoryUsage) {
+        memoryUsage = process.memoryUsage().heapUsed;
+      }
+    } catch (error) {
+      // Ignore memory usage errors in browser environment
+    }
+
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level: LogLevel.INFO,
@@ -186,7 +196,7 @@ class Logger {
       },
       performance: {
         duration,
-        memory: process.memoryUsage().heapUsed
+        memory: memoryUsage
       }
     };
 
