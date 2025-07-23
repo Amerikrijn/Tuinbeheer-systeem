@@ -15,13 +15,16 @@ import { logger } from '../lib/logger';
 import { createClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 
-// Test environment configuration
+// Test environment configuration - SAFE VERSION
 export const TEST_CONFIG = {
-  SUPABASE_URL: process.env.TEST_SUPABASE_URL || 'https://dwsgwqosmihsfaxuheji.supabase.co',
-  SUPABASE_ANON_KEY: process.env.TEST_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE',
+  // ⚠️ PRODUCTION SAFETY: Tests use mock database to prevent contamination
+  SUPABASE_URL: process.env.TEST_SUPABASE_URL || 'mock://localhost:3000/test-db',
+  SUPABASE_ANON_KEY: process.env.TEST_SUPABASE_ANON_KEY || 'mock-test-key',
   TIMEOUT: 30000,
   RETRY_ATTEMPTS: 3,
-  CLEANUP_AFTER_TESTS: true
+  CLEANUP_AFTER_TESTS: true,
+  // Safety flag to prevent production database access
+  MOCK_MODE: !process.env.TEST_SUPABASE_URL
 };
 
 // Test database client
