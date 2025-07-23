@@ -74,8 +74,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       // How many flowers for this specific plant
       const flowerCountForThisPlant = flowersPerPlant + (plantIndex < extraFlowers ? 1 : 0)
       
-      // Fixed flower size - smaller and consistent
-      const flowerSize = Math.max(16, Math.min(20, Math.min(usableWidth, usableHeight) / 6))
+      // Fixed flower size - larger to accommodate name text
+      const flowerSize = Math.max(24, Math.min(40, Math.min(usableWidth, usableHeight) / 4))
       
       // Create multiple flowers for this plant
       for (let i = 0; i < flowerCountForThisPlant; i++) {
@@ -147,8 +147,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           key={flower.id}
           className="absolute transition-all duration-500 ease-in-out"
           style={{
-            left: flower.x,
-            top: flower.y,
+            left: flower.x - flower.size / 2, // Center the flower horizontally
+            top: flower.y - flower.size / 2,  // Center the flower vertically
             width: flower.size,
             height: flower.size,
             opacity: flower.opacity,
@@ -158,7 +158,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         >
           {/* Small flower emoji without background */}
           <div
-            className="w-full h-full flex items-center justify-center"
+            className="w-full h-full flex flex-col items-center justify-center"
             style={{
               fontSize: Math.max(16, flower.size * 0.9),
               filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
@@ -170,6 +170,20 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
                 ? flower.emoji 
                 : '🌸'}
             </span>
+            
+            {/* Flower name below the emoji */}
+            <div 
+              className="text-xs font-medium text-gray-700 mt-1 text-center select-none whitespace-nowrap"
+              style={{
+                fontSize: Math.max(8, flower.size * 0.3),
+                textShadow: '0 1px 2px rgba(255,255,255,0.8)',
+                maxWidth: flower.size * 1.5,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {flower.name}
+            </div>
           </div>
 
           {/* Glow effect for main flowers */}
