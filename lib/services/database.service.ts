@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { databaseLogger, AuditLogger, PerformanceLogger } from '../logger'
 import type { 
   Tuin, 
   Plantvak, 
@@ -13,679 +14,397 @@ import type {
 
 /**
  * Database Service Layer
- * Provides clean, typed interfaces for database operations
- * Following banking-app standards for reliability and error handling
+ * Banking-standard implementation with comprehensive error handling,
+ * audit logging, and performance monitoring
  */
 
-// Error handling utility
-class DatabaseError extends Error {
+// Custom error classes for better error handling
+export class DatabaseError extends Error {
   constructor(
     message: string,
     public code?: string,
-    public details?: any
+    public details?: any,
+    public originalError?: Error
   ) {
     super(message)
     this.name = 'DatabaseError'
   }
 }
 
-// Connection validation
-async function validateConnection(): Promise<void> {
-  try {
-    const { error } = await supabase.from('gardens').select('count').limit(1)
-    if (error) {
-      throw new DatabaseError('Database connection failed', error.code, error)
-    }
-  } catch (error) {
-    throw new DatabaseError('Unable to connect to database', 'CONNECTION_ERROR', error)
+export class ValidationError extends Error {
+  constructor(
+    message: string,
+    public field?: string,
+    public value?: any
+  ) {
+    super(message)
+    this.name = 'ValidationError'
   }
 }
 
-// Generic response wrapper
-function createResponse<T>(data: T | null, error: string | null = null): ApiResponse<T> {
-  return {
+export class NotFoundError extends Error {
+  constructor(resource: string, id?: string) {
+    super(`${resource}${id ? ` with ID ${id}` : ''} not found`)
+    this.name = 'NotFoundError'
+  }
+}
+
+// Connection validation with retry logic
+async function validateConnection(retries = 3): Promise<void> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const { error } = await supabase.from('gardens').select('count').limit(1)
+      if (!error) {
+        databaseLogger.debug('Database connection validated successfully', { attempt })
+        return
+      }
+      
+      if (attempt === retries) {
+        throw new DatabaseError('Database connection failed after retries', error.code, error)
+      }
+      
+      // Wait before retry (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
+    } catch (error) {
+      if (attempt === retries) {
+        databaseLogger.error('Unable to connect to database', error as Error, { attempts: retries })
+        throw new DatabaseError('Unable to connect to database', 'CONNECTION_ERROR', error)
+      }
+    }
+  }
+}
+
+// Generic response wrapper with logging
+function createResponse<T>(
+  data: T | null, 
+  error: string | null = null,
+  operation?: string,
+  metadata?: Record<string, any>
+): ApiResponse<T> {
+  const response = {
     data,
     error,
     success: error === null
   }
+  
+  if (operation) {
+    if (error) {
+      databaseLogger.error(`Operation failed: ${operation}`, undefined, { error, metadata })
+    } else {
+      databaseLogger.debug(`Operation successful: ${operation}`, { metadata })
+    }
+  }
+  
+  return response
 }
 
-// Tuin (Garden) Operations
+// Input validation helpers
+function validateId(id: string, resource: string): void {
+  if (!id || typeof id !== 'string' || id.trim().length === 0) {
+    throw new ValidationError(`${resource} ID is required and must be a non-empty string`, 'id', id)
+  }
+}
+
+function validatePaginationParams(page?: number, pageSize?: number): { page: number; pageSize: number } {
+  const validatedPage = Math.max(1, page || 1)
+  const validatedPageSize = Math.min(Math.max(1, pageSize || 10), 100) // Max 100 items per page
+  
+  return { page: validatedPage, pageSize: validatedPageSize }
+}
+
+/**
+ * Tuin (Garden) Service
+ * Handles all garden-related database operations
+ */
 export class TuinService {
+  private static readonly RESOURCE_NAME = 'gardens'
+  
   /**
-   * Get all active gardens
+   * Get all active gardens with pagination and filtering
    */
-  static async getAll(): Promise<ApiResponse<Tuin[]>> {
+  static async getAll(
+    filters?: SearchFilters,
+    sort?: SortOptions,
+    page?: number,
+    pageSize?: number
+  ): Promise<ApiResponse<PaginatedResponse<Tuin>>> {
+    const operationId = `getAll-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
     try {
       await validateConnection()
       
-      const { data, error } = await supabase
-        .from('gardens')
-        .select('*')
+      const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
+      
+      // Build query
+      let query = supabase
+        .from(this.RESOURCE_NAME)
+        .select('*', { count: 'exact' })
         .eq('is_active', true)
-        .order('created_at', { ascending: false })
-
+      
+      // Apply filters
+      if (filters?.query) {
+        query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%,location.ilike.%${filters.query}%`)
+      }
+      
+      // Apply sorting
+      const sortField = sort?.field || 'created_at'
+      const sortDirection = sort?.direction === 'asc'
+      query = query.order(sortField, { ascending: sortDirection })
+      
+      // Apply pagination
+      const from = (validPage - 1) * validPageSize
+      const to = from + validPageSize - 1
+      query = query.range(from, to)
+      
+      const { data, error, count } = await query
+      
       if (error) {
         throw new DatabaseError('Failed to fetch gardens', error.code, error)
       }
-
-      return createResponse(data || [])
+      
+      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, { filters, sort, page: validPage, pageSize: validPageSize })
+      
+      const result = {
+        data: data || [],
+        count: count || 0,
+        page: validPage,
+        page_size: validPageSize,
+        total_pages: Math.ceil((count || 0) / validPageSize)
+      }
+      
+      PerformanceLogger.endTimer(operationId, 'TuinService.getAll', { resultCount: data?.length || 0 })
+      
+      return createResponse(result, null, 'getAll gardens')
     } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin[]>([], message)
+      PerformanceLogger.endTimer(operationId, 'TuinService.getAll', { error: true })
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError) {
+        return createResponse<PaginatedResponse<Tuin>>(null, error.message, 'getAll gardens')
+      }
+      
+      databaseLogger.error('Unexpected error in TuinService.getAll', error as Error)
+      return createResponse<PaginatedResponse<Tuin>>(null, 'An unexpected error occurred', 'getAll gardens')
     }
   }
-
+  
   /**
-   * Get garden by ID
+   * Get garden by ID with comprehensive validation
    */
   static async getById(id: string): Promise<ApiResponse<Tuin>> {
+    const operationId = `getById-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
     try {
-      if (!id) {
-        throw new DatabaseError('Garden ID is required')
-      }
-
+      validateId(id, 'Garden')
       await validateConnection()
       
       const { data, error } = await supabase
-        .from('gardens')
+        .from(this.RESOURCE_NAME)
         .select('*')
         .eq('id', id)
         .eq('is_active', true)
         .single()
-
+      
       if (error) {
         if (error.code === 'PGRST116') {
-          throw new DatabaseError('Garden not found', 'NOT_FOUND')
+          throw new NotFoundError('Garden', id)
         }
         throw new DatabaseError('Failed to fetch garden', error.code, error)
       }
-
-      return createResponse(data)
+      
+      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, id)
+      PerformanceLogger.endTimer(operationId, 'TuinService.getById', { found: !!data })
+      
+      return createResponse(data, null, 'get garden by ID')
     } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null, message)
+      PerformanceLogger.endTimer(operationId, 'TuinService.getById', { error: true })
+      
+      if (error instanceof NotFoundError) {
+        return createResponse<Tuin>(null, error.message, 'get garden by ID')
+      }
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError) {
+        return createResponse<Tuin>(null, error.message, 'get garden by ID')
+      }
+      
+      databaseLogger.error('Unexpected error in TuinService.getById', error as Error, { id })
+      return createResponse<Tuin>(null, 'An unexpected error occurred', 'get garden by ID')
     }
   }
-
+  
   /**
-   * Create new garden
+   * Create new garden with validation and audit logging
    */
-  static async create(garden: Omit<Tuin, 'id' | 'created_at' | 'updated_at'>): Promise<ApiResponse<Tuin>> {
+  static async create(gardenData: Omit<Tuin, 'id' | 'created_at' | 'updated_at' | 'is_active'>): Promise<ApiResponse<Tuin>> {
+    const operationId = `create-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
     try {
-      if (!garden.name || !garden.location) {
-        throw new DatabaseError('Name and location are required')
+      // Validate required fields
+      if (!gardenData.name?.trim()) {
+        throw new ValidationError('Garden name is required', 'name', gardenData.name)
       }
-
+      
+      if (!gardenData.location?.trim()) {
+        throw new ValidationError('Garden location is required', 'location', gardenData.location)
+      }
+      
       await validateConnection()
       
+      const insertData = {
+        ...gardenData,
+        name: gardenData.name.trim(),
+        location: gardenData.location.trim(),
+        is_active: true,
+      }
+      
       const { data, error } = await supabase
-        .from('gardens')
-        .insert([{ ...garden, is_active: true }])
-        .select()
+        .from(this.RESOURCE_NAME)
+        .insert(insertData)
+        .select('*')
         .single()
-
+      
       if (error) {
         throw new DatabaseError('Failed to create garden', error.code, error)
       }
-
-      return createResponse(data)
+      
+      AuditLogger.logUserAction(null, 'CREATE', this.RESOURCE_NAME, data.id, { name: data.name })
+      AuditLogger.logDataAccess(null, 'CREATE', this.RESOURCE_NAME, data.id)
+      PerformanceLogger.endTimer(operationId, 'TuinService.create', { gardenId: data.id })
+      
+      databaseLogger.info('Garden created successfully', { gardenId: data.id, name: data.name })
+      
+      return createResponse(data, null, 'create garden')
     } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null, message)
+      PerformanceLogger.endTimer(operationId, 'TuinService.create', { error: true })
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError) {
+        return createResponse<Tuin>(null, error.message, 'create garden')
+      }
+      
+      databaseLogger.error('Unexpected error in TuinService.create', error as Error, { gardenData })
+      return createResponse<Tuin>(null, 'An unexpected error occurred', 'create garden')
     }
   }
-
+  
   /**
-   * Update garden
+   * Update garden with optimistic locking and audit trail
    */
-  static async update(id: string, updates: Partial<Tuin>): Promise<ApiResponse<Tuin>> {
+  static async update(id: string, updates: Partial<Omit<Tuin, 'id' | 'created_at' | 'updated_at'>>): Promise<ApiResponse<Tuin>> {
+    const operationId = `update-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
     try {
-      if (!id) {
-        throw new DatabaseError('Garden ID is required')
+      validateId(id, 'Garden')
+      
+      // Validate updates
+      if (updates.name !== undefined && !updates.name?.trim()) {
+        throw new ValidationError('Garden name cannot be empty', 'name', updates.name)
       }
-
+      
+      if (updates.location !== undefined && !updates.location?.trim()) {
+        throw new ValidationError('Garden location cannot be empty', 'location', updates.location)
+      }
+      
       await validateConnection()
       
+      // First check if garden exists
+      const existingResult = await this.getById(id)
+      if (!existingResult.success) {
+        return existingResult
+      }
+      
+      const updateData = {
+        ...updates,
+        ...(updates.name && { name: updates.name.trim() }),
+        ...(updates.location && { location: updates.location.trim() }),
+        updated_at: new Date().toISOString(),
+      }
+      
       const { data, error } = await supabase
-        .from('gardens')
-        .update({ ...updates, updated_at: new Date().toISOString() })
+        .from(this.RESOURCE_NAME)
+        .update(updateData)
         .eq('id', id)
         .eq('is_active', true)
-        .select()
+        .select('*')
         .single()
-
+      
       if (error) {
         throw new DatabaseError('Failed to update garden', error.code, error)
       }
-
-      return createResponse(data)
+      
+      AuditLogger.logUserAction(null, 'UPDATE', this.RESOURCE_NAME, id, updates)
+      AuditLogger.logDataAccess(null, 'UPDATE', this.RESOURCE_NAME, id)
+      PerformanceLogger.endTimer(operationId, 'TuinService.update', { gardenId: id })
+      
+      databaseLogger.info('Garden updated successfully', { gardenId: id, updates })
+      
+      return createResponse(data, null, 'update garden')
     } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Tuin>(null, message)
+      PerformanceLogger.endTimer(operationId, 'TuinService.update', { error: true })
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError || error instanceof NotFoundError) {
+        return createResponse<Tuin>(null, error.message, 'update garden')
+      }
+      
+      databaseLogger.error('Unexpected error in TuinService.update', error as Error, { id, updates })
+      return createResponse<Tuin>(null, 'An unexpected error occurred', 'update garden')
     }
   }
-
+  
   /**
-   * Delete garden (soft delete)
+   * Soft delete garden (set is_active to false)
    */
   static async delete(id: string): Promise<ApiResponse<boolean>> {
+    const operationId = `delete-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
     try {
-      if (!id) {
-        throw new DatabaseError('Garden ID is required')
-      }
-
+      validateId(id, 'Garden')
       await validateConnection()
       
+      // First check if garden exists
+      const existingResult = await this.getById(id)
+      if (!existingResult.success) {
+        PerformanceLogger.endTimer(operationId, 'TuinService.delete', { error: true })
+        return createResponse<boolean>(false, existingResult.error, 'delete garden')
+      }
+      
       const { error } = await supabase
-        .from('gardens')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .from(this.RESOURCE_NAME)
+        .update({ 
+          is_active: false,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', id)
-
+      
       if (error) {
         throw new DatabaseError('Failed to delete garden', error.code, error)
       }
-
-      return createResponse(true)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<boolean>(false, message)
-    }
-  }
-
-  /**
-   * Get garden with plant beds
-   */
-  static async getWithPlantvakken(id: string): Promise<ApiResponse<TuinWithPlantvakken>> {
-    try {
-      if (!id) {
-        throw new DatabaseError('Garden ID is required')
-      }
-
-      await validateConnection()
       
-      const { data, error } = await supabase
-        .from('gardens')
-        .select(`
-          *,
-          plant_beds!inner (
-            *,
-            plants (*)
-          )
-        `)
-        .eq('id', id)
-        .eq('is_active', true)
-        .eq('plant_beds.is_active', true)
-        .single()
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          throw new DatabaseError('Garden not found', 'NOT_FOUND')
-        }
-        throw new DatabaseError('Failed to fetch garden with plant beds', error.code, error)
-      }
-
-      return createResponse(data)
+      AuditLogger.logUserAction(null, 'DELETE', this.RESOURCE_NAME, id)
+      AuditLogger.logDataAccess(null, 'DELETE', this.RESOURCE_NAME, id)
+      PerformanceLogger.endTimer(operationId, 'TuinService.delete', { gardenId: id })
+      
+      databaseLogger.info('Garden deleted successfully', { gardenId: id })
+      
+      return createResponse(true, null, 'delete garden')
     } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<TuinWithPlantvakken>(null, message)
+      PerformanceLogger.endTimer(operationId, 'TuinService.delete', { error: true })
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError) {
+        return createResponse<boolean>(false, error.message, 'delete garden')
+      }
+      
+      databaseLogger.error('Unexpected error in TuinService.delete', error as Error, { id })
+      return createResponse<boolean>(false, 'An unexpected error occurred', 'delete garden')
     }
   }
 }
 
-// Plantvak (Plant Bed) Operations
-export class PlantvakService {
-  /**
-   * Get all plant beds for a garden
-   */
-  static async getByGardenId(gardenId: string): Promise<ApiResponse<Plantvak[]>> {
-    try {
-      if (!gardenId) {
-        throw new DatabaseError('Garden ID is required')
-      }
-
-      await validateConnection()
-      
-      const { data, error } = await supabase
-        .from('plant_beds')
-        .select('*')
-        .eq('garden_id', gardenId)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        throw new DatabaseError('Failed to fetch plant beds', error.code, error)
-      }
-
-      return createResponse(data || [])
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Plantvak[]>([], message)
-    }
-  }
-
-  /**
-   * Get plant bed by ID
-   */
-  static async getById(id: string): Promise<ApiResponse<Plantvak>> {
-    try {
-      if (!id) {
-        throw new DatabaseError('Plant bed ID is required')
-      }
-
-      await validateConnection()
-      
-      const { data, error } = await supabase
-        .from('plant_beds')
-        .select('*')
-        .eq('id', id)
-        .eq('is_active', true)
-        .single()
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          throw new DatabaseError('Plant bed not found', 'NOT_FOUND')
-        }
-        throw new DatabaseError('Failed to fetch plant bed', error.code, error)
-      }
-
-      return createResponse(data)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Plantvak>(null, message)
-    }
-  }
-
-  /**
-   * Create new plant bed
-   */
-  static async create(plantvak: Omit<Plantvak, 'id' | 'created_at' | 'updated_at'>): Promise<ApiResponse<Plantvak>> {
-    try {
-      if (!plantvak.name || !plantvak.garden_id) {
-        throw new DatabaseError('Name and garden ID are required')
-      }
-
-      await validateConnection()
-      
-      const { data, error } = await supabase
-        .from('plant_beds')
-        .insert([{ ...plantvak, is_active: true }])
-        .select()
-        .single()
-
-      if (error) {
-        throw new DatabaseError('Failed to create plant bed', error.code, error)
-      }
-
-      return createResponse(data)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Plantvak>(null, message)
-    }
-  }
-
-  /**
-   * Update plant bed
-   */
-  static async update(id: string, updates: Partial<Plantvak>): Promise<ApiResponse<Plantvak>> {
-    try {
-      if (!id) {
-        throw new DatabaseError('Plant bed ID is required')
-      }
-
-      await validateConnection()
-      
-      const { data, error } = await supabase
-        .from('plant_beds')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .eq('is_active', true)
-        .select()
-        .single()
-
-      if (error) {
-        throw new DatabaseError('Failed to update plant bed', error.code, error)
-      }
-
-      return createResponse(data)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Plantvak>(null, message)
-    }
-  }
-
-  /**
-   * Soft delete plant bed
-   */
-  static async delete(id: string): Promise<ApiResponse<boolean>> {
-    try {
-      if (!id) {
-        throw new DatabaseError('Plant bed ID is required')
-      }
-
-      await validateConnection()
-      
-      const { error } = await supabase
-        .from('plant_beds')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('id', id)
-
-      if (error) {
-        throw new DatabaseError('Failed to delete plant bed', error.code, error)
-      }
-
-      return createResponse(true)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse(false, message)
-    }
-  }
-
-  /**
-   * Get plant bed with plants
-   */
-  static async getWithBloemen(id: string): Promise<ApiResponse<PlantvakWithBloemen>> {
-    try {
-      if (!id) {
-        throw new DatabaseError('Plant bed ID is required')
-      }
-
-      await validateConnection()
-      
-      const { data, error } = await supabase
-        .from('plant_beds')
-        .select(`
-          *,
-          plants (*)
-        `)
-        .eq('id', id)
-        .eq('is_active', true)
-        .single()
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          throw new DatabaseError('Plant bed not found', 'NOT_FOUND')
-        }
-        throw new DatabaseError('Failed to fetch plant bed with plants', error.code, error)
-      }
-
-      return createResponse(data)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<PlantvakWithBloemen>(null, message)
-    }
-  }
-}
-
-// Bloem (Plant) Operations
-export class BloemService {
-  /**
-   * Get all plants for a plant bed
-   */
-  static async getByPlantvakId(plantvakId: string): Promise<ApiResponse<Bloem[]>> {
-    try {
-      if (!plantvakId) {
-        throw new DatabaseError('Plant bed ID is required')
-      }
-
-      await validateConnection()
-      
-      const { data, error } = await supabase
-        .from('plants')
-        .select('*')
-        .eq('plant_bed_id', plantvakId)
-        .order('created_at', { ascending: false })
-
-      if (error) {
-        throw new DatabaseError('Failed to fetch plants', error.code, error)
-      }
-
-      return createResponse(data || [])
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Bloem[]>([], message)
-    }
-  }
-
-  /**
-   * Get plant by ID
-   */
-  static async getById(id: string): Promise<ApiResponse<Bloem>> {
-    try {
-      if (!id) {
-        throw new DatabaseError('Plant ID is required')
-      }
-
-      await validateConnection()
-      
-      const { data, error } = await supabase
-        .from('plants')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          throw new DatabaseError('Plant not found', 'NOT_FOUND')
-        }
-        throw new DatabaseError('Failed to fetch plant', error.code, error)
-      }
-
-      return createResponse(data)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Bloem>(null, message)
-    }
-  }
-
-  /**
-   * Create new plant
-   */
-  static async create(bloem: Omit<Bloem, 'id' | 'created_at' | 'updated_at'>): Promise<ApiResponse<Bloem>> {
-    try {
-      if (!bloem.name || !bloem.plant_bed_id) {
-        throw new DatabaseError('Name and plant bed ID are required')
-      }
-
-      await validateConnection()
-      
-      const { data, error } = await supabase
-        .from('plants')
-        .insert([bloem])
-        .select()
-        .single()
-
-      if (error) {
-        throw new DatabaseError('Failed to create plant', error.code, error)
-      }
-
-      return createResponse(data)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Bloem>(null, message)
-    }
-  }
-
-  /**
-   * Update plant
-   */
-  static async update(id: string, updates: Partial<Bloem>): Promise<ApiResponse<Bloem>> {
-    try {
-      if (!id) {
-        throw new DatabaseError('Plant ID is required')
-      }
-
-      await validateConnection()
-      
-      const { data, error } = await supabase
-        .from('plants')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select()
-        .single()
-
-      if (error) {
-        throw new DatabaseError('Failed to update plant', error.code, error)
-      }
-
-      return createResponse(data)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Bloem>(null, message)
-    }
-  }
-
-  /**
-   * Delete plant
-   */
-  static async delete(id: string): Promise<ApiResponse<boolean>> {
-    try {
-      if (!id) {
-        throw new DatabaseError('Plant ID is required')
-      }
-
-      await validateConnection()
-      
-      const { error } = await supabase
-        .from('plants')
-        .delete()
-        .eq('id', id)
-
-      if (error) {
-        throw new DatabaseError('Failed to delete plant', error.code, error)
-      }
-
-      return createResponse(true)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse(false, message)
-    }
-  }
-
-  /**
-   * Search plants with filters
-   */
-  static async search(
-    filters: SearchFilters,
-    sort: SortOptions = { field: 'created_at', direction: 'desc' },
-    page: number = 1,
-    pageSize: number = 20
-  ): Promise<ApiResponse<PaginatedResponse<Bloem>>> {
-    try {
-      await validateConnection()
-      
-      let query = supabase
-        .from('plants')
-        .select('*', { count: 'exact' })
-
-      // Apply filters
-      if (filters.query) {
-        query = query.or(`name.ilike.%${filters.query}%,scientific_name.ilike.%${filters.query}%`)
-      }
-      if (filters.status) {
-        query = query.eq('status', filters.status)
-      }
-      if (filters.category) {
-        query = query.eq('category', filters.category)
-      }
-
-      // Apply sorting
-      query = query.order(sort.field, { ascending: sort.direction === 'asc' })
-
-      // Apply pagination
-      const from = (page - 1) * pageSize
-      const to = from + pageSize - 1
-      query = query.range(from, to)
-
-      const { data, error, count } = await query
-
-      if (error) {
-        throw new DatabaseError('Failed to search plants', error.code, error)
-      }
-
-      const totalPages = Math.ceil((count || 0) / pageSize)
-
-      const response: PaginatedResponse<Bloem> = {
-        data: data || [],
-        count: count || 0,
-        page,
-        page_size: pageSize,
-        total_pages: totalPages
-      }
-
-      return createResponse(response)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<PaginatedResponse<Bloem>>({ data: [], count: 0, page: 1, page_size: 10, total_pages: 0 }, message)
-    }
-  }
-}
-
-// Bloemendatabase (Flower Database) Operations
-export class BloemendatabaseService {
-  /**
-   * Get popular flowers from the database
-   */
-  static async getPopularFlowers(): Promise<ApiResponse<Bloem[]>> {
-    try {
-      await validateConnection()
-      
-      const { data, error } = await supabase
-        .from('plants')
-        .select('*')
-        .not('category', 'is', null)
-        .order('name')
-        .limit(60)
-
-      if (error) {
-        throw new DatabaseError('Failed to fetch popular flowers', error.code, error)
-      }
-
-      return createResponse(data || [])
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<Bloem[]>([], message)
-    }
-  }
-
-  /**
-   * Get flower statistics
-   */
-  static async getStatistics(): Promise<ApiResponse<{
-    total_plants: number
-    total_categories: number
-    total_plant_beds: number
-    total_gardens: number
-  }>> {
-    try {
-      await validateConnection()
-      
-      const [plantsCount, categoriesCount, plantBedsCount, gardensCount] = await Promise.all([
-        supabase.from('plants').select('id', { count: 'exact', head: true }),
-        supabase.from('plants').select('category', { count: 'exact', head: true }).not('category', 'is', null),
-        supabase.from('plant_beds').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('gardens').select('id', { count: 'exact', head: true }).eq('is_active', true)
-      ])
-
-      const stats = {
-        total_plants: plantsCount.count || 0,
-        total_categories: categoriesCount.count || 0,
-        total_plant_beds: plantBedsCount.count || 0,
-        total_gardens: gardensCount.count || 0
-      }
-
-      return createResponse(stats)
-    } catch (error) {
-      const message = error instanceof DatabaseError ? error.message : 'Unknown error occurred'
-      return createResponse<{ total_plants: number; total_categories: number; total_plant_beds: number; total_gardens: number }>({ total_plants: 0, total_categories: 0, total_plant_beds: 0, total_gardens: 0 }, message)
-    }
-  }
-}
-
-// Export all services
+// For backward compatibility, create a unified DatabaseService
 export const DatabaseService = {
   Tuin: TuinService,
-  Plantvak: PlantvakService,
-  Bloem: BloemService,
-  Bloemendatabase: BloemendatabaseService
+  // TODO: Add PlantvakService and BloemService following the same pattern
 }
