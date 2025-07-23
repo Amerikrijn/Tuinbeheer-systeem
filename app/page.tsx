@@ -11,8 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
+import { getPlantBeds } from "@/lib/database"
 import { uiLogger, AuditLogger } from "@/lib/logger"
-import type { Tuin } from "@/lib/types/index"
+import type { Tuin, PlantBedWithPlants } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 
@@ -342,6 +343,104 @@ interface GardenCardProps {
 }
 
 function GardenCard({ garden, onDelete }: GardenCardProps) {
+  const [plantBeds, setPlantBeds] = React.useState<PlantBedWithPlants[]>([])
+  const [loadingFlowers, setLoadingFlowers] = React.useState(true)
+
+  // Helper function to get emoji based on plant name
+  const getPlantEmoji = (name?: string, storedEmoji?: string): string => {
+    // If plant already has a stored emoji, use it
+    if (storedEmoji && storedEmoji.trim()) {
+      return storedEmoji
+    }
+    
+    const plantName = (name || '').toLowerCase()
+    
+    // Exacte matches voor specifieke bloemen
+    if (plantName.includes('roos') || plantName.includes('rose')) return '🌹'
+    if (plantName.includes('tulp') || plantName.includes('tulip')) return '🌷'
+    if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
+    if (plantName.includes('lavendel') || plantName.includes('lavender')) return '🪻'
+    if (plantName.includes('dahlia')) return '🌺'
+    if (plantName.includes('chrysant') || plantName.includes('chrysanthemum')) return '🌼'
+    if (plantName.includes('narcis') || plantName.includes('daffodil')) return '🌻'
+    if (plantName.includes('iris')) return '🌸'
+    if (plantName.includes('petunia')) return '🌺'
+    if (plantName.includes('begonia')) return '🌸'
+    if (plantName.includes('lelie') || plantName.includes('lily')) return '🌺'
+    if (plantName.includes('anjer') || plantName.includes('carnation')) return '🌸'
+    
+    // Eenjarige bloemen
+    if (plantName.includes('zinnia')) return '🌻'
+    if (plantName.includes('marigold') || plantName.includes('tagetes')) return '🌼'
+    if (plantName.includes('impatiens')) return '🌸'
+    if (plantName.includes('ageratum')) return '🌸'
+    if (plantName.includes('salvia')) return '🌺'
+    if (plantName.includes('verbena')) return '🌸'
+    if (plantName.includes('lobelia')) return '🌸'
+    if (plantName.includes('alyssum')) return '🤍'
+    if (plantName.includes('cosmos')) return '🌸'
+    
+    // Vaste planten
+    if (plantName.includes('aster')) return '🌸'
+    if (plantName.includes('rudbeckia')) return '🌻'
+    if (plantName.includes('echinacea')) return '🌸'
+    if (plantName.includes('delphinium')) return '🌸'
+    if (plantName.includes('phlox')) return '🌸'
+    if (plantName.includes('sedum')) return '🌸'
+    if (plantName.includes('hosta')) return '🌿'
+    if (plantName.includes('heuchera')) return '🌿'
+    
+    // Voorjaarsbollen
+    if (plantName.includes('hyacint') || plantName.includes('hyacinth')) return '🌷'
+    if (plantName.includes('krokus') || plantName.includes('crocus')) return '🌷'
+    if (plantName.includes('sneeuwklokje') || plantName.includes('snowdrop')) return '🤍'
+    if (plantName.includes('muscari')) return '🌷'
+    
+    // Zomerbollen
+    if (plantName.includes('gladiool') || plantName.includes('gladiolus')) return '🌺'
+    
+    // Kruiden
+    if (plantName.includes('oregano')) return '🌿'
+    if (plantName.includes('tijm') || plantName.includes('thyme')) return '🌿'
+    if (plantName.includes('rozemarijn') || plantName.includes('rosemary')) return '🌿'
+    if (plantName.includes('basilicum') || plantName.includes('basil')) return '🌿'
+    if (plantName.includes('peterselie') || plantName.includes('parsley')) return '🌿'
+    if (plantName.includes('bieslook') || plantName.includes('chives')) return '🌿'
+    if (plantName.includes('dille') || plantName.includes('dill')) return '🌿'
+    if (plantName.includes('munt') || plantName.includes('mint')) return '🌿'
+    
+    // Default fallback
+    return '🌸'
+  }
+
+  // Load plant beds and flowers for preview
+  React.useEffect(() => {
+    const loadFlowers = async () => {
+      try {
+        setLoadingFlowers(true)
+        const beds = await getPlantBeds(garden.id)
+        setPlantBeds(beds)
+      } catch (error) {
+        console.error('Error loading flowers for garden preview:', error)
+        setPlantBeds([])
+      } finally {
+        setLoadingFlowers(false)
+      }
+    }
+
+    loadFlowers()
+  }, [garden.id])
+
+  // Get all unique flowers from all plant beds
+  const allFlowers = React.useMemo(() => {
+    const flowers = plantBeds.flatMap(bed => bed.plants || [])
+    // Remove duplicates based on name and get first 6 for preview
+    const uniqueFlowers = flowers.filter((flower, index, arr) => 
+      arr.findIndex(f => f.name.toLowerCase() === flower.name.toLowerCase()) === index
+    ).slice(0, 6)
+    return uniqueFlowers
+  }, [plantBeds])
+
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleDateString('nl-NL', {
@@ -386,6 +485,52 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
               {garden.description}
             </p>
           )}
+
+          {/* Flower Preview Section */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Bloemen in deze tuin:</span>
+              <span className="text-xs text-gray-500">
+                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} bloemen
+              </span>
+            </div>
+            
+            {loadingFlowers ? (
+              <div className="flex gap-1">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                ))}
+              </div>
+            ) : allFlowers.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {allFlowers.map((flower, index) => (
+                  <div
+                    key={`${flower.id}-${index}`}
+                    className="flex items-center gap-1 bg-green-50 border border-green-200 rounded-lg px-2 py-1"
+                    title={flower.name}
+                  >
+                    <span className="text-sm">
+                      {getPlantEmoji(flower.name, flower.emoji)}
+                    </span>
+                    <span className="text-xs font-medium text-green-800 truncate max-w-16">
+                      {flower.name}
+                    </span>
+                  </div>
+                ))}
+                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
+                  <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
+                    <span className="text-xs text-gray-600">
+                      +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-xs text-gray-500 italic">
+                Nog geen bloemen geplant
+              </div>
+            )}
+          </div>
           
           <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
             <div className="flex items-center">
