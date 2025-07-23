@@ -90,7 +90,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     }
 
     const instances: FlowerInstance[] = []
-    const padding = 8
+    const padding = 4
 
     plants.forEach((plant, plantIndex) => {
       // Check if this plant has custom positioning (from plantvak-view)
@@ -104,10 +104,9 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const plantX = plant.position_x!
         const plantY = plant.position_y!
         
-        // Scale the position to fit within the container (plantvak boundaries)
-        // Use the actual plantvak dimensions from the plantBed.size
-        let plantvakCanvasWidth = 600 // Default fallback
-        let plantvakCanvasHeight = 450 // Default fallback
+        // Get the original plantvak canvas dimensions from plantvak-view
+        let originalCanvasWidth = 600 // Default fallback
+        let originalCanvasHeight = 450 // Default fallback
         
         if (plantBed.size) {
           // Parse plantvak size to get original canvas dimensions
@@ -115,24 +114,26 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           if (sizeMatch) {
             const lengthM = parseFloat(sizeMatch[1])
             const widthM = parseFloat(sizeMatch[2])
-            // Convert to pixels using same scale as plantvak-view (80px per meter)
-            plantvakCanvasWidth = lengthM * 80 + 200 // Add padding like in plantvak-view
-            plantvakCanvasHeight = widthM * 80 + 200
+            // Use same calculation as in plantvak-view
+            originalCanvasWidth = lengthM * 80 + 200 // 80px per meter + padding
+            originalCanvasHeight = widthM * 80 + 200
           }
         }
         
-        const scaleX = containerWidth > 0 ? containerWidth / plantvakCanvasWidth : 1
-        const scaleY = containerHeight > 0 ? containerHeight / plantvakCanvasHeight : 1
+        // Calculate scaling factors to fit the flower in the current container
+        const scaleX = containerWidth / originalCanvasWidth
+        const scaleY = containerHeight / originalCanvasHeight
         
-        // Calculate scaled position within the container
-        const scaledX = Math.max(0, Math.min(plantX * scaleX, containerWidth - plantWidth * scaleX))
-        const scaledY = Math.max(0, Math.min(plantY * scaleY, containerHeight - plantHeight * scaleY))
+        // Scale the position and size proportionally
+        const scaledX = plantX * scaleX
+        const scaledY = plantY * scaleY
         const scaledWidth = plantWidth * scaleX
         const scaledHeight = plantHeight * scaleY
         
-        // Use the actual flower size from plantvak - make it more visible
-        const flowerSize = Math.max(16, Math.min(32, Math.min(scaledWidth, scaledHeight) * 0.8))
+        // Calculate flower size based on scaled dimensions
+        const flowerSize = Math.max(8, Math.min(24, Math.min(scaledWidth, scaledHeight) * 0.8))
         
+        // Position the flower at its exact scaled location
         instances.push({
           id: `${plant.id}-flower-exact`,
           name: plant.name,
@@ -147,17 +148,27 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           canFillContainer: false
         })
       } else if (hasCustomSize) {
-        // Has custom size but no specific position - use old logic for backward compatibility
+        // Has custom size but no specific position - use grid layout within container
         const plantWidth = plant.visual_width!
         const plantHeight = plant.visual_height!
         const plantX = 'position_x' in plant && plant.position_x !== undefined ? plant.position_x : 0
         const plantY = 'position_y' in plant && plant.position_y !== undefined ? plant.position_y : 0
         
+        // Scale the plant area to fit in the container
+        const scaleX = containerWidth / (plantWidth + plantX)
+        const scaleY = containerHeight / (plantHeight + plantY)
+        const scale = Math.min(scaleX, scaleY, 1) // Don't scale up, only down
+        
+        const scaledWidth = plantWidth * scale
+        const scaledHeight = plantHeight * scale
+        const scaledX = plantX * scale
+        const scaledY = plantY * scale
+        
         // Calculate how many flowers should be in this specific plant box
-        const flowersInThisPlant = calculateFlowersPerPlant(plantWidth, plantHeight)
+        const flowersInThisPlant = calculateFlowersPerPlant(scaledWidth, scaledHeight)
         
         // Flower size within this plant box
-        const flowerSize = Math.max(16, Math.min(32, Math.min(plantWidth, plantHeight) / Math.ceil(Math.sqrt(flowersInThisPlant)) / 1.2))
+        const flowerSize = Math.max(8, Math.min(20, Math.min(scaledWidth, scaledHeight) / Math.ceil(Math.sqrt(flowersInThisPlant)) / 1.2))
         
         // Create flowers within this plant's boundaries
         for (let i = 0; i < flowersInThisPlant; i++) {
@@ -165,8 +176,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           
           if (flowersInThisPlant === 1) {
             // Single flower - center it in the plant box
-            x = plantX + plantWidth / 2
-            y = plantY + plantHeight / 2
+            x = scaledX + scaledWidth / 2
+            y = scaledY + scaledHeight / 2
           } else {
             // Multiple flowers - grid within the plant box
             const cols = Math.ceil(Math.sqrt(flowersInThisPlant))
@@ -175,19 +186,19 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             const row = Math.floor(i / cols)
             
             // Available space within the plant box (with padding)
-            const availableWidth = plantWidth - (padding * 2)
-            const availableHeight = plantHeight - (padding * 2)
+            const availableWidth = scaledWidth - (padding * 2)
+            const availableHeight = scaledHeight - (padding * 2)
             
             // Grid cell size
             const cellWidth = availableWidth / cols
             const cellHeight = availableHeight / rows
             
             // Position in center of each grid cell within the plant box
-            x = plantX + padding + (col * cellWidth) + (cellWidth / 2)
-            y = plantY + padding + (row * cellHeight) + (cellHeight / 2)
+            x = scaledX + padding + (col * cellWidth) + (cellWidth / 2)
+            y = scaledY + padding + (row * cellHeight) + (cellHeight / 2)
             
-            // Small random offset within the cell
-            const maxOffset = Math.min(6, cellWidth / 6, cellHeight / 6)
+            // Small random offset within the cell for natural look
+            const maxOffset = Math.min(3, cellWidth / 8, cellHeight / 8)
             const offsetX = ((plant.id.charCodeAt(0) + i * 37) % (maxOffset * 2)) - maxOffset
             const offsetY = ((plant.id.charCodeAt(0) + i * 53) % (maxOffset * 2)) - maxOffset
             
@@ -197,8 +208,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           
           // Ensure flowers stay within the plant box boundaries
           const halfSize = flowerSize / 2
-          x = Math.max(plantX + halfSize + padding, Math.min(x, plantX + plantWidth - halfSize - padding))
-          y = Math.max(plantY + halfSize + padding, Math.min(y, plantY + plantHeight - halfSize - padding))
+          x = Math.max(scaledX + halfSize + padding, Math.min(x, scaledX + scaledWidth - halfSize - padding))
+          y = Math.max(scaledY + halfSize + padding, Math.min(y, scaledY + scaledHeight - halfSize - padding))
           
           instances.push({
             id: `${plant.id}-flower-${i}`,
@@ -216,7 +227,19 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         }
       } else {
         // Fallback for plants without custom positioning - center in container
-        const flowerSize = Math.max(24, Math.min(40, Math.min(containerWidth, containerHeight) / 4))
+        const flowerSize = Math.max(12, Math.min(20, Math.min(containerWidth, containerHeight) / 6))
+        
+        // Create a simple grid layout for plants without positioning
+        const cols = Math.ceil(Math.sqrt(plants.length))
+        const rows = Math.ceil(plants.length / cols)
+        const col = plantIndex % cols
+        const row = Math.floor(plantIndex / cols)
+        
+        const cellWidth = (containerWidth - padding * 2) / cols
+        const cellHeight = (containerHeight - padding * 2) / rows
+        
+        const x = padding + (col * cellWidth) + (cellWidth / 2)
+        const y = padding + (row * cellHeight) + (cellHeight / 2)
         
         instances.push({
           id: `${plant.id}-flower-0`,
@@ -224,8 +247,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           color: plant.color || '#FF69B4',
           emoji: getPlantEmoji(plant.name, plant.emoji),
           size: flowerSize,
-          x: containerWidth / 2,
-          y: containerHeight / 2,
+          x,
+          y,
           opacity: 1,
           rotation: 0,
           isMainFlower: true,
@@ -260,10 +283,10 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         >
           {/* Individual flower box with border */}
           <div
-            className="w-full h-full border-2 border-gray-300 rounded-lg bg-white/80 backdrop-blur-sm shadow-sm flex flex-col items-center justify-center"
+            className="w-full h-full border-2 border-gray-400 rounded-lg bg-white/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
             style={{
-              borderColor: `${flower.color}40`, // Semi-transparent border in flower color
-              backgroundColor: `${flower.color}08`, // Very light background tint
+              borderColor: `${flower.color}60`, // More visible border in flower color
+              backgroundColor: `${flower.color}15`, // Slightly more visible background tint
             }}
           >
             {/* Use flower emoji with improved logic */}
