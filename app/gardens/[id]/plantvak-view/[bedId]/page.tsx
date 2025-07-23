@@ -435,36 +435,7 @@ export default function PlantBedViewPage() {
     setScale(1)
   }
 
-  const saveLayout = async () => {
-    if (!hasChanges) return
-
-    try {
-      // Update all plant positions in the database
-      await Promise.all(
-        flowerPositions.map(flower => 
-          updatePlantPosition(flower.id, {
-            position_x: flower.position_x,
-            position_y: flower.position_y,
-            visual_width: flower.visual_width,
-            visual_height: flower.visual_height
-          })
-        )
-      )
-
-      setHasChanges(false)
-      toast({
-        title: "Layout opgeslagen",
-        description: "De bloemen posities zijn succesvol opgeslagen in de database.",
-      })
-    } catch (error) {
-      console.error("Error saving layout:", error)
-      toast({
-        title: "Fout bij opslaan",
-        description: "Er is een fout opgetreden bij het opslaan van de layout.",
-        variant: "destructive",
-      })
-    }
-  }
+  // Note: Manual save layout function removed - now using auto-save on drag end
 
   const addFlower = async () => {
     if (!plantBed || !newFlower.name) {
@@ -1149,10 +1120,15 @@ export default function PlantBedViewPage() {
           })
           
           setHasChanges(false)
-          toast({
-            title: "✅ Bloem verplaatst",
-            description: "Positie automatisch opgeslagen!",
-          })
+          
+          // Show save confirmation only once per session
+          if (!sessionStorage.getItem('flowerSaveShown')) {
+            toast({
+              title: "✅ Bloem verplaatst",
+              description: "Positie automatisch opgeslagen!",
+            })
+            sessionStorage.setItem('flowerSaveShown', 'true')
+          }
         }
       } catch (error) {
         console.error("Error auto-saving flower position:", error)
@@ -2015,12 +1991,7 @@ export default function PlantBedViewPage() {
           <Button variant="outline" size="sm" onClick={resetView}>
             <RotateCcw className="h-4 w-4" />
           </Button>
-          {hasChanges && (
-            <Button onClick={saveLayout} className="bg-blue-600 hover:bg-blue-700">
-              <Save className="h-4 w-4 mr-2" />
-              Opslaan
-            </Button>
-          )}
+
         </div>
       </div>
 
