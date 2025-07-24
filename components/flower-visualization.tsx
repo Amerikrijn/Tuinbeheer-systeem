@@ -27,7 +27,7 @@ interface FlowerInstance {
 export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight }: FlowerVisualizationProps) {
   const [flowerInstances, setFlowerInstances] = useState<FlowerInstance[]>([])
 
-  // Helper function to get emoji based on plant name
+  // Helper function to get emoji based on plant name - MATCHING plantvak-view exactly
   const getPlantEmoji = (name?: string, storedEmoji?: string): string => {
     // If plant already has a stored emoji, use it
     if (storedEmoji && storedEmoji.trim()) {
@@ -36,26 +36,38 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     
     const plantName = (name || '').toLowerCase()
     
-    // Exacte matches voor eenjarige bloemen
+    // Exacte matches voor eenjarige bloemen - UPDATED with unique emojis to match plantvak
     if (plantName.includes('zinnia')) return '🌻'
-    if (plantName.includes('marigold') || plantName.includes('tagetes')) return '🌼'
+    if (plantName.includes('marigold')) return '🌼'
+    if (plantName.includes('tagetes')) return '🏵️'
     if (plantName.includes('impatiens')) return '🌸'
-    if (plantName.includes('ageratum')) return '🌸'
+    if (plantName.includes('ageratum')) return '💙'
     if (plantName.includes('salvia')) return '🌺'
-    if (plantName.includes('verbena')) return '🌸'
-    if (plantName.includes('lobelia')) return '🌸'
+    if (plantName.includes('verbena')) return '💜'
+    if (plantName.includes('lobelia')) return '🔵'
     if (plantName.includes('alyssum')) return '🤍'
     if (plantName.includes('cosmos')) return '🌸'
     if (plantName.includes('petunia')) return '🌺'
-    if (plantName.includes('begonia')) return '🌸'
-    if (plantName.includes('viooltje') || plantName.includes('viola')) return '🌸'
-    if (plantName.includes('stiefmoedje') || plantName.includes('pansy')) return '🌸'
-    if (plantName.includes('snapdragon') || plantName.includes('leeuwenbek')) return '🌸'
-    if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
-    if (plantName.includes('calendula') || plantName.includes('goudsbloem')) return '🌼'
-    if (plantName.includes('nicotiana') || plantName.includes('siertabak')) return '🤍'
-    if (plantName.includes('cleome') || plantName.includes('spinnenbloem')) return '🌸'
-    if (plantName.includes('celosia') || plantName.includes('hanekam')) return '🌺'
+    if (plantName.includes('begonia')) return '🧡'
+    if (plantName.includes('viooltje') || plantName.includes('viola')) return '🟣'
+    if (plantName.includes('stiefmoedje') || plantName.includes('pansy')) return '😊'
+    if (plantName.includes('snapdragon') || plantName.includes('leeuwenbek')) return '🐲'
+    if (plantName.includes('leeuwenbek')) return '🦁'
+    if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '☀️'
+    if (plantName.includes('calendula')) return '🟠'
+    if (plantName.includes('goudsbloem')) return '✨'
+    if (plantName.includes('nicotiana')) return '⭐'
+    if (plantName.includes('siertabak')) return '🌟'
+    if (plantName.includes('cleome')) return '🕷️'
+    if (plantName.includes('spinnenbloem')) return '🕸️'
+    if (plantName.includes('celosia')) return '🐓'
+    if (plantName.includes('hanekam')) return '🔴'
+    // Additional unique flowers
+    if (plantName.includes('amarant')) return '🍇'
+    if (plantName.includes('balsemien')) return '💗'
+    if (plantName.includes('ganzenbloem')) return '🦆'
+    if (plantName.includes('korenbloem')) return '🌾'
+    if (plantName.includes('ridderspoor')) return '⚔️'
     
     // Default fallback
     return '🌸'
