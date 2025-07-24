@@ -1380,87 +1380,69 @@ export default function PlantBedViewPage() {
                   <label htmlFor="name" className="text-sm font-medium">
                     Bloemnaam *
                   </label>
-                  <div className="relative">
-                    <Input
-                      id="name"
-                      placeholder="Typ een nieuwe bloem of kies uit de lijst..."
-                      value={newFlower.name}
-                      onChange={(e) => {
-                        const value = e.target.value
-                        setNewFlower(prev => ({
-                          ...prev,
-                          name: value,
-                        }))
-                        
-                        // Check if it matches a standard flower
-                        const selectedFlower = STANDARD_FLOWERS.find(f => 
-                          f.name.toLowerCase() === value.toLowerCase()
-                        )
+                  <div className="space-y-3">
+                    {/* Dropdown to show all 30 flowers */}
+                    <div className="relative">
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                        Kies uit 30 eenjarige bloemen:
+                      </label>
+                      <Select value={newFlower.name} onValueChange={(value) => {
+                        const selectedFlower = STANDARD_FLOWERS.find(f => f.name === value)
                         if (selectedFlower) {
                           setNewFlower(prev => ({
                             ...prev,
-                            name: value,
+                            name: selectedFlower.name,
                             emoji: selectedFlower.emoji,
                             color: selectedFlower.color,
-                            type: value,
+                            type: selectedFlower.name,
                             isStandardFlower: true,
                           }))
                           setIsCustomFlower(false)
-                        } else {
+                        }
+                      }}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Selecteer een bloem..." />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {STANDARD_FLOWERS.map((flower) => (
+                            <SelectItem key={flower.name} value={flower.name}>
+                              <div className="flex items-center gap-2">
+                                <span className="text-lg">{flower.emoji}</span>
+                                <span className="font-medium">{flower.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Alternative: Custom flower name input */}
+                    <div className="relative">
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                        Of typ een eigen bloemnaam:
+                      </label>
+                      <Input
+                        id="name"
+                        placeholder="Typ een aangepaste bloemnaam..."
+                        value={newFlower.isStandardFlower ? '' : newFlower.name}
+                        onChange={(e) => {
+                          const value = e.target.value
                           setNewFlower(prev => ({
                             ...prev,
                             name: value,
-                            emoji: prev.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : prev.emoji,
+                            emoji: DEFAULT_FLOWER_EMOJI,
                             type: '',
                             isStandardFlower: false,
                           }))
                           setIsCustomFlower(true)
-                        }
-                      }}
-                      className="pr-8"
-                      autoComplete="off"
-                    />
-                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                    {/* Show suggestions only when typing and there's input */}
-                    {newFlower.name && newFlower.name.length > 0 && (
-                      <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-md shadow-xl max-h-60 overflow-auto">
-                        {STANDARD_FLOWERS
-                          .filter(flower => 
-                            flower.name.toLowerCase().includes(newFlower.name.toLowerCase())
-                          )
-                          .slice(0, 8)
-                          .map((flower) => (
-                            <div
-                              key={flower.name}
-                              className="px-3 py-2 cursor-pointer hover:bg-green-50 hover:text-green-800 flex items-center gap-2 transition-colors"
-                              onClick={() => {
-                                setNewFlower(prev => ({
-                                  ...prev,
-                                  name: flower.name,
-                                  emoji: flower.emoji,
-                                  color: flower.color,
-                                  type: flower.name,
-                                  isStandardFlower: true,
-                                }))
-                                setIsCustomFlower(false)
-                              }}
-                            >
-                              <span className="text-lg">{flower.emoji}</span>
-                              <span className="font-medium">{flower.name}</span>
-                            </div>
-                          ))}
-                        {STANDARD_FLOWERS.filter(flower => 
-                          flower.name.toLowerCase().includes(newFlower.name.toLowerCase())
-                        ).length === 0 && (
-                          <div className="px-3 py-2 text-gray-500 text-sm italic">
-                            Geen eenjarige bloemen gevonden. Typ een eigen naam.
-                          </div>
-                        )}
-                      </div>
-                    )}
+                        }}
+                        className="w-full"
+                        autoComplete="off"
+                      />
+                    </div>
                   </div>
                   <p className="text-xs text-gray-500">
-                    Tip: Begin te typen om uit standaard bloemen te kiezen, of typ een eigen naam
+                    Tip: Kies uit de dropdown of typ een eigen naam
                   </p>
                 </div>
 
