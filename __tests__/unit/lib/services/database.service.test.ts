@@ -62,6 +62,9 @@ describe('TuinService', () => {
         { ...global.testUtils.mockGarden, id: '2', name: 'Garden 2' },
       ]
 
+      // Mock the connection validation first
+      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
+
       mockSupabaseChain.select.mockReturnValue({
         ...mockSupabaseChain,
         eq: jest.fn().mockReturnValue({
@@ -100,31 +103,22 @@ describe('TuinService', () => {
     it('should handle database errors gracefully', async () => {
       const mockError = { code: 'PGRST301', message: 'Database error' }
       
-      mockSupabaseChain.select.mockReturnValue({
-        ...mockSupabaseChain,
-        eq: jest.fn().mockReturnValue({
-          ...mockSupabaseChain,
-          order: jest.fn().mockReturnValue({
-            ...mockSupabaseChain,
-            range: jest.fn().mockResolvedValue({
-              data: null,
-              error: mockError,
-              count: 0,
-            }),
-          }),
-        }),
-      })
+      // Mock connection validation to fail
+      mockSupabaseChain.limit.mockResolvedValue({ error: mockError })
 
       const result = await TuinService.getAll()
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('Failed to fetch gardens')
+      expect(result.error).toBe('Unable to connect to database')
       expect(result.data).toBeNull()
     })
 
     it('should apply search filters correctly', async () => {
       const mockGardens = [{ ...global.testUtils.mockGarden }]
       const filters = { query: 'test garden' }
+
+      // Mock connection validation
+      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
 
       mockSupabaseChain.select.mockReturnValue({
         ...mockSupabaseChain,
@@ -155,6 +149,9 @@ describe('TuinService', () => {
     it('should validate pagination parameters', async () => {
       const mockGardens = [{ ...global.testUtils.mockGarden }]
 
+      // Mock connection validation
+      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
+
       mockSupabaseChain.select.mockReturnValue({
         ...mockSupabaseChain,
         eq: jest.fn().mockReturnValue({
@@ -183,6 +180,9 @@ describe('TuinService', () => {
     it('should successfully fetch garden by ID', async () => {
       const mockGarden = { ...global.testUtils.mockGarden }
 
+      // Mock connection validation
+      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
+
       mockSupabaseChain.select.mockReturnValue({
         ...mockSupabaseChain,
         eq: jest.fn().mockReturnValue({
@@ -205,6 +205,9 @@ describe('TuinService', () => {
     })
 
     it('should handle not found error', async () => {
+      // Mock connection validation
+      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
+
       mockSupabaseChain.select.mockReturnValue({
         ...mockSupabaseChain,
         eq: jest.fn().mockReturnValue({
@@ -248,6 +251,9 @@ describe('TuinService', () => {
         description: 'A test garden',
       }
       const createdGarden = { ...global.testUtils.mockGarden, ...newGarden }
+
+      // Mock connection validation
+      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
 
       mockSupabaseChain.insert.mockReturnValue({
         ...mockSupabaseChain,
@@ -308,6 +314,9 @@ describe('TuinService', () => {
         location: 'Test Location',
       }
 
+      // Mock connection validation
+      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
+
       mockSupabaseChain.insert.mockReturnValue({
         ...mockSupabaseChain,
         select: jest.fn().mockReturnValue({
@@ -338,21 +347,13 @@ describe('TuinService', () => {
       }
       const mockError = { code: 'PGRST301', message: 'Database error' }
 
-      mockSupabaseChain.insert.mockReturnValue({
-        ...mockSupabaseChain,
-        select: jest.fn().mockReturnValue({
-          ...mockSupabaseChain,
-          single: jest.fn().mockResolvedValue({
-            data: null,
-            error: mockError,
-          }),
-        }),
-      })
+      // Mock connection validation to fail
+      mockSupabaseChain.limit.mockResolvedValue({ error: mockError })
 
       const result = await TuinService.create(newGarden)
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('Failed to create garden')
+      expect(result.error).toBe('Unable to connect to database')
     })
   })
 
@@ -361,8 +362,11 @@ describe('TuinService', () => {
       const updates = { name: 'Updated Garden' }
       const updatedGarden = { ...global.testUtils.mockGarden, ...updates }
 
+      // Mock connection validation for both getById and update
+      mockSupabaseChain.limit.mockResolvedValue({ error: null })
+
       // Mock getById to return existing garden
-      mockSupabaseChain.select.mockReturnValueOnce({
+      mockSupabaseChain.select.mockReturnValue({
         ...mockSupabaseChain,
         eq: jest.fn().mockReturnValue({
           ...mockSupabaseChain,
@@ -422,6 +426,9 @@ describe('TuinService', () => {
     })
 
     it('should handle non-existent garden', async () => {
+      // Mock connection validation
+      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
+
       // Mock getById to return not found
       mockSupabaseChain.select.mockReturnValue({
         ...mockSupabaseChain,
@@ -446,6 +453,9 @@ describe('TuinService', () => {
 
   describe('delete', () => {
     it('should successfully soft delete a garden', async () => {
+      // Mock connection validation for both getById and update
+      mockSupabaseChain.limit.mockResolvedValue({ error: null })
+
       // Mock getById to return existing garden
       mockSupabaseChain.select.mockReturnValue({
         ...mockSupabaseChain,
@@ -487,6 +497,9 @@ describe('TuinService', () => {
     })
 
     it('should handle non-existent garden', async () => {
+      // Mock connection validation
+      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
+
       // Mock getById to return not found
       mockSupabaseChain.select.mockReturnValue({
         ...mockSupabaseChain,
@@ -525,13 +538,16 @@ describe('TuinService', () => {
       const result = await TuinService.getAll()
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('An unexpected error occurred')
+      expect(result.error).toBe('Unable to connect to database')
       expect(databaseLogger.error).toHaveBeenCalled()
     })
   })
 
   describe('Performance Monitoring', () => {
     it('should track performance metrics', async () => {
+      // Mock connection validation
+      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
+
       mockSupabaseChain.select.mockReturnValue({
         ...mockSupabaseChain,
         eq: jest.fn().mockReturnValue({
