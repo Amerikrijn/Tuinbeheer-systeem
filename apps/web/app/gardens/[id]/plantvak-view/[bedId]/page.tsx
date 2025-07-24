@@ -2502,6 +2502,8 @@ export default function PlantBedViewPage() {
                 plants={flowerPositions}
                 containerWidth={canvasWidth}
                 containerHeight={canvasHeight}
+                plantvakCanvasWidth={canvasWidth}
+                plantvakCanvasHeight={canvasHeight}
               />
 
               {/* Interactive overlay for selected flowers */}

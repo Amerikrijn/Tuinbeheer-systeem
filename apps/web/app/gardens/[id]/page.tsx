@@ -40,7 +40,8 @@ import {
   PLANTVAK_MIN_WIDTH,
   PLANTVAK_MIN_HEIGHT,
   metersToPixels,
-  parsePlantBedDimensions
+  parsePlantBedDimensions,
+  calculatePlantBedCanvasSize
 } from "@/lib/scaling-constants"
 import { FlowerVisualization } from "@/components/flower-visualization"
 
@@ -1367,6 +1368,8 @@ export default function GardenDetailPage() {
                             plants={bed.plants}
                             containerWidth={bedWidth}
                             containerHeight={bedHeight}
+                            plantvakCanvasWidth={bed.size ? calculatePlantBedCanvasSize(bed.size).width : undefined}
+                            plantvakCanvasHeight={bed.size ? calculatePlantBedCanvasSize(bed.size).height : undefined}
                           />
                           {bed.plants.length === 0 && (
                             <div className="text-gray-400 text-xs">Geen planten</div>

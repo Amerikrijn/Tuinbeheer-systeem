@@ -8,6 +8,8 @@ interface FlowerVisualizationProps {
   plants: Plant[] | PlantWithPosition[]
   containerWidth: number
   containerHeight: number
+  plantvakCanvasWidth?: number
+  plantvakCanvasHeight?: number
 }
 
 interface FlowerInstance {
@@ -26,7 +28,7 @@ interface FlowerInstance {
   fieldSize?: number
 }
 
-export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight }: FlowerVisualizationProps) {
+export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight, plantvakCanvasWidth, plantvakCanvasHeight }: FlowerVisualizationProps) {
   const [flowerInstances, setFlowerInstances] = useState<FlowerInstance[]>([])
 
   // Calculate how many flowers should be displayed based on plant bed size
@@ -207,34 +209,33 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       } else {
         // Regular flowers - use exact position and size from database if available
         if (hasCustomSize && 'position_x' in plant && plant.position_x !== undefined && 'position_y' in plant && plant.position_y !== undefined) {
-          // Use exact database values for consistent positioning between views
-          const flowerSize = Math.min(plantWidth, plantHeight)
+          // Use exact position and size from plantvak-view with correct canvas dimensions
+          const plantX = plant.position_x
+          const plantY = plant.position_y
           
-          // Scale positions to fit the container while maintaining relative positions
-          const scaleX = (containerWidth - padding * 2) / Math.max(plantWidth, 100) // Minimum reference width
-          const scaleY = (containerHeight - padding * 2) / Math.max(plantHeight, 100) // Minimum reference height
-          const scale = Math.min(scaleX, scaleY, 1) // Don't scale up, only down if needed
+          // Use actual plantvak canvas dimensions if provided, otherwise fall back to defaults
+          const sourceCanvasWidth = plantvakCanvasWidth || 600
+          const sourceCanvasHeight = plantvakCanvasHeight || 400
           
-          const scaledX = plant.position_x * scale
-          const scaledY = plant.position_y * scale
-          const scaledSize = Math.max(8, flowerSize * scale) // Minimum 8px for visibility
+          // Map from plantvak canvas coordinates to garden view container coordinates
+          const x = (plantX / sourceCanvasWidth) * containerWidth
+          const y = (plantY / sourceCanvasHeight) * containerHeight
           
-          // Ensure the flower stays within container bounds with better constraint
-          const x = Math.max(padding, Math.min(scaledX + padding, containerWidth - scaledSize - padding))
-          const y = Math.max(padding, Math.min(scaledY + padding, containerHeight - scaledSize - padding))
+          // Make flowers bigger - 15% of container size minimum
+          const flowerSize = Math.max(48, Math.min(containerWidth, containerHeight) * 0.15)
 
           instances.push({
             id: `${plant.id}-main`,
             name: plant.name,
             color: plant.color || '#FF69B4',
             emoji: plant.emoji,
-            size: Math.max(8, scaledSize), // Ensure minimum visibility
+            size: flowerSize,
             x,
             y,
             opacity: 1,
             rotation: 0, // Keep consistent rotation
             isMainFlower: true,
-            canFillContainer: scaledSize > 40,
+            canFillContainer: false,
             isFlowerField: false
           })
         } else {
@@ -306,7 +307,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     })
 
     setFlowerInstances(instances)
-  }, [plants, containerWidth, containerHeight, calculateFlowerCount, shouldShowFlowerField])
+  }, [plants, containerWidth, containerHeight, calculateFlowerCount, shouldShowFlowerField, plantvakCanvasWidth, plantvakCanvasHeight])
 
   // Render nothing if no plants
   if (plants.length === 0) {

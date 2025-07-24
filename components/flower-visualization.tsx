@@ -8,6 +8,8 @@ interface FlowerVisualizationProps {
   plants: Plant[] | PlantWithPosition[]
   containerWidth: number
   containerHeight: number
+  plantvakCanvasWidth?: number
+  plantvakCanvasHeight?: number
 }
 
 interface FlowerInstance {
@@ -24,7 +26,7 @@ interface FlowerInstance {
   canFillContainer: boolean
 }
 
-export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight }: FlowerVisualizationProps) {
+export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight, plantvakCanvasWidth, plantvakCanvasHeight }: FlowerVisualizationProps) {
   const [flowerInstances, setFlowerInstances] = useState<FlowerInstance[]>([])
 
   // Helper function to get emoji based on plant name
@@ -98,14 +100,17 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
       
       if (hasCustomPosition && hasCustomSize) {
-        // Use exact position and size from plantvak-view - SIMPLIFIED APPROACH
+        // Use exact position and size from plantvak-view with correct canvas dimensions
         const plantX = plant.position_x!
         const plantY = plant.position_y!
         
-        // DIRECT 1:1 mapping - no complex scaling
-        // Just use the exact percentage position from plantvak-view
-        const finalX = (plantX / 600) * containerWidth  // Direct percentage mapping
-        const finalY = (plantY / 400) * containerHeight // Direct percentage mapping
+        // Use actual plantvak canvas dimensions if provided, otherwise fall back to defaults
+        const sourceCanvasWidth = plantvakCanvasWidth || 600
+        const sourceCanvasHeight = plantvakCanvasHeight || 400
+        
+        // Map from plantvak canvas coordinates to garden view container coordinates
+        const finalX = (plantX / sourceCanvasWidth) * containerWidth
+        const finalY = (plantY / sourceCanvasHeight) * containerHeight
         
         // Make flowers MUCH bigger - 15% of container size minimum
         const flowerSize = Math.max(48, Math.min(containerWidth, containerHeight) * 0.15)
@@ -235,7 +240,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     })
 
     setFlowerInstances(instances)
-  }, [plants, containerWidth, containerHeight, calculateFlowersPerPlant, plantBed.size])
+  }, [plants, containerWidth, containerHeight, calculateFlowersPerPlant, plantBed.size, plantvakCanvasWidth, plantvakCanvasHeight])
 
   // Render nothing if no plants
   if (plants.length === 0) {
