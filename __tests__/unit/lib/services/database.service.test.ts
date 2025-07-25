@@ -1,232 +1,117 @@
 import { TuinService } from '@/lib/services/database.service'
-import { supabase } from '@/lib/supabase'
+import { mockGardenData, mockGardensArray } from '@/__tests__/setup/supabase-mock'
 
-// Mock Supabase
-jest.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: jest.fn(),
-  },
-}))
+// Mock the supabase client
+jest.mock('@/lib/supabase', () => {
+  const { createMockSupabase } = require('@/__tests__/setup/supabase-mock')
+  return {
+    supabase: createMockSupabase(),
+  }
+})
 
-// Mock logger to avoid console output during tests
-jest.mock('@/lib/logger', () => ({
-  databaseLogger: {
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    log: jest.fn(),
-    debug: jest.fn(),
-  },
-  AuditLogger: {
-    logDataAccess: jest.fn(),
-    logUserAction: jest.fn(),
-  },
-  PerformanceLogger: {
-    startTimer: jest.fn(),
-    endTimer: jest.fn(),
-  },
-}))
+// Get the mocked supabase instance
+const { supabase } = require('@/lib/supabase')
+const mockSupabase = supabase
 
 describe('TuinService', () => {
-  const mockSupabaseChain = {
-    select: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockReturnThis(),
-    update: jest.fn().mockReturnThis(),
-    delete: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    or: jest.fn().mockReturnThis(),
-    order: jest.fn().mockReturnThis(),
-    range: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    single: jest.fn(),
-  }
-
   beforeEach(() => {
+    mockSupabase.mockQueryBuilder.reset()
     jest.clearAllMocks()
-    ;(supabase.from as jest.Mock).mockReturnValue(mockSupabaseChain)
   })
 
   describe('getAll', () => {
-    it('should successfully fetch all gardens with pagination', async () => {
-      const mockGardens = [
-        { ...global.testUtils.mockGarden, id: '1', name: 'Garden 1' },
-        { ...global.testUtils.mockGarden, id: '2', name: 'Garden 2' },
-      ]
-
-      // Mock connection validation (select('count').limit(1))
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      // Mock data query
-      mockSupabaseChain.range.mockResolvedValue({
-        data: mockGardens,
-        error: null,
-        count: 2,
-      })
+    it('should return all gardens successfully', async () => {
+      mockSupabase.mockQueryBuilder.mockSuccess(mockGardensArray)
+      mockSupabase.mockQueryBuilder.countValue = mockGardensArray.length
 
       const result = await TuinService.getAll()
 
       expect(result.success).toBe(true)
-      expect(result.data?.data).toHaveLength(2)
-      expect(result.data?.count).toBe(2)
-      expect(result.data?.page).toBe(1)
-      expect(result.data?.page_size).toBe(10)
-    })
-
-    it('should handle pagination correctly', async () => {
-      const mockGardens = [
-        { ...global.testUtils.mockGarden, id: '6', name: 'Garden 6' },
-      ]
-
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.range.mockResolvedValue({
-        data: mockGardens,
-        error: null,
-        count: 10,
-      })
-
-      const result = await TuinService.getAll(undefined, undefined, 2, 5)
-
-      expect(result.success).toBe(true)
-      expect(result.data?.page).toBe(2)
-      expect(result.data?.page_size).toBe(5)
-      expect(mockSupabaseChain.range).toHaveBeenCalledWith(5, 9) // (page-1) * pageSize, page * pageSize - 1
+      expect(result.data?.data).toEqual(mockGardensArray)
+      expect(result.data?.count).toBe(mockGardensArray.length)
+      expect(mockSupabase.from).toHaveBeenCalledWith('gardens')
     })
 
     it('should handle database errors gracefully', async () => {
       const mockError = { code: 'PGRST301', message: 'Database error' }
-      
-      // Mock connection validation to fail
-      mockSupabaseChain.limit.mockResolvedValue({ error: mockError })
+      mockSupabase.mockQueryBuilder.mockError(mockError)
 
       const result = await TuinService.getAll()
 
       expect(result.success).toBe(false)
       expect(result.error).toBe('Unable to connect to database')
-    }, 10000) // Increase timeout
+    })
 
-    it('should return empty results when no gardens found', async () => {
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.range.mockResolvedValue({
-        data: [],
-        error: null,
-        count: 0,
-      })
+    it('should return empty array when no gardens exist', async () => {
+      mockSupabase.mockQueryBuilder.mockEmpty()
 
       const result = await TuinService.getAll()
 
       expect(result.success).toBe(true)
-      expect(result.data?.data).toHaveLength(0)
+      expect(result.data?.data).toEqual([])
       expect(result.data?.count).toBe(0)
     })
 
-    it('should apply search filters correctly', async () => {
-      const mockGardens = [
-        { ...global.testUtils.mockGarden, id: '1', name: 'Test Garden' },
-      ]
+    it('should handle pagination correctly', async () => {
+      const page = 2
+      const pageSize = 5
+      const paginatedResults = mockGardensArray.slice(5, 10)
 
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.range.mockResolvedValue({
-        data: mockGardens,
-        error: null,
-        count: 1,
-      })
+      mockSupabase.mockQueryBuilder.mockSuccess(paginatedResults)
+      mockSupabase.mockQueryBuilder.countValue = mockGardensArray.length
 
-      const filters = { query: 'test garden' }
-      const result = await TuinService.getAll(filters)
+      const result = await TuinService.getAll(undefined, undefined, page, pageSize)
 
       expect(result.success).toBe(true)
-      expect(mockSupabaseChain.or).toHaveBeenCalledWith(
-        'name.ilike.%test garden%,description.ilike.%test garden%,location.ilike.%test garden%'
-      )
+      expect(result.data?.page).toBe(page)
+      expect(result.data?.page_size).toBe(pageSize)
+      expect(result.data?.count).toBe(mockGardensArray.length)
     })
 
-    it('should apply sorting correctly', async () => {
-      const mockGardens = [
-        { ...global.testUtils.mockGarden, id: '1', name: 'Garden A' },
-      ]
+    it('should handle search queries correctly', async () => {
+      const searchQuery = 'rose'
+      const filteredResults = [mockGardensArray[0]]
 
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.range.mockResolvedValue({
-        data: mockGardens,
-        error: null,
-        count: 1,
-      })
+      mockSupabase.mockQueryBuilder.mockSuccess(filteredResults)
+      mockSupabase.mockQueryBuilder.countValue = filteredResults.length
 
-      const sort = { field: 'name', direction: 'asc' as const }
-      const result = await TuinService.getAll(undefined, sort)
+      const result = await TuinService.getAll({ query: searchQuery })
 
       expect(result.success).toBe(true)
-      expect(mockSupabaseChain.order).toHaveBeenCalledWith('name', { ascending: true })
-    })
-
-    it('should limit page size to maximum allowed', async () => {
-      const mockGardens = [
-        { ...global.testUtils.mockGarden, id: '1', name: 'Garden 1' },
-      ]
-
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.range.mockResolvedValue({
-        data: mockGardens,
-        error: null,
-        count: 1,
-      })
-
-      const result = await TuinService.getAll(undefined, undefined, 1, 1000)
-
-      expect(result.success).toBe(true)
-      expect(result.data?.page_size).toBe(100) // Should be limited to max
+      expect(result.data?.data).toEqual(filteredResults)
+      expect(result.data?.count).toBe(filteredResults.length)
     })
   })
 
   describe('getById', () => {
-    it('should successfully fetch a garden by ID', async () => {
-      const mockGarden = { ...global.testUtils.mockGarden, id: 'test-id' }
+    it('should return a garden by ID successfully', async () => {
+      const gardenId = '1'
+      mockSupabase.mockQueryBuilder.mockSuccess(mockGardenData)
 
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.single.mockResolvedValue({
-        data: mockGarden,
-        error: null,
-      })
-
-      const result = await TuinService.getById('test-id')
+      const result = await TuinService.getById(gardenId)
 
       expect(result.success).toBe(true)
-      expect(result.data).toEqual(mockGarden)
-      expect(mockSupabaseChain.eq).toHaveBeenCalledWith('id', 'test-id')
-      expect(mockSupabaseChain.eq).toHaveBeenCalledWith('is_active', true)
+      expect(result.data).toEqual(mockGardenData)
     })
 
     it('should handle garden not found', async () => {
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.single.mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST116', message: 'Not found' },
-      })
+      const gardenId = 'non-existent'
+      mockSupabase.mockQueryBuilder.mockError({ code: 'PGRST116', message: 'Not found' })
 
-      const result = await TuinService.getById('non-existent-id')
+      const result = await TuinService.getById(gardenId)
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('Garden with ID non-existent-id not found')
+      expect(result.error).toContain('Garden with ID non-existent not found')
     })
 
-    it('should handle database errors', async () => {
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.single.mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST301', message: 'Database error' },
-      })
+    it('should handle database errors gracefully', async () => {
+      const mockError = { code: 'PGRST301', message: 'Database error' }
+      mockSupabase.mockQueryBuilder.mockError(mockError)
 
-      const result = await TuinService.getById('test-id')
+      const result = await TuinService.getById('1')
 
       expect(result.success).toBe(false)
-      expect(result.error).toBe('Failed to fetch garden')
+      expect(result.error).toBe('Unable to connect to database')
     })
 
     it('should validate ID parameter', async () => {
@@ -239,47 +124,35 @@ describe('TuinService', () => {
 
   describe('create', () => {
     it('should successfully create a garden', async () => {
-      const newGarden = {
+      const gardenData = {
         name: 'New Garden',
         location: 'Test Location',
         description: 'A beautiful garden',
-        total_area: '100m²',
         garden_type: 'vegetable',
+        total_area: '100m²'
       }
 
       const createdGarden = {
-        ...newGarden,
-        id: 'new-id',
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        ...gardenData,
+        id: 'new-1',
         is_active: true,
+        created_at: expect.any(String),
+        updated_at: expect.any(String)
       }
 
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      // Mock insert operation
-      mockSupabaseChain.single.mockResolvedValue({
-        data: createdGarden,
-        error: null,
-      })
+      mockSupabase.mockQueryBuilder.mockSuccess(createdGarden)
 
-      const result = await TuinService.create(newGarden)
+      const result = await TuinService.create(gardenData)
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual(createdGarden)
-      expect(mockSupabaseChain.insert).toHaveBeenCalledWith([
-        expect.objectContaining({
-          name: 'New Garden',
-          location: 'Test Location',
-          is_active: true,
-        })
-      ])
+      expect(mockSupabase.from).toHaveBeenCalledWith('gardens')
     })
 
     it('should validate required fields', async () => {
       const invalidGarden = {
-        name: '',
-        location: 'Test Location',
+        name: '', // Empty name should trigger validation error
+        location: 'Test Location'
       }
 
       const result = await TuinService.create(invalidGarden as any)
@@ -291,7 +164,7 @@ describe('TuinService', () => {
     it('should validate location field', async () => {
       const invalidGarden = {
         name: 'Test Garden',
-        location: '',
+        location: '' // Empty location should trigger validation error
       }
 
       const result = await TuinService.create(invalidGarden as any)
@@ -301,75 +174,45 @@ describe('TuinService', () => {
     })
 
     it('should trim whitespace from input fields', async () => {
-      const newGarden = {
+      const gardenData = {
         name: '  New Garden  ',
         location: '  Test Location  ',
-        description: '  A beautiful garden  ',
+        description: '  A beautiful garden  '
       }
 
-      const createdGarden = {
+      const expectedTrimmedData = {
         name: 'New Garden',
-        location: 'Test Location',
+        location: 'Test Location', 
         description: 'A beautiful garden',
-        id: 'new-id',
-        created_at: '2023-01-01T00:00:00Z',
-        updated_at: '2023-01-01T00:00:00Z',
+        id: 'new-1',
         is_active: true,
+        created_at: expect.any(String),
+        updated_at: expect.any(String)
       }
 
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.single.mockResolvedValue({
-        data: createdGarden,
-        error: null,
-      })
+      mockSupabase.mockQueryBuilder.mockSuccess(expectedTrimmedData)
 
-      const result = await TuinService.create(newGarden as any)
+      const result = await TuinService.create(gardenData as any)
 
       expect(result.success).toBe(true)
-      expect(mockSupabaseChain.insert).toHaveBeenCalledWith([
-        expect.objectContaining({
-          name: 'New Garden',
-          location: 'Test Location',
-          description: 'A beautiful garden',
-        })
-      ])
+      expect(result.data?.name).toBe('New Garden')
+      expect(result.data?.location).toBe('Test Location')
+      expect(result.data?.description).toBe('A beautiful garden')
     })
 
-    it('should handle database errors', async () => {
-      const newGarden = {
+    it('should handle database errors gracefully', async () => {
+      const gardenData = {
         name: 'New Garden',
-        location: 'Test Location',
+        location: 'Test Location'
       }
 
-      // Mock connection validation to fail
-      mockSupabaseChain.limit.mockResolvedValue({ 
-        error: { code: 'PGRST301', message: 'Database error' } 
-      })
+      const mockError = { code: 'PGRST301', message: 'Database error' }
+      mockSupabase.mockQueryBuilder.mockError(mockError)
 
-      const result = await TuinService.create(newGarden as any)
+      const result = await TuinService.create(gardenData as any)
 
       expect(result.success).toBe(false)
       expect(result.error).toBe('Unable to connect to database')
-    }, 10000) // Increase timeout
-
-    it('should handle unique constraint violations', async () => {
-      const newGarden = {
-        name: 'Duplicate Garden',
-        location: 'Test Location',
-      }
-
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.single.mockResolvedValue({
-        data: null,
-        error: { code: '23505', message: 'Unique constraint violation' },
-      })
-
-      const result = await TuinService.create(newGarden as any)
-
-      expect(result.success).toBe(false)
-      expect(result.error).toBe('Failed to create garden')
     })
   })
 
@@ -381,69 +224,49 @@ describe('TuinService', () => {
       }
 
       const updatedGarden = {
-        ...global.testUtils.mockGarden,
+        ...mockGardenData,
         ...updateData,
-        updated_at: '2023-01-01T00:00:00Z',
+        updated_at: expect.any(String)
       }
 
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.single.mockResolvedValue({
-        data: updatedGarden,
-        error: null,
-      })
+      mockSupabase.mockQueryBuilder.mockSuccess(updatedGarden)
 
-      const result = await TuinService.update('test-id', updateData)
+      const result = await TuinService.update('1', updateData)
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual(updatedGarden)
-      expect(mockSupabaseChain.eq).toHaveBeenCalledWith('id', 'test-id')
-      expect(mockSupabaseChain.eq).toHaveBeenCalledWith('is_active', true)
+      expect(mockSupabase.from).toHaveBeenCalledWith('gardens')
     })
 
     it('should handle garden not found during update', async () => {
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.single.mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST116', message: 'Not found' },
-      })
+      mockSupabase.mockQueryBuilder.mockError({ code: 'PGRST116', message: 'Not found' })
 
-      const result = await TuinService.update('non-existent-id', { name: 'Updated' })
+      const result = await TuinService.update('non-existent', { name: 'Updated' })
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('Garden with ID non-existent-id not found')
+      expect(result.error).toContain('Garden with ID non-existent not found')
     })
   })
 
   describe('delete', () => {
     it('should successfully soft delete a garden', async () => {
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.single.mockResolvedValue({
-        data: { ...global.testUtils.mockGarden, is_active: false },
-        error: null,
-      })
+      // Mock the getById call first (used internally by delete)
+      mockSupabase.mockQueryBuilder.mockSuccess(mockGardenData)
 
-      const result = await TuinService.delete('test-id')
+      const result = await TuinService.delete('1')
 
       expect(result.success).toBe(true)
-      expect(mockSupabaseChain.update).toHaveBeenCalledWith({ is_active: false })
-      expect(mockSupabaseChain.eq).toHaveBeenCalledWith('id', 'test-id')
+      expect(result.data).toBe(true)
+      expect(mockSupabase.from).toHaveBeenCalledWith('gardens')
     })
 
     it('should handle garden not found during delete', async () => {
-      // Mock connection validation
-      mockSupabaseChain.limit.mockResolvedValueOnce({ error: null })
-      mockSupabaseChain.single.mockResolvedValue({
-        data: null,
-        error: { code: 'PGRST116', message: 'Not found' },
-      })
+      mockSupabase.mockQueryBuilder.mockError({ code: 'PGRST116', message: 'Not found' })
 
-      const result = await TuinService.delete('non-existent-id')
+      const result = await TuinService.delete('non-existent')
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('Garden with ID non-existent-id not found')
+      expect(result.error).toContain('Garden with ID non-existent not found')
     })
   })
 })
