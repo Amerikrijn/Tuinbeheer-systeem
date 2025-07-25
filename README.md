@@ -4,7 +4,7 @@ Een professioneel tuinbeheersysteem gebouwd volgens bancaire standaarden met uit
 
 ## 🏗️ Architectuur
 
-### Banking-Standard Implementation
+### Banking-Standard Implementation 
 - **Comprehensive Error Handling**: Gestructureerde foutafhandeling met custom error classes
 - **Audit Logging**: Volledige audit trail voor alle gebruikersacties en data toegang
 - **Performance Monitoring**: Real-time performance tracking met alerting
