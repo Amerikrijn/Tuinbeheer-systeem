@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, TreePine, Plus, AlertCircle, Calendar } from "lucide-react"
 import { createGarden } from "@/lib/database"
@@ -310,26 +310,23 @@ export default function NewGardenPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="gardenType">Tuintype</Label>
-                    <Select
+                    <select
+                      id="gardenType"
                       value={newGarden.gardenType}
-                      onValueChange={(value) =>
+                      onChange={(e) =>
                         setNewGarden((p) => ({
                           ...p,
-                          gardenType: value,
+                          gardenType: e.target.value,
                         }))
                       }
+                      className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer tuintype" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {gardenTypeOptions.map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      {gardenTypeOptions.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
 

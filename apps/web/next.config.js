@@ -1,17 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    // Disable SSR for all pages to prevent useContext issues during build
-    runtime: 'nodejs',
-  },
-  // Disable static optimization to prevent context issues
-  output: 'standalone',
-  // Force dynamic rendering for all pages
+  // Disable static generation to prevent useContext SSR errors
   trailingSlash: false,
-  // Ensure no static optimization happens
+  // Disable image optimization to prevent build issues
   images: {
     unoptimized: true
-  }
+  },
+  // Experimental features
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
+  },
+  // Ensure dynamic rendering
+  poweredByHeader: false
 }
 
 module.exports = nextConfig
