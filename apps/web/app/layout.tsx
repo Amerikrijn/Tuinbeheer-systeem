@@ -2,8 +2,8 @@ import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
-import { ThemeProvider } from "@/components/theme-provider"
-import { LanguageProvider } from "@/hooks/use-language"
+// import { ThemeProvider } from "@/components/theme-provider"
+// import { LanguageProvider } from "@/hooks/use-language"
 import { ErrorBoundary } from "@/components/error-boundary"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -22,17 +22,7 @@ export default function RootLayout({
     <html lang="nl">
       <body className={inter.className}>
         <ErrorBoundary>
-          <ThemeProvider 
-            attribute="class" 
-            defaultTheme="light" 
-            enableSystem 
-            disableTransitionOnChange
-          >
-            <LanguageProvider>
-              {children}
-              <Toaster />
-            </LanguageProvider>
-          </ThemeProvider>
+          {children}
         </ErrorBoundary>
       </body>
     </html>
