@@ -8,6 +8,7 @@ interface FlowerVisualizationProps {
   plants: Plant[] | PlantWithPosition[]
   containerWidth: number
   containerHeight: number
+  useStandardSizing?: boolean
 }
 
 interface FlowerInstance {
@@ -26,7 +27,7 @@ interface FlowerInstance {
   fieldSize?: number
 }
 
-export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight }: FlowerVisualizationProps) {
+export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight, useStandardSizing = false }: FlowerVisualizationProps) {
   const [flowerInstances, setFlowerInstances] = useState<FlowerInstance[]>([])
 
   // Calculate how many flowers should be displayed based on plant bed size
@@ -210,18 +211,27 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           // Use exact database values for consistent positioning between views
           const flowerSize = Math.min(plantWidth, plantHeight)
           
-          // Scale positions to fit the container while maintaining relative positions
-          const scaleX = (containerWidth - padding * 2) / Math.max(plantWidth, 100) // Minimum reference width
-          const scaleY = (containerHeight - padding * 2) / Math.max(plantHeight, 100) // Minimum reference height
-          const scale = Math.min(scaleX, scaleY, 1) // Don't scale up, only down if needed
+          let x, y, scaledSize
           
-          const scaledX = plant.position_x * scale
-          const scaledY = plant.position_y * scale
-          const scaledSize = Math.max(8, flowerSize * scale) // Minimum 8px for visibility
-          
-          // Ensure the flower stays within container bounds with better constraint
-          const x = Math.max(padding, Math.min(scaledX + padding, containerWidth - scaledSize - padding))
-          const y = Math.max(padding, Math.min(scaledY + padding, containerHeight - scaledSize - padding))
+          if (useStandardSizing) {
+            // For plantvak detail view: use direct positions without scaling
+            scaledSize = flowerSize
+            x = Math.max(padding, Math.min(plant.position_x, containerWidth - scaledSize - padding))
+            y = Math.max(padding, Math.min(plant.position_y, containerHeight - scaledSize - padding))
+          } else {
+            // For garden overview: scale positions to fit the container while maintaining relative positions
+            const scaleX = (containerWidth - padding * 2) / Math.max(plantWidth, 100) // Minimum reference width
+            const scaleY = (containerHeight - padding * 2) / Math.max(plantHeight, 100) // Minimum reference height
+            const scale = Math.min(scaleX, scaleY, 1) // Don't scale up, only down if needed
+            
+            const scaledX = plant.position_x * scale
+            const scaledY = plant.position_y * scale
+            scaledSize = Math.max(8, flowerSize * scale) // Minimum 8px for visibility
+            
+            // Ensure the flower stays within container bounds with better constraint
+            x = Math.max(padding, Math.min(scaledX + padding, containerWidth - scaledSize - padding))
+            y = Math.max(padding, Math.min(scaledY + padding, containerHeight - scaledSize - padding))
+          }
 
           instances.push({
             id: `${plant.id}-main`,
@@ -306,7 +316,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     })
 
     setFlowerInstances(instances)
-  }, [plants, containerWidth, containerHeight, calculateFlowerCount, shouldShowFlowerField])
+  }, [plants, containerWidth, containerHeight, calculateFlowerCount, shouldShowFlowerField, useStandardSizing])
 
   // Render nothing if no plants
   if (plants.length === 0) {
