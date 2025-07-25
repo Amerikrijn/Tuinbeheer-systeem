@@ -35,16 +35,9 @@ export class MockSupabaseQueryBuilder {
     return this
   }
 
-  reset() {
-    this.mockData = null
-    this.mockError = null
-    this.mockCount = 0
-    this.chainedMethods = []
-  }
-
   // Query builder methods that return 'this' for chaining
   select(columns?: string, options?: any) {
-    this.chainedMethods.push(`select(${columns || '*'})`)
+    this.chainedMethods.push('select')
     return this
   }
 
@@ -64,85 +57,133 @@ export class MockSupabaseQueryBuilder {
   }
 
   eq(column: string, value: any) {
-    this.chainedMethods.push(`eq(${column}, ${value})`)
+    this.chainedMethods.push('eq')
     return this
   }
 
-  or(filter: string) {
-    this.chainedMethods.push(`or(${filter})`)
+  or(condition: string) {
+    this.chainedMethods.push('or')
     return this
   }
 
   order(column: string, options?: any) {
-    this.chainedMethods.push(`order(${column})`)
+    this.chainedMethods.push('order')
     return this
   }
 
   range(from: number, to: number) {
-    this.chainedMethods.push(`range(${from}, ${to})`)
+    this.chainedMethods.push('range')
     return this
   }
 
   limit(count: number) {
-    this.chainedMethods.push(`limit(${count})`)
-    
-    // For connection validation (select('count').limit(1))
-    if (this.chainedMethods.includes('select(count)') && count === 1) {
-      return Promise.resolve({ 
-        data: null, 
-        error: this.mockError,
-        count: null 
-      })
-    }
-    
+    this.chainedMethods.push('limit')
     return this
   }
 
   // Terminal methods that return promises
   async single() {
-    return Promise.resolve({
-      data: this.mockData,
-      error: this.mockError,
-      count: null
-    })
+    if (this.mockError) {
+      return { data: null, error: this.mockError }
+    }
+    return { data: this.mockData, error: null }
   }
 
-  // This is called at the end of query chains for data fetching
-  then(onResolve: Function, onReject?: Function) {
-    const result = {
-      data: this.mockData,
-      error: this.mockError,
-      count: this.mockCount
+  // Default promise resolution for query chains
+  then(onResolve: any, onReject?: any) {
+    if (this.mockError) {
+      return Promise.resolve({ data: null, error: this.mockError, count: null }).then(onResolve, onReject)
     }
     
-    if (onResolve) {
-      return onResolve(result)
+    // Handle different query types based on chained methods
+    if (this.chainedMethods.includes('select') && this.chainedMethods.includes('limit') && this.chainedMethods.length === 2) {
+      // Connection validation query: select('count').limit(1)
+      return Promise.resolve({ data: [{ count: 1 }], error: null, count: null }).then(onResolve, onReject)
     }
     
-    return Promise.resolve(result)
+    if (this.chainedMethods.includes('insert')) {
+      return Promise.resolve({ data: this.mockData, error: null, count: null }).then(onResolve, onReject)
+    }
+    
+    if (this.chainedMethods.includes('update')) {
+      return Promise.resolve({ data: this.mockData, error: null, count: null }).then(onResolve, onReject)
+    }
+    
+    if (this.chainedMethods.includes('delete')) {
+      return Promise.resolve({ data: null, error: null, count: null }).then(onResolve, onReject)
+    }
+    
+    // Default select query with count
+    return Promise.resolve({ 
+      data: this.mockData || [], 
+      error: null, 
+      count: this.mockCount 
+    }).then(onResolve, onReject)
   }
 
-  // Make it thenable so it can be awaited
-  catch(onReject: Function) {
-    return Promise.resolve({
-      data: this.mockData,
-      error: this.mockError,
-      count: this.mockCount
-    }).catch(onReject)
-  }
-
-  // Helper method to check what methods were called
-  getChainedMethods() {
-    return this.chainedMethods
+  // Reset method for test cleanup
+  reset() {
+    this.mockData = null
+    this.mockError = null
+    this.mockCount = 0
+    this.chainedMethods = []
   }
 }
 
 // Create mock instances
 export const createMockSupabase = () => {
-  const queryBuilder = new MockSupabaseQueryBuilder()
+  const mockQueryBuilder = new MockSupabaseQueryBuilder()
   
   return {
-    from: jest.fn(() => queryBuilder),
-    queryBuilder // Expose for direct manipulation in tests
+    from: jest.fn(() => mockQueryBuilder),
+    mockQueryBuilder, // Expose for direct manipulation in tests
   }
+}
+
+// Global mock setup
+export const setupSupabaseMocks = () => {
+  const mockSupabase = createMockSupabase()
+  
+  jest.mock('@/lib/supabase', () => ({
+    supabase: mockSupabase,
+  }))
+  
+  return mockSupabase
+}
+
+// Helper functions for test setup
+export const setupMockSuccess = (data: any, count?: number) => {
+  mockQueryBuilder.reset()
+  mockQueryBuilder.setMockData(data)
+  if (count !== undefined) {
+    mockQueryBuilder.setMockCount(count)
+  }
+}
+
+export const setupMockError = (error: any) => {
+  mockQueryBuilder.reset()
+  mockQueryBuilder.setMockError(error)
+}
+
+// Test data helpers
+export const createMockGarden = (overrides: any = {}) => ({
+  id: '1',
+  name: 'Test Garden',
+  location: 'Test Location',
+  description: 'A beautiful test garden',
+  total_area: '100m²',
+  garden_type: 'vegetable',
+  is_active: true,
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z',
+  ...overrides
+})
+
+export const createMockGardens = (count: number = 3) => {
+  return Array.from({ length: count }, (_, i) => 
+    createMockGarden({ 
+      id: (i + 1).toString(), 
+      name: `Test Garden ${i + 1}` 
+    })
+  )
 }
