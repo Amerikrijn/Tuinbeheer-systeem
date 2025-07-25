@@ -26,7 +26,7 @@ const LanguageContext = createContext<LanguageContextValue | null>(null)
 export function LanguageProvider({ children }: { children: ReactNode }) {
   // Initialize with a default language to prevent hydration issues
   const [language, setLanguageState] = useState<Language>("nl")
-  const [translationsLoaded, setTranslationsLoaded] = useState(false)
+  const [translationsLoaded, setTranslationsLoaded] = useState(typeof window === "undefined")
 
   /* Load saved language preference and translation bundle on mount */
   useEffect(() => {
@@ -38,7 +38,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         setLanguageState(saved)
       }
 
-      loadTranslations().then(() => setTranslationsLoaded(true))
+      // Only load translations if we're on the client and haven't loaded them yet
+      if (!translationsLoaded) {
+        loadTranslations().then(() => setTranslationsLoaded(true))
+      }
     }
   }, [])
 
@@ -69,6 +72,15 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 export function useLanguage() {
   const ctx = useContext(LanguageContext)
   if (!ctx) {
+    // During SSR/SSG, provide a fallback to prevent crashes
+    if (typeof window === "undefined") {
+      return {
+        language: "nl" as Language,
+        setLanguage: () => {},
+        translationsLoaded: false,
+        t: (key: string) => key // Return the key as fallback during SSR
+      }
+    }
     throw new Error("useLanguage must be used within a LanguageProvider")
   }
   return ctx

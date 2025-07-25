@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, TreePine, Plus, AlertCircle, Calendar } from "lucide-react"
 import { createGarden } from "@/lib/database"
 
+export const dynamic = 'force-dynamic'
+
 interface NewGarden {
   name: string
   description: string

@@ -15,6 +15,8 @@ import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, TreePine, RefreshCw, Save, Home, Calendar, User, MapPin, Ruler } from "lucide-react"
 import { getMockGarden, getMockPlantBeds, type Garden } from "@/lib/mock-data"
 
+export const dynamic = 'force-dynamic'
+
 interface EditGarden {
   name: string
   description: string

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Leaf, Plus, Eye, Flower, Sparkles, TreePine, Settings } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { t } from "@/lib/translations"
+
+export const dynamic = 'force-dynamic'
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true)
   const { language } = useLanguage()

@@ -15,6 +15,8 @@ import type { Garden } from "@/lib/supabase"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 
+export const dynamic = 'force-dynamic'
+
 function HomePageContent() {
   const router = useRouter()
   const [gardens, setGardens] = React.useState<Garden[]>([])
