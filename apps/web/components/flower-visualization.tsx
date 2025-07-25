@@ -2,12 +2,14 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
+import { FLOWER_SIZE_SMALL, FLOWER_SIZE_MEDIUM, FLOWER_SIZE_LARGE } from "@/lib/scaling-constants"
 
 interface FlowerVisualizationProps {
   plantBed: PlantBedWithPlants
   plants: Plant[] | PlantWithPosition[]
   containerWidth: number
   containerHeight: number
+  useStandardSizing?: boolean
 }
 
 interface FlowerInstance {
@@ -26,7 +28,7 @@ interface FlowerInstance {
   fieldSize?: number
 }
 
-export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight }: FlowerVisualizationProps) {
+export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight, useStandardSizing = false }: FlowerVisualizationProps) {
   const [flowerInstances, setFlowerInstances] = useState<FlowerInstance[]>([])
 
   // Calculate how many flowers should be displayed based on plant bed size
@@ -208,7 +210,23 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         // Regular flowers - use exact position and size from database if available
         if (hasCustomSize && 'position_x' in plant && plant.position_x !== undefined && 'position_y' in plant && plant.position_y !== undefined) {
           // Use exact database values for consistent positioning between views
-          const flowerSize = Math.min(plantWidth, plantHeight)
+          let flowerSize
+          if (useStandardSizing) {
+            // Use standard sizing constants
+            const plantSize = plant.size || 'medium'
+            switch (plantSize) {
+              case 'small':
+                flowerSize = FLOWER_SIZE_SMALL
+                break
+              case 'large':
+                flowerSize = FLOWER_SIZE_LARGE
+                break
+              default:
+                flowerSize = FLOWER_SIZE_MEDIUM
+            }
+          } else {
+            flowerSize = Math.min(plantWidth, plantHeight)
+          }
           
           // Scale positions to fit the container while maintaining relative positions
           const scaleX = (containerWidth - padding * 2) / Math.max(plantWidth, 100) // Minimum reference width
@@ -243,7 +261,23 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           const extraInstances = calculateFlowerCount % plants.length
           const totalInstances = instancesPerPlant + (plantIndex < extraInstances ? 1 : 0)
 
-          const baseSize = Math.min(35, Math.max(14, Math.min(usableWidth, usableHeight) / 6))
+          let baseSize
+          if (useStandardSizing) {
+            // Use standard sizing constants
+            const plantSize = plant.size || 'medium'
+            switch (plantSize) {
+              case 'small':
+                baseSize = FLOWER_SIZE_SMALL
+                break
+              case 'large':
+                baseSize = FLOWER_SIZE_LARGE
+                break
+              default:
+                baseSize = FLOWER_SIZE_MEDIUM
+            }
+          } else {
+            baseSize = Math.min(35, Math.max(14, Math.min(usableWidth, usableHeight) / 6))
+          }
           
           for (let i = 0; i < totalInstances; i++) {
             const sizeVariation = i === 0 ? 1.4 : 0.6 + (((plant.id.charCodeAt(0) + i * 43) % 70) / 100)
