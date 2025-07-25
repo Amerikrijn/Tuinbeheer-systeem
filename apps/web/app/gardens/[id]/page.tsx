@@ -1367,6 +1367,7 @@ export default function GardenDetailPage() {
                             plants={bed.plants}
                             containerWidth={bedWidth}
                             containerHeight={bedHeight}
+                            useStandardSizing={true}
                           />
                           {bed.plants.length === 0 && (
                             <div className="text-gray-400 text-xs">Geen planten</div>

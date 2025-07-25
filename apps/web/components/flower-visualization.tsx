@@ -213,17 +213,10 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           let flowerSize
           if (useStandardSizing) {
             // Use standard sizing constants
-            const plantSize = plant.size || 'medium'
-            switch (plantSize) {
-              case 'small':
-                flowerSize = FLOWER_SIZE_SMALL
-                break
-              case 'large':
-                flowerSize = FLOWER_SIZE_LARGE
-                break
-              default:
-                flowerSize = FLOWER_SIZE_MEDIUM
-            }
+            // Default to visual dimensions or medium size
+            const width = plant.visual_width || FLOWER_SIZE_MEDIUM
+            const height = plant.visual_height || FLOWER_SIZE_MEDIUM
+            flowerSize = Math.min(width, height, FLOWER_SIZE_MEDIUM)
           } else {
             flowerSize = Math.min(plantWidth, plantHeight)
           }
@@ -263,18 +256,10 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
           let baseSize
           if (useStandardSizing) {
-            // Use standard sizing constants
-            const plantSize = plant.size || 'medium'
-            switch (plantSize) {
-              case 'small':
-                baseSize = FLOWER_SIZE_SMALL
-                break
-              case 'large':
-                baseSize = FLOWER_SIZE_LARGE
-                break
-              default:
-                baseSize = FLOWER_SIZE_MEDIUM
-            }
+            // Use standard sizing constants based on visual dimensions
+            const width = plant.visual_width || FLOWER_SIZE_MEDIUM
+            const height = plant.visual_height || FLOWER_SIZE_MEDIUM
+            baseSize = Math.min(width, height, FLOWER_SIZE_MEDIUM)
           } else {
             baseSize = Math.min(35, Math.max(14, Math.min(usableWidth, usableHeight) / 6))
           }
