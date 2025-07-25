@@ -13,7 +13,6 @@ import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle } from "luc
 import { getGardens, deleteGarden } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { useToast } from "@/hooks/use-toast"
 
 export const dynamic = 'force-dynamic'
 

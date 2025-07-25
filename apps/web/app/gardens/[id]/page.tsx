@@ -44,6 +44,8 @@ import {
 } from "@/lib/scaling-constants"
 import { FlowerVisualization } from "@/components/flower-visualization"
 
+export const dynamic = 'force-dynamic'
+
 interface PlantBedPosition {
   id: string
   position_x: number

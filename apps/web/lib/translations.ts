@@ -1283,7 +1283,7 @@ const translations: Translations = {
 }
 
 // Current language state
-let currentLanguage: Language = "en"
+let currentLanguage: Language = "nl"
 
 // Helper function to get nested translation
 function getNestedTranslation(obj: any, path: string[]): TranslationKey | undefined {
