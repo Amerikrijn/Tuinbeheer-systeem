@@ -13,6 +13,7 @@ import { ArrowLeft, TreePine, Plus, AlertCircle, Calendar } from "lucide-react"
 import { createGarden } from "@/lib/database"
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 interface NewGarden {
   name: string
@@ -28,7 +29,7 @@ interface NewGarden {
 
 export default function NewGardenPage() {
   const router = useRouter()
-  const { toast } = useToast()
+  // const { toast } = useToast()
 
   const [loading, setLoading] = React.useState(false)
   const [errors, setErrors] = React.useState<Record<string, string>>({})
@@ -91,11 +92,11 @@ export default function NewGardenPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!validateForm()) {
-      toast({
-        title: "Formulier onvolledig",
-        description: "Controleer de gemarkeerde velden en probeer opnieuw.",
-        variant: "destructive",
-      })
+      // toast({
+      //   title: "Formulier onvolledig",
+      //   description: "Controleer de gemarkeerde velden en probeer opnieuw.",
+      //   variant: "destructive",
+      // })
       return
     }
 
@@ -123,10 +124,10 @@ export default function NewGardenPage() {
         notes: newGarden.notes || undefined,
       })
 
-      toast({
-        title: "Tuin aangemaakt!",
-        description: `Tuin "${newGarden.name}" is succesvol aangemaakt.`,
-      })
+      // toast({
+      //   title: "Tuin aangemaakt!",
+      //   description: `Tuin "${newGarden.name}" is succesvol aangemaakt.`,
+      // })
 
       if (garden) {
         router.push(`/gardens/${garden.id}`)
@@ -135,11 +136,11 @@ export default function NewGardenPage() {
       }
     } catch (err: any) {
       console.error("Supabase createGarden error:", JSON.stringify(err, null, 2))
-      toast({
-        title: "Fout",
-        description: "Er ging iets mis bij het aanmaken van de tuin.",
-        variant: "destructive",
-      })
+      // toast({
+      //   title: "Fout",
+      //   description: "Er ging iets mis bij het aanmaken van de tuin.",
+      //   variant: "destructive",
+      // })
     } finally {
       setLoading(false)
     }

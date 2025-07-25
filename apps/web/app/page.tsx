@@ -15,6 +15,7 @@ import type { Garden } from "@/lib/supabase"
 import { ErrorBoundary } from "@/components/error-boundary"
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 function HomePageContent() {
   const router = useRouter()

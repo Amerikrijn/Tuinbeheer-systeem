@@ -4,6 +4,7 @@ import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 export default function GardensPage() {
   const router = useRouter()
