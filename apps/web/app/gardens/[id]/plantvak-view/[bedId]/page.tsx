@@ -1072,12 +1072,16 @@ export default function PlantBedViewPage() {
         const plantvakStartY = (canvasHeight - plantvakHeight) / 2
         const margin = 5 // Reduced margin for better edge placement
         
-        // Allow flowers to be positioned right at the edges
-        const minX = plantvakStartX - (draggedFlowerData.visual_width * 0.3) // Allow 30% overflow
-        const maxX = plantvakStartX + plantvakWidth - (draggedFlowerData.visual_width * 0.7) // Allow 30% overflow
-        const minY = plantvakStartY - (draggedFlowerData.visual_height * 0.3) // Allow 30% overflow  
-        const maxY = plantvakStartY + plantvakHeight - (draggedFlowerData.visual_height * 0.7) // Allow 30% overflow
+        // FIXED: Free movement in both X and Y directions with edge allowance
+        const flowerHalfWidth = draggedFlowerData.visual_width / 2
+        const flowerHalfHeight = draggedFlowerData.visual_height / 2
         
+        const minX = plantvakStartX - flowerHalfWidth // Allow flower center to reach edge
+        const maxX = plantvakStartX + plantvakWidth - flowerHalfWidth
+        const minY = plantvakStartY - flowerHalfHeight 
+        const maxY = plantvakStartY + plantvakHeight - flowerHalfHeight
+        
+        // Free movement in both directions - no horizontal restriction
         constrainedX = Math.max(minX, Math.min(newX, maxX))
         constrainedY = Math.max(minY, Math.min(newY, maxY))
         
