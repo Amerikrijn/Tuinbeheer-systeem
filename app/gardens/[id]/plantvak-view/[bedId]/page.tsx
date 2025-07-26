@@ -200,23 +200,23 @@ export default function PlantBedViewPage() {
 
   // Calculate canvas size based on plant bed size using consistent scaling
   const getCanvasSize = () => {
-    if (!plantBed?.size) return { width: 600, height: 450 }
+    if (!plantBed?.size) return { width: 800, height: 600 }
     
     const dimensions = parsePlantBedDimensions(plantBed.size)
     if (dimensions) {
-      // Ensure proper aspect ratio and enough space for movement
+      // Use a larger base size to match garden view expectations
       const padding = PLANTVAK_CANVAS_PADDING
-      const minWidth = 500
-      const minHeight = 400
+      const minWidth = 700  // Increased minimum
+      const minHeight = 500 // Increased minimum
       
-      // Calculate canvas size maintaining proper aspect ratio
-      const canvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
-      const canvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
+      // Calculate canvas size maintaining proper aspect ratio with more space
+      const canvasWidth = Math.max(minWidth, dimensions.lengthPixels * 2 + padding * 2)
+      const canvasHeight = Math.max(minHeight, dimensions.widthPixels * 2 + padding * 2)
       
       return { width: canvasWidth, height: canvasHeight }
     }
     
-    return calculatePlantBedCanvasSize(plantBed.size)
+    return { width: 800, height: 600 }
   }
 
   const { width: canvasWidth, height: canvasHeight } = getCanvasSize()
@@ -492,11 +492,21 @@ export default function PlantBedViewPage() {
         existingFlowers: flowerPositions.length
       })
       
-      // SIMPLE FIX: Just place in top-left corner first to test
-      const initialX = 50  // Simple fixed position
-      const initialY = 50  // Simple fixed position
+      // Place flowers in a more distributed way across the canvas
+      const margin = 50
+      const availableWidth = canvasWidth - margin * 2
+      const availableHeight = canvasHeight - margin * 2
       
-      console.log('🎯 PLACING FLOWER AT:', { initialX, initialY })
+      // Create a grid-like placement for better distribution
+      const existingCount = flowerPositions.length
+      const cols = Math.ceil(Math.sqrt(existingCount + 1))
+      const col = existingCount % cols
+      const row = Math.floor(existingCount / cols)
+      
+      const initialX = margin + (col * (availableWidth / cols)) + (Math.random() * 50)
+      const initialY = margin + (row * (availableHeight / cols)) + (Math.random() * 50)
+      
+      console.log('🎯 PLACING FLOWER AT:', { initialX, initialY, existingCount, canvasWidth, canvasHeight })
       
       const newPlant = await createVisualPlant({
         plant_bed_id: plantBed.id,
@@ -929,36 +939,24 @@ export default function PlantBedViewPage() {
     const newX = (clientX - rect.left) / scale - dragOffset.x
     const newY = (clientY - rect.top) / scale - dragOffset.y
 
-    // Use functional update to avoid dependency issues
+      // Use functional update to avoid dependency issues
     setFlowerPositions(prev => {
       // Find the dragged flower to get its dimensions
       const draggedFlowerData = prev.find(f => f.id === draggedFlower)
       if (!draggedFlowerData) return prev
 
-      // Get plantvak dimensions for proper boundaries
-      const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
-      let plantvakStartX = 0
-      let plantvakStartY = 0
-      let plantvakWidth = canvasWidth
-      let plantvakHeight = canvasHeight
+      // Allow movement within the ENTIRE canvas - remove plantvak restrictions
+      const margin = 10  // Small margin to prevent edge issues
+      const flowerSize = draggedFlowerData.visual_width || FLOWER_SIZE_MEDIUM
       
-      if (dimensions) {
-        // Center the plantvak within the canvas
-        plantvakWidth = dimensions.lengthPixels
-        plantvakHeight = dimensions.widthPixels
-        plantvakStartX = (canvasWidth - plantvakWidth) / 2
-        plantvakStartY = (canvasHeight - plantvakHeight) / 2
-      }
-
-      // Allow movement within the entire plantvak area with small margin
-      const margin = 5
+      // Constrain to full canvas bounds with generous margins
       const constrainedX = Math.max(
-        plantvakStartX + margin, 
-        Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
+        margin, 
+        Math.min(newX, canvasWidth - flowerSize - margin)
       )
       const constrainedY = Math.max(
-        plantvakStartY + margin, 
-        Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
+        margin, 
+        Math.min(newY, canvasHeight - flowerSize - margin)
       )
 
       // Only update the specific dragged flower
