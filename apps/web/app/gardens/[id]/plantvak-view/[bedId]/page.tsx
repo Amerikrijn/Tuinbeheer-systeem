@@ -1065,21 +1065,34 @@ export default function PlantBedViewPage() {
       let constrainedX, constrainedY
       
       if (dimensions) {
-        // Constrain to plantvak bounds
+        // Constrain to plantvak bounds with more flexible edge positioning
         const plantvakWidth = dimensions.lengthPixels
         const plantvakHeight = dimensions.widthPixels
         const plantvakStartX = (canvasWidth - plantvakWidth) / 2
         const plantvakStartY = (canvasHeight - plantvakHeight) / 2
-        const margin = 10
+        const margin = 5 // Reduced margin for better edge placement
         
-        constrainedX = Math.max(
-          plantvakStartX + margin, 
-          Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
-        )
-        constrainedY = Math.max(
-          plantvakStartY + margin, 
-          Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
-        )
+        // Allow flowers to be positioned right at the edges
+        const minX = plantvakStartX - (draggedFlowerData.visual_width * 0.3) // Allow 30% overflow
+        const maxX = plantvakStartX + plantvakWidth - (draggedFlowerData.visual_width * 0.7) // Allow 30% overflow
+        const minY = plantvakStartY - (draggedFlowerData.visual_height * 0.3) // Allow 30% overflow  
+        const maxY = plantvakStartY + plantvakHeight - (draggedFlowerData.visual_height * 0.7) // Allow 30% overflow
+        
+        constrainedX = Math.max(minX, Math.min(newX, maxX))
+        constrainedY = Math.max(minY, Math.min(newY, maxY))
+        
+        // Debug logging for movement issues
+        console.log(`🚀 Moving ${draggedFlowerData.name}:`, {
+          newPosition: { x: newX, y: newY },
+          constraints: { minX, maxX, minY, maxY },
+          finalPosition: { x: constrainedX, y: constrainedY },
+          plantvakBounds: { 
+            x: plantvakStartX, 
+            y: plantvakStartY, 
+            width: plantvakWidth, 
+            height: plantvakHeight 
+          }
+        })
       } else {
         // Fallback to canvas bounds if no plantvak dimensions
         constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width))
