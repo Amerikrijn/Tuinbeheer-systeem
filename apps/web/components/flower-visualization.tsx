@@ -210,28 +210,45 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           // Use exact database values for consistent positioning between views
           const flowerSize = Math.min(plantWidth, plantHeight)
           
-          // Scale positions to fit the container while maintaining relative positions
-          const scaleX = (containerWidth - padding * 2) / Math.max(plantWidth, 100) // Minimum reference width
-          const scaleY = (containerHeight - padding * 2) / Math.max(plantHeight, 100) // Minimum reference height
-          const scale = Math.min(scaleX, scaleY, 1) // Don't scale up, only down if needed
+          // For garden view, we need to map positions directly without aggressive scaling
+          // The positions from the plantvak detail view should be preserved as much as possible
           
+          // Calculate the scale based on the actual plantvak dimensions vs container
+          // This ensures that a flower at the edge of a 2x1m plantvak appears at the edge in garden view too
+          const actualPlantvakWidth = plantBed.visual_width || plantWidth
+          const actualPlantvakHeight = plantBed.visual_height || plantHeight
+          
+          const scaleX = containerWidth / actualPlantvakWidth
+          const scaleY = containerHeight / actualPlantvakHeight
+          const scale = Math.min(scaleX, scaleY) // Maintain aspect ratio
+          
+          // Calculate the actual plantvak area within the container (centered)
+          const scaledPlantvakWidth = actualPlantvakWidth * scale
+          const scaledPlantvakHeight = actualPlantvakHeight * scale
+          const plantvakOffsetX = (containerWidth - scaledPlantvakWidth) / 2
+          const plantvakOffsetY = (containerHeight - scaledPlantvakHeight) / 2
+          
+          // Scale the flower position and size
           const scaledX = plant.position_x * scale
           const scaledY = plant.position_y * scale
-          const scaledSize = Math.max(8, flowerSize * scale) // Minimum 8px for visibility
+          const scaledSize = Math.max(8, Math.min(flowerSize * scale, 50)) // Constrain size but allow visibility
+          
+          // Position the flower within the scaled plantvak area
+          const x = plantvakOffsetX + scaledX
+          const y = plantvakOffsetY + scaledY
           
           // Debug logging for position synchronization
-          console.log(`🌸 Flower positioning debug for ${plant.name}:`, {
+          console.log(`🌸 Flower positioning debug for ${plant.name} in ${plantBed.name}:`, {
             originalPosition: { x: plant.position_x, y: plant.position_y },
-            plantSize: { width: plantWidth, height: plantHeight },
+            actualPlantvakSize: { width: actualPlantvakWidth, height: actualPlantvakHeight },
             containerSize: { width: containerWidth, height: containerHeight },
             scale: { x: scaleX, y: scaleY, final: scale },
+            scaledPlantvakSize: { width: scaledPlantvakWidth, height: scaledPlantvakHeight },
+            plantvakOffset: { x: plantvakOffsetX, y: plantvakOffsetY },
             scaledPosition: { x: scaledX, y: scaledY },
+            finalPosition: { x, y },
             scaledSize
           })
-          
-          // Ensure the flower stays within container bounds with better constraint
-          const x = Math.max(padding, Math.min(scaledX + padding, containerWidth - scaledSize - padding))
-          const y = Math.max(padding, Math.min(scaledY + padding, containerHeight - scaledSize - padding))
 
           instances.push({
             id: `${plant.id}-main`,
