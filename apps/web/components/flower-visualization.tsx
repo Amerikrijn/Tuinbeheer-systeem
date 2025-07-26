@@ -219,6 +219,16 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           const scaledY = plant.position_y * scale
           const scaledSize = Math.max(8, flowerSize * scale) // Minimum 8px for visibility
           
+          // Debug logging for position synchronization
+          console.log(`🌸 Flower positioning debug for ${plant.name}:`, {
+            originalPosition: { x: plant.position_x, y: plant.position_y },
+            plantSize: { width: plantWidth, height: plantHeight },
+            containerSize: { width: containerWidth, height: containerHeight },
+            scale: { x: scaleX, y: scaleY, final: scale },
+            scaledPosition: { x: scaledX, y: scaledY },
+            scaledSize
+          })
+          
           // Ensure the flower stays within container bounds with better constraint
           const x = Math.max(padding, Math.min(scaledX + padding, containerWidth - scaledSize - padding))
           const y = Math.max(padding, Math.min(scaledY + padding, containerHeight - scaledSize - padding))

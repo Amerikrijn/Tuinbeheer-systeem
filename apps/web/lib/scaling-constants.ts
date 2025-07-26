@@ -18,6 +18,13 @@ export const FLOWER_SIZE_MEDIUM = 45  // Medium flowers (was 30)
 export const FLOWER_SIZE_LARGE = 55   // Large flowers (was 40)
 export const FLOWER_NAME_HEIGHT = 30  // Space for flower names below (was 25)
 
+// Scaling modes for consistent positioning
+export const SCALING_MODE = {
+  GARDEN_TO_PLANTVAK: 'garden_to_plantvak',
+  PLANTVAK_TO_GARDEN: 'plantvak_to_garden',
+  DIRECT: 'direct'
+} as const;
+
 // Utility functions
 export const metersToPixels = (meters: number): number => meters * METERS_TO_PIXELS
 export const pixelsToMeters = (pixels: number): number => pixels / METERS_TO_PIXELS
@@ -66,4 +73,56 @@ export const calculatePlantBedCanvasSize = (sizeString: string) => {
     }
   }
   return { width: 700, height: 550 } // Larger default canvas for better flower support
+}
+
+// Position synchronization utilities
+export const convertPlantPositionFromGardenToPlantvak = (
+  gardenPosition: { x: number, y: number },
+  plantBedDimensions: { lengthPixels: number, widthPixels: number },
+  plantvakCanvasSize: { width: number, height: number }
+) => {
+  // Calculate the plantvak container's position within the canvas
+  const plantvakStartX = (plantvakCanvasSize.width - plantBedDimensions.lengthPixels) / 2
+  const plantvakStartY = (plantvakCanvasSize.height - plantBedDimensions.widthPixels) / 2
+  
+  // Convert absolute garden position to relative plantvak position
+  return {
+    x: gardenPosition.x + plantvakStartX,
+    y: gardenPosition.y + plantvakStartY
+  }
+}
+
+export const convertPlantPositionFromPlantvakToGarden = (
+  plantvakPosition: { x: number, y: number },
+  plantBedDimensions: { lengthPixels: number, widthPixels: number },
+  plantvakCanvasSize: { width: number, height: number }
+) => {
+  // Calculate the plantvak container's position within the canvas
+  const plantvakStartX = (plantvakCanvasSize.width - plantBedDimensions.lengthPixels) / 2
+  const plantvakStartY = (plantvakCanvasSize.height - plantBedDimensions.widthPixels) / 2
+  
+  // Convert relative plantvak position to absolute garden position
+  return {
+    x: plantvakPosition.x - plantvakStartX,
+    y: plantvakPosition.y - plantvakStartY
+  }
+}
+
+// Validate that plantvak dimensions match between garden and detail view
+export const validatePlantvakScaling = (
+  gardenBedSize: { width: number, height: number },
+  plantvakBedSize: { width: number, height: number },
+  tolerance: number = 1
+) => {
+  const widthDiff = Math.abs(gardenBedSize.width - plantvakBedSize.width)
+  const heightDiff = Math.abs(gardenBedSize.height - plantvakBedSize.height)
+  
+  return {
+    isValid: widthDiff <= tolerance && heightDiff <= tolerance,
+    widthDiff,
+    heightDiff,
+    message: widthDiff > tolerance || heightDiff > tolerance 
+      ? `Plantvak scaling mismatch: width diff ${widthDiff.toFixed(1)}px, height diff ${heightDiff.toFixed(1)}px`
+      : 'Plantvak scaling is consistent'
+  }
 }
