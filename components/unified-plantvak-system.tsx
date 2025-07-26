@@ -54,6 +54,8 @@ export function UnifiedPlantvakSystem({
   onFlowerClick,
   onFlowerMove 
 }: UnifiedPlantvakProps) {
+  const [draggedFlower, setDraggedFlower] = React.useState<string | null>(null)
+  const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 })
   
   // Convert all plants to unified percentage-based positions
   const flowerPositions: FlowerPosition[] = plants.map(plant => {
@@ -110,6 +112,7 @@ export function UnifiedPlantvakSystem({
         {/* Flowers positioned by percentage */}
         {flowerPositions.map(flower => {
           const { x, y } = percentToPixels(flower.percentX, flower.percentY, containerWidth, containerHeight)
+          const isDragging = draggedFlower === flower.id
           
           return (
             <div
@@ -118,6 +121,8 @@ export function UnifiedPlantvakSystem({
                 isInteractive 
                   ? 'cursor-pointer hover:scale-110 transition-transform' 
                   : ''
+              } ${
+                isDragging ? 'z-50 scale-110 shadow-2xl' : ''
               }`}
               style={{
                 left: x - flower.size / 2,
@@ -128,6 +133,38 @@ export function UnifiedPlantvakSystem({
                 border: `2px solid ${flower.color}`,
               }}
               onClick={() => onFlowerClick?.(flower.id)}
+              onMouseDown={(e) => {
+                if (!isInteractive || mode !== 'detail-view') return
+                e.preventDefault()
+                e.stopPropagation()
+                
+                const rect = e.currentTarget.getBoundingClientRect()
+                setDragOffset({
+                  x: e.clientX - rect.left - flower.size / 2,
+                  y: e.clientY - rect.top - flower.size / 2
+                })
+                setDraggedFlower(flower.id)
+              }}
+              onMouseMove={(e) => {
+                if (!draggedFlower || draggedFlower !== flower.id) return
+                e.preventDefault()
+                
+                const containerRect = e.currentTarget.parentElement?.getBoundingClientRect()
+                if (!containerRect) return
+                
+                const newX = e.clientX - containerRect.left - dragOffset.x
+                const newY = e.clientY - containerRect.top - dragOffset.y
+                
+                // Convert to percentage
+                const newPercentX = Math.max(0, Math.min(100, (newX / containerWidth) * 100))
+                const newPercentY = Math.max(0, Math.min(100, (newY / containerHeight) * 100))
+                
+                onFlowerMove?.(flower.id, newPercentX, newPercentY)
+              }}
+              onMouseUp={() => {
+                setDraggedFlower(null)
+                setDragOffset({ x: 0, y: 0 })
+              }}
               title={`${flower.name} (${flower.percentX.toFixed(1)}%, ${flower.percentY.toFixed(1)}%)`}
             >
               {/* Flower content */}
