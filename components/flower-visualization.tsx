@@ -102,14 +102,31 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const plantX = plant.position_x!
         const plantY = plant.position_y!
         
-        // IMPROVED MAPPING - scale based on actual canvas dimensions
-        // Get the actual canvas dimensions used in plantvak view
-        const plantvakCanvasWidth = 800  // Updated to match new canvas size
-        const plantvakCanvasHeight = 600 // Updated to match new canvas size
+        // CRITICAL FIX: The problem is that garden view uses actual plantvak dimensions as container,
+        // but plantvak view uses a large canvas. We need to map positions correctly.
         
-        // Scale position proportionally from plantvak canvas to container
-        const finalX = (plantX / plantvakCanvasWidth) * containerWidth
-        const finalY = (plantY / plantvakCanvasHeight) * containerHeight
+        // In plantvak view: flowers are positioned on an 800x600 canvas
+        // In garden view: container is the actual plantvak size (e.g., 160x160px for 2x2m)
+        
+        // So we need to scale down from canvas coordinates to plantvak coordinates
+        const plantvakCanvasWidth = 800
+        const plantvakCanvasHeight = 600
+        
+        // Calculate the plantvak boundaries within the canvas (centered)
+        const plantvakPixelWidth = containerWidth  // This is the actual plantvak size in pixels
+        const plantvakPixelHeight = containerHeight
+        
+        // In plantvak view, the actual plantvak area is centered in the canvas
+        const plantvakStartX = (plantvakCanvasWidth - plantvakPixelWidth * 2) / 2  // Account for 2x scaling
+        const plantvakStartY = (plantvakCanvasHeight - plantvakPixelHeight * 2) / 2
+        
+        // Convert absolute canvas position to relative position within the plantvak
+        const relativeX = (plantX - plantvakStartX) / (plantvakPixelWidth * 2)
+        const relativeY = (plantY - plantvakStartY) / (plantvakPixelHeight * 2)
+        
+        // Apply to container
+        const finalX = relativeX * containerWidth
+        const finalY = relativeY * containerHeight
         
         // Make flowers MUCH bigger - 15% of container size minimum
         const flowerSize = Math.max(48, Math.min(containerWidth, containerHeight) * 0.15)
