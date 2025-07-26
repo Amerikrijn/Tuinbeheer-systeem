@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
+import { calculatePlantBedCanvasSize } from "@/lib/scaling-constants"
 
 interface FlowerVisualizationProps {
   plantBed: PlantBedWithPlants
@@ -212,8 +213,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           
           // FIXED: Better position mapping for garden view edge visibility
           // Get the actual plantvak canvas dimensions from detail view
-          const detailCanvasWidth = plantBed.visual_width || 600 // fallback
-          const detailCanvasHeight = plantBed.visual_height || 450 // fallback
+        const { width: detailCanvasWidth, height: detailCanvasHeight } = calculatePlantBedCanvasSize(plantBed.size || '2x2')
           
           // Calculate scale to fit plantvak into garden container
           const scaleX = containerWidth / detailCanvasWidth
@@ -331,7 +331,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     })
 
     setFlowerInstances(instances)
-  }, [plants, containerWidth, containerHeight, calculateFlowerCount, shouldShowFlowerField])
+  }, [plants, containerWidth, containerHeight, calculateFlowerCount, shouldShowFlowerField, plantBed.size])
 
   // Render nothing if no plants
   if (plants.length === 0) {
