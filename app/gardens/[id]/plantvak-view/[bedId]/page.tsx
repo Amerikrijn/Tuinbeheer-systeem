@@ -843,12 +843,12 @@ export default function PlantBedViewPage() {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // Start dragging immediately
-    const offsetX = clientX - rect.left - flower.position_x * scale
-    const offsetY = clientY - rect.top - flower.position_y * scale
+    // Start dragging immediately - FIX: Correct offset calculation
+    const offsetX = (clientX - rect.left) / scale - flower.position_x
+    const offsetY = (clientY - rect.top) / scale - flower.position_y
 
     setDraggedFlower(flowerId)
-    setDragOffset({ x: offsetX / scale, y: offsetY / scale })
+    setDragOffset({ x: offsetX, y: offsetY })
     setSelectedFlower(flower)
     setHasChanges(true)
 
@@ -910,12 +910,12 @@ export default function PlantBedViewPage() {
       const rect = containerRef.current?.getBoundingClientRect()
       if (!rect) return
 
-      // Start dragging
+      // Start dragging - FIX: Correct offset calculation for touch
+      const offsetX = (clientX - rect.left) / scale - selectedFlower.position_x
+      const offsetY = (clientY - rect.top) / scale - selectedFlower.position_y
+      
       setDraggedFlower(flowerId)
-      setDragOffset({
-        x: (clientX - rect.left) / scale - selectedFlower.position_x,
-        y: (clientY - rect.top) / scale - selectedFlower.position_y
-      })
+      setDragOffset({ x: offsetX, y: offsetY })
     }
   }, [selectedFlower, isDragMode, draggedFlower, scale, containerRef])
 
@@ -963,33 +963,7 @@ export default function PlantBedViewPage() {
       const constrainedX = Math.max(minX, Math.min(newX, maxX))
       const constrainedY = Math.max(minY, Math.min(newY, maxY))
       
-      // DEBUG: Enhanced logging with before/after comparison
-      console.log('🌸 MOVEMENT DEBUG:', {
-        flowerName: draggedFlowerData.name,
-        flowerDimensions: {
-          width: draggedFlowerData.visual_width,
-          height: draggedFlowerData.visual_height
-        },
-        positions: {
-          requested: { x: newX, y: newY },
-          constrained: { x: constrainedX, y: constrainedY },
-          changed: { 
-            x: Math.abs(newX - constrainedX) > 0.1, 
-            y: Math.abs(newY - constrainedY) > 0.1 
-          }
-        },
-        plantvakBounds: {
-          startX: plantvakStartX,
-          startY: plantvakStartY,
-          width: plantvakWidth,
-          height: plantvakHeight
-        },
-        constraints: { minX, maxX, minY, maxY },
-        constraintRanges: {
-          xRange: maxX - minX,
-          yRange: maxY - minY
-        }
-      })
+
 
 
 
