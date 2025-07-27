@@ -1,49 +1,13 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
-import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-// useToast removed - no more toast notifications
-import {
-  ArrowLeft,
-  TreePine,
-  Plus,
-  Leaf,
-  MapPin,
-  Grid3X3,
-  ZoomIn,
-  ZoomOut,
-  RotateCcw,
-  Save,
-  Edit,
-  Sun,
-  CloudSun,
-  Cloud,
-  Trash2,
-  Move,
-} from "lucide-react"
-import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
-import type { Garden, PlantBedWithPlants, PlantWithPosition, Plant } from "@/lib/supabase"
-import { 
-  METERS_TO_PIXELS, 
-  GARDEN_CANVAS_WIDTH as DEFAULT_CANVAS_WIDTH,
-  GARDEN_CANVAS_HEIGHT as DEFAULT_CANVAS_HEIGHT,
-  GARDEN_GRID_SIZE as GRID_SIZE,
-  PLANTVAK_MIN_WIDTH,
-  PLANTVAK_MIN_HEIGHT,
-  metersToPixels,
-  pixelsToMeters,
-  parsePlantBedDimensions
-} from "@/lib/scaling-constants"
-import { FlowerVisualization } from "@/components/flower-visualization"
+import { ArrowLeft, TreePine, Grid3X3, ZoomIn, ZoomOut, RotateCcw } from "lucide-react"
+import { getGarden, getPlantBeds } from "@/lib/database"
+import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
+import { UnifiedGardenOverview } from "@/components/unified-plantvak-system"
 
 interface PlantBedPosition {
   id: string
