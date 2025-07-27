@@ -918,17 +918,7 @@ export default function PlantBedViewPage() {
     const offsetX = mouseX - flowerCenterX
     const offsetY = mouseY - flowerCenterY
 
-    // DEBUG: Log drag offset calculation
-    console.log('🎯 DRAG OFFSET CALCULATION (FIXED v2.0):', {
-      flowerName: flower.name,
-      clientPos: { x: clientX, y: clientY },
-      rectPos: { left: rect.left, top: rect.top },
-      scale: scale,
-      mousePos: { x: mouseX, y: mouseY },
-      flowerPos: { x: flower.position_x, y: flower.position_y },
-      flowerCenter: { x: flowerCenterX, y: flowerCenterY },
-      calculatedOffset: { x: offsetX, y: offsetY }
-    })
+    // Drag offset calculation (logging removed for cleaner console)
 
     setDraggedFlower(flowerId)
     setDragOffset({ x: offsetX, y: offsetY })
@@ -1003,17 +993,7 @@ export default function PlantBedViewPage() {
       const offsetX = mouseX - flowerCenterX
       const offsetY = mouseY - flowerCenterY
 
-      // DEBUG: Log drag offset calculation for touch
-      console.log('🎯 DRAG OFFSET CALCULATION (TOUCH FIXED v2.0):', {
-        flowerName: selectedFlower.name,
-        clientPos: { x: clientX, y: clientY },
-        rectPos: { left: rect.left, top: rect.top },
-        scale: scale,
-        mousePos: { x: mouseX, y: mouseY },
-        flowerPos: { x: selectedFlower.position_x, y: selectedFlower.position_y },
-        flowerCenter: { x: flowerCenterX, y: flowerCenterY },
-        calculatedOffset: { x: offsetX, y: offsetY }
-      })
+      // Touch drag offset calculation (logging removed for cleaner console)
       
       setDraggedFlower(flowerId)
       setDragOffset({ x: offsetX, y: offsetY })
@@ -1036,15 +1016,7 @@ export default function PlantBedViewPage() {
     const newX = mouseX - dragOffset.x
     const newY = mouseY - dragOffset.y
     
-    // DEBUG: Log position calculation details
-    console.log('📍 POSITION CALCULATION (FIXED):', {
-      clientPos: { x: clientX, y: clientY },
-      rectPos: { left: rect.left, top: rect.top },
-      scale: scale,
-      mousePos: { x: mouseX, y: mouseY },
-      dragOffset: dragOffset,
-      calculatedPos: { x: newX, y: newY }
-    })
+    // Position calculation (logging removed for cleaner console)
 
     // Use functional update to avoid dependency issues
     setFlowerPositions(prev => {
