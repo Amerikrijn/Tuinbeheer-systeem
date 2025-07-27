@@ -1030,9 +1030,10 @@ export default function PlantBedViewPage() {
       const currentCanvasHeight = currentCanvasSize.height
       
       // DEBUG: Log canvas size per flower to find the shifting bug
+      const flowerIndex = prev.findIndex(f => f.id === draggedFlower)
       console.log('🔍 CANVAS SIZE PER FLOWER:', {
         flowerName: draggedFlowerData.name,
-        flowerIndex: prev.findIndex(f => f.id === draggedFlower),
+        flowerIndex: flowerIndex,
         canvasSize: { w: currentCanvasWidth, h: currentCanvasHeight },
         plantBedSize: plantBed?.size
       })
@@ -1054,7 +1055,7 @@ export default function PlantBedViewPage() {
         // DEBUG: Log plantvak positioning per flower
         console.log('📍 PLANTVAK POSITIONING PER FLOWER:', {
           flowerName: draggedFlowerData.name,
-          flowerIndex: prev.findIndex(f => f.id === draggedFlower),
+          flowerIndex: flowerIndex,
           plantvakDimensions: { w: plantvakWidth, h: plantvakHeight },
           plantvakStart: { x: plantvakStartX, y: plantvakStartY },
           calculation: `(${currentCanvasHeight} - ${plantvakHeight}) / 2 = ${plantvakStartY}`
@@ -1072,10 +1073,10 @@ export default function PlantBedViewPage() {
       const constrainedX = (maxX > minX) ? Math.max(minX, Math.min(newX, maxX)) : newX
       const constrainedY = (maxY > minY) ? Math.max(minY, Math.min(newY, maxY)) : newY
       
-      // DEBUG: Enhanced logging to identify boundary issues
+      // DEBUG: Enhanced logging to identify boundary issues  
       console.log('🌸 FLOWER MOVEMENT DEBUG:', {
         flowerName: draggedFlowerData.name,
-        flowerIndex: prev.findIndex(f => f.id === draggedFlower) + 1,
+        flowerIndex: flowerIndex,
         mouse: { x: newX, y: newY },
         constrained: { x: constrainedX, y: constrainedY },
         canvas: { w: currentCanvasWidth, h: currentCanvasHeight },
