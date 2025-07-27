@@ -1034,33 +1034,10 @@ export default function PlantBedViewPage() {
       
 
 
-      // FIXED: Get plantvak dimensions with fallback to current canvas
-      const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
-      let plantvakStartX = 0
-      let plantvakStartY = 0
-      let plantvakWidth = currentCanvasWidth
-      let plantvakHeight = currentCanvasHeight
-      
-      if (dimensions) {
-        // Center the plantvak within the canvas
-        plantvakWidth = dimensions.lengthPixels
-        plantvakHeight = dimensions.widthPixels
-        plantvakStartX = (currentCanvasWidth - plantvakWidth) / 2
-        plantvakStartY = (currentCanvasHeight - plantvakHeight) / 2
-        
-
-      }
-
-      // FIXED: Simplified boundary checking with generous margins
-      const margin = 5 // Small margin to prevent edge clipping
-      const minX = plantvakStartX + margin
-      const minY = plantvakStartY + margin
-      const maxX = plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin
-      const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin
-      
-      // Apply constraints only if they make sense (prevent negative areas)
-      const constrainedX = (maxX > minX) ? Math.max(minX, Math.min(newX, maxX)) : newX
-      const constrainedY = (maxY > minY) ? Math.max(minY, Math.min(newY, maxY)) : newY
+      // SIMPLE: Just keep flowers within canvas bounds (like garden view)
+      const margin = 10
+      const constrainedX = Math.max(margin, Math.min(newX, currentCanvasWidth - draggedFlowerData.visual_width - margin))
+      const constrainedY = Math.max(margin, Math.min(newY, currentCanvasHeight - draggedFlowerData.visual_height - margin))
       
 
 
@@ -2352,24 +2329,8 @@ export default function PlantBedViewPage() {
                 )
               })()}
 
-              {/* Use the working FlowerVisualization component from garden view */}
-              <FlowerVisualization 
-                plantBed={plantBed}
-                plants={flowerPositions}
-                containerWidth={getCanvasSize().width}
-                containerHeight={getCanvasSize().height}
-              />
-              
-              {flowerPositions.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
-                    🌱 Geen bloemen toegevoegd
-                  </div>
-                </div>
-              )}
-
-              {/* BACKUP: Interactive overlay for selected flowers (disabled) */}
-              {false && flowerPositions.map((flower) => {
+              {/* Interactive flowers with simple movement (like garden view) */}
+              {flowerPositions.map((flower) => {
                 const isSelected = selectedFlower?.id === flower.id
                 const isDragging = draggedFlower === flower.id
                 const isBeingResized = isResizing === flower.id
