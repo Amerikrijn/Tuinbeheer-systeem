@@ -241,14 +241,6 @@ export default function PlantBedViewPage() {
         if (params.bedId) {
           const plants = await getPlantsWithPositions(params.bedId as string)
           console.log('Loading plants from database:', plants)
-        
-        // DEBUG: Log initial flower positions to see if any are outside plantvak
-        console.log('🌸 INITIAL FLOWER POSITIONS:', plants.map(flower => ({
-          name: flower.name,
-          position: { x: flower.position_x, y: flower.position_y },
-          size: { width: flower.visual_width, height: flower.visual_height },
-          status: flower.status
-        })))
           setFlowerPositions(plants)
         }
       } catch (error) {
@@ -449,17 +441,17 @@ export default function PlantBedViewPage() {
     }
   }, [plantBed, flowerPositions, canvasWidth, canvasHeight])
 
-  // MANUAL cleanup on load - fix any flowers outside boundaries
-  useEffect(() => {
-    if (!loading && plantBed && flowerPositions.length > 0) {
-      const timer = setTimeout(async () => {
-        console.log('🌸 RUNNING MANUAL CLEANUP for flowers outside plantvak')
-        await cleanupFlowersOutsideBoundaries() // Fix flowers outside boundaries
-      }, 1000) // Run once after load
-      
-      return () => clearTimeout(timer)
-    }
-  }, [loading, plantBed, flowerPositions.length, cleanupFlowersOutsideBoundaries])
+  // DISABLED cleanup - it was forcing flowers into grid positions
+  // useEffect(() => {
+  //   if (!loading && plantBed && flowerPositions.length > 0) {
+  //     const timer = setTimeout(async () => {
+  //       console.log('🌸 RUNNING MANUAL CLEANUP for flowers outside plantvak')
+  //       await cleanupFlowersOutsideBoundaries() // Fix flowers outside boundaries
+  //     }, 1000) // Run once after load
+  //     
+  //     return () => clearTimeout(timer)
+  //   }
+  // }, [loading, plantBed, flowerPositions.length, cleanupFlowersOutsideBoundaries])
 
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
@@ -955,34 +947,7 @@ export default function PlantBedViewPage() {
       const constrainedX = Math.max(plantvakStartX, Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width))
       const constrainedY = Math.max(plantvakStartY, Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height))
       
-      // TEMP DEBUG: Log everything to understand what's happening  
-      if (draggedFlowerData.name !== 'Snapdragon') { // Debug OTHER flowers to see their issues
-        console.log('🌸 ULTRA SIMPLE DEBUG:', {
-          flowerName: draggedFlowerData.name,
-          mousePosition: { x: newX, y: newY },
-          plantvakBounds: {
-            startX: plantvakStartX,
-            startY: plantvakStartY,
-            endX: plantvakStartX + plantvakWidth,
-            endY: plantvakStartY + plantvakHeight,
-            width: plantvakWidth,
-            height: plantvakHeight
-          },
-          flowerSize: {
-            width: draggedFlowerData.visual_width,
-            height: draggedFlowerData.visual_height
-          },
-          constraints: {
-            maxX: plantvakStartX + plantvakWidth - draggedFlowerData.visual_width,
-            maxY: plantvakStartY + plantvakHeight - draggedFlowerData.visual_height
-          },
-          result: { x: constrainedX, y: constrainedY },
-          wasConstrained: {
-            x: constrainedX !== newX,
-            y: constrainedY !== newY
-          }
-        })
-      }
+
       
 
 
