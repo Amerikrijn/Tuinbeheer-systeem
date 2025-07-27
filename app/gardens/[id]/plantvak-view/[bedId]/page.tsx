@@ -531,20 +531,43 @@ export default function PlantBedViewPage() {
 
       const flowerSize = getFlowerSize(newFlower.size)
       
-      // DEBUG: Log canvas dimensions and positioning
-      console.log('🌸 ADD FLOWER DEBUG:', {
-        canvasWidth,
-        canvasHeight,
-        flowerSize,
-        plantBedSize: plantBed?.size,
-        existingFlowers: flowerPositions.length
+      // FIXED: Calculate proper initial position within plantvak boundaries
+      const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
+      let initialX = 50
+      let initialY = 50
+      
+      if (dimensions) {
+        // Place flower within plantvak boundaries
+        const plantvakWidth = dimensions.lengthPixels
+        const plantvakHeight = dimensions.widthPixels
+        const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+        const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+        
+        // Center the flower in the plantvak with some randomness
+        const margin = 20
+        const availableWidth = plantvakWidth - flowerSize - (margin * 2)
+        const availableHeight = plantvakHeight - flowerSize - (margin * 2)
+        
+        if (availableWidth > 0 && availableHeight > 0) {
+          initialX = plantvakStartX + margin + Math.random() * availableWidth
+          initialY = plantvakStartY + margin + Math.random() * availableHeight
+        } else {
+          // If plantvak is too small, center the flower
+          initialX = plantvakStartX + (plantvakWidth - flowerSize) / 2
+          initialY = plantvakStartY + (plantvakHeight - flowerSize) / 2
+        }
+      }
+      
+      console.log('🎯 PLACING FLOWER AT:', { 
+        initialX, 
+        initialY, 
+        plantvakBounds: dimensions ? {
+          startX: (canvasWidth - dimensions.lengthPixels) / 2,
+          startY: (canvasHeight - dimensions.widthPixels) / 2,
+          width: dimensions.lengthPixels,
+          height: dimensions.widthPixels
+        } : 'no bounds'
       })
-      
-      // SIMPLE FIX: Just place in top-left corner first to test
-      const initialX = 50  // Simple fixed position
-      const initialY = 50  // Simple fixed position
-      
-      console.log('🎯 PLACING FLOWER AT:', { initialX, initialY })
       
       const newPlant = await createVisualPlant({
         plant_bed_id: plantBed.id,
@@ -962,13 +985,13 @@ export default function PlantBedViewPage() {
 
 
 
-  // Handle drag move - SIMPLIFIED like garden overview
+  // Handle drag move - FIXED: Simplified for reliable movement
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
     if (!draggedFlower || !containerRef.current || !plantBed) return
 
     const rect = containerRef.current.getBoundingClientRect()
     
-    // SIMPLIFIED: Direct position calculation like garden overview
+    // FIXED: Simplified position calculation
     const mouseX = (clientX - rect.left) / scale
     const mouseY = (clientY - rect.top) / scale
     
@@ -981,7 +1004,7 @@ export default function PlantBedViewPage() {
       const draggedFlowerData = prev.find(f => f.id === draggedFlower)
       if (!draggedFlowerData) return prev
 
-      // Get plantvak dimensions for proper boundaries
+      // FIXED: Get plantvak dimensions with fallback to full canvas
       const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
       let plantvakStartX = 0
       let plantvakStartY = 0
@@ -996,41 +1019,26 @@ export default function PlantBedViewPage() {
         plantvakStartY = (canvasHeight - plantvakHeight) / 2
       }
 
-      // ULTRA SIMPLE: Basic boundary checking like garden overview
-      const constrainedX = Math.max(
-        plantvakStartX, 
-        Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width)
-      )
-      const constrainedY = Math.max(
-        plantvakStartY, 
-        Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height)
-      )
+      // FIXED: Simplified boundary checking with generous margins
+      const margin = 5 // Small margin to prevent edge clipping
+      const minX = plantvakStartX + margin
+      const minY = plantvakStartY + margin
+      const maxX = plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin
+      const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin
       
-      // Calculate constraint boundaries for debugging
-      const minX = plantvakStartX
-      const minY = plantvakStartY
-      const maxX = plantvakStartX + plantvakWidth - draggedFlowerData.visual_width
-      const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height
-
-      // COMPREHENSIVE DEBUG: Log everything to understand the issue
-      console.log('🌸 FULL ANALYSIS:', {
-        flowerName: draggedFlowerData.name,
-        mousePos: { x: newX, y: newY },
-        constraints: { minX, minY, maxX, maxY },
+      // Apply constraints only if they make sense (prevent negative areas)
+      const constrainedX = (maxX > minX) ? Math.max(minX, Math.min(newX, maxX)) : newX
+      const constrainedY = (maxY > minY) ? Math.max(minY, Math.min(newY, maxY)) : newY
+      
+      // DEBUG: Simplified logging for troubleshooting
+      console.log('🌸 FLOWER MOVEMENT:', {
+        flower: draggedFlowerData.name,
+        mouse: { x: newX, y: newY },
         constrained: { x: constrainedX, y: constrainedY },
-        plantvak: { startX: plantvakStartX, startY: plantvakStartY, width: plantvakWidth, height: plantvakHeight },
-        flowerSize: { width: draggedFlowerData.visual_width, height: draggedFlowerData.visual_height },
-        currentPosition: { x: draggedFlowerData.position_x, y: draggedFlowerData.position_y },
-        wasConstrained: { x: constrainedX !== newX, y: constrainedY !== newY },
-        canvasSize: { width: canvasWidth, height: canvasHeight },
-        scale: scale,
-        dragOffset: dragOffset
+        plantvak: { x: plantvakStartX, y: plantvakStartY, w: plantvakWidth, h: plantvakHeight },
+        boundaries: { minX, minY, maxX, maxY },
+        applied: constrainedX !== newX || constrainedY !== newY
       })
-
-      
-
-
-
 
       // Only update the specific dragged flower
       return prev.map(f => {
@@ -1873,9 +1881,55 @@ export default function PlantBedViewPage() {
             <RotateCcw className="h-4 w-4" />
           </Button>
           
-          {/* TEMP: Reset flowers button */}
+          {/* TEMP: Test buttons for debugging movement */}
           <Button onClick={resetFlowerPositions} variant="outline" size="sm" className="bg-orange-50">
             🌸 Reset Flowers
+          </Button>
+          
+          {/* TEST: Move first flower to center */}
+          <Button 
+            onClick={async () => {
+              if (flowerPositions.length > 0 && plantBed) {
+                const firstFlower = flowerPositions[0]
+                const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
+                
+                if (dimensions) {
+                  const plantvakWidth = dimensions.lengthPixels
+                  const plantvakHeight = dimensions.widthPixels
+                  const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+                  const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+                  
+                  const centerX = plantvakStartX + (plantvakWidth - firstFlower.visual_width) / 2
+                  const centerY = plantvakStartY + (plantvakHeight - firstFlower.visual_height) / 2
+                  
+                  try {
+                    await updatePlantPosition(firstFlower.id, {
+                      position_x: centerX,
+                      position_y: centerY,
+                      visual_width: firstFlower.visual_width,
+                      visual_height: firstFlower.visual_height,
+                      notes: firstFlower.notes
+                    })
+                    
+                    setFlowerPositions(prev => prev.map(f => 
+                      f.id === firstFlower.id 
+                        ? { ...f, position_x: centerX, position_y: centerY }
+                        : f
+                    ))
+                    
+                    console.log('🎯 MOVED FLOWER TO CENTER:', { centerX, centerY })
+                  } catch (error) {
+                    console.error('Error moving flower:', error)
+                  }
+                }
+              }
+            }} 
+            variant="outline" 
+            size="sm" 
+            className="bg-blue-50"
+            disabled={flowerPositions.length === 0}
+          >
+            🎯 Test Center
           </Button>
 
         </div>
