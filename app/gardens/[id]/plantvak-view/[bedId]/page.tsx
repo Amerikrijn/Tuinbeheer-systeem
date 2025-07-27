@@ -241,6 +241,14 @@ export default function PlantBedViewPage() {
         if (params.bedId) {
           const plants = await getPlantsWithPositions(params.bedId as string)
           console.log('Loading plants from database:', plants)
+        
+        // DEBUG: Log initial flower positions to see if any are outside plantvak
+        console.log('🌸 INITIAL FLOWER POSITIONS:', plants.map(flower => ({
+          name: flower.name,
+          position: { x: flower.position_x, y: flower.position_y },
+          size: { width: flower.visual_width, height: flower.visual_height },
+          status: flower.status
+        })))
           setFlowerPositions(plants)
         }
       } catch (error) {
@@ -441,17 +449,17 @@ export default function PlantBedViewPage() {
     }
   }, [plantBed, flowerPositions, canvasWidth, canvasHeight])
 
-  // Disabled auto-cleanup and auto-fill - user wants manual control
-  // useEffect(() => {
-  //   if (!loading && plantBed && flowerPositions.length >= 0) {
-  //     const timer = setTimeout(async () => {
-  //       await cleanupFlowersOutsideBoundaries() // This was causing flowers to jump back
-  //       // Removed autoFillFlowerBed() - user wants only 1 flower per plantvak
-  //     }, 1500) // Slightly longer delay for cleanup
-  //     
-  //     return () => clearTimeout(timer)
-  //   }
-  // }, [loading, plantBed, cleanupFlowersOutsideBoundaries])
+  // MANUAL cleanup on load - fix any flowers outside boundaries
+  useEffect(() => {
+    if (!loading && plantBed && flowerPositions.length > 0) {
+      const timer = setTimeout(async () => {
+        console.log('🌸 RUNNING MANUAL CLEANUP for flowers outside plantvak')
+        await cleanupFlowersOutsideBoundaries() // Fix flowers outside boundaries
+      }, 1000) // Run once after load
+      
+      return () => clearTimeout(timer)
+    }
+  }, [loading, plantBed, flowerPositions.length, cleanupFlowersOutsideBoundaries])
 
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
@@ -719,7 +727,7 @@ export default function PlantBedViewPage() {
     return { clientX: 0, clientY: 0 }
   }
 
-  // Handle single click/tap - select flower (like plant bed click)
+  // Handle single click/tap - select flower and enable drag mode
   const handleFlowerClick = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -727,21 +735,14 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    // For touch devices, use the old toggle behavior
-    if ('touches' in e) {
-      if (selectedFlower?.id === flowerId && isDragMode) {
-        setIsDragMode(false)
-        setSelectedFlower(null)
-        // Removed feedback toast - no more notifications when moving
-      } else {
-        setSelectedFlower(flower)
-        setIsDragMode(true)
-        // Removed feedback toast - no more notifications when moving
-      }
+    // FIXED: Always enable drag mode on single click for both touch and mouse
+    if (selectedFlower?.id === flowerId && isDragMode) {
+      // If already selected and in drag mode, do nothing (let drag work)
+      return
     } else {
-      // For mouse, just select the flower - dragging happens on mousedown
+      // Select flower and enable drag mode
       setSelectedFlower(flower)
-      setIsDragMode(false)
+      setIsDragMode(true) // FIXED: Always enable drag mode
     }
     
     // Make sure resize interface is hidden
@@ -954,8 +955,8 @@ export default function PlantBedViewPage() {
       const constrainedX = Math.max(plantvakStartX, Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width))
       const constrainedY = Math.max(plantvakStartY, Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height))
       
-      // TEMP DEBUG: Log everything to understand what's happening
-      if (draggedFlowerData.name === 'Snapdragon') { // Only log for one flower to avoid spam
+      // TEMP DEBUG: Log everything to understand what's happening  
+      if (draggedFlowerData.name !== 'Snapdragon') { // Debug OTHER flowers to see their issues
         console.log('🌸 ULTRA SIMPLE DEBUG:', {
           flowerName: draggedFlowerData.name,
           mousePosition: { x: newX, y: newY },
