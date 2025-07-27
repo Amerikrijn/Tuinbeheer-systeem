@@ -240,8 +240,17 @@ export default function PlantBedViewPage() {
         // Load plants from database instead of localStorage
         if (params.bedId) {
           const plants = await getPlantsWithPositions(params.bedId as string)
-          console.log('Loading plants from database:', plants)
-          setFlowerPositions(plants)
+                  console.log('Loading plants from database:', plants)
+        
+        // DEBUG: Show initial flower positions
+        console.log('🌸 INITIAL POSITIONS:', plants.map(p => ({
+          name: p.name,
+          x: p.position_x,
+          y: p.position_y,
+          size: { w: p.visual_width, h: p.visual_height }
+        })))
+        
+        setFlowerPositions(plants)
         }
       } catch (error) {
         console.error("Error loading data:", error)
@@ -441,17 +450,17 @@ export default function PlantBedViewPage() {
     }
   }, [plantBed, flowerPositions, canvasWidth, canvasHeight])
 
-  // Disabled auto-cleanup and auto-fill - user wants manual control
+  // DISABLED cleanup - it was forcing flowers into grid positions
   // useEffect(() => {
-  //   if (!loading && plantBed && flowerPositions.length >= 0) {
+  //   if (!loading && plantBed && flowerPositions.length > 0) {
   //     const timer = setTimeout(async () => {
-  //       await cleanupFlowersOutsideBoundaries() // This was causing flowers to jump back
-  //       // Removed autoFillFlowerBed() - user wants only 1 flower per plantvak
-  //     }, 1500) // Slightly longer delay for cleanup
+  //       console.log('🌸 RUNNING MANUAL CLEANUP for flowers outside plantvak')
+  //       await cleanupFlowersOutsideBoundaries() // Fix flowers outside boundaries
+  //     }, 1000) // Run once after load
   //     
   //     return () => clearTimeout(timer)
   //   }
-  // }, [loading, plantBed, cleanupFlowersOutsideBoundaries])
+  // }, [loading, plantBed, flowerPositions.length, cleanupFlowersOutsideBoundaries])
 
   const zoomIn = () => {
     setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
@@ -463,6 +472,45 @@ export default function PlantBedViewPage() {
 
   const resetView = () => {
     setScale(1)
+  }
+
+  // TEMP: Reset all flowers to center to test movement
+  const resetFlowerPositions = async () => {
+    if (!plantBed) return
+    
+    const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
+    if (!dimensions) return
+    
+    const plantvakWidth = dimensions.lengthPixels
+    const plantvakHeight = dimensions.widthPixels
+    const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+    const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+    
+    console.log('🌸 RESETTING FLOWERS TO CENTER')
+    
+    for (const flower of flowerPositions) {
+      const centerX = plantvakStartX + plantvakWidth / 2 - (flower.visual_width || 45) / 2
+      const centerY = plantvakStartY + plantvakHeight / 2 - (flower.visual_height || 45) / 2
+      
+      try {
+        await updatePlantPosition(flower.id, {
+          position_x: centerX,
+          position_y: centerY,
+          visual_width: flower.visual_width,
+          visual_height: flower.visual_height,
+          notes: flower.notes
+        })
+        
+        // Update local state
+        setFlowerPositions(prev => prev.map(f => 
+          f.id === flower.id 
+            ? { ...f, position_x: centerX, position_y: centerY }
+            : f
+        ))
+      } catch (error) {
+        console.error("Error resetting flower position:", error)
+      }
+    }
   }
 
   // Note: Manual save layout function removed - now using auto-save on drag end
@@ -719,7 +767,7 @@ export default function PlantBedViewPage() {
     return { clientX: 0, clientY: 0 }
   }
 
-  // Handle single click/tap - select flower (like plant bed click)
+  // Handle single click/tap - select flower and enable drag mode
   const handleFlowerClick = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
@@ -727,21 +775,14 @@ export default function PlantBedViewPage() {
     const flower = flowerPositions.find(f => f.id === flowerId)
     if (!flower) return
 
-    // For touch devices, use the old toggle behavior
-    if ('touches' in e) {
-      if (selectedFlower?.id === flowerId && isDragMode) {
-        setIsDragMode(false)
-        setSelectedFlower(null)
-        // Removed feedback toast - no more notifications when moving
-      } else {
-        setSelectedFlower(flower)
-        setIsDragMode(true)
-        // Removed feedback toast - no more notifications when moving
-      }
+    // FIXED: Always enable drag mode on single click for both touch and mouse
+    if (selectedFlower?.id === flowerId && isDragMode) {
+      // If already selected and in drag mode, do nothing (let drag work)
+      return
     } else {
-      // For mouse, just select the flower - dragging happens on mousedown
+      // Select flower and enable drag mode
       setSelectedFlower(flower)
-      setIsDragMode(false)
+      setIsDragMode(true) // FIXED: Always enable drag mode
     }
     
     // Make sure resize interface is hidden
@@ -843,12 +884,12 @@ export default function PlantBedViewPage() {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // Start dragging immediately
-    const offsetX = clientX - rect.left - flower.position_x * scale
-    const offsetY = clientY - rect.top - flower.position_y * scale
+    // Start dragging immediately - FIX: Correct offset calculation
+    const offsetX = (clientX - rect.left) / scale - flower.position_x
+    const offsetY = (clientY - rect.top) / scale - flower.position_y
 
     setDraggedFlower(flowerId)
-    setDragOffset({ x: offsetX / scale, y: offsetY / scale })
+    setDragOffset({ x: offsetX, y: offsetY })
     setSelectedFlower(flower)
     setHasChanges(true)
 
@@ -910,24 +951,29 @@ export default function PlantBedViewPage() {
       const rect = containerRef.current?.getBoundingClientRect()
       if (!rect) return
 
-      // Start dragging
+      // Start dragging - FIX: Correct offset calculation for touch
+      const offsetX = (clientX - rect.left) / scale - selectedFlower.position_x
+      const offsetY = (clientY - rect.top) / scale - selectedFlower.position_y
+      
       setDraggedFlower(flowerId)
-      setDragOffset({
-        x: (clientX - rect.left) / scale - selectedFlower.position_x,
-        y: (clientY - rect.top) / scale - selectedFlower.position_y
-      })
+      setDragOffset({ x: offsetX, y: offsetY })
     }
   }, [selectedFlower, isDragMode, draggedFlower, scale, containerRef])
 
 
 
-  // Handle drag move - unified for mouse and touch
+  // Handle drag move - SIMPLIFIED like garden overview
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
     if (!draggedFlower || !containerRef.current || !plantBed) return
 
     const rect = containerRef.current.getBoundingClientRect()
-    const newX = (clientX - rect.left) / scale - dragOffset.x
-    const newY = (clientY - rect.top) / scale - dragOffset.y
+    
+    // SIMPLIFIED: Direct position calculation like garden overview
+    const mouseX = (clientX - rect.left) / scale
+    const mouseY = (clientY - rect.top) / scale
+    
+    const newX = mouseX - dragOffset.x
+    const newY = mouseY - dragOffset.y
 
     // Use functional update to avoid dependency issues
     setFlowerPositions(prev => {
@@ -950,16 +996,41 @@ export default function PlantBedViewPage() {
         plantvakStartY = (canvasHeight - plantvakHeight) / 2
       }
 
-      // Allow movement within the entire plantvak area with small margin
-      const margin = 5
+      // ULTRA SIMPLE: Basic boundary checking like garden overview
       const constrainedX = Math.max(
-        plantvakStartX + margin, 
-        Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
+        plantvakStartX, 
+        Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width)
       )
       const constrainedY = Math.max(
-        plantvakStartY + margin, 
-        Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
+        plantvakStartY, 
+        Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height)
       )
+      
+      // Calculate constraint boundaries for debugging
+      const minX = plantvakStartX
+      const minY = plantvakStartY
+      const maxX = plantvakStartX + plantvakWidth - draggedFlowerData.visual_width
+      const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height
+
+      // COMPREHENSIVE DEBUG: Log everything to understand the issue
+      console.log('🌸 FULL ANALYSIS:', {
+        flowerName: draggedFlowerData.name,
+        mousePos: { x: newX, y: newY },
+        constraints: { minX, minY, maxX, maxY },
+        constrained: { x: constrainedX, y: constrainedY },
+        plantvak: { startX: plantvakStartX, startY: plantvakStartY, width: plantvakWidth, height: plantvakHeight },
+        flowerSize: { width: draggedFlowerData.visual_width, height: draggedFlowerData.visual_height },
+        currentPosition: { x: draggedFlowerData.position_x, y: draggedFlowerData.position_y },
+        wasConstrained: { x: constrainedX !== newX, y: constrainedY !== newY },
+        canvasSize: { width: canvasWidth, height: canvasHeight },
+        scale: scale,
+        dragOffset: dragOffset
+      })
+
+      
+
+
+
 
       // Only update the specific dragged flower
       return prev.map(f => {
@@ -1800,6 +1871,11 @@ export default function PlantBedViewPage() {
           </Button>
           <Button variant="outline" size="sm" onClick={resetView}>
             <RotateCcw className="h-4 w-4" />
+          </Button>
+          
+          {/* TEMP: Reset flowers button */}
+          <Button onClick={resetFlowerPositions} variant="outline" size="sm" className="bg-orange-50">
+            🌸 Reset Flowers
           </Button>
 
         </div>
