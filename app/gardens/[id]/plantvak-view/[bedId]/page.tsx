@@ -2717,6 +2717,69 @@ export default function PlantBedViewPage() {
           </div>
         </div>
       )}
+
+      {/* Control buttons */}
+      <div className="absolute top-4 right-4 flex gap-2 z-10">
+        <button
+          onClick={() => setSelectedFlower(null)}
+          className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
+        >
+          Deselect
+        </button>
+        
+        <button
+          onClick={async () => {
+            if (!plantBed) return
+            
+            const currentCanvasSize = getCanvasSize()
+            const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
+            
+            let plantvakStartY = 0
+            let plantvakHeight = currentCanvasSize.height
+            
+            if (dimensions) {
+              plantvakHeight = dimensions.widthPixels
+              plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
+            }
+            
+            // Set all flowers to the same Y position (middle of plantvak)
+            const targetY = plantvakStartY + (plantvakHeight / 2) - (FLOWER_SIZE / 2)
+            
+            // Space flowers horizontally
+            const spacing = 100
+            let startX = 150
+            
+            const updatedFlowers = flowerPositions.map((flower, index) => ({
+              ...flower,
+              position_x: startX + (index * spacing),
+              position_y: targetY
+            }))
+            
+            setFlowerPositions(updatedFlowers)
+            
+            // Save to database
+            try {
+              const savePromises = updatedFlowers.map(async (flower) => {
+                return await updatePlantPosition(flower.id, {
+                  position_x: flower.position_x,
+                  position_y: flower.position_y,
+                  visual_width: flower.visual_width,
+                  visual_height: flower.visual_height,
+                  notes: flower.notes
+                })
+              })
+              
+              await Promise.all(savePromises)
+              console.log('✅ All flowers reset to horizontal line')
+            } catch (error) {
+              console.error('Error saving reset positions:', error)
+            }
+          }}
+          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
+        >
+          Fix Positions
+        </button>
+      </div>
     </div>
   )
 }
