@@ -1056,6 +1056,14 @@ export default function PlantBedViewPage() {
       const currentCanvasSize = getCanvasSize()
       const currentCanvasWidth = currentCanvasSize.width
       const currentCanvasHeight = currentCanvasSize.height
+      
+      // DEBUG: Log canvas size per flower to find the shifting bug
+      console.log('🔍 CANVAS SIZE PER FLOWER:', {
+        flowerName: draggedFlowerData.name,
+        flowerIndex: prev.findIndex(f => f.id === draggedFlower),
+        canvasSize: { w: currentCanvasWidth, h: currentCanvasHeight },
+        plantBedSize: plantBed?.size
+      })
 
       // FIXED: Get plantvak dimensions with fallback to current canvas
       const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
@@ -1070,6 +1078,15 @@ export default function PlantBedViewPage() {
         plantvakHeight = dimensions.widthPixels
         plantvakStartX = (currentCanvasWidth - plantvakWidth) / 2
         plantvakStartY = (currentCanvasHeight - plantvakHeight) / 2
+        
+        // DEBUG: Log plantvak positioning per flower
+        console.log('📍 PLANTVAK POSITIONING PER FLOWER:', {
+          flowerName: draggedFlowerData.name,
+          flowerIndex: prev.findIndex(f => f.id === draggedFlower),
+          plantvakDimensions: { w: plantvakWidth, h: plantvakHeight },
+          plantvakStart: { x: plantvakStartX, y: plantvakStartY },
+          calculation: `(${currentCanvasHeight} - ${plantvakHeight}) / 2 = ${plantvakStartY}`
+        })
       }
 
       // FIXED: Simplified boundary checking with generous margins
