@@ -952,6 +952,29 @@ export default function PlantBedViewPage() {
 
       // IMPROVED: Allow movement within the entire plantvak area with minimal margin
       const margin = 2 // Reduced margin for more freedom of movement
+      
+      // DEBUG: Log flower dimensions to identify constraint issues
+      console.log('🌸 MOVEMENT DEBUG:', {
+        flowerName: draggedFlowerData.name,
+        flowerDimensions: {
+          width: draggedFlowerData.visual_width,
+          height: draggedFlowerData.visual_height
+        },
+        newPosition: { x: newX, y: newY },
+        plantvakBounds: {
+          startX: plantvakStartX,
+          startY: plantvakStartY,
+          width: plantvakWidth,
+          height: plantvakHeight
+        },
+        constraints: {
+          minX: plantvakStartX + margin,
+          maxX: plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin,
+          minY: plantvakStartY + margin,
+          maxY: plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin
+        }
+      })
+      
       const constrainedX = Math.max(
         plantvakStartX + margin, 
         Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
