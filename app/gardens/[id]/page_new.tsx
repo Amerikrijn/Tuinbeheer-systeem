@@ -116,9 +116,10 @@ export default function GardenDetailPage() {
         </CardHeader>
         <CardContent>
           <UnifiedGardenOverview 
-            garden={garden}
             plantBeds={plantBeds}
-            onPlantBedsChange={setPlantBeds}
+            containerWidth={800}
+            containerHeight={600}
+            onPlantvakClick={(bedId) => router.push(`/gardens/${params.id}/plantvak-view/${bedId}`)}
           />
         </CardContent>
       </Card>
