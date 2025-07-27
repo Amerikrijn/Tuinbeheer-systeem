@@ -909,18 +909,17 @@ export default function PlantBedViewPage() {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // FIXED: Correct drag offset calculation - offset should be mouse relative to flower center
+    // FIXED: Calculate drag offset from flower center (v2.0 - Force cache refresh)
     const mouseX = (clientX - rect.left) / scale
     const mouseY = (clientY - rect.top) / scale
     
-    // FIXED: Calculate offset relative to flower center, not top-left corner
     const flowerCenterX = flower.position_x + (flower.visual_width / 2)
     const flowerCenterY = flower.position_y + (flower.visual_height / 2)
     const offsetX = mouseX - flowerCenterX
     const offsetY = mouseY - flowerCenterY
 
     // DEBUG: Log drag offset calculation
-    console.log('🎯 DRAG OFFSET CALCULATION (FIXED):', {
+    console.log('🎯 DRAG OFFSET CALCULATION (FIXED v2.0):', {
       flowerName: flower.name,
       clientPos: { x: clientX, y: clientY },
       rectPos: { left: rect.left, top: rect.top },
@@ -1005,7 +1004,7 @@ export default function PlantBedViewPage() {
       const offsetY = mouseY - flowerCenterY
 
       // DEBUG: Log drag offset calculation for touch
-      console.log('🎯 DRAG OFFSET CALCULATION (TOUCH FIXED):', {
+      console.log('🎯 DRAG OFFSET CALCULATION (TOUCH FIXED v2.0):', {
         flowerName: selectedFlower.name,
         clientPos: { x: clientX, y: clientY },
         rectPos: { left: rect.left, top: rect.top },
