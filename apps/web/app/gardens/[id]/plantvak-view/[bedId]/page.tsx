@@ -1078,6 +1078,15 @@ export default function PlantBedViewPage() {
       // Find the dragged flower to get its dimensions
       const draggedFlowerData = prev.find(f => f.id === draggedFlower)
       if (!draggedFlowerData) return prev
+      
+      // DEBUG: Log which flower is being moved and its index
+      const flowerIndex = prev.findIndex(f => f.id === draggedFlower)
+      console.log('🔍 FLOWER BEING MOVED:', {
+        flowerName: draggedFlowerData.name,
+        flowerIndex: flowerIndex,
+        flowerId: draggedFlower,
+        totalFlowers: prev.length
+      })
 
       // Get plantvak boundaries
       const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
@@ -2552,13 +2561,13 @@ export default function PlantBedViewPage() {
                 }}
               />
 
-              {/* Use FlowerVisualization Component for consistent display */}
-              <FlowerVisualization 
+              {/* TEMP: Disable FlowerVisualization to test if it's causing the issue */}
+              {/* <FlowerVisualization 
                 plantBed={plantBed}
                 plants={flowerPositions}
                 containerWidth={getCanvasSize().width}
                 containerHeight={getCanvasSize().height}
-              />
+              /> */}
 
               {/* Plantvak boundary visualization */}
               {(() => {
