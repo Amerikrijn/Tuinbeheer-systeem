@@ -982,21 +982,17 @@ export default function PlantBedViewPage() {
         plantvakStartY = (canvasHeight - plantvakHeight) / 2
       }
 
-      // ULTRA SIMPLE: Just keep flowers within plantvak with minimal constraints
-      const constrainedX = Math.max(plantvakStartX, Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width))
-      const constrainedY = Math.max(plantvakStartY, Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height))
+      // INSPIRED BY TUIN: Simple boundary checking like plantvakken in garden overview
+      const SAFETY_MARGIN = 5  // Small margin to keep flowers visible
       
-      // TEMP DEBUG: Log vertical movement to see what's happening
-      console.log('🌸 VERTICAL DEBUG:', {
-        flowerName: draggedFlowerData.name,
-        mouseY: newY,
-        plantvakTop: plantvakStartY,
-        plantvakBottom: plantvakStartY + plantvakHeight,
-        flowerHeight: draggedFlowerData.visual_height,
-        maxY: plantvakStartY + plantvakHeight - draggedFlowerData.visual_height,
-        constrainedY: constrainedY,
-        wasYConstrained: constrainedY !== newY
-      })
+      // Each flower moves independently within plantvak boundaries - no interdependence!
+      const minX = plantvakStartX + SAFETY_MARGIN
+      const minY = plantvakStartY + SAFETY_MARGIN  
+      const maxX = plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - SAFETY_MARGIN
+      const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - SAFETY_MARGIN
+      
+      const constrainedX = Math.max(minX, Math.min(newX, maxX))
+      const constrainedY = Math.max(minY, Math.min(newY, maxY))
 
       
 
