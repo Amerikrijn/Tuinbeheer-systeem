@@ -80,7 +80,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // SYNCHRONIZED POSITIONING: Use the EXACT same logic as plantvak-view
+        // CORRECTED POSITIONING: Account for the fact that garden overview container IS the plantvak area
         
         // Calculate the plantvak canvas size using EXACT same logic as plantvak-view
         const padding = PLANTVAK_CANVAS_PADDING  // 100px
@@ -90,7 +90,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const plantvakCanvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
         const plantvakCanvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
         
-        // Calculate where the plantvak boundaries would be in the plantvak-view canvas
+        // Calculate where the plantvak boundaries are in the plantvak-view canvas
         const plantvakStartX = (plantvakCanvasWidth - dimensions.lengthPixels) / 2
         const plantvakStartY = (plantvakCanvasHeight - dimensions.widthPixels) / 2
         
@@ -98,13 +98,52 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const relativeX = plant.position_x! - plantvakStartX
         const relativeY = plant.position_y! - plantvakStartY
         
-        // Convert to percentage within the plantvak
+        // Convert to percentage within the plantvak dimensions
         const percentageX = relativeX / dimensions.lengthPixels
         const percentageY = relativeY / dimensions.widthPixels
         
-        // Apply the same percentage to the current container
+        // FIXED: In garden overview, container represents the plantvak area directly
+        // So apply percentage directly to container dimensions
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
+        
+        // DEBUG: Log the positioning calculations
+        console.log('🌸 FLOWER POSITIONING DEBUG:', {
+          plantName: plant.name,
+          plantBedSize: plantBed.size,
+          dimensions: {
+            lengthPixels: dimensions.lengthPixels,
+            widthPixels: dimensions.widthPixels
+          },
+          plantvakCanvas: {
+            width: plantvakCanvasWidth,
+            height: plantvakCanvasHeight
+          },
+          plantvakStart: {
+            x: plantvakStartX,
+            y: plantvakStartY
+          },
+          originalPosition: {
+            x: plant.position_x,
+            y: plant.position_y
+          },
+          relativePosition: {
+            x: relativeX,
+            y: relativeY
+          },
+          percentage: {
+            x: percentageX,
+            y: percentageY
+          },
+          containerSize: {
+            width: containerWidth,
+            height: containerHeight
+          },
+          finalPosition: {
+            x: finalX,
+            y: finalY
+          }
+        })
         
         // Scale the flower size proportionally to container size
         const sizeScale = Math.min(containerWidth / dimensions.lengthPixels, containerHeight / dimensions.widthPixels)
