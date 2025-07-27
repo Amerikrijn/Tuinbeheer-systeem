@@ -2533,6 +2533,41 @@ export default function PlantBedViewPage() {
                 containerHeight={canvasHeight}
               />
 
+              {/* Plantvak boundary visualization */}
+              {(() => {
+                const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
+                if (!dimensions) return null
+                
+                // FIXED: Use dynamic canvas size to match movement boundaries
+                const currentCanvasSize = getCanvasSize()
+                const plantvakWidth = dimensions.lengthPixels
+                const plantvakHeight = dimensions.widthPixels
+                const plantvakStartX = (currentCanvasSize.width - plantvakWidth) / 2
+                const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
+                
+                return (
+                  <div
+                    className="absolute border-2 border-dashed border-green-400 bg-green-50/20 rounded-lg pointer-events-none"
+                    style={{
+                      left: plantvakStartX,
+                      top: plantvakStartY,
+                      width: plantvakWidth,
+                      height: plantvakHeight,
+                    }}
+                  >
+                    {/* Plantvak name and info - always within the plantvak area */}
+                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border">
+                      <div className="text-sm font-bold text-green-800">
+                        {plantBed.name}
+                      </div>
+                      <div className="text-xs text-green-600">
+                        {plantBed.size} • {flowerPositions.length} bloemen
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* Interactive overlay for selected flowers */}
               {flowerPositions.map((flower) => {
                 const isSelected = selectedFlower?.id === flower.id
