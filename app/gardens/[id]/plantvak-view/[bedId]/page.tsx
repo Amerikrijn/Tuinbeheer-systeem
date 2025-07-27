@@ -1024,13 +1024,15 @@ export default function PlantBedViewPage() {
       const draggedFlowerData = prev.find(f => f.id === draggedFlower)
       if (!draggedFlowerData) return prev
 
+      // CRITICAL FIX: Calculate flowerIndex ONCE at the beginning to prevent array state inconsistencies
+      const flowerIndex = prev.findIndex(f => f.id === draggedFlower)
+
       // FIXED: Calculate canvas size dynamically to avoid cached size issues
       const currentCanvasSize = getCanvasSize()
       const currentCanvasWidth = currentCanvasSize.width
       const currentCanvasHeight = currentCanvasSize.height
       
       // DEBUG: Log canvas size per flower to find the shifting bug
-      const flowerIndex = prev.findIndex(f => f.id === draggedFlower)
       console.log('🔍 CANVAS SIZE PER FLOWER:', {
         flowerName: draggedFlowerData.name,
         flowerIndex: flowerIndex,
