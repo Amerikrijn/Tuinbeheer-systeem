@@ -101,18 +101,18 @@ const FLOWER_STATUS_OPTIONS = [
   { value: 'sick', label: 'Ziek', color: 'border-red-500' },
 ]
 
-  // Helper function to get flower size in pixels
-  const getFlowerSize = (size: 'small' | 'medium' | 'large'): number => {
-    switch (size) {
-      case 'small': return FLOWER_SIZE_SMALL
-      case 'medium': return FLOWER_SIZE_MEDIUM  
-      case 'large': return FLOWER_SIZE_LARGE
-      default: return FLOWER_SIZE_MEDIUM
-    }
+// Helper function to get flower size in pixels
+const getFlowerSize = (size: 'small' | 'medium' | 'large'): number => {
+  switch (size) {
+    case 'small': return FLOWER_SIZE_SMALL
+    case 'medium': return FLOWER_SIZE_MEDIUM  
+    case 'large': return FLOWER_SIZE_LARGE
+    default: return FLOWER_SIZE_MEDIUM
   }
+}
 
-  // Helper function to get emoji based on plant name or category (optional)
-  const getPlantEmoji = (name?: string, category?: string): string | undefined => {
+// Helper function to get emoji based on plant name or category (optional)
+const getPlantEmoji = (name?: string, category?: string): string | undefined => {
   const plantName = (name || '').toLowerCase()
   const plantCategory = (category || '').toLowerCase()
   
@@ -1239,10 +1239,10 @@ export default function PlantBedViewPage() {
       
       document.addEventListener('mousemove', handleResizeMove)
       document.addEventListener('mouseup', handleResizeEnd)
-              return () => {
-          document.removeEventListener('mousemove', handleResizeMove)
-          document.removeEventListener('mouseup', handleResizeEnd)
-        }
+      return () => {
+        document.removeEventListener('mousemove', handleResizeMove)
+        document.removeEventListener('mouseup', handleResizeEnd)
+      }
     }
 
     // Cleanup on unmount or when neither drag nor resize is active
@@ -1304,6 +1304,7 @@ export default function PlantBedViewPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Ensure all logical operations are completed and conditions are audited*/}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
