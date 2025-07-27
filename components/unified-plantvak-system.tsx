@@ -245,10 +245,8 @@ export function UnifiedGardenOverview({
               <UnifiedPlantvakSystem
                 plantBed={bed}
                 plants={bed.plants.filter(p => 
-                  p.position_x !== undefined && 
-                  p.position_y !== undefined &&
-                  p.visual_width !== undefined &&
-                  p.visual_height !== undefined
+                  p.position_x !== null && p.position_x !== undefined &&
+                  p.position_y !== null && p.position_y !== undefined
                 ) as PlantWithPosition[]}
                 containerWidth={bedWidth}
                 containerHeight={bedHeight}

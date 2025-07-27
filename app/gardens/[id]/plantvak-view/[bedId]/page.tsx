@@ -38,6 +38,7 @@ import {
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 import { uploadImage, type UploadResult } from "@/lib/storage"
+import { UnifiedPlantvakDetail } from "@/components/unified-plantvak-system"
 // FlowerVisualization import removed - using interactive overlay instead
 import {
   METERS_TO_PIXELS,
@@ -2125,25 +2126,52 @@ export default function PlantBedViewPage() {
           <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
             <div
               ref={containerRef}
-              className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100"
+              className="relative"
               style={{
-                width: canvasWidth,
-                height: canvasHeight,
                 transform: `scale(${scale})`,
                 transformOrigin: "top left",
                 maxWidth: "100%",
               }}
-              onMouseMove={onMouseMove}
-              onMouseUp={onMouseUp}
-              onMouseLeave={onMouseUp}
-              onClick={handleCanvasClick}
-              onTouchMove={(e) => {
-                if (e.touches.length > 0) {
-                  handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)
-                }
-              }}
-              onTouchEnd={handlePointerUp}
             >
+              {/* Use the unified system instead of complex custom rendering */}
+              <UnifiedPlantvakDetail
+                plantBed={plantBed}
+                plants={flowerPositions.filter(p => 
+                  p.position_x !== null && p.position_x !== undefined &&
+                  p.position_y !== null && p.position_y !== undefined
+                ) as PlantWithPosition[]}
+                containerWidth={canvasWidth}
+                containerHeight={canvasHeight}
+                onFlowerClick={(flowerId) => {
+                  const flower = flowerPositions.find(f => f.id === flowerId)
+                  if (flower) {
+                    setSelectedFlower(flower)
+                  }
+                }}
+                onFlowerMove={async (flowerId, newPercentX, newPercentY) => {
+                  // Convert percentage back to pixels and update
+                  const newX = (newPercentX / 100) * canvasWidth
+                  const newY = (newPercentY / 100) * canvasHeight
+                  
+                  // Update local state
+                  setFlowerPositions(prev => prev.map(f => 
+                    f.id === flowerId 
+                      ? { ...f, position_x: newX, position_y: newY }
+                      : f
+                  ))
+                  
+                  // Save to database
+                  try {
+                    await updatePlantPosition(flowerId, {
+                      position_x: newX,
+                      position_y: newY
+                    })
+                  } catch (error) {
+                    console.error('Error updating flower position:', error)
+                  }
+                }}
+              />
+            </div>
               {/* Grid */}
               <div
                 className="absolute inset-0 pointer-events-none opacity-30"
