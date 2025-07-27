@@ -1721,6 +1721,141 @@ export default function GardenDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Add Plant Bed Dialog */}
+      <Dialog open={isAddingPlantBed} onOpenChange={setIsAddingPlantBed}>
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>🌱 Nieuw Plantvak Toevoegen</DialogTitle>
+            <DialogDescription>
+              Voeg een nieuw plantvak toe aan je tuin.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="plantvak-name" className="block text-sm font-medium text-gray-700 mb-1">
+                Plantvak Naam *
+              </label>
+              <Input
+                id="plantvak-name"
+                value={newPlantBed.name}
+                onChange={(e) => setNewPlantBed(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Bijv. Voortuin, Kruidentuin"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="plantvak-length" className="block text-sm font-medium text-gray-700 mb-1">
+                  Lengte (m) *
+                </label>
+                <Input
+                  id="plantvak-length"
+                  type="number"
+                  step="0.1"
+                  min="0.5"
+                  value={newPlantBed.length}
+                  onChange={(e) => setNewPlantBed(prev => ({ ...prev, length: e.target.value }))}
+                  placeholder="2.0"
+                />
+              </div>
+              <div>
+                <label htmlFor="plantvak-width" className="block text-sm font-medium text-gray-700 mb-1">
+                  Breedte (m) *
+                </label>
+                <Input
+                  id="plantvak-width"
+                  type="number"
+                  step="0.1"
+                  min="0.5"
+                  value={newPlantBed.width}
+                  onChange={(e) => setNewPlantBed(prev => ({ ...prev, width: e.target.value }))}
+                  placeholder="1.0"
+                />
+              </div>
+            </div>
+
+            {newPlantBed.length && newPlantBed.width && (
+              <div className="text-sm text-green-600 font-medium">
+                📐 Oppervlakte: {(parseFloat(newPlantBed.length) * parseFloat(newPlantBed.width)).toFixed(1)} m²
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="plantvak-sun" className="block text-sm font-medium text-gray-700 mb-1">
+                Zonligging
+              </label>
+              <Select value={newPlantBed.sun_exposure} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
+                setNewPlantBed(prev => ({ ...prev, sun_exposure: value }))
+              }>
+                <SelectTrigger>
+                  <SelectValue placeholder="Kies zonligging" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="full-sun">
+                    <div className="flex items-center gap-2">
+                      <Sun className="h-4 w-4 text-yellow-500" />
+                      <span>Volle zon</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="partial-sun">
+                    <div className="flex items-center gap-2">
+                      <CloudSun className="h-4 w-4 text-yellow-400" />
+                      <span>Gedeeltelijke zon</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="shade">
+                    <div className="flex items-center gap-2">
+                      <Cloud className="h-4 w-4 text-gray-500" />
+                      <span>Schaduw</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label htmlFor="plantvak-description" className="block text-sm font-medium text-gray-700 mb-1">
+                Beschrijving (optioneel)
+              </label>
+              <Textarea
+                id="plantvak-description"
+                value={newPlantBed.description}
+                onChange={(e) => setNewPlantBed(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Beschrijf dit plantvak..."
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddingPlantBed(false)
+                setNewPlantBed({
+                  name: '',
+                  length: '',
+                  width: '',
+                  description: '',
+                  sun_exposure: 'full-sun',
+                  soil_type: ''
+                })
+              }}
+            >
+              Annuleren
+            </Button>
+            <Button
+              onClick={addPlantBed}
+              disabled={!newPlantBed.name || !newPlantBed.length || !newPlantBed.width}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Plantvak Toevoegen
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
