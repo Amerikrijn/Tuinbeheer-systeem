@@ -2562,8 +2562,20 @@ export default function PlantBedViewPage() {
 
               {/* Plantvak boundary visualization */}
               {(() => {
+                // DEBUG: Log visualization attempt
+                console.log('🎨 PLANTVAK VISUALIZATION DEBUG:', {
+                  plantBed: plantBed,
+                  plantBedSize: plantBed?.size,
+                  hasParsePlantBedDimensions: typeof parsePlantBedDimensions !== 'undefined'
+                })
+                
                 const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
-                if (!dimensions) return null
+                console.log('🎨 PARSED DIMENSIONS:', dimensions)
+                
+                if (!dimensions) {
+                  console.log('❌ NO DIMENSIONS - Plantvak boundary will not render')
+                  return null
+                }
                 
                 // FIXED: Use dynamic canvas size to match movement boundaries
                 const currentCanvasSize = getCanvasSize()
@@ -2571,6 +2583,13 @@ export default function PlantBedViewPage() {
                 const plantvakHeight = dimensions.widthPixels
                 const plantvakStartX = (currentCanvasSize.width - plantvakWidth) / 2
                 const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
+                
+                // DEBUG: Log visualization rendering
+                console.log('✅ RENDERING PLANTVAK BOUNDARY:', {
+                  canvasSize: currentCanvasSize,
+                  plantvakSize: { width: plantvakWidth, height: plantvakHeight },
+                  position: { x: plantvakStartX, y: plantvakStartY }
+                })
                 
                 return (
                   <div
