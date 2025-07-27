@@ -1076,6 +1076,21 @@ export default function PlantBedViewPage() {
         }))
       })
 
+      // DEBUG: Log movement calculation details
+      console.log('🎯 MOVEMENT CALCULATION:', {
+        flowerName: draggedFlowerData.name,
+        mousePosition: { x: newX, y: newY },
+        dragOffset: dragOffset,
+        originalFlowerPos: { x: draggedFlowerData.position_x, y: draggedFlowerData.position_y },
+        plantvakBounds: { 
+          start: { x: plantvakStartX, y: plantvakStartY },
+          size: { w: plantvakWidth, h: plantvakHeight },
+          boundaries: { minX, minY, maxX, maxY }
+        },
+        constrainedResult: { x: constrainedX, y: constrainedY },
+        wasConstrained: { x: constrainedX !== newX, y: constrainedY !== newY }
+      })
+
       // Only update the specific dragged flower
       return prev.map(f => {
         if (f.id === draggedFlower) {
