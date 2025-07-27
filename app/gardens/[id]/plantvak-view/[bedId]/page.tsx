@@ -953,36 +953,43 @@ export default function PlantBedViewPage() {
       // IMPROVED: Allow movement within the entire plantvak area with minimal margin
       const margin = 2 // Reduced margin for more freedom of movement
       
-      // DEBUG: Log flower dimensions to identify constraint issues
+      // Calculate constraints
+      const minX = plantvakStartX + margin
+      const maxX = plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin
+      const minY = plantvakStartY + margin
+      const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin
+      
+      // Apply constraints
+      const constrainedX = Math.max(minX, Math.min(newX, maxX))
+      const constrainedY = Math.max(minY, Math.min(newY, maxY))
+      
+      // DEBUG: Enhanced logging with before/after comparison
       console.log('🌸 MOVEMENT DEBUG:', {
         flowerName: draggedFlowerData.name,
         flowerDimensions: {
           width: draggedFlowerData.visual_width,
           height: draggedFlowerData.visual_height
         },
-        newPosition: { x: newX, y: newY },
+        positions: {
+          requested: { x: newX, y: newY },
+          constrained: { x: constrainedX, y: constrainedY },
+          changed: { 
+            x: Math.abs(newX - constrainedX) > 0.1, 
+            y: Math.abs(newY - constrainedY) > 0.1 
+          }
+        },
         plantvakBounds: {
           startX: plantvakStartX,
           startY: plantvakStartY,
           width: plantvakWidth,
           height: plantvakHeight
         },
-        constraints: {
-          minX: plantvakStartX + margin,
-          maxX: plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin,
-          minY: plantvakStartY + margin,
-          maxY: plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin
+        constraints: { minX, maxX, minY, maxY },
+        constraintRanges: {
+          xRange: maxX - minX,
+          yRange: maxY - minY
         }
       })
-      
-      const constrainedX = Math.max(
-        plantvakStartX + margin, 
-        Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
-      )
-      const constrainedY = Math.max(
-        plantvakStartY + margin, 
-        Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
-      )
 
 
 
