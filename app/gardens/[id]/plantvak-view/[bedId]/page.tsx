@@ -1081,6 +1081,16 @@ export default function PlantBedViewPage() {
         }
       })
 
+      // CRITICAL: Log all flower positions to see if they're being corrupted
+      console.log('📍 ALL FLOWER POSITIONS:', {
+        movedFlower: draggedFlowerData.name,
+        allFlowers: prev.map(f => ({
+          name: f.name,
+          position: { x: f.position_x, y: f.position_y },
+          size: { w: f.visual_width, h: f.visual_height }
+        }))
+      })
+
       // Only update the specific dragged flower
       return prev.map(f => {
         if (f.id === draggedFlower) {
