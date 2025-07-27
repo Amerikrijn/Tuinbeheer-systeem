@@ -2356,8 +2356,8 @@ export default function PlantBedViewPage() {
               <FlowerVisualization 
                 plantBed={plantBed}
                 plants={flowerPositions}
-                containerWidth={canvasSize.width}
-                containerHeight={canvasSize.height}
+                containerWidth={getCanvasSize().width}
+                containerHeight={getCanvasSize().height}
               />
               
               {flowerPositions.length === 0 && (
