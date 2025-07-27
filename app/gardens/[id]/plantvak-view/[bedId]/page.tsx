@@ -2745,9 +2745,9 @@ export default function PlantBedViewPage() {
             // Set all flowers to the same Y position (middle of plantvak)
             const targetY = plantvakStartY + (plantvakHeight / 2) - (FLOWER_SIZE / 2)
             
-            // Space flowers horizontally
-            const spacing = 100
-            let startX = 150
+                         // Space flowers horizontally
+             const spacing = 100
+             const startX = 150
             
             const updatedFlowers = flowerPositions.map((flower, index) => ({
               ...flower,
