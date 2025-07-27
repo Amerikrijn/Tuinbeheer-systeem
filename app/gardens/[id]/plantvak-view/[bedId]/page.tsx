@@ -994,6 +994,17 @@ export default function PlantBedViewPage() {
       const mouseY = (clientY - rect.top) / scale
       const offsetX = mouseX - selectedFlower.position_x
       const offsetY = mouseY - selectedFlower.position_y
+
+      // DEBUG: Log drag offset calculation for touch
+      console.log('🎯 DRAG OFFSET CALCULATION (TOUCH):', {
+        flowerName: selectedFlower.name,
+        clientPos: { x: clientX, y: clientY },
+        rectPos: { left: rect.left, top: rect.top },
+        scale: scale,
+        mousePos: { x: mouseX, y: mouseY },
+        flowerPos: { x: selectedFlower.position_x, y: selectedFlower.position_y },
+        calculatedOffset: { x: offsetX, y: offsetY }
+      })
       
       setDraggedFlower(flowerId)
       setDragOffset({ x: offsetX, y: offsetY })
