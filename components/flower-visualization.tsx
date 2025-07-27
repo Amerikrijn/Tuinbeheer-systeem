@@ -82,13 +82,20 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       if (hasCustomPosition && hasCustomSize && dimensions) {
         // CORRECTED POSITIONING: Account for the fact that garden overview container IS the plantvak area
         
-        // Calculate the plantvak canvas size using EXACT same logic as plantvak-view
+        // FIXED: Calculate the plantvak canvas size using EXACT same dynamic logic as plantvak-view
         const padding = PLANTVAK_CANVAS_PADDING  // 100px
         const minWidth = 500   // Same as plantvak-view
         const minHeight = 400  // Same as plantvak-view
         
-        const plantvakCanvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
+        // Use the same dynamic canvas size calculation as getCanvasSize() in plantvak-view
+        const aspectRatio = dimensions.lengthPixels / dimensions.widthPixels
+        let plantvakCanvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
         const plantvakCanvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
+        
+        // Ensure minimum aspect ratio is maintained (same as plantvak-view)
+        if (plantvakCanvasWidth / plantvakCanvasHeight < 1.2) {
+          plantvakCanvasWidth = plantvakCanvasHeight * 1.2
+        }
         
         // Calculate where the plantvak boundaries are in the plantvak-view canvas
         const plantvakStartX = (plantvakCanvasWidth - dimensions.lengthPixels) / 2
@@ -106,6 +113,20 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         // So apply percentage directly to container dimensions
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
+        
+        // DEBUG: Log coordinate transformation for troubleshooting
+        console.log('🌸 GARDEN VIEW COORDINATE TRANSFORM:', {
+          plantName: plant.name,
+          plantIndex: plantIndex + 1,
+          originalPos: { x: plant.position_x, y: plant.position_y },
+          plantvakCanvas: { w: plantvakCanvasWidth, h: plantvakCanvasHeight },
+          plantvakBounds: { startX: plantvakStartX, startY: plantvakStartY, w: dimensions.lengthPixels, h: dimensions.widthPixels },
+          relativePos: { x: relativeX, y: relativeY },
+          percentage: { x: percentageX, y: percentageY },
+          containerSize: { w: containerWidth, h: containerHeight },
+          finalPos: { x: finalX, y: finalY },
+          aspectRatio: aspectRatio
+        })
         
         // Scale the flower size proportionally to container size
         const sizeScale = Math.min(containerWidth / dimensions.lengthPixels, containerHeight / dimensions.widthPixels)
