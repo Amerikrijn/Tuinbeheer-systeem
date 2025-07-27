@@ -36,7 +36,7 @@ This caused flowers to appear in different relative positions depending on the v
 
 ### Synchronized Positioning Logic
 
-Updated `components/flower-visualization.tsx` to use the **same positioning calculation** as the plantvak-view:
+Updated `components/flower-visualization.tsx` to use the **exact same positioning calculation** as the plantvak-view:
 
 1. **Calculate Plantvak Canvas Size**: Use the same logic as plantvak-view to determine canvas dimensions
 2. **Determine Plantvak Boundaries**: Calculate where the plantvak would be positioned within its canvas
@@ -46,10 +46,14 @@ Updated `components/flower-visualization.tsx` to use the **same positioning calc
 ### Key Changes:
 
 ```typescript
-// NEW SYNCHRONIZED CODE
-// Calculate the plantvak canvas size that would be used in plantvak-view
-const plantvakCanvasWidth = Math.max(600, dimensions.lengthPixels + 200)
-const plantvakCanvasHeight = Math.max(450, dimensions.widthPixels + 200)
+// NEW SYNCHRONIZED CODE - EXACT match with plantvak-view
+// Calculate the plantvak canvas size using EXACT same logic as plantvak-view
+const padding = PLANTVAK_CANVAS_PADDING  // 100px
+const minWidth = 500   // Same as plantvak-view
+const minHeight = 400  // Same as plantvak-view
+
+const plantvakCanvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
+const plantvakCanvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
 
 // Calculate where the plantvak boundaries would be in the plantvak-view canvas
 const plantvakStartX = (plantvakCanvasWidth - dimensions.lengthPixels) / 2
@@ -78,7 +82,10 @@ const finalY = percentageY * containerHeight
 ## Files Modified
 
 - `components/flower-visualization.tsx` - Updated positioning logic to synchronize with plantvak-view
-- Added import for `parsePlantBedDimensions` and `METERS_TO_PIXELS` from scaling constants
+- Added import for `parsePlantBedDimensions` and `PLANTVAK_CANVAS_PADDING` from scaling constants
+- **CRITICAL FIX**: Updated canvas size calculation to use exact same values as plantvak-view:
+  - `PLANTVAK_CANVAS_PADDING` (100px) instead of hardcoded 200px
+  - `minWidth: 500` and `minHeight: 400` to match plantvak-view exactly
 
 ## Testing
 
@@ -92,12 +99,25 @@ To verify the fix:
 ## Technical Details
 
 - Uses `parsePlantBedDimensions()` to get consistent plantvak measurements
-- Applies the same canvas size calculation as plantvak-view
+- Applies the **exact same canvas size calculation** as plantvak-view using `PLANTVAK_CANVAS_PADDING`
 - Maintains backward compatibility for plants without custom positioning
 - Optimized for performance by removing complex multi-flower generation logic
 
+## Critical Fix Applied
+
+**Initial implementation had incorrect hardcoded values:**
+- Used `200px` padding instead of `PLANTVAK_CANVAS_PADDING` (100px)
+- Used `600x450` minimums instead of `500x400`
+
+**Corrected implementation now uses exact same values as plantvak-view:**
+- `PLANTVAK_CANVAS_PADDING` = 100px
+- `minWidth` = 500px, `minHeight` = 400px
+- Perfect synchronization between both views
+
 ## Future Considerations
 
-This fix ensures that both views use consistent positioning logic. Any future changes to positioning should be made in both:
+This fix ensures that both views use **identical positioning logic**. Any future changes to positioning should be made in both:
 1. The plantvak-view direct positioning logic
 2. The FlowerVisualization component's synchronized positioning logic
+
+**Important**: Always use the same constants from `lib/scaling-constants.ts` to maintain synchronization.

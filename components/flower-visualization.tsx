@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
-import { parsePlantBedDimensions, METERS_TO_PIXELS } from "@/lib/scaling-constants"
+import { parsePlantBedDimensions, PLANTVAK_CANVAS_PADDING } from "@/lib/scaling-constants"
 
 interface FlowerVisualizationProps {
   plantBed: PlantBedWithPlants
@@ -80,11 +80,15 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // SYNCHRONIZED POSITIONING: Use the same logic as plantvak-view
+        // SYNCHRONIZED POSITIONING: Use the EXACT same logic as plantvak-view
         
-        // Calculate the plantvak canvas size that would be used in plantvak-view
-        const plantvakCanvasWidth = Math.max(600, dimensions.lengthPixels + 200) // Same as plantvak-view
-        const plantvakCanvasHeight = Math.max(450, dimensions.widthPixels + 200) // Same as plantvak-view
+        // Calculate the plantvak canvas size using EXACT same logic as plantvak-view
+        const padding = PLANTVAK_CANVAS_PADDING  // 100px
+        const minWidth = 500   // Same as plantvak-view
+        const minHeight = 400  // Same as plantvak-view
+        
+        const plantvakCanvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
+        const plantvakCanvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
         
         // Calculate where the plantvak boundaries would be in the plantvak-view canvas
         const plantvakStartX = (plantvakCanvasWidth - dimensions.lengthPixels) / 2
