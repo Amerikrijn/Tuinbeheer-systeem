@@ -950,21 +950,38 @@ export default function PlantBedViewPage() {
         plantvakStartY = (canvasHeight - plantvakHeight) / 2
       }
 
-      // SIMPLIFIED: Allow free movement within plantvak boundaries
-      const margin = 5 // Small margin to keep flowers visible
+      // ULTRA SIMPLE: Just keep flowers within plantvak with minimal constraints
+      const constrainedX = Math.max(plantvakStartX, Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width))
+      const constrainedY = Math.max(plantvakStartY, Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height))
       
-      // Use flower radius instead of full dimensions for better movement
-      const flowerRadius = Math.max(draggedFlowerData.visual_width, draggedFlowerData.visual_height) / 2
-      
-      // Calculate constraints based on flower center position
-      const minX = plantvakStartX + flowerRadius + margin
-      const maxX = plantvakStartX + plantvakWidth - flowerRadius - margin
-      const minY = plantvakStartY + flowerRadius + margin
-      const maxY = plantvakStartY + plantvakHeight - flowerRadius - margin
-      
-      // Apply constraints - ensure flowers can move independently
-      const constrainedX = Math.max(minX, Math.min(newX, maxX))
-      const constrainedY = Math.max(minY, Math.min(newY, maxY))
+      // TEMP DEBUG: Log everything to understand what's happening
+      if (draggedFlowerData.name === 'Snapdragon') { // Only log for one flower to avoid spam
+        console.log('🌸 ULTRA SIMPLE DEBUG:', {
+          flowerName: draggedFlowerData.name,
+          mousePosition: { x: newX, y: newY },
+          plantvakBounds: {
+            startX: plantvakStartX,
+            startY: plantvakStartY,
+            endX: plantvakStartX + plantvakWidth,
+            endY: plantvakStartY + plantvakHeight,
+            width: plantvakWidth,
+            height: plantvakHeight
+          },
+          flowerSize: {
+            width: draggedFlowerData.visual_width,
+            height: draggedFlowerData.visual_height
+          },
+          constraints: {
+            maxX: plantvakStartX + plantvakWidth - draggedFlowerData.visual_width,
+            maxY: plantvakStartY + plantvakHeight - draggedFlowerData.visual_height
+          },
+          result: { x: constrainedX, y: constrainedY },
+          wasConstrained: {
+            x: constrainedX !== newX,
+            y: constrainedY !== newY
+          }
+        })
+      }
       
 
 
