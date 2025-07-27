@@ -959,7 +959,29 @@ export default function PlantBedViewPage() {
       const minY = plantvakStartY + margin
       const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin
       
-
+      // DEBUG: Log constraints for each flower to identify dependency issues
+      console.log('🌸 FLOWER INDEPENDENCE DEBUG:', {
+        flowerName: draggedFlowerData.name,
+        flowerId: draggedFlower,
+        flowerDimensions: {
+          width: draggedFlowerData.visual_width,
+          height: draggedFlowerData.visual_height
+        },
+        requestedPosition: { x: newX, y: newY },
+        plantvakBounds: {
+          startX: plantvakStartX,
+          startY: plantvakStartY,
+          width: plantvakWidth,
+          height: plantvakHeight
+        },
+        calculatedConstraints: { minX, maxX, minY, maxY },
+        constraintRanges: {
+          xRange: maxX - minX,
+          yRange: maxY - minY
+        },
+        otherFlowersCount: prev.length - 1,
+        allFlowerIds: prev.map(f => ({ id: f.id, name: f.name }))
+      })
       
       // Apply constraints
       const constrainedX = Math.max(minX, Math.min(newX, maxX))
