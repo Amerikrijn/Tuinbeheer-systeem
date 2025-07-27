@@ -978,12 +978,29 @@ export default function PlantBedViewPage() {
     // For mouse: start dragging immediately if flower is selected
     // For touch: start dragging if in drag mode
     if (selectedFlower?.id === flowerId || !('touches' in e)) {
-      // Start dragging
-      setDraggedFlower(flowerId)
-      setDragOffset({
-        x: (clientX - rect.left) / scale - flower.position_x,
-        y: (clientY - rect.top) / scale - flower.position_y
+      // FIXED: Calculate drag offset from flower center (v2.0 - Force cache refresh)
+      const mouseX = (clientX - rect.left) / scale
+      const mouseY = (clientY - rect.top) / scale
+      
+      const flowerCenterX = flower.position_x + (flower.visual_width / 2)
+      const flowerCenterY = flower.position_y + (flower.visual_height / 2)
+      const offsetX = mouseX - flowerCenterX
+      const offsetY = mouseY - flowerCenterY
+
+      // DEBUG: Log drag offset calculation
+      console.log('🎯 DRAG OFFSET CALCULATION (APPS/WEB FIXED v2.0):', {
+        flowerName: flower.name,
+        clientPos: { x: clientX, y: clientY },
+        rectPos: { left: rect.left, top: rect.top },
+        scale: scale,
+        mousePos: { x: mouseX, y: mouseY },
+        flowerPos: { x: flower.position_x, y: flower.position_y },
+        flowerCenter: { x: flowerCenterX, y: flowerCenterY },
+        calculatedOffset: { x: offsetX, y: offsetY }
       })
+
+      setDraggedFlower(flowerId)
+      setDragOffset({ x: offsetX, y: offsetY })
       
       // Select the flower if not already selected (for mouse)
       if (!selectedFlower || selectedFlower.id !== flowerId) {
