@@ -978,17 +978,19 @@ export default function PlantBedViewPage() {
     // For mouse: start dragging immediately if flower is selected
     // For touch: start dragging if in drag mode
     if (selectedFlower?.id === flowerId || !('touches' in e)) {
-      // FIXED: Calculate drag offset from flower center (v2.0 - Force cache refresh)
+      // FIXED: Always drag from flower center regardless of click position (v3.0)
       const mouseX = (clientX - rect.left) / scale
       const mouseY = (clientY - rect.top) / scale
       
       const flowerCenterX = flower.position_x + (flower.visual_width / 2)
       const flowerCenterY = flower.position_y + (flower.visual_height / 2)
-      const offsetX = mouseX - flowerCenterX
-      const offsetY = mouseY - flowerCenterY
+      
+      // FIXED: Always use center-based dragging - no offset needed
+      const offsetX = 0
+      const offsetY = 0
 
-      // DEBUG: Log drag offset calculation
-      console.log('🎯 DRAG OFFSET CALCULATION (APPS/WEB FIXED v2.0):', {
+              // DEBUG: Log drag offset calculation
+        console.log('🎯 DRAG OFFSET CALCULATION (APPS/WEB FIXED v3.0):', {
         flowerName: flower.name,
         clientPos: { x: clientX, y: clientY },
         rectPos: { left: rect.left, top: rect.top },
@@ -1068,8 +1070,8 @@ export default function PlantBedViewPage() {
     if (!draggedFlower || !containerRef.current || !plantBed) return
 
     const rect = containerRef.current.getBoundingClientRect()
-    const newX = (clientX - rect.left) / scale - dragOffset.x
-    const newY = (clientY - rect.top) / scale - dragOffset.y
+    const mouseX = (clientX - rect.left) / scale
+    const mouseY = (clientY - rect.top) / scale
 
     // Use functional update to avoid dependency issues
     setFlowerPositions(prev => {
@@ -1082,25 +1084,31 @@ export default function PlantBedViewPage() {
       let constrainedX, constrainedY
       
       if (dimensions) {
-        // Constrain to plantvak bounds
+        // FIXED: Position flower center at mouse position, constrain to plantvak bounds
         const plantvakWidth = dimensions.lengthPixels
         const plantvakHeight = dimensions.widthPixels
         const plantvakStartX = (canvasWidth - plantvakWidth) / 2
         const plantvakStartY = (canvasHeight - plantvakHeight) / 2
         const margin = 10
         
+        // Calculate desired top-left position (mouse position - half flower size)
+        const desiredX = mouseX - (draggedFlowerData.visual_width / 2)
+        const desiredY = mouseY - (draggedFlowerData.visual_height / 2)
+        
         constrainedX = Math.max(
           plantvakStartX + margin, 
-          Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
+          Math.min(desiredX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
         )
         constrainedY = Math.max(
           plantvakStartY + margin, 
-          Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
+          Math.min(desiredY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
         )
       } else {
         // Fallback to canvas bounds if no plantvak dimensions
-        constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width))
-        constrainedY = Math.max(0, Math.min(newY, canvasHeight - draggedFlowerData.visual_height))
+        const desiredX = mouseX - (draggedFlowerData.visual_width / 2)
+        const desiredY = mouseY - (draggedFlowerData.visual_height / 2)
+        constrainedX = Math.max(0, Math.min(desiredX, canvasWidth - draggedFlowerData.visual_width))
+        constrainedY = Math.max(0, Math.min(desiredY, canvasHeight - draggedFlowerData.visual_height))
       }
 
       // Only update the specific dragged flower
@@ -1113,7 +1121,7 @@ export default function PlantBedViewPage() {
     })
     
     setHasChanges(true)
-  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight, plantBed])
+  }, [draggedFlower, scale, canvasWidth, canvasHeight, plantBed])
 
   // Mouse move handler
   const onMouseMove = useCallback((e: React.MouseEvent) => {
