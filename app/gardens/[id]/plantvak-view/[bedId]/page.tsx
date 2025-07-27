@@ -962,13 +962,18 @@ export default function PlantBedViewPage() {
 
 
 
-  // Handle drag move - unified for mouse and touch
+  // Handle drag move - SIMPLIFIED like garden overview
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
     if (!draggedFlower || !containerRef.current || !plantBed) return
 
     const rect = containerRef.current.getBoundingClientRect()
-    const newX = (clientX - rect.left) / scale - dragOffset.x
-    const newY = (clientY - rect.top) / scale - dragOffset.y
+    
+    // SIMPLIFIED: Direct position calculation like garden overview
+    const mouseX = (clientX - rect.left) / scale
+    const mouseY = (clientY - rect.top) / scale
+    
+    const newX = mouseX - dragOffset.x
+    const newY = mouseY - dragOffset.y
 
     // Use functional update to avoid dependency issues
     setFlowerPositions(prev => {
@@ -991,26 +996,35 @@ export default function PlantBedViewPage() {
         plantvakStartY = (canvasHeight - plantvakHeight) / 2
       }
 
-      // FIXED: Correct boundary calculation - flower should move freely within plantvak
-      const SAFETY_MARGIN = 2  // Minimal margin to keep flowers visible
+      // ULTRA SIMPLE: Basic boundary checking like garden overview
+      const constrainedX = Math.max(
+        plantvakStartX, 
+        Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width)
+      )
+      const constrainedY = Math.max(
+        plantvakStartY, 
+        Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height)
+      )
       
-      // Allow flowers to move throughout the entire plantvak area
-      const minX = plantvakStartX + SAFETY_MARGIN
-      const minY = plantvakStartY + SAFETY_MARGIN
-      const maxX = plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - SAFETY_MARGIN
-      const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - SAFETY_MARGIN
-      
-      const constrainedX = Math.max(minX, Math.min(newX, maxX))
-      const constrainedY = Math.max(minY, Math.min(newY, maxY))
+      // Calculate constraint boundaries for debugging
+      const minX = plantvakStartX
+      const minY = plantvakStartY
+      const maxX = plantvakStartX + plantvakWidth - draggedFlowerData.visual_width
+      const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height
 
-      // DEBUG: Log what's happening with movement
-      console.log('🌸 MOVEMENT DEBUG:', {
+      // COMPREHENSIVE DEBUG: Log everything to understand the issue
+      console.log('🌸 FULL ANALYSIS:', {
         flowerName: draggedFlowerData.name,
         mousePos: { x: newX, y: newY },
         constraints: { minX, minY, maxX, maxY },
         constrained: { x: constrainedX, y: constrainedY },
         plantvak: { startX: plantvakStartX, startY: plantvakStartY, width: plantvakWidth, height: plantvakHeight },
-        flowerSize: { width: draggedFlowerData.visual_width, height: draggedFlowerData.visual_height }
+        flowerSize: { width: draggedFlowerData.visual_width, height: draggedFlowerData.visual_height },
+        currentPosition: { x: draggedFlowerData.position_x, y: draggedFlowerData.position_y },
+        wasConstrained: { x: constrainedX !== newX, y: constrainedY !== newY },
+        canvasSize: { width: canvasWidth, height: canvasHeight },
+        scale: scale,
+        dragOffset: dragOffset
       })
 
       
