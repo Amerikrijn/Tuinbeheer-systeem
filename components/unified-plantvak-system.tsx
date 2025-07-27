@@ -3,10 +3,6 @@
 import React from 'react'
 import type { PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 
-// UNIFIED COORDINATE SYSTEM
-// All flower positions are stored as percentages (0-100) within plantvak bounds
-// This ensures perfect consistency between garden overview and detail views
-
 interface UnifiedPlantvakProps {
   plantBed: PlantBedWithPlants
   plants: PlantWithPosition[]
@@ -18,30 +14,14 @@ interface UnifiedPlantvakProps {
   onFlowerMove?: (flowerId: string, newPercentX: number, newPercentY: number) => void
 }
 
-interface FlowerPosition {
+interface FlowerData {
   id: string
   name: string
   color: string
-  emoji?: string
-  percentX: number  // 0-100% within plantvak bounds
-  percentY: number  // 0-100% within plantvak bounds
+  emoji: string
+  x: number
+  y: number
   size: number
-}
-
-// Convert database position to percentage within plantvak
-function dbPositionToPercent(dbX: number, dbY: number, plantvakWidth: number, plantvakHeight: number): { percentX: number, percentY: number } {
-  return {
-    percentX: Math.max(0, Math.min(100, (dbX / plantvakWidth) * 100)),
-    percentY: Math.max(0, Math.min(100, (dbY / plantvakHeight) * 100))
-  }
-}
-
-// Convert percentage to actual pixel position within container
-function percentToPixels(percentX: number, percentY: number, containerWidth: number, containerHeight: number): { x: number, y: number } {
-  return {
-    x: (percentX / 100) * containerWidth,
-    y: (percentY / 100) * containerHeight
-  }
 }
 
 export function UnifiedPlantvakSystem({ 
@@ -57,29 +37,30 @@ export function UnifiedPlantvakSystem({
   const [draggedFlower, setDraggedFlower] = React.useState<string | null>(null)
   const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 })
   
-  // Convert all plants to unified percentage-based positions
-  const flowerPositions: FlowerPosition[] = plants.map(plant => {
-    // For now, assume plantvak dimensions - this should come from plantBed.size parsing
-    const plantvakWidthPixels = 400  // This should be calculated from plantBed.size
-    const plantvakHeightPixels = 300
+  // Convert plants to properly scaled positions
+  const flowers: FlowerData[] = plants.map(plant => {
+    // Convert percentage positions (0-100) to actual pixels within container
+    const x = (plant.position_x / 100) * containerWidth
+    const y = (plant.position_y / 100) * containerHeight
     
-    const { percentX, percentY } = dbPositionToPercent(
-      plant.position_x, 
-      plant.position_y, 
-      plantvakWidthPixels, 
-      plantvakHeightPixels
-    )
-
+    // Scale flower size based on mode and container size
+    let flowerSize: number
+    if (mode === 'garden-overview') {
+      // Small flowers for overview, but not too tiny
+      flowerSize = Math.max(16, Math.min(containerWidth, containerHeight) * 0.08)
+    } else {
+      // Larger flowers for detail view, scale with container
+      flowerSize = Math.max(40, Math.min(containerWidth, containerHeight) * 0.12)
+    }
+    
     return {
       id: plant.id,
       name: plant.name,
       color: plant.color || '#FF69B4',
       emoji: plant.emoji || '🌸',
-      percentX,
-      percentY,
-      size: mode === 'garden-overview' ? 
-        Math.max(8, Math.min(containerWidth, containerHeight) * 0.15) : 
-        plant.visual_width || 40
+      x,
+      y,
+      size: flowerSize
     }
   })
 
@@ -109,15 +90,13 @@ export function UnifiedPlantvakSystem({
           />
         )}
 
-        {/* Flowers positioned by percentage */}
-        {flowerPositions.map(flower => {
-          const { x, y } = percentToPixels(flower.percentX, flower.percentY, containerWidth, containerHeight)
-          const isDragging = draggedFlower === flower.id
-          
+        {/* Flowers positioned */}
+        {flowers.map(({ id, name, color, emoji, x, y, size }) => {
+          const isDragging = draggedFlower === id
           return (
             <div
-              key={flower.id}
-              className={`absolute rounded-lg flex items-center justify-center ${
+              key={id}
+              className={`absolute rounded-full flex items-center justify-center ${
                 isInteractive 
                   ? 'cursor-pointer hover:scale-110 transition-transform' 
                   : ''
@@ -125,14 +104,14 @@ export function UnifiedPlantvakSystem({
                 isDragging ? 'z-50 scale-110 shadow-2xl' : ''
               }`}
               style={{
-                left: x - flower.size / 2,
-                top: y - flower.size / 2,
-                width: flower.size,
-                height: flower.size,
-                backgroundColor: flower.color + '40',
-                border: `2px solid ${flower.color}`,
+                left: x - size / 2,
+                top: y - size / 2,
+                width: size,
+                height: size,
+                backgroundColor: color + '40',
+                border: `2px solid ${color}`,
               }}
-              onClick={() => onFlowerClick?.(flower.id)}
+              onClick={() => onFlowerClick?.(id)}
               onMouseDown={(e) => {
                 if (!isInteractive || mode !== 'detail-view') return
                 e.preventDefault()
@@ -140,13 +119,13 @@ export function UnifiedPlantvakSystem({
                 
                 const rect = e.currentTarget.getBoundingClientRect()
                 setDragOffset({
-                  x: e.clientX - rect.left - flower.size / 2,
-                  y: e.clientY - rect.top - flower.size / 2
+                  x: e.clientX - rect.left - size / 2,
+                  y: e.clientY - rect.top - size / 2
                 })
-                setDraggedFlower(flower.id)
+                setDraggedFlower(id)
               }}
               onMouseMove={(e) => {
-                if (!draggedFlower || draggedFlower !== flower.id) return
+                if (!draggedFlower || draggedFlower !== id) return
                 e.preventDefault()
                 
                 const containerRect = e.currentTarget.parentElement?.getBoundingClientRect()
@@ -159,25 +138,25 @@ export function UnifiedPlantvakSystem({
                 const newPercentX = Math.max(0, Math.min(100, (newX / containerWidth) * 100))
                 const newPercentY = Math.max(0, Math.min(100, (newY / containerHeight) * 100))
                 
-                onFlowerMove?.(flower.id, newPercentX, newPercentY)
+                onFlowerMove?.(id, newPercentX, newPercentY)
               }}
               onMouseUp={() => {
                 setDraggedFlower(null)
                 setDragOffset({ x: 0, y: 0 })
               }}
-              title={`${flower.name} (${flower.percentX.toFixed(1)}%, ${flower.percentY.toFixed(1)}%)`}
+              title={`${name}`}
             >
               {/* Flower content */}
               <div className="text-center">
-                <div style={{ fontSize: Math.max(8, flower.size * 0.4) }}>
-                  {flower.emoji}
+                <div style={{ fontSize: Math.max(8, size * 0.4) }}>
+                  {emoji}
                 </div>
-                {mode === 'detail-view' && flower.size > 30 && (
+                {mode === 'detail-view' && size > 30 && (
                   <div 
                     className="text-xs font-medium text-gray-800 mt-1"
-                    style={{ fontSize: Math.max(6, flower.size * 0.2) }}
+                    style={{ fontSize: Math.max(6, size * 0.2) }}
                   >
-                    {flower.name}
+                    {name}
                   </div>
                 )}
               </div>
@@ -213,21 +192,25 @@ export function UnifiedGardenOverview({
 }) {
   return (
     <div 
-      className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 rounded-lg"
+      className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 rounded-lg border border-green-200"
       style={{ width: containerWidth, height: containerHeight }}
     >
-      {plantBeds.map(bed => {
-        // Calculate bed dimensions (this should use proper scaling from bed.size)
-        const bedWidth = bed.visual_width || 160
-        const bedHeight = bed.visual_height || 120
+      {plantBeds.map((bed, index) => {
+        // Better sizing for plantvakken in garden overview
+        const bedWidth = Math.max(200, containerWidth * 0.6) // Use 60% of container width
+        const bedHeight = Math.max(150, containerHeight * 0.4) // Use 40% of container height
+        
+        // Better positioning - spread them out more logically
+        const posX = bed.position_x || (50 + (index * 100))
+        const posY = bed.position_y || (50 + (index * 80))
         
         return (
           <div
             key={bed.id}
-            className="absolute cursor-pointer hover:shadow-lg transition-shadow"
+            className="absolute cursor-pointer hover:shadow-lg transition-shadow hover:scale-105"
             style={{
-              left: bed.position_x || 100,
-              top: bed.position_y || 100,
+              left: Math.min(posX, containerWidth - bedWidth - 20), // Keep within bounds
+              top: Math.min(posY, containerHeight - bedHeight - 20),
             }}
             onClick={() => onPlantvakClick?.(bed.id)}
           >
