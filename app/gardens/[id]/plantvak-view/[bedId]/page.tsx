@@ -950,40 +950,19 @@ export default function PlantBedViewPage() {
         plantvakStartY = (canvasHeight - plantvakHeight) / 2
       }
 
-      // IMPROVED: Allow movement within the entire plantvak area with minimal margin
-      const margin = 2 // Reduced margin for more freedom of movement
+      // SIMPLIFIED: Allow free movement within plantvak boundaries
+      const margin = 5 // Small margin to keep flowers visible
       
-      // Calculate constraints
-      const minX = plantvakStartX + margin
-      const maxX = plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin
-      const minY = plantvakStartY + margin
-      const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin
+      // Use flower radius instead of full dimensions for better movement
+      const flowerRadius = Math.max(draggedFlowerData.visual_width, draggedFlowerData.visual_height) / 2
       
-      // DEBUG: Log constraints for each flower to identify dependency issues
-      console.log('🌸 FLOWER INDEPENDENCE DEBUG:', {
-        flowerName: draggedFlowerData.name,
-        flowerId: draggedFlower,
-        flowerDimensions: {
-          width: draggedFlowerData.visual_width,
-          height: draggedFlowerData.visual_height
-        },
-        requestedPosition: { x: newX, y: newY },
-        plantvakBounds: {
-          startX: plantvakStartX,
-          startY: plantvakStartY,
-          width: plantvakWidth,
-          height: plantvakHeight
-        },
-        calculatedConstraints: { minX, maxX, minY, maxY },
-        constraintRanges: {
-          xRange: maxX - minX,
-          yRange: maxY - minY
-        },
-        otherFlowersCount: prev.length - 1,
-        allFlowerIds: prev.map(f => ({ id: f.id, name: f.name }))
-      })
+      // Calculate constraints based on flower center position
+      const minX = plantvakStartX + flowerRadius + margin
+      const maxX = plantvakStartX + plantvakWidth - flowerRadius - margin
+      const minY = plantvakStartY + flowerRadius + margin
+      const maxY = plantvakStartY + plantvakHeight - flowerRadius - margin
       
-      // Apply constraints
+      // Apply constraints - ensure flowers can move independently
       const constrainedX = Math.max(minX, Math.min(newX, maxX))
       const constrainedY = Math.max(minY, Math.min(newY, maxY))
       
