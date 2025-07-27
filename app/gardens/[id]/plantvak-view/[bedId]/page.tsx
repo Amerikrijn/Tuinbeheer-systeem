@@ -1032,13 +1032,7 @@ export default function PlantBedViewPage() {
       const currentCanvasWidth = currentCanvasSize.width
       const currentCanvasHeight = currentCanvasSize.height
       
-      // DEBUG: Log canvas size per flower to find the shifting bug
-      console.log('🔍 CANVAS SIZE PER FLOWER:', {
-        flowerName: draggedFlowerData.name,
-        flowerIndex: flowerIndex,
-        canvasSize: { w: currentCanvasWidth, h: currentCanvasHeight },
-        plantBedSize: plantBed?.size
-      })
+
 
       // FIXED: Get plantvak dimensions with fallback to current canvas
       const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
@@ -1054,14 +1048,7 @@ export default function PlantBedViewPage() {
         plantvakStartX = (currentCanvasWidth - plantvakWidth) / 2
         plantvakStartY = (currentCanvasHeight - plantvakHeight) / 2
         
-        // DEBUG: Log plantvak positioning per flower
-        console.log('📍 PLANTVAK POSITIONING PER FLOWER:', {
-          flowerName: draggedFlowerData.name,
-          flowerIndex: flowerIndex,
-          plantvakDimensions: { w: plantvakWidth, h: plantvakHeight },
-          plantvakStart: { x: plantvakStartX, y: plantvakStartY },
-          calculation: `(${currentCanvasHeight} - ${plantvakHeight}) / 2 = ${plantvakStartY}`
-        })
+
       }
 
       // FIXED: Simplified boundary checking with generous margins
@@ -1075,19 +1062,7 @@ export default function PlantBedViewPage() {
       const constrainedX = (maxX > minX) ? Math.max(minX, Math.min(newX, maxX)) : newX
       const constrainedY = (maxY > minY) ? Math.max(minY, Math.min(newY, maxY)) : newY
       
-      // DEBUG: Enhanced logging to identify boundary issues  
-      console.log('🌸 FLOWER MOVEMENT DEBUG:', {
-        flowerName: draggedFlowerData.name,
-        flowerIndex: flowerIndex,
-        mouse: { x: newX, y: newY },
-        constrained: { x: constrainedX, y: constrainedY },
-        canvas: { w: currentCanvasWidth, h: currentCanvasHeight },
-        plantvak: { x: plantvakStartX, y: plantvakStartY, w: plantvakWidth, h: plantvakHeight },
-        boundaries: { minX, minY, maxX, maxY },
-        flowerSize: { w: draggedFlowerData.visual_width, h: draggedFlowerData.visual_height },
-        constraintApplied: { x: constrainedX !== newX, y: constrainedY !== newY },
-        dimensionsFound: !!dimensions
-      })
+
 
       // CRITICAL DEBUG: Log boundary calculation details per flower
       console.log('🎯 BOUNDARY CALCULATION BREAKDOWN:', {
