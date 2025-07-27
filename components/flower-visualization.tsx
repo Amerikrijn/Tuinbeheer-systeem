@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
+import { parsePlantBedDimensions, METERS_TO_PIXELS } from "@/lib/scaling-constants"
 
 interface FlowerVisualizationProps {
   plantBed: PlantBedWithPlants
@@ -61,28 +62,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     return '🌸'
   }
 
-  // Calculate how many flowers should be displayed for each individual plant based on its size
-  const calculateFlowersPerPlant = useMemo(() => {
-    return (plantWidth: number, plantHeight: number) => {
-      // Base calculation: 2x2 vak = 6 bloemen
-      const baseArea = 100 * 100 // 2x2 reference size
-      const baseBloemenCount = 6
-      
-      const plantArea = plantWidth * plantHeight
-      const scaleFactor = plantArea / baseArea
-      
-      // Calculate flower count based on area scaling
-      let flowerCount = Math.round(baseBloemenCount * scaleFactor)
-      
-      // Minimum and maximum bounds per plant
-      flowerCount = Math.max(1, flowerCount) // Minimum 1 bloem per plant
-      flowerCount = Math.min(15, flowerCount) // Maximum 15 bloemen per plant
-      
-      return flowerCount
-    }
-  }, [])
-
-  // Generate flower instances based on plants and area
+  // Generate flower instances based on plants - SYNCHRONIZED WITH PLANTVAK-VIEW
   useEffect(() => {
     if (plants.length === 0) {
       setFlowerInstances([])
@@ -90,121 +70,58 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     }
 
     const instances: FlowerInstance[] = []
-    const padding = 4
 
+    // Get plantvak dimensions to calculate consistent positioning
+    const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
+    
     plants.forEach((plant, plantIndex) => {
       // Check if this plant has custom positioning (from plantvak-view)
       const hasCustomPosition = 'position_x' in plant && plant.position_x !== undefined && plant.position_y !== undefined
       const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
       
-      if (hasCustomPosition && hasCustomSize) {
-        // Use exact position and size from plantvak-view - SIMPLIFIED APPROACH
-        const plantX = plant.position_x!
-        const plantY = plant.position_y!
+      if (hasCustomPosition && hasCustomSize && dimensions) {
+        // SYNCHRONIZED POSITIONING: Use the same logic as plantvak-view
         
-        // DIRECT 1:1 mapping - no complex scaling
-        // Just use the exact percentage position from plantvak-view
-        const finalX = (plantX / 600) * containerWidth  // Direct percentage mapping
-        const finalY = (plantY / 400) * containerHeight // Direct percentage mapping
+        // Calculate the plantvak canvas size that would be used in plantvak-view
+        const plantvakCanvasWidth = Math.max(600, dimensions.lengthPixels + 200) // Same as plantvak-view
+        const plantvakCanvasHeight = Math.max(450, dimensions.widthPixels + 200) // Same as plantvak-view
         
-        // Make flowers MUCH bigger - 15% of container size minimum
-        const flowerSize = Math.max(48, Math.min(containerWidth, containerHeight) * 0.15)
+        // Calculate where the plantvak boundaries would be in the plantvak-view canvas
+        const plantvakStartX = (plantvakCanvasWidth - dimensions.lengthPixels) / 2
+        const plantvakStartY = (plantvakCanvasHeight - dimensions.widthPixels) / 2
         
-        // Position the flower exactly where it should be
+        // Get the plant's position relative to the plantvak boundaries
+        const relativeX = plant.position_x! - plantvakStartX
+        const relativeY = plant.position_y! - plantvakStartY
+        
+        // Convert to percentage within the plantvak
+        const percentageX = relativeX / dimensions.lengthPixels
+        const percentageY = relativeY / dimensions.widthPixels
+        
+        // Apply the same percentage to the current container
+        const finalX = percentageX * containerWidth
+        const finalY = percentageY * containerHeight
+        
+        // Scale the flower size proportionally to container size
+        const sizeScale = Math.min(containerWidth / dimensions.lengthPixels, containerHeight / dimensions.widthPixels)
+        const scaledSize = Math.max(16, (plant.visual_width! * sizeScale))
+        
         instances.push({
-          id: `${plant.id}-flower-exact`,
+          id: `${plant.id}-flower-sync`,
           name: plant.name,
           color: plant.color || '#FF69B4',
           emoji: getPlantEmoji(plant.name, plant.emoji),
-          size: flowerSize,
-          x: finalX,
-          y: finalY,
+          size: scaledSize,
+          x: Math.max(scaledSize/2, Math.min(finalX, containerWidth - scaledSize/2)),
+          y: Math.max(scaledSize/2, Math.min(finalY, containerHeight - scaledSize/2)),
           opacity: 1,
           rotation: 0,
           isMainFlower: true,
           canFillContainer: false
         })
-      } else if (hasCustomSize) {
-        // Has custom size but no specific position - use grid layout within container
-        const plantWidth = plant.visual_width!
-        const plantHeight = plant.visual_height!
-        const plantX = 'position_x' in plant && plant.position_x !== undefined ? plant.position_x : 0
-        const plantY = 'position_y' in plant && plant.position_y !== undefined ? plant.position_y : 0
-        
-        // Scale the plant area to fit in the container
-        const scaleX = containerWidth / (plantWidth + plantX)
-        const scaleY = containerHeight / (plantHeight + plantY)
-        const scale = Math.min(scaleX, scaleY, 1) // Don't scale up, only down
-        
-        const scaledWidth = plantWidth * scale
-        const scaledHeight = plantHeight * scale
-        const scaledX = plantX * scale
-        const scaledY = plantY * scale
-        
-        // Calculate how many flowers should be in this specific plant box
-        const flowersInThisPlant = calculateFlowersPerPlant(scaledWidth, scaledHeight)
-        
-        // Flower size within this plant box - make them bigger
-        const flowerSize = Math.max(12, Math.min(32, Math.min(scaledWidth, scaledHeight) / Math.ceil(Math.sqrt(flowersInThisPlant)) / 0.8))
-        
-        // Create flowers within this plant's boundaries
-        for (let i = 0; i < flowersInThisPlant; i++) {
-          let x, y
-          
-          if (flowersInThisPlant === 1) {
-            // Single flower - center it in the plant box
-            x = scaledX + scaledWidth / 2
-            y = scaledY + scaledHeight / 2
-          } else {
-            // Multiple flowers - grid within the plant box
-            const cols = Math.ceil(Math.sqrt(flowersInThisPlant))
-            const rows = Math.ceil(flowersInThisPlant / cols)
-            const col = i % cols
-            const row = Math.floor(i / cols)
-            
-            // Available space within the plant box (with padding)
-            const availableWidth = scaledWidth - (padding * 2)
-            const availableHeight = scaledHeight - (padding * 2)
-            
-            // Grid cell size
-            const cellWidth = availableWidth / cols
-            const cellHeight = availableHeight / rows
-            
-            // Position in center of each grid cell within the plant box
-            x = scaledX + padding + (col * cellWidth) + (cellWidth / 2)
-            y = scaledY + padding + (row * cellHeight) + (cellHeight / 2)
-            
-            // Small random offset within the cell for natural look
-            const maxOffset = Math.min(3, cellWidth / 8, cellHeight / 8)
-            const offsetX = ((plant.id.charCodeAt(0) + i * 37) % (maxOffset * 2)) - maxOffset
-            const offsetY = ((plant.id.charCodeAt(0) + i * 53) % (maxOffset * 2)) - maxOffset
-            
-            x += offsetX
-            y += offsetY
-          }
-          
-          // Ensure flowers stay within the plant box boundaries
-          const halfSize = flowerSize / 2
-          x = Math.max(scaledX + halfSize + padding, Math.min(x, scaledX + scaledWidth - halfSize - padding))
-          y = Math.max(scaledY + halfSize + padding, Math.min(y, scaledY + scaledHeight - halfSize - padding))
-          
-          instances.push({
-            id: `${plant.id}-flower-${i}`,
-            name: plant.name,
-            color: plant.color || '#FF69B4',
-            emoji: getPlantEmoji(plant.name, plant.emoji),
-            size: flowerSize,
-            x,
-            y,
-            opacity: 1,
-            rotation: 0,
-            isMainFlower: i === 0,
-            canFillContainer: false
-          })
-        }
       } else {
-        // Fallback for plants without custom positioning - center in container, bigger size
-        const flowerSize = Math.max(16, Math.min(32, Math.min(containerWidth, containerHeight) / 4))
+        // Fallback for plants without custom positioning - use simple grid layout
+        const flowerSize = Math.max(20, Math.min(40, Math.min(containerWidth, containerHeight) / 8))
         
         // Create a simple grid layout for plants without positioning
         const cols = Math.ceil(Math.sqrt(plants.length))
@@ -212,6 +129,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const col = plantIndex % cols
         const row = Math.floor(plantIndex / cols)
         
+        const padding = 10
         const cellWidth = (containerWidth - padding * 2) / cols
         const cellHeight = (containerHeight - padding * 2) / rows
         
@@ -219,7 +137,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const y = padding + (row * cellHeight) + (cellHeight / 2)
         
         instances.push({
-          id: `${plant.id}-flower-0`,
+          id: `${plant.id}-flower-grid`,
           name: plant.name,
           color: plant.color || '#FF69B4',
           emoji: getPlantEmoji(plant.name, plant.emoji),
@@ -235,7 +153,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     })
 
     setFlowerInstances(instances)
-  }, [plants, containerWidth, containerHeight, calculateFlowersPerPlant, plantBed.size])
+  }, [plants, containerWidth, containerHeight, plantBed.size])
 
   // Render nothing if no plants
   if (plants.length === 0) {
@@ -277,20 +195,22 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
               {flower.emoji}
             </span>
             
-            {/* Flower name below the emoji */}
-            <div 
-              className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
-              style={{
-                fontSize: Math.max(6, flower.size * 0.2),
-                maxWidth: flower.size * 0.9,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                lineHeight: '1.1'
-              }}
-            >
-              {flower.name}
-            </div>
+            {/* Flower name below the emoji - only show if there's space */}
+            {flower.size > 30 && (
+              <div 
+                className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
+                style={{
+                  fontSize: Math.max(6, flower.size * 0.2),
+                  maxWidth: flower.size * 0.9,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  lineHeight: '1.1'
+                }}
+              >
+                {flower.name}
+              </div>
+            )}
           </div>
 
           {/* Glow effect for main flowers */}
@@ -303,77 +223,25 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
               }}
             />
           )}
-
-          {/* Sparkle effects for visual interest */}
-          {(flower.isMainFlower || Math.random() > 0.8) && (
-            <>
-              <div
-                className="absolute w-1 h-1 bg-yellow-300 rounded-full animate-pulse opacity-60"
-                style={{
-                  top: flower.size * 0.2,
-                  left: flower.size * 0.3,
-                  animationDelay: `${Math.random() * 2}s`,
-                }}
-              />
-              <div
-                className="absolute w-1 h-1 bg-white rounded-full animate-pulse opacity-60"
-                style={{
-                  top: flower.size * 0.7,
-                  right: flower.size * 0.3,
-                  animationDelay: `${Math.random() * 2}s`,
-                }}
-              />
-            </>
-          )}
         </div>
       ))}
 
-      {/* Subtle natural particles - like pollen or small leaves */}
-      {containerWidth > 150 && containerHeight > 150 && (
+      {/* Subtle natural particles - reduced for cleaner look */}
+      {containerWidth > 150 && containerHeight > 150 && plants.length > 0 && (
         <div className="absolute inset-0 pointer-events-none">
-          {[...Array(Math.min(2, Math.floor(plants.length / 2)))].map((_, i) => (
+          {[...Array(Math.min(1, Math.floor(plants.length / 3)))].map((_, i) => (
             <div
               key={`particle-${i}`}
-              className="absolute opacity-20 animate-pulse"
+              className="absolute opacity-10 animate-pulse"
               style={{
-                fontSize: '6px',
+                fontSize: '8px',
                 left: Math.random() * (containerWidth - 16),
                 top: Math.random() * (containerHeight - 16),
                 animationDelay: `${Math.random() * 4}s`,
-                animationDuration: `${3 + Math.random() * 2}s`,
+                animationDuration: `${4 + Math.random() * 2}s`,
               }}
             >
-              {['🌿', '🍃', '✨'][Math.floor(Math.random() * 3)]}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Extra playful elements for large containers */}
-      {containerWidth > 200 && containerHeight > 200 && (
-        <div className="absolute inset-0 pointer-events-none">
-          {/* Subtle gradient overlay for depth */}
-          <div 
-            className="absolute inset-0 opacity-5"
-            style={{
-              background: 'radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, transparent 70%)'
-            }}
-          />
-          
-          {/* Floating butterflies and bees for natural garden feel */}
-          {containerWidth > 200 && containerHeight > 200 && [...Array(1)].map((_, i) => (
-            <div
-              key={`nature-${i}`}
-              className="absolute opacity-30 animate-bounce select-none"
-              style={{
-                fontSize: 8 + Math.random() * 4,
-                left: Math.random() * (containerWidth - 20),
-                top: Math.random() * (containerHeight - 20),
-                animationDelay: `${Math.random() * 6}s`,
-                animationDuration: `${5 + Math.random() * 3}s`,
-              }}
-            >
-              {['🦋', '🐝'][Math.floor(Math.random() * 2)]}
+              {['🌿', '✨'][Math.floor(Math.random() * 2)]}
             </div>
           ))}
         </div>
