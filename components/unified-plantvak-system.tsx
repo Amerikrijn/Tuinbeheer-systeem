@@ -46,11 +46,11 @@ export function UnifiedPlantvakSystem({
     // Scale flower size based on mode and container size
     let flowerSize: number
     if (mode === 'garden-overview') {
-      // Small flowers for overview, but not too tiny
-      flowerSize = Math.max(16, Math.min(containerWidth, containerHeight) * 0.08)
+      // Reasonably sized flowers for overview - make them visible
+      flowerSize = Math.max(32, Math.min(containerWidth, containerHeight) * 0.15)
     } else {
       // Larger flowers for detail view, scale with container
-      flowerSize = Math.max(40, Math.min(containerWidth, containerHeight) * 0.12)
+      flowerSize = Math.max(60, Math.min(containerWidth, containerHeight) * 0.2)
     }
     
     return {
@@ -190,45 +190,74 @@ export function UnifiedGardenOverview({
   containerHeight: number
   onPlantvakClick?: (bedId: string) => void
 }) {
+  // If we have plantvakken, make them fill most of the canvas properly
+  const padding = 40
+  const availableWidth = containerWidth - (padding * 2)
+  const availableHeight = containerHeight - (padding * 2)
+  
   return (
     <div 
       className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 rounded-lg border border-green-200"
       style={{ width: containerWidth, height: containerHeight }}
     >
-      {plantBeds.map((bed, index) => {
-        // Better sizing for plantvakken in garden overview
-        const bedWidth = Math.max(200, containerWidth * 0.6) // Use 60% of container width
-        const bedHeight = Math.max(150, containerHeight * 0.4) // Use 40% of container height
-        
-        // Better positioning - spread them out more logically
-        const posX = bed.position_x || (50 + (index * 100))
-        const posY = bed.position_y || (50 + (index * 80))
-        
-        return (
-          <div
-            key={bed.id}
-            className="absolute cursor-pointer hover:shadow-lg transition-shadow hover:scale-105"
-            style={{
-              left: Math.min(posX, containerWidth - bedWidth - 20), // Keep within bounds
-              top: Math.min(posY, containerHeight - bedHeight - 20),
-            }}
-            onClick={() => onPlantvakClick?.(bed.id)}
-          >
-            <UnifiedPlantvakSystem
-              plantBed={bed}
-              plants={bed.plants.filter(p => 
-                p.position_x !== undefined && 
-                p.position_y !== undefined &&
-                p.visual_width !== undefined &&
-                p.visual_height !== undefined
-              ) as PlantWithPosition[]}
-              containerWidth={bedWidth}
-              containerHeight={bedHeight}
-              mode="garden-overview"
-            />
-          </div>
-        )
-      })}
+      {plantBeds.length === 0 ? (
+        <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+          Geen plantvakken gevonden
+        </div>
+      ) : (
+        plantBeds.map((bed, index) => {
+          // Make plantvakken actually fill the space properly
+          let bedWidth, bedHeight, posX, posY
+          
+          if (plantBeds.length === 1) {
+            // Single plantvak - make it fill most of the canvas
+            bedWidth = availableWidth * 0.8
+            bedHeight = availableHeight * 0.8
+            posX = padding + (availableWidth - bedWidth) / 2
+            posY = padding + (availableHeight - bedHeight) / 2
+          } else {
+            // Multiple plantvakken - arrange in a grid
+            const cols = Math.ceil(Math.sqrt(plantBeds.length))
+            const rows = Math.ceil(plantBeds.length / cols)
+            
+            bedWidth = (availableWidth / cols) * 0.9
+            bedHeight = (availableHeight / rows) * 0.9
+            
+            const col = index % cols
+            const row = Math.floor(index / cols)
+            
+            posX = padding + (col * (availableWidth / cols)) + ((availableWidth / cols) - bedWidth) / 2
+            posY = padding + (row * (availableHeight / rows)) + ((availableHeight / rows) - bedHeight) / 2
+          }
+          
+          return (
+            <div
+              key={bed.id}
+              className="absolute cursor-pointer hover:shadow-lg transition-shadow hover:scale-105"
+              style={{
+                left: posX,
+                top: posY,
+                width: bedWidth,
+                height: bedHeight,
+              }}
+              onClick={() => onPlantvakClick?.(bed.id)}
+            >
+              <UnifiedPlantvakSystem
+                plantBed={bed}
+                plants={bed.plants.filter(p => 
+                  p.position_x !== undefined && 
+                  p.position_y !== undefined &&
+                  p.visual_width !== undefined &&
+                  p.visual_height !== undefined
+                ) as PlantWithPosition[]}
+                containerWidth={bedWidth}
+                containerHeight={bedHeight}
+                mode="garden-overview"
+              />
+            </div>
+          )
+        })
+      )}
     </div>
   )
 }
