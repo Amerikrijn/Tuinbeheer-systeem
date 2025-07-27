@@ -1089,6 +1089,23 @@ export default function PlantBedViewPage() {
         dimensionsFound: !!dimensions
       })
 
+      // CRITICAL DEBUG: Log boundary calculation details per flower
+      console.log('🎯 BOUNDARY CALCULATION BREAKDOWN:', {
+        flowerName: draggedFlowerData.name,
+        arrayIndex: flowerIndex,
+        actualArrayPosition: prev.findIndex(f => f.name === draggedFlowerData.name),
+        plantvakStart: { x: plantvakStartX, y: plantvakStartY },
+        plantvakSize: { w: plantvakWidth, h: plantvakHeight },
+        flowerSize: { w: draggedFlowerData.visual_width, h: draggedFlowerData.visual_height },
+        margin: margin,
+        calculatedBounds: {
+          minX: `${plantvakStartX} + ${margin} = ${minX}`,
+          minY: `${plantvakStartY} + ${margin} = ${minY}`,
+          maxX: `${plantvakStartX} + ${plantvakWidth} - ${draggedFlowerData.visual_width} - ${margin} = ${maxX}`,
+          maxY: `${plantvakStartY} + ${plantvakHeight} - ${draggedFlowerData.visual_height} - ${margin} = ${maxY}`
+        }
+      })
+
       // Only update the specific dragged flower
       return prev.map(f => {
         if (f.id === draggedFlower) {
