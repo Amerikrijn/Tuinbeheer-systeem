@@ -1087,8 +1087,11 @@ export default function PlantBedViewPage() {
         // FIXED: Position flower center at mouse position, constrain to plantvak bounds
         const plantvakWidth = dimensions.lengthPixels
         const plantvakHeight = dimensions.widthPixels
-        const plantvakStartX = (canvasWidth - plantvakWidth) / 2
-        const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+        
+        // CRITICAL FIX: Use dynamic canvas size instead of cached values
+        const currentCanvasSize = getCanvasSize()
+        const plantvakStartX = (currentCanvasSize.width - plantvakWidth) / 2
+        const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
         const margin = 10
         
         // Calculate desired top-left position (mouse position - half flower size)
@@ -1103,13 +1106,14 @@ export default function PlantBedViewPage() {
           plantvakStartY + margin, 
           Math.min(desiredY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
         )
-      } else {
-        // Fallback to canvas bounds if no plantvak dimensions
-        const desiredX = mouseX - (draggedFlowerData.visual_width / 2)
-        const desiredY = mouseY - (draggedFlowerData.visual_height / 2)
-        constrainedX = Math.max(0, Math.min(desiredX, canvasWidth - draggedFlowerData.visual_width))
-        constrainedY = Math.max(0, Math.min(desiredY, canvasHeight - draggedFlowerData.visual_height))
-      }
+              } else {
+          // Fallback to canvas bounds if no plantvak dimensions
+          const currentCanvasSize = getCanvasSize()
+          const desiredX = mouseX - (draggedFlowerData.visual_width / 2)
+          const desiredY = mouseY - (draggedFlowerData.visual_height / 2)
+          constrainedX = Math.max(0, Math.min(desiredX, currentCanvasSize.width - draggedFlowerData.visual_width))
+          constrainedY = Math.max(0, Math.min(desiredY, currentCanvasSize.height - draggedFlowerData.visual_height))
+        }
 
       // Only update the specific dragged flower
       return prev.map(f => {
@@ -1121,7 +1125,7 @@ export default function PlantBedViewPage() {
     })
     
     setHasChanges(true)
-  }, [draggedFlower, scale, canvasWidth, canvasHeight, plantBed])
+  }, [draggedFlower, scale, plantBed, getCanvasSize])
 
   // Mouse move handler
   const onMouseMove = useCallback((e: React.MouseEvent) => {
