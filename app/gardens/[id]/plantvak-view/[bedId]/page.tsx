@@ -976,9 +976,11 @@ export default function PlantBedViewPage() {
       const rect = containerRef.current?.getBoundingClientRect()
       if (!rect) return
 
-      // Start dragging - FIX: Correct offset calculation for touch
-      const offsetX = (clientX - rect.left) / scale - selectedFlower.position_x
-      const offsetY = (clientY - rect.top) / scale - selectedFlower.position_y
+      // FIXED: Correct drag offset calculation - offset should be mouse relative to flower center
+      const mouseX = (clientX - rect.left) / scale
+      const mouseY = (clientY - rect.top) / scale
+      const offsetX = mouseX - selectedFlower.position_x
+      const offsetY = mouseY - selectedFlower.position_y
       
       setDraggedFlower(flowerId)
       setDragOffset({ x: offsetX, y: offsetY })
