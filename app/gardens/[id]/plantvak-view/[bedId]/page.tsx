@@ -1064,22 +1064,7 @@ export default function PlantBedViewPage() {
       
 
 
-      // CRITICAL DEBUG: Log boundary calculation details per flower
-      console.log('🎯 BOUNDARY CALCULATION BREAKDOWN:', {
-        flowerName: draggedFlowerData.name,
-        arrayIndex: flowerIndex,
-        actualArrayPosition: prev.findIndex(f => f.name === draggedFlowerData.name),
-        plantvakStart: { x: plantvakStartX, y: plantvakStartY },
-        plantvakSize: { w: plantvakWidth, h: plantvakHeight },
-        flowerSize: { w: draggedFlowerData.visual_width, h: draggedFlowerData.visual_height },
-        margin: margin,
-        calculatedBounds: {
-          minX: `${plantvakStartX} + ${margin} = ${minX}`,
-          minY: `${plantvakStartY} + ${margin} = ${minY}`,
-          maxX: `${plantvakStartX} + ${plantvakWidth} - ${draggedFlowerData.visual_width} - ${margin} = ${maxX}`,
-          maxY: `${plantvakStartY} + ${plantvakHeight} - ${draggedFlowerData.visual_height} - ${margin} = ${maxY}`
-        }
-      })
+      
 
       // CRITICAL: Log all flower positions to see if they're being corrupted
       console.log('📍 ALL FLOWER POSITIONS:', {
