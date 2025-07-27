@@ -909,9 +909,22 @@ export default function PlantBedViewPage() {
     const rect = containerRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // Start dragging immediately - FIX: Correct offset calculation
-    const offsetX = (clientX - rect.left) / scale - flower.position_x
-    const offsetY = (clientY - rect.top) / scale - flower.position_y
+    // FIXED: Correct drag offset calculation - offset should be mouse relative to flower center
+    const mouseX = (clientX - rect.left) / scale
+    const mouseY = (clientY - rect.top) / scale
+    const offsetX = mouseX - flower.position_x
+    const offsetY = mouseY - flower.position_y
+
+    // DEBUG: Log drag offset calculation
+    console.log('🎯 DRAG OFFSET CALCULATION:', {
+      flowerName: flower.name,
+      clientPos: { x: clientX, y: clientY },
+      rectPos: { left: rect.left, top: rect.top },
+      scale: scale,
+      mousePos: { x: mouseX, y: mouseY },
+      flowerPos: { x: flower.position_x, y: flower.position_y },
+      calculatedOffset: { x: offsetX, y: offsetY }
+    })
 
     setDraggedFlower(flowerId)
     setDragOffset({ x: offsetX, y: offsetY })
@@ -1001,6 +1014,16 @@ export default function PlantBedViewPage() {
     
     const newX = mouseX - dragOffset.x
     const newY = mouseY - dragOffset.y
+
+    // DEBUG: Log position calculation details
+    console.log('📍 POSITION CALCULATION:', {
+      clientPos: { x: clientX, y: clientY },
+      rectPos: { left: rect.left, top: rect.top },
+      scale: scale,
+      mousePos: { x: mouseX, y: mouseY },
+      dragOffset: dragOffset,
+      calculatedPos: { x: newX, y: newY }
+    })
 
     // Use functional update to avoid dependency issues
     setFlowerPositions(prev => {
