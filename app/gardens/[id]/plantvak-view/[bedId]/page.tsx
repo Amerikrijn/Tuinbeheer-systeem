@@ -481,10 +481,11 @@ export default function PlantBedViewPage() {
     const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
     if (!dimensions) return
     
+    const currentCanvasSize = getCanvasSize()
     const plantvakWidth = dimensions.lengthPixels
     const plantvakHeight = dimensions.widthPixels
-    const plantvakStartX = (canvasWidth - plantvakWidth) / 2
-    const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+    const plantvakStartX = (currentCanvasSize.width - plantvakWidth) / 2
+    const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
     
     console.log('🌸 RESETTING FLOWERS TO CENTER')
     
@@ -537,11 +538,12 @@ export default function PlantBedViewPage() {
       let initialY = 50
       
       if (dimensions) {
-        // Place flower within plantvak boundaries
+        // Place flower within plantvak boundaries using dynamic canvas size
+        const currentCanvasSize = getCanvasSize()
         const plantvakWidth = dimensions.lengthPixels
         const plantvakHeight = dimensions.widthPixels
-        const plantvakStartX = (canvasWidth - plantvakWidth) / 2
-        const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+        const plantvakStartX = (currentCanvasSize.width - plantvakWidth) / 2
+        const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
         
         // Center the flower in the plantvak with some randomness
         const margin = 20
@@ -562,8 +564,8 @@ export default function PlantBedViewPage() {
         initialX, 
         initialY, 
         plantvakBounds: dimensions ? {
-          startX: (canvasWidth - dimensions.lengthPixels) / 2,
-          startY: (canvasHeight - dimensions.widthPixels) / 2,
+          startX: (getCanvasSize().width - dimensions.lengthPixels) / 2,
+          startY: (getCanvasSize().height - dimensions.widthPixels) / 2,
           width: dimensions.lengthPixels,
           height: dimensions.widthPixels
         } : 'no bounds'
@@ -985,7 +987,7 @@ export default function PlantBedViewPage() {
 
 
 
-  // Handle drag move - FIXED: Simplified for reliable movement
+  // Handle drag move - FIXED: Dynamic boundary calculation to prevent cached size issues
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
     if (!draggedFlower || !containerRef.current || !plantBed) return
 
@@ -1004,19 +1006,24 @@ export default function PlantBedViewPage() {
       const draggedFlowerData = prev.find(f => f.id === draggedFlower)
       if (!draggedFlowerData) return prev
 
-      // FIXED: Get plantvak dimensions with fallback to full canvas
+      // FIXED: Calculate canvas size dynamically to avoid cached size issues
+      const currentCanvasSize = getCanvasSize()
+      const currentCanvasWidth = currentCanvasSize.width
+      const currentCanvasHeight = currentCanvasSize.height
+
+      // FIXED: Get plantvak dimensions with fallback to current canvas
       const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
       let plantvakStartX = 0
       let plantvakStartY = 0
-      let plantvakWidth = canvasWidth
-      let plantvakHeight = canvasHeight
+      let plantvakWidth = currentCanvasWidth
+      let plantvakHeight = currentCanvasHeight
       
       if (dimensions) {
         // Center the plantvak within the canvas
         plantvakWidth = dimensions.lengthPixels
         plantvakHeight = dimensions.widthPixels
-        plantvakStartX = (canvasWidth - plantvakWidth) / 2
-        plantvakStartY = (canvasHeight - plantvakHeight) / 2
+        plantvakStartX = (currentCanvasWidth - plantvakWidth) / 2
+        plantvakStartY = (currentCanvasHeight - plantvakHeight) / 2
       }
 
       // FIXED: Simplified boundary checking with generous margins
@@ -1030,14 +1037,18 @@ export default function PlantBedViewPage() {
       const constrainedX = (maxX > minX) ? Math.max(minX, Math.min(newX, maxX)) : newX
       const constrainedY = (maxY > minY) ? Math.max(minY, Math.min(newY, maxY)) : newY
       
-      // DEBUG: Simplified logging for troubleshooting
-      console.log('🌸 FLOWER MOVEMENT:', {
-        flower: draggedFlowerData.name,
+      // DEBUG: Enhanced logging to identify boundary issues
+      console.log('🌸 FLOWER MOVEMENT DEBUG:', {
+        flowerName: draggedFlowerData.name,
+        flowerIndex: prev.findIndex(f => f.id === draggedFlower) + 1,
         mouse: { x: newX, y: newY },
         constrained: { x: constrainedX, y: constrainedY },
+        canvas: { w: currentCanvasWidth, h: currentCanvasHeight },
         plantvak: { x: plantvakStartX, y: plantvakStartY, w: plantvakWidth, h: plantvakHeight },
         boundaries: { minX, minY, maxX, maxY },
-        applied: constrainedX !== newX || constrainedY !== newY
+        flowerSize: { w: draggedFlowerData.visual_width, h: draggedFlowerData.visual_height },
+        constraintApplied: { x: constrainedX !== newX, y: constrainedY !== newY },
+        dimensionsFound: !!dimensions
       })
 
       // Only update the specific dragged flower
@@ -1050,7 +1061,7 @@ export default function PlantBedViewPage() {
     })
     
     setHasChanges(true)
-  }, [draggedFlower, dragOffset, scale, canvasWidth, canvasHeight, plantBed])
+  }, [draggedFlower, dragOffset, scale, plantBed])
 
   // Mouse move handler
   const onMouseMove = useCallback((e: React.MouseEvent) => {
@@ -1894,10 +1905,11 @@ export default function PlantBedViewPage() {
                 const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
                 
                 if (dimensions) {
+                  const currentCanvasSize = getCanvasSize()
                   const plantvakWidth = dimensions.lengthPixels
                   const plantvakHeight = dimensions.widthPixels
-                  const plantvakStartX = (canvasWidth - plantvakWidth) / 2
-                  const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+                  const plantvakStartX = (currentCanvasSize.width - plantvakWidth) / 2
+                  const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
                   
                   const centerX = plantvakStartX + (plantvakWidth - firstFlower.visual_width) / 2
                   const centerY = plantvakStartY + (plantvakHeight - firstFlower.visual_height) / 2
@@ -2259,8 +2271,8 @@ export default function PlantBedViewPage() {
               ref={containerRef}
               className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100"
               style={{
-                width: canvasWidth,
-                height: canvasHeight,
+                width: getCanvasSize().width,
+                height: getCanvasSize().height,
                 transform: `scale(${scale})`,
                 transformOrigin: "top left",
                 maxWidth: "100%",
@@ -2293,10 +2305,12 @@ export default function PlantBedViewPage() {
                 const dimensions = plantBed?.size ? parsePlantBedDimensions(plantBed.size) : null
                 if (!dimensions) return null
                 
+                // FIXED: Use dynamic canvas size to match movement boundaries
+                const currentCanvasSize = getCanvasSize()
                 const plantvakWidth = dimensions.lengthPixels
                 const plantvakHeight = dimensions.widthPixels
-                const plantvakStartX = (canvasWidth - plantvakWidth) / 2
-                const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+                const plantvakStartX = (currentCanvasSize.width - plantvakWidth) / 2
+                const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
                 
                 return (
                   <div
