@@ -240,8 +240,17 @@ export default function PlantBedViewPage() {
         // Load plants from database instead of localStorage
         if (params.bedId) {
           const plants = await getPlantsWithPositions(params.bedId as string)
-          console.log('Loading plants from database:', plants)
-          setFlowerPositions(plants)
+                  console.log('Loading plants from database:', plants)
+        
+        // DEBUG: Show initial flower positions
+        console.log('🌸 INITIAL POSITIONS:', plants.map(p => ({
+          name: p.name,
+          x: p.position_x,
+          y: p.position_y,
+          size: { w: p.visual_width, h: p.visual_height }
+        })))
+        
+        setFlowerPositions(plants)
         }
       } catch (error) {
         console.error("Error loading data:", error)
@@ -993,6 +1002,16 @@ export default function PlantBedViewPage() {
       
       const constrainedX = Math.max(minX, Math.min(newX, maxX))
       const constrainedY = Math.max(minY, Math.min(newY, maxY))
+
+      // DEBUG: Log what's happening with movement
+      console.log('🌸 MOVEMENT DEBUG:', {
+        flowerName: draggedFlowerData.name,
+        mousePos: { x: newX, y: newY },
+        constraints: { minX, minY, maxX, maxY },
+        constrained: { x: constrainedX, y: constrainedY },
+        plantvak: { startX: plantvakStartX, startY: plantvakStartY, width: plantvakWidth, height: plantvakHeight },
+        flowerSize: { width: draggedFlowerData.visual_width, height: draggedFlowerData.visual_height }
+      })
 
       
 
