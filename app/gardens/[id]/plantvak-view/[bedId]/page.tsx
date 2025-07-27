@@ -950,8 +950,8 @@ export default function PlantBedViewPage() {
         plantvakStartY = (canvasHeight - plantvakHeight) / 2
       }
 
-      // Allow movement within the entire plantvak area with small margin
-      const margin = 5
+      // IMPROVED: Allow movement within the entire plantvak area with minimal margin
+      const margin = 2 // Reduced margin for more freedom of movement
       const constrainedX = Math.max(
         plantvakStartX + margin, 
         Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin)
@@ -960,6 +960,8 @@ export default function PlantBedViewPage() {
         plantvakStartY + margin, 
         Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
       )
+
+
 
       // Only update the specific dragged flower
       return prev.map(f => {

@@ -107,44 +107,6 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
         
-        // DEBUG: Log the positioning calculations
-        console.log('🌸 FLOWER POSITIONING DEBUG:', {
-          plantName: plant.name,
-          plantBedSize: plantBed.size,
-          dimensions: {
-            lengthPixels: dimensions.lengthPixels,
-            widthPixels: dimensions.widthPixels
-          },
-          plantvakCanvas: {
-            width: plantvakCanvasWidth,
-            height: plantvakCanvasHeight
-          },
-          plantvakStart: {
-            x: plantvakStartX,
-            y: plantvakStartY
-          },
-          originalPosition: {
-            x: plant.position_x,
-            y: plant.position_y
-          },
-          relativePosition: {
-            x: relativeX,
-            y: relativeY
-          },
-          percentage: {
-            x: percentageX,
-            y: percentageY
-          },
-          containerSize: {
-            width: containerWidth,
-            height: containerHeight
-          },
-          finalPosition: {
-            x: finalX,
-            y: finalY
-          }
-        })
-        
         // Scale the flower size proportionally to container size
         const sizeScale = Math.min(containerWidth / dimensions.lengthPixels, containerHeight / dimensions.widthPixels)
         const scaledSize = Math.max(16, (plant.visual_width! * sizeScale))
