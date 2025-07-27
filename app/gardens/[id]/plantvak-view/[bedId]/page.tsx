@@ -465,6 +465,45 @@ export default function PlantBedViewPage() {
     setScale(1)
   }
 
+  // TEMP: Reset all flowers to center to test movement
+  const resetFlowerPositions = async () => {
+    if (!plantBed) return
+    
+    const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
+    if (!dimensions) return
+    
+    const plantvakWidth = dimensions.lengthPixels
+    const plantvakHeight = dimensions.widthPixels
+    const plantvakStartX = (canvasWidth - plantvakWidth) / 2
+    const plantvakStartY = (canvasHeight - plantvakHeight) / 2
+    
+    console.log('🌸 RESETTING FLOWERS TO CENTER')
+    
+    for (const flower of flowerPositions) {
+      const centerX = plantvakStartX + plantvakWidth / 2 - (flower.visual_width || 45) / 2
+      const centerY = plantvakStartY + plantvakHeight / 2 - (flower.visual_height || 45) / 2
+      
+      try {
+        await updatePlantPosition(flower.id, {
+          position_x: centerX,
+          position_y: centerY,
+          visual_width: flower.visual_width,
+          visual_height: flower.visual_height,
+          notes: flower.notes
+        })
+        
+        // Update local state
+        setFlowerPositions(prev => prev.map(f => 
+          f.id === flower.id 
+            ? { ...f, position_x: centerX, position_y: centerY }
+            : f
+        ))
+      } catch (error) {
+        console.error("Error resetting flower position:", error)
+      }
+    }
+  }
+
   // Note: Manual save layout function removed - now using auto-save on drag end
 
   const addFlower = async () => {
@@ -947,6 +986,17 @@ export default function PlantBedViewPage() {
       const constrainedX = Math.max(plantvakStartX, Math.min(newX, plantvakStartX + plantvakWidth - draggedFlowerData.visual_width))
       const constrainedY = Math.max(plantvakStartY, Math.min(newY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height))
       
+      // TEMP DEBUG: Log vertical movement to see what's happening
+      console.log('🌸 VERTICAL DEBUG:', {
+        flowerName: draggedFlowerData.name,
+        mouseY: newY,
+        plantvakTop: plantvakStartY,
+        plantvakBottom: plantvakStartY + plantvakHeight,
+        flowerHeight: draggedFlowerData.visual_height,
+        maxY: plantvakStartY + plantvakHeight - draggedFlowerData.visual_height,
+        constrainedY: constrainedY,
+        wasYConstrained: constrainedY !== newY
+      })
 
       
 
@@ -1792,6 +1842,11 @@ export default function PlantBedViewPage() {
           </Button>
           <Button variant="outline" size="sm" onClick={resetView}>
             <RotateCcw className="h-4 w-4" />
+          </Button>
+          
+          {/* TEMP: Reset flowers button */}
+          <Button onClick={resetFlowerPositions} variant="outline" size="sm" className="bg-orange-50">
+            🌸 Reset Flowers
           </Button>
 
         </div>
