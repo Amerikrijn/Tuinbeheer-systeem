@@ -959,34 +959,7 @@ export default function PlantBedViewPage() {
       const minY = plantvakStartY + margin
       const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin
       
-      // DEBUG: Enhanced logging to diagnose position issues
-      console.log('🌸 POSITION DEBUG:', {
-        flowerName: draggedFlowerData.name,
-        currentPosition: {
-          x: draggedFlowerData.position_x,
-          y: draggedFlowerData.position_y
-        },
-        movement: {
-          newX: newX,
-          newY: newY,
-          constrainedX: Math.max(minX, Math.min(newX, maxX)),
-          constrainedY: Math.max(minY, Math.min(newY, maxY))
-        },
-        plantvakBounds: {
-          startX: plantvakStartX,
-          startY: plantvakStartY,
-          endX: plantvakStartX + plantvakWidth,
-          endY: plantvakStartY + plantvakHeight,
-          width: plantvakWidth,
-          height: plantvakHeight
-        },
-        constraints: { minX, maxX, minY, maxY },
-        isFlowerInsidePlantvak: {
-          x: draggedFlowerData.position_x >= plantvakStartX && draggedFlowerData.position_x <= plantvakStartX + plantvakWidth,
-          y: draggedFlowerData.position_y >= plantvakStartY && draggedFlowerData.position_y <= plantvakStartY + plantvakHeight
-        },
-        constraintType: newY < minY ? 'TOO_HIGH' : newY > maxY ? 'TOO_LOW' : 'OK'
-      })
+
       
       // Apply constraints
       const constrainedX = Math.max(minX, Math.min(newX, maxX))
