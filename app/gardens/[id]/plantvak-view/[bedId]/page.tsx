@@ -991,12 +991,12 @@ export default function PlantBedViewPage() {
         plantvakStartY = (canvasHeight - plantvakHeight) / 2
       }
 
-      // INSPIRED BY TUIN: Simple boundary checking like plantvakken in garden overview
-      const SAFETY_MARGIN = 5  // Small margin to keep flowers visible
+      // FIXED: Correct boundary calculation - flower should move freely within plantvak
+      const SAFETY_MARGIN = 2  // Minimal margin to keep flowers visible
       
-      // Each flower moves independently within plantvak boundaries - no interdependence!
+      // Allow flowers to move throughout the entire plantvak area
       const minX = plantvakStartX + SAFETY_MARGIN
-      const minY = plantvakStartY + SAFETY_MARGIN  
+      const minY = plantvakStartY + SAFETY_MARGIN
       const maxX = plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - SAFETY_MARGIN
       const maxY = plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - SAFETY_MARGIN
       
