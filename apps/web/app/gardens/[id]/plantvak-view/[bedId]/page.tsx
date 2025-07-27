@@ -1094,6 +1094,16 @@ export default function PlantBedViewPage() {
         const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
         const margin = 10
         
+        // DEBUG: Log boundary calculations
+        console.log('🔍 BOUNDARY CALCULATION DEBUG:', {
+          flowerName: draggedFlowerData.name,
+          currentCanvasSize,
+          plantvakDimensions: { width: plantvakWidth, height: plantvakHeight },
+          plantvakStart: { x: plantvakStartX, y: plantvakStartY },
+          margin,
+          mousePos: { x: mouseX, y: mouseY }
+        })
+        
         // Calculate desired top-left position (mouse position - half flower size)
         const desiredX = mouseX - (draggedFlowerData.visual_width / 2)
         const desiredY = mouseY - (draggedFlowerData.visual_height / 2)
@@ -1106,6 +1116,23 @@ export default function PlantBedViewPage() {
           plantvakStartY + margin, 
           Math.min(desiredY, plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin)
         )
+        
+        // DEBUG: Log constraint results
+        console.log('🎯 CONSTRAINT RESULTS:', {
+          flowerName: draggedFlowerData.name,
+          desired: { x: desiredX, y: desiredY },
+          constrained: { x: constrainedX, y: constrainedY },
+          boundaries: {
+            minX: plantvakStartX + margin,
+            maxX: plantvakStartX + plantvakWidth - draggedFlowerData.visual_width - margin,
+            minY: plantvakStartY + margin,
+            maxY: plantvakStartY + plantvakHeight - draggedFlowerData.visual_height - margin
+          },
+          constraintApplied: {
+            x: constrainedX !== desiredX,
+            y: constrainedY !== desiredY
+          }
+        })
               } else {
           // Fallback to canvas bounds if no plantvak dimensions
           const currentCanvasSize = getCanvasSize()
