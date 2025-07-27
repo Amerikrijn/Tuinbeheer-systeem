@@ -2523,8 +2523,8 @@ export default function PlantBedViewPage() {
               ref={containerRef}
               className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100"
               style={{
-                width: canvasWidth,
-                height: canvasHeight,
+                width: getCanvasSize().width,
+                height: getCanvasSize().height,
                 transform: `scale(${scale})`,
                 transformOrigin: "top left",
                 maxWidth: "100%",
@@ -2556,8 +2556,8 @@ export default function PlantBedViewPage() {
               <FlowerVisualization 
                 plantBed={plantBed}
                 plants={flowerPositions}
-                containerWidth={canvasWidth}
-                containerHeight={canvasHeight}
+                containerWidth={getCanvasSize().width}
+                containerHeight={getCanvasSize().height}
               />
 
               {/* Plantvak boundary visualization */}
