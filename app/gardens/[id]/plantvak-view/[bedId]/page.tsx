@@ -1066,30 +1066,7 @@ export default function PlantBedViewPage() {
 
       
 
-      // CRITICAL: Log all flower positions to see if they're being corrupted
-      console.log('📍 ALL FLOWER POSITIONS:', {
-        movedFlower: draggedFlowerData.name,
-        allFlowers: prev.map(f => ({
-          name: f.name,
-          position: { x: f.position_x, y: f.position_y },
-          size: { w: f.visual_width, h: f.visual_height }
-        }))
-      })
 
-      // DEBUG: Log movement calculation details
-      console.log('🎯 MOVEMENT CALCULATION:', {
-        flowerName: draggedFlowerData.name,
-        mousePosition: { x: newX, y: newY },
-        dragOffset: dragOffset,
-        originalFlowerPos: { x: draggedFlowerData.position_x, y: draggedFlowerData.position_y },
-        plantvakBounds: { 
-          start: { x: plantvakStartX, y: plantvakStartY },
-          size: { w: plantvakWidth, h: plantvakHeight },
-          boundaries: { minX, minY, maxX, maxY }
-        },
-        constrainedResult: { x: constrainedX, y: constrainedY },
-        wasConstrained: { x: constrainedX !== newX, y: constrainedY !== newY }
-      })
 
       // Only update the specific dragged flower
       return prev.map(f => {
@@ -2375,10 +2352,24 @@ export default function PlantBedViewPage() {
                 )
               })()}
 
-              {/* FlowerVisualization removed - using interactive overlay instead */}
+              {/* Use the working FlowerVisualization component from garden view */}
+              <FlowerVisualization 
+                plantBed={plantBed}
+                plants={flowerPositions}
+                containerWidth={canvasSize.width}
+                containerHeight={canvasSize.height}
+              />
+              
+              {flowerPositions.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
+                    🌱 Geen bloemen toegevoegd
+                  </div>
+                </div>
+              )}
 
-              {/* Interactive overlay for selected flowers */}
-              {flowerPositions.map((flower) => {
+              {/* BACKUP: Interactive overlay for selected flowers (disabled) */}
+              {false && flowerPositions.map((flower) => {
                 const isSelected = selectedFlower?.id === flower.id
                 const isDragging = draggedFlower === flower.id
                 const isBeingResized = isResizing === flower.id
@@ -2733,68 +2724,7 @@ export default function PlantBedViewPage() {
         </div>
       )}
 
-      {/* Control buttons */}
-      <div className="absolute top-4 right-4 flex gap-2 z-10">
-        <button
-          onClick={() => setSelectedFlower(null)}
-          className="px-3 py-1 bg-gray-500 text-white rounded text-sm hover:bg-gray-600"
-        >
-          Deselect
-        </button>
-        
-        <button
-          onClick={async () => {
-            if (!plantBed) return
-            
-            const currentCanvasSize = getCanvasSize()
-            const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
-            
-            let plantvakStartY = 0
-            let plantvakHeight = currentCanvasSize.height
-            
-            if (dimensions) {
-              plantvakHeight = dimensions.widthPixels
-              plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
-            }
-            
-            // Set all flowers to the same Y position (middle of plantvak)
-            const targetY = plantvakStartY + (plantvakHeight / 2) - (FLOWER_SIZE / 2)
-            
-                         // Space flowers horizontally
-             const spacing = 100
-             const startX = 150
-            
-            const updatedFlowers = flowerPositions.map((flower, index) => ({
-              ...flower,
-              position_x: startX + (index * spacing),
-              position_y: targetY
-            }))
-            
-            setFlowerPositions(updatedFlowers)
-            
-            // Save to database
-            try {
-              const savePromises = updatedFlowers.map(async (flower) => {
-                return await updatePlantPosition(flower.id, {
-                  position_x: flower.position_x,
-                  position_y: flower.position_y,
-                  visual_width: flower.visual_width,
-                  visual_height: flower.visual_height,
-                  notes: flower.notes
-                })
-              })
-              
-              await Promise.all(savePromises)
-              console.log('✅ All flowers reset to horizontal line')
-            } catch (error) {
-              console.error('Error saving reset positions:', error)
-            }
-          }}
-          className="px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600"
-        >
-          Fix Positions
-        </button>
-      </div>
+      
     </div>
   )
 }
