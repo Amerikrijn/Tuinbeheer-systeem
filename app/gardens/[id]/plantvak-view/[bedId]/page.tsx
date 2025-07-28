@@ -112,6 +112,28 @@ const FLOWER_STATUS_OPTIONS = [
     }
   }
 
+  // Helper function to get color name from hex value
+  const getColorName = (hex: string): string => {
+    const colorNames: { [key: string]: string } = {
+      '#FF69B4': 'Roze',
+      '#FF4500': 'Oranje-rood',
+      '#FFD700': 'Goud',
+      '#9370DB': 'Paars',
+      '#FF1493': 'Diep roze',
+      '#FFA500': 'Oranje',
+      '#FFFF00': 'Geel',
+      '#4B0082': 'Indigo',
+      '#FF6B6B': 'Koraal',
+      '#FF8C69': 'Zalm',
+      '#32CD32': 'Lime groen',
+      '#00CED1': 'Turquoise',
+      '#FF6347': 'Tomaat',
+      '#DDA0DD': 'Lila',
+      '#98FB98': 'Licht groen'
+    };
+    return colorNames[hex] || hex;
+  }
+
   // Helper function to get emoji based on plant name or category (optional)
   const getPlantEmoji = (name?: string, category?: string): string | undefined => {
   const plantName = (name || '').toLowerCase()
@@ -184,7 +206,7 @@ export default function PlantBedViewPage() {
     emoji: DEFAULT_FLOWER_EMOJI,
     description: '',
     status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
-    size: 'medium' as 'small' | 'medium' | 'large',
+
     isStandardFlower: false,
     // New plant fields
     latinName: '',
@@ -539,7 +561,7 @@ export default function PlantBedViewPage() {
                       newFlower.status === 'blooming' ? 'healthy' : 
                       newFlower.status
 
-      const flowerSize = getFlowerSize(newFlower.size)
+      const flowerSize = FLOWER_SIZE_MEDIUM
       
       // FIXED: Calculate proper initial position within plantvak boundaries
       const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
@@ -593,7 +615,7 @@ export default function PlantBedViewPage() {
         photo_url: null,
         is_custom: !newFlower.isStandardFlower,
         category: newFlower.isStandardFlower ? newFlower.type : 'Aangepast',
-        notes: `${newFlower.description}${newFlower.description ? ' | ' : ''}Size: ${newFlower.size}`,
+        notes: newFlower.description || '',
         latin_name: newFlower.latinName || undefined,
         plant_color: newFlower.plantColor || undefined,
         plant_height: newFlower.plantHeight ? parseFloat(newFlower.plantHeight) : undefined,
@@ -612,7 +634,6 @@ export default function PlantBedViewPage() {
           emoji: DEFAULT_FLOWER_EMOJI,
           description: '',
           status: 'healthy',
-          size: 'medium',
           isStandardFlower: false,
           // Reset new fields
           latinName: '',
@@ -674,7 +695,6 @@ export default function PlantBedViewPage() {
           emoji: DEFAULT_FLOWER_EMOJI,
           description: '',
           status: 'healthy',
-          size: 'medium',
           isStandardFlower: false,
           // Reset new fields
           latinName: '',
@@ -1436,7 +1456,7 @@ export default function PlantBedViewPage() {
                 emoji: DEFAULT_FLOWER_EMOJI,
                 description: '',
                 status: 'healthy',
-                size: 'medium',
+                
                 isStandardFlower: false,
                 // Reset new fields
                 latinName: '',
@@ -1458,7 +1478,7 @@ export default function PlantBedViewPage() {
                   emoji: DEFAULT_FLOWER_EMOJI,
                   description: '',
                   status: 'healthy',
-                  size: 'medium',
+                  
                   isStandardFlower: false,
                   // Reset new fields
                   latinName: '',
@@ -1583,25 +1603,26 @@ export default function PlantBedViewPage() {
 
                 <div>
                   <label className="text-sm font-medium">Kleur</label>
-                  <div className="flex gap-2 flex-wrap mt-2">
-                    {DEFAULT_FLOWER_COLORS.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        className={`w-8 h-8 rounded-full border-2 ${
-                          newFlower.color === color ? 'border-gray-800' : 'border-gray-300'
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setNewFlower(prev => ({ ...prev, color }))}
-                      />
-                    ))}
-                  </div>
-                  <Input
-                    type="color"
-                    value={newFlower.color}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, color: e.target.value }))}
-                    className="mt-2 h-10"
-                  />
+                  <Select value={newFlower.color} onValueChange={(value) => 
+                    setNewFlower(prev => ({ ...prev, color: value }))
+                  }>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEFAULT_FLOWER_COLORS.map((color) => (
+                        <SelectItem key={color} value={color}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-4 h-4 rounded-full border border-gray-300"
+                              style={{ backgroundColor: color }}
+                            ></div>
+                            <span>{getColorName(color)}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -1625,36 +1646,7 @@ export default function PlantBedViewPage() {
                   </Select>
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium">Grootte</label>
-                  <Select value={newFlower.size} onValueChange={(value: 'small' | 'medium' | 'large') => 
-                    setNewFlower(prev => ({ ...prev, size: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                          <span>Klein ({FLOWER_SIZE_SMALL}px)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="medium">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                          <span>Midden ({FLOWER_SIZE_MEDIUM}px)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="large">
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 bg-green-600 rounded-full"></div>
-                          <span>Groot ({FLOWER_SIZE_LARGE}px)</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+
 
                 <div>
                   <label className="text-sm font-medium">Beschrijving (optioneel)</label>
@@ -1749,7 +1741,7 @@ export default function PlantBedViewPage() {
                       emoji: DEFAULT_FLOWER_EMOJI,
                       description: '',
                       status: 'healthy',
-                      size: 'medium',
+                      
                       isStandardFlower: false,
                       // Reset new fields
                       latinName: '',
@@ -1779,7 +1771,7 @@ export default function PlantBedViewPage() {
                 emoji: DEFAULT_FLOWER_EMOJI,
                 description: '',
                 status: 'healthy',
-                size: 'medium',
+                
                 isStandardFlower: false,
                 // Reset new fields
                 latinName: '',
@@ -1896,25 +1888,26 @@ export default function PlantBedViewPage() {
 
                 <div>
                   <label className="text-sm font-medium">Kleur</label>
-                  <div className="flex gap-2 flex-wrap mt-2">
-                    {DEFAULT_FLOWER_COLORS.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        className={`w-8 h-8 rounded-full border-2 ${
-                          newFlower.color === color ? 'border-gray-800' : 'border-gray-300'
-                        }`}
-                        style={{ backgroundColor: color }}
-                        onClick={() => setNewFlower(prev => ({ ...prev, color }))}
-                      />
-                    ))}
-                  </div>
-                  <Input
-                    type="color"
-                    value={newFlower.color}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, color: e.target.value }))}
-                    className="mt-2 h-10"
-                  />
+                  <Select value={newFlower.color} onValueChange={(value) => 
+                    setNewFlower(prev => ({ ...prev, color: value }))
+                  }>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DEFAULT_FLOWER_COLORS.map((color) => (
+                        <SelectItem key={color} value={color}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-4 h-4 rounded-full border border-gray-300"
+                              style={{ backgroundColor: color }}
+                            ></div>
+                            <span>{getColorName(color)}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div>
@@ -2039,7 +2032,7 @@ export default function PlantBedViewPage() {
                       emoji: DEFAULT_FLOWER_EMOJI,
                       description: '',
                       status: 'healthy',
-                      size: 'medium',
+                      
                       isStandardFlower: false,
                       // Reset new fields
                       latinName: '',
@@ -2364,7 +2357,7 @@ export default function PlantBedViewPage() {
                                selectedFlower.status === 'healthy' ? 'healthy' :
                                selectedFlower.status === 'needs_attention' ? 'needs_attention' :
                                'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
-                        size: 'medium',
+                        
                         isStandardFlower: !selectedFlower.is_custom,
                         // Populate new fields
                         latinName: selectedFlower.latin_name || '',
@@ -2513,7 +2506,8 @@ export default function PlantBedViewPage() {
                       top: flower.position_y,
                       width: flower.visual_width,
                       height: flower.visual_height,
-                      backgroundColor: 'transparent',
+                      backgroundColor: flower.color ? `${flower.color}20` : 'transparent',
+                      borderColor: flower.color || '#999',
                     }}
                     onClick={(e) => handleFlowerClick(e, flower.id)}
                     onDoubleClick={() => handleFlowerDoubleClick(flower)}
@@ -2868,7 +2862,7 @@ export default function PlantBedViewPage() {
                                        flower.status === 'healthy' ? 'healthy' :
                                        flower.status === 'needs_attention' ? 'needs_attention' :
                                        'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
-                                size: 'medium',
+                                
                                 isStandardFlower: !flower.is_custom,
                                 // Populate new fields
                                 latinName: flower.latin_name || '',
