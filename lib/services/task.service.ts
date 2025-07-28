@@ -552,7 +552,7 @@ export class TaskService {
           *,
           plant_beds!inner(
             name,
-            color,
+            color_code,
             gardens!inner(
               name
             )
@@ -567,7 +567,7 @@ export class TaskService {
       const transformedData: TaskWithPlantInfo[] = (data || []).map(task => ({
         ...task,
         plant_name: 'Plantvak taak',
-        plant_color: task.plant_beds?.color || undefined,
+        plant_color: task.plant_beds?.color_code || undefined,
         plant_bed_name: task.plant_beds?.name || '',
         garden_name: task.plant_beds?.gardens?.name || ''
       }))
