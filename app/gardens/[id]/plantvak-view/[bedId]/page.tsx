@@ -137,17 +137,21 @@ export default function PlantvakDetailPage() {
     try {
       const canvasSize = getCanvasSize()
       
-             // Place new flower in center of plantvak
-       const centerX = canvasSize.width / 2 - 50 / 2 // Center with 50px standard size
-       const centerY = canvasSize.height / 2 - 50 / 2 // Center with 50px standard size
+      // Place new flower in center of plantvak - PERCENTAGE COORDINATEN
+      const centerX = canvasSize.width / 2 - 50 / 2 // Center with 50px standard size
+      const centerY = canvasSize.height / 2 - 50 / 2 // Center with 50px standard size
       
-             const flowerData = {
-         plant_bed_id: plantBed.id,
-         name: newFlower.name.trim(),
-         color: '#FF69B4', // Default color
-         status: newFlower.status as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
-         position_x: centerX,
-         position_y: centerY,
+      // Converteer naar percentages voor opslag
+      const percentageX = Math.round((centerX / canvasSize.width) * 1000)
+      const percentageY = Math.round((centerY / canvasSize.height) * 1000)
+      
+      const flowerData = {
+        plant_bed_id: plantBed.id,
+        name: newFlower.name.trim(),
+        color: '#FF69B4', // Default color
+        status: newFlower.status as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
+        position_x: percentageX,
+        position_y: percentageY,
          visual_width: 50, // 50px standard size - names clearly readable
          visual_height: 50, // 50px standard size - names clearly readable
          emoji: '🌸',
@@ -185,15 +189,19 @@ export default function PlantvakDetailPage() {
     }
   }, [])
   
-  // Save flower position
+  // Save flower position - NIEUWE AANPAK: PERCENTAGE COORDINATEN
   const handleSavePosition = useCallback(async (flower: PlantWithPosition) => {
     try {
       const canvasSize = getCanvasSize()
-
       
+      // RADICALE VERANDERING: Sla coordinaten op als percentages (0.0-1.0)
+      const percentageX = flower.position_x / canvasSize.width
+      const percentageY = flower.position_y / canvasSize.height
+      
+      // Sla percentages op in de database (vermenigvuldigd met 1000 voor precisie)
       await updatePlantPosition(flower.id, {
-        position_x: flower.position_x,
-        position_y: flower.position_y,
+        position_x: Math.round(percentageX * 1000), // 0-1000 voor precisie
+        position_y: Math.round(percentageY * 1000), // 0-1000 voor precisie
         visual_width: flower.visual_width,
         visual_height: flower.visual_height,
         notes: flower.notes
@@ -259,7 +267,7 @@ export default function PlantvakDetailPage() {
     setSelectedFlower(flower)
   }, [flowers, scale])
 
-  // Handle drag start
+  // Handle drag start - AANGEPAST VOOR PERCENTAGE COORDINATEN
   const handleMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
     e.preventDefault()
     const flower = flowers.find(f => f.id === flowerId)
@@ -268,18 +276,22 @@ export default function PlantvakDetailPage() {
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    // FIX: Don't divide by scale - getBoundingClientRect already accounts for CSS transform
     const mouseX = e.clientX - rect.left
     const mouseY = e.clientY - rect.top
 
+    // Converteer percentage naar pixels voor offset berekening
+    const canvasSize = getCanvasSize()
+    const pixelX = (flower.position_x / 1000) * canvasSize.width
+    const pixelY = (flower.position_y / 1000) * canvasSize.height
+
     // Calculate offset from flower center
-    const offsetX = mouseX - (flower.position_x + flower.visual_width / 2)
-    const offsetY = mouseY - (flower.position_y + flower.visual_height / 2)
+    const offsetX = mouseX - (pixelX + flower.visual_width / 2)
+    const offsetY = mouseY - (pixelY + flower.visual_height / 2)
 
     setDraggedFlower(flowerId)
     setDragOffset({ x: offsetX, y: offsetY })
     setSelectedFlower(flower)
-  }, [flowers, scale])
+  }, [flowers, getCanvasSize])
 
   // Handle drag move and resize
   const handleMouseMove = useCallback((e: MouseEvent) => {
@@ -353,7 +365,7 @@ export default function PlantvakDetailPage() {
       return
     }
 
-    // Handle drag
+    // Handle drag - AANGEPAST VOOR PERCENTAGE COORDINATEN
     if (draggedFlower) {
       const draggedFlowerData = flowers.find(f => f.id === draggedFlower)
       if (!draggedFlowerData) return
@@ -374,9 +386,13 @@ export default function PlantvakDetailPage() {
       const constrainedX = Math.max(0, Math.min(topLeftX, canvasSize.width - flowerSize))
       const constrainedY = Math.max(0, Math.min(topLeftY, canvasSize.height - flowerSize))
 
+      // NIEUWE AANPAK: Converteer pixels naar percentages voor opslag
+      const percentageX = Math.round((constrainedX / canvasSize.width) * 1000)
+      const percentageY = Math.round((constrainedY / canvasSize.height) * 1000)
+
       setFlowers(prev => prev.map(f => 
         f.id === draggedFlower 
-          ? { ...f, position_x: constrainedX, position_y: constrainedY }
+          ? { ...f, position_x: percentageX, position_y: percentageY }
           : f
       ))
       setHasChanges(true)
@@ -606,6 +622,11 @@ export default function PlantvakDetailPage() {
                        const emoji = getPlantEmoji(flower.name, flower.emoji)
                        const flowerColor = flower.color || '#ec4899' // fallback to pink
                        
+                       // NIEUWE AANPAK: Converteer percentages naar pixels
+                       const canvasSize = getCanvasSize()
+                       const pixelX = (flower.position_x / 1000) * canvasSize.width  // 0-1000 -> 0-canvasWidth
+                       const pixelY = (flower.position_y / 1000) * canvasSize.height // 0-1000 -> 0-canvasHeight
+                       
                        return (
                          <div
                            key={flower.id}
@@ -613,8 +634,8 @@ export default function PlantvakDetailPage() {
                              isDragging ? 'cursor-grabbing z-30 scale-110' : 'cursor-grab z-10'
                            } ${selectedFlower?.id === flower.id ? 'ring-4 ring-blue-500 z-20' : ''}`}
                            style={{
-                             left: `${flower.position_x}px`,
-                             top: `${flower.position_y}px`,
+                             left: `${pixelX}px`,
+                             top: `${pixelY}px`,
                              width: `${flower.visual_width}px`,
                              height: `${flower.visual_height}px`,
                              opacity: isDragging ? 0.9 : 1,
