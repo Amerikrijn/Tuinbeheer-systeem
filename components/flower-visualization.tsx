@@ -17,6 +17,8 @@ interface FlowerInstance {
   color: string
   emoji?: string
   size: number
+  width: number
+  height: number
   x: number
   y: number
   opacity: number
@@ -120,6 +122,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           color: plant.color || '#FF69B4',
           emoji: getPlantEmoji(plant.name, plant.emoji),
           size: scaledSize,
+          width: scaledSize, // Added width
+          height: scaledSize, // Added height
           x: Math.max(scaledSize/2, Math.min(finalX, containerWidth - scaledSize/2)),
           y: Math.max(scaledSize/2, Math.min(finalY, containerHeight - scaledSize/2)),
           opacity: 1,
@@ -150,6 +154,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           color: plant.color || '#FF69B4',
           emoji: getPlantEmoji(plant.name, plant.emoji),
           size: flowerSize,
+          width: flowerSize, // Added width
+          height: flowerSize, // Added height
           x,
           y,
           opacity: 1,
@@ -175,10 +181,10 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           key={flower.id}
           className="absolute transition-all duration-500 ease-in-out"
           style={{
-            left: flower.x - flower.size / 2, // Center the flower horizontally
-            top: flower.y - flower.size / 2,  // Center the flower vertically
-            width: flower.size,
-            height: flower.size,
+            left: flower.x - flower.width / 2, // Center the flower horizontally
+            top: flower.y - flower.height / 2,  // Center the flower vertically
+            width: flower.width,
+            height: flower.height,
             opacity: flower.opacity,
             transform: `rotate(${flower.rotation}deg)`,
             zIndex: flower.isMainFlower ? 10 : 8,
@@ -196,7 +202,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             <span 
               className="select-none"
               style={{
-                fontSize: Math.max(12, flower.size * 0.4),
+                fontSize: Math.max(12, Math.min(flower.width, flower.height) * 0.4),
                 filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
               }}
             >
@@ -204,12 +210,12 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             </span>
             
             {/* Flower name below the emoji - only show if there's space */}
-            {flower.size > 30 && (
+            {Math.min(flower.width, flower.height) > 30 && (
               <div 
                 className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
                 style={{
-                  fontSize: Math.max(6, flower.size * 0.2),
-                  maxWidth: flower.size * 0.9,
+                  fontSize: Math.max(6, Math.min(flower.width, flower.height) * 0.2),
+                  maxWidth: Math.min(flower.width, flower.height) * 0.9,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
