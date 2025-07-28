@@ -245,39 +245,12 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
         </CardHeader>
         
         <CardContent className="pt-0">
-          {config.group_by_plant ? (
-            // Group by plant
-            (() => {
-              const tasksByPlant = tasksToShow.reduce((acc, task) => {
-                const key = `${task.plant_bed_name}-${task.plant_name}`
-                if (!acc[key]) acc[key] = []
-                acc[key].push(task)
-                return acc
-              }, {} as Record<string, WeeklyTask[]>)
-
-              return Object.entries(tasksByPlant).map(([plantKey, plantTasks]) => (
-                <div key={plantKey} className="mb-4 last:mb-0">
-                  <div className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: plantTasks[0].plant_color || '#10B981' }}
-                    />
-                    {plantTasks[0].plant_bed_name} → {plantTasks[0].plant_name}
-                  </div>
-                  {plantTasks.map(task => (
-                    <div key={task.id} className="ml-5">
-                      <TaskCard task={task} compact />
-                    </div>
-                  ))}
-                </div>
-              ))
-            })()
-          ) : (
-            // Show all tasks
-            tasksToShow.map(task => (
-              <TaskCard key={task.id} task={task} />
-            ))
-          )}
+          {/* Show all tasks in rows */}
+          <div className="space-y-3">
+            {tasksToShow.map(task => (
+              <TaskCard key={task.id} task={task} showPlantInfo />
+            ))}
+          </div>
         </CardContent>
       </Card>
     )
@@ -407,25 +380,44 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               <span className="text-sm">Toon afgeronde taken</span>
             </label>
             
-            <label className="flex items-center gap-2">
-              <Checkbox
-                checked={config.group_by_plant}
-                onCheckedChange={(checked) => 
-                  setConfig(prev => ({ ...prev, group_by_plant: !!checked }))
-                }
-              />
-              <span className="text-sm">Groepeer per bloem</span>
-            </label>
+
           </div>
         </CardContent>
       </Card>
 
-      {/* Daily task lists */}
-      <div className="space-y-4">
-        {calendar.days.map(day => (
-          <DayCard key={day.date} day={day} />
-        ))}
-      </div>
+      {/* Weekly task list */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="w-5 h-5" />
+            Alle taken deze week
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {(() => {
+            // Get all tasks for the week
+            const allWeekTasks = calendar.days.flatMap(day => day.tasks)
+            const tasksToShow = config.show_completed ? allWeekTasks : allWeekTasks.filter(t => !t.completed)
+            
+            if (tasksToShow.length === 0) {
+              return (
+                <div className="text-center py-8">
+                  <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                  <p className="text-gray-600">Geen taken deze week!</p>
+                </div>
+              )
+            }
+            
+            return (
+              <div className="space-y-3">
+                {tasksToShow.map(task => (
+                  <TaskCard key={task.id} task={task} showPlantInfo />
+                ))}
+              </div>
+            )
+          })()}
+        </CardContent>
+      </Card>
 
       {/* Empty state */}
       {calendar.days.every(day => day.tasks.length === 0) && (
