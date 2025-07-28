@@ -41,7 +41,6 @@ import { FlowerVisualization } from "@/components/flower-visualization"
 import {
   METERS_TO_PIXELS,
   PLANTVAK_CANVAS_PADDING,
-  FLOWER_SIZE_TINY,
   FLOWER_SIZE_SMALL,
   FLOWER_SIZE_MEDIUM,
   FLOWER_SIZE_LARGE,
@@ -50,6 +49,9 @@ import {
   calculatePlantBedCanvasSize,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
+
+// Define FLOWER_SIZE_TINY locally until the import issue is resolved
+const FLOWER_SIZE_TINY = 20
 
 const GRID_SIZE = 10
 const SCALE_MIN = 0.5
