@@ -298,9 +298,14 @@ export async function createPlant(plant: {
   plant_bed_id: string
   name: string
   scientific_name?: string
+  latin_name?: string
   variety?: string
   color?: string
+  plant_color?: string
   height?: number
+  plant_height?: number
+  plants_per_sqm?: number
+  sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
   stem_length?: number
   photo_url?: string
   category?: string
@@ -312,6 +317,7 @@ export async function createPlant(plant: {
   care_instructions?: string
   watering_frequency?: number
   fertilizer_schedule?: string
+  emoji?: string
 }): Promise<Plant | null> {
   const { data, error } = await supabase.from("plants").insert(plant).select().single()
 

@@ -108,8 +108,12 @@ export default function EditPlantPage() {
         })
 
         // Load tasks for this plant
-        const plantTasks = await TaskService.getTasksForPlant(plantId)
-        setTasks(plantTasks)
+        const { data: plantTasks, error: taskError } = await TaskService.getTasksForPlant(plantId)
+        if (taskError) {
+          console.error("Error loading tasks:", taskError)
+        } else {
+          setTasks(plantTasks)
+        }
       } catch (error) {
         console.error("Error loading plant:", error)
         toast({
@@ -174,8 +178,10 @@ export default function EditPlantPage() {
       await TaskService.updateTask(taskId, { completed })
       // Reload tasks
       if (plant) {
-        const plantTasks = await TaskService.getTasksForPlant(plant.id)
-        setTasks(plantTasks)
+        const { data: plantTasks, error: taskError } = await TaskService.getTasksForPlant(plant.id)
+        if (!taskError) {
+          setTasks(plantTasks)
+        }
       }
       toast({
         title: completed ? "Taak voltooid!" : "Taak heropend",
@@ -196,8 +202,10 @@ export default function EditPlantPage() {
       await TaskService.deleteTask(taskId)
       // Reload tasks
       if (plant) {
-        const plantTasks = await TaskService.getTasksForPlant(plant.id)
-        setTasks(plantTasks)
+        const { data: plantTasks, error: taskError } = await TaskService.getTasksForPlant(plant.id)
+        if (!taskError) {
+          setTasks(plantTasks)
+        }
       }
       toast({
         title: "Taak verwijderd",
@@ -559,8 +567,10 @@ export default function EditPlantPage() {
         onTaskAdded={async () => {
           setShowAddTask(false)
           if (plant) {
-            const plantTasks = await TaskService.getTasksForPlant(plant.id)
-            setTasks(plantTasks)
+            const { data: plantTasks, error: taskError } = await TaskService.getTasksForPlant(plant.id)
+            if (!taskError) {
+              setTasks(plantTasks)
+            }
           }
         }}
         preselectedPlantId={plant.id}

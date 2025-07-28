@@ -171,7 +171,9 @@ export default function NewPlantPage() {
         emoji: newPlant.emoji,
       })
 
-      setCreatedPlantId(createdPlant.id)
+      if (createdPlant) {
+        setCreatedPlantId(createdPlant.id)
+      }
       toast({
         title: "Plant toegevoegd!",
         description: `Plant "${newPlant.name}" is succesvol toegevoegd aan ${plantBed.name}.`,
