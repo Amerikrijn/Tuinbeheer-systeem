@@ -1676,7 +1676,7 @@ export default function PlantBedViewPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Flower className="h-8 w-8 text-pink-600" />
-              {plantBed.name}
+              {plantBed.name} - TEST DEPLOYMENT
             </h1>
             <div className="flex items-center gap-2 mt-2">
               <Button
