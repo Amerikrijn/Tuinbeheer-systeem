@@ -49,11 +49,7 @@ export default function PlantvakDetailPage() {
   const [draggedFlower, setDraggedFlower] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   
-  // Resize state
-  const [resizingFlower, setResizingFlower] = useState<string | null>(null)
-  const [resizeHandle, setResizeHandle] = useState<'se' | 'sw' | 'ne' | 'nw' | null>(null)
-  const [resizeStartPos, setResizeStartPos] = useState({ x: 0, y: 0 })
-  const [resizeStartSize, setResizeStartSize] = useState({ width: 0, height: 0 })
+  // Resize functionaliteit verwijderd - alleen drag & drop
   
   // Add flower dialog
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -138,8 +134,8 @@ export default function PlantvakDetailPage() {
       const canvasSize = getCanvasSize()
       
       // Place new flower in center of plantvak - PERCENTAGE COORDINATEN
-      const centerX = canvasSize.width / 2 - 50 / 2 // Center with 50px standard size
-      const centerY = canvasSize.height / 2 - 50 / 2 // Center with 50px standard size
+      const centerX = canvasSize.width / 2 - 60 / 2 // Center with 60px standard size
+      const centerY = canvasSize.height / 2 - 60 / 2 // Center with 60px standard size
       
       // Converteer naar percentages voor opslag
       const percentageX = Math.round((centerX / canvasSize.width) * 1000)
@@ -152,8 +148,8 @@ export default function PlantvakDetailPage() {
         status: newFlower.status as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
         position_x: percentageX,
         position_y: percentageY,
-         visual_width: 50, // 50px standard size - names clearly readable
-         visual_height: 50, // 50px standard size - names clearly readable
+         visual_width: 60, // 60px standard size - names clearly readable
+         visual_height: 60, // 60px standard size - names clearly readable
          emoji: '🌸',
          is_custom: false,
                    category: newFlower.category,
@@ -197,6 +193,14 @@ export default function PlantvakDetailPage() {
       // RADICALE VERANDERING: Sla coordinaten op als percentages (0.0-1.0)
       const percentageX = flower.position_x / canvasSize.width
       const percentageY = flower.position_y / canvasSize.height
+      
+      console.log('🔄 PERCENTAGE SAVE:', {
+        flowerName: flower.name,
+        canvasSize: canvasSize,
+        currentPixels: { x: flower.position_x, y: flower.position_y },
+        percentages: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
+        savedValues: { x: Math.round(percentageX * 1000), y: Math.round(percentageY * 1000) }
+      })
       
       // Sla percentages op in de database (vermenigvuldigd met 1000 voor precisie)
       await updatePlantPosition(flower.id, {
@@ -245,27 +249,7 @@ export default function PlantvakDetailPage() {
     return '🌸'
   }, [])
 
-  // Handle resize start
-  const handleResizeStart = useCallback((e: React.MouseEvent, flowerId: string, handle: 'se' | 'sw' | 'ne' | 'nw') => {
-    e.preventDefault()
-    e.stopPropagation()
-    
-    const flower = flowers.find(f => f.id === flowerId)
-    if (!flower) return
-
-    const rect = canvasRef.current?.getBoundingClientRect()
-    if (!rect) return
-
-    // FIX: Don't divide by scale - getBoundingClientRect already accounts for CSS transform
-    const mouseX = e.clientX - rect.left
-    const mouseY = e.clientY - rect.top
-
-    setResizingFlower(flowerId)
-    setResizeHandle(handle)
-    setResizeStartPos({ x: mouseX, y: mouseY })
-    setResizeStartSize({ width: flower.visual_width, height: flower.visual_height })
-    setSelectedFlower(flower)
-  }, [flowers, scale])
+  // Resize functionaliteit volledig verwijderd
 
   // Handle drag start - AANGEPAST VOOR PERCENTAGE COORDINATEN
   const handleMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
@@ -293,77 +277,13 @@ export default function PlantvakDetailPage() {
     setSelectedFlower(flower)
   }, [flowers, getCanvasSize])
 
-  // Handle drag move and resize
+  // Handle drag move - ALLEEN DRAG, GEEN RESIZE
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!canvasRef.current) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    // FIX: Don't divide by scale - getBoundingClientRect already accounts for CSS transform
     const mouseX = e.clientX - rect.left
     const mouseY = e.clientY - rect.top
-
-    // Handle resize
-    if (resizingFlower && resizeHandle) {
-      const deltaX = mouseX - resizeStartPos.x
-      const deltaY = mouseY - resizeStartPos.y
-      
-      let newWidth = resizeStartSize.width
-      let newHeight = resizeStartSize.height
-
-      // Calculate new size - all handles now grow from top-left to prevent position changes
-      switch (resizeHandle) {
-        case 'se': // Southeast - bottom right
-          newWidth = Math.max(20, resizeStartSize.width + deltaX)
-          newHeight = Math.max(20, resizeStartSize.height + deltaY)
-          break
-        case 'sw': // Southwest - bottom left  
-          newWidth = Math.max(20, resizeStartSize.width + Math.abs(deltaX))
-          newHeight = Math.max(20, resizeStartSize.height + deltaY)
-          break
-        case 'ne': // Northeast - top right
-          newWidth = Math.max(20, resizeStartSize.width + deltaX)
-          newHeight = Math.max(20, resizeStartSize.height + Math.abs(deltaY))
-          break
-        case 'nw': // Northwest - top left
-          newWidth = Math.max(20, resizeStartSize.width + Math.abs(deltaX))
-          newHeight = Math.max(20, resizeStartSize.height + Math.abs(deltaY))
-          break
-      }
-      
-      // No position deltas - flower stays in same position
-
-      // Keep aspect ratio (square flowers) and limit max size to plantvak size
-      const canvasSize = getCanvasSize()
-      const maxSize = Math.min(canvasSize.width, canvasSize.height) // Can be as big as plantvak
-      const size = Math.min(Math.max(20, Math.min(newWidth, newHeight)), maxSize)
-      
-              // Update flower size only - position stays the same
-        setFlowers(prev => prev.map(f => {
-          if (f.id === resizingFlower) {
-            const originalFlower = flowers.find(flower => flower.id === resizingFlower)
-            if (!originalFlower) return f
-            
-            // Keep original position - no movement during resize
-            const currentPosX = originalFlower.position_x
-            const currentPosY = originalFlower.position_y
-            
-            // Ensure flower stays within canvas bounds (only if it would go outside)
-            const constrainedPosX = Math.max(0, Math.min(currentPosX, canvasSize.width - size))
-            const constrainedPosY = Math.max(0, Math.min(currentPosY, canvasSize.height - size))
-            
-            return {
-              ...f,
-              visual_width: size,
-              visual_height: size,
-              position_x: constrainedPosX,
-              position_y: constrainedPosY
-            }
-          }
-          return f
-        }))
-      setHasChanges(true)
-      return
-    }
 
     // Handle drag - AANGEPAST VOOR PERCENTAGE COORDINATEN
     if (draggedFlower) {
@@ -397,23 +317,10 @@ export default function PlantvakDetailPage() {
       ))
       setHasChanges(true)
     }
-  }, [draggedFlower, dragOffset, scale, getCanvasSize, resizingFlower, resizeHandle, resizeStartPos, resizeStartSize, flowers])
+  }, [draggedFlower, dragOffset, getCanvasSize, flowers])
 
-  // Handle drag end and resize end
+  // Handle drag end - ALLEEN DRAG, GEEN RESIZE
   const handleMouseUp = useCallback(async () => {
-    // Handle resize end
-    if (resizingFlower) {
-      const flower = flowers.find(f => f.id === resizingFlower)
-      if (flower) {
-        await handleSavePosition(flower)
-      }
-      setResizingFlower(null)
-      setResizeHandle(null)
-      setResizeStartPos({ x: 0, y: 0 })
-      setResizeStartSize({ width: 0, height: 0 })
-      return
-    }
-
     // Handle drag end
     if (draggedFlower) {
       const flower = flowers.find(f => f.id === draggedFlower)
@@ -423,11 +330,11 @@ export default function PlantvakDetailPage() {
       setDraggedFlower(null)
       setDragOffset({ x: 0, y: 0 })
     }
-  }, [draggedFlower, resizingFlower, flowers, handleSavePosition])
+  }, [draggedFlower, flowers, handleSavePosition])
 
-  // Add global mouse event listeners
+  // Add global mouse event listeners - ALLEEN VOOR DRAG
   useEffect(() => {
-    if (draggedFlower || resizingFlower) {
+    if (draggedFlower) {
       document.addEventListener('mousemove', handleMouseMove)
       document.addEventListener('mouseup', handleMouseUp)
       return () => {
@@ -435,7 +342,7 @@ export default function PlantvakDetailPage() {
         document.removeEventListener('mouseup', handleMouseUp)
       }
     }
-  }, [draggedFlower, resizingFlower, handleMouseMove, handleMouseUp])
+  }, [draggedFlower, handleMouseMove, handleMouseUp])
   
   if (loading) {
     return (
@@ -693,50 +600,7 @@ export default function PlantvakDetailPage() {
                              />
                            )}
 
-                           {/* Resize handles - only show for selected flower */}
-                           {selectedFlower?.id === flower.id && (
-                             <>
-                               {/* Southeast handle */}
-                               <div
-                                 className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-se-resize hover:bg-blue-600 shadow-sm"
-                                 style={{
-                                   right: '-6px',
-                                   bottom: '-6px',
-                                 }}
-                                 onMouseDown={(e) => handleResizeStart(e, flower.id, 'se')}
-                               />
-                               
-                               {/* Southwest handle */}
-                               <div
-                                 className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-sw-resize hover:bg-blue-600 shadow-sm"
-                                 style={{
-                                   left: '-6px',
-                                   bottom: '-6px',
-                                 }}
-                                 onMouseDown={(e) => handleResizeStart(e, flower.id, 'sw')}
-                               />
-                               
-                               {/* Northeast handle */}
-                               <div
-                                 className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-ne-resize hover:bg-blue-600 shadow-sm"
-                                 style={{
-                                   right: '-6px',
-                                   top: '-6px',
-                                 }}
-                                 onMouseDown={(e) => handleResizeStart(e, flower.id, 'ne')}
-                               />
-                               
-                               {/* Northwest handle */}
-                               <div
-                                 className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-nw-resize hover:bg-blue-600 shadow-sm"
-                                 style={{
-                                   left: '-6px',
-                                   top: '-6px',
-                                 }}
-                                 onMouseDown={(e) => handleResizeStart(e, flower.id, 'nw')}
-                               />
-                             </>
-                           )}
+                           {/* Resize functionaliteit verwijderd - alleen drag & drop */}
                          </div>
                        )
                      })}
@@ -831,12 +695,10 @@ export default function PlantvakDetailPage() {
                   
                   <div className="p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
                     <div className="font-medium mb-1">💡 Besturing:</div>
-                    <div>• <strong>Slepen:</strong> Verplaats bloem</div>
-                    <div>• <strong>Resize handles:</strong> Trek aan blauwe bolletjes om grootte aan te passen</div>
-                    <div>• <strong>Resize gedrag:</strong> Bloem blijft VAST op dezelfde plek tijdens vergroten</div>
-                    <div>• <strong>Standaard grootte:</strong> 50px (namen direct leesbaar)</div>
-                    <div>• <strong>Bloemnamen:</strong> Staan nu onder het vakje (beter leesbaar)</div>
-                    <div>• <strong>Max grootte:</strong> Zo groot als het hele plantvak!</div>
+                    <div>• <strong>Slepen:</strong> Verplaats bloem door het hele plantvak</div>
+                    <div>• <strong>Standaard grootte:</strong> 60px (namen direct leesbaar)</div>
+                    <div>• <strong>Bloemnamen:</strong> Staan onder het vakje (beter leesbaar)</div>
+                    <div>• <strong>Nieuwe aanpak:</strong> Percentage-based positionering voor perfecte sync met tuin</div>
                   </div>
                   
                   <div className="flex gap-2">
