@@ -131,18 +131,22 @@ export default function PlantvakDetailPage() {
        const centerX = canvasSize.width / 2 - FLOWER_SIZE_MEDIUM / 2
        const centerY = canvasSize.height / 2 - FLOWER_SIZE_MEDIUM / 2
       
-      const flowerData = {
-        name: newFlower.name.trim(),
-        plant_type: newFlower.plant_type,
-        status: newFlower.status,
-        position_x: centerX,
-        position_y: centerY,
-                 visual_width: FLOWER_SIZE_MEDIUM,
+             const flowerData = {
+         plant_bed_id: plantBed.id,
+         name: newFlower.name.trim(),
+         color: '#FF69B4', // Default color
+         status: newFlower.status as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
+         position_x: centerX,
+         position_y: centerY,
+         visual_width: FLOWER_SIZE_MEDIUM,
          visual_height: FLOWER_SIZE_MEDIUM,
-        notes: ''
-      }
-      
-      const newFlowerRecord = await createVisualPlant(plantBed.id, flowerData)
+         emoji: '🌸',
+         is_custom: false,
+         category: newFlower.plant_type,
+         notes: ''
+       }
+       
+       const newFlowerRecord = await createVisualPlant(flowerData)
       setFlowers(prev => [...prev, newFlowerRecord])
       
       // Reset form
