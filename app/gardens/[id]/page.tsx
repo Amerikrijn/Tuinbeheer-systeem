@@ -1525,6 +1525,42 @@ export default function GardenDetailPage() {
                           {bed.plants.length} bloemen
                         </div>
                       </div>
+                      
+                      {/* Flower preview in plant bed list */}
+                      {bed.plants.length > 0 && (
+                        <div className="mt-2">
+                          <div className="flex flex-wrap gap-1">
+                            {bed.plants.slice(0, 4).map((flower, index) => (
+                              <div
+                                key={`${flower.id}-${index}`}
+                                className="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-1"
+                                title={`${flower.name}${flower.color ? ` - ${flower.color}` : ''}`}
+                              >
+                                <span className="text-sm">
+                                  {flower.emoji || '🌸'}
+                                </span>
+                                <span className="text-xs font-medium text-purple-800 truncate max-w-20">
+                                  {flower.name}
+                                </span>
+                                {flower.color && (
+                                  <div
+                                    className="w-2 h-2 rounded-full border border-gray-300 ml-1"
+                                    style={{ backgroundColor: flower.color }}
+                                    title={flower.color}
+                                  />
+                                )}
+                              </div>
+                            ))}
+                            {bed.plants.length > 4 && (
+                              <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
+                                <span className="text-xs text-gray-600">
+                                  +{bed.plants.length - 4}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
                       {bed.plants.length > 0 ? 'Beplant' : 'Leeg'}
