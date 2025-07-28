@@ -201,40 +201,7 @@ export default function PlantvakDetailPage() {
     }
   }, [])
 
-  // Reset lost flowers (bring back flowers that went outside bounds)
-  const handleResetLostFlowers = useCallback(() => {
-    const canvasSize = getCanvasSize()
-    let foundLostFlowers = false
-    
-    setFlowers(prev => prev.map(f => {
-      const isOutOfBounds = f.position_x < 0 || 
-                           f.position_y < 0 || 
-                           f.position_x + f.visual_width > canvasSize.width ||
-                           f.position_y + f.visual_height > canvasSize.height
-      
-      if (isOutOfBounds) {
-        foundLostFlowers = true
-        const newX = Math.max(0, Math.min(f.position_x, canvasSize.width - f.visual_width))
-        const newY = Math.max(0, Math.min(f.position_y, canvasSize.height - f.visual_height))
-        
-        const updatedFlower = {
-          ...f,
-          position_x: newX,
-          position_y: newY
-        }
-        
-        // Auto-save the corrected position
-        setTimeout(() => handleSavePosition(updatedFlower), 100)
-        
-        return updatedFlower
-      }
-      return f
-    }))
-    
-    if (foundLostFlowers) {
-      setHasChanges(true)
-    }
-  }, [getCanvasSize, handleSavePosition])
+
 
   // Get plant emoji (same logic as FlowerVisualization)
   const getPlantEmoji = useCallback((name?: string, storedEmoji?: string): string => {
@@ -327,27 +294,28 @@ export default function PlantvakDetailPage() {
       let positionDeltaX = 0
       let positionDeltaY = 0
 
-      // Calculate new size based on handle
+      // Calculate new size based on handle - keep position fixed during resize
       switch (resizeHandle) {
-        case 'se': // Southeast - bottom right
+        case 'se': // Southeast - bottom right (grow from top-left anchor)
           newWidth = Math.max(20, resizeStartSize.width + deltaX)
           newHeight = Math.max(20, resizeStartSize.height + deltaY)
+          // No position change - top-left stays fixed
           break
-        case 'sw': // Southwest - bottom left  
+        case 'sw': // Southwest - bottom left (grow from top-right anchor)
           newWidth = Math.max(20, resizeStartSize.width - deltaX)
           newHeight = Math.max(20, resizeStartSize.height + deltaY)
-          positionDeltaX = resizeStartSize.width - newWidth
+          positionDeltaX = resizeStartSize.width - newWidth // Adjust X to keep right edge fixed
           break
-        case 'ne': // Northeast - top right
+        case 'ne': // Northeast - top right (grow from bottom-left anchor)
           newWidth = Math.max(20, resizeStartSize.width + deltaX)
           newHeight = Math.max(20, resizeStartSize.height - deltaY)
-          positionDeltaY = resizeStartSize.height - newHeight
+          positionDeltaY = resizeStartSize.height - newHeight // Adjust Y to keep bottom edge fixed
           break
-        case 'nw': // Northwest - top left
+        case 'nw': // Northwest - top left (grow from bottom-right anchor)
           newWidth = Math.max(20, resizeStartSize.width - deltaX)
           newHeight = Math.max(20, resizeStartSize.height - deltaY)
-          positionDeltaX = resizeStartSize.width - newWidth
-          positionDeltaY = resizeStartSize.height - newHeight
+          positionDeltaX = resizeStartSize.width - newWidth // Adjust X to keep right edge fixed
+          positionDeltaY = resizeStartSize.height - newHeight // Adjust Y to keep bottom edge fixed
           break
       }
 
@@ -820,9 +788,9 @@ export default function PlantvakDetailPage() {
                     <div className="font-medium mb-1">💡 Besturing:</div>
                     <div>• <strong>Slepen:</strong> Verplaats bloem</div>
                     <div>• <strong>Resize handles:</strong> Trek aan blauwe bolletjes om grootte aan te passen</div>
+                    <div>• <strong>Resize gedrag:</strong> Bloem blijft op dezelfde plek tijdens vergroten</div>
                     <div>• <strong>Standaard grootte:</strong> 30px (namen altijd zichtbaar)</div>
                     <div>• <strong>Max grootte:</strong> Zo groot als het hele plantvak!</div>
-                    <div>• <strong>Verdwenen bloemen:</strong> Klik "🔍 Zoek Verdwenen" om terug te vinden</div>
                     <div>• <strong>Styling:</strong> Identiek aan tuin overzicht</div>
                   </div>
                   
@@ -850,18 +818,7 @@ export default function PlantvakDetailPage() {
             {/* Flower List */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center justify-between">
-                  Bloemen in dit Plantvak
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleResetLostFlowers}
-                    className="text-xs"
-                    title="Breng verdwenen bloemen terug in het plantvak"
-                  >
-                    🔍 Zoek Verdwenen
-                  </Button>
-                </CardTitle>
+                <CardTitle className="text-lg">Bloemen in dit Plantvak</CardTitle>
               </CardHeader>
               <CardContent>
                 {flowers.length === 0 ? (
