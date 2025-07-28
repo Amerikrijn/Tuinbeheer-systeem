@@ -115,16 +115,22 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const finalY = percentageY * containerHeight
         
         // DEBUG: Log coordinate transformation for troubleshooting
-        console.log('🌸 GARDEN VIEW COORDINATE TRANSFORM:', {
+        const debugInfo = {
           plantName: plant.name,
           plantIndex: plantIndex + 1,
           originalPos: { x: plant.position_x, y: plant.position_y },
           plantvakCanvasSize: { w: plantvakCanvasWidth, h: plantvakCanvasHeight },
           relativePos: { x: relativeX, y: relativeY },
-          percentage: { x: percentageX, y: percentageY },
+          percentage: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
           containerSize: { w: containerWidth, h: containerHeight },
-          finalPos: { x: finalX, y: finalY }
-        })
+          finalPos: { x: finalX.toFixed(1), y: finalY.toFixed(1) }
+        }
+        console.log('🌸 GARDEN VIEW COORDINATE TRANSFORM:', debugInfo)
+        
+        // TEMPORARY: Show debug info as alert for one flower
+        if (plant.name === 'test' || plantIndex === 0) {
+          alert(`DEBUG ${plant.name}:\nOriginal: ${plant.position_x}, ${plant.position_y}\nCanvas: ${plantvakCanvasWidth}x${plantvakCanvasHeight}\nPercentage: ${percentageX.toFixed(3)}, ${percentageY.toFixed(3)}\nFinal: ${finalX.toFixed(1)}, ${finalY.toFixed(1)}`)
+        }
         
         // Scale the flower size proportionally to container size
         // Use the plantvak CANVAS dimensions (not real-world dimensions) for proper scaling
