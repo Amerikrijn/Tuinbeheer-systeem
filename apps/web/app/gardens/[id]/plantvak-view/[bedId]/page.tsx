@@ -850,7 +850,7 @@ export default function PlantBedViewPage() {
   }
 
   // Handle single click/tap - select flower and change size
-  const handleFlowerClick = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
+  const handleFlowerClick = useCallback(async (e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
     
@@ -896,7 +896,49 @@ export default function PlantBedViewPage() {
       // For mouse, change flower size on click
       if (selectedFlower?.id === flowerId) {
         // If already selected, change size
-        handleFlowerSizeChange(flowerId)
+        const flower = flowerPositions.find(f => f.id === flowerId)
+        if (!flower) return
+
+        // Extract current size from notes or default to tiny
+        const sizeMatch = flower.notes?.match(/Size: (0\.5x0\.5|1x1|2x2|2x1) meter/)
+        const currentSize = sizeMatch ?
+          (sizeMatch[1] === '0.5x0.5 meter' ? 'tiny' :
+           sizeMatch[1] === '1x1 meter' ? 'small' :
+           sizeMatch[1] === '2x2 meter' ? 'medium' : 'large') : 'tiny'
+
+        const newSize = cycleFlowerSize(currentSize)
+        const newDimensions = getFlowerSize(newSize)
+
+        try {
+          await updatePlantPosition(flowerId, {
+            position_x: flower.position_x,
+            position_y: flower.position_y,
+            visual_width: newDimensions.width,
+            visual_height: newDimensions.height,
+            notes: `${flower.notes?.replace(/\| Size: [^|]+/, '') || ''}${flower.notes && !flower.notes.includes('Size:') ? ' | ' : ''}Size: ${getSizeLabel(newSize)}`
+          })
+
+          setFlowerPositions(prev => prev.map(f =>
+            f.id === flowerId ? {
+              ...f,
+              visual_width: newDimensions.width,
+              visual_height: newDimensions.height,
+              notes: `${f.notes?.replace(/\| Size: [^|]+/, '') || ''}${f.notes && !f.notes.includes('Size:') ? ' | ' : ''}Size: ${getSizeLabel(newSize)}`
+            } : f
+          ))
+
+          toast({
+            title: "✅ Grootte aangepast",
+            description: `${flower.name} is nu ${getSizeLabel(newSize)}`,
+          })
+        } catch (error) {
+          console.error('Failed to change flower size:', error)
+          toast({
+            title: "❌ Fout",
+            description: "Kon grootte niet aanpassen. Probeer opnieuw.",
+            variant: "destructive",
+          })
+        }
       } else {
         // Select the flower
         setSelectedFlower(flower)
@@ -907,52 +949,7 @@ export default function PlantBedViewPage() {
     }
   }, [flowerPositions, selectedFlower, isDragMode, isResizeMode, toast])
 
-  // Handle flower size change on click
-  const handleFlowerSizeChange = useCallback(async (flowerId: string) => {
-    const flower = flowerPositions.find(f => f.id === flowerId)
-    if (!flower) return
 
-    // Extract current size from notes or default to tiny
-    const sizeMatch = flower.notes?.match(/Size: (0\.5x0\.5|1x1|2x2|2x1) meter/)
-    const currentSize = sizeMatch ?
-      (sizeMatch[1] === '0.5x0.5 meter' ? 'tiny' :
-       sizeMatch[1] === '1x1 meter' ? 'small' :
-       sizeMatch[1] === '2x2 meter' ? 'medium' : 'large') : 'tiny'
-
-    const newSize = cycleFlowerSize(currentSize)
-    const newDimensions = getFlowerSize(newSize)
-
-    try {
-      await updatePlantPosition(flowerId, {
-        position_x: flower.position_x,
-        position_y: flower.position_y,
-        visual_width: newDimensions.width,
-        visual_height: newDimensions.height,
-        notes: `${flower.notes?.replace(/\| Size: [^|]+/, '') || ''}${flower.notes && !flower.notes.includes('Size:') ? ' | ' : ''}Size: ${getSizeLabel(newSize)}`
-      })
-
-      setFlowerPositions(prev => prev.map(f =>
-        f.id === flowerId ? {
-          ...f,
-          visual_width: newDimensions.width,
-          visual_height: newDimensions.height,
-          notes: `${f.notes?.replace(/\| Size: [^|]+/, '') || ''}${f.notes && !f.notes.includes('Size:') ? ' | ' : ''}Size: ${getSizeLabel(newSize)}`
-        } : f
-      ))
-
-      toast({
-        title: "✅ Grootte aangepast",
-        description: `${flower.name} is nu ${getSizeLabel(newSize)}`,
-      })
-    } catch (error) {
-      console.error('Failed to change flower size:', error)
-      toast({
-        title: "❌ Fout",
-        description: "Kon grootte niet aanpassen. Probeer opnieuw.",
-        variant: "destructive",
-      })
-    }
-  }, [flowerPositions, toast])
 
   // Handle double click - show resize interface
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
