@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
-import { parsePlantBedDimensions, PLANTVAK_CANVAS_PADDING } from "@/lib/scaling-constants"
+import { parsePlantBedDimensions, PLANTVAK_CANVAS_PADDING, calculatePlantBedCanvasSize, FLOWER_NAME_HEIGHT } from "@/lib/scaling-constants"
 
 interface FlowerVisualizationProps {
   plantBed: PlantBedWithPlants
@@ -82,13 +82,10 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       if (hasCustomPosition && hasCustomSize && dimensions) {
         // CORRECTED POSITIONING: Account for the fact that garden overview container IS the plantvak area
         
-        // Calculate the plantvak canvas size using EXACT same logic as plantvak-view
-        const padding = PLANTVAK_CANVAS_PADDING  // 100px
-        const minWidth = 500   // Same as plantvak-view
-        const minHeight = 400  // Same as plantvak-view
-        
-        const plantvakCanvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
-        const plantvakCanvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
+        // Use EXACT same canvas calculation as plantvak-view
+        const canvasSize = calculatePlantBedCanvasSize(plantBed.size!)
+        const plantvakCanvasWidth = canvasSize.width
+        const plantvakCanvasHeight = canvasSize.height - FLOWER_NAME_HEIGHT // Remove flower name height
         
         // Calculate where the plantvak boundaries are in the plantvak-view canvas
         const plantvakStartX = (plantvakCanvasWidth - dimensions.lengthPixels) / 2
