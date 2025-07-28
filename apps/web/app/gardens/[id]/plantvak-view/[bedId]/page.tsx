@@ -1676,7 +1676,7 @@ export default function PlantBedViewPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Flower className="h-8 w-8 text-pink-600" />
-              {plantBed.name} - TEST DEPLOYMENT
+              {plantBed.name} - VERANDERD OP VERCELL
             </h1>
             <div className="flex items-center gap-2 mt-2">
               <Button
@@ -2708,10 +2708,10 @@ export default function PlantBedViewPage() {
                     {/* Plantvak name and info - always within the plantvak area */}
                     <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border">
                       <div className="text-sm font-bold text-green-800">
-                        {plantBed.name} - TEST DEPLOYMENT
+                        {plantBed.name} - VERANDERD OP VERCELL
                       </div>
                       <div className="text-xs text-green-600">
-                        {plantBed.size} • {flowerPositions.length} bloemen - TEST
+                        {plantBed.size} • {flowerPositions.length} bloemen - VERANDERD
                       </div>
                     </div>
                   </div>
