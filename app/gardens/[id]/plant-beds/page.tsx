@@ -162,70 +162,54 @@ export default function PlantBedsPage() {
 
       {/* Plant Beds Grid */}
       {filteredPlantBeds.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPlantBeds.map((bed) => (
-            <Card key={bed.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2 text-lg">
-                      <Badge variant="outline" className="text-xs font-mono">
-                        {bed.id}
-                      </Badge>
-                      {bed.name}
-                    </CardTitle>
-                    {bed.location && (
-                      <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
-                        <MapPin className="h-3 w-3" />
-                        {bed.location}
-                      </div>
-                    )}
+            <Card key={bed.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🌱</span>
+                    <div>
+                      <h3 className="font-medium text-gray-900">{bed.name}</h3>
+                      {bed.location && (
+                        <p className="text-sm text-gray-500">{bed.location}</p>
+                      )}
+                    </div>
                   </div>
+                  <div className={`w-3 h-3 rounded-full border-2 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 shadow-gray-200'}`}></div>
                 </div>
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                {bed.description && <p className="text-sm text-gray-600 line-clamp-2">{bed.description}</p>}
-
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                
+                <div className="space-y-2 text-sm text-gray-600 mb-4">
                   {bed.size && (
-                    <div>
-                      <div className="font-medium">Grootte</div>
-                      <div className="text-gray-600">{bed.size}</div>
+                    <div className="flex justify-between">
+                      <span>Grootte:</span>
+                      <span>{bed.size}</span>
                     </div>
                   )}
+                  <div className="flex justify-between">
+                    <span>Bloemen:</span>
+                    <span>{bed.plants.length}</span>
+                  </div>
                   {bed.soil_type && (
-                    <div>
-                      <div className="font-medium">Grondtype</div>
-                      <div className="text-gray-600">{bed.soil_type}</div>
+                    <div className="flex justify-between">
+                      <span>Grondtype:</span>
+                      <span className="capitalize">{bed.soil_type}</span>
+                    </div>
+                  )}
+                  {bed.sun_exposure && (
+                    <div className="flex justify-between items-center">
+                      <span>Zon:</span>
+                      <div className="flex items-center gap-1">
+                        {getSunExposureIcon(bed.sun_exposure)}
+                        <span>{getSunExposureText(bed.sun_exposure)}</span>
+                      </div>
                     </div>
                   )}
                 </div>
 
-                {bed.sun_exposure && (
-                  <div className="flex items-center gap-2 text-sm">
-                    {getSunExposureIcon(bed.sun_exposure)}
-                    <span className="text-gray-600">{getSunExposureText(bed.sun_exposure)}</span>
-                  </div>
-                )}
-
-                <Separator />
-
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <Leaf className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">{bed.plants.length}</span>
-                    <span className="text-gray-600">bloemen</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${bed.plants.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`} />
-                    <span className="text-xs text-gray-600">{bed.plants.length > 0 ? 'Bloemen' : 'Leeg'}</span>
-                  </div>
-                </div>
-
-                {/* Show flower emojis preview only if there are actual plants */}
+                {/* Show flower emojis preview */}
                 {bed.plants.length > 0 && (
-                  <div className="flex items-center gap-1 flex-wrap">
+                  <div className="flex items-center gap-1 flex-wrap mb-4">
                     {bed.plants.slice(0, 6).map((plant, index) => (
                       <span key={index} className="text-lg" title={plant.name}>
                         {plant.emoji || '🌸'}
@@ -237,19 +221,23 @@ export default function PlantBedsPage() {
                   </div>
                 )}
 
-                <div className="flex gap-2 pt-2">
-                  <Link href={`/gardens/${garden.id}/plant-beds/${bed.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full bg-transparent">
-                      <Eye className="h-3 w-3 mr-1" />
-                      Bekijk
-                    </Button>
-                  </Link>
-                  <Link href={`/gardens/${garden.id}/plant-beds/${bed.id}/plants`}>
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                      <Leaf className="h-3 w-3 mr-1" />
-                      Planten
-                    </Button>
-                  </Link>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push(`/gardens/${garden.id}/plantvak-view/${bed.id}`)}
+                    className="flex-1"
+                  >
+                    <Eye className="h-4 w-4 mr-1" />
+                    Bekijk
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => router.push(`/gardens/${garden.id}/plant-beds/${bed.id}/plants`)}
+                  >
+                    <Leaf className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
