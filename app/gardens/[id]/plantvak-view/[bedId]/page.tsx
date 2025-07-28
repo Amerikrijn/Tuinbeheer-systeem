@@ -146,8 +146,10 @@ export default function PlantvakDetailPage() {
          notes: ''
        }
        
-       const newFlowerRecord = await createVisualPlant(flowerData)
-      setFlowers(prev => [...prev, newFlowerRecord])
+               const newFlowerRecord = await createVisualPlant(flowerData)
+        if (newFlowerRecord) {
+          setFlowers(prev => [...prev, newFlowerRecord])
+        }
       
       // Reset form
       setNewFlower({
