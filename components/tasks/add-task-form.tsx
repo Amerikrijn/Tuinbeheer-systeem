@@ -21,7 +21,7 @@ interface AddTaskFormProps {
   preselectedPlantId?: string
 }
 
-interface Plant {
+interface PlantForForm {
   id: string
   name: string
   plant_beds: {
@@ -34,7 +34,7 @@ interface Plant {
 
 export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId }: AddTaskFormProps) {
   const [loading, setLoading] = useState(false)
-  const [plants, setPlants] = useState<Plant[]>([])
+  const [plants, setPlants] = useState<PlantForForm[]>([])
   const [formData, setFormData] = useState<CreateTaskData>({
     plant_id: preselectedPlantId || '',
     title: '',
@@ -72,7 +72,16 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId }
         .order('name')
 
       if (error) throw error
-      setPlants(data || [])
+      setPlants((data as any[])?.map(plant => ({
+        id: plant.id,
+        name: plant.name,
+        plant_beds: {
+          name: plant.plant_beds?.name || '',
+          gardens: {
+            name: plant.plant_beds?.gardens?.name || ''
+          }
+        }
+      })) || [])
     } catch (error) {
       console.error('Error loading plants:', error)
     }
