@@ -291,8 +291,6 @@ export default function PlantvakDetailPage() {
       
       let newWidth = resizeStartSize.width
       let newHeight = resizeStartSize.height
-      let positionDeltaX = 0
-      let positionDeltaY = 0
 
       // Calculate new size - all handles now grow from top-left to prevent position changes
       switch (resizeHandle) {
