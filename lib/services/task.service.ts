@@ -86,8 +86,8 @@ export class TaskService {
   // Get tasks with plant information
   static async getTasksWithPlantInfo(filters?: TaskFilters): Promise<{ data: TaskWithPlantInfo[]; error: string | null }> {
     try {
-      // Start with base query
-      let query = supabase
+      // Simple query without complex filtering for now
+      const { data: tasks, error } = await supabase
         .from('tasks')
         .select(`
           *,
@@ -102,30 +102,40 @@ export class TaskService {
             )
           )
         `)
-
-      // Apply filters
-      if (filters) {
-        if (filters.plant_id) query = query.eq('plant_id', filters.plant_id)
-        if (filters.plant_bed_id) query = query.eq('plants.plant_bed_id', filters.plant_bed_id)
-        if (filters.completed !== undefined) query = query.eq('completed', filters.completed)
-        if (filters.priority) query = query.eq('priority', filters.priority)
-        if (filters.task_type) query = query.eq('task_type', filters.task_type)
-        if (filters.due_date_from) query = query.gte('due_date', filters.due_date_from)
-        if (filters.due_date_to) query = query.lte('due_date', filters.due_date_to)
-      }
-
-      const { data, error } = await query.order('due_date', { ascending: true })
+        .order('due_date', { ascending: true })
 
       if (error) throw error
 
       // Transform the data to match TaskWithPlantInfo interface
-      const transformedData: TaskWithPlantInfo[] = (data || []).map((task: any) => ({
+      let transformedData: TaskWithPlantInfo[] = (tasks || []).map((task: any) => ({
         ...task,
         plant_name: task.plants?.name || '',
         plant_color: task.plants?.color || '',
         plant_bed_name: task.plants?.plant_beds?.name || '',
         garden_name: task.plants?.plant_beds?.gardens?.name || ''
       }))
+
+      // Apply client-side filtering if needed
+      if (filters) {
+        if (filters.plant_id) {
+          transformedData = transformedData.filter(task => task.plant_id === filters.plant_id)
+        }
+        if (filters.completed !== undefined) {
+          transformedData = transformedData.filter(task => task.completed === filters.completed)
+        }
+        if (filters.priority) {
+          transformedData = transformedData.filter(task => task.priority === filters.priority)
+        }
+        if (filters.task_type) {
+          transformedData = transformedData.filter(task => task.task_type === filters.task_type)
+        }
+        if (filters.due_date_from) {
+          transformedData = transformedData.filter(task => task.due_date >= filters.due_date_from!)
+        }
+        if (filters.due_date_to) {
+          transformedData = transformedData.filter(task => task.due_date <= filters.due_date_to!)
+        }
+      }
 
       return { data: transformedData, error: null }
     } catch (error) {
@@ -323,16 +333,45 @@ export class TaskService {
   // Get plant task statistics
   static async getPlantTaskStats(plantId?: string): Promise<{ data: PlantTaskStats[]; error: string | null }> {
     try {
-      let query = supabase.from('plant_task_stats').select('*')
+      // Get all tasks and calculate stats client-side for now
+      const { data: tasks, error } = await this.getTasksWithPlantInfo(plantId ? { plant_id: plantId } : undefined)
       
-      if (plantId) {
-        query = query.eq('plant_id', plantId)
-      }
+      if (error) throw new Error(error)
 
-      const { data, error } = await query
+      // Group tasks by plant and calculate stats
+      const plantStats: { [key: string]: PlantTaskStats } = {}
+      const today = new Date().toISOString().split('T')[0]
 
-      if (error) throw error
-      return { data: data || [], error: null }
+      tasks.forEach(task => {
+        if (!plantStats[task.plant_id]) {
+          plantStats[task.plant_id] = {
+            plant_id: task.plant_id,
+            plant_name: task.plant_name,
+            total_tasks: 0,
+            completed_tasks: 0,
+            overdue_tasks: 0,
+            today_tasks: 0,
+            upcoming_tasks: 0
+          }
+        }
+
+        const stats = plantStats[task.plant_id]
+        stats.total_tasks++
+
+        if (task.completed) {
+          stats.completed_tasks++
+        } else {
+          if (task.due_date < today) {
+            stats.overdue_tasks++
+          } else if (task.due_date === today) {
+            stats.today_tasks++
+          } else {
+            stats.upcoming_tasks++
+          }
+        }
+      })
+
+      return { data: Object.values(plantStats), error: null }
     } catch (error) {
       console.error('Error fetching plant task stats:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch plant task stats' }
@@ -456,15 +495,39 @@ export class TaskService {
       const today = new Date().toISOString().split('T')[0]
       
       const { data, error } = await supabase
-        .from('weekly_tasks')
-        .select('*')
+        .from('tasks')
+        .select(`
+          *,
+          plants!inner (
+            name,
+            color,
+            plant_beds!inner (
+              name,
+              gardens!inner (
+                name
+              )
+            )
+          )
+        `)
         .lt('due_date', today)
         .eq('completed', false)
         .order('due_date', { ascending: true })
         .order('priority', { ascending: false })
 
       if (error) throw error
-      return { data: data || [], error: null }
+
+      // Transform data
+      const transformedData: WeeklyTask[] = (data || []).map((task: any) => ({
+        ...task,
+        plant_name: task.plants?.name || '',
+        plant_color: task.plants?.color || '',
+        plant_bed_name: task.plants?.plant_beds?.name || '',
+        garden_name: task.plants?.plant_beds?.gardens?.name || '',
+        day_of_week: new Date(task.due_date).getDay(),
+        status_category: 'overdue' as const
+      }))
+
+      return { data: transformedData, error: null }
     } catch (error) {
       console.error('Error fetching overdue tasks:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch overdue tasks' }
