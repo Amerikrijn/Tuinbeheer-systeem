@@ -1678,6 +1678,10 @@ export default function PlantBedViewPage() {
               <Flower className="h-8 w-8 text-white" />
               🚨 VERCELL TEST - {plantBed.name} - VERANDERD OP VERCELL 🚨
             </h1>
+            <div className="bg-yellow-400 text-black p-4 rounded mt-4">
+              <h2 className="text-xl font-bold">🚨 VERCELL DEPLOYMENT TEST 🚨</h2>
+              <p>Als je deze gele tekst ziet, werkt de deployment!</p>
+            </div>
             <div className="flex items-center gap-2 mt-2">
               <Button
                 variant="outline"
