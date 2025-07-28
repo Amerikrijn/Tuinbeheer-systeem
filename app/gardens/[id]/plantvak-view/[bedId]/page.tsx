@@ -201,6 +201,41 @@ export default function PlantvakDetailPage() {
     }
   }, [])
 
+  // Reset lost flowers (bring back flowers that went outside bounds)
+  const handleResetLostFlowers = useCallback(() => {
+    const canvasSize = getCanvasSize()
+    let foundLostFlowers = false
+    
+    setFlowers(prev => prev.map(f => {
+      const isOutOfBounds = f.position_x < 0 || 
+                           f.position_y < 0 || 
+                           f.position_x + f.visual_width > canvasSize.width ||
+                           f.position_y + f.visual_height > canvasSize.height
+      
+      if (isOutOfBounds) {
+        foundLostFlowers = true
+        const newX = Math.max(0, Math.min(f.position_x, canvasSize.width - f.visual_width))
+        const newY = Math.max(0, Math.min(f.position_y, canvasSize.height - f.visual_height))
+        
+        const updatedFlower = {
+          ...f,
+          position_x: newX,
+          position_y: newY
+        }
+        
+        // Auto-save the corrected position
+        setTimeout(() => handleSavePosition(updatedFlower), 100)
+        
+        return updatedFlower
+      }
+      return f
+    }))
+    
+    if (foundLostFlowers) {
+      setHasChanges(true)
+    }
+  }, [getCanvasSize, handleSavePosition])
+
   // Get plant emoji (same logic as FlowerVisualization)
   const getPlantEmoji = useCallback((name?: string, storedEmoji?: string): string => {
     if (storedEmoji && storedEmoji.trim()) {
@@ -316,21 +351,31 @@ export default function PlantvakDetailPage() {
           break
       }
 
-      // Keep aspect ratio (square flowers) and limit max size
-      const size = Math.min(Math.max(20, Math.min(newWidth, newHeight)), 100)
+      // Keep aspect ratio (square flowers) and limit max size to plantvak size
+      const canvasSize = getCanvasSize()
+      const maxSize = Math.min(canvasSize.width, canvasSize.height) // Can be as big as plantvak
+      const size = Math.min(Math.max(20, Math.min(newWidth, newHeight)), maxSize)
       
-      // Update flower size and position
+      // Update flower size and position with boundary constraints
       setFlowers(prev => prev.map(f => {
         if (f.id === resizingFlower) {
           const originalFlower = flowers.find(flower => flower.id === resizingFlower)
           if (!originalFlower) return f
           
+          // Calculate new position with boundary constraints
+          let newPosX = originalFlower.position_x + positionDeltaX
+          let newPosY = originalFlower.position_y + positionDeltaY
+          
+          // Ensure flower stays within canvas bounds
+          newPosX = Math.max(0, Math.min(newPosX, canvasSize.width - size))
+          newPosY = Math.max(0, Math.min(newPosY, canvasSize.height - size))
+          
           return {
             ...f,
             visual_width: size,
             visual_height: size,
-            position_x: originalFlower.position_x + positionDeltaX,
-            position_y: originalFlower.position_y + positionDeltaY
+            position_x: newPosX,
+            position_y: newPosY
           }
         }
         return f
@@ -776,7 +821,8 @@ export default function PlantvakDetailPage() {
                     <div>• <strong>Slepen:</strong> Verplaats bloem</div>
                     <div>• <strong>Resize handles:</strong> Trek aan blauwe bolletjes om grootte aan te passen</div>
                     <div>• <strong>Standaard grootte:</strong> 30px (namen altijd zichtbaar)</div>
-                    <div>• <strong>Grootte range:</strong> 20px - 100px</div>
+                    <div>• <strong>Max grootte:</strong> Zo groot als het hele plantvak!</div>
+                    <div>• <strong>Verdwenen bloemen:</strong> Klik "🔍 Zoek Verdwenen" om terug te vinden</div>
                     <div>• <strong>Styling:</strong> Identiek aan tuin overzicht</div>
                   </div>
                   
@@ -804,7 +850,18 @@ export default function PlantvakDetailPage() {
             {/* Flower List */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Bloemen in dit Plantvak</CardTitle>
+                <CardTitle className="text-lg flex items-center justify-between">
+                  Bloemen in dit Plantvak
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResetLostFlowers}
+                    className="text-xs"
+                    title="Breng verdwenen bloemen terug in het plantvak"
+                  >
+                    🔍 Zoek Verdwenen
+                  </Button>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 {flowers.length === 0 ? (
