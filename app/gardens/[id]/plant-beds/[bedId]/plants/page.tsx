@@ -11,6 +11,7 @@ import { ArrowLeft, Leaf, Plus, Search, Eye, Edit, Trash2, Calendar, AlertTriang
 import { getGarden, getPlantBed, deletePlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
+import { AddTaskForm } from '@/components/tasks/add-task-form'
 
 export default function PlantBedPlantsPage() {
   const router = useRouter()
@@ -21,6 +22,8 @@ export default function PlantBedPlantsPage() {
   const [plantBed, setPlantBed] = useState<PlantBedWithPlants | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [showAddTask, setShowAddTask] = useState(false)
+  const [selectedPlantId, setSelectedPlantId] = useState<string | undefined>()
 
   useEffect(() => {
     const loadData = async () => {
@@ -290,6 +293,18 @@ export default function PlantBedPlantsPage() {
                       Bekijk
                     </Button>
                   </Link>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setSelectedPlantId(plant.id)
+                      setShowAddTask(true)
+                    }}
+                    className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                  >
+                    <Calendar className="h-3 w-3 mr-1" />
+                    Taak
+                  </Button>
                   <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}/edit`}>
                     <Button variant="outline" size="sm">
                       <Edit className="h-3 w-3 mr-1" />
@@ -363,6 +378,21 @@ export default function PlantBedPlantsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Add Task Dialog */}
+      <AddTaskForm
+        isOpen={showAddTask}
+        onClose={() => {
+          setShowAddTask(false)
+          setSelectedPlantId(undefined)
+        }}
+        onTaskAdded={() => {
+          // Task added successfully - could show toast or refresh
+          setShowAddTask(false)
+          setSelectedPlantId(undefined)
+        }}
+        preselectedPlantId={selectedPlantId}
+      />
     </div>
   )
 }
