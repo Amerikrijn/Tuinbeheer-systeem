@@ -47,7 +47,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
   const [showFilters, setShowFilters] = useState(false)
   const [config, setConfig] = useState<WeekViewConfig>({
     week_start: getWeekStartDate().toISOString().split('T')[0],
-    show_completed: false,
+    show_completed: true,
     group_by_plant: true,
     sort_by: 'due_date'
   })
@@ -215,9 +215,11 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
 
   // Day Card Component
   const DayCard = ({ day }: { day: TaskCalendarDay }) => {
-    const tasksToShow = config.show_completed ? day.tasks : day.tasks.filter(t => !t.completed)
+    // Separate active and completed tasks
+    const activeTasks = day.tasks.filter(t => !t.completed)
+    const completedTasks = day.tasks.filter(t => t.completed)
     
-    if (tasksToShow.length === 0) return null
+    if (day.tasks.length === 0) return null
 
     return (
       <Card className={`mb-4 ${day.is_today ? 'ring-2 ring-blue-500' : ''}`}>
@@ -245,10 +247,17 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
         </CardHeader>
         
         <CardContent className="pt-0">
-          {/* Show all tasks in rows */}
           <div className="space-y-3">
-            {tasksToShow.map(task => (
+            {/* Show active tasks first */}
+            {activeTasks.map(task => (
               <TaskCard key={task.id} task={task} showPlantInfo />
+            ))}
+            
+            {/* Show completed tasks at the bottom with strikethrough */}
+            {completedTasks.map(task => (
+              <div key={task.id} className="opacity-60">
+                <TaskCard task={task} showPlantInfo completed />
+              </div>
             ))}
           </div>
         </CardContent>
