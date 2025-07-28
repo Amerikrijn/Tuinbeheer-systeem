@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { WeeklyTaskList } from '@/components/tasks/weekly-task-list'
 import { AddTaskForm } from '@/components/tasks/add-task-form'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,9 +10,19 @@ import { Calendar, Plus, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
 export default function TasksPage() {
+  const router = useRouter()
   const [showAddTask, setShowAddTask] = useState(false)
   const [selectedPlantId, setSelectedPlantId] = useState<string | undefined>()
   const [refreshKey, setRefreshKey] = useState(0)
+
+  // Smart navigation - go back to where user came from
+  const handleBackNavigation = () => {
+    if (window.history.length > 1) {
+      router.back()
+    } else {
+      router.push('/')
+    }
+  }
 
   const handleTaskAdd = (plantId?: string) => {
     setSelectedPlantId(plantId)
@@ -27,12 +38,10 @@ export default function TasksPage() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
-          <Link href="/">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Terug naar Tuinen
-            </Button>
-          </Link>
+          <Button variant="outline" size="sm" onClick={handleBackNavigation}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Terug
+          </Button>
           
           <div className="flex items-center gap-2">
             <Calendar className="w-6 h-6 text-green-600" />
