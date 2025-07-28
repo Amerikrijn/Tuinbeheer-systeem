@@ -41,6 +41,7 @@ import { FlowerVisualization } from "@/components/flower-visualization"
 import {
   METERS_TO_PIXELS,
   PLANTVAK_CANVAS_PADDING,
+  FLOWER_SIZE_TINY,
   FLOWER_SIZE_SMALL,
   FLOWER_SIZE_MEDIUM,
   FLOWER_SIZE_LARGE,
@@ -82,8 +83,10 @@ const FLOWER_STATUS_OPTIONS = [
 ]
 
   // Helper function to get flower size in pixels
-  const getFlowerSize = (size: 'small' | 'medium' | 'large'): { width: number, height: number } => {
+  const getFlowerSize = (size: 'tiny' | 'small' | 'medium' | 'large'): { width: number, height: number } => {
     switch (size) {
+      case 'tiny':
+        return { width: FLOWER_SIZE_TINY, height: FLOWER_SIZE_TINY } // 0.5x0.5 meter
       case 'small': 
         return { width: FLOWER_SIZE_SMALL, height: FLOWER_SIZE_SMALL } // 1x1 meter
       case 'medium': 
@@ -91,27 +94,29 @@ const FLOWER_STATUS_OPTIONS = [
       case 'large': 
         return { width: FLOWER_SIZE_LARGE, height: FLOWER_SIZE_SMALL } // 2x1 meter
       default: 
-        return { width: FLOWER_SIZE_SMALL, height: FLOWER_SIZE_SMALL }
+        return { width: FLOWER_SIZE_TINY, height: FLOWER_SIZE_TINY }
     }
   }
 
   // Helper function to cycle through flower sizes
-  const cycleFlowerSize = (currentSize: 'small' | 'medium' | 'large'): 'small' | 'medium' | 'large' => {
+  const cycleFlowerSize = (currentSize: 'tiny' | 'small' | 'medium' | 'large'): 'tiny' | 'small' | 'medium' | 'large' => {
     switch (currentSize) {
+      case 'tiny': return 'small'
       case 'small': return 'medium'
       case 'medium': return 'large'
-      case 'large': return 'small'
-      default: return 'small'
+      case 'large': return 'tiny'
+      default: return 'tiny'
     }
   }
 
   // Helper function to get size label
-  const getSizeLabel = (size: 'small' | 'medium' | 'large'): string => {
+  const getSizeLabel = (size: 'tiny' | 'small' | 'medium' | 'large'): string => {
     switch (size) {
+      case 'tiny': return '0.5x0.5 meter'
       case 'small': return '1x1 meter'
       case 'medium': return '2x2 meter'
       case 'large': return '2x1 meter'
-      default: return '1x1 meter'
+      default: return '0.5x0.5 meter'
     }
   }
 
@@ -843,7 +848,7 @@ export default function PlantBedViewPage() {
   }
 
   // Handle single click/tap - select flower and change size
-  const handleFlowerClick = useCallback((e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
+  const handleFlowerClick = useCallback(async (e: React.MouseEvent | React.TouchEvent, flowerId: string) => {
     e.preventDefault()
     e.stopPropagation()
     
@@ -889,8 +894,49 @@ export default function PlantBedViewPage() {
       // For mouse, change flower size on click
       if (selectedFlower?.id === flowerId) {
         // If already selected, change size
-        // TODO: Implement flower size change
-        console.log('Flower size change clicked for:', flowerId)
+        const flower = flowerPositions.find(f => f.id === flowerId)
+        if (!flower) return
+
+        // Extract current size from notes or default to tiny
+        const sizeMatch = flower.notes?.match(/Size: (0\.5x0\.5|1x1|2x2|2x1) meter/)
+        const currentSize = sizeMatch ?
+          (sizeMatch[1] === '0.5x0.5 meter' ? 'tiny' :
+           sizeMatch[1] === '1x1 meter' ? 'small' :
+           sizeMatch[1] === '2x2 meter' ? 'medium' : 'large') : 'tiny'
+
+        const newSize = cycleFlowerSize(currentSize)
+        const newDimensions = getFlowerSize(newSize)
+
+        try {
+          await updatePlantPosition(flowerId, {
+            position_x: flower.position_x,
+            position_y: flower.position_y,
+            visual_width: newDimensions.width,
+            visual_height: newDimensions.height,
+            notes: `${flower.notes?.replace(/\| Size: [^|]+/, '') || ''}${flower.notes && !flower.notes.includes('Size:') ? ' | ' : ''}Size: ${getSizeLabel(newSize)}`
+          })
+
+          setFlowerPositions(prev => prev.map(f =>
+            f.id === flowerId ? {
+              ...f,
+              visual_width: newDimensions.width,
+              visual_height: newDimensions.height,
+              notes: `${f.notes?.replace(/\| Size: [^|]+/, '') || ''}${f.notes && !f.notes.includes('Size:') ? ' | ' : ''}Size: ${getSizeLabel(newSize)}`
+            } : f
+          ))
+
+          toast({
+            title: "✅ Grootte aangepast",
+            description: `${flower.name} is nu ${getSizeLabel(newSize)}`,
+          })
+        } catch (error) {
+          console.error('Failed to change flower size:', error)
+          toast({
+            title: "❌ Fout",
+            description: "Kon grootte niet aanpassen. Probeer opnieuw.",
+            variant: "destructive",
+          })
+        }
       } else {
         // Select the flower
         setSelectedFlower(flower)
@@ -2286,16 +2332,10 @@ export default function PlantBedViewPage() {
             </Button>
           </div>
           
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="text-gray-600">Naam:</span>
               <p className="font-medium">{plantBed?.name || 'Onbekend'}</p>
-            </div>
-            <div>
-              <span className="text-gray-600">Afmetingen:</span>
-              <p className="font-medium">
-                {plantBed?.size || `${(canvasWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(canvasHeight / METERS_TO_PIXELS).toFixed(1)}m`}
-              </p>
             </div>
             <div>
               <span className="text-gray-600">Bloemen:</span>
