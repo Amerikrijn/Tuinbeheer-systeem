@@ -189,12 +189,7 @@ export default function PlantvakDetailPage() {
   const handleSavePosition = useCallback(async (flower: PlantWithPosition) => {
     try {
       const canvasSize = getCanvasSize()
-      console.log('💾 SAVING FLOWER POSITION:', {
-        flowerName: flower.name,
-        position: { x: flower.position_x, y: flower.position_y },
-        size: { w: flower.visual_width, h: flower.visual_height },
-        canvasSize: canvasSize
-      })
+
       
       await updatePlantPosition(flower.id, {
         position_x: flower.position_x,
