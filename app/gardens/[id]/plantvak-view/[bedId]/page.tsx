@@ -569,7 +569,7 @@ export default function PlantvakDetailPage() {
                 <div className="flex justify-center">
                   <div 
                     ref={canvasRef}
-                    className="relative bg-gradient-to-br from-green-100 to-green-200 border-2 border-dashed border-green-400 rounded-lg overflow-hidden"
+                    className="relative bg-gradient-to-br from-green-25 to-green-50 border-2 border-dashed border-gray-300 rounded-lg overflow-hidden"
                     style={{
                       width: `${canvasSize.width * scale}px`,
                       height: `${canvasSize.height * scale}px`,
@@ -577,7 +577,25 @@ export default function PlantvakDetailPage() {
                       transformOrigin: 'top left'
                     }}
                   >
-                                         {/* Draggable interactive flowers - styled like tuin overzicht */}
+                    {/* Plantvak visual indicator - match tuin view */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent pointer-events-none"></div>
+                    
+                    {/* Corner decorations to emphasize the plant bed area - match tuin view */}
+                    <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none"></div>
+                    <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none"></div>
+                    <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none"></div>
+                                         <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none"></div>
+
+                     {/* Empty state indicator - match tuin view */}
+                     {flowers.length === 0 && (
+                       <div className="absolute inset-0 flex items-center justify-center">
+                         <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
+                           🌱 Leeg plantvak
+                         </div>
+                       </div>
+                     )}
+
+                     {/* Draggable interactive flowers - styled like tuin overzicht */}
                      {flowers.map((flower) => {
                        const isDragging = draggedFlower === flower.id
                        const emoji = getPlantEmoji(flower.name, flower.emoji)
@@ -791,7 +809,7 @@ export default function PlantvakDetailPage() {
                     <div>• <strong>Resize gedrag:</strong> Bloem blijft op dezelfde plek tijdens vergroten</div>
                     <div>• <strong>Standaard grootte:</strong> 30px (namen altijd zichtbaar)</div>
                     <div>• <strong>Max grootte:</strong> Zo groot als het hele plantvak!</div>
-                    <div>• <strong>Styling:</strong> Identiek aan tuin overzicht</div>
+                    <div>• <strong>Plantvak styling:</strong> Nu exact gelijk aan tuin overzicht (subtiele kleuren, corner decoraties)</div>
                   </div>
                   
                   <div className="flex gap-2">
