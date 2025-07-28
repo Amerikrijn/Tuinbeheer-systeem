@@ -98,6 +98,16 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
         
+        // DEBUG: Log coordinate transformation
+        console.log('🔍 GARDEN COORDINATE DEBUG:', {
+          plantName: plant.name,
+          storedPosition: { x: plant.position_x, y: plant.position_y },
+          plantvakCanvas: { w: plantvakCanvasWidth, h: plantvakCanvasHeight },
+          percentage: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
+          containerSize: { w: containerWidth, h: containerHeight },
+          finalPosition: { x: finalX.toFixed(1), y: finalY.toFixed(1) }
+        })
+        
         // Size scaling based on container vs plantvak real dimensions
         const plantvakRealWidth = dimensions.lengthPixels   // e.g. 800px for 10m
         const plantvakRealHeight = dimensions.widthPixels   // e.g. 160px for 2m
