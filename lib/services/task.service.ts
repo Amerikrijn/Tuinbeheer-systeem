@@ -86,20 +86,27 @@ export class TaskService {
   // Get tasks with plant information
   static async getTasksWithPlantInfo(filters?: TaskFilters): Promise<{ data: TaskWithPlantInfo[]; error: string | null }> {
     try {
+      // Start with base query
       let query = supabase
-        .from('tasks_with_plant_info')
-        .select('*')
+        .from('tasks')
+        .select(`
+          *,
+          plants!inner (
+            name,
+            color,
+            plant_beds!inner (
+              name,
+              gardens!inner (
+                name
+              )
+            )
+          )
+        `)
 
       // Apply filters
       if (filters) {
         if (filters.plant_id) query = query.eq('plant_id', filters.plant_id)
-        if (filters.plant_bed_id) {
-          // Need to join with plants table to filter by plant_bed_id
-          query = query.in('plant_id', 
-            supabase.from('plants').select('id').eq('plant_bed_id', filters.plant_bed_id)
-          )
-        }
-        if (filters.garden_id) query = query.eq('garden_name', filters.garden_id) // This might need adjustment
+        if (filters.plant_bed_id) query = query.eq('plants.plant_bed_id', filters.plant_bed_id)
         if (filters.completed !== undefined) query = query.eq('completed', filters.completed)
         if (filters.priority) query = query.eq('priority', filters.priority)
         if (filters.task_type) query = query.eq('task_type', filters.task_type)
@@ -110,7 +117,17 @@ export class TaskService {
       const { data, error } = await query.order('due_date', { ascending: true })
 
       if (error) throw error
-      return { data: data || [], error: null }
+
+      // Transform the data to match TaskWithPlantInfo interface
+      const transformedData: TaskWithPlantInfo[] = (data || []).map((task: any) => ({
+        ...task,
+        plant_name: task.plants?.name || '',
+        plant_color: task.plants?.color || '',
+        plant_bed_name: task.plants?.plant_beds?.name || '',
+        garden_name: task.plants?.plant_beds?.gardens?.name || ''
+      }))
+
+      return { data: transformedData, error: null }
     } catch (error) {
       console.error('Error fetching tasks with plant info:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch tasks' }
@@ -122,17 +139,51 @@ export class TaskService {
     try {
       const startDate = weekStart || getWeekStartDate()
       const startDateStr = startDate.toISOString().split('T')[0]
+      const endDateStr = new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
       const { data, error } = await supabase
-        .from('weekly_tasks')
-        .select('*')
+        .from('tasks')
+        .select(`
+          *,
+          plants!inner (
+            name,
+            color,
+            plant_beds!inner (
+              name,
+              gardens!inner (
+                name
+              )
+            )
+          )
+        `)
         .gte('due_date', startDateStr)
-        .lt('due_date', new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+        .lt('due_date', endDateStr)
         .order('due_date', { ascending: true })
         .order('priority', { ascending: false })
 
       if (error) throw error
-      return { data: data || [], error: null }
+
+      // Transform and add status category
+      const today = new Date().toISOString().split('T')[0]
+      const transformedData: WeeklyTask[] = (data || []).map((task: any) => {
+        let status_category: 'overdue' | 'today' | 'upcoming' | 'future' = 'future'
+        
+        if (task.due_date < today) status_category = 'overdue'
+        else if (task.due_date === today) status_category = 'today'
+        else if (task.due_date <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]) status_category = 'upcoming'
+
+        return {
+          ...task,
+          plant_name: task.plants?.name || '',
+          plant_color: task.plants?.color || '',
+          plant_bed_name: task.plants?.plant_beds?.name || '',
+          garden_name: task.plants?.plant_beds?.gardens?.name || '',
+          day_of_week: new Date(task.due_date).getDay(),
+          status_category
+        }
+      })
+
+      return { data: transformedData, error: null }
     } catch (error) {
       console.error('Error fetching weekly tasks:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch weekly tasks' }
@@ -214,12 +265,33 @@ export class TaskService {
       const weekEnd = getWeekEndDate(getWeekStartDate()).toISOString().split('T')[0]
 
       // Get all relevant tasks
-      const { data: tasks, error } = await supabase
-        .from('tasks_with_plant_info')
-        .select('*')
+      const { data: tasksData, error } = await supabase
+        .from('tasks')
+        .select(`
+          *,
+          plants!inner (
+            name,
+            color,
+            plant_beds!inner (
+              name,
+              gardens!inner (
+                name
+              )
+            )
+          )
+        `)
         .gte('due_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]) // Last week to current + future
 
       if (error) throw error
+
+      // Transform data
+      const tasks = (tasksData || []).map((task: any) => ({
+        ...task,
+        plant_name: task.plants?.name || '',
+        plant_color: task.plants?.color || '',
+        plant_bed_name: task.plants?.plant_beds?.name || '',
+        garden_name: task.plants?.plant_beds?.gardens?.name || ''
+      }))
 
       const todayTasks = tasks.filter(t => t.due_date === today && !t.completed).length
       const overdueTasks = tasks.filter(t => t.due_date < today && !t.completed).length
@@ -340,14 +412,38 @@ export class TaskService {
       const today = new Date().toISOString().split('T')[0]
       
       const { data, error } = await supabase
-        .from('weekly_tasks')
-        .select('*')
+        .from('tasks')
+        .select(`
+          *,
+          plants!inner (
+            name,
+            color,
+            plant_beds!inner (
+              name,
+              gardens!inner (
+                name
+              )
+            )
+          )
+        `)
         .eq('due_date', today)
         .order('priority', { ascending: false })
         .order('created_at', { ascending: true })
 
       if (error) throw error
-      return { data: data || [], error: null }
+
+      // Transform data
+      const transformedData: WeeklyTask[] = (data || []).map((task: any) => ({
+        ...task,
+        plant_name: task.plants?.name || '',
+        plant_color: task.plants?.color || '',
+        plant_bed_name: task.plants?.plant_beds?.name || '',
+        garden_name: task.plants?.plant_beds?.gardens?.name || '',
+        day_of_week: new Date(task.due_date).getDay(),
+        status_category: 'today' as const
+      }))
+
+      return { data: transformedData, error: null }
     } catch (error) {
       console.error('Error fetching today tasks:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch today tasks' }
