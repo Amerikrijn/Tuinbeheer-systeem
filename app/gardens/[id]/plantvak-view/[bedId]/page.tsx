@@ -27,7 +27,7 @@ import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, upd
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS,
-  FLOWER_SIZE,
+  FLOWER_SIZE_MEDIUM,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { FlowerVisualization } from "@/components/flower-visualization"
@@ -127,9 +127,9 @@ export default function PlantvakDetailPage() {
     try {
       const canvasSize = getCanvasSize()
       
-      // Place new flower in center of plantvak
-      const centerX = canvasSize.width / 2 - FLOWER_SIZE / 2
-      const centerY = canvasSize.height / 2 - FLOWER_SIZE / 2
+             // Place new flower in center of plantvak
+       const centerX = canvasSize.width / 2 - FLOWER_SIZE_MEDIUM / 2
+       const centerY = canvasSize.height / 2 - FLOWER_SIZE_MEDIUM / 2
       
       const flowerData = {
         name: newFlower.name.trim(),
@@ -137,8 +137,8 @@ export default function PlantvakDetailPage() {
         status: newFlower.status,
         position_x: centerX,
         position_y: centerY,
-        visual_width: FLOWER_SIZE,
-        visual_height: FLOWER_SIZE,
+                 visual_width: FLOWER_SIZE_MEDIUM,
+         visual_height: FLOWER_SIZE_MEDIUM,
         notes: ''
       }
       
