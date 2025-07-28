@@ -28,10 +28,12 @@ import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, upd
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS,
+  FLOWER_SIZE_TINY,
+  FLOWER_SIZE_SMALL,
   FLOWER_SIZE_MEDIUM,
+  FLOWER_SIZE_LARGE,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
-
 
 export default function PlantvakDetailPage() {
   const router = useRouter()
@@ -49,18 +51,86 @@ export default function PlantvakDetailPage() {
   // Drag state
   const [draggedFlower, setDraggedFlower] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
-  
-  // Resize functionaliteit verwijderd - alleen drag & drop
+  const [isDragging, setIsDragging] = useState(false)
   
   // Add flower dialog
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [newFlower, setNewFlower] = useState({
     name: '',
     category: 'flower',
-    status: 'healthy' as const
+    status: 'healthy' as const,
+    size: 'tiny' as 'tiny' | 'small' | 'medium' | 'large'
   })
   
   const canvasRef = useRef<HTMLDivElement>(null)
+  
+  // Helper function to get flower size in pixels
+  const getFlowerSize = (size: 'tiny' | 'small' | 'medium' | 'large'): { width: number, height: number } => {
+    switch (size) {
+      case 'tiny':
+        return { width: FLOWER_SIZE_TINY, height: FLOWER_SIZE_TINY } // 0.5x0.5 meter
+      case 'small': 
+        return { width: FLOWER_SIZE_SMALL, height: FLOWER_SIZE_SMALL } // 1x1 meter
+      case 'medium': 
+        return { width: FLOWER_SIZE_MEDIUM, height: FLOWER_SIZE_MEDIUM } // 2x2 meter
+      case 'large': 
+        return { width: FLOWER_SIZE_LARGE, height: FLOWER_SIZE_SMALL } // 2x1 meter
+      default: 
+        return { width: FLOWER_SIZE_TINY, height: FLOWER_SIZE_TINY }
+    }
+  }
+
+  // Helper function to cycle through flower sizes
+  const cycleFlowerSize = (currentSize: 'tiny' | 'small' | 'medium' | 'large'): 'tiny' | 'small' | 'medium' | 'large' => {
+    switch (currentSize) {
+      case 'tiny': return 'small'
+      case 'small': return 'medium'
+      case 'medium': return 'large'
+      case 'large': return 'tiny'
+      default: return 'tiny'
+    }
+  }
+
+  // Helper function to get size label
+  const getSizeLabel = (size: 'tiny' | 'small' | 'medium' | 'large'): string => {
+    switch (size) {
+      case 'tiny': return '0.5x0.5 meter'
+      case 'small': return '1x1 meter'
+      case 'medium': return '2x2 meter'
+      case 'large': return '2x1 meter'
+      default: return '0.5x0.5 meter'
+    }
+  }
+
+  // Helper function to extract size from flower notes
+  const getFlowerSizeFromNotes = (notes?: string): 'tiny' | 'small' | 'medium' | 'large' => {
+    if (!notes) return 'tiny'
+    const sizeMatch = notes.match(/Size: (0\.5x0\.5|1x1|2x2|2x1) meter/)
+    if (!sizeMatch) return 'tiny'
+    
+    switch (sizeMatch[1]) {
+      case '0.5x0.5': return 'tiny'
+      case '1x1': return 'small'
+      case '2x2': return 'medium'
+      case '2x1': return 'large'
+      default: return 'tiny'
+    }
+  }
+
+  // Helper function to get emoji based on plant name
+  const getPlantEmoji = (name?: string, emoji?: string): string => {
+    if (emoji) return emoji
+    
+    const plantName = (name || '').toLowerCase()
+    if (plantName.includes('roos') || plantName.includes('rose')) return '🌹'
+    if (plantName.includes('tulp') || plantName.includes('tulip')) return '🌷'
+    if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
+    if (plantName.includes('lavendel') || plantName.includes('lavender')) return '🪻'
+    if (plantName.includes('dahlia')) return '🌺'
+    if (plantName.includes('chrysant')) return '🌼'
+    
+    return '🌸' // Default flower emoji
+  }
   
   // Load data
   useEffect(() => {
@@ -133,12 +203,12 @@ export default function PlantvakDetailPage() {
     
     try {
       const canvasSize = getCanvasSize()
+      const flowerSize = getFlowerSize(newFlower.size)
       
-      // Place new flower in center of plantvak - PERCENTAGE COORDINATEN
-      const centerX = canvasSize.width / 2 - 60 / 2 // Center with 60px standard size
-      const centerY = canvasSize.height / 2 - 60 / 2 // Center with 60px standard size
+      // Place new flower in center of plantvak
+      const centerX = canvasSize.width / 2 - flowerSize.width / 2
+      const centerY = canvasSize.height / 2 - flowerSize.height / 2
       
-      // ROLLBACK: Gewoon absolute pixels opslaan
       const flowerData = {
         plant_bed_id: plantBed.id,
         name: newFlower.name.trim(),
@@ -146,12 +216,12 @@ export default function PlantvakDetailPage() {
         status: newFlower.status as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
         position_x: centerX,
         position_y: centerY,
-         visual_width: 60, // 60px standard size - names clearly readable
-         visual_height: 60, // 60px standard size - names clearly readable
-         emoji: '🌸',
-         is_custom: false,
-                   category: newFlower.category,
-         notes: ''
+        visual_width: flowerSize.width,
+        visual_height: flowerSize.height,
+        emoji: getPlantEmoji(newFlower.name),
+        is_custom: false,
+        category: newFlower.category,
+        notes: `Size: ${getSizeLabel(newFlower.size)}`
        }
        
                const newFlowerRecord = await createVisualPlant(flowerData)
@@ -163,7 +233,8 @@ export default function PlantvakDetailPage() {
         setNewFlower({
           name: '',
           category: 'flower',
-          status: 'healthy'
+          status: 'healthy',
+          size: 'tiny'
         })
       setShowAddDialog(false)
       
@@ -204,38 +275,64 @@ export default function PlantvakDetailPage() {
 
 
 
-  // Get plant emoji (same logic as FlowerVisualization)
-  const getPlantEmoji = useCallback((name?: string, storedEmoji?: string): string => {
-    if (storedEmoji && storedEmoji.trim()) {
-      return storedEmoji
-    }
-    
-    const plantName = (name || '').toLowerCase()
-    
-    if (plantName.includes('zinnia')) return '🌻'
-    if (plantName.includes('marigold') || plantName.includes('tagetes')) return '🌼'
-    if (plantName.includes('impatiens')) return '🌸'
-    if (plantName.includes('ageratum')) return '🌸'
-    if (plantName.includes('salvia')) return '🌺'
-    if (plantName.includes('verbena')) return '🌸'
-    if (plantName.includes('lobelia')) return '🌸'
-    if (plantName.includes('alyssum')) return '🤍'
-    if (plantName.includes('cosmos')) return '🌸'
-    if (plantName.includes('petunia')) return '🌺'
-    if (plantName.includes('begonia')) return '🌸'
-    if (plantName.includes('viooltje') || plantName.includes('viola')) return '🌸'
-    if (plantName.includes('stiefmoedje') || plantName.includes('pansy')) return '🌸'
-    if (plantName.includes('snapdragon') || plantName.includes('leeuwenbek')) return '🌸'
-    if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
-    if (plantName.includes('calendula') || plantName.includes('goudsbloem')) return '🌼'
-    if (plantName.includes('nicotiana') || plantName.includes('siertabak')) return '🤍'
-    if (plantName.includes('cleome') || plantName.includes('spinnenbloem')) return '🌸'
-    if (plantName.includes('celosia') || plantName.includes('hanekam')) return '🌺'
-    
-    return '🌸'
-  }, [])
+  // Resize functionaliteit verwijderd - alleen drag & drop
 
-  // Resize functionaliteit volledig verwijderd
+  // Handle flower click - cycle through sizes
+  const handleFlowerClick = useCallback(async (e: React.MouseEvent, flowerId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (isDragging) return
+    
+    const flower = flowers.find(f => f.id === flowerId)
+    if (!flower) return
+    
+    // If flower is already selected, cycle through sizes
+    if (selectedFlower?.id === flowerId) {
+      const currentSize = getFlowerSizeFromNotes(flower.notes)
+      const newSize = cycleFlowerSize(currentSize)
+      const newDimensions = getFlowerSize(newSize)
+      
+      try {
+        // Update notes with new size
+        const updatedNotes = flower.notes 
+          ? flower.notes.replace(/Size: [^|]+/, `Size: ${getSizeLabel(newSize)}`)
+          : `Size: ${getSizeLabel(newSize)}`
+        
+        await updatePlantPosition(flowerId, {
+          position_x: flower.position_x,
+          position_y: flower.position_y,
+          visual_width: newDimensions.width,
+          visual_height: newDimensions.height,
+          notes: updatedNotes
+        })
+        
+        // Update local state
+        setFlowers(prev => prev.map(f =>
+          f.id === flowerId ? {
+            ...f,
+            visual_width: newDimensions.width,
+            visual_height: newDimensions.height,
+            notes: updatedNotes
+          } : f
+        ))
+        
+        // Update selected flower
+        setSelectedFlower(prev => prev ? {
+          ...prev,
+          visual_width: newDimensions.width,
+          visual_height: newDimensions.height,
+          notes: updatedNotes
+        } : null)
+        
+      } catch (error) {
+        console.error('Failed to change flower size:', error)
+      }
+    } else {
+      // Select the flower
+      setSelectedFlower(flower)
+    }
+  }, [flowers, selectedFlower, isDragging, getFlowerSizeFromNotes, cycleFlowerSize, getFlowerSize, getSizeLabel])
 
   // Handle drag start - AANGEPAST VOOR PERCENTAGE COORDINATEN
   const handleMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
@@ -255,6 +352,7 @@ export default function PlantvakDetailPage() {
 
     setDraggedFlower(flowerId)
     setDragOffset({ x: offsetX, y: offsetY })
+    setIsDragging(true)
     setSelectedFlower(flower)
   }, [flowers, getCanvasSize])
 
@@ -307,6 +405,7 @@ export default function PlantvakDetailPage() {
       }
       setDraggedFlower(null)
       setDragOffset({ x: 0, y: 0 })
+      setIsDragging(false)
     }
   }, [draggedFlower, flowers, handleSavePosition])
 
@@ -452,6 +551,25 @@ export default function PlantvakDetailPage() {
                             </SelectContent>
                           </Select>
                         </div>
+                        <div>
+                          <label className="block text-sm font-medium mb-1">
+                            Grootte
+                          </label>
+                                                     <Select
+                             value={newFlower.size}
+                             onValueChange={(value: 'tiny' | 'small' | 'medium' | 'large') => setNewFlower(prev => ({ ...prev, size: value }))}
+                           >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecteer grootte" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="tiny">0.5x0.5 meter</SelectItem>
+                              <SelectItem value="small">1x1 meter</SelectItem>
+                              <SelectItem value="medium">2x2 meter</SelectItem>
+                              <SelectItem value="large">2x1 meter</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
                         <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
@@ -526,7 +644,7 @@ export default function PlantvakDetailPage() {
                              zIndex: selectedFlower?.id === flower.id ? 10 : 8,
                            }}
                            onMouseDown={(e) => handleMouseDown(e, flower.id)}
-                           onClick={() => !isDragging && setSelectedFlower(flower)}
+                           onClick={(e) => handleFlowerClick(e, flower.id)}
                          >
                            {/* Flower container with border and background - only emoji */}
                            <div
@@ -594,27 +712,10 @@ export default function PlantvakDetailPage() {
                   </div>
                 </div>
                 
-                {/* Plantvak Info */}
-                <div className="mt-4 text-center space-y-2">
-                  <h3 className="font-semibold text-lg">{plantBed.name}</h3>
-                  <p className="text-gray-600">{plantBed.size}</p>
-                  <div className="flex justify-center gap-4 text-sm text-gray-500">
-                    <span>{flowers.length} bloemen</span>
-                    {plantBed.sun_exposure && (
-                      <span className="flex items-center gap-1">
-                        {plantBed.sun_exposure === 'full-sun' && <Sun className="h-4 w-4" />}
-                        {plantBed.sun_exposure === 'partial-sun' && <CloudSun className="h-4 w-4" />}
-                        {plantBed.sun_exposure === 'shade' && <Cloud className="h-4 w-4" />}
-                        {plantBed.sun_exposure === 'full-sun' ? 'Volle zon' :
-                         plantBed.sun_exposure === 'partial-sun' ? 'Gedeeltelijke zon' : 'Schaduw'}
-                      </span>
-                    )}
-                  </div>
-                </div>
               </CardContent>
             </Card>
             
-            {/* Plantvak Info onder de canvas */}
+            {/* Plantvak Info */}
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
@@ -623,6 +724,10 @@ export default function PlantvakDetailPage() {
                     <div className="flex items-center gap-1">
                       <span className="font-medium">Afmetingen:</span>
                       <span>{plantBed?.size}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Bloemen:</span>
+                      <span>{flowers.length}</span>
                     </div>
                     {plantBed?.sun_exposure && (
                       <div className="flex items-center gap-1">
@@ -666,16 +771,19 @@ export default function PlantvakDetailPage() {
                       <span className="font-medium">Positie:</span> {Math.round(selectedFlower.position_x)}, {Math.round(selectedFlower.position_y)}
                     </p>
                     <p className="text-sm">
-                      <span className="font-medium">Grootte:</span> {selectedFlower.visual_width}×{selectedFlower.visual_height}px
+                      <span className="font-medium">Grootte:</span> {getSizeLabel(getFlowerSizeFromNotes(selectedFlower.notes))}
+                    </p>
+                    <p className="text-sm">
+                      <span className="font-medium">Pixels:</span> {selectedFlower.visual_width}×{selectedFlower.visual_height}px
                     </p>
                   </div>
                   
                   <div className="p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
                     <div className="font-medium mb-1">💡 Besturing:</div>
+                    <div>• <strong>1e klik:</strong> Selecteer bloem</div>
+                    <div>• <strong>2e klik:</strong> Verander grootte (0.5x0.5m → 1x1m → 2x2m → 2x1m)</div>
                     <div>• <strong>Slepen:</strong> Verplaats bloem door het hele plantvak</div>
-                    <div>• <strong>Standaard grootte:</strong> 60px (namen direct leesbaar)</div>
-                    <div>• <strong>Bloemnamen:</strong> Staan onder het vakje (beter leesbaar)</div>
-                    <div>• <strong>Nieuwe aanpak:</strong> Percentage-based positionering voor perfecte sync met tuin</div>
+                    <div>• <strong>Bloemnamen:</strong> Staan onder het vakje voor betere leesbaarheid</div>
                   </div>
                   
                   <div className="flex gap-2">
@@ -724,7 +832,9 @@ export default function PlantvakDetailPage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium text-sm">{flower.name}</p>
-                                                         <p className="text-xs text-gray-500 capitalize">{flower.category || 'flower'}</p>
+                            <p className="text-xs text-gray-500">
+                              {getSizeLabel(getFlowerSizeFromNotes(flower.notes))} • {flower.category || 'flower'}
+                            </p>
                           </div>
                           <Badge variant="outline" className="text-xs">
                             {flower.status}
