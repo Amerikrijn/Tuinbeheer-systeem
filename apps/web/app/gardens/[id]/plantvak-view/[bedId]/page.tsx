@@ -2708,10 +2708,10 @@ export default function PlantBedViewPage() {
                     {/* Plantvak name and info - always within the plantvak area */}
                     <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border">
                       <div className="text-sm font-bold text-green-800">
-                        {plantBed.name}
+                        {plantBed.name} - TEST DEPLOYMENT
                       </div>
                       <div className="text-xs text-green-600">
-                        {plantBed.size} • {flowerPositions.length} bloemen
+                        {plantBed.size} • {flowerPositions.length} bloemen - TEST
                       </div>
                     </div>
                   </div>
@@ -2807,10 +2807,11 @@ export default function PlantBedViewPage() {
                       {isSelected && (
                         <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 text-xs font-medium text-white bg-blue-500 px-2 py-1 rounded shadow-sm whitespace-nowrap">
                           {(() => {
-                            const sizeMatch = flower.notes?.match(/Size: (1x1|2x2|2x1) meter/)
+                            const sizeMatch = flower.notes?.match(/Size: (0\.5x0\.5|1x1|2x2|2x1) meter/)
                             const currentSize = sizeMatch ? 
-                              (sizeMatch[1] === '1x1 meter' ? '1x1' : 
-                               sizeMatch[1] === '2x2 meter' ? '2x2' : '2x1') : '1x1'
+                              (sizeMatch[1] === '0.5x0.5 meter' ? '0.5x0.5' : 
+                               sizeMatch[1] === '1x1 meter' ? '1x1' : 
+                               sizeMatch[1] === '2x2 meter' ? '2x2' : '2x1') : '0.5x0.5'
                             return currentSize
                           })()}
                         </div>
