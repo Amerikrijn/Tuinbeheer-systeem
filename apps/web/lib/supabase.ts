@@ -142,9 +142,14 @@ export interface Plant {
   plant_bed_id: string;
   name: string;
   scientific_name?: string;
+  latin_name?: string;
   variety?: string;
   color?: string;
+  plant_color?: string;
   height?: number;
+  plant_height?: number;
+  plants_per_sqm?: number;
+  sun_preference?: 'full-sun' | 'partial-sun' | 'shade';
   stem_length?: number;
   photo_url?: string;
   category?: string;
