@@ -49,7 +49,7 @@ export default function PlantvakDetailPage() {
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [newFlower, setNewFlower] = useState({
     name: '',
-    plant_type: 'flower',
+    category: 'flower',
     status: 'healthy' as const
   })
   
@@ -142,7 +142,7 @@ export default function PlantvakDetailPage() {
          visual_height: FLOWER_SIZE_MEDIUM,
          emoji: '🌸',
          is_custom: false,
-         category: newFlower.plant_type,
+                   category: newFlower.category,
          notes: ''
        }
        
@@ -151,12 +151,12 @@ export default function PlantvakDetailPage() {
           setFlowers(prev => [...prev, newFlowerRecord])
         }
       
-      // Reset form
-      setNewFlower({
-        name: '',
-        plant_type: 'flower',
-        status: 'healthy'
-      })
+              // Reset form
+        setNewFlower({
+          name: '',
+          category: 'flower',
+          status: 'healthy'
+        })
       setShowAddDialog(false)
       
     } catch (error) {
@@ -306,10 +306,10 @@ export default function PlantvakDetailPage() {
                           <label className="block text-sm font-medium mb-1">
                             Type
                           </label>
-                          <Select
-                            value={newFlower.plant_type}
-                            onValueChange={(value) => setNewFlower(prev => ({ ...prev, plant_type: value }))}
-                          >
+                                                     <Select
+                             value={newFlower.category}
+                             onValueChange={(value) => setNewFlower(prev => ({ ...prev, category: value }))}
+                           >
                             <SelectTrigger>
                               <SelectValue />
                             </SelectTrigger>
@@ -417,7 +417,7 @@ export default function PlantvakDetailPage() {
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-semibold">{selectedFlower.name}</h4>
-                    <p className="text-sm text-gray-600 capitalize">{selectedFlower.plant_type}</p>
+                                         <p className="text-sm text-gray-600 capitalize">{selectedFlower.category || 'flower'}</p>
                   </div>
                   
                   <div className="space-y-2">
@@ -475,7 +475,7 @@ export default function PlantvakDetailPage() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium text-sm">{flower.name}</p>
-                            <p className="text-xs text-gray-500 capitalize">{flower.plant_type}</p>
+                                                         <p className="text-xs text-gray-500 capitalize">{flower.category || 'flower'}</p>
                           </div>
                           <Badge variant="outline" className="text-xs">
                             {flower.status}
