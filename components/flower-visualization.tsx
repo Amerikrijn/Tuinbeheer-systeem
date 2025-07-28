@@ -64,6 +64,12 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
   // Generate flower instances based on plants - SYNCHRONIZED WITH PLANTVAK-VIEW
   useEffect(() => {
+    console.log('🌻 FLOWER VISUALIZATION CALLED:', {
+      plantsCount: plants.length,
+      plantBedSize: plantBed.size,
+      containerSize: { w: containerWidth, h: containerHeight }
+    })
+    
     if (plants.length === 0) {
       setFlowerInstances([])
       return
@@ -78,6 +84,16 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       // Check if this plant has custom positioning (from plantvak-view)
       const hasCustomPosition = 'position_x' in plant && plant.position_x !== undefined && plant.position_y !== undefined
       const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
+      
+      // DEBUG: Always log to see what's happening
+      console.log('🌺 FLOWER DEBUG:', {
+        plantName: plant.name,
+        hasCustomPosition,
+        hasCustomSize,
+        hasDimensions: !!dimensions,
+        position: { x: plant.position_x, y: plant.position_y },
+        size: { w: plant.visual_width, h: plant.visual_height }
+      })
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
         // Use EXACT same canvas size calculation as plantvak-view getCanvasSize()
