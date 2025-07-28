@@ -2561,13 +2561,13 @@ export default function PlantBedViewPage() {
                 }}
               />
 
-              {/* TEMP: Disable FlowerVisualization to test if it's causing the issue */}
-              {/* <FlowerVisualization 
+              {/* Flower Visualization System - synchronized with garden view */}
+              <FlowerVisualization 
                 plantBed={plantBed}
                 plants={flowerPositions}
                 containerWidth={getCanvasSize().width}
                 containerHeight={getCanvasSize().height}
-              /> */}
+              />
 
               {/* Plantvak boundary visualization */}
               {(() => {
