@@ -1,3 +1,4 @@
+// Force deployment trigger - emergency rollback version
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
