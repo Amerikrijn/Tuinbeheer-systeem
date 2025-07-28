@@ -73,7 +73,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     }
   }
 
-  // Complete/uncomplete task
+  // Complete/uncomplete task with consistent reordering
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
     try {
       const { error } = await TaskService.updateTask(taskId, { completed })
@@ -83,7 +83,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
         return
       }
       
-      // Reload calendar
+      // Reload calendar to get updated sorting
       await loadWeeklyCalendar(currentWeekStart)
     } catch (err) {
       console.error('Error completing task:', err)

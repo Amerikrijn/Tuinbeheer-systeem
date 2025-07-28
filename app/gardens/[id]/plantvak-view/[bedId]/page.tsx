@@ -35,10 +35,18 @@ import {
   Image as ImageIcon,
   List,
   Eye,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
 } from "lucide-react"
 // useToast removed - no more toast notifications
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
+import { TaskService } from "@/lib/services/task.service"
+import { AddTaskForm } from "@/components/tasks/add-task-form"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
+import type { TaskWithPlantInfo, WeeklyTask } from "@/lib/types/tasks"
+import { getTaskTypeConfig, getPriorityConfig, formatTaskDate } from "@/lib/types/tasks"
 import { uploadImage, type UploadResult } from "@/lib/storage"
 import { FlowerVisualization } from "@/components/flower-visualization"
 import {
@@ -202,7 +210,6 @@ export default function PlantBedViewPage() {
   const [newFlower, setNewFlower] = useState({
     name: '',
     type: '',
-    color: '#FF69B4',
     emoji: DEFAULT_FLOWER_EMOJI,
     description: '',
     status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
@@ -227,7 +234,108 @@ export default function PlantBedViewPage() {
   })
   const [viewMode, setViewMode] = useState<'visual' | 'list'>('visual')
   
+  // Task-related state
+  const [tasks, setTasks] = useState<TaskWithPlantInfo[]>([])
+  const [loadingTasks, setLoadingTasks] = useState(false)
+  const [showAddTask, setShowAddTask] = useState(false)
+  const [selectedTaskPlantId, setSelectedTaskPlantId] = useState<string | undefined>()
+  
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Smart navigation - go back to where user came from
+  const handleBackNavigation = () => {
+    // Check if user can go back in browser history
+    if (window.history.length > 1) {
+      router.back()
+    } else {
+      // Fallback to garden page
+      router.push(`/gardens/${params.id}`)
+    }
+  }
+
+  // Load tasks for this plant bed and its plants
+  const loadTasks = async () => {
+    if (!params.bedId) return
+    
+    setLoadingTasks(true)
+    try {
+      // Get tasks for the plant bed itself
+      const { data: plantBedTasks, error: bedError } = await TaskService.getTasksWithPlantInfo({
+        plant_bed_id: params.bedId as string
+      })
+      
+      // Get tasks for all plants in this bed
+      const plantIds = flowerPositions.map(flower => flower.id)
+      const plantTaskPromises = plantIds.map(plantId => 
+        TaskService.getTasksWithPlantInfo({ plant_id: plantId })
+      )
+      
+      const plantTaskResults = await Promise.all(plantTaskPromises)
+      const allPlantTasks = plantTaskResults.flatMap(result => result.data || [])
+      
+      // Combine and sort all tasks: incomplete first (by due date), then completed at bottom
+      const allTasks = [...(plantBedTasks || []), ...allPlantTasks]
+      allTasks.sort((a, b) => {
+        // Completed tasks go to bottom
+        if (a.completed && !b.completed) return 1
+        if (!a.completed && b.completed) return -1
+        
+        // Within same completion status, sort by due date
+        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+      })
+      
+      setTasks(allTasks)
+    } catch (error) {
+      console.error('Error loading tasks:', error)
+    } finally {
+      setLoadingTasks(false)
+    }
+  }
+
+  // Consistent task completion handler with automatic reordering
+  const handleTaskComplete = async (taskId: string, completed: boolean) => {
+    try {
+      // Update task in database
+      const { error } = await TaskService.updateTask(taskId, { completed })
+      
+      if (error) {
+        console.error('Error updating task:', error)
+        return
+      }
+      
+      // Update local state with reordering
+      setTasks(prevTasks => {
+        const updatedTasks = prevTasks.map(task => 
+          task.id === taskId ? { ...task, completed, completed_at: completed ? new Date().toISOString() : undefined } : task
+        )
+        
+        // Re-sort: incomplete first (by due date), then completed at bottom
+        return updatedTasks.sort((a, b) => {
+          // Completed tasks go to bottom
+          if (a.completed && !b.completed) return 1
+          if (!a.completed && b.completed) return -1
+          
+          // Within same completion status, sort by due date
+          return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+        })
+      })
+    } catch (error) {
+      console.error('Error completing task:', error)
+    }
+  }
+
+  // Handle adding task for plant bed or specific plant
+  const handleAddTask = (plantId?: string) => {
+    setSelectedTaskPlantId(plantId)
+    setShowAddTask(true)
+  }
+
+  // Handle task added - reload tasks
+  const handleTaskAdded = () => {
+    loadTasks()
+    setShowAddTask(false)
+    setSelectedTaskPlantId(undefined)
+  }
 
   // Calculate canvas size based on plant bed size using consistent scaling
   const getCanvasSize = () => {
@@ -297,6 +405,13 @@ export default function PlantBedViewPage() {
       loadData()
     }
   }, [params.id, params.bedId])
+
+  // Load tasks when plant bed or flowers change
+  useEffect(() => {
+    if (plantBed && flowerPositions.length >= 0) {
+      loadTasks()
+    }
+  }, [plantBed, flowerPositions])
 
   // Smart auto-fill for flower beds based on size
   const autoFillFlowerBed = useCallback(async () => {
@@ -605,7 +720,7 @@ export default function PlantBedViewPage() {
       const newPlant = await createVisualPlant({
         plant_bed_id: plantBed.id,
         name: newFlower.name,
-        color: newFlower.color,
+        color: newFlower.plantColor || '#FF69B4',
         status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
         position_x: initialX,
         position_y: initialY,
@@ -630,7 +745,6 @@ export default function PlantBedViewPage() {
         setNewFlower({
           name: '',
           type: '',
-          color: '#FF69B4',
           emoji: DEFAULT_FLOWER_EMOJI,
           description: '',
           status: 'healthy',
@@ -667,7 +781,7 @@ export default function PlantBedViewPage() {
 
       const updatedPlant = await updatePlantPosition(selectedFlower.id, {
         name: newFlower.name,
-        color: newFlower.color,
+        color: newFlower.plantColor || '#FF69B4',
         status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
         emoji: newFlower.emoji,
         photo_url: null,
@@ -691,7 +805,6 @@ export default function PlantBedViewPage() {
         setNewFlower({
           name: '',
           type: '',
-          color: '#FF69B4',
           emoji: DEFAULT_FLOWER_EMOJI,
           description: '',
           status: 'healthy',
@@ -1413,9 +1526,9 @@ export default function PlantBedViewPage() {
           <Leaf className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Plantvak niet gevonden</h3>
           <p className="text-gray-600 mb-4">Het plantvak dat je zoekt bestaat niet.</p>
-          <Button onClick={() => router.push(`/gardens/${params.id}`)} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={handleBackNavigation} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Terug naar Tuin
+            Terug
           </Button>
         </div>
       </div>
@@ -1430,11 +1543,11 @@ export default function PlantBedViewPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/gardens/${params.id}`)}
+            onClick={handleBackNavigation}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Terug naar Tuin
+            Terug
           </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -1452,7 +1565,6 @@ export default function PlantBedViewPage() {
               setNewFlower({
                 name: '',
                 type: '',
-                color: '#FF69B4',
                 emoji: DEFAULT_FLOWER_EMOJI,
                 description: '',
                 status: 'healthy',
@@ -1474,7 +1586,6 @@ export default function PlantBedViewPage() {
                 setNewFlower({
                   name: '',
                   type: '',
-                  color: '#FF69B4',
                   emoji: DEFAULT_FLOWER_EMOJI,
                   description: '',
                   status: 'healthy',
@@ -1526,7 +1637,7 @@ export default function PlantBedViewPage() {
                             ...prev,
                             name: value,
                             emoji: selectedFlower.emoji,
-                            color: selectedFlower.color,
+                            plantColor: selectedFlower.color || '',
                             type: value,
                             isStandardFlower: true,
                           }))
@@ -1563,7 +1674,7 @@ export default function PlantBedViewPage() {
                                   ...prev,
                                   name: flower.name,
                                   emoji: flower.emoji,
-                                  color: flower.color,
+                                  plantColor: flower.color || '',
                                   type: flower.name,
                                   isStandardFlower: true,
                                 }))
@@ -1599,30 +1710,6 @@ export default function PlantBedViewPage() {
                         : "Standaard emoji voor aangepaste bloem"}
                     </span>
                   </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">Kleur</label>
-                  <Select value={newFlower.color} onValueChange={(value) => 
-                    setNewFlower(prev => ({ ...prev, color: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DEFAULT_FLOWER_COLORS.map((color) => (
-                        <SelectItem key={color} value={color}>
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-4 h-4 rounded-full border border-gray-300"
-                              style={{ backgroundColor: color }}
-                            ></div>
-                            <span>{getColorName(color)}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div>
@@ -1737,7 +1824,6 @@ export default function PlantBedViewPage() {
                     setNewFlower({
                       name: '',
                       type: '',
-                      color: '#FF69B4',
                       emoji: DEFAULT_FLOWER_EMOJI,
                       description: '',
                       status: 'healthy',
@@ -1767,7 +1853,6 @@ export default function PlantBedViewPage() {
               setNewFlower({
                 name: '',
                 type: '',
-                color: '#FF69B4',
                 emoji: DEFAULT_FLOWER_EMOJI,
                 description: '',
                 status: 'healthy',
@@ -1816,7 +1901,7 @@ export default function PlantBedViewPage() {
                             ...prev,
                             name: value,
                             emoji: selectedFlower.emoji,
-                            color: selectedFlower.color,
+                            plantColor: selectedFlower.color || '',
                             type: value,
                             isStandardFlower: true,
                           }))
@@ -1851,7 +1936,7 @@ export default function PlantBedViewPage() {
                                   ...prev,
                                   name: flower.name,
                                   emoji: flower.emoji,
-                                  color: flower.color,
+                                  plantColor: flower.color || '',
                                   type: flower.name,
                                   isStandardFlower: true,
                                 }))
@@ -1885,30 +1970,6 @@ export default function PlantBedViewPage() {
                     </div>
                   </div>
                 )}
-
-                <div>
-                  <label className="text-sm font-medium">Kleur</label>
-                  <Select value={newFlower.color} onValueChange={(value) => 
-                    setNewFlower(prev => ({ ...prev, color: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DEFAULT_FLOWER_COLORS.map((color) => (
-                        <SelectItem key={color} value={color}>
-                          <div className="flex items-center gap-2">
-                            <div 
-                              className="w-4 h-4 rounded-full border border-gray-300"
-                              style={{ backgroundColor: color }}
-                            ></div>
-                            <span>{getColorName(color)}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 <div>
                   <label className="text-sm font-medium">Status</label>
@@ -2028,7 +2089,6 @@ export default function PlantBedViewPage() {
                     setNewFlower({
                       name: '',
                       type: '',
-                      color: '#FF69B4',
                       emoji: DEFAULT_FLOWER_EMOJI,
                       description: '',
                       status: 'healthy',
@@ -2350,7 +2410,6 @@ export default function PlantBedViewPage() {
                       setNewFlower({
                         name: selectedFlower.name,
                         type: selectedFlower.category || '',
-                        color: selectedFlower.color || '#FF69B4',
                         emoji: selectedFlower.emoji || DEFAULT_FLOWER_EMOJI,
                         description: selectedFlower.notes || '',
                         status: selectedFlower.status === 'diseased' ? 'sick' : 
@@ -2821,18 +2880,46 @@ export default function PlantBedViewPage() {
                         </div>
                         
                         <div className="space-y-2 text-sm text-gray-600 mb-4">
-                          <div className="flex justify-between">
-                            <span>Status:</span>
-                            <span className="capitalize">{flower.status || 'healthy'}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Grootte:</span>
-                            <span>{Math.min(flower.visual_width, flower.visual_height)}px</span>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex justify-between">
+                              <span>Status:</span>
+                              <span className="capitalize">{flower.status || 'healthy'}</span>
+                            </div>
+                            {flower.plant_color && (
+                              <div className="flex justify-between items-center">
+                                <span>Kleur:</span>
+                                <div className="flex items-center gap-1">
+                                  <div
+                                    className="w-3 h-3 rounded-full border border-gray-300"
+                                    style={{ backgroundColor: flower.color || flower.plant_color }}
+                                  />
+                                  <span className="text-xs">{flower.plant_color}</span>
+                                </div>
+                              </div>
+                            )}
+                            {flower.plant_height && (
+                              <div className="flex justify-between">
+                                <span>Hoogte:</span>
+                                <span>{flower.plant_height}</span>
+                              </div>
+                            )}
+                            {flower.plants_per_sqm && (
+                              <div className="flex justify-between">
+                                <span>Per m²:</span>
+                                <span>{flower.plants_per_sqm}</span>
+                              </div>
+                            )}
+                            {flower.latin_name && (
+                              <div className="flex justify-between col-span-2">
+                                <span>Latijn:</span>
+                                <span className="italic text-xs">{flower.latin_name}</span>
+                              </div>
+                            )}
                           </div>
                           {flower.notes && (
-                            <div className="flex justify-between">
-                              <span>Notities:</span>
-                              <span className="truncate ml-2">{flower.notes}</span>
+                            <div className="mt-2 p-2 bg-gray-50 rounded">
+                              <span className="text-xs font-medium">Notities:</span>
+                              <p className="text-xs mt-1">{flower.notes}</p>
                             </div>
                           )}
                         </div>
@@ -2855,7 +2942,6 @@ export default function PlantBedViewPage() {
                               setNewFlower({
                                 name: flower.name,
                                 type: flower.category || '',
-                                color: flower.color || '#FF69B4',
                                 emoji: flower.emoji || DEFAULT_FLOWER_EMOJI,
                                 description: flower.notes || '',
                                 status: flower.status === 'diseased' ? 'sick' : 
@@ -2866,7 +2952,7 @@ export default function PlantBedViewPage() {
                                 isStandardFlower: !flower.is_custom,
                                 // Populate new fields
                                 latinName: flower.latin_name || '',
-                                plantColor: flower.plant_color || '',
+                                plantColor: flower.plant_color || flower.color || '',
                                 plantHeight: flower.plant_height?.toString() || '',
                                 plantsPerSqm: flower.plants_per_sqm?.toString() || '',
                                 sunPreference: flower.sun_preference || 'full-sun'
@@ -2882,10 +2968,150 @@ export default function PlantBedViewPage() {
                   ))}
                 </div>
               )}
+
+              {/* Tasks Section - Only in List View */}
+              <div className="mt-8">
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg mb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                    <span className="font-medium text-gray-900">Taken voor dit Plantvak</span>
+                    <Badge variant="secondary">{tasks.length} taken</Badge>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleAddTask()}
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Plantvak Taak
+                    </Button>
+                    {flowerPositions.length > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAddTask(flowerPositions[0].id)}
+                        className="text-green-600 border-green-200 hover:bg-green-50"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Bloem Taak
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tasks List */}
+                {loadingTasks ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-gray-600 mt-2">Taken laden...</p>
+                  </div>
+                ) : tasks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen taken</h3>
+                    <p className="text-gray-600 mb-4">Voeg taken toe voor dit plantvak of specifieke bloemen.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {tasks.map((task) => {
+                      const taskTypeConfig = getTaskTypeConfig(task.task_type)
+                      const priorityConfig = getPriorityConfig(task.priority)
+                      const isOverdue = !task.completed && new Date(task.due_date) < new Date()
+                      const isToday = task.due_date === new Date().toISOString().split('T')[0]
+                      
+                      return (
+                        <Card key={task.id} className={`transition-all duration-200 ${task.completed ? 'opacity-60' : ''} ${isOverdue ? 'border-red-200 bg-red-50' : isToday ? 'border-orange-200 bg-orange-50' : ''}`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              {/* Checkbox */}
+                              <div className="mt-1">
+                                <input
+                                  type="checkbox"
+                                  checked={task.completed}
+                                  onChange={(e) => handleTaskComplete(task.id, e.target.checked)}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                              </div>
+                              
+                              {/* Task Content */}
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <h4 className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                                      {task.title}
+                                    </h4>
+                                    {task.description && (
+                                      <p className={`text-sm mt-1 ${task.completed ? 'text-gray-400' : 'text-gray-600'}`}>
+                                        {task.description}
+                                      </p>
+                                    )}
+                                    
+                                    {/* Task Meta Info */}
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                      <div className="flex items-center gap-1">
+                                        {taskTypeConfig && (
+                                          <>
+                                            <span>{taskTypeConfig.icon}</span>
+                                            <span>{taskTypeConfig.label}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                      
+                                      <div className="flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        <span className={isOverdue ? 'text-red-600 font-medium' : isToday ? 'text-orange-600 font-medium' : ''}>
+                                          {formatTaskDate(task.due_date)}
+                                        </span>
+                                      </div>
+                                      
+                                      {task.plant_id ? (
+                                        <div className="flex items-center gap-1">
+                                          <span>🌸</span>
+                                          <span>{task.plant_name}</span>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-1">
+                                          <span>🌱</span>
+                                          <span>Plantvak taak</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Priority Badge */}
+                                  {priorityConfig && (
+                                    <Badge className={`ml-2 ${priorityConfig.badge_color}`}>
+                                      {priorityConfig.label}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Add Task Dialog */}
+      <AddTaskForm
+        isOpen={showAddTask}
+        onClose={() => {
+          setShowAddTask(false)
+          setSelectedTaskPlantId(undefined)
+        }}
+        onTaskAdded={handleTaskAdded}
+        preselectedPlantId={selectedTaskPlantId}
+        preselectedPlantBedId={selectedTaskPlantId ? undefined : params.bedId as string}
+      />
 
 
 
