@@ -105,12 +105,11 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const relativeX = plant.position_x! - plantvakStartX
         const relativeY = plant.position_y! - plantvakStartY
         
-        // Convert to percentage within the plantvak dimensions
+        // Convert to percentage within the plantvak CANVAS dimensions (not real-world dimensions)
         const percentageX = relativeX / dimensions.lengthPixels
         const percentageY = relativeY / dimensions.widthPixels
         
-        // FIXED: In garden overview, container represents the plantvak area directly
-        // So apply percentage directly to container dimensions
+        // Apply percentage to container dimensions
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
         
@@ -129,8 +128,19 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         })
         
         // Scale the flower size proportionally to container size
-        const sizeScale = Math.min(containerWidth / dimensions.lengthPixels, containerHeight / dimensions.widthPixels)
+        // Use the plantvak CANVAS dimensions (not real-world dimensions) for proper scaling
+        const sizeScale = Math.min(containerWidth / plantvakCanvasWidth, containerHeight / plantvakCanvasHeight)
         const scaledSize = Math.max(16, (plant.visual_width! * sizeScale))
+        
+        // DEBUG: Log size scaling for troubleshooting
+        console.log('🔍 GARDEN VIEW SIZE SCALING:', {
+          plantName: plant.name,
+          originalSize: plant.visual_width,
+          plantvakCanvasSize: { w: plantvakCanvasWidth, h: plantvakCanvasHeight },
+          containerSize: { w: containerWidth, h: containerHeight },
+          sizeScale: sizeScale,
+          scaledSize: scaledSize
+        })
         
         instances.push({
           id: `${plant.id}-flower-sync`,
