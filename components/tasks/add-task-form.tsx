@@ -376,7 +376,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
             </Button>
             <Button
               type="submit"
-              disabled={loading || !formData.plant_id || !formData.title.trim()}
+              disabled={loading || (!formData.plant_id && !formData.plant_bed_id) || !formData.title.trim()}
               className="flex-1 bg-green-600 hover:bg-green-700"
             >
               {loading ? 'Toevoegen...' : 'Taak Toevoegen'}
