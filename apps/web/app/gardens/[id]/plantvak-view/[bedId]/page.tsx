@@ -1716,7 +1716,7 @@ export default function PlantBedViewPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Flower className="h-8 w-8 text-pink-600" />
-              {plantBed.name}
+              🚨 VERCELL TEST - {plantBed.name} - VERANDERD OP VERCELL ��
             </h1>
 
           </div>
