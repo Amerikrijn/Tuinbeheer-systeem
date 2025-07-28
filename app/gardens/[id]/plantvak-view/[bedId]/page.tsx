@@ -137,17 +137,14 @@ export default function PlantvakDetailPage() {
       const centerX = canvasSize.width / 2 - 60 / 2 // Center with 60px standard size
       const centerY = canvasSize.height / 2 - 60 / 2 // Center with 60px standard size
       
-      // Converteer naar percentages voor opslag
-      const percentageX = Math.round((centerX / canvasSize.width) * 1000)
-      const percentageY = Math.round((centerY / canvasSize.height) * 1000)
-      
+      // ROLLBACK: Gewoon absolute pixels opslaan
       const flowerData = {
         plant_bed_id: plantBed.id,
         name: newFlower.name.trim(),
         color: '#FF69B4', // Default color
         status: newFlower.status as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
-        position_x: percentageX,
-        position_y: percentageY,
+        position_x: centerX,
+        position_y: centerY,
          visual_width: 60, // 60px standard size - names clearly readable
          visual_height: 60, // 60px standard size - names clearly readable
          emoji: '🌸',
@@ -190,22 +187,10 @@ export default function PlantvakDetailPage() {
     try {
       const canvasSize = getCanvasSize()
       
-      // RADICALE VERANDERING: Sla coordinaten op als percentages (0.0-1.0)
-      const percentageX = flower.position_x / canvasSize.width
-      const percentageY = flower.position_y / canvasSize.height
-      
-      console.log('🔄 PERCENTAGE SAVE:', {
-        flowerName: flower.name,
-        canvasSize: canvasSize,
-        currentPixels: { x: flower.position_x, y: flower.position_y },
-        percentages: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
-        savedValues: { x: Math.round(percentageX * 1000), y: Math.round(percentageY * 1000) }
-      })
-      
-      // Sla percentages op in de database (vermenigvuldigd met 1000 voor precisie)
+      // ROLLBACK: Terug naar absolute pixels (percentage systeem gefaald)
       await updatePlantPosition(flower.id, {
-        position_x: Math.round(percentageX * 1000), // 0-1000 voor precisie
-        position_y: Math.round(percentageY * 1000), // 0-1000 voor precisie
+        position_x: flower.position_x, // Gewoon absolute pixels
+        position_y: flower.position_y, // Gewoon absolute pixels
         visual_width: flower.visual_width,
         visual_height: flower.visual_height,
         notes: flower.notes
@@ -263,14 +248,9 @@ export default function PlantvakDetailPage() {
     const mouseX = e.clientX - rect.left
     const mouseY = e.clientY - rect.top
 
-    // Converteer percentage naar pixels voor offset berekening
-    const canvasSize = getCanvasSize()
-    const pixelX = (flower.position_x / 1000) * canvasSize.width
-    const pixelY = (flower.position_y / 1000) * canvasSize.height
-
-    // Calculate offset from flower center
-    const offsetX = mouseX - (pixelX + flower.visual_width / 2)
-    const offsetY = mouseY - (pixelY + flower.visual_height / 2)
+    // ROLLBACK: Gewoon absolute pixels gebruiken
+    const offsetX = mouseX - (flower.position_x + flower.visual_width / 2)
+    const offsetY = mouseY - (flower.position_y + flower.visual_height / 2)
 
     setDraggedFlower(flowerId)
     setDragOffset({ x: offsetX, y: offsetY })
@@ -306,13 +286,10 @@ export default function PlantvakDetailPage() {
       const constrainedX = Math.max(0, Math.min(topLeftX, canvasSize.width - flowerSize))
       const constrainedY = Math.max(0, Math.min(topLeftY, canvasSize.height - flowerSize))
 
-      // NIEUWE AANPAK: Converteer pixels naar percentages voor opslag
-      const percentageX = Math.round((constrainedX / canvasSize.width) * 1000)
-      const percentageY = Math.round((constrainedY / canvasSize.height) * 1000)
-
+      // ROLLBACK: Gewoon absolute pixels opslaan
       setFlowers(prev => prev.map(f => 
         f.id === draggedFlower 
-          ? { ...f, position_x: percentageX, position_y: percentageY }
+          ? { ...f, position_x: constrainedX, position_y: constrainedY }
           : f
       ))
       setHasChanges(true)
@@ -529,10 +506,9 @@ export default function PlantvakDetailPage() {
                        const emoji = getPlantEmoji(flower.name, flower.emoji)
                        const flowerColor = flower.color || '#ec4899' // fallback to pink
                        
-                       // NIEUWE AANPAK: Converteer percentages naar pixels
-                       const canvasSize = getCanvasSize()
-                       const pixelX = (flower.position_x / 1000) * canvasSize.width  // 0-1000 -> 0-canvasWidth
-                       const pixelY = (flower.position_y / 1000) * canvasSize.height // 0-1000 -> 0-canvasHeight
+                       // ROLLBACK: Gewoon absolute pixels gebruiken
+                       const pixelX = flower.position_x
+                       const pixelY = flower.position_y
                        
                        return (
                          <div

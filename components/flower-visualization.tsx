@@ -84,23 +84,19 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // NIEUWE RADICALE AANPAK: Directe percentage coordinaten
+        // ROLLBACK: Terug naar absolute pixels (percentage systeem gefaald)
         
-        // Coordinaten zijn nu opgeslagen als percentages (0-1000)
-        const percentageX = plant.position_x! / 1000  // 0-1000 -> 0.0-1.0
-        const percentageY = plant.position_y! / 1000  // 0-1000 -> 0.0-1.0
+        // Plantvak canvas dimensions (wat plantvak-view gebruikt)
+        const plantvakCanvasWidth = dimensions.lengthPixels * 2   // e.g. 1600px for 10m plantvak
+        const plantvakCanvasHeight = dimensions.widthPixels * 2   // e.g. 320px for 2m plantvak
         
-        // Apply percentage direct to tuin container
+        // Simpele percentage berekening op basis van canvas coordinaten
+        const percentageX = plant.position_x! / plantvakCanvasWidth
+        const percentageY = plant.position_y! / plantvakCanvasHeight
+        
+        // Apply percentage to tuin container
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
-        
-        console.log('🌸 GARDEN TRANSFORM:', {
-          plantName: plant.name,
-          storedValues: { x: plant.position_x, y: plant.position_y },
-          percentages: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
-          containerSize: { w: containerWidth, h: containerHeight },
-          finalPixels: { x: finalX.toFixed(1), y: finalY.toFixed(1) }
-        })
         
         // Size scaling based on container vs plantvak real dimensions
         const plantvakRealWidth = dimensions.lengthPixels   // e.g. 800px for 10m
