@@ -45,6 +45,10 @@ export default function PlantvakDetailPage() {
   const [selectedFlower, setSelectedFlower] = useState<PlantWithPosition | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
   
+  // Drag state
+  const [draggedFlower, setDraggedFlower] = useState<string | null>(null)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  
   // Add flower dialog
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [newFlower, setNewFlower] = useState({
@@ -190,6 +194,78 @@ export default function PlantvakDetailPage() {
       console.error('Error saving position:', error)
     }
   }, [])
+
+  // Handle drag start
+  const handleMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
+    e.preventDefault()
+    const flower = flowers.find(f => f.id === flowerId)
+    if (!flower) return
+
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const mouseX = (e.clientX - rect.left) / scale
+    const mouseY = (e.clientY - rect.top) / scale
+
+    // Calculate offset from flower center
+    const offsetX = mouseX - (flower.position_x + flower.visual_width / 2)
+    const offsetY = mouseY - (flower.position_y + flower.visual_height / 2)
+
+    setDraggedFlower(flowerId)
+    setDragOffset({ x: offsetX, y: offsetY })
+    setSelectedFlower(flower)
+  }, [flowers, scale])
+
+  // Handle drag move
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!draggedFlower || !canvasRef.current) return
+
+    const rect = canvasRef.current.getBoundingClientRect()
+    const mouseX = (e.clientX - rect.left) / scale
+    const mouseY = (e.clientY - rect.top) / scale
+
+    // Calculate new position (center-based)
+    const newX = mouseX - dragOffset.x - (45 / 2) // 45 is FLOWER_SIZE_MEDIUM
+    const newY = mouseY - dragOffset.y - (45 / 2)
+
+    const canvasSize = getCanvasSize()
+    
+    // Constrain to canvas bounds
+    const constrainedX = Math.max(0, Math.min(newX, canvasSize.width - 45))
+    const constrainedY = Math.max(0, Math.min(newY, canvasSize.height - 45))
+
+    setFlowers(prev => prev.map(f => 
+      f.id === draggedFlower 
+        ? { ...f, position_x: constrainedX, position_y: constrainedY }
+        : f
+    ))
+    setHasChanges(true)
+  }, [draggedFlower, dragOffset, scale, getCanvasSize])
+
+  // Handle drag end
+  const handleMouseUp = useCallback(async () => {
+    if (!draggedFlower) return
+
+    const flower = flowers.find(f => f.id === draggedFlower)
+    if (flower) {
+      await handleSavePosition(flower)
+    }
+
+    setDraggedFlower(null)
+    setDragOffset({ x: 0, y: 0 })
+  }, [draggedFlower, flowers, handleSavePosition])
+
+  // Add global mouse event listeners
+  useEffect(() => {
+    if (draggedFlower) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [draggedFlower, handleMouseMove, handleMouseUp])
   
   if (loading) {
     return (
@@ -352,26 +428,32 @@ export default function PlantvakDetailPage() {
                       transformOrigin: 'top left'
                     }}
                   >
-                                         {/* Simple interactive flowers */}
-                     {flowers.map((flower) => (
-                       <div
-                         key={flower.id}
-                         className={`absolute cursor-pointer transition-all duration-200 ${
-                           selectedFlower?.id === flower.id ? 'ring-4 ring-blue-500 z-20' : 'z-10'
-                         }`}
-                         style={{
-                           left: `${flower.position_x}px`,
-                           top: `${flower.position_y}px`,
-                           width: `${flower.visual_width}px`,
-                           height: `${flower.visual_height}px`,
-                         }}
-                         onClick={() => setSelectedFlower(flower)}
-                       >
-                         <div className="w-full h-full rounded-full bg-pink-500 border-2 border-pink-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                           {flower.name.slice(0, 2).toUpperCase()}
+                                         {/* Draggable interactive flowers */}
+                     {flowers.map((flower) => {
+                       const isDragging = draggedFlower === flower.id
+                       return (
+                         <div
+                           key={flower.id}
+                           className={`absolute transition-all duration-200 ${
+                             isDragging ? 'cursor-grabbing z-30 scale-110' : 'cursor-grab z-10'
+                           } ${selectedFlower?.id === flower.id ? 'ring-4 ring-blue-500 z-20' : ''}`}
+                           style={{
+                             left: `${flower.position_x}px`,
+                             top: `${flower.position_y}px`,
+                             width: `${flower.visual_width}px`,
+                             height: `${flower.visual_height}px`,
+                           }}
+                           onMouseDown={(e) => handleMouseDown(e, flower.id)}
+                           onClick={() => !isDragging && setSelectedFlower(flower)}
+                         >
+                           <div className={`w-full h-full rounded-full border-2 flex items-center justify-center text-white font-bold text-sm shadow-lg ${
+                             isDragging ? 'bg-pink-600 border-pink-700' : 'bg-pink-500 border-pink-600'
+                           }`}>
+                             {flower.name.slice(0, 2).toUpperCase()}
+                           </div>
                          </div>
-                       </div>
-                     ))}
+                       )
+                     })}
                     
                     {flowers.length === 0 && (
                       <div className="absolute inset-0 flex items-center justify-center">
