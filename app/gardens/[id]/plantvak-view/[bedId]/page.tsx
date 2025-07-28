@@ -1038,6 +1038,7 @@ export default function PlantBedViewPage() {
       const margin = 10
       const constrainedX = Math.max(margin, Math.min(newX, currentCanvasWidth - draggedFlowerData.visual_width - margin))
       const constrainedY = Math.max(margin, Math.min(newY, currentCanvasHeight - draggedFlowerData.visual_height - margin))
+      // Force redeploy - all flowers should move freely now
       
 
 
