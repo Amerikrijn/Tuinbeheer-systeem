@@ -51,6 +51,9 @@ export default function PlantvakDetailPage() {
   
   // Resize state
   const [resizingFlower, setResizingFlower] = useState<string | null>(null)
+  const [resizeHandle, setResizeHandle] = useState<'se' | 'sw' | 'ne' | 'nw' | null>(null)
+  const [resizeStartPos, setResizeStartPos] = useState({ x: 0, y: 0 })
+  const [resizeStartSize, setResizeStartSize] = useState({ width: 0, height: 0 })
   
   // Add flower dialog
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -229,37 +232,26 @@ export default function PlantvakDetailPage() {
     return '🌸'
   }, [])
 
-  // Handle double click to resize
-  const handleDoubleClick = useCallback((flowerId: string) => {
-    setFlowers(prev => prev.map(f => {
-      if (f.id === flowerId) {
-        // Toggle between small (30px), medium (45px), and large (60px)
-        const currentSize = f.visual_width
-        let newSize = 45 // default medium
-        
-        if (currentSize <= 30) {
-          newSize = 45 // small -> medium
-        } else if (currentSize <= 45) {
-          newSize = 60 // medium -> large
-        } else {
-          newSize = 30 // large -> small
-        }
-        
-        const updatedFlower = {
-          ...f,
-          visual_width: newSize,
-          visual_height: newSize
-        }
-        
-        // Auto-save the new size
-        setTimeout(() => handleSavePosition(updatedFlower), 100)
-        
-        return updatedFlower
-      }
-      return f
-    }))
-    setHasChanges(true)
-  }, [handleSavePosition])
+  // Handle resize start
+  const handleResizeStart = useCallback((e: React.MouseEvent, flowerId: string, handle: 'se' | 'sw' | 'ne' | 'nw') => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const flower = flowers.find(f => f.id === flowerId)
+    if (!flower) return
+
+    const rect = canvasRef.current?.getBoundingClientRect()
+    if (!rect) return
+
+    const mouseX = (e.clientX - rect.left) / scale
+    const mouseY = (e.clientY - rect.top) / scale
+
+    setResizingFlower(flowerId)
+    setResizeHandle(handle)
+    setResizeStartPos({ x: mouseX, y: mouseY })
+    setResizeStartSize({ width: flower.visual_width, height: flower.visual_height })
+    setSelectedFlower(flower)
+  }, [flowers, scale])
 
   // Handle drag start
   const handleMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
@@ -282,48 +274,126 @@ export default function PlantvakDetailPage() {
     setSelectedFlower(flower)
   }, [flowers, scale])
 
-  // Handle drag move
+  // Handle drag move and resize
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!draggedFlower || !canvasRef.current) return
+    if (!canvasRef.current) return
 
     const rect = canvasRef.current.getBoundingClientRect()
     const mouseX = (e.clientX - rect.left) / scale
     const mouseY = (e.clientY - rect.top) / scale
 
-    // Calculate new position (center-based)
-    const newX = mouseX - dragOffset.x - (45 / 2) // 45 is FLOWER_SIZE_MEDIUM
-    const newY = mouseY - dragOffset.y - (45 / 2)
+    // Handle resize
+    if (resizingFlower && resizeHandle) {
+      const deltaX = mouseX - resizeStartPos.x
+      const deltaY = mouseY - resizeStartPos.y
+      
+      let newWidth = resizeStartSize.width
+      let newHeight = resizeStartSize.height
+      let positionDeltaX = 0
+      let positionDeltaY = 0
 
-    const canvasSize = getCanvasSize()
-    
-    // Constrain to canvas bounds
-    const constrainedX = Math.max(0, Math.min(newX, canvasSize.width - 45))
-    const constrainedY = Math.max(0, Math.min(newY, canvasSize.height - 45))
+      // Calculate new size based on handle
+      switch (resizeHandle) {
+        case 'se': // Southeast - bottom right
+          newWidth = Math.max(20, resizeStartSize.width + deltaX)
+          newHeight = Math.max(20, resizeStartSize.height + deltaY)
+          break
+        case 'sw': // Southwest - bottom left  
+          newWidth = Math.max(20, resizeStartSize.width - deltaX)
+          newHeight = Math.max(20, resizeStartSize.height + deltaY)
+          positionDeltaX = resizeStartSize.width - newWidth
+          break
+        case 'ne': // Northeast - top right
+          newWidth = Math.max(20, resizeStartSize.width + deltaX)
+          newHeight = Math.max(20, resizeStartSize.height - deltaY)
+          positionDeltaY = resizeStartSize.height - newHeight
+          break
+        case 'nw': // Northwest - top left
+          newWidth = Math.max(20, resizeStartSize.width - deltaX)
+          newHeight = Math.max(20, resizeStartSize.height - deltaY)
+          positionDeltaX = resizeStartSize.width - newWidth
+          positionDeltaY = resizeStartSize.height - newHeight
+          break
+      }
 
-    setFlowers(prev => prev.map(f => 
-      f.id === draggedFlower 
-        ? { ...f, position_x: constrainedX, position_y: constrainedY }
-        : f
-    ))
-    setHasChanges(true)
-  }, [draggedFlower, dragOffset, scale, getCanvasSize])
-
-  // Handle drag end
-  const handleMouseUp = useCallback(async () => {
-    if (!draggedFlower) return
-
-    const flower = flowers.find(f => f.id === draggedFlower)
-    if (flower) {
-      await handleSavePosition(flower)
+      // Keep aspect ratio (square flowers) and limit max size
+      const size = Math.min(Math.max(20, Math.min(newWidth, newHeight)), 100)
+      
+      // Update flower size and position
+      setFlowers(prev => prev.map(f => {
+        if (f.id === resizingFlower) {
+          const originalFlower = flowers.find(flower => flower.id === resizingFlower)
+          if (!originalFlower) return f
+          
+          return {
+            ...f,
+            visual_width: size,
+            visual_height: size,
+            position_x: originalFlower.position_x + positionDeltaX,
+            position_y: originalFlower.position_y + positionDeltaY
+          }
+        }
+        return f
+      }))
+      setHasChanges(true)
+      return
     }
 
-    setDraggedFlower(null)
-    setDragOffset({ x: 0, y: 0 })
-  }, [draggedFlower, flowers, handleSavePosition])
+    // Handle drag
+    if (draggedFlower) {
+      const draggedFlowerData = flowers.find(f => f.id === draggedFlower)
+      if (!draggedFlowerData) return
+      
+      const flowerSize = draggedFlowerData.visual_width
+      
+      // Calculate new position (center-based)
+      const newX = mouseX - dragOffset.x - (flowerSize / 2)
+      const newY = mouseY - dragOffset.y - (flowerSize / 2)
+
+      const canvasSize = getCanvasSize()
+      
+      // Constrain to canvas bounds
+      const constrainedX = Math.max(0, Math.min(newX, canvasSize.width - flowerSize))
+      const constrainedY = Math.max(0, Math.min(newY, canvasSize.height - flowerSize))
+
+      setFlowers(prev => prev.map(f => 
+        f.id === draggedFlower 
+          ? { ...f, position_x: constrainedX, position_y: constrainedY }
+          : f
+      ))
+      setHasChanges(true)
+    }
+  }, [draggedFlower, dragOffset, scale, getCanvasSize, resizingFlower, resizeHandle, resizeStartPos, resizeStartSize, flowers])
+
+  // Handle drag end and resize end
+  const handleMouseUp = useCallback(async () => {
+    // Handle resize end
+    if (resizingFlower) {
+      const flower = flowers.find(f => f.id === resizingFlower)
+      if (flower) {
+        await handleSavePosition(flower)
+      }
+      setResizingFlower(null)
+      setResizeHandle(null)
+      setResizeStartPos({ x: 0, y: 0 })
+      setResizeStartSize({ width: 0, height: 0 })
+      return
+    }
+
+    // Handle drag end
+    if (draggedFlower) {
+      const flower = flowers.find(f => f.id === draggedFlower)
+      if (flower) {
+        await handleSavePosition(flower)
+      }
+      setDraggedFlower(null)
+      setDragOffset({ x: 0, y: 0 })
+    }
+  }, [draggedFlower, resizingFlower, flowers, handleSavePosition])
 
   // Add global mouse event listeners
   useEffect(() => {
-    if (draggedFlower) {
+    if (draggedFlower || resizingFlower) {
       document.addEventListener('mousemove', handleMouseMove)
       document.addEventListener('mouseup', handleMouseUp)
       return () => {
@@ -331,7 +401,7 @@ export default function PlantvakDetailPage() {
         document.removeEventListener('mouseup', handleMouseUp)
       }
     }
-  }, [draggedFlower, handleMouseMove, handleMouseUp])
+  }, [draggedFlower, resizingFlower, handleMouseMove, handleMouseUp])
   
   if (loading) {
     return (
@@ -514,7 +584,6 @@ export default function PlantvakDetailPage() {
                              opacity: isDragging ? 0.9 : 1,
                            }}
                            onMouseDown={(e) => handleMouseDown(e, flower.id)}
-                           onDoubleClick={() => handleDoubleClick(flower.id)}
                            onClick={() => !isDragging && setSelectedFlower(flower)}
                          >
                            {/* Flower container with border and background - same as FlowerVisualization */}
@@ -561,6 +630,51 @@ export default function PlantvakDetailPage() {
                                  transform: 'scale(1.2)',
                                }}
                              />
+                           )}
+
+                           {/* Resize handles - only show for selected flower */}
+                           {selectedFlower?.id === flower.id && (
+                             <>
+                               {/* Southeast handle */}
+                               <div
+                                 className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-se-resize hover:bg-blue-600 shadow-sm"
+                                 style={{
+                                   right: '-6px',
+                                   bottom: '-6px',
+                                 }}
+                                 onMouseDown={(e) => handleResizeStart(e, flower.id, 'se')}
+                               />
+                               
+                               {/* Southwest handle */}
+                               <div
+                                 className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-sw-resize hover:bg-blue-600 shadow-sm"
+                                 style={{
+                                   left: '-6px',
+                                   bottom: '-6px',
+                                 }}
+                                 onMouseDown={(e) => handleResizeStart(e, flower.id, 'sw')}
+                               />
+                               
+                               {/* Northeast handle */}
+                               <div
+                                 className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-ne-resize hover:bg-blue-600 shadow-sm"
+                                 style={{
+                                   right: '-6px',
+                                   top: '-6px',
+                                 }}
+                                 onMouseDown={(e) => handleResizeStart(e, flower.id, 'ne')}
+                               />
+                               
+                               {/* Northwest handle */}
+                               <div
+                                 className="absolute w-3 h-3 bg-blue-500 border border-white rounded-full cursor-nw-resize hover:bg-blue-600 shadow-sm"
+                                 style={{
+                                   left: '-6px',
+                                   top: '-6px',
+                                 }}
+                                 onMouseDown={(e) => handleResizeStart(e, flower.id, 'nw')}
+                               />
+                             </>
                            )}
                          </div>
                        )
@@ -657,8 +771,8 @@ export default function PlantvakDetailPage() {
                   <div className="p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
                     <div className="font-medium mb-1">💡 Besturing:</div>
                     <div>• <strong>Slepen:</strong> Verplaats bloem</div>
-                    <div>• <strong>Dubbelklik:</strong> Vergroten/verkleinen</div>
-                    <div>• <strong>Grootte:</strong> Klein (30px) → Medium (45px) → Groot (60px)</div>
+                    <div>• <strong>Resize handles:</strong> Trek aan blauwe bolletjes om grootte aan te passen</div>
+                    <div>• <strong>Grootte:</strong> 20px - 100px (vierkant)</div>
                   </div>
                   
                   <div className="flex gap-2">
