@@ -33,6 +33,8 @@ import {
   Minus,
   Upload,
   Image as ImageIcon,
+  List,
+  Eye,
 } from "lucide-react"
 // useToast removed - no more toast notifications
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
@@ -195,6 +197,7 @@ export default function PlantBedViewPage() {
     sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
     soil_type: 'loam' as 'clay' | 'sand' | 'loam' | 'peat'
   })
+  const [viewMode, setViewMode] = useState<'visual' | 'list'>('visual')
   
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -1877,67 +1880,42 @@ export default function PlantBedViewPage() {
             </DialogContent>
           </Dialog>
 
-          <Button variant="outline" size="sm" onClick={zoomOut}>
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={zoomIn}>
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={resetView}>
-            <RotateCcw className="h-4 w-4" />
-          </Button>
+          {/* Zoom controls - only show in visual mode */}
+          {viewMode === 'visual' && (
+            <>
+              <Button variant="outline" size="sm" onClick={zoomOut}>
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={zoomIn}>
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={resetView}>
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            </>
+          )}
           
-          {/* TEMP: Test buttons for debugging movement */}
-          <Button onClick={resetFlowerPositions} variant="outline" size="sm" className="bg-orange-50">
-            🌸 Reset Flowers
-          </Button>
-          
-          {/* TEST: Move first flower to center */}
-          <Button 
-            onClick={async () => {
-              if (flowerPositions.length > 0 && plantBed) {
-                const firstFlower = flowerPositions[0]
-                const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
-                
-                if (dimensions) {
-                  const currentCanvasSize = getCanvasSize()
-                  const plantvakWidth = dimensions.lengthPixels
-                  const plantvakHeight = dimensions.widthPixels
-                  const plantvakStartX = (currentCanvasSize.width - plantvakWidth) / 2
-                  const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
-                  
-                  const centerX = plantvakStartX + (plantvakWidth - firstFlower.visual_width) / 2
-                  const centerY = plantvakStartY + (plantvakHeight - firstFlower.visual_height) / 2
-                  
-                  try {
-                    await updatePlantPosition(firstFlower.id, {
-                      position_x: centerX,
-                      position_y: centerY,
-                      visual_width: firstFlower.visual_width,
-                      visual_height: firstFlower.visual_height,
-                      notes: firstFlower.notes
-                    })
-                    
-                    setFlowerPositions(prev => prev.map(f => 
-                      f.id === firstFlower.id 
-                        ? { ...f, position_x: centerX, position_y: centerY }
-                        : f
-                    ))
-                    
-                    console.log('🎯 MOVED FLOWER TO CENTER:', { centerX, centerY })
-                  } catch (error) {
-                    console.error('Error moving flower:', error)
-                  }
-                }
-              }
-            }} 
-            variant="outline" 
-            size="sm" 
-            className="bg-blue-50"
-            disabled={flowerPositions.length === 0}
-          >
-            🎯 Test Center
-          </Button>
+          {/* View Mode Toggle */}
+          <div className="flex border rounded-md">
+            <Button 
+              variant={viewMode === 'visual' ? 'default' : 'outline'} 
+              size="sm" 
+              onClick={() => setViewMode('visual')}
+              className="rounded-r-none border-r-0"
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Visueel
+            </Button>
+            <Button 
+              variant={viewMode === 'list' ? 'default' : 'outline'} 
+              size="sm" 
+              onClick={() => setViewMode('list')}
+              className="rounded-l-none"
+            >
+              <List className="h-4 w-4 mr-1" />
+              Lijst
+            </Button>
+          </div>
 
         </div>
       </div>
@@ -2241,27 +2219,28 @@ export default function PlantBedViewPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {/* Mobile help text */}
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
-            <h4 className="font-medium text-blue-900 mb-1">📱 Mobiele bediening:</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• <strong>1x tikken:</strong> Bloem selecteren</li>
-              <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
-              <li>• <strong>3x tikken:</strong> Grootte aanpassen</li>
-              <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
-              <li>• <strong>Dubbel tikken:</strong> Grootte aanpassen (+ / -)</li>
-              <li>• <strong>Knoppen:</strong> Gebruik knoppen hierboven</li>
-            </ul>
-            <div className="mt-2 pt-2 border-t border-blue-300">
-              <p className="text-xs text-blue-700">
-                🌱 <strong>Plantvak:</strong> {plantBed?.size || 'Onbekend'}
-              </p>
-            </div>
-          </div>
-          
-
-          
-          <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
+          {viewMode === 'visual' ? (
+            <>
+              {/* Mobile help text */}
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
+                <h4 className="font-medium text-blue-900 mb-1">📱 Mobiele bediening:</h4>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• <strong>1x tikken:</strong> Bloem selecteren</li>
+                  <li>• <strong>2x tikken:</strong> Verplaatsen activeren</li>
+                  <li>• <strong>3x tikken:</strong> Grootte aanpassen</li>
+                  <li>• <strong>Lang indrukken:</strong> Direct verplaatsen</li>
+                  <li>• <strong>Dubbel tikken:</strong> Grootte aanpassen (+ / -)</li>
+                  <li>• <strong>Knoppen:</strong> Gebruik knoppen hierboven</li>
+                </ul>
+                <div className="mt-2 pt-2 border-t border-blue-300">
+                  <p className="text-xs text-blue-700">
+                    🌱 <strong>Plantvak:</strong> {plantBed?.size || 'Onbekend'}
+                  </p>
+                </div>
+              </div>
+              
+              {/* Visual Canvas View */}
+              <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
             <div
               ref={containerRef}
               className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100"
@@ -2612,16 +2591,116 @@ export default function PlantBedViewPage() {
               )}
             </div>
           </div>
-          <div className="mt-4 text-sm text-gray-600 flex items-center justify-end">
-            <div className="flex items-center gap-4">
-              <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
-              {hasChanges && (
-                <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                  Niet opgeslagen wijzigingen
-                </Badge>
+              <div className="mt-4 text-sm text-gray-600 flex items-center justify-end">
+                <div className="flex items-center gap-4">
+                  <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
+                  {hasChanges && (
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                      Niet opgeslagen wijzigingen
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            /* List View */
+            <div className="space-y-4">
+              {/* List Header */}
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <List className="h-5 w-5 text-gray-600" />
+                  <span className="font-medium text-gray-900">Bloemen Lijst</span>
+                  <Badge variant="secondary">{flowerPositions.length} bloemen</Badge>
+                </div>
+              </div>
+
+              {/* Flowers List */}
+              {flowerPositions.length === 0 ? (
+                <div className="text-center py-12">
+                  <Flower className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen bloemen</h3>
+                  <p className="text-gray-600 mb-4">Voeg bloemen toe aan dit plantvak.</p>
+                  <Button onClick={() => setIsAddingFlower(true)} className="bg-pink-600 hover:bg-pink-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Eerste Bloem Toevoegen
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {flowerPositions.map((flower) => (
+                    <Card key={flower.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">{flower.emoji || '🌸'}</span>
+                            <div>
+                              <h3 className="font-medium text-gray-900">{flower.name}</h3>
+                              {flower.category && (
+                                <p className="text-sm text-gray-500">{flower.category}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className={`w-3 h-3 rounded-full border-2 ${getStatusColor(flower.status || 'healthy')}`}></div>
+                        </div>
+                        
+                        <div className="space-y-2 text-sm text-gray-600 mb-4">
+                          <div className="flex justify-between">
+                            <span>Status:</span>
+                            <span className="capitalize">{flower.status || 'healthy'}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Grootte:</span>
+                            <span>{Math.min(flower.visual_width, flower.visual_height)}px</span>
+                          </div>
+                          {flower.notes && (
+                            <div className="flex justify-between">
+                              <span>Notities:</span>
+                              <span className="truncate ml-2">{flower.notes}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => router.push(`/plants/${flower.id}`)}
+                            className="flex-1"
+                          >
+                            Details
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedFlower(flower)
+                              // Populate form with selected flower data
+                              setNewFlower({
+                                name: flower.name,
+                                type: flower.category || '',
+                                color: flower.color || '#FF69B4',
+                                emoji: flower.emoji || DEFAULT_FLOWER_EMOJI,
+                                description: flower.notes || '',
+                                status: flower.status === 'diseased' ? 'sick' : 
+                                       flower.status === 'healthy' ? 'healthy' :
+                                       flower.status === 'needs_attention' ? 'needs_attention' :
+                                       'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
+                                size: 'medium',
+                                isStandardFlower: !flower.is_custom
+                              })
+                              setIsEditingFlower(true)
+                            }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               )}
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
