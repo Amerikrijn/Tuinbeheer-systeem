@@ -19,6 +19,7 @@ interface AddTaskFormProps {
   onClose: () => void
   onTaskAdded: () => void
   preselectedPlantId?: string
+  preselectedPlantBedId?: string // New prop for plant bed tasks
 }
 
 interface PlantForForm {
@@ -32,11 +33,22 @@ interface PlantForForm {
   }
 }
 
-export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId }: AddTaskFormProps) {
+interface PlantBedForForm {
+  id: string
+  name: string
+  gardens: {
+    name: string
+  }
+}
+
+export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, preselectedPlantBedId }: AddTaskFormProps) {
   const [loading, setLoading] = useState(false)
   const [plants, setPlants] = useState<PlantForForm[]>([])
+  const [plantBeds, setPlantBeds] = useState<PlantBedForForm[]>([])
+  const [taskLevel, setTaskLevel] = useState<'plant' | 'plantbed'>('plant')
   const [formData, setFormData] = useState<CreateTaskData>({
-    plant_id: preselectedPlantId || '',
+    plant_id: preselectedPlantId || undefined,
+    plant_bed_id: preselectedPlantBedId || undefined,
     title: '',
     description: '',
     due_date: new Date().toISOString().split('T')[0],
@@ -45,15 +57,22 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId }
     notes: ''
   })
 
-  // Load plants when dialog opens
+  // Load plants and plant beds when dialog opens
   useEffect(() => {
     if (isOpen) {
       loadPlants()
+      loadPlantBeds()
+      
+      // Set initial task level and form data based on preselected values
       if (preselectedPlantId) {
-        setFormData(prev => ({ ...prev, plant_id: preselectedPlantId }))
+        setTaskLevel('plant')
+        setFormData(prev => ({ ...prev, plant_id: preselectedPlantId, plant_bed_id: undefined }))
+      } else if (preselectedPlantBedId) {
+        setTaskLevel('plantbed')
+        setFormData(prev => ({ ...prev, plant_bed_id: preselectedPlantBedId, plant_id: undefined }))
       }
     }
-  }, [isOpen, preselectedPlantId])
+  }, [isOpen, preselectedPlantId, preselectedPlantBedId])
 
   const loadPlants = async () => {
     try {
@@ -87,10 +106,37 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId }
     }
   }
 
+  const loadPlantBeds = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('plant_beds')
+        .select(`
+          id,
+          name,
+          gardens!inner (
+            name
+          )
+        `)
+        .order('name')
+
+      if (error) throw error
+      setPlantBeds((data as any[])?.map(bed => ({
+        id: bed.id,
+        name: bed.name,
+        gardens: {
+          name: bed.gardens?.name || ''
+        }
+      })) || [])
+    } catch (error) {
+      console.error('Error loading plant beds:', error)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.plant_id || !formData.title.trim()) {
+    // Validate that either plant_id or plant_bed_id is set, and title is provided
+    if ((!formData.plant_id && !formData.plant_bed_id) || !formData.title.trim()) {
       return
     }
 
@@ -105,7 +151,8 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId }
 
       // Reset form
       setFormData({
-        plant_id: preselectedPlantId || '',
+        plant_id: preselectedPlantId || undefined,
+        plant_bed_id: preselectedPlantBedId || undefined,
         title: '',
         description: '',
         due_date: new Date().toISOString().split('T')[0],
@@ -125,11 +172,19 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId }
 
   const handleTaskTypeChange = (taskType: string) => {
     const config = TASK_TYPE_CONFIGS.find(c => c.value === taskType)
+    
+    let targetName = 'item'
+    if (formData.plant_id) {
+      targetName = plants.find(p => p.id === formData.plant_id)?.name || 'bloem'
+    } else if (formData.plant_bed_id) {
+      targetName = plantBeds.find(b => b.id === formData.plant_bed_id)?.name || 'plantvak'
+    }
+    
     setFormData(prev => ({
       ...prev,
       task_type: taskType as CreateTaskData['task_type'],
       priority: config?.defaultPriority || 'medium',
-      title: prev.title || `${config?.label} voor ${plants.find(p => p.id === prev.plant_id)?.name || 'bloem'}`
+      title: prev.title || `${config?.label} voor ${targetName}`
     }))
   }
 
@@ -147,31 +202,87 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId }
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Plant Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="plant">Bloem *</Label>
-            <Select
-              value={formData.plant_id}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, plant_id: value }))}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Kies een bloem" />
-              </SelectTrigger>
-              <SelectContent>
-                {plants.map((plant) => (
-                  <SelectItem key={plant.id} value={plant.id}>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{plant.name}</span>
-                      <span className="text-xs text-gray-500">
-                        {plant.plant_beds.name} • {plant.plant_beds.gardens.name}
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Task Level Selection */}
+          {!preselectedPlantId && !preselectedPlantBedId && (
+            <div className="space-y-2">
+              <Label>Taak Niveau *</Label>
+              <Select
+                value={taskLevel}
+                onValueChange={(value: 'plant' | 'plantbed') => {
+                  setTaskLevel(value)
+                  if (value === 'plant') {
+                    setFormData(prev => ({ ...prev, plant_bed_id: undefined }))
+                  } else {
+                    setFormData(prev => ({ ...prev, plant_id: undefined }))
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="plant">Voor specifieke bloem</SelectItem>
+                  <SelectItem value="plantbed">Voor heel plantvak</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Plant Selection (when task level is 'plant') */}
+          {taskLevel === 'plant' && (
+            <div className="space-y-2">
+              <Label htmlFor="plant">Bloem *</Label>
+              <Select
+                value={formData.plant_id || ''}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, plant_id: value, plant_bed_id: undefined }))}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Kies een bloem" />
+                </SelectTrigger>
+                <SelectContent>
+                  {plants.map((plant) => (
+                    <SelectItem key={plant.id} value={plant.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{plant.name}</span>
+                        <span className="text-xs text-gray-500">
+                          {plant.plant_beds.name} • {plant.plant_beds.gardens.name}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Plant Bed Selection (when task level is 'plantbed') */}
+          {taskLevel === 'plantbed' && (
+            <div className="space-y-2">
+              <Label htmlFor="plantbed">Plantvak *</Label>
+              <Select
+                value={formData.plant_bed_id || ''}
+                onValueChange={(value) => setFormData(prev => ({ ...prev, plant_bed_id: value, plant_id: undefined }))}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Kies een plantvak" />
+                </SelectTrigger>
+                <SelectContent>
+                  {plantBeds.map((bed) => (
+                    <SelectItem key={bed.id} value={bed.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{bed.name}</span>
+                        <span className="text-xs text-gray-500">
+                          {bed.gardens.name}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Task Type */}
           <div className="space-y-2">

@@ -22,7 +22,10 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
-  Save
+  Save,
+  Calendar,
+  CheckCircle,
+  AlertTriangle
 } from "lucide-react"
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
@@ -31,6 +34,9 @@ import {
   FLOWER_SIZE_MEDIUM,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
+import { AddTaskForm } from '@/components/tasks/add-task-form'
+import { TaskService } from '@/lib/services/task.service'
+import type { TaskWithPlantInfo, PlantTaskStats } from '@/lib/types/tasks'
 
 
 export default function PlantvakDetailPage() {
@@ -45,6 +51,11 @@ export default function PlantvakDetailPage() {
   const [scale, setScale] = useState(1)
   const [selectedFlower, setSelectedFlower] = useState<PlantWithPosition | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
+  
+  // Task state
+  const [tasks, setTasks] = useState<TaskWithPlantInfo[]>([])
+  const [taskStats, setTaskStats] = useState<PlantTaskStats | null>(null)
+  const [showAddTask, setShowAddTask] = useState(false)
   
   // Drag state
   const [draggedFlower, setDraggedFlower] = useState<string | null>(null)
@@ -95,6 +106,9 @@ export default function PlantvakDetailPage() {
         const flowersData = await getPlantsWithPositions(bedId)
         setFlowers(flowersData)
         
+        // Load plant bed tasks
+        await loadPlantBedTasks(bedId)
+        
       } catch (error) {
         console.error('Error loading data:', error)
         router.push('/gardens')
@@ -107,6 +121,48 @@ export default function PlantvakDetailPage() {
       loadData()
     }
   }, [params.id, params.bedId, router])
+
+  // Load plant bed tasks
+  const loadPlantBedTasks = async (bedId: string) => {
+    try {
+      const [tasksResult, statsResult] = await Promise.all([
+        TaskService.getTasksForPlantBed(bedId),
+        TaskService.getPlantBedTaskStats(bedId)
+      ])
+
+      if (tasksResult.error) {
+        console.error('Error loading tasks:', tasksResult.error)
+      } else {
+        setTasks(tasksResult.data)
+      }
+
+      if (statsResult.error) {
+        console.error('Error loading task stats:', statsResult.error)
+      } else {
+        setTaskStats(statsResult.data)
+      }
+    } catch (error) {
+      console.error('Error loading plant bed tasks:', error)
+    }
+  }
+
+  // Handle task completion toggle
+  const handleTaskToggle = async (taskId: string, completed: boolean) => {
+    try {
+      const { error } = await TaskService.updateTask(taskId, { completed })
+      if (error) {
+        console.error('Error updating task:', error)
+        return
+      }
+
+      // Refresh tasks
+      if (plantBed) {
+        await loadPlantBedTasks(plantBed.id)
+      }
+    } catch (error) {
+      console.error('Error toggling task:', error)
+    }
+  }
   
   // Calculate canvas size based on plant bed dimensions
   const getCanvasSize = useCallback(() => {
@@ -614,41 +670,76 @@ export default function PlantvakDetailPage() {
               </CardContent>
             </Card>
             
-            {/* Plantvak Info onder de canvas */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center">
-                  <h3 className="font-semibold text-lg text-gray-800 mb-3">{plantBed?.name}</h3>
-                  <div className="flex justify-center items-center gap-6 text-sm text-gray-600 flex-wrap">
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">Afmetingen:</span>
-                      <span>{plantBed?.size}</span>
-                    </div>
-                    {plantBed?.sun_exposure && (
-                      <div className="flex items-center gap-1">
-                        {plantBed.sun_exposure === 'full-sun' && <Sun className="w-4 h-4" />}
-                        {plantBed.sun_exposure === 'partial-sun' && <CloudSun className="w-4 h-4" />}
-                        {plantBed.sun_exposure === 'shade' && <Cloud className="w-4 h-4" />}
-                        <span className="capitalize">
-                          {plantBed.sun_exposure === 'full-sun' ? 'Volle zon' :
-                           plantBed.sun_exposure === 'partial-sun' ? 'Gedeeltelijke zon' : 'Schaduw'}
-                        </span>
-                      </div>
-                    )}
-                    {plantBed?.soil_type && (
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium">Grond:</span>
-                        <span className="capitalize">{plantBed.soil_type}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+
           </div>
           
           {/* Sidebar */}
           <div className="space-y-4">
+            {/* Plant Bed Tasks */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                    Plantvak Taken
+                  </CardTitle>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAddTask(true)}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Taak
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Task Stats */}
+                {taskStats && (
+                  <div className="grid grid-cols-2 gap-2 text-center">
+                    <div className="p-2 bg-blue-50 rounded">
+                      <div className="text-lg font-bold text-blue-600">{taskStats.total_tasks}</div>
+                      <div className="text-xs text-gray-600">Totaal</div>
+                    </div>
+                    <div className="p-2 bg-green-50 rounded">
+                      <div className="text-lg font-bold text-green-600">{taskStats.completed_tasks}</div>
+                      <div className="text-xs text-gray-600">Klaar</div>
+                    </div>
+                    <div className="p-2 bg-orange-50 rounded">
+                      <div className="text-lg font-bold text-orange-600">{taskStats.today_tasks}</div>
+                      <div className="text-xs text-gray-600">Vandaag</div>
+                    </div>
+                    <div className="p-2 bg-red-50 rounded">
+                      <div className="text-lg font-bold text-red-600">{taskStats.overdue_tasks}</div>
+                      <div className="text-xs text-gray-600">Achterstallig</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Active Tasks */}
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Actieve Taken</h4>
+                  {tasks.filter(t => !t.completed).slice(0, 3).map((task) => (
+                    <div key={task.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded text-sm">
+                      <button
+                        onClick={() => handleTaskToggle(task.id, true)}
+                        className="flex-shrink-0"
+                      >
+                        <CheckCircle className="h-4 w-4 text-gray-400 hover:text-green-600" />
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium truncate">{task.title}</div>
+                        <div className="text-xs text-gray-500">{new Date(task.due_date).toLocaleDateString('nl-NL')}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {tasks.filter(t => !t.completed).length === 0 && (
+                    <p className="text-sm text-gray-500 text-center py-2">Geen actieve taken</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Selected Flower Info */}
             {selectedFlower && (
               <Card>
@@ -757,6 +848,19 @@ export default function PlantvakDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Task Dialog */}
+      <AddTaskForm
+        isOpen={showAddTask}
+        onClose={() => setShowAddTask(false)}
+        onTaskAdded={() => {
+          setShowAddTask(false)
+          if (plantBed) {
+            loadPlantBedTasks(plantBed.id)
+          }
+        }}
+        preselectedPlantBedId={plantBed?.id}
+      />
     </div>
   )
 }
