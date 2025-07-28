@@ -49,6 +49,9 @@ export default function PlantvakDetailPage() {
   const [draggedFlower, setDraggedFlower] = useState<string | null>(null)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   
+  // Resize state
+  const [resizingFlower, setResizingFlower] = useState<string | null>(null)
+  
   // Add flower dialog
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [newFlower, setNewFlower] = useState({
@@ -194,6 +197,69 @@ export default function PlantvakDetailPage() {
       console.error('Error saving position:', error)
     }
   }, [])
+
+  // Get plant emoji (same logic as FlowerVisualization)
+  const getPlantEmoji = useCallback((name?: string, storedEmoji?: string): string => {
+    if (storedEmoji && storedEmoji.trim()) {
+      return storedEmoji
+    }
+    
+    const plantName = (name || '').toLowerCase()
+    
+    if (plantName.includes('zinnia')) return '🌻'
+    if (plantName.includes('marigold') || plantName.includes('tagetes')) return '🌼'
+    if (plantName.includes('impatiens')) return '🌸'
+    if (plantName.includes('ageratum')) return '🌸'
+    if (plantName.includes('salvia')) return '🌺'
+    if (plantName.includes('verbena')) return '🌸'
+    if (plantName.includes('lobelia')) return '🌸'
+    if (plantName.includes('alyssum')) return '🤍'
+    if (plantName.includes('cosmos')) return '🌸'
+    if (plantName.includes('petunia')) return '🌺'
+    if (plantName.includes('begonia')) return '🌸'
+    if (plantName.includes('viooltje') || plantName.includes('viola')) return '🌸'
+    if (plantName.includes('stiefmoedje') || plantName.includes('pansy')) return '🌸'
+    if (plantName.includes('snapdragon') || plantName.includes('leeuwenbek')) return '🌸'
+    if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
+    if (plantName.includes('calendula') || plantName.includes('goudsbloem')) return '🌼'
+    if (plantName.includes('nicotiana') || plantName.includes('siertabak')) return '🤍'
+    if (plantName.includes('cleome') || plantName.includes('spinnenbloem')) return '🌸'
+    if (plantName.includes('celosia') || plantName.includes('hanekam')) return '🌺'
+    
+    return '🌸'
+  }, [])
+
+  // Handle double click to resize
+  const handleDoubleClick = useCallback((flowerId: string) => {
+    setFlowers(prev => prev.map(f => {
+      if (f.id === flowerId) {
+        // Toggle between small (30px), medium (45px), and large (60px)
+        const currentSize = f.visual_width
+        let newSize = 45 // default medium
+        
+        if (currentSize <= 30) {
+          newSize = 45 // small -> medium
+        } else if (currentSize <= 45) {
+          newSize = 60 // medium -> large
+        } else {
+          newSize = 30 // large -> small
+        }
+        
+        const updatedFlower = {
+          ...f,
+          visual_width: newSize,
+          visual_height: newSize
+        }
+        
+        // Auto-save the new size
+        setTimeout(() => handleSavePosition(updatedFlower), 100)
+        
+        return updatedFlower
+      }
+      return f
+    }))
+    setHasChanges(true)
+  }, [handleSavePosition])
 
   // Handle drag start
   const handleMouseDown = useCallback((e: React.MouseEvent, flowerId: string) => {
@@ -428,9 +494,12 @@ export default function PlantvakDetailPage() {
                       transformOrigin: 'top left'
                     }}
                   >
-                                         {/* Draggable interactive flowers */}
+                                         {/* Draggable interactive flowers - styled like tuin overzicht */}
                      {flowers.map((flower) => {
                        const isDragging = draggedFlower === flower.id
+                       const emoji = getPlantEmoji(flower.name, flower.emoji)
+                       const flowerColor = flower.color || '#ec4899' // fallback to pink
+                       
                        return (
                          <div
                            key={flower.id}
@@ -442,15 +511,57 @@ export default function PlantvakDetailPage() {
                              top: `${flower.position_y}px`,
                              width: `${flower.visual_width}px`,
                              height: `${flower.visual_height}px`,
+                             opacity: isDragging ? 0.9 : 1,
                            }}
                            onMouseDown={(e) => handleMouseDown(e, flower.id)}
+                           onDoubleClick={() => handleDoubleClick(flower.id)}
                            onClick={() => !isDragging && setSelectedFlower(flower)}
                          >
-                           <div className={`w-full h-full rounded-full border-2 flex items-center justify-center text-white font-bold text-sm shadow-lg ${
-                             isDragging ? 'bg-pink-600 border-pink-700' : 'bg-pink-500 border-pink-600'
-                           }`}>
-                             {flower.name.slice(0, 2).toUpperCase()}
+                           {/* Flower container with border and background - same as FlowerVisualization */}
+                           <div
+                             className="w-full h-full border-2 rounded-lg bg-white/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
+                             style={{
+                               borderColor: `${flowerColor}60`,
+                               backgroundColor: `${flowerColor}15`,
+                             }}
+                           >
+                             {/* Flower emoji */}
+                             <span 
+                               className="select-none"
+                               style={{
+                                 fontSize: Math.max(12, flower.visual_width * 0.4),
+                                 filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
+                               }}
+                             >
+                               {emoji}
+                             </span>
+                             
+                             {/* Flower name - always show but adjust size */}
+                             <div 
+                               className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
+                               style={{
+                                 fontSize: Math.max(6, flower.visual_width * 0.18),
+                                 maxWidth: flower.visual_width * 0.9,
+                                 overflow: 'hidden',
+                                 textOverflow: 'ellipsis',
+                                 whiteSpace: 'nowrap',
+                                 lineHeight: '1.1'
+                               }}
+                             >
+                               {flower.name}
+                             </div>
                            </div>
+
+                           {/* Glow effect for selected flowers */}
+                           {selectedFlower?.id === flower.id && (
+                             <div
+                               className="absolute inset-0 rounded-lg opacity-20 blur-sm -z-10"
+                               style={{
+                                 backgroundColor: flowerColor,
+                                 transform: 'scale(1.2)',
+                               }}
+                             />
+                           )}
                          </div>
                        )
                      })}
@@ -486,6 +597,38 @@ export default function PlantvakDetailPage() {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Plantvak Info onder de canvas */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <h3 className="font-semibold text-lg text-gray-800 mb-3">{plantBed?.name}</h3>
+                  <div className="flex justify-center items-center gap-6 text-sm text-gray-600 flex-wrap">
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Afmetingen:</span>
+                      <span>{plantBed?.size}</span>
+                    </div>
+                    {plantBed?.sun_exposure && (
+                      <div className="flex items-center gap-1">
+                        {plantBed.sun_exposure === 'full-sun' && <Sun className="w-4 h-4" />}
+                        {plantBed.sun_exposure === 'partial-sun' && <CloudSun className="w-4 h-4" />}
+                        {plantBed.sun_exposure === 'shade' && <Cloud className="w-4 h-4" />}
+                        <span className="capitalize">
+                          {plantBed.sun_exposure === 'full-sun' ? 'Volle zon' :
+                           plantBed.sun_exposure === 'partial-sun' ? 'Gedeeltelijke zon' : 'Schaduw'}
+                        </span>
+                      </div>
+                    )}
+                    {plantBed?.soil_type && (
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">Grond:</span>
+                        <span className="capitalize">{plantBed.soil_type}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
           
           {/* Sidebar */}
@@ -509,6 +652,13 @@ export default function PlantvakDetailPage() {
                     <p className="text-sm">
                       <span className="font-medium">Grootte:</span> {selectedFlower.visual_width}×{selectedFlower.visual_height}px
                     </p>
+                  </div>
+                  
+                  <div className="p-3 bg-gray-50 rounded-lg text-xs text-gray-600">
+                    <div className="font-medium mb-1">💡 Besturing:</div>
+                    <div>• <strong>Slepen:</strong> Verplaats bloem</div>
+                    <div>• <strong>Dubbelklik:</strong> Vergroten/verkleinen</div>
+                    <div>• <strong>Grootte:</strong> Klein (30px) → Medium (45px) → Groot (60px)</div>
                   </div>
                   
                   <div className="flex gap-2">
