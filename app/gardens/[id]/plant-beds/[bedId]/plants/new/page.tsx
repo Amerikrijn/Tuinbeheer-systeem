@@ -34,9 +34,14 @@ const DEFAULT_FLOWER_EMOJI = '🌼'
 interface NewPlant {
   name: string
   scientificName: string
+  latinName: string
   variety: string
   color: string
+  plantColor: string
   height: string
+  plantHeight: string
+  plantsPerSqm: string
+  sunPreference: 'full-sun' | 'partial-sun' | 'shade'
   plantingDate: string
   expectedHarvestDate: string
   status: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
