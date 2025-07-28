@@ -35,10 +35,18 @@ import {
   Image as ImageIcon,
   List,
   Eye,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
 } from "lucide-react"
 // useToast removed - no more toast notifications
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
+import { TaskService } from "@/lib/services/task.service"
+import { AddTaskForm } from "@/components/tasks/add-task-form"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
+import type { TaskWithPlantInfo, WeeklyTask } from "@/lib/types/tasks"
+import { getTaskTypeConfig, getPriorityConfig, formatTaskDate } from "@/lib/types/tasks"
 import { uploadImage, type UploadResult } from "@/lib/storage"
 import { FlowerVisualization } from "@/components/flower-visualization"
 import {
@@ -224,9 +232,47 @@ export default function PlantBedViewPage() {
     sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
     soil_type: 'loam' as 'clay' | 'sand' | 'loam' | 'peat'
   })
-  const [viewMode, setViewMode] = useState<'visual' | 'list'>('visual')
+  const [viewMode, setViewMode] = useState<'visual' | 'list' | 'tasks'>('visual')
+  
+  // Task-related state
+  const [tasks, setTasks] = useState<TaskWithPlantInfo[]>([])
+  const [loadingTasks, setLoadingTasks] = useState(false)
+  const [showAddTask, setShowAddTask] = useState(false)
+  const [selectedTaskPlantId, setSelectedTaskPlantId] = useState<string | undefined>()
   
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Load tasks for this plant bed and its plants
+  const loadTasks = async () => {
+    if (!params.bedId) return
+    
+    setLoadingTasks(true)
+    try {
+      // Get tasks for the plant bed itself
+      const { data: plantBedTasks, error: bedError } = await TaskService.getTasksWithPlantInfo({
+        plant_bed_id: params.bedId as string
+      })
+      
+      // Get tasks for all plants in this bed
+      const plantIds = flowerPositions.map(flower => flower.id)
+      const plantTaskPromises = plantIds.map(plantId => 
+        TaskService.getTasksWithPlantInfo({ plant_id: plantId })
+      )
+      
+      const plantTaskResults = await Promise.all(plantTaskPromises)
+      const allPlantTasks = plantTaskResults.flatMap(result => result.data || [])
+      
+      // Combine and sort all tasks by due date
+      const allTasks = [...(plantBedTasks || []), ...allPlantTasks]
+      allTasks.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+      
+      setTasks(allTasks)
+    } catch (error) {
+      console.error('Error loading tasks:', error)
+    } finally {
+      setLoadingTasks(false)
+    }
+  }
 
   // Calculate canvas size based on plant bed size using consistent scaling
   const getCanvasSize = () => {
