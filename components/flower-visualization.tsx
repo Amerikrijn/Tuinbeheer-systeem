@@ -84,20 +84,28 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // CORRECT APPROACH: Transform based on actual canvas coordinates
+        // NIEUWE RADICALE AANPAK: Directe percentage coordinaten
         
-        // Plantvak canvas dimensions (what plantvak-view actually uses)
-        const plantvakCanvasWidth = dimensions.lengthPixels * 2   // e.g. 1600px for 10m plantvak
-        const plantvakCanvasHeight = dimensions.widthPixels * 2   // e.g. 320px for 2m plantvak
+        // Coordinaten zijn nu opgeslagen als percentages (0-1000)
+        const percentageX = plant.position_x! / 1000  // 0-1000 -> 0.0-1.0
+        const percentageY = plant.position_y! / 1000  // 0-1000 -> 0.0-1.0
         
-        // Calculate percentage based on CANVAS coordinates (not real dimensions)
-        const percentageX = plant.position_x! / plantvakCanvasWidth
-        const percentageY = plant.position_y! / plantvakCanvasHeight
-        
-        // Apply same percentage to tuin container
+        // Apply percentage direct to tuin container
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
-        const sizeScale = Math.min(containerWidth / plantvakCanvasWidth, containerHeight / plantvakCanvasHeight)
+        
+        console.log('🌸 GARDEN TRANSFORM:', {
+          plantName: plant.name,
+          storedValues: { x: plant.position_x, y: plant.position_y },
+          percentages: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
+          containerSize: { w: containerWidth, h: containerHeight },
+          finalPixels: { x: finalX.toFixed(1), y: finalY.toFixed(1) }
+        })
+        
+        // Size scaling based on container vs plantvak real dimensions
+        const plantvakRealWidth = dimensions.lengthPixels   // e.g. 800px for 10m
+        const plantvakRealHeight = dimensions.widthPixels   // e.g. 160px for 2m
+        const sizeScale = Math.min(containerWidth / plantvakRealWidth, containerHeight / plantvakRealHeight)
         const scaledSize = Math.max(16, (plant.visual_width! * sizeScale))
         
         instances.push({
