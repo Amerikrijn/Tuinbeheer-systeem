@@ -138,8 +138,8 @@ export default function PlantvakDetailPage() {
       const canvasSize = getCanvasSize()
       
              // Place new flower in center of plantvak
-       const centerX = canvasSize.width / 2 - FLOWER_SIZE_MEDIUM / 2
-       const centerY = canvasSize.height / 2 - FLOWER_SIZE_MEDIUM / 2
+       const centerX = canvasSize.width / 2 - 30 / 2 // Center with 30px standard size
+       const centerY = canvasSize.height / 2 - 30 / 2 // Center with 30px standard size
       
              const flowerData = {
          plant_bed_id: plantBed.id,
@@ -148,8 +148,8 @@ export default function PlantvakDetailPage() {
          status: newFlower.status as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
          position_x: centerX,
          position_y: centerY,
-         visual_width: FLOWER_SIZE_MEDIUM,
-         visual_height: FLOWER_SIZE_MEDIUM,
+         visual_width: 30, // 30px standard size so names are always visible
+         visual_height: 30, // 30px standard size so names are always visible
          emoji: '🌸',
          is_custom: false,
                    category: newFlower.category,
@@ -775,7 +775,8 @@ export default function PlantvakDetailPage() {
                     <div className="font-medium mb-1">💡 Besturing:</div>
                     <div>• <strong>Slepen:</strong> Verplaats bloem</div>
                     <div>• <strong>Resize handles:</strong> Trek aan blauwe bolletjes om grootte aan te passen</div>
-                    <div>• <strong>Grootte:</strong> 20px - 100px (namen zichtbaar vanaf 30px)</div>
+                    <div>• <strong>Standaard grootte:</strong> 30px (namen altijd zichtbaar)</div>
+                    <div>• <strong>Grootte range:</strong> 20px - 100px</div>
                     <div>• <strong>Styling:</strong> Identiek aan tuin overzicht</div>
                   </div>
                   
