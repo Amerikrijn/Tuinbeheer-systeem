@@ -127,10 +127,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         }
         console.log('🌸 GARDEN VIEW COORDINATE TRANSFORM:', debugInfo)
         
-        // TEMPORARY: Show debug info as alert for one flower
-        if (plant.name === 'test' || plantIndex === 0) {
-          alert(`DEBUG ${plant.name}:\nOriginal: ${plant.position_x}, ${plant.position_y}\nCanvas: ${plantvakCanvasWidth}x${plantvakCanvasHeight}\nPercentage: ${percentageX.toFixed(3)}, ${percentageY.toFixed(3)}\nFinal: ${finalX.toFixed(1)}, ${finalY.toFixed(1)}`)
-        }
+        // DEBUG: Console only (no more alert)
+        // Removed alert to prevent navigation blocking
         
         // Scale the flower size proportionally to container size
         // Use the plantvak CANVAS dimensions (not real-world dimensions) for proper scaling
