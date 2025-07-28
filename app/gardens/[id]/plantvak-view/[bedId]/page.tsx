@@ -185,7 +185,13 @@ export default function PlantBedViewPage() {
     description: '',
     status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
     size: 'medium' as 'small' | 'medium' | 'large',
-    isStandardFlower: false
+    isStandardFlower: false,
+    // New plant fields
+    latinName: '',
+    plantColor: '',
+    plantHeight: '',
+    plantsPerSqm: '',
+    sunPreference: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade'
   })
   const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
   const [showDeletePlantBedDialog, setShowDeletePlantBedDialog] = useState(false)
