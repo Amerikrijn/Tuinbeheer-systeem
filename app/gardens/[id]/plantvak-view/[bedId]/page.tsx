@@ -262,9 +262,16 @@ export default function PlantBedViewPage() {
       const plantTaskResults = await Promise.all(plantTaskPromises)
       const allPlantTasks = plantTaskResults.flatMap(result => result.data || [])
       
-      // Combine and sort all tasks by due date
+      // Combine and sort all tasks: incomplete first (by due date), then completed at bottom
       const allTasks = [...(plantBedTasks || []), ...allPlantTasks]
-      allTasks.sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+      allTasks.sort((a, b) => {
+        // Completed tasks go to bottom
+        if (a.completed && !b.completed) return 1
+        if (!a.completed && b.completed) return -1
+        
+        // Within same completion status, sort by due date
+        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+      })
       
       setTasks(allTasks)
     } catch (error) {
@@ -272,6 +279,51 @@ export default function PlantBedViewPage() {
     } finally {
       setLoadingTasks(false)
     }
+  }
+
+  // Consistent task completion handler with automatic reordering
+  const handleTaskComplete = async (taskId: string, completed: boolean) => {
+    try {
+      // Update task in database
+      const { error } = await TaskService.updateTask(taskId, { completed })
+      
+      if (error) {
+        console.error('Error updating task:', error)
+        return
+      }
+      
+      // Update local state with reordering
+      setTasks(prevTasks => {
+        const updatedTasks = prevTasks.map(task => 
+          task.id === taskId ? { ...task, completed, completed_at: completed ? new Date().toISOString() : undefined } : task
+        )
+        
+        // Re-sort: incomplete first (by due date), then completed at bottom
+        return updatedTasks.sort((a, b) => {
+          // Completed tasks go to bottom
+          if (a.completed && !b.completed) return 1
+          if (!a.completed && b.completed) return -1
+          
+          // Within same completion status, sort by due date
+          return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+        })
+      })
+    } catch (error) {
+      console.error('Error completing task:', error)
+    }
+  }
+
+  // Handle adding task for plant bed or specific plant
+  const handleAddTask = (plantId?: string) => {
+    setSelectedTaskPlantId(plantId)
+    setShowAddTask(true)
+  }
+
+  // Handle task added - reload tasks
+  const handleTaskAdded = () => {
+    loadTasks()
+    setShowAddTask(false)
+    setSelectedTaskPlantId(undefined)
   }
 
   // Calculate canvas size based on plant bed size using consistent scaling
@@ -342,6 +394,13 @@ export default function PlantBedViewPage() {
       loadData()
     }
   }, [params.id, params.bedId])
+
+  // Load tasks when plant bed or flowers change
+  useEffect(() => {
+    if (plantBed && flowerPositions.length >= 0) {
+      loadTasks()
+    }
+  }, [plantBed, flowerPositions])
 
   // Smart auto-fill for flower beds based on size
   const autoFillFlowerBed = useCallback(async () => {
@@ -2070,10 +2129,19 @@ export default function PlantBedViewPage() {
               variant={viewMode === 'list' ? 'default' : 'outline'} 
               size="sm" 
               onClick={() => setViewMode('list')}
-              className="rounded-l-none"
+              className="rounded-none border-r-0"
             >
               <List className="h-4 w-4 mr-1" />
               Lijst
+            </Button>
+            <Button 
+              variant={viewMode === 'tasks' ? 'default' : 'outline'} 
+              size="sm" 
+              onClick={() => setViewMode('tasks')}
+              className="rounded-l-none"
+            >
+              <Calendar className="h-4 w-4 mr-1" />
+              Taken
             </Button>
           </div>
 
@@ -2768,7 +2836,7 @@ export default function PlantBedViewPage() {
                 </div>
               </div>
             </>
-          ) : (
+          ) : viewMode === 'list' ? (
             /* List View */
             <div className="space-y-4">
               {/* List Header */}
