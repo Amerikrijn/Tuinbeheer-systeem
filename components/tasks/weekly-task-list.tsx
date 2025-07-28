@@ -113,7 +113,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
   }, [currentWeekStart])
 
   // Task Card Component
-  const TaskCard = ({ task, compact = false }: { task: WeeklyTask; compact?: boolean }) => {
+  const TaskCard = ({ task, compact = false, showPlantInfo = false }: { task: WeeklyTask; compact?: boolean; showPlantInfo?: boolean }) => {
     const taskTypeConfig = getTaskTypeConfig(task.task_type)
     const priorityConfig = getPriorityConfig(task.priority)
     
@@ -129,7 +129,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             />
             
             <div className="flex-1 min-w-0">
-              {/* Plantvak → Bloem info */}
+              {/* Plantvak → Bloem info - always show for now */}
               <div className="flex items-center gap-2 mb-2 text-sm text-gray-600">
                 <div className="flex items-center gap-1">
                   <div 
