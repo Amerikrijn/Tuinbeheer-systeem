@@ -362,15 +362,15 @@ export default function PlantvakDetailPage() {
       
       const flowerSize = draggedFlowerData.visual_width
       
-      // Calculate new position (center-based)
-      const newX = mouseX - dragOffset.x - (flowerSize / 2)
-      const newY = mouseY - dragOffset.y - (flowerSize / 2)
+      // Calculate new position (dragOffset is already from center)
+      const newX = mouseX - dragOffset.x
+      const newY = mouseY - dragOffset.y
 
       const canvasSize = getCanvasSize()
       
-      // Constrain to canvas bounds
-      const constrainedX = Math.max(0, Math.min(newX, canvasSize.width - flowerSize))
-      const constrainedY = Math.max(0, Math.min(newY, canvasSize.height - flowerSize))
+      // Constrain to canvas bounds (newX/newY is top-left of flower)
+      const constrainedX = Math.max(0, Math.min(newX - flowerSize/2, canvasSize.width - flowerSize))
+      const constrainedY = Math.max(0, Math.min(newY - flowerSize/2, canvasSize.height - flowerSize))
 
       setFlowers(prev => prev.map(f => 
         f.id === draggedFlower 
