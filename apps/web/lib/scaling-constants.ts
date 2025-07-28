@@ -13,9 +13,10 @@ export const PLANTVAK_MIN_HEIGHT = 80 // 1m minimum
 
 // Plant bed view constants  
 export const PLANTVAK_CANVAS_PADDING = 100 // Extra space around the plant bed content
-export const FLOWER_SIZE_SMALL = 35   // Small flowers (was 20)
-export const FLOWER_SIZE_MEDIUM = 45  // Medium flowers (was 30)
-export const FLOWER_SIZE_LARGE = 55   // Large flowers (was 40)
+export const FLOWER_SIZE_TINY = 20    // 0.5x0.5 meter flowers
+export const FLOWER_SIZE_SMALL = 35   // 1x1 meter flowers (was 20)
+export const FLOWER_SIZE_MEDIUM = 45  // 2x2 meter flowers (was 30)
+export const FLOWER_SIZE_LARGE = 55   // 2x1 meter flowers (was 40)
 export const FLOWER_NAME_HEIGHT = 30  // Space for flower names below (was 25)
 
 // Utility functions

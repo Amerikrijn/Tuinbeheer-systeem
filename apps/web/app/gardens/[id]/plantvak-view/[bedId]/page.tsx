@@ -41,6 +41,7 @@ import { FlowerVisualization } from "@/components/flower-visualization"
 import {
   METERS_TO_PIXELS,
   PLANTVAK_CANVAS_PADDING,
+  FLOWER_SIZE_TINY,
   FLOWER_SIZE_SMALL,
   FLOWER_SIZE_MEDIUM,
   FLOWER_SIZE_LARGE,
@@ -82,8 +83,10 @@ const FLOWER_STATUS_OPTIONS = [
 ]
 
   // Helper function to get flower size in pixels
-  const getFlowerSize = (size: 'small' | 'medium' | 'large'): { width: number, height: number } => {
+  const getFlowerSize = (size: 'tiny' | 'small' | 'medium' | 'large'): { width: number, height: number } => {
     switch (size) {
+      case 'tiny': 
+        return { width: FLOWER_SIZE_TINY, height: FLOWER_SIZE_TINY } // 0.5x0.5 meter
       case 'small': 
         return { width: FLOWER_SIZE_SMALL, height: FLOWER_SIZE_SMALL } // 1x1 meter
       case 'medium': 
@@ -91,7 +94,7 @@ const FLOWER_STATUS_OPTIONS = [
       case 'large': 
         return { width: FLOWER_SIZE_LARGE, height: FLOWER_SIZE_SMALL } // 2x1 meter
       default: 
-        return { width: FLOWER_SIZE_SMALL, height: FLOWER_SIZE_SMALL }
+        return { width: FLOWER_SIZE_TINY, height: FLOWER_SIZE_TINY }
     }
   }
 
