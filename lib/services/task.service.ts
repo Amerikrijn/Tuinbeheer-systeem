@@ -321,7 +321,7 @@ export class TaskService {
         t.completed
       ).length
       const totalActiveTasks = tasks.filter(t => !t.completed).length
-      const plantsWithTasks = new Set(tasks.map(t => t.plant_id)).size
+      const plantsWithTasks = new Set(tasks.map(t => t.plant_id).filter(id => id !== undefined)).size
 
       const summary: TaskSummary = {
         today_tasks: todayTasks,
@@ -352,6 +352,9 @@ export class TaskService {
       const today = new Date().toISOString().split('T')[0]
 
       tasks.forEach(task => {
+        // Skip plant bed tasks (only process plant-specific tasks)
+        if (!task.plant_id) return
+
         if (!plantStats[task.plant_id]) {
           plantStats[task.plant_id] = {
             plant_id: task.plant_id,
