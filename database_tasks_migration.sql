@@ -210,13 +210,13 @@ CREATE OR REPLACE FUNCTION create_recurring_task(
 RETURNS INTEGER AS $$
 DECLARE
     i INTEGER := 0;
-    current_date DATE := p_start_date;
+    task_date DATE := p_start_date;
 BEGIN
     WHILE i < p_occurrences LOOP
         INSERT INTO tasks (plant_id, title, description, task_type, priority, due_date)
-        VALUES (p_plant_id, p_title, p_description, p_task_type, p_priority, current_date);
+        VALUES (p_plant_id, p_title, p_description, p_task_type, p_priority, task_date);
         
-        current_date := current_date + (p_interval_days || ' days')::INTERVAL;
+        task_date := task_date + (p_interval_days || ' days')::INTERVAL;
         i := i + 1;
     END LOOP;
     
