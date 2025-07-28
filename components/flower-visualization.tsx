@@ -64,11 +64,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
   // Generate flower instances based on plants - SYNCHRONIZED WITH PLANTVAK-VIEW
   useEffect(() => {
-    console.log('🌻 FLOWER VISUALIZATION CALLED:', {
-      plantsCount: plants.length,
-      plantBedSize: plantBed.size,
-      containerSize: { w: containerWidth, h: containerHeight }
-    })
+
     
     if (plants.length === 0) {
       setFlowerInstances([])
@@ -85,45 +81,22 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       const hasCustomPosition = 'position_x' in plant && plant.position_x !== undefined && plant.position_y !== undefined
       const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
       
-      // DEBUG: Always log to see what's happening
-      console.log('🌺 FLOWER DEBUG:', {
-        plantName: plant.name,
-        hasCustomPosition,
-        hasCustomSize,
-        hasDimensions: !!dimensions,
-        position: { x: plant.position_x, y: plant.position_y },
-        size: { w: plant.visual_width, h: plant.visual_height }
-      })
+
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // SIMPLE APPROACH: Direct scaling without complex canvas calculations
+        // CORRECT APPROACH: Transform based on actual canvas coordinates
         
-        // Plantvak real dimensions in pixels
-        const plantvakRealWidth = dimensions.lengthPixels  // e.g. 800px for 10m
-        const plantvakRealHeight = dimensions.widthPixels  // e.g. 160px for 2m
+        // Plantvak canvas dimensions (what plantvak-view actually uses)
+        const plantvakCanvasWidth = dimensions.lengthPixels * 2   // e.g. 1600px for 10m plantvak
+        const plantvakCanvasHeight = dimensions.widthPixels * 2   // e.g. 320px for 2m plantvak
         
-        // Simple percentage: where is the flower in the real plantvak?
-        const percentageX = plant.position_x! / (plantvakRealWidth * 2) // *2 because plantvak-view uses scaleFactor 2
-        const percentageY = plant.position_y! / (plantvakRealHeight * 2) // *2 because plantvak-view uses scaleFactor 2
+        // Calculate percentage based on CANVAS coordinates (not real dimensions)
+        const percentageX = plant.position_x! / plantvakCanvasWidth
+        const percentageY = plant.position_y! / plantvakCanvasHeight
         
         // Apply same percentage to tuin container
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
-        
-        // DEBUG: Simple coordinate transformation
-        console.log('🌸 SIMPLE TRANSFORM:', {
-          plantName: plant.name,
-          originalPos: { x: plant.position_x, y: plant.position_y },
-          plantvakRealSize: { w: plantvakRealWidth, h: plantvakRealHeight },
-          plantvakCanvasSize: { w: plantvakRealWidth * 2, h: plantvakRealHeight * 2 },
-          percentage: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
-          containerSize: { w: containerWidth, h: containerHeight },
-          finalPos: { x: finalX.toFixed(1), y: finalY.toFixed(1) }
-        })
-        
-        // Simple size scaling
-        const plantvakCanvasWidth = plantvakRealWidth * 2
-        const plantvakCanvasHeight = plantvakRealHeight * 2
         const sizeScale = Math.min(containerWidth / plantvakCanvasWidth, containerHeight / plantvakCanvasHeight)
         const scaledSize = Math.max(16, (plant.visual_width! * sizeScale))
         
