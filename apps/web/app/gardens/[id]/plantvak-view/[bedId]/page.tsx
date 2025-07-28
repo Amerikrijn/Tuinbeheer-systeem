@@ -2316,10 +2316,14 @@ export default function PlantBedViewPage() {
       {/* Plant Bed Information - Simplified */}
       <Card className="bg-gray-50">
         <CardContent className="p-4">
+          <div className="bg-red-500 text-white p-4 rounded mb-4">
+            <h2 className="text-xl font-bold">🚨 VERCELL DEPLOYMENT TEST 🚨</h2>
+            <p>Als je deze rode tekst ziet, werkt de deployment!</p>
+          </div>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Leaf className="h-4 w-4 text-green-600" />
-              <span className="font-medium text-gray-900">🚨 VERCELL TEST - Plantvak Informatie 🚨</span>
+              <span className="font-medium text-gray-900">Plantvak Informatie</span>
             </div>
             <Button
               variant="outline"
