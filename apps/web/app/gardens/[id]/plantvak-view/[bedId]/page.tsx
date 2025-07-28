@@ -928,8 +928,8 @@ export default function PlantBedViewPage() {
           ))
 
           toast({
-            title: "✅ Grootte aangepast",
-            description: `${flower.name} is nu ${getSizeLabel(newSize)}`,
+            title: "✅ Grootte aangepast - TEST",
+            description: `${flower.name} is nu ${getSizeLabel(newSize)} - Vercel test`,
           })
         } catch (error) {
           console.error('Failed to change flower size:', error)
