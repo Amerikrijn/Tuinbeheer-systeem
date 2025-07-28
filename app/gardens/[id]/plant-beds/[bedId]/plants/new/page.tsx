@@ -12,6 +12,9 @@ import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Leaf, Plus, AlertCircle, Calendar, ChevronDown } from "lucide-react"
 import { getGarden, getPlantBed, createPlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
+import { AddTaskForm } from '@/components/tasks/add-task-form'
+import { TaskService } from '@/lib/services/task.service'
+import type { TaskWithPlantInfo } from '@/lib/types/tasks'
 
 // Standard flower types with emojis
 const STANDARD_FLOWERS = [
@@ -62,6 +65,8 @@ export default function NewPlantPage() {
   const [plantBed, setPlantBed] = React.useState<PlantBedWithPlants | null>(null)
   const [loading, setLoading] = React.useState(false)
   const [errors, setErrors] = React.useState<Record<string, string>>({})
+  const [showAddTask, setShowAddTask] = React.useState(false)
+  const [createdPlantId, setCreatedPlantId] = React.useState<string | null>(null)
 
   // Clear any dialog states that might be stuck
   React.useEffect(() => {
@@ -144,7 +149,7 @@ export default function NewPlantPage() {
 
     setLoading(true)
     try {
-      await createPlant({
+      const createdPlant = await createPlant({
         plant_bed_id: plantBed.id,
         name: newPlant.name,
         scientific_name: newPlant.scientificName || undefined,
@@ -166,6 +171,7 @@ export default function NewPlantPage() {
         emoji: newPlant.emoji,
       })
 
+      setCreatedPlantId(createdPlant.id)
       toast({
         title: "Plant toegevoegd!",
         description: `Plant "${newPlant.name}" is succesvol toegevoegd aan ${plantBed.name}.`,
@@ -648,6 +654,31 @@ export default function NewPlantPage() {
         </div>
 
         <aside className="space-y-4">
+          {createdPlantId && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    Taken Toevoegen
+                  </CardTitle>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAddTask(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Taak
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="text-sm leading-relaxed">
+                <p>
+                  Plant succesvol aangemaakt! Je kunt nu taken toevoegen voor deze plant.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Tips</CardTitle>
@@ -691,6 +722,22 @@ export default function NewPlantPage() {
           </Card>
         </aside>
       </div>
+
+      {/* Add Task Dialog */}
+      {createdPlantId && (
+        <AddTaskForm
+          isOpen={showAddTask}
+          onClose={() => setShowAddTask(false)}
+          onTaskAdded={() => {
+            setShowAddTask(false)
+            toast({
+              title: "Taak toegevoegd!",
+              description: "De taak is succesvol toegevoegd aan de plant.",
+            })
+          }}
+          preselectedPlantId={createdPlantId}
+        />
+      )}
     </div>
   )
 }
