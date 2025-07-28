@@ -593,7 +593,12 @@ export default function PlantBedViewPage() {
         photo_url: null,
         is_custom: !newFlower.isStandardFlower,
         category: newFlower.isStandardFlower ? newFlower.type : 'Aangepast',
-        notes: `${newFlower.description}${newFlower.description ? ' | ' : ''}Size: ${newFlower.size}`
+        notes: `${newFlower.description}${newFlower.description ? ' | ' : ''}Size: ${newFlower.size}`,
+        latin_name: newFlower.latinName || undefined,
+        plant_color: newFlower.plantColor || undefined,
+        plant_height: newFlower.plantHeight ? parseFloat(newFlower.plantHeight) : undefined,
+        plants_per_sqm: newFlower.plantsPerSqm ? parseInt(newFlower.plantsPerSqm) : undefined,
+        sun_preference: newFlower.sunPreference
       })
 
       if (newPlant) {
@@ -608,7 +613,13 @@ export default function PlantBedViewPage() {
           description: '',
           status: 'healthy',
           size: 'medium',
-          isStandardFlower: false
+          isStandardFlower: false,
+          // Reset new fields
+          latinName: '',
+          plantColor: '',
+          plantHeight: '',
+          plantsPerSqm: '',
+          sunPreference: 'full-sun'
         })
         
         // Removed toast notification
@@ -641,7 +652,12 @@ export default function PlantBedViewPage() {
         photo_url: null,
         is_custom: !newFlower.isStandardFlower,
         category: newFlower.isStandardFlower ? newFlower.type : 'Aangepast',
-        notes: newFlower.description
+        notes: newFlower.description,
+        latin_name: newFlower.latinName || undefined,
+        plant_color: newFlower.plantColor || undefined,
+        plant_height: newFlower.plantHeight ? parseFloat(newFlower.plantHeight) : undefined,
+        plants_per_sqm: newFlower.plantsPerSqm ? parseInt(newFlower.plantsPerSqm) : undefined,
+        sun_preference: newFlower.sunPreference
       })
 
       if (updatedPlant) {
@@ -659,7 +675,13 @@ export default function PlantBedViewPage() {
           description: '',
           status: 'healthy',
           size: 'medium',
-          isStandardFlower: false
+          isStandardFlower: false,
+          // Reset new fields
+          latinName: '',
+          plantColor: '',
+          plantHeight: '',
+          plantsPerSqm: '',
+          sunPreference: 'full-sun'
         })
         
         // Removed toast notification
@@ -824,32 +846,13 @@ export default function PlantBedViewPage() {
     setIsResizeMode(false)
   }, [flowerPositions, selectedFlower, isDragMode])
 
-  // Handle double click - show plus/minus resize controls
+  // Handle double click - navigate to plant details page
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
-    console.log('Double click on flower:', flower.name)
+    console.log('Double click on flower:', flower.name, '- navigating to details')
     
-    // Stop any dragging first
-    setIsDragMode(false)
-    setDraggedFlower(null)
-    
-    // Get flower position on screen for positioning the controls
-    const containerRect = containerRef.current?.getBoundingClientRect()
-    if (!containerRect) return
-
-    const flowerScreenX = containerRect.left + (flower.position_x * scale) + (flower.visual_width * scale) / 2
-    const flowerScreenY = containerRect.top + (flower.position_y * scale) + (flower.visual_height * scale) / 2
-
-    setSelectedFlower(flower)
-    setShowResizeInterface(true)
-    setResizeInterfacePosition({ 
-      x: flowerScreenX, 
-      y: flowerScreenY 
-    })
-    setIsDragMode(false)
-    setIsResizeMode(false)
-    
-                  // Removed feedback toast - users can see the interface
-    }, [scale])
+    // Navigate to plant details page
+    router.push(`/plants/${flower.id}`)
+    }, [router])
 
   // Handle flower resize via interface - supports flower fields
   const handleFlowerResize = useCallback(async (flowerId: string, sizeChange: number) => {
@@ -1355,6 +1358,8 @@ export default function PlantBedViewPage() {
     }
   }
 
+
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
@@ -1432,7 +1437,13 @@ export default function PlantBedViewPage() {
                 description: '',
                 status: 'healthy',
                 size: 'medium',
-                isStandardFlower: false
+                isStandardFlower: false,
+                // Reset new fields
+                latinName: '',
+                plantColor: '',
+                plantHeight: '',
+                plantsPerSqm: '',
+                sunPreference: 'full-sun'
               })
               setIsCustomFlower(false)
             }
@@ -1448,7 +1459,13 @@ export default function PlantBedViewPage() {
                   description: '',
                   status: 'healthy',
                   size: 'medium',
-                  isStandardFlower: false
+                  isStandardFlower: false,
+                  // Reset new fields
+                  latinName: '',
+                  plantColor: '',
+                  plantHeight: '',
+                  plantsPerSqm: '',
+                  sunPreference: 'full-sun'
                 })
                 setIsCustomFlower(false)
               }}>
@@ -1648,6 +1665,74 @@ export default function PlantBedViewPage() {
                     rows={2}
                   />
                 </div>
+
+                {/* New plant fields */}
+                <div>
+                  <label className="text-sm font-medium">Latijnse naam (optioneel)</label>
+                  <Input
+                    value={newFlower.latinName}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, latinName: e.target.value }))}
+                    placeholder="Bijv. Rosa gallica"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Plantkleur (optioneel)</label>
+                  <Input
+                    value={newFlower.plantColor}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, plantColor: e.target.value }))}
+                    placeholder="Bijv. Roze, Wit, Geel"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Planthoogte (optioneel)</label>
+                  <Input
+                    value={newFlower.plantHeight}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, plantHeight: e.target.value }))}
+                    placeholder="Bijv. 30-50 cm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Planten per m² (optioneel)</label>
+                  <Input
+                    value={newFlower.plantsPerSqm}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, plantsPerSqm: e.target.value }))}
+                    placeholder="Bijv. 6-8"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Zon voorkeur</label>
+                  <Select value={newFlower.sunPreference} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
+                    setNewFlower(prev => ({ ...prev, sunPreference: value }))
+                  }>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full-sun">
+                        <div className="flex items-center gap-2">
+                          <Sun className="h-4 w-4 text-yellow-500" />
+                          <span>Volle zon</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="partial-sun">
+                        <div className="flex items-center gap-2">
+                          <CloudSun className="h-4 w-4 text-yellow-400" />
+                          <span>Halfschaduw</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="shade">
+                        <div className="flex items-center gap-2">
+                          <Cloud className="h-4 w-4 text-gray-500" />
+                          <span>Schaduw</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 <div className="flex gap-2">
                   <Button onClick={addFlower} className="flex-1 bg-pink-600 hover:bg-pink-700">
@@ -1665,7 +1750,13 @@ export default function PlantBedViewPage() {
                       description: '',
                       status: 'healthy',
                       size: 'medium',
-                      isStandardFlower: false
+                      isStandardFlower: false,
+                      // Reset new fields
+                      latinName: '',
+                      plantColor: '',
+                      plantHeight: '',
+                      plantsPerSqm: '',
+                      sunPreference: 'full-sun'
                     })
                     setIsCustomFlower(false)
                   }}>
@@ -1689,7 +1780,13 @@ export default function PlantBedViewPage() {
                 description: '',
                 status: 'healthy',
                 size: 'medium',
-                isStandardFlower: false
+                isStandardFlower: false,
+                // Reset new fields
+                latinName: '',
+                plantColor: '',
+                plantHeight: '',
+                plantsPerSqm: '',
+                sunPreference: 'full-sun'
               })
               setSelectedFlower(null)
             }
@@ -1850,6 +1947,74 @@ export default function PlantBedViewPage() {
                     rows={2}
                   />
                 </div>
+
+                {/* New plant fields for edit form */}
+                <div>
+                  <label className="text-sm font-medium">Latijnse naam (optioneel)</label>
+                  <Input
+                    value={newFlower.latinName}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, latinName: e.target.value }))}
+                    placeholder="Bijv. Rosa gallica"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Plantkleur (optioneel)</label>
+                  <Input
+                    value={newFlower.plantColor}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, plantColor: e.target.value }))}
+                    placeholder="Bijv. Roze, Wit, Geel"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Planthoogte (optioneel)</label>
+                  <Input
+                    value={newFlower.plantHeight}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, plantHeight: e.target.value }))}
+                    placeholder="Bijv. 30-50 cm"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Planten per m² (optioneel)</label>
+                  <Input
+                    value={newFlower.plantsPerSqm}
+                    onChange={(e) => setNewFlower(prev => ({ ...prev, plantsPerSqm: e.target.value }))}
+                    placeholder="Bijv. 6-8"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Zon voorkeur</label>
+                  <Select value={newFlower.sunPreference} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
+                    setNewFlower(prev => ({ ...prev, sunPreference: value }))
+                  }>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="full-sun">
+                        <div className="flex items-center gap-2">
+                          <Sun className="h-4 w-4 text-yellow-500" />
+                          <span>Volle zon</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="partial-sun">
+                        <div className="flex items-center gap-2">
+                          <CloudSun className="h-4 w-4 text-yellow-400" />
+                          <span>Halfschaduw</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="shade">
+                        <div className="flex items-center gap-2">
+                          <Cloud className="h-4 w-4 text-gray-500" />
+                          <span>Schaduw</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
                 
                 <div className="flex gap-2">
                   <Button onClick={updateFlower} className="flex-1 bg-blue-600 hover:bg-blue-700">
@@ -1875,7 +2040,13 @@ export default function PlantBedViewPage() {
                       description: '',
                       status: 'healthy',
                       size: 'medium',
-                      isStandardFlower: false
+                      isStandardFlower: false,
+                      // Reset new fields
+                      latinName: '',
+                      plantColor: '',
+                      plantHeight: '',
+                      plantsPerSqm: '',
+                      sunPreference: 'full-sun'
                     })
                     setSelectedFlower(null)
                   }}>
@@ -2194,7 +2365,13 @@ export default function PlantBedViewPage() {
                                selectedFlower.status === 'needs_attention' ? 'needs_attention' :
                                'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
                         size: 'medium',
-                        isStandardFlower: !selectedFlower.is_custom
+                        isStandardFlower: !selectedFlower.is_custom,
+                        // Populate new fields
+                        latinName: selectedFlower.latin_name || '',
+                        plantColor: selectedFlower.plant_color || '',
+                        plantHeight: selectedFlower.plant_height?.toString() || '',
+                        plantsPerSqm: selectedFlower.plants_per_sqm?.toString() || '',
+                        sunPreference: selectedFlower.sun_preference || 'full-sun'
                       })
                       setIsEditingFlower(true)
         // Removed toast notification
@@ -2692,7 +2869,13 @@ export default function PlantBedViewPage() {
                                        flower.status === 'needs_attention' ? 'needs_attention' :
                                        'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
                                 size: 'medium',
-                                isStandardFlower: !flower.is_custom
+                                isStandardFlower: !flower.is_custom,
+                                // Populate new fields
+                                latinName: flower.latin_name || '',
+                                plantColor: flower.plant_color || '',
+                                plantHeight: flower.plant_height?.toString() || '',
+                                plantsPerSqm: flower.plants_per_sqm?.toString() || '',
+                                sunPreference: flower.sun_preference || 'full-sun'
                               })
                               setIsEditingFlower(true)
                             }}

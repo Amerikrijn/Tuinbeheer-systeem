@@ -403,6 +403,11 @@ export async function createVisualPlant(plant: {
   is_custom?: boolean
   category?: string
   notes?: string
+  latin_name?: string
+  plant_color?: string
+  plant_height?: number
+  plants_per_sqm?: number
+  sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
 }): Promise<PlantWithPosition | null> {
   const { data, error } = await supabase.from("plants").insert({
     plant_bed_id: plant.plant_bed_id,
@@ -418,6 +423,11 @@ export async function createVisualPlant(plant: {
     is_custom: plant.is_custom,
     category: plant.category,
     notes: plant.notes,
+    latin_name: plant.latin_name,
+    plant_color: plant.plant_color,
+    plant_height: plant.plant_height,
+    plants_per_sqm: plant.plants_per_sqm,
+    sun_preference: plant.sun_preference,
   }).select().single()
 
   if (error) {
@@ -442,6 +452,11 @@ export async function updatePlantPosition(id: string, updates: {
   category?: string
   notes?: string
   photo_url?: string | null
+  latin_name?: string
+  plant_color?: string
+  plant_height?: number
+  plants_per_sqm?: number
+  sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
 }): Promise<PlantWithPosition | null> {
   const { data, error } = await supabase
     .from("plants")

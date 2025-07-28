@@ -253,12 +253,12 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               <TaskCard key={task.id} task={task} showPlantInfo />
             ))}
             
-            {/* Show completed tasks at the bottom with strikethrough */}
-            {completedTasks.map(task => (
-              <div key={task.id} className="opacity-60">
-                <TaskCard task={task} showPlantInfo completed />
-              </div>
-            ))}
+                     {/* Show completed tasks at the bottom with strikethrough */}
+         {completedTasks.map(task => (
+           <div key={task.id} className="opacity-60">
+             <TaskCard task={task} showPlantInfo />
+           </div>
+         ))}
           </div>
         </CardContent>
       </Card>
