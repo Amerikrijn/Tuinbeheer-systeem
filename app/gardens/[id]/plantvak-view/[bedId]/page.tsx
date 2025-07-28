@@ -30,7 +30,7 @@ import {
   FLOWER_SIZE_MEDIUM,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
-import { FlowerVisualization } from "@/components/flower-visualization"
+
 
 export default function PlantvakDetailPage() {
   const router = useRouter()
@@ -352,21 +352,26 @@ export default function PlantvakDetailPage() {
                       transformOrigin: 'top left'
                     }}
                   >
-                    {/* FlowerVisualization for interactive flowers */}
-                    <FlowerVisualization 
-                      plantBed={plantBed}
-                      plants={flowers}
-                      containerWidth={canvasSize.width}
-                      containerHeight={canvasSize.height}
-                      onFlowerSelect={setSelectedFlower}
-                      onFlowerUpdate={(updatedFlower) => {
-                        setFlowers(prev => prev.map(f => 
-                          f.id === updatedFlower.id ? updatedFlower : f
-                        ))
-                        setHasChanges(true)
-                      }}
-                      onFlowerSave={handleSavePosition}
-                    />
+                                         {/* Simple interactive flowers */}
+                     {flowers.map((flower) => (
+                       <div
+                         key={flower.id}
+                         className={`absolute cursor-pointer transition-all duration-200 ${
+                           selectedFlower?.id === flower.id ? 'ring-4 ring-blue-500 z-20' : 'z-10'
+                         }`}
+                         style={{
+                           left: `${flower.position_x}px`,
+                           top: `${flower.position_y}px`,
+                           width: `${flower.visual_width}px`,
+                           height: `${flower.visual_height}px`,
+                         }}
+                         onClick={() => setSelectedFlower(flower)}
+                       >
+                         <div className="w-full h-full rounded-full bg-pink-500 border-2 border-pink-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                           {flower.name.slice(0, 2).toUpperCase()}
+                         </div>
+                       </div>
+                     ))}
                     
                     {flowers.length === 0 && (
                       <div className="absolute inset-0 flex items-center justify-center">
