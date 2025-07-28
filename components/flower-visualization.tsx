@@ -96,54 +96,36 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       })
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // Use EXACT same canvas size calculation as plantvak-view getCanvasSize()
-        const scaleFactor = 2 // Same as plantvak-view
-        const plantvakCanvasWidth = dimensions.lengthPixels * scaleFactor
-        const plantvakCanvasHeight = dimensions.widthPixels * scaleFactor
+        // SIMPLE APPROACH: Direct scaling without complex canvas calculations
         
-        // In plantvak-view, the canvas IS the plantvak (no padding/centering)
-        // So plant positions are directly on the canvas
-        const relativeX = plant.position_x!
-        const relativeY = plant.position_y!
+        // Plantvak real dimensions in pixels
+        const plantvakRealWidth = dimensions.lengthPixels  // e.g. 800px for 10m
+        const plantvakRealHeight = dimensions.widthPixels  // e.g. 160px for 2m
         
-        // Convert to percentage within the plantvak CANVAS dimensions
-        const percentageX = relativeX / plantvakCanvasWidth
-        const percentageY = relativeY / plantvakCanvasHeight
+        // Simple percentage: where is the flower in the real plantvak?
+        const percentageX = plant.position_x! / (plantvakRealWidth * 2) // *2 because plantvak-view uses scaleFactor 2
+        const percentageY = plant.position_y! / (plantvakRealHeight * 2) // *2 because plantvak-view uses scaleFactor 2
         
-        // Apply percentage to container dimensions
+        // Apply same percentage to tuin container
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
         
-        // DEBUG: Log coordinate transformation for troubleshooting
-        const debugInfo = {
+        // DEBUG: Simple coordinate transformation
+        console.log('🌸 SIMPLE TRANSFORM:', {
           plantName: plant.name,
-          plantIndex: plantIndex + 1,
           originalPos: { x: plant.position_x, y: plant.position_y },
-          plantvakCanvasSize: { w: plantvakCanvasWidth, h: plantvakCanvasHeight },
-          relativePos: { x: relativeX, y: relativeY },
+          plantvakRealSize: { w: plantvakRealWidth, h: plantvakRealHeight },
+          plantvakCanvasSize: { w: plantvakRealWidth * 2, h: plantvakRealHeight * 2 },
           percentage: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
           containerSize: { w: containerWidth, h: containerHeight },
           finalPos: { x: finalX.toFixed(1), y: finalY.toFixed(1) }
-        }
-        console.log('🌸 GARDEN VIEW COORDINATE TRANSFORM:', debugInfo)
+        })
         
-        // DEBUG: Console only (no more alert)
-        // Removed alert to prevent navigation blocking
-        
-        // Scale the flower size proportionally to container size
-        // Use the plantvak CANVAS dimensions (not real-world dimensions) for proper scaling
+        // Simple size scaling
+        const plantvakCanvasWidth = plantvakRealWidth * 2
+        const plantvakCanvasHeight = plantvakRealHeight * 2
         const sizeScale = Math.min(containerWidth / plantvakCanvasWidth, containerHeight / plantvakCanvasHeight)
         const scaledSize = Math.max(16, (plant.visual_width! * sizeScale))
-        
-        // DEBUG: Log size scaling for troubleshooting
-        console.log('🔍 GARDEN VIEW SIZE SCALING:', {
-          plantName: plant.name,
-          originalSize: plant.visual_width,
-          plantvakCanvasSize: { w: plantvakCanvasWidth, h: plantvakCanvasHeight },
-          containerSize: { w: containerWidth, h: containerHeight },
-          sizeScale: sizeScale,
-          scaledSize: scaledSize
-        })
         
         instances.push({
           id: `${plant.id}-flower-sync`,
