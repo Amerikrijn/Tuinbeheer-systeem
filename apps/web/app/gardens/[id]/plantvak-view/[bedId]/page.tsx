@@ -1674,8 +1674,8 @@ export default function PlantBedViewPage() {
             Terug naar Tuin
           </Button>
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Flower className="h-8 w-8 text-pink-600" />
+            <h1 className="text-3xl font-bold flex items-center gap-2 bg-red-500 text-white p-4 rounded">
+              <Flower className="h-8 w-8 text-white" />
               🚨 VERCELL TEST - {plantBed.name} - VERANDERD OP VERCELL 🚨
             </h1>
             <div className="flex items-center gap-2 mt-2">
