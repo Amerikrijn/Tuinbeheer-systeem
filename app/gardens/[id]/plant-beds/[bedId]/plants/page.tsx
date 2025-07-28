@@ -191,6 +191,16 @@ export default function PlantBedPlantsPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button
+            onClick={() => {
+              setSelectedPlantId(undefined)
+              setShowAddTask(true)
+            }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Plantvak Taak
+          </Button>
           <Link href="/plant-beds/new">
             <Button className="bg-green-600 hover:bg-green-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -392,6 +402,7 @@ export default function PlantBedPlantsPage() {
           setSelectedPlantId(undefined)
         }}
         preselectedPlantId={selectedPlantId}
+        preselectedPlantBedId={selectedPlantId ? undefined : plantBed?.id}
       />
     </div>
   )

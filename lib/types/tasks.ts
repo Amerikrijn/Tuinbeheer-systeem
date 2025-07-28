@@ -4,7 +4,8 @@
 // Core Task Types
 export interface Task {
   id: string
-  plant_id: string
+  plant_id?: string // Optional - either plant_id or plant_bed_id must be set
+  plant_bed_id?: string // Optional - for plant bed level tasks
   title: string
   description?: string
   due_date: string // ISO date string
@@ -53,7 +54,8 @@ export interface TaskFormData {
 }
 
 export interface CreateTaskData extends TaskFormData {
-  plant_id: string
+  plant_id?: string // Optional - either plant_id or plant_bed_id must be set
+  plant_bed_id?: string // Optional - for plant bed level tasks
 }
 
 export interface UpdateTaskData extends Partial<TaskFormData> {
@@ -62,7 +64,8 @@ export interface UpdateTaskData extends Partial<TaskFormData> {
 
 // Recurring Task Configuration
 export interface RecurringTaskConfig {
-  plant_id: string
+  plant_id?: string // Optional - either plant_id or plant_bed_id must be set
+  plant_bed_id?: string // Optional - for plant bed level tasks
   title: string
   description?: string
   task_type: 'watering' | 'fertilizing' | 'pruning' | 'harvesting' | 'planting' | 'pest_control' | 'general'

@@ -18,10 +18,19 @@ export class TaskService {
   // Create a new task
   static async createTask(data: CreateTaskData): Promise<{ data: Task | null; error: string | null }> {
     try {
+      // Validate that either plant_id or plant_bed_id is provided, but not both
+      if (!data.plant_id && !data.plant_bed_id) {
+        throw new Error('Either plant_id or plant_bed_id must be provided')
+      }
+      if (data.plant_id && data.plant_bed_id) {
+        throw new Error('Cannot specify both plant_id and plant_bed_id')
+      }
+
       const { data: task, error } = await supabase
         .from('tasks')
         .insert([{
-          plant_id: data.plant_id,
+          plant_id: data.plant_id || null,
+          plant_bed_id: data.plant_bed_id || null,
           title: data.title,
           description: data.description,
           due_date: data.due_date,
@@ -531,6 +540,66 @@ export class TaskService {
     } catch (error) {
       console.error('Error fetching overdue tasks:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch overdue tasks' }
+    }
+  }
+
+  // Get tasks for a specific plant bed
+  static async getTasksForPlantBed(plantBedId: string): Promise<{ data: TaskWithPlantInfo[]; error: string | null }> {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select(`
+          *,
+          plant_beds!inner(
+            name,
+            color,
+            gardens!inner(
+              name
+            )
+          )
+        `)
+        .eq('plant_bed_id', plantBedId)
+        .order('due_date', { ascending: true })
+
+      if (error) throw error
+
+      // Transform the data to match TaskWithPlantInfo interface
+      const transformedData: TaskWithPlantInfo[] = (data || []).map(task => ({
+        ...task,
+        plant_name: 'Plantvak taak',
+        plant_color: task.plant_beds?.color || undefined,
+        plant_bed_name: task.plant_beds?.name || '',
+        garden_name: task.plant_beds?.gardens?.name || ''
+      }))
+
+      return { data: transformedData, error: null }
+    } catch (error) {
+      console.error('Error fetching plant bed tasks:', error)
+      return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch plant bed tasks' }
+    }
+  }
+
+  // Get plant bed task statistics
+  static async getPlantBedTaskStats(plantBedId: string): Promise<{ data: PlantTaskStats | null; error: string | null }> {
+    try {
+      const { data: tasks, error } = await this.getTasksForPlantBed(plantBedId)
+      if (error) throw new Error(error)
+
+      const today = new Date().toISOString().split('T')[0]
+      const stats: PlantTaskStats = {
+        plant_id: plantBedId, // Using plant_id field for consistency, but it's actually plant_bed_id
+        plant_name: 'Plantvak taken',
+        total_tasks: tasks.length,
+        completed_tasks: tasks.filter(t => t.completed).length,
+        overdue_tasks: tasks.filter(t => !t.completed && t.due_date < today).length,
+        today_tasks: tasks.filter(t => !t.completed && t.due_date === today).length,
+        upcoming_tasks: tasks.filter(t => !t.completed && t.due_date > today).length
+      }
+
+      return { data: stats, error: null }
+    } catch (error) {
+      console.error('Error calculating plant bed task stats:', error)
+      return { data: null, error: error instanceof Error ? error.message : 'Failed to calculate plant bed task stats' }
     }
   }
 
