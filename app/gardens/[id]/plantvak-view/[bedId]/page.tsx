@@ -573,7 +573,7 @@ export default function PlantvakDetailPage() {
                        return (
                          <div
                            key={flower.id}
-                           className={`absolute transition-all duration-200 ${
+                           className={`absolute transition-all duration-500 ease-in-out ${
                              isDragging ? 'cursor-grabbing z-30 scale-110' : 'cursor-grab z-10'
                            } ${selectedFlower?.id === flower.id ? 'ring-4 ring-blue-500 z-20' : ''}`}
                            style={{
@@ -582,19 +582,20 @@ export default function PlantvakDetailPage() {
                              width: `${flower.visual_width}px`,
                              height: `${flower.visual_height}px`,
                              opacity: isDragging ? 0.9 : 1,
+                             zIndex: selectedFlower?.id === flower.id ? 10 : 8,
                            }}
                            onMouseDown={(e) => handleMouseDown(e, flower.id)}
                            onClick={() => !isDragging && setSelectedFlower(flower)}
                          >
-                           {/* Flower container with border and background - same as FlowerVisualization */}
+                           {/* Flower container with border and background - exact match with FlowerVisualization */}
                            <div
-                             className="w-full h-full border-2 rounded-lg bg-white/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
+                             className="w-full h-full border-2 border-gray-400 rounded-lg bg-white/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
                              style={{
-                               borderColor: `${flowerColor}60`,
-                               backgroundColor: `${flowerColor}15`,
+                               borderColor: `${flowerColor}60`, // More visible border in flower color
+                               backgroundColor: `${flowerColor}15`, // Slightly more visible background tint
                              }}
                            >
-                             {/* Flower emoji */}
+                             {/* Flower emoji - exact match with FlowerVisualization */}
                              <span 
                                className="select-none"
                                style={{
@@ -605,20 +606,22 @@ export default function PlantvakDetailPage() {
                                {emoji}
                              </span>
                              
-                             {/* Flower name - always show but adjust size */}
-                             <div 
-                               className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
-                               style={{
-                                 fontSize: Math.max(6, flower.visual_width * 0.18),
-                                 maxWidth: flower.visual_width * 0.9,
-                                 overflow: 'hidden',
-                                 textOverflow: 'ellipsis',
-                                 whiteSpace: 'nowrap',
-                                 lineHeight: '1.1'
-                               }}
-                             >
-                               {flower.name}
-                             </div>
+                             {/* Flower name - match FlowerVisualization logic */}
+                             {flower.visual_width > 30 && (
+                               <div 
+                                 className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
+                                 style={{
+                                   fontSize: Math.max(6, flower.visual_width * 0.2),
+                                   maxWidth: flower.visual_width * 0.9,
+                                   overflow: 'hidden',
+                                   textOverflow: 'ellipsis',
+                                   whiteSpace: 'nowrap',
+                                   lineHeight: '1.1'
+                                 }}
+                               >
+                                 {flower.name}
+                               </div>
+                             )}
                            </div>
 
                            {/* Glow effect for selected flowers */}
@@ -772,7 +775,8 @@ export default function PlantvakDetailPage() {
                     <div className="font-medium mb-1">💡 Besturing:</div>
                     <div>• <strong>Slepen:</strong> Verplaats bloem</div>
                     <div>• <strong>Resize handles:</strong> Trek aan blauwe bolletjes om grootte aan te passen</div>
-                    <div>• <strong>Grootte:</strong> 20px - 100px (vierkant)</div>
+                    <div>• <strong>Grootte:</strong> 20px - 100px (namen zichtbaar vanaf 30px)</div>
+                    <div>• <strong>Styling:</strong> Identiek aan tuin overzicht</div>
                   </div>
                   
                   <div className="flex gap-2">
