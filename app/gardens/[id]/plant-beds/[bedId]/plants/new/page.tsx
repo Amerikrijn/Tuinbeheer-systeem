@@ -148,9 +148,14 @@ export default function NewPlantPage() {
         plant_bed_id: plantBed.id,
         name: newPlant.name,
         scientific_name: newPlant.scientificName || undefined,
+        latin_name: newPlant.latinName || undefined,
         variety: newPlant.variety || undefined,
         color: newPlant.color || undefined,
+        plant_color: newPlant.plantColor || undefined,
         height: newPlant.height ? Number.parseInt(newPlant.height) : undefined,
+        plant_height: newPlant.plantHeight ? Number.parseInt(newPlant.plantHeight) : undefined,
+        plants_per_sqm: newPlant.plantsPerSqm ? Number.parseInt(newPlant.plantsPerSqm) : undefined,
+        sun_preference: newPlant.sunPreference,
         planting_date: newPlant.plantingDate || undefined,
         expected_harvest_date: newPlant.expectedHarvestDate || undefined,
         status: newPlant.status,
@@ -355,6 +360,22 @@ export default function NewPlantPage() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="latinName">Latijnse naam</Label>
+                    <Input
+                      id="latinName"
+                      placeholder="Bijv. Rosa gallica"
+                      value={newPlant.latinName}
+                      onChange={(e) =>
+                        setNewPlant((p) => ({
+                          ...p,
+                          latinName: e.target.value,
+                        }))
+                      }
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="variety">Variëteit</Label>
                     <Input
                       id="variety"
@@ -387,6 +408,22 @@ export default function NewPlantPage() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="plantColor">Plant kleur</Label>
+                    <Input
+                      id="plantColor"
+                      placeholder="Bijv. Groen, Donkergroen"
+                      value={newPlant.plantColor}
+                      onChange={(e) =>
+                        setNewPlant((p) => ({
+                          ...p,
+                          plantColor: e.target.value,
+                        }))
+                      }
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="height">Hoogte (cm)</Label>
                     <Input
                       id="height"
@@ -401,6 +438,62 @@ export default function NewPlantPage() {
                       }
                       autoComplete="off"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="plantHeight">Plant hoogte (cm)</Label>
+                    <Input
+                      id="plantHeight"
+                      type="number"
+                      placeholder="Bijv. 80"
+                      value={newPlant.plantHeight}
+                      onChange={(e) =>
+                        setNewPlant((p) => ({
+                          ...p,
+                          plantHeight: e.target.value,
+                        }))
+                      }
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="plantsPerSqm">Planten per m²</Label>
+                    <Input
+                      id="plantsPerSqm"
+                      type="number"
+                      placeholder="Bijv. 4"
+                      value={newPlant.plantsPerSqm}
+                      onChange={(e) =>
+                        setNewPlant((p) => ({
+                          ...p,
+                          plantsPerSqm: e.target.value,
+                        }))
+                      }
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sunPreference">Zonvoorkeur</Label>
+                    <Select
+                      value={newPlant.sunPreference}
+                      onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') =>
+                        setNewPlant((p) => ({
+                          ...p,
+                          sunPreference: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecteer zonvoorkeur" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="full-sun">☀️ Volle zon</SelectItem>
+                        <SelectItem value="partial-sun">⛅ Gedeeltelijke zon</SelectItem>
+                        <SelectItem value="shade">🌳 Schaduw</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
