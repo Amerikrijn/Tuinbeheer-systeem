@@ -124,6 +124,16 @@ export class TaskService {
         garden_name: task.plants?.plant_beds?.gardens?.name || ''
       }))
 
+      // Apply consistent sorting: incomplete first (by due date), then completed at bottom
+      transformedData.sort((a, b) => {
+        // Completed tasks go to bottom
+        if (a.completed && !b.completed) return 1
+        if (!a.completed && b.completed) return -1
+        
+        // Within same completion status, sort by due date
+        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+      })
+
       // Apply client-side filtering if needed
       if (filters) {
         if (filters.plant_id) {
@@ -200,6 +210,21 @@ export class TaskService {
           day_of_week: new Date(task.due_date).getDay(),
           status_category
         }
+      })
+
+      // Apply consistent sorting: incomplete first (by due date), then completed at bottom
+      transformedData.sort((a, b) => {
+        // Completed tasks go to bottom
+        if (a.completed && !b.completed) return 1
+        if (!a.completed && b.completed) return -1
+        
+        // Within same completion status, sort by due date, then priority
+        const dateCompare = new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+        if (dateCompare !== 0) return dateCompare
+        
+        // Higher priority first (high=3, medium=2, low=1)
+        const priorityWeight = { high: 3, medium: 2, low: 1 }
+        return priorityWeight[b.priority] - priorityWeight[a.priority]
       })
 
       return { data: transformedData, error: null }

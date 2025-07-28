@@ -232,7 +232,7 @@ export default function PlantBedViewPage() {
     sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
     soil_type: 'loam' as 'clay' | 'sand' | 'loam' | 'peat'
   })
-  const [viewMode, setViewMode] = useState<'visual' | 'list' | 'tasks'>('visual')
+  const [viewMode, setViewMode] = useState<'visual' | 'list'>('visual')
   
   // Task-related state
   const [tasks, setTasks] = useState<TaskWithPlantInfo[]>([])
@@ -241,6 +241,17 @@ export default function PlantBedViewPage() {
   const [selectedTaskPlantId, setSelectedTaskPlantId] = useState<string | undefined>()
   
   const containerRef = useRef<HTMLDivElement>(null)
+
+  // Smart navigation - go back to where user came from
+  const handleBackNavigation = () => {
+    // Check if user can go back in browser history
+    if (window.history.length > 1) {
+      router.back()
+    } else {
+      // Fallback to garden page
+      router.push(`/gardens/${params.id}`)
+    }
+  }
 
   // Load tasks for this plant bed and its plants
   const loadTasks = async () => {
@@ -1515,9 +1526,9 @@ export default function PlantBedViewPage() {
           <Leaf className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Plantvak niet gevonden</h3>
           <p className="text-gray-600 mb-4">Het plantvak dat je zoekt bestaat niet.</p>
-          <Button onClick={() => router.push(`/gardens/${params.id}`)} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={handleBackNavigation} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Terug naar Tuin
+            Terug
           </Button>
         </div>
       </div>
@@ -1532,11 +1543,11 @@ export default function PlantBedViewPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/gardens/${params.id}`)}
+            onClick={handleBackNavigation}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Terug naar Tuin
+            Terug
           </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -2129,19 +2140,10 @@ export default function PlantBedViewPage() {
               variant={viewMode === 'list' ? 'default' : 'outline'} 
               size="sm" 
               onClick={() => setViewMode('list')}
-              className="rounded-none border-r-0"
+              className="rounded-l-none"
             >
               <List className="h-4 w-4 mr-1" />
               Lijst
-            </Button>
-            <Button 
-              variant={viewMode === 'tasks' ? 'default' : 'outline'} 
-              size="sm" 
-              onClick={() => setViewMode('tasks')}
-              className="rounded-l-none"
-            >
-              <Calendar className="h-4 w-4 mr-1" />
-              Taken
             </Button>
           </div>
 
@@ -2836,7 +2838,7 @@ export default function PlantBedViewPage() {
                 </div>
               </div>
             </>
-          ) : viewMode === 'list' ? (
+          ) : (
             /* List View */
             <div className="space-y-4">
               {/* List Header */}
@@ -2966,10 +2968,150 @@ export default function PlantBedViewPage() {
                   ))}
                 </div>
               )}
+
+              {/* Tasks Section - Only in List View */}
+              <div className="mt-8">
+                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg mb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                    <span className="font-medium text-gray-900">Taken voor dit Plantvak</span>
+                    <Badge variant="secondary">{tasks.length} taken</Badge>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleAddTask()}
+                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Plantvak Taak
+                    </Button>
+                    {flowerPositions.length > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleAddTask(flowerPositions[0].id)}
+                        className="text-green-600 border-green-200 hover:bg-green-50"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Bloem Taak
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tasks List */}
+                {loadingTasks ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-gray-600 mt-2">Taken laden...</p>
+                  </div>
+                ) : tasks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen taken</h3>
+                    <p className="text-gray-600 mb-4">Voeg taken toe voor dit plantvak of specifieke bloemen.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {tasks.map((task) => {
+                      const taskTypeConfig = getTaskTypeConfig(task.task_type)
+                      const priorityConfig = getPriorityConfig(task.priority)
+                      const isOverdue = !task.completed && new Date(task.due_date) < new Date()
+                      const isToday = task.due_date === new Date().toISOString().split('T')[0]
+                      
+                      return (
+                        <Card key={task.id} className={`transition-all duration-200 ${task.completed ? 'opacity-60' : ''} ${isOverdue ? 'border-red-200 bg-red-50' : isToday ? 'border-orange-200 bg-orange-50' : ''}`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              {/* Checkbox */}
+                              <div className="mt-1">
+                                <input
+                                  type="checkbox"
+                                  checked={task.completed}
+                                  onChange={(e) => handleTaskComplete(task.id, e.target.checked)}
+                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                />
+                              </div>
+                              
+                              {/* Task Content */}
+                              <div className="flex-1">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <h4 className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                                      {task.title}
+                                    </h4>
+                                    {task.description && (
+                                      <p className={`text-sm mt-1 ${task.completed ? 'text-gray-400' : 'text-gray-600'}`}>
+                                        {task.description}
+                                      </p>
+                                    )}
+                                    
+                                    {/* Task Meta Info */}
+                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                      <div className="flex items-center gap-1">
+                                        {taskTypeConfig && (
+                                          <>
+                                            <span>{taskTypeConfig.icon}</span>
+                                            <span>{taskTypeConfig.label}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                      
+                                      <div className="flex items-center gap-1">
+                                        <Clock className="h-3 w-3" />
+                                        <span className={isOverdue ? 'text-red-600 font-medium' : isToday ? 'text-orange-600 font-medium' : ''}>
+                                          {formatTaskDate(task.due_date)}
+                                        </span>
+                                      </div>
+                                      
+                                      {task.plant_id ? (
+                                        <div className="flex items-center gap-1">
+                                          <span>🌸</span>
+                                          <span>{task.plant_name}</span>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center gap-1">
+                                          <span>🌱</span>
+                                          <span>Plantvak taak</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Priority Badge */}
+                                  {priorityConfig && (
+                                    <Badge className={`ml-2 ${priorityConfig.badge_color}`}>
+                                      {priorityConfig.label}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Add Task Dialog */}
+      <AddTaskForm
+        isOpen={showAddTask}
+        onClose={() => {
+          setShowAddTask(false)
+          setSelectedTaskPlantId(undefined)
+        }}
+        onTaskAdded={handleTaskAdded}
+        preselectedPlantId={selectedTaskPlantId}
+        preselectedPlantBedId={selectedTaskPlantId ? undefined : params.bedId as string}
+      />
 
 
 
