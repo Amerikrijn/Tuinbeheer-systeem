@@ -118,7 +118,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId }
     const config = TASK_TYPE_CONFIGS.find(c => c.value === taskType)
     setFormData(prev => ({
       ...prev,
-      task_type: taskType as any,
+      task_type: taskType as CreateTaskData['task_type'],
       priority: config?.defaultPriority || 'medium',
       title: prev.title || `${config?.label} voor ${plants.find(p => p.id === prev.plant_id)?.name || 'bloem'}`
     }))
@@ -217,7 +217,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId }
             <Label htmlFor="priority">Prioriteit</Label>
             <Select
               value={formData.priority}
-              onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value as any }))}
+              onValueChange={(value) => setFormData(prev => ({ ...prev, priority: value as CreateTaskData['priority'] }))}
             >
               <SelectTrigger>
                 <SelectValue />
