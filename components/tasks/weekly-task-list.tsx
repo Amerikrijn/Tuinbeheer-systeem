@@ -219,6 +219,20 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     const activeTasks = day.tasks.filter(t => !t.completed)
     const completedTasks = day.tasks.filter(t => t.completed)
     
+    // Sort active tasks by priority (high first), then by due date
+    const sortedActiveTasks = [...activeTasks].sort((a, b) => {
+      const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 }
+      const aPriority = priorityOrder[a.priority as keyof typeof priorityOrder] || 1
+      const bPriority = priorityOrder[b.priority as keyof typeof priorityOrder] || 1
+      
+      if (aPriority !== bPriority) {
+        return bPriority - aPriority // Higher priority first
+      }
+      
+      // Then sort by due date
+      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+    })
+    
     if (day.tasks.length === 0) return null
 
     return (
@@ -249,7 +263,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
         <CardContent className="pt-0">
           <div className="space-y-3">
             {/* Show active tasks first */}
-            {activeTasks.map(task => (
+            {sortedActiveTasks.map(task => (
               <TaskCard key={task.id} task={task} showPlantInfo />
             ))}
             
@@ -417,9 +431,31 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               )
             }
             
+            // Sort tasks: completed at bottom, then by priority (high first), then by due date
+            const sortedTasks = [...tasksToShow].sort((a, b) => {
+              // 1. Completed tasks go to bottom
+              if (a.completed !== b.completed) {
+                return a.completed ? 1 : -1
+              }
+              
+              // 2. For non-completed tasks, sort by priority (high > medium > low)
+              if (!a.completed && !b.completed) {
+                const priorityOrder = { 'high': 3, 'medium': 2, 'low': 1 }
+                const aPriority = priorityOrder[a.priority as keyof typeof priorityOrder] || 1
+                const bPriority = priorityOrder[b.priority as keyof typeof priorityOrder] || 1
+                
+                if (aPriority !== bPriority) {
+                  return bPriority - aPriority // Higher priority first
+                }
+              }
+              
+              // 3. Then sort by due date
+              return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+            })
+            
             return (
               <div className="space-y-3">
-                {tasksToShow.map(task => (
+                {sortedTasks.map(task => (
                   <TaskCard key={task.id} task={task} showPlantInfo />
                 ))}
               </div>
