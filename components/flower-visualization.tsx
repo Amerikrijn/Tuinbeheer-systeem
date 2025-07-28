@@ -94,8 +94,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const percentageX = plant.position_x! / plantvakCanvasWidth
         const percentageY = plant.position_y! / plantvakCanvasHeight
         
-        // Apply percentage to tuin container
-        const finalX = percentageX * containerWidth
+        // EXPERIMENT: Verdubbel X-coordinaat voor garden sync fix
+        const finalX = percentageX * containerWidth * 2  // Test: verdubbel X
         const finalY = percentageY * containerHeight
         
         // DEBUG: Log coordinate transformation
