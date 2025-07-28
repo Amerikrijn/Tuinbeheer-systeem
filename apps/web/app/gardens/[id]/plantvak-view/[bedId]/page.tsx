@@ -1718,11 +1718,31 @@ export default function PlantBedViewPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Flower className="h-8 w-8 text-pink-600" />
-              🚨 VERCELL TEST - {plantBed.name} - VERANDERD OP VERCELL 🚨
+              🚨 ALLE PRs GESLOTEN - {plantBed.name} - VERCELL TEST 🚨
             </h1>
-            <div className="bg-yellow-400 text-black p-4 rounded mt-4">
-              <h2 className="text-xl font-bold">🚨 VERCELL DEPLOYMENT TEST 🚨</h2>
-              <p>Als je deze gele tekst ziet, werkt de deployment!</p>
+            <div className="bg-green-500 text-white p-4 rounded mt-4">
+              <h2 className="text-xl font-bold">✅ PRs GESLOTEN - VERCELL TEST ✅</h2>
+              <p>Als je deze groene tekst ziet, werkt de deployment na het sluiten van alle PRs!</p>
+            </div>
+            <div className="flex items-center gap-2 mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditingPlantBed(true)}
+                className="flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Bewerken
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowDeletePlantBedDialog(true)}
+                className="flex items-center gap-2"
+              >
+                <Trash2 className="h-4 w-4" />
+                Verwijderen
+              </Button>
             </div>
           </div>
         </div>
@@ -2350,6 +2370,11 @@ export default function PlantBedViewPage() {
               <span className="text-gray-600">Bloemen:</span>
               <p className="font-medium">{flowerPositions.length}</p>
             </div>
+          </div>
+          <div className="mt-4 p-3 bg-blue-100 rounded">
+            <p className="text-sm text-blue-800">
+              💡 <strong>Nieuwe functionaliteit:</strong> Klik op bloemen om de grootte te veranderen (0.5x0.5m → 1x1m → 2x2m → 2x1m)
+            </p>
           </div>
         </CardContent>
       </Card>
