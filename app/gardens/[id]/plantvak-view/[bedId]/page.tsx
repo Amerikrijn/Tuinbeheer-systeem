@@ -138,8 +138,8 @@ export default function PlantvakDetailPage() {
       const canvasSize = getCanvasSize()
       
              // Place new flower in center of plantvak
-       const centerX = canvasSize.width / 2 - 30 / 2 // Center with 30px standard size
-       const centerY = canvasSize.height / 2 - 30 / 2 // Center with 30px standard size
+       const centerX = canvasSize.width / 2 - 50 / 2 // Center with 50px standard size
+       const centerY = canvasSize.height / 2 - 50 / 2 // Center with 50px standard size
       
              const flowerData = {
          plant_bed_id: plantBed.id,
@@ -148,8 +148,8 @@ export default function PlantvakDetailPage() {
          status: newFlower.status as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
          position_x: centerX,
          position_y: centerY,
-         visual_width: 30, // 30px standard size so names are always visible
-         visual_height: 30, // 30px standard size so names are always visible
+         visual_width: 50, // 50px standard size - names clearly readable
+         visual_height: 50, // 50px standard size - names clearly readable
          emoji: '🌸',
          is_custom: false,
                    category: newFlower.category,
@@ -294,60 +294,57 @@ export default function PlantvakDetailPage() {
       let positionDeltaX = 0
       let positionDeltaY = 0
 
-      // Calculate new size based on handle - keep position fixed during resize
+      // Calculate new size - all handles now grow from top-left to prevent position changes
       switch (resizeHandle) {
-        case 'se': // Southeast - bottom right (grow from top-left anchor)
+        case 'se': // Southeast - bottom right
           newWidth = Math.max(20, resizeStartSize.width + deltaX)
           newHeight = Math.max(20, resizeStartSize.height + deltaY)
-          // No position change - top-left stays fixed
           break
-        case 'sw': // Southwest - bottom left (grow from top-right anchor)
-          newWidth = Math.max(20, resizeStartSize.width - deltaX)
+        case 'sw': // Southwest - bottom left  
+          newWidth = Math.max(20, resizeStartSize.width + Math.abs(deltaX))
           newHeight = Math.max(20, resizeStartSize.height + deltaY)
-          positionDeltaX = resizeStartSize.width - newWidth // Adjust X to keep right edge fixed
           break
-        case 'ne': // Northeast - top right (grow from bottom-left anchor)
+        case 'ne': // Northeast - top right
           newWidth = Math.max(20, resizeStartSize.width + deltaX)
-          newHeight = Math.max(20, resizeStartSize.height - deltaY)
-          positionDeltaY = resizeStartSize.height - newHeight // Adjust Y to keep bottom edge fixed
+          newHeight = Math.max(20, resizeStartSize.height + Math.abs(deltaY))
           break
-        case 'nw': // Northwest - top left (grow from bottom-right anchor)
-          newWidth = Math.max(20, resizeStartSize.width - deltaX)
-          newHeight = Math.max(20, resizeStartSize.height - deltaY)
-          positionDeltaX = resizeStartSize.width - newWidth // Adjust X to keep right edge fixed
-          positionDeltaY = resizeStartSize.height - newHeight // Adjust Y to keep bottom edge fixed
+        case 'nw': // Northwest - top left
+          newWidth = Math.max(20, resizeStartSize.width + Math.abs(deltaX))
+          newHeight = Math.max(20, resizeStartSize.height + Math.abs(deltaY))
           break
       }
+      
+      // No position deltas - flower stays in same position
 
       // Keep aspect ratio (square flowers) and limit max size to plantvak size
       const canvasSize = getCanvasSize()
       const maxSize = Math.min(canvasSize.width, canvasSize.height) // Can be as big as plantvak
       const size = Math.min(Math.max(20, Math.min(newWidth, newHeight)), maxSize)
       
-      // Update flower size and position with boundary constraints
-      setFlowers(prev => prev.map(f => {
-        if (f.id === resizingFlower) {
-          const originalFlower = flowers.find(flower => flower.id === resizingFlower)
-          if (!originalFlower) return f
-          
-          // Calculate new position with boundary constraints
-          let newPosX = originalFlower.position_x + positionDeltaX
-          let newPosY = originalFlower.position_y + positionDeltaY
-          
-          // Ensure flower stays within canvas bounds
-          newPosX = Math.max(0, Math.min(newPosX, canvasSize.width - size))
-          newPosY = Math.max(0, Math.min(newPosY, canvasSize.height - size))
-          
-          return {
-            ...f,
-            visual_width: size,
-            visual_height: size,
-            position_x: newPosX,
-            position_y: newPosY
+              // Update flower size only - position stays the same
+        setFlowers(prev => prev.map(f => {
+          if (f.id === resizingFlower) {
+            const originalFlower = flowers.find(flower => flower.id === resizingFlower)
+            if (!originalFlower) return f
+            
+            // Keep original position - no movement during resize
+            const currentPosX = originalFlower.position_x
+            const currentPosY = originalFlower.position_y
+            
+            // Ensure flower stays within canvas bounds (only if it would go outside)
+            const constrainedPosX = Math.max(0, Math.min(currentPosX, canvasSize.width - size))
+            const constrainedPosY = Math.max(0, Math.min(currentPosY, canvasSize.height - size))
+            
+            return {
+              ...f,
+              visual_width: size,
+              visual_height: size,
+              position_x: constrainedPosX,
+              position_y: constrainedPosY
+            }
           }
-        }
-        return f
-      }))
+          return f
+        }))
       setHasChanges(true)
       return
     }
@@ -618,41 +615,42 @@ export default function PlantvakDetailPage() {
                            onMouseDown={(e) => handleMouseDown(e, flower.id)}
                            onClick={() => !isDragging && setSelectedFlower(flower)}
                          >
-                           {/* Flower container with border and background - exact match with FlowerVisualization */}
+                           {/* Flower container with border and background - only emoji */}
                            <div
-                             className="w-full h-full border-2 border-gray-400 rounded-lg bg-white/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
+                             className="w-full h-full border-2 border-gray-400 rounded-lg bg-white/90 backdrop-blur-sm shadow-md flex items-center justify-center"
                              style={{
                                borderColor: `${flowerColor}60`, // More visible border in flower color
                                backgroundColor: `${flowerColor}15`, // Slightly more visible background tint
                              }}
                            >
-                             {/* Flower emoji - exact match with FlowerVisualization */}
+                             {/* Flower emoji - centered */}
                              <span 
                                className="select-none"
                                style={{
-                                 fontSize: Math.max(12, flower.visual_width * 0.4),
+                                 fontSize: Math.max(16, flower.visual_width * 0.5), // Bigger emoji since no text inside
                                  filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
                                }}
                              >
                                {emoji}
                              </span>
-                             
-                             {/* Flower name - match FlowerVisualization logic */}
-                             {flower.visual_width > 30 && (
-                               <div 
-                                 className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
-                                 style={{
-                                   fontSize: Math.max(6, flower.visual_width * 0.2),
-                                   maxWidth: flower.visual_width * 0.9,
-                                   overflow: 'hidden',
-                                   textOverflow: 'ellipsis',
-                                   whiteSpace: 'nowrap',
-                                   lineHeight: '1.1'
-                                 }}
-                               >
-                                 {flower.name}
-                               </div>
-                             )}
+                           </div>
+
+                           {/* Flower name - UNDER the flower box */}
+                           <div 
+                             className="absolute text-xs font-medium text-gray-800 text-center select-none bg-white/90 px-2 py-1 rounded shadow-sm border"
+                             style={{
+                               top: `${flower.visual_height + 2}px`, // Position below the flower
+                               left: '50%',
+                               transform: 'translateX(-50%)',
+                               fontSize: Math.max(8, flower.visual_width * 0.16),
+                               maxWidth: `${Math.max(flower.visual_width, 80)}px`, // At least as wide as flower
+                               whiteSpace: 'nowrap',
+                               overflow: 'hidden',
+                               textOverflow: 'ellipsis',
+                               zIndex: 5
+                             }}
+                           >
+                             {flower.name}
                            </div>
 
                            {/* Glow effect for selected flowers */}
@@ -806,10 +804,10 @@ export default function PlantvakDetailPage() {
                     <div className="font-medium mb-1">💡 Besturing:</div>
                     <div>• <strong>Slepen:</strong> Verplaats bloem</div>
                     <div>• <strong>Resize handles:</strong> Trek aan blauwe bolletjes om grootte aan te passen</div>
-                    <div>• <strong>Resize gedrag:</strong> Bloem blijft op dezelfde plek tijdens vergroten</div>
-                    <div>• <strong>Standaard grootte:</strong> 30px (namen altijd zichtbaar)</div>
+                    <div>• <strong>Resize gedrag:</strong> Bloem blijft VAST op dezelfde plek tijdens vergroten</div>
+                    <div>• <strong>Standaard grootte:</strong> 50px (namen direct leesbaar)</div>
+                    <div>• <strong>Bloemnamen:</strong> Staan nu onder het vakje (beter leesbaar)</div>
                     <div>• <strong>Max grootte:</strong> Zo groot als het hele plantvak!</div>
-                    <div>• <strong>Plantvak styling:</strong> Nu exact gelijk aan tuin overzicht (subtiele kleuren, corner decoraties)</div>
                   </div>
                   
                   <div className="flex gap-2">
