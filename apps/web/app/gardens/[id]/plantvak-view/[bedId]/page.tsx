@@ -99,22 +99,24 @@ const FLOWER_STATUS_OPTIONS = [
   }
 
   // Helper function to cycle through flower sizes
-  const cycleFlowerSize = (currentSize: 'small' | 'medium' | 'large'): 'small' | 'medium' | 'large' => {
+  const cycleFlowerSize = (currentSize: 'tiny' | 'small' | 'medium' | 'large'): 'tiny' | 'small' | 'medium' | 'large' => {
     switch (currentSize) {
+      case 'tiny': return 'small'
       case 'small': return 'medium'
       case 'medium': return 'large'
-      case 'large': return 'small'
-      default: return 'small'
+      case 'large': return 'tiny'
+      default: return 'tiny'
     }
   }
 
   // Helper function to get size label
-  const getSizeLabel = (size: 'small' | 'medium' | 'large'): string => {
+  const getSizeLabel = (size: 'tiny' | 'small' | 'medium' | 'large'): string => {
     switch (size) {
+      case 'tiny': return '0.5x0.5 meter'
       case 'small': return '1x1 meter'
       case 'medium': return '2x2 meter'
       case 'large': return '2x1 meter'
-      default: return '1x1 meter'
+      default: return '0.5x0.5 meter'
     }
   }
 
