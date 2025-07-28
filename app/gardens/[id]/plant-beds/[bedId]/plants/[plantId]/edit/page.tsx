@@ -510,7 +510,19 @@ export default function EditPlantPage() {
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    {tasks.map((task) => (
+                    {(() => {
+                      // Sort tasks: completed at bottom, active tasks by date
+                      const sortedTasks = [...tasks].sort((a, b) => {
+                        // 1. Completed tasks go to bottom
+                        if (a.completed !== b.completed) {
+                          return a.completed ? 1 : -1
+                        }
+                        
+                        // 2. Sort by due date
+                        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+                      })
+                      
+                      return sortedTasks.map((task) => (
                       <div
                         key={task.id}
                         className={`p-3 rounded-lg border ${
@@ -551,7 +563,7 @@ export default function EditPlantPage() {
                           </Button>
                         </div>
                       </div>
-                    ))}
+                    ))})()}
                   </div>
                 )}
               </CardContent>

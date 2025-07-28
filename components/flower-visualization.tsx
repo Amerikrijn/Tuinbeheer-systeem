@@ -188,8 +188,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           <div
             className="w-full h-full border-2 border-gray-400 rounded-lg bg-white/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
             style={{
-              borderColor: `${flower.color}60`, // More visible border in flower color
-              backgroundColor: `${flower.color}15`, // Slightly more visible background tint
+              borderColor: `${flower.color}80`, // More visible border in flower color
+              backgroundColor: `${flower.color}25`, // More visible background tint
             }}
           >
             {/* Use flower emoji with improved logic */}

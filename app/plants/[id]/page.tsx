@@ -174,6 +174,11 @@ export default function PlantDetailPage() {
   const completedTasks = tasks.filter(t => t.completed)
   const overdueTasks = activeTasks.filter(t => t.due_date < new Date().toISOString().split('T')[0])
   const todayTasks = activeTasks.filter(t => t.due_date === new Date().toISOString().split('T')[0])
+  
+  // Sort active tasks by date for flower-specific view
+  const sortedActiveTasks = [...activeTasks].sort((a, b) => {
+    return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+  })
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
@@ -361,7 +366,7 @@ export default function PlantDetailPage() {
                 <CardTitle className="text-lg">Actieve Taken</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {activeTasks.slice(0, 5).map((task) => {
+                {sortedActiveTasks.slice(0, 5).map((task) => {
                   const taskTypeConfig = getTaskTypeConfig(task.task_type)
                   const priorityConfig = getPriorityConfig(task.priority)
                   const isOverdue = task.due_date < new Date().toISOString().split('T')[0]
