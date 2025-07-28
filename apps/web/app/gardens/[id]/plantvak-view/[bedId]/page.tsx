@@ -2319,7 +2319,7 @@ export default function PlantBedViewPage() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Leaf className="h-4 w-4 text-green-600" />
-              <span className="font-medium text-gray-900">Plantvak Informatie</span>
+              <span className="font-medium text-gray-900">🚨 VERCELL TEST - Plantvak Informatie 🚨</span>
             </div>
             <Button
               variant="outline"
