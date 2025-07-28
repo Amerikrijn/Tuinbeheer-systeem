@@ -12,6 +12,16 @@ import { TaskService } from '@/lib/services/task.service'
 import { supabase } from '@/lib/supabase'
 import type { TaskWithPlantInfo } from '@/lib/types/tasks'
 import type { Bloem } from '@/lib/types/index'
+
+interface PlantWithBeds extends Bloem {
+  plant_beds?: {
+    name: string
+    sun_exposure?: string
+    gardens?: {
+      name: string
+    }
+  }
+}
 import { 
   ArrowLeft, 
   Leaf, 
@@ -32,7 +42,7 @@ import { getTaskTypeConfig, getPriorityConfig, formatTaskDate } from '@/lib/type
 export default function PlantDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const [plant, setPlant] = useState<Bloem | null>(null)
+  const [plant, setPlant] = useState<PlantWithBeds | null>(null)
   const [tasks, setTasks] = useState<TaskWithPlantInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddTask, setShowAddTask] = useState(false)
@@ -43,7 +53,7 @@ export default function PlantDetailPage() {
       loadPlantData()
       loadPlantTasks()
     }
-  }, [params.id, refreshKey])
+  }, [params.id, refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadPlantData = async () => {
     try {
