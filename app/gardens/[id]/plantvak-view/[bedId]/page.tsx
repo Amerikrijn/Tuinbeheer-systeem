@@ -253,8 +253,9 @@ export default function PlantvakDetailPage() {
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    const mouseX = (e.clientX - rect.left) / scale
-    const mouseY = (e.clientY - rect.top) / scale
+    // FIX: Don't divide by scale - getBoundingClientRect already accounts for CSS transform
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
 
     setResizingFlower(flowerId)
     setResizeHandle(handle)
@@ -272,8 +273,9 @@ export default function PlantvakDetailPage() {
     const rect = canvasRef.current?.getBoundingClientRect()
     if (!rect) return
 
-    const mouseX = (e.clientX - rect.left) / scale
-    const mouseY = (e.clientY - rect.top) / scale
+    // FIX: Don't divide by scale - getBoundingClientRect already accounts for CSS transform
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
 
     // Calculate offset from flower center
     const offsetX = mouseX - (flower.position_x + flower.visual_width / 2)
@@ -289,8 +291,9 @@ export default function PlantvakDetailPage() {
     if (!canvasRef.current) return
 
     const rect = canvasRef.current.getBoundingClientRect()
-    const mouseX = (e.clientX - rect.left) / scale
-    const mouseY = (e.clientY - rect.top) / scale
+    // FIX: Don't divide by scale - getBoundingClientRect already accounts for CSS transform
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
 
     // Handle resize
     if (resizingFlower && resizeHandle) {
