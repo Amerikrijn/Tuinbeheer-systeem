@@ -93,13 +93,7 @@ CREATE TABLE IF NOT EXISTS logbook_entries (
     notes TEXT NOT NULL,
     photo_url TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    
-    -- Constraint to ensure either plant_bed level or plant level entry
-    CONSTRAINT logbook_entry_level_check CHECK (
-        (plant_id IS NULL) OR 
-        (plant_id IS NOT NULL AND EXISTS (SELECT 1 FROM plants WHERE id = plant_id AND plant_bed_id = logbook_entries.plant_bed_id))
-    )
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- ===========================================
