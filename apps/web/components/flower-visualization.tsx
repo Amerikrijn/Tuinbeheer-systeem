@@ -94,8 +94,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const scaledX = plant.position_x! * scale
         const scaledY = plant.position_y! * scale
         
-        // IMPROVED: Better flower size calculation for visibility
-        const flowerSize = Math.max(24, Math.min(48, Math.min(containerWidth, containerHeight) / 12))
+        // IMPROVED: Much larger flower size for better visibility
+        const flowerSize = Math.max(32, Math.min(64, Math.min(containerWidth, containerHeight) / 8))
         
         instances.push({
           id: `${plant.id}-flower`,
@@ -110,8 +110,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           isMainFlower: true
         })
       } else {
-        // IMPROVED: Better grid layout for plants without positioning
-        const flowerSize = Math.max(24, Math.min(48, Math.min(containerWidth, containerHeight) / 10))
+        // IMPROVED: Much larger grid layout for plants without positioning
+        const flowerSize = Math.max(32, Math.min(64, Math.min(containerWidth, containerHeight) / 6))
         
         // Create a better grid layout for plants without positioning
         const cols = Math.ceil(Math.sqrt(plants.length))
@@ -119,7 +119,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const col = plantIndex % cols
         const row = Math.floor(plantIndex / cols)
         
-        const padding = 30
+        const padding = 40
         const cellWidth = (containerWidth - padding * 2) / cols
         const cellHeight = (containerHeight - padding * 2) / rows
         
@@ -174,11 +174,11 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
               boxShadow: `0 4px 12px ${flower.color}40`,
             }}
           >
-            {/* IMPROVED: Larger, more visible flower emoji */}
+            {/* IMPROVED: Much larger, more visible flower emoji */}
             <span 
               className="select-none"
               style={{
-                fontSize: Math.max(14, flower.size * 0.6),
+                fontSize: Math.max(20, flower.size * 0.7),
                 filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))',
               }}
             >
@@ -190,7 +190,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
               <div 
                 className="text-xs font-semibold text-gray-900 mt-1 text-center select-none"
                 style={{
-                  fontSize: Math.max(8, flower.size * 0.18),
+                  fontSize: Math.max(10, flower.size * 0.2),
                   maxWidth: flower.size * 0.9,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -207,10 +207,10 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           {/* IMPROVED: Better glow effect for main flowers */}
           {flower.isMainFlower && (
             <div
-              className="absolute inset-0 rounded-full opacity-30 blur-md -z-10"
+              className="absolute inset-0 rounded-full opacity-40 blur-md -z-10"
               style={{
                 backgroundColor: flower.color,
-                transform: 'scale(1.4)',
+                transform: 'scale(1.6)',
               }}
             />
           )}

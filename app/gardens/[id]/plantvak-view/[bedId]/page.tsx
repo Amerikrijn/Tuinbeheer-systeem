@@ -2607,16 +2607,21 @@ export default function PlantBedViewPage() {
                 )
               })()}
 
-              {/* Interactive flowers with simple movement (like garden view) */}
+              {/* Interactive flowers with improved visualization */}
               {flowerPositions.map((flower) => {
                 const isSelected = selectedFlower?.id === flower.id
                 const isDragging = draggedFlower === flower.id
                 const isBeingResized = isResizing === flower.id
 
+                // IMPROVED: Calculate better flower size for visibility
+                const minFlowerSize = 40  // Minimum size for visibility
+                const maxFlowerSize = 80  // Maximum size
+                const flowerSize = Math.max(minFlowerSize, Math.min(maxFlowerSize, flower.visual_width || 50))
+
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'gezond')} ${
+                    className={`absolute rounded-xl border-3 ${getStatusColor(flower.status || 'gezond')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105 cursor-grabbing" : 
                       isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab animate-pulse" :
                       isSelected && isResizeMode ? "ring-4 ring-blue-500 shadow-xl cursor-default" :
@@ -2626,8 +2631,8 @@ export default function PlantBedViewPage() {
                     style={{
                       left: flower.position_x,
                       top: flower.position_y,
-                      width: flower.visual_width,
-                      height: flower.visual_height,
+                      width: flowerSize,
+                      height: flowerSize,
                       backgroundColor: flower.color ? `${flower.color}20` : 'transparent',
                       borderColor: flower.color || '#999',
                     }}
@@ -2645,11 +2650,12 @@ export default function PlantBedViewPage() {
                       "Klik om te selecteren, sleep om te verplaatsen, dubbel klik om te vergroten"
                     }
                   >
+                    {/* IMPROVED: Better flower visualization with emoji and name */}
                     <div className="text-center w-full h-full flex flex-col items-center justify-center">
                       <div 
                         className="flex items-center justify-center"
                         style={{ 
-                          fontSize: Math.max(12, Math.min(48, flower.visual_width * 0.4)) + 'px'
+                          fontSize: Math.max(16, Math.min(32, flowerSize * 0.6)) + 'px'
                         }}
                       >
                         {flower.photo_url ? (
@@ -2658,15 +2664,15 @@ export default function PlantBedViewPage() {
                             alt={flower.name} 
                             className="w-full h-full object-cover rounded-full"
                             style={{ 
-                              width: flower.visual_width + 'px',
-                              height: flower.visual_height + 'px'
+                              width: flowerSize + 'px',
+                              height: flowerSize + 'px'
                             }}
                           />
                         ) : flower.emoji ? (
                           flower.emoji
                         ) : (
                           <div className="text-center text-white font-bold leading-tight" style={{ 
-                            fontSize: Math.max(8, Math.min(16, flower.visual_width * 0.2)) + 'px',
+                            fontSize: Math.max(12, Math.min(20, flowerSize * 0.3)) + 'px',
                             textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
                           }}>
                             {flower.name}
@@ -2674,25 +2680,16 @@ export default function PlantBedViewPage() {
                         )}
                       </div>
                       
-                      {/* Toon naam als er genoeg ruimte is */}
-                      {flower.visual_width > 60 && (
-                        <div 
-                          className="text-center text-white font-bold mt-1 px-1 leading-tight"
-                          style={{ 
-                            fontSize: Math.max(8, Math.min(16, flower.visual_width * 0.15)) + 'px',
-                            textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
-                          }}
-                        >
-                          {flower.name}
-                        </div>
-                      )}
-                      
-                      {/* Kleine naam label voor kleine bloemen */}
-                      {flower.visual_width <= 60 && (
-                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-700 bg-white bg-opacity-90 px-2 py-1 rounded shadow-sm whitespace-nowrap">
-                          {flower.name}
-                        </div>
-                      )}
+                      {/* IMPROVED: Always show flower name for better identification */}
+                      <div 
+                        className="text-center text-white font-bold mt-1 px-1 leading-tight"
+                        style={{ 
+                          fontSize: Math.max(8, Math.min(14, flowerSize * 0.2)) + 'px',
+                          textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
+                        }}
+                      >
+                        {flower.name}
+                      </div>
                     </div>
 
                     {/* Mode indicators */}
