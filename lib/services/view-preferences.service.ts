@@ -21,8 +21,8 @@ export class ViewPreferencesService {
       return savedMode
     }
     
-    // Default to list view on mobile, visual on desktop
-    return this.isMobileDevice() ? 'list' : 'visual'
+    // Default to visual view (original behavior)
+    return 'visual'
   }
 
   // Save the view mode preference
