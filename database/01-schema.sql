@@ -95,7 +95,7 @@ CREATE TABLE plants (
     bloom_period TEXT,
     planting_date DATE,
     expected_harvest_date DATE,
-    status TEXT NOT NULL CHECK (status IN ('healthy', 'needs_attention', 'diseased', 'dead', 'harvested')),
+    status TEXT NOT NULL CHECK (status IN ('gezond', 'aandacht_nodig', 'ziek', 'dood', 'geoogst')),
     notes TEXT,
     care_instructions TEXT,
     watering_frequency INTEGER,

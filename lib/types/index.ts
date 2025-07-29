@@ -65,7 +65,7 @@ export interface Bloem {
   bloom_period?: string
   planting_date?: string
   expected_harvest_date?: string
-  status?: 'healthy' | 'needs_attention' | 'diseased' | 'dead' | 'harvested'
+  status?: 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst'
   notes?: string
   care_instructions?: string
   watering_frequency?: number
@@ -117,7 +117,7 @@ export interface BloemFormData {
   sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
   planting_date?: string
   expected_harvest_date?: string
-  status: 'healthy' | 'needs_attention' | 'diseased' | 'dead' | 'harvested'
+  status: 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst'
   notes?: string
   care_instructions?: string
   watering_frequency?: number

@@ -16,7 +16,7 @@ export interface PlantFormData {
   height?: number
   plantingDate?: string
   expectedHarvestDate?: string
-  status: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  status: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   notes?: string
   careInstructions?: string
   wateringFrequency?: number

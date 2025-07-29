@@ -307,7 +307,7 @@ export async function createPlant(plant: {
   bloom_period?: string
   planting_date?: string
   expected_harvest_date?: string
-  status?: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  status?: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   notes?: string
   care_instructions?: string
   watering_frequency?: number
@@ -387,7 +387,7 @@ export async function createVisualPlant(plant: {
   plant_bed_id: string
   name: string
   color: string
-  status: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  status: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   position_x: number
   position_y: number
   visual_width: number
@@ -430,7 +430,7 @@ export async function updatePlantPosition(id: string, updates: {
   visual_height?: number
   name?: string
   color?: string
-  status?: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  status?: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   emoji?: string
   is_custom?: boolean
   category?: string

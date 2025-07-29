@@ -121,22 +121,22 @@ export default function PlantDetailPage() {
 
   const getStatusColor = (status?: string) => {
     switch (status) {
-      case 'healthy': return 'bg-green-100 text-green-800'
-      case 'needs_attention': return 'bg-yellow-100 text-yellow-800'
-      case 'diseased': return 'bg-red-100 text-red-800'
-      case 'dead': return 'bg-gray-100 text-gray-800'
-      case 'harvested': return 'bg-blue-100 text-blue-800'
+      case 'gezond': return 'bg-green-100 text-green-800'
+      case 'aandacht_nodig': return 'bg-yellow-100 text-yellow-800'
+      case 'ziek': return 'bg-red-100 text-red-800'
+      case 'dood': return 'bg-gray-100 text-gray-800'
+      case 'geoogst': return 'bg-blue-100 text-blue-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
 
   const getStatusLabel = (status?: string) => {
     switch (status) {
-      case 'healthy': return 'Gezond'
-      case 'needs_attention': return 'Aandacht nodig'
-      case 'diseased': return 'Ziek'
-      case 'dead': return 'Dood'
-      case 'harvested': return 'Geoogst'
+      case 'gezond': return 'Gezond'
+      case 'aandacht_nodig': return 'Aandacht nodig'
+      case 'ziek': return 'Ziek'
+      case 'dood': return 'Dood'
+      case 'geoogst': return 'Geoogst'
       default: return 'Onbekend'
     }
   }
