@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -32,6 +33,8 @@ import {
   Minus,
   Upload,
   Image as ImageIcon,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
@@ -191,7 +194,8 @@ export default function PlantBedViewPage() {
     photoUrl: '',
     description: '',
     status: 'gezond' as 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek',
-    size: 'medium' as 'small' | 'medium' | 'large'
+    size: 'medium' as 'small' | 'medium' | 'large',
+    height: ''
   })
   const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
   const [showDeletePlantBedDialog, setShowDeletePlantBedDialog] = useState(false)
