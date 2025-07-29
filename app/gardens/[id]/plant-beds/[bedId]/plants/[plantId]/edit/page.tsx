@@ -136,9 +136,15 @@ export default function EditPlantPage() {
     e.preventDefault()
     if (!plant) return
 
+    console.log('🌱 Starting plant update...', {
+      plantId: plant.id,
+      editPlant,
+      originalPlant: plant
+    })
+
     setSaving(true)
     try {
-      await updatePlant(plant.id, {
+      const updateData = {
         name: editPlant.name,
         scientific_name: editPlant.scientific_name || undefined,
         latin_name: editPlant.latin_name || undefined,
@@ -157,7 +163,13 @@ export default function EditPlantPage() {
         watering_frequency: editPlant.watering_frequency ? Number.parseInt(editPlant.watering_frequency) : undefined,
         fertilizer_schedule: editPlant.fertilizer_schedule || undefined,
         emoji: editPlant.emoji,
-      })
+      }
+
+      console.log('🌱 Update data to send:', updateData)
+      
+      const result = await updatePlant(plant.id, updateData)
+      
+      console.log('🌱 Update result:', result)
 
       toast({
         title: "Plant bijgewerkt!",
@@ -165,7 +177,7 @@ export default function EditPlantPage() {
       })
       router.push(`/plants/${plant.id}`)
     } catch (error) {
-      console.error("Error updating plant:", error)
+      console.error("❌ Error updating plant:", error)
       toast({
         title: "Fout",
         description: "Er ging iets mis bij het bijwerken van de plant.",
