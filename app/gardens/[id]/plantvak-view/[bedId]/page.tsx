@@ -60,6 +60,7 @@ import {
   calculatePlantBedCanvasSize,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
+import { ViewPreferencesService, ViewMode } from '@/lib/services/view-preferences.service'
 
 const GRID_SIZE = 10
 const SCALE_MIN = 0.5
@@ -232,7 +233,29 @@ export default function PlantBedViewPage() {
     sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
     soil_type: 'loam' as 'clay' | 'sand' | 'loam' | 'peat'
   })
-  const [viewMode, setViewMode] = useState<'visual' | 'list'>('visual')
+  // Use global view preferences with mobile detection
+  const [viewMode, setViewMode] = useState<ViewMode>('visual')
+  const [isViewInitialized, setIsViewInitialized] = useState(false)
+
+  // Initialize view mode from global preferences
+  useEffect(() => {
+    const initialMode = ViewPreferencesService.getViewMode()
+    setViewMode(initialMode)
+    setIsViewInitialized(true)
+
+    // Listen for view mode changes from other components
+    const cleanup = ViewPreferencesService.onViewModeChange((newMode) => {
+      setViewMode(newMode)
+    })
+
+    return cleanup
+  }, [])
+
+  // Update view mode and sync globally
+  const updateViewMode = (mode: ViewMode) => {
+    setViewMode(mode)
+    ViewPreferencesService.setViewMode(mode)
+  }
   
   // Task-related state
   const [tasks, setTasks] = useState<TaskWithPlantInfo[]>([])
@@ -2164,7 +2187,7 @@ export default function PlantBedViewPage() {
             <Button 
               variant={viewMode === 'visual' ? 'default' : 'outline'} 
               size="sm" 
-              onClick={() => setViewMode('visual')}
+              onClick={() => updateViewMode('visual')}
               className="rounded-r-none border-r-0"
             >
               <Eye className="h-4 w-4 mr-1" />
@@ -2173,7 +2196,7 @@ export default function PlantBedViewPage() {
             <Button 
               variant={viewMode === 'list' ? 'default' : 'outline'} 
               size="sm" 
-              onClick={() => setViewMode('list')}
+              onClick={() => updateViewMode('list')}
               className="rounded-l-none"
             >
               <List className="h-4 w-4 mr-1" />
