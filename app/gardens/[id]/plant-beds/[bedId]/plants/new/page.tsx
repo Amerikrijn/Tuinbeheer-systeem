@@ -12,6 +12,9 @@ import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Leaf, Plus, AlertCircle, Calendar, ChevronDown } from "lucide-react"
 import { getGarden, getPlantBed, createPlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
+import { AddTaskForm } from '@/components/tasks/add-task-form'
+import { TaskService } from '@/lib/services/task.service'
+import type { TaskWithPlantInfo } from '@/lib/types/tasks'
 
 // Standard flower types with emojis
 const STANDARD_FLOWERS = [
@@ -34,12 +37,17 @@ const DEFAULT_FLOWER_EMOJI = '🌼'
 interface NewPlant {
   name: string
   scientificName: string
+  latinName: string
   variety: string
   color: string
+  plantColor: string
   height: string
+  plantHeight: string
+  plantsPerSqm: string
+  sunPreference: 'full-sun' | 'partial-sun' | 'shade'
   plantingDate: string
   expectedHarvestDate: string
-  status: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  status: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   notes: string
   careInstructions: string
   wateringFrequency: string
@@ -57,6 +65,8 @@ export default function NewPlantPage() {
   const [plantBed, setPlantBed] = React.useState<PlantBedWithPlants | null>(null)
   const [loading, setLoading] = React.useState(false)
   const [errors, setErrors] = React.useState<Record<string, string>>({})
+  const [showAddTask, setShowAddTask] = React.useState(false)
+  const [createdPlantId, setCreatedPlantId] = React.useState<string | null>(null)
 
   // Clear any dialog states that might be stuck
   React.useEffect(() => {
@@ -76,12 +86,17 @@ export default function NewPlantPage() {
   const [newPlant, setNewPlant] = React.useState<NewPlant>({
     name: "",
     scientificName: "",
+    latinName: "",
     variety: "",
     color: "",
+    plantColor: "",
     height: "",
+    plantHeight: "",
+    plantsPerSqm: "4",
+    sunPreference: 'partial-sun',
     plantingDate: "",
     expectedHarvestDate: "",
-    status: "healthy",
+    status: "gezond",
     notes: "",
     careInstructions: "",
     wateringFrequency: "",
@@ -134,13 +149,18 @@ export default function NewPlantPage() {
 
     setLoading(true)
     try {
-      await createPlant({
+      const createdPlant = await createPlant({
         plant_bed_id: plantBed.id,
         name: newPlant.name,
         scientific_name: newPlant.scientificName || undefined,
+        latin_name: newPlant.latinName || undefined,
         variety: newPlant.variety || undefined,
         color: newPlant.color || undefined,
+        plant_color: newPlant.plantColor || undefined,
         height: newPlant.height ? Number.parseInt(newPlant.height) : undefined,
+        plant_height: newPlant.plantHeight ? Number.parseInt(newPlant.plantHeight) : undefined,
+        plants_per_sqm: newPlant.plantsPerSqm ? Number.parseInt(newPlant.plantsPerSqm) : undefined,
+        sun_preference: newPlant.sunPreference,
         planting_date: newPlant.plantingDate || undefined,
         expected_harvest_date: newPlant.expectedHarvestDate || undefined,
         status: newPlant.status,
@@ -151,6 +171,9 @@ export default function NewPlantPage() {
         emoji: newPlant.emoji,
       })
 
+      if (createdPlant) {
+        setCreatedPlantId(createdPlant.id)
+      }
       toast({
         title: "Plant toegevoegd!",
         description: `Plant "${newPlant.name}" is succesvol toegevoegd aan ${plantBed.name}.`,
@@ -172,12 +195,17 @@ export default function NewPlantPage() {
     setNewPlant({
       name: "",
       scientificName: "",
+      latinName: "",
       variety: "",
       color: "",
+      plantColor: "",
       height: "",
+      plantHeight: "",
+      plantsPerSqm: "4",
+      sunPreference: 'partial-sun',
       plantingDate: "",
       expectedHarvestDate: "",
-      status: "healthy",
+      status: "gezond",
       notes: "",
       careInstructions: "",
       wateringFrequency: "",
@@ -340,6 +368,22 @@ export default function NewPlantPage() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="latinName">Latijnse naam</Label>
+                    <Input
+                      id="latinName"
+                      placeholder="Bijv. Rosa gallica"
+                      value={newPlant.latinName}
+                      onChange={(e) =>
+                        setNewPlant((p) => ({
+                          ...p,
+                          latinName: e.target.value,
+                        }))
+                      }
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="variety">Variëteit</Label>
                     <Input
                       id="variety"
@@ -372,6 +416,22 @@ export default function NewPlantPage() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="plantColor">Plant kleur</Label>
+                    <Input
+                      id="plantColor"
+                      placeholder="Bijv. Groen, Donkergroen"
+                      value={newPlant.plantColor}
+                      onChange={(e) =>
+                        setNewPlant((p) => ({
+                          ...p,
+                          plantColor: e.target.value,
+                        }))
+                      }
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="height">Hoogte (cm)</Label>
                     <Input
                       id="height"
@@ -389,10 +449,66 @@ export default function NewPlantPage() {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="plantHeight">Plant hoogte (cm)</Label>
+                    <Input
+                      id="plantHeight"
+                      type="number"
+                      placeholder="Bijv. 80"
+                      value={newPlant.plantHeight}
+                      onChange={(e) =>
+                        setNewPlant((p) => ({
+                          ...p,
+                          plantHeight: e.target.value,
+                        }))
+                      }
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="plantsPerSqm">Planten per m²</Label>
+                    <Input
+                      id="plantsPerSqm"
+                      type="number"
+                      placeholder="Bijv. 4"
+                      value={newPlant.plantsPerSqm}
+                      onChange={(e) =>
+                        setNewPlant((p) => ({
+                          ...p,
+                          plantsPerSqm: e.target.value,
+                        }))
+                      }
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="sunPreference">Zonvoorkeur</Label>
+                    <Select
+                      value={newPlant.sunPreference}
+                      onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') =>
+                        setNewPlant((p) => ({
+                          ...p,
+                          sunPreference: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecteer zonvoorkeur" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="full-sun">☀️ Volle zon</SelectItem>
+                        <SelectItem value="partial-sun">⛅ Gedeeltelijke zon</SelectItem>
+                        <SelectItem value="shade">🌳 Schaduw</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="status">Status</Label>
                     <Select
                       value={newPlant.status}
-                      onValueChange={(value: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested") =>
+                      onValueChange={(value: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst") =>
                         setNewPlant((p) => ({
                           ...p,
                           status: value,
@@ -403,11 +519,11 @@ export default function NewPlantPage() {
                         <SelectValue placeholder="Selecteer status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="healthy">🌱 Gezond</SelectItem>
-                        <SelectItem value="needs_attention">⚠️ Aandacht nodig</SelectItem>
-                        <SelectItem value="diseased">🦠 Ziek</SelectItem>
-                        <SelectItem value="dead">💀 Dood</SelectItem>
-                        <SelectItem value="harvested">🌾 Geoogst</SelectItem>
+                        <SelectItem value="gezond">🌱 Gezond</SelectItem>
+                        <SelectItem value="aandacht_nodig">⚠️ Aandacht nodig</SelectItem>
+                        <SelectItem value="ziek">🦠 Ziek</SelectItem>
+                        <SelectItem value="dood">💀 Dood</SelectItem>
+                        <SelectItem value="geoogst">🌾 Geoogst</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -540,6 +656,31 @@ export default function NewPlantPage() {
         </div>
 
         <aside className="space-y-4">
+          {createdPlantId && (
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    Taken Toevoegen
+                  </CardTitle>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowAddTask(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Taak
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="text-sm leading-relaxed">
+                <p>
+                  Plant succesvol aangemaakt! Je kunt nu taken toevoegen voor deze plant.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
             <CardHeader>
               <CardTitle>Tips</CardTitle>
@@ -583,6 +724,22 @@ export default function NewPlantPage() {
           </Card>
         </aside>
       </div>
+
+      {/* Add Task Dialog */}
+      {createdPlantId && (
+        <AddTaskForm
+          isOpen={showAddTask}
+          onClose={() => setShowAddTask(false)}
+          onTaskAdded={() => {
+            setShowAddTask(false)
+            toast({
+              title: "Taak toegevoegd!",
+              description: "De taak is succesvol toegevoegd aan de plant.",
+            })
+          }}
+          preselectedPlantId={createdPlantId}
+        />
+      )}
     </div>
   )
 }
