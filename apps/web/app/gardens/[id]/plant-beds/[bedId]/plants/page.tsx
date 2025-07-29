@@ -82,15 +82,15 @@ export default function PlantBedPlantsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "healthy":
+      case "gezond":
         return <CheckCircle className="h-4 w-4 text-green-600" />
-      case "needs_attention":
+      case "aandacht_nodig":
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />
-      case "diseased":
+      case "ziek":
         return <AlertTriangle className="h-4 w-4 text-red-600" />
-      case "dead":
+      case "dood":
         return <AlertTriangle className="h-4 w-4 text-gray-600" />
-      case "harvested":
+      case "geoogst":
         return <CheckCircle className="h-4 w-4 text-blue-600" />
       default:
         return <CheckCircle className="h-4 w-4 text-green-600" />
@@ -99,15 +99,15 @@ export default function PlantBedPlantsPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "healthy":
+      case "gezond":
         return "Gezond"
-      case "needs_attention":
+      case "aandacht_nodig":
         return "Aandacht nodig"
-      case "diseased":
+      case "ziek":
         return "Ziek"
-      case "dead":
+      case "dood":
         return "Dood"
-      case "harvested":
+      case "geoogst":
         return "Geoogst"
       default:
         return "Gezond"
@@ -116,15 +116,15 @@ export default function PlantBedPlantsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "healthy":
+      case "gezond":
         return "bg-green-100 text-green-800"
-      case "needs_attention":
+      case "aandacht_nodig":
         return "bg-yellow-100 text-yellow-800"
-      case "diseased":
+      case "ziek":
         return "bg-red-100 text-red-800"
-      case "dead":
+      case "dood":
         return "bg-gray-100 text-gray-800"
-      case "harvested":
+      case "geoogst":
         return "bg-blue-100 text-blue-800"
       default:
         return "bg-green-100 text-green-800"
@@ -337,25 +337,25 @@ export default function PlantBedPlantsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-green-600">
-                  {plantBed.plants.filter((p) => p.status === "healthy").length}
+                  {plantBed.plants.filter((p) => p.status === "gezond").length}
                 </div>
                 <div className="text-sm text-gray-600">Gezond</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-yellow-600">
-                  {plantBed.plants.filter((p) => p.status === "needs_attention").length}
+                  {plantBed.plants.filter((p) => p.status === "aandacht_nodig").length}
                 </div>
                 <div className="text-sm text-gray-600">Aandacht</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-red-600">
-                  {plantBed.plants.filter((p) => p.status === "diseased").length}
+                  {plantBed.plants.filter((p) => p.status === "ziek").length}
                 </div>
                 <div className="text-sm text-gray-600">Ziek</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {plantBed.plants.filter((p) => p.status === "harvested").length}
+                  {plantBed.plants.filter((p) => p.status === "geoogst").length}
                 </div>
                 <div className="text-sm text-gray-600">Geoogst</div>
               </div>

@@ -75,10 +75,10 @@ const DEFAULT_FLOWER_COLORS = [
 ]
 
 const FLOWER_STATUS_OPTIONS = [
-  { value: 'healthy', label: 'Gezond', color: 'border-green-500' },
-  { value: 'needs_attention', label: 'Aandacht nodig', color: 'border-yellow-500' },
-  { value: 'blooming', label: 'Bloeiend', color: 'border-purple-500' },
-  { value: 'sick', label: 'Ziek', color: 'border-red-500' },
+  { value: 'gezond', label: 'Gezond', color: 'border-green-500' },
+  { value: 'aandacht_nodig', label: 'Aandacht nodig', color: 'border-yellow-500' },
+  { value: 'bloeiend', label: 'Bloeiend', color: 'border-purple-500' },
+  { value: 'ziek', label: 'Ziek', color: 'border-red-500' },
 ]
 
   // Helper function to get flower size in pixels
@@ -157,7 +157,7 @@ export default function PlantBedViewPage() {
     customEmoji: '',
     photoUrl: '',
     description: '',
-    status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
+    status: 'gezond' as 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek',
     size: 'medium' as 'small' | 'medium' | 'large'
   })
   const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
@@ -292,7 +292,7 @@ export default function PlantBedViewPage() {
             plant_bed_id: plantBed.id,
             name: templateFlower.name,
             color: templateFlower.color || '#FF69B4',
-            status: templateFlower.status || 'healthy',
+            status: templateFlower.status || 'gezond',
             position_x: positionX,
             position_y: positionY,
             visual_width: flowerSize,
@@ -480,8 +480,8 @@ export default function PlantBedViewPage() {
       const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
 
       // Map status to database format
-      const dbStatus = newFlower.status === 'sick' ? 'diseased' : 
-                      newFlower.status === 'blooming' ? 'healthy' : 
+      const dbStatus = newFlower.status === 'ziek' ? 'ziek' : 
+                      newFlower.status === 'bloeiend' ? 'gezond' : 
                       newFlower.status
 
       const flowerSize = getFlowerSize(newFlower.size)
@@ -541,7 +541,7 @@ export default function PlantBedViewPage() {
         plant_bed_id: plantBed.id,
         name: newFlower.name,
         color: newFlower.color,
-        status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
+        status: dbStatus as "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst",
         position_x: initialX,
         position_y: initialY,
         visual_width: flowerSize,
@@ -565,7 +565,7 @@ export default function PlantBedViewPage() {
           customEmoji: '',
           photoUrl: '',
           description: '',
-          status: 'healthy',
+          status: 'gezond',
           size: 'medium'
         })
         
@@ -598,14 +598,14 @@ export default function PlantBedViewPage() {
       const selectedType = FLOWER_TYPES.find(type => type.name === newFlower.type)
 
       // Map status to database format
-      const dbStatus = newFlower.status === 'sick' ? 'diseased' : 
-                      newFlower.status === 'blooming' ? 'healthy' : 
+      const dbStatus = newFlower.status === 'ziek' ? 'ziek' : 
+                      newFlower.status === 'bloeiend' ? 'gezond' : 
                       newFlower.status
 
       const updatedPlant = await updatePlantPosition(selectedFlower.id, {
         name: newFlower.name,
         color: newFlower.color,
-        status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
+        status: dbStatus as "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst",
         emoji: isEditCustomFlower ? (newFlower.customEmoji || undefined) : selectedType?.emoji || undefined,
         photo_url: isEditCustomFlower ? (uploadedImageUrl || newFlower.photoUrl || null) : null,
         is_custom: isEditCustomFlower,
@@ -629,7 +629,7 @@ export default function PlantBedViewPage() {
           customEmoji: '',
           photoUrl: '',
           description: '',
-          status: 'healthy',
+          status: 'gezond',
           size: 'medium'
         })
         
@@ -1392,7 +1392,7 @@ export default function PlantBedViewPage() {
             plant_bed_id: plantBed.id,
             name: flower.name,
             color: flower.color || '#FF69B4',
-            status: flower.status || 'healthy',
+            status: flower.status || 'gezond',
             position_x: constrainedX,
             position_y: constrainedY,
             visual_width: FLOWER_SIZE, // Same size as main flower!
@@ -1534,13 +1534,13 @@ export default function PlantBedViewPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy':
+      case 'gezond':
         return 'border-green-500 shadow-green-200'
-      case 'needs_attention':
+      case 'aandacht_nodig':
         return 'border-yellow-500 shadow-yellow-200'
-      case 'blooming':
+      case 'bloeiend':
         return 'border-purple-500 shadow-purple-200'
-      case 'sick':
+      case 'ziek':
         return 'border-red-500 shadow-red-200'
       default:
         return 'border-gray-500 shadow-gray-200'
@@ -1608,7 +1608,7 @@ export default function PlantBedViewPage() {
                 customEmoji: '',
                 photoUrl: '',
                 description: '',
-                status: 'healthy',
+                status: 'gezond',
                 size: 'medium'
               })
               setIsCustomFlower(false)
@@ -1625,7 +1625,7 @@ export default function PlantBedViewPage() {
                   customEmoji: '',
                   photoUrl: '',
                   description: '',
-                  status: 'healthy',
+                  status: 'gezond',
                   size: 'medium'
                 })
                 setIsCustomFlower(false)
@@ -1815,7 +1815,7 @@ export default function PlantBedViewPage() {
 
                 <div>
                   <label className="text-sm font-medium">Status</label>
-                  <Select value={newFlower.status} onValueChange={(value: 'healthy' | 'needs_attention' | 'blooming' | 'sick') => 
+                  <Select value={newFlower.status} onValueChange={(value: 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek') => 
                     setNewFlower(prev => ({ ...prev, status: value }))
                   }>
                     <SelectTrigger>
@@ -1890,7 +1890,7 @@ export default function PlantBedViewPage() {
                       customEmoji: '',
                       photoUrl: '',
                       description: '',
-                      status: 'healthy',
+                      status: 'gezond',
                       size: 'medium'
                     })
                     setIsCustomFlower(false)
@@ -1914,7 +1914,7 @@ export default function PlantBedViewPage() {
                 customEmoji: '',
                 photoUrl: '',
                 description: '',
-                status: 'healthy',
+                status: 'gezond',
                 size: 'medium'
               })
               setIsEditCustomFlower(false)
@@ -2105,7 +2105,7 @@ export default function PlantBedViewPage() {
 
                 <div>
                   <label className="text-sm font-medium">Status</label>
-                  <Select value={newFlower.status} onValueChange={(value: 'healthy' | 'needs_attention' | 'blooming' | 'sick') => 
+                  <Select value={newFlower.status} onValueChange={(value: 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek') => 
                     setNewFlower(prev => ({ ...prev, status: value }))
                   }>
                     <SelectTrigger>
@@ -2157,7 +2157,7 @@ export default function PlantBedViewPage() {
                       customEmoji: '',
                       photoUrl: '',
                       description: '',
-                      status: 'healthy',
+                      status: 'gezond',
                       size: 'medium'
                     })
                     setIsEditCustomFlower(false)
@@ -2465,10 +2465,10 @@ export default function PlantBedViewPage() {
                         customEmoji: selectedFlower.emoji || '',
                         photoUrl: selectedFlower.photo_url || '',
                         description: selectedFlower.notes || '',
-                        status: selectedFlower.status === 'diseased' ? 'sick' : 
-                               selectedFlower.status === 'healthy' ? 'healthy' :
-                               selectedFlower.status === 'needs_attention' ? 'needs_attention' :
-                               'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
+                        status: selectedFlower.status === 'ziek' ? 'ziek' : 
+                               selectedFlower.status === 'gezond' ? 'gezond' :
+                               selectedFlower.status === 'aandacht_nodig' ? 'aandacht_nodig' :
+                               'gezond' as 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek',
                         size: 'medium'
                       })
                       setIsEditCustomFlower(selectedFlower.is_custom || false)
@@ -2632,7 +2632,7 @@ export default function PlantBedViewPage() {
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'healthy')} ${
+                    className={`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'gezond')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105 cursor-grabbing" : 
                       isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab animate-pulse" :
                       isSelected && isResizeMode ? "ring-4 ring-blue-500 shadow-xl cursor-default" :
@@ -2820,7 +2820,7 @@ export default function PlantBedViewPage() {
                                        plant_bed_id: plantBed?.id || '',
                                        name: flower.name,
                                        color: flower.color || '#FF69B4',
-                                       status: 'healthy',
+                                       status: 'gezond',
                                        position_x: Math.max(10, Math.min(x, canvasWidth - 50)),
                                        position_y: Math.max(10, Math.min(y, canvasHeight - 50)),
                                        visual_width: FLOWER_SIZE,
