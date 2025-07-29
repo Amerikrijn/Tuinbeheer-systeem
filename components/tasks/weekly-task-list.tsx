@@ -52,6 +52,9 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     sort_by: 'due_date'
   })
 
+  // Add loading state for individual tasks
+  const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set())
+
   // Load weekly calendar
   const loadWeeklyCalendar = async (weekStart: Date) => {
     setLoading(true)
@@ -73,9 +76,17 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     }
   }
 
-  // Complete/uncomplete task with consistent reordering
+  // Complete/uncomplete task with better state management
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
+    // Prevent multiple simultaneous updates of the same task
+    if (updatingTasks.has(taskId)) {
+      return
+    }
+
     try {
+      // Add task to updating set
+      setUpdatingTasks(prev => new Set(prev).add(taskId))
+
       // Optimistic update - update the calendar state immediately for better UX
       if (calendar) {
         const updatedCalendar = { ...calendar }
@@ -90,21 +101,26 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
         setCalendar(updatedCalendar)
       }
 
+      // Update task in database
       const { error } = await TaskService.updateTask(taskId, { completed })
       
       if (error) {
         console.error('Error updating task:', error)
-        // Revert optimistic update on error
+        // Revert optimistic update on error by reloading
         await loadWeeklyCalendar(currentWeekStart)
-        return
       }
       
-      // Reload calendar to get updated sorting and ensure data consistency
-      await loadWeeklyCalendar(currentWeekStart)
     } catch (err) {
       console.error('Error completing task:', err)
       // Revert optimistic update on error
       await loadWeeklyCalendar(currentWeekStart)
+    } finally {
+      // Always remove task from updating set
+      setUpdatingTasks(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(taskId)
+        return newSet
+      })
     }
   }
 
@@ -144,6 +160,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               checked={task.completed}
               onCheckedChange={(checked) => handleTaskComplete(task.id, !!checked)}
               className={`mt-1 transition-all duration-200 ${task.completed ? 'data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600' : ''}`}
+              disabled={updatingTasks.has(task.id)}
             />
             
             <div className="flex-1 min-w-0">

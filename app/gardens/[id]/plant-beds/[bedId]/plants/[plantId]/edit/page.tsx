@@ -69,6 +69,8 @@ export default function EditPlantPage() {
   const [saving, setSaving] = useState(false)
   const [showAddTask, setShowAddTask] = useState(false)
   const [tasks, setTasks] = useState<TaskWithPlantInfo[]>([])
+  // Add loading state for individual tasks
+  const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     async function loadPlant() {
@@ -175,9 +177,50 @@ export default function EditPlantPage() {
   }
 
   const handleTaskToggle = async (taskId: string, completed: boolean) => {
+    // Prevent multiple simultaneous updates of the same task
+    if (updatingTasks.has(taskId)) {
+      return
+    }
+
     try {
-      await TaskService.updateTask(taskId, { completed })
-      // Reload tasks
+      // Add task to updating set
+      setUpdatingTasks(prev => new Set(prev).add(taskId))
+
+      // Optimistic update - update the tasks state immediately for better UX
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === taskId 
+            ? { ...task, completed, completed_at: completed ? new Date().toISOString() : undefined }
+            : task
+        )
+      )
+
+      const { error } = await TaskService.updateTask(taskId, { completed })
+      
+      if (error) {
+        console.error("Error updating task:", error)
+        // Revert optimistic update on error
+        if (plant) {
+          const { data: plantTasks, error: taskError } = await TaskService.getTasksForPlant(plant.id)
+          if (!taskError) {
+            setTasks(plantTasks)
+          }
+        }
+        toast({
+          title: "Fout",
+          description: "Kon taak niet bijwerken.",
+          variant: "destructive",
+        })
+        return
+      }
+
+      toast({
+        title: completed ? "Taak voltooid!" : "Taak heropend",
+        description: completed ? "De taak is gemarkeerd als voltooid." : "De taak is heropend.",
+      })
+    } catch (error) {
+      console.error("Error updating task:", error)
+      // Revert optimistic update on error
       if (plant) {
         const { data: plantTasks, error: taskError } = await TaskService.getTasksForPlant(plant.id)
         if (!taskError) {
@@ -185,15 +228,16 @@ export default function EditPlantPage() {
         }
       }
       toast({
-        title: completed ? "Taak voltooid!" : "Taak heropend",
-        description: completed ? "De taak is gemarkeerd als voltooid." : "De taak is heropend.",
-      })
-    } catch (error) {
-      console.error("Error updating task:", error)
-      toast({
         title: "Fout",
         description: "Kon taak niet bijwerken.",
         variant: "destructive",
+      })
+    } finally {
+      // Always remove task from updating set
+      setUpdatingTasks(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(taskId)
+        return newSet
       })
     }
   }
@@ -535,10 +579,13 @@ export default function EditPlantPage() {
                             <button
                               onClick={() => handleTaskToggle(task.id, !task.completed)}
                               className="mt-0.5"
+                              disabled={updatingTasks.has(task.id)}
                             >
                               <CheckCircle
                                 className={`h-4 w-4 ${
-                                  task.completed ? 'text-green-600' : 'text-gray-400 hover:text-green-600'
+                                  task.completed ? 'text-green-600' : 
+                                  updatingTasks.has(task.id) ? 'text-gray-300' :
+                                  'text-gray-400 hover:text-green-600'
                                 }`}
                               />
                             </button>
