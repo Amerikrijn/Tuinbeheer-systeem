@@ -1,20 +1,23 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useNavigation } from "@/hooks/use-navigation"
+import { useViewPreference } from "@/hooks/use-view-preference"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Leaf, Plus, Search, Eye, Edit, Trash2, Calendar, AlertTriangle, CheckCircle } from "lucide-react"
+import { ArrowLeft, Leaf, Plus, Search, Eye, Edit, Trash2, Calendar, AlertTriangle, CheckCircle, Grid3X3 } from "lucide-react"
 import { getGarden, getPlantBed, deletePlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { AddTaskForm } from '@/components/tasks/add-task-form'
 
 export default function PlantBedPlantsPage() {
-  const router = useRouter()
+  const { goBack, navigateTo } = useNavigation()
+  const { isVisualView, toggleView } = useViewPreference()
   const params = useParams()
   const { toast } = useToast()
 
@@ -174,11 +177,11 @@ export default function PlantBedPlantsPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/gardens/${garden.id}/plant-beds`)}
+            onClick={goBack}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Plantvakken
+            Terug
           </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -191,6 +194,15 @@ export default function PlantBedPlantsPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant={isVisualView ? "default" : "outline"}
+            size="sm"
+            onClick={toggleView}
+            className="px-2"
+          >
+            <Grid3X3 className="h-4 w-4 mr-1" />
+            {isVisualView ? "Lijst" : "Visueel"}
+          </Button>
           <Button
             onClick={() => {
               setSelectedPlantId(undefined)
@@ -229,13 +241,20 @@ export default function PlantBedPlantsPage() {
 
       {/* Plants Grid */}
       {filteredPlants.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={isVisualView 
+          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          : "space-y-4"
+        }>
           {filteredPlants.map((plant) => (
-            <Card key={plant.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
+            <Card key={plant.id} className={`hover:shadow-lg transition-shadow ${
+              !isVisualView ? 'mb-2' : ''
+            }`}>
+              <CardHeader className={isVisualView ? "" : "pb-2 py-3"}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2 text-lg">
+                    <CardTitle className={`flex items-center gap-2 ${
+                      isVisualView ? 'text-lg' : 'text-base'
+                    }`}>
                       <Leaf className="h-5 w-5 text-green-600" />
                       {plant.name}
                     </CardTitle>
