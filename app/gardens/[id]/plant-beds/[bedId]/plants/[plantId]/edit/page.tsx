@@ -30,12 +30,24 @@ interface EditPlant {
   sun_preference: 'full-sun' | 'partial-sun' | 'shade'
   planting_date: string
   expected_harvest_date: string
-  status: 'healthy' | 'needs_attention' | 'diseased' | 'dead' | 'harvested'
+  status: 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst'
   notes: string
   care_instructions: string
   watering_frequency: string
   fertilizer_schedule: string
   emoji: string
+}
+
+// Helper function to map old English status to Dutch
+function mapStatusToNL(status: string): 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst' {
+  switch (status) {
+    case 'healthy': return 'gezond'
+    case 'needs_attention': return 'aandacht_nodig'
+    case 'diseased': return 'ziek'
+    case 'dead': return 'dood'
+    case 'harvested': return 'geoogst'
+    default: return status as 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst'
+  }
 }
 
 export default function EditPlantPage() {
@@ -57,7 +69,7 @@ export default function EditPlantPage() {
     sun_preference: 'full-sun',
     planting_date: '',
     expected_harvest_date: '',
-    status: 'healthy',
+    status: 'gezond',
     notes: '',
     care_instructions: '',
     watering_frequency: '',
@@ -99,7 +111,7 @@ export default function EditPlantPage() {
           sun_preference: plantData.sun_preference || 'full-sun',
           planting_date: plantData.planting_date || '',
           expected_harvest_date: plantData.expected_harvest_date || '',
-          status: plantData.status || 'healthy',
+          status: (plantData.status ? mapStatusToNL(plantData.status) : 'gezond') as 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst',
           notes: plantData.notes || '',
           care_instructions: plantData.care_instructions || '',
           watering_frequency: plantData.watering_frequency?.toString() || '',
@@ -385,7 +397,7 @@ export default function EditPlantPage() {
                       <Label htmlFor="status">Status</Label>
                       <Select
                         value={editPlant.status}
-                        onValueChange={(value: 'healthy' | 'needs_attention' | 'diseased' | 'dead' | 'harvested') =>
+                        onValueChange={(value: 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst') =>
                           setEditPlant(prev => ({ ...prev, status: value }))
                         }
                       >
@@ -393,11 +405,11 @@ export default function EditPlantPage() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="healthy">🌱 Gezond</SelectItem>
-                          <SelectItem value="needs_attention">⚠️ Aandacht nodig</SelectItem>
-                          <SelectItem value="diseased">🦠 Ziek</SelectItem>
-                          <SelectItem value="dead">💀 Dood</SelectItem>
-                          <SelectItem value="harvested">🌾 Geoogst</SelectItem>
+                                          <SelectItem value="gezond">🌱 Gezond</SelectItem>
+                <SelectItem value="aandacht_nodig">⚠️ Aandacht nodig</SelectItem>
+                <SelectItem value="ziek">🦠 Ziek</SelectItem>
+                <SelectItem value="dood">💀 Dood</SelectItem>
+                <SelectItem value="geoogst">🌾 Geoogst</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

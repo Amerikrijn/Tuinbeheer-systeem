@@ -47,7 +47,7 @@ interface NewPlant {
   sunPreference: 'full-sun' | 'partial-sun' | 'shade'
   plantingDate: string
   expectedHarvestDate: string
-  status: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  status: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   notes: string
   careInstructions: string
   wateringFrequency: string
@@ -96,7 +96,7 @@ export default function NewPlantPage() {
     sunPreference: 'partial-sun',
     plantingDate: "",
     expectedHarvestDate: "",
-    status: "healthy",
+    status: "gezond",
     notes: "",
     careInstructions: "",
     wateringFrequency: "",
@@ -205,7 +205,7 @@ export default function NewPlantPage() {
       sunPreference: 'partial-sun',
       plantingDate: "",
       expectedHarvestDate: "",
-      status: "healthy",
+      status: "gezond",
       notes: "",
       careInstructions: "",
       wateringFrequency: "",
@@ -508,7 +508,7 @@ export default function NewPlantPage() {
                     <Label htmlFor="status">Status</Label>
                     <Select
                       value={newPlant.status}
-                      onValueChange={(value: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested") =>
+                      onValueChange={(value: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst") =>
                         setNewPlant((p) => ({
                           ...p,
                           status: value,
@@ -519,11 +519,11 @@ export default function NewPlantPage() {
                         <SelectValue placeholder="Selecteer status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="healthy">🌱 Gezond</SelectItem>
-                        <SelectItem value="needs_attention">⚠️ Aandacht nodig</SelectItem>
-                        <SelectItem value="diseased">🦠 Ziek</SelectItem>
-                        <SelectItem value="dead">💀 Dood</SelectItem>
-                        <SelectItem value="harvested">🌾 Geoogst</SelectItem>
+                        <SelectItem value="gezond">🌱 Gezond</SelectItem>
+                        <SelectItem value="aandacht_nodig">⚠️ Aandacht nodig</SelectItem>
+                        <SelectItem value="ziek">🦠 Ziek</SelectItem>
+                        <SelectItem value="dood">💀 Dood</SelectItem>
+                        <SelectItem value="geoogst">🌾 Geoogst</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
