@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { 
   Calendar, 
@@ -15,7 +15,8 @@ import {
   Clock, 
   Plus,
   Filter,
-  MoreVertical
+  MoreVertical,
+  CheckCircle
 } from "lucide-react"
 import { TaskService } from "@/lib/services/task.service"
 import type { 
@@ -52,6 +53,9 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     sort_by: 'due_date'
   })
 
+  // Add loading state for individual tasks
+  const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set())
+
   // Load weekly calendar
   const loadWeeklyCalendar = async (weekStart: Date) => {
     setLoading(true)
@@ -73,9 +77,18 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     }
   }
 
-  // Complete/uncomplete task with consistent reordering
+  // Complete/uncomplete task with simple, reliable approach
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
+    // Prevent multiple simultaneous updates of the same task
+    if (updatingTasks.has(taskId)) {
+      return
+    }
+
     try {
+      // Add task to updating set
+      setUpdatingTasks(prev => new Set(prev).add(taskId))
+
+      // Update task in database
       const { error } = await TaskService.updateTask(taskId, { completed })
       
       if (error) {
@@ -83,10 +96,18 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
         return
       }
       
-      // Reload calendar to get updated sorting
+      // Reload calendar to get fresh data from database
       await loadWeeklyCalendar(currentWeekStart)
+      
     } catch (err) {
       console.error('Error completing task:', err)
+    } finally {
+      // Always remove task from updating set
+      setUpdatingTasks(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(taskId)
+        return newSet
+      })
     }
   }
 
@@ -118,15 +139,27 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     const priorityConfig = getPriorityConfig(task.priority)
     
     return (
-      <Card className={`mb-3 ${task.completed ? 'opacity-60' : ''} ${compact ? 'p-2' : ''}`}>
+      <Card className={`mb-3 transition-all duration-200 ${task.completed ? 'opacity-70 bg-gray-50 border-gray-300' : 'bg-white border-gray-200'} ${compact ? 'p-2' : ''}`}>
         <CardContent className={compact ? 'p-3' : 'p-4'}>
           <div className="flex items-start gap-3">
-            {/* Checkbox */}
-            <Checkbox
-              checked={task.completed}
-              onCheckedChange={(checked) => handleTaskComplete(task.id, !!checked)}
-              className="mt-1"
-            />
+            {/* Simple button approach instead of Checkbox for better reliability */}
+            <button
+              onClick={() => handleTaskComplete(task.id, !task.completed)}
+              className={`mt-1 transition-all duration-200 ${
+                updatingTasks.has(task.id) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-110'
+              }`}
+              disabled={updatingTasks.has(task.id)}
+            >
+              <CheckCircle
+                className={`h-5 w-5 ${
+                  task.completed 
+                    ? 'text-green-600 fill-green-100' 
+                    : updatingTasks.has(task.id) 
+                      ? 'text-gray-300' 
+                      : 'text-gray-400 hover:text-green-600'
+                }`}
+              />
+            </button>
             
             <div className="flex-1 min-w-0">
               {/* Plantvak → Bloem info - always show for now */}
@@ -145,49 +178,78 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 <span className="text-gray-800 font-medium">{task.plant_name}</span>
               </div>
 
-              {/* Task title */}
+              {/* Task title with better completed styling */}
               <div className="flex items-start gap-2 mb-2">
-                <span className="text-lg">{taskTypeConfig?.icon || '📝'}</span>
+                <span className={`text-lg transition-all duration-200 ${task.completed ? 'opacity-60' : ''}`}>
+                  {taskTypeConfig?.icon || '📝'}
+                </span>
                 <div className="flex-1">
-                  <h4 className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                  <h4 className={`font-medium transition-all duration-200 ${
+                    task.completed 
+                      ? 'line-through text-gray-500' 
+                      : 'text-gray-900'
+                  }`}>
                     {task.title}
                   </h4>
                   {task.description && (
-                    <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                    <p className={`text-sm mt-1 transition-all duration-200 ${
+                      task.completed ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      {task.description}
+                    </p>
                   )}
                 </div>
               </div>
 
-              {/* Task metadata */}
+              {/* Task metadata with improved completed state styling */}
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Priority badge */}
                 <Badge 
                   variant="secondary" 
-                  className={priorityConfig?.badge_color || 'bg-gray-100 text-gray-800'}
+                  className={`transition-all duration-200 ${
+                    task.completed 
+                      ? 'opacity-60 bg-gray-200 text-gray-500' 
+                      : priorityConfig?.badge_color || 'bg-gray-100 text-gray-800'
+                  }`}
                 >
                   {priorityConfig?.label || task.priority}
                 </Badge>
 
                 {/* Task type badge */}
-                <Badge variant="outline" className="text-xs">
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs transition-all duration-200 ${
+                    task.completed ? 'opacity-60 border-gray-300 text-gray-400' : ''
+                  }`}
+                >
                   {taskTypeConfig?.label || task.task_type}
                 </Badge>
 
                 {/* Due date */}
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className={`flex items-center gap-1 text-xs transition-all duration-200 ${
+                  task.completed ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                   <Clock className="w-3 h-3" />
                   {formatTaskDate(task.due_date)}
                 </div>
 
-                {/* Status indicator */}
-                {task.status_category === 'overdue' && !task.completed && (
+                {/* Completed indicator */}
+                {task.completed && (
+                  <Badge className="bg-green-100 text-green-800 text-xs">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Voltooid
+                  </Badge>
+                )}
+
+                {/* Status indicator - only show for non-completed tasks */}
+                {!task.completed && task.status_category === 'overdue' && (
                   <Badge variant="destructive" className="text-xs">
                     <AlertCircle className="w-3 h-3 mr-1" />
                     Verlopen
                   </Badge>
                 )}
                 
-                {task.status_category === 'today' && !task.completed && (
+                {!task.completed && task.status_category === 'today' && (
                   <Badge className="bg-orange-100 text-orange-800 text-xs">
                     <Clock className="w-3 h-3 mr-1" />
                     Vandaag
@@ -393,13 +455,19 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-4 flex-wrap">
-            <label className="flex items-center gap-2">
-              <Checkbox
-                checked={config.show_completed}
-                onCheckedChange={(checked) => 
-                  setConfig(prev => ({ ...prev, show_completed: !!checked }))
-                }
-              />
+            <label className="flex items-center gap-2 cursor-pointer">
+              <button
+                onClick={() => setConfig(prev => ({ ...prev, show_completed: !prev.show_completed }))}
+                className="transition-colors"
+              >
+                <CheckCircle
+                  className={`h-4 w-4 ${
+                    config.show_completed 
+                      ? 'text-green-600 fill-green-100' 
+                      : 'text-gray-400'
+                  }`}
+                />
+              </button>
               <span className="text-sm">Toon afgeronde taken</span>
             </label>
             

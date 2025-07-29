@@ -68,7 +68,11 @@ export class TaskService {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase update error:', error)
+        throw error
+      }
+      
       return { data: task, error: null }
     } catch (error) {
       console.error('Error updating task:', error)
