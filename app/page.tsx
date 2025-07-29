@@ -3,13 +3,14 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useViewPreference } from "@/hooks/use-view-preference"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3 } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger, AuditLogger } from "@/lib/logger"
@@ -32,6 +33,7 @@ const ITEMS_PER_PAGE = 12
 function HomePageContent() {
   const router = useRouter()
   const { toast } = useToast()
+  const { isVisualView, toggleView } = useViewPreference()
   
   const [state, setState] = React.useState<HomePageState>({
     gardens: [],
@@ -211,9 +213,9 @@ function HomePageContent() {
   }, [state.gardens, state.searchTerm])
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="container mx-auto px-4 py-6 max-w-6xl">
       {/* Header */}
-      <header className="text-center mb-8">
+              <header className="text-center mb-6">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="p-3 bg-green-100 rounded-full">
             <TreePine className="h-8 w-8 text-green-600" />
@@ -226,7 +228,7 @@ function HomePageContent() {
       </header>
 
       {/* Search and Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -239,6 +241,15 @@ function HomePageContent() {
           />
         </div>
         <div className="flex gap-2">
+          <Button
+            variant={isVisualView ? "default" : "outline"}
+            size="sm"
+            onClick={toggleView}
+            className="px-2"
+          >
+            <Grid3X3 className="h-4 w-4 mr-1" />
+            {isVisualView ? "Lijst" : "Visueel"}
+          </Button>
           <Button asChild variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
             <Link href="/tasks">
               <Calendar className="h-4 w-4 mr-2" />
@@ -313,12 +324,16 @@ function HomePageContent() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className={isVisualView 
+                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+                : "space-y-4 mb-8"
+              }>
                 {filteredGardens.map((garden) => (
                   <GardenCard 
                     key={garden.id} 
                     garden={garden} 
                     onDelete={handleDeleteGarden}
+                    isListView={!isVisualView}
                   />
                 ))}
               </div>
@@ -348,9 +363,10 @@ function HomePageContent() {
 interface GardenCardProps {
   garden: Tuin
   onDelete: (gardenId: string, gardenName: string) => void
+  isListView?: boolean
 }
 
-function GardenCard({ garden, onDelete }: GardenCardProps) {
+function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
   const [plantBeds, setPlantBeds] = React.useState<PlantBedWithPlants[]>([])
   const [loadingFlowers, setLoadingFlowers] = React.useState(true)
 
@@ -435,12 +451,16 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
   }
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-green-200 overflow-hidden">
+    <Card className={`group hover:shadow-lg transition-all duration-200 border-2 hover:border-green-200 overflow-hidden ${
+      isListView ? 'mb-2' : ''
+    }`}>
       <Link href={`/gardens/${garden.id}`} className="block">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
+        <CardHeader className={isListView ? "pb-2 py-3" : "pb-3"}>
+          <div className={`flex items-start justify-between ${isListView ? 'gap-4' : ''}`}>
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-green-700 transition-colors truncate">
+              <CardTitle className={`font-semibold text-gray-900 group-hover:text-green-700 transition-colors truncate ${
+                isListView ? 'text-base' : 'text-lg'
+              }`}>
                 {garden.name}
               </CardTitle>
               <div className="flex items-center text-sm text-gray-500 mt-1">
@@ -454,15 +474,15 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
           </div>
         </CardHeader>
         
-        <CardContent className="pt-0">
-          {garden.description && (
+        <CardContent className={isListView ? "pt-0 py-2" : "pt-0"}>
+          {garden.description && !isListView && (
             <p className="text-gray-600 text-sm mb-3 line-clamp-2">
               {garden.description}
             </p>
           )}
 
           {/* Flower Preview Section */}
-          <div className="mb-4">
+          <div className={isListView ? "mb-2" : "mb-4"}>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">Bloemen in deze tuin:</span>
               <span className="text-xs text-gray-500">
@@ -507,12 +527,14 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
             )}
           </div>
           
-          <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-            <div className="flex items-center">
-              <Calendar className="h-4 w-4 mr-1" />
-              <span>Aangemaakt {formatDate(garden.created_at)}</span>
+{!isListView && (
+            <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+              <div className="flex items-center">
+                <Calendar className="h-4 w-4 mr-1" />
+                <span>Aangemaakt {formatDate(garden.created_at)}</span>
+              </div>
             </div>
-          </div>
+          )}
           
           <div className="flex items-center justify-between">
             <div className="flex items-center text-green-600">
