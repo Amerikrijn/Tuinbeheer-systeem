@@ -64,8 +64,6 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
   // Generate flower instances based on plants - SYNCHRONIZED WITH PLANTVAK-VIEW
   useEffect(() => {
-
-    
     if (plants.length === 0) {
       setFlowerInstances([])
       return
@@ -81,28 +79,26 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       const hasCustomPosition = 'position_x' in plant && plant.position_x !== undefined && plant.position_y !== undefined
       const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
       
-
-      
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // IMPROVED: Better coordinate transformation and sizing
+        // Working version: Use the original coordinate system
         
-        // Get the actual plantvak canvas size that plantvak-view uses
-        const plantvakCanvasWidth = dimensions.lengthPixels + (PLANTVAK_CANVAS_PADDING * 2)
-        const plantvakCanvasHeight = dimensions.widthPixels + (PLANTVAK_CANVAS_PADDING * 2)
+        // Plantvak canvas dimensions (what plantvak-view uses)
+        const plantvakCanvasWidth = dimensions.lengthPixels * 2   // e.g. 1600px for 10m plantvak
+        const plantvakCanvasHeight = dimensions.widthPixels * 2   // e.g. 320px for 2m plantvak
         
-        // Direct pixel mapping - use the stored positions as-is but scale to container
-        const scaleX = containerWidth / plantvakCanvasWidth
-        const scaleY = containerHeight / plantvakCanvasHeight
+        // Simple percentage calculation based on canvas coordinates
+        const percentageX = plant.position_x! / plantvakCanvasWidth
+        const percentageY = plant.position_y! / plantvakCanvasHeight
         
-        // Apply scaling to position
-        const finalX = plant.position_x! * scaleX
-        const finalY = plant.position_y! * scaleY
+        // Apply percentage to garden container
+        const finalX = percentageX * containerWidth
+        const finalY = percentageY * containerHeight
         
-        // Make flowers much larger and more visible in garden view
-        const baseSize = Math.min(containerWidth, containerHeight) / 8 // Base size relative to container
-        const minSize = 20 // Minimum readable size
-        const maxSize = 50 // Maximum size to prevent overwhelming
-        const scaledSize = Math.max(minSize, Math.min(maxSize, baseSize))
+        // Size scaling based on container vs plantvak real dimensions
+        const plantvakRealWidth = dimensions.lengthPixels   // e.g. 800px for 10m
+        const plantvakRealHeight = dimensions.widthPixels   // e.g. 160px for 2m
+        const sizeScale = Math.min(containerWidth / plantvakRealWidth, containerHeight / plantvakRealHeight)
+        const scaledSize = Math.max(16, (plant.visual_width! * sizeScale))
         
         instances.push({
           id: `${plant.id}-flower-sync`,
@@ -118,9 +114,8 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           canFillContainer: false
         })
       } else {
-        // Fallback for plants without custom positioning - use simple grid layout with larger flowers
-        const baseSize = Math.min(containerWidth, containerHeight) / 6 // Larger base size
-        const flowerSize = Math.max(24, Math.min(45, baseSize)) // Bigger flowers
+        // Fallback for plants without custom positioning - use simple grid layout
+        const flowerSize = Math.max(20, Math.min(40, Math.min(containerWidth, containerHeight) / 8))
         
         // Create a simple grid layout for plants without positioning
         const cols = Math.ceil(Math.sqrt(plants.length))
@@ -128,7 +123,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const col = plantIndex % cols
         const row = Math.floor(plantIndex / cols)
         
-        const padding = 15 // More padding
+        const padding = 10
         const cellWidth = (containerWidth - padding * 2) / cols
         const cellHeight = (containerHeight - padding * 2) / rows
         
