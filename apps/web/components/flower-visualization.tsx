@@ -1,8 +1,8 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
-import { parsePlantBedDimensions, PLANTVAK_CANVAS_PADDING, calculatePlantBedCanvasSize } from "@/lib/scaling-constants"
+import { parsePlantBedDimensions } from "@/lib/scaling-constants"
 
 interface FlowerVisualizationProps {
   plantBed: PlantBedWithPlants
@@ -22,7 +22,6 @@ interface FlowerInstance {
   opacity: number
   rotation: number
   isMainFlower: boolean
-  canFillContainer: boolean
 }
 
 export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight }: FlowerVisualizationProps) {
@@ -62,7 +61,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     return '🌸'
   }
 
-  // Generate flower instances based on plants - SYNCHRONIZED WITH PLANTVAK-VIEW
+  // SIMPLE: Generate flower instances with consistent positioning
   useEffect(() => {
     if (plants.length === 0) {
       setFlowerInstances([])
@@ -70,57 +69,30 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
     }
 
     const instances: FlowerInstance[] = []
-
-    // Get plantvak dimensions to calculate consistent positioning
     const dimensions = plantBed.size ? parsePlantBedDimensions(plantBed.size) : null
     
     plants.forEach((plant, plantIndex) => {
       // Check if this plant has custom positioning (from plantvak-view)
-      const hasCustomPosition = 'position_x' in plant && plant.position_x !== undefined && plant.position_y !== undefined
-      const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
+      const hasCustomPosition = 'position_x' in plant && 
+                               plant.position_x !== undefined && 
+                               plant.position_y !== undefined
       
-      if (hasCustomPosition && hasCustomSize && dimensions) {
-        // IMPROVED: Use consistent canvas size calculation between plantvak-view and garden-view
-        const plantvakCanvasSize = calculatePlantBedCanvasSize(plantBed.size || '')
-        const plantvakCanvasWidth = plantvakCanvasSize.width
-        const plantvakCanvasHeight = plantvakCanvasSize.height
-        
-        // Calculate percentages based on the actual canvas used in plantvak-view
-        const percentageX = plant.position_x! / plantvakCanvasWidth
-        const percentageY = plant.position_y! / plantvakCanvasHeight
-        
-        // Apply percentages to the garden container
-        const finalX = percentageX * containerWidth
-        const finalY = percentageY * containerHeight
-        
-        // DEBUG: Log coordinate transformation for troubleshooting
-        console.log('🔍 FLOWER POSITION SYNC DEBUG:', {
-          plantName: plant.name,
-          storedPosition: { x: plant.position_x, y: plant.position_y },
-          plantvakCanvas: { w: plantvakCanvasWidth, h: plantvakCanvasHeight },
-          percentage: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
-          gardenContainer: { w: containerWidth, h: containerHeight },
-          finalPosition: { x: finalX.toFixed(1), y: finalY.toFixed(1) }
-        })
-        
-        // Size scaling based on container vs plantvak real dimensions
-        const plantvakRealWidth = dimensions.lengthPixels   // e.g. 800px for 10m
-        const plantvakRealHeight = dimensions.widthPixels   // e.g. 160px for 2m
-        const sizeScale = Math.min(containerWidth / plantvakRealWidth, containerHeight / plantvakRealHeight)
-        const scaledSize = Math.max(16, (plant.visual_width! * sizeScale))
+      if (hasCustomPosition && dimensions) {
+        // SIMPLE: Use direct pixel coordinates from plantvak-view
+        // Plantvak-view stores absolute pixel positions, so we use them directly
+        const flowerSize = Math.max(20, Math.min(40, Math.min(containerWidth, containerHeight) / 10))
         
         instances.push({
-          id: `${plant.id}-flower-sync`,
+          id: `${plant.id}-flower`,
           name: plant.name,
           color: plant.color || '#FF69B4',
           emoji: getPlantEmoji(plant.name, plant.emoji),
-          size: scaledSize,
-          x: Math.max(scaledSize/2, Math.min(finalX, containerWidth - scaledSize/2)),
-          y: Math.max(scaledSize/2, Math.min(finalY, containerHeight - scaledSize/2)),
+          size: flowerSize,
+          x: Math.max(flowerSize/2, Math.min(plant.position_x!, containerWidth - flowerSize/2)),
+          y: Math.max(flowerSize/2, Math.min(plant.position_y!, containerHeight - flowerSize/2)),
           opacity: 1,
           rotation: 0,
-          isMainFlower: true,
-          canFillContainer: false
+          isMainFlower: true
         })
       } else {
         // Fallback for plants without custom positioning - use simple grid layout
@@ -149,8 +121,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           y,
           opacity: 1,
           rotation: 0,
-          isMainFlower: true,
-          canFillContainer: false
+          isMainFlower: true
         })
       }
     })
@@ -165,13 +136,13 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {flowerInstances.map((flower, index) => (
+      {flowerInstances.map((flower: FlowerInstance, index: number) => (
         <div
           key={flower.id}
           className="absolute transition-all duration-500 ease-in-out"
           style={{
-            left: flower.x - flower.size / 2, // Center the flower horizontally
-            top: flower.y - flower.size / 2,  // Center the flower vertically
+            left: flower.x - flower.size / 2,
+            top: flower.y - flower.size / 2,
             width: flower.size,
             height: flower.size,
             opacity: flower.opacity,
@@ -179,15 +150,15 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             zIndex: flower.isMainFlower ? 10 : 8,
           }}
         >
-          {/* Individual flower box with border */}
+          {/* Simple flower box */}
           <div
             className="w-full h-full border-2 border-gray-400 rounded-lg bg-white/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
             style={{
-              borderColor: `${flower.color}60`, // More visible border in flower color
-              backgroundColor: `${flower.color}15`, // Slightly more visible background tint
+              borderColor: `${flower.color}80`,
+              backgroundColor: `${flower.color}25`,
             }}
           >
-            {/* Use flower emoji with improved logic */}
+            {/* Flower emoji */}
             <span 
               className="select-none"
               style={{
@@ -198,7 +169,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
               {flower.emoji}
             </span>
             
-            {/* Flower name below the emoji - only show if there's space */}
+            {/* Flower name - only show if there's space */}
             {flower.size > 30 && (
               <div 
                 className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
@@ -229,7 +200,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         </div>
       ))}
 
-      {/* Subtle natural particles - reduced for cleaner look */}
+      {/* Subtle natural particles */}
       {containerWidth > 150 && containerHeight > 150 && plants.length > 0 && (
         <div className="absolute inset-0 pointer-events-none">
           {[...Array(Math.min(1, Math.floor(plants.length / 3)))].map((_, i) => (
