@@ -112,10 +112,8 @@ function LogbookPageContent() {
   // Load plant beds for filtering
   const loadPlantBeds = React.useCallback(async () => {
     try {
-      const response = await getPlantBeds()
-      if (response.success && response.data) {
-        setState(prev => ({ ...prev, plantBeds: response.data || [] }))
-      }
+      const plantBeds = await getPlantBeds()
+      setState(prev => ({ ...prev, plantBeds: plantBeds || [] }))
     } catch (error) {
       uiLogger.error('Failed to load plant beds for filtering', error as Error)
     }
