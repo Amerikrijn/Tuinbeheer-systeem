@@ -104,10 +104,10 @@ const DEFAULT_FLOWER_COLORS = [
 ]
 
 const FLOWER_STATUS_OPTIONS = [
-  { value: 'healthy', label: 'Gezond', color: 'border-green-500' },
-  { value: 'needs_attention', label: 'Aandacht nodig', color: 'border-yellow-500' },
-  { value: 'blooming', label: 'Bloeiend', color: 'border-purple-500' },
-  { value: 'sick', label: 'Ziek', color: 'border-red-500' },
+  { value: 'gezond', label: 'Gezond', color: 'border-green-500' },
+  { value: 'aandacht_nodig', label: 'Aandacht nodig', color: 'border-yellow-500' },
+  { value: 'bloeiend', label: 'Bloeiend', color: 'border-purple-500' },
+  { value: 'ziek', label: 'Ziek', color: 'border-red-500' },
 ]
 
   // Helper function to get flower size in pixels
@@ -212,7 +212,7 @@ export default function PlantBedViewPage() {
     type: '',
     emoji: DEFAULT_FLOWER_EMOJI,
     description: '',
-    status: 'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
+    status: 'gezond' as 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek',
 
     isStandardFlower: false,
     // New plant fields
@@ -521,7 +521,7 @@ export default function PlantBedViewPage() {
             plant_bed_id: plantBed.id,
             name: templateFlower.name,
             color: templateFlower.color || '#FF69B4',
-            status: templateFlower.status || 'healthy',
+            status: templateFlower.status || 'gezond',
             position_x: positionX,
             position_y: positionY,
             visual_width: flowerSize,
@@ -706,8 +706,8 @@ export default function PlantBedViewPage() {
       const selectedType = STANDARD_FLOWERS.find(type => type.name === newFlower.type)
 
       // Map status to database format
-      const dbStatus = newFlower.status === 'sick' ? 'diseased' : 
-                      newFlower.status === 'blooming' ? 'healthy' : 
+      const dbStatus = newFlower.status === 'ziek' ? 'ziek' : 
+                      newFlower.status === 'bloeiend' ? 'gezond' : 
                       newFlower.status
 
       const flowerSize = FLOWER_SIZE_MEDIUM
@@ -781,7 +781,7 @@ export default function PlantBedViewPage() {
           type: '',
           emoji: DEFAULT_FLOWER_EMOJI,
           description: '',
-          status: 'healthy',
+          status: 'gezond',
           isStandardFlower: false,
           // Reset new fields
           latinName: '',
@@ -809,8 +809,8 @@ export default function PlantBedViewPage() {
       const selectedType = STANDARD_FLOWERS.find(type => type.name === newFlower.type)
 
       // Map status to database format
-      const dbStatus = newFlower.status === 'sick' ? 'diseased' : 
-                      newFlower.status === 'blooming' ? 'healthy' : 
+      const dbStatus = newFlower.status === 'ziek' ? 'ziek' : 
+                      newFlower.status === 'bloeiend' ? 'gezond' : 
                       newFlower.status
 
       const updatedPlant = await updatePlantPosition(selectedFlower.id, {
@@ -841,7 +841,7 @@ export default function PlantBedViewPage() {
           type: '',
           emoji: DEFAULT_FLOWER_EMOJI,
           description: '',
-          status: 'healthy',
+          status: 'gezond',
           isStandardFlower: false,
           // Reset new fields
           latinName: '',
@@ -1529,13 +1529,13 @@ export default function PlantBedViewPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'healthy':
+      case 'gezond':
         return 'border-green-500 shadow-green-200'
-      case 'needs_attention':
+      case 'aandacht_nodig':
         return 'border-yellow-500 shadow-yellow-200'
-      case 'blooming':
+      case 'bloeiend':
         return 'border-purple-500 shadow-purple-200'
-      case 'sick':
+      case 'ziek':
         return 'border-red-500 shadow-red-200'
       default:
         return 'border-gray-500 shadow-gray-200'
@@ -1601,7 +1601,7 @@ export default function PlantBedViewPage() {
                 type: '',
                 emoji: DEFAULT_FLOWER_EMOJI,
                 description: '',
-                status: 'healthy',
+                status: 'gezond',
                 
                 isStandardFlower: false,
                 // Reset new fields
@@ -1622,7 +1622,7 @@ export default function PlantBedViewPage() {
                   type: '',
                   emoji: DEFAULT_FLOWER_EMOJI,
                   description: '',
-                  status: 'healthy',
+                  status: 'gezond',
                   
                   isStandardFlower: false,
                   // Reset new fields
@@ -1748,7 +1748,7 @@ export default function PlantBedViewPage() {
 
                 <div>
                   <label className="text-sm font-medium">Status</label>
-                  <Select value={newFlower.status} onValueChange={(value: 'healthy' | 'needs_attention' | 'blooming' | 'sick') => 
+                  <Select value={newFlower.status} onValueChange={(value: 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek') => 
                     setNewFlower(prev => ({ ...prev, status: value }))
                   }>
                     <SelectTrigger>
@@ -1860,7 +1860,7 @@ export default function PlantBedViewPage() {
                       type: '',
                       emoji: DEFAULT_FLOWER_EMOJI,
                       description: '',
-                      status: 'healthy',
+                      status: 'gezond',
                       
                       isStandardFlower: false,
                       // Reset new fields
@@ -1889,7 +1889,7 @@ export default function PlantBedViewPage() {
                 type: '',
                 emoji: DEFAULT_FLOWER_EMOJI,
                 description: '',
-                status: 'healthy',
+                status: 'gezond',
                 
                 isStandardFlower: false,
                 // Reset new fields
@@ -2007,7 +2007,7 @@ export default function PlantBedViewPage() {
 
                 <div>
                   <label className="text-sm font-medium">Status</label>
-                  <Select value={newFlower.status} onValueChange={(value: 'healthy' | 'needs_attention' | 'blooming' | 'sick') => 
+                  <Select value={newFlower.status} onValueChange={(value: 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek') => 
                     setNewFlower(prev => ({ ...prev, status: value }))
                   }>
                     <SelectTrigger>
@@ -2125,7 +2125,7 @@ export default function PlantBedViewPage() {
                       type: '',
                       emoji: DEFAULT_FLOWER_EMOJI,
                       description: '',
-                      status: 'healthy',
+                      status: 'gezond',
                       
                       isStandardFlower: false,
                       // Reset new fields
@@ -2446,10 +2446,10 @@ export default function PlantBedViewPage() {
                         type: selectedFlower.category || '',
                         emoji: selectedFlower.emoji || DEFAULT_FLOWER_EMOJI,
                         description: selectedFlower.notes || '',
-                        status: selectedFlower.status === 'diseased' ? 'sick' : 
-                               selectedFlower.status === 'healthy' ? 'healthy' :
-                               selectedFlower.status === 'needs_attention' ? 'needs_attention' :
-                               'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
+                        status: selectedFlower.status === 'ziek' ? 'ziek' : 
+                               selectedFlower.status === 'gezond' ? 'gezond' :
+                               selectedFlower.status === 'aandacht_nodig' ? 'aandacht_nodig' :
+                               'gezond' as 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek',
                         
                         isStandardFlower: !selectedFlower.is_custom,
                         // Populate new fields
@@ -2587,7 +2587,7 @@ export default function PlantBedViewPage() {
                 return (
                   <div
                     key={flower.id}
-                    className={`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'healthy')} ${
+                    className={`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'gezond')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105 cursor-grabbing" : 
                       isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab animate-pulse" :
                       isSelected && isResizeMode ? "ring-4 ring-blue-500 shadow-xl cursor-default" :
@@ -2777,7 +2777,7 @@ export default function PlantBedViewPage() {
                                        plant_bed_id: plantBed?.id || '',
                                        name: flower.name,
                                        color: flower.color || '#FF69B4',
-                                       status: 'healthy',
+                                       status: 'gezond',
                                        position_x: Math.max(10, Math.min(x, canvasWidth - 50)),
                                        position_y: Math.max(10, Math.min(y, canvasHeight - 50)),
                                        visual_width: FLOWER_SIZE,
@@ -2910,14 +2910,14 @@ export default function PlantBedViewPage() {
                               )}
                             </div>
                           </div>
-                          <div className={`w-3 h-3 rounded-full border-2 ${getStatusColor(flower.status || 'healthy')}`}></div>
+                          <div className={`w-3 h-3 rounded-full border-2 ${getStatusColor(flower.status || 'gezond')}`}></div>
                         </div>
                         
                         <div className="space-y-2 text-sm text-gray-600 mb-4">
                           <div className="grid grid-cols-2 gap-2">
                             <div className="flex justify-between">
                               <span>Status:</span>
-                              <span className="capitalize">{flower.status || 'healthy'}</span>
+                              <span className="capitalize">{flower.status || 'gezond'}</span>
                             </div>
                             {flower.plant_color && (
                               <div className="flex justify-between items-center">
@@ -2978,10 +2978,10 @@ export default function PlantBedViewPage() {
                                 type: flower.category || '',
                                 emoji: flower.emoji || DEFAULT_FLOWER_EMOJI,
                                 description: flower.notes || '',
-                                status: flower.status === 'diseased' ? 'sick' : 
-                                       flower.status === 'healthy' ? 'healthy' :
-                                       flower.status === 'needs_attention' ? 'needs_attention' :
-                                       'healthy' as 'healthy' | 'needs_attention' | 'blooming' | 'sick',
+                                status: flower.status === 'ziek' ? 'ziek' : 
+                                       flower.status === 'gezond' ? 'gezond' :
+                                       flower.status === 'aandacht_nodig' ? 'aandacht_nodig' :
+                                       'gezond' as 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek',
                                 
                                 isStandardFlower: !flower.is_custom,
                                 // Populate new fields
