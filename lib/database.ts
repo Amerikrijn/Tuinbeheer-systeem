@@ -330,16 +330,13 @@ export async function createPlant(plant: {
 }
 
 export async function updatePlant(id: string, updates: Partial<Plant>): Promise<Plant | null> {
-  console.log('🔄 updatePlant called with:', { id, updates })
-  
   const { data, error } = await supabase.from("plants").update(updates).eq("id", id).select().single()
 
   if (error) {
-    console.error("❌ Error updating plant in database:", error)
+    console.error("Error updating plant:", error)
     throw error
   }
 
-  console.log('✅ Plant updated successfully:', data)
   return data
 }
 
