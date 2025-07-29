@@ -81,6 +81,26 @@ export interface Bloem {
   updated_at: string
 }
 
+export interface LogbookEntry {
+  id: string
+  plant_bed_id: string
+  plant_id?: string
+  entry_date: string
+  notes: string
+  photo_url?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface LogbookEntryWithDetails extends LogbookEntry {
+  plant_bed_name: string
+  garden_id: string
+  garden_name: string
+  plant_name?: string
+  plant_scientific_name?: string
+  plant_variety?: string
+}
+
 // Form Data Types
 export interface TuinFormData {
   name: string
@@ -122,6 +142,14 @@ export interface BloemFormData {
   care_instructions?: string
   watering_frequency?: number
   fertilizer_schedule?: string
+}
+
+export interface LogbookEntryFormData {
+  plant_bed_id: string
+  plant_id?: string
+  entry_date: string
+  notes: string
+  photo?: File
 }
 
 // Composite Types
@@ -213,7 +241,7 @@ export interface ValidationResult {
 // Database Operation Types
 export interface DatabaseOperation {
   type: 'create' | 'update' | 'delete'
-  table: 'gardens' | 'plant_beds' | 'plants'
+  table: 'gardens' | 'plant_beds' | 'plants' | 'logbook_entries'
   id?: string
   data?: any
 }

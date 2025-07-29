@@ -1,0 +1,428 @@
+"use client"
+
+import * as React from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { BookOpen, Plus, Search, Calendar, Camera, Leaf, MapPin, Filter, X } from "lucide-react"
+import { LogbookService } from "@/lib/services/database.service"
+import { getPlantBeds } from "@/lib/database"
+import { uiLogger } from "@/lib/logger"
+import type { LogbookEntryWithDetails, Plantvak } from "@/lib/types/index"
+import { ErrorBoundary } from "@/components/error-boundary"
+import { useToast } from "@/hooks/use-toast"
+import { format, parseISO } from "date-fns"
+import { nl } from "date-fns/locale"
+
+interface LogbookPageState {
+  entries: LogbookEntryWithDetails[]
+  plantBeds: Plantvak[]
+  loading: boolean
+  error: string | null
+  searchTerm: string
+  selectedGarden: string
+  selectedPlantBed: string
+  page: number
+  hasMore: boolean
+}
+
+const ITEMS_PER_PAGE = 20
+
+function LogbookPageContent() {
+  const router = useRouter()
+  const { toast } = useToast()
+  
+  const [state, setState] = React.useState<LogbookPageState>({
+    entries: [],
+    plantBeds: [],
+    loading: true,
+    error: null,
+    searchTerm: "",
+    selectedGarden: "",
+    selectedPlantBed: "",
+    page: 1,
+    hasMore: false,
+  })
+
+  // Load logbook entries
+  const loadEntries = React.useCallback(async (page = 1, append = false) => {
+    const operationId = `loadLogbookEntries-${Date.now()}`
+    
+    try {
+      setState(prev => ({ ...prev, loading: !append, error: null }))
+      
+      const filters: any = {
+        limit: ITEMS_PER_PAGE,
+        offset: (page - 1) * ITEMS_PER_PAGE
+      }
+
+      if (state.selectedPlantBed) {
+        filters.plant_bed_id = state.selectedPlantBed
+      } else if (state.selectedGarden) {
+        filters.garden_id = state.selectedGarden
+      }
+
+      const response = await LogbookService.getAll(filters)
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.error || 'Failed to load logbook entries')
+      }
+
+      const filteredEntries = state.searchTerm 
+        ? response.data.filter(entry => 
+            entry.notes.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+            entry.plant_bed_name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
+            (entry.plant_name && entry.plant_name.toLowerCase().includes(state.searchTerm.toLowerCase()))
+          )
+        : response.data
+
+      setState(prev => ({
+        ...prev,
+        entries: append ? [...prev.entries, ...filteredEntries] : filteredEntries,
+        loading: false,
+        page,
+        hasMore: filteredEntries.length === ITEMS_PER_PAGE
+      }))
+
+      uiLogger.debug('Logbook entries loaded successfully', { 
+        count: filteredEntries.length, 
+        page, 
+        operationId 
+      })
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Er is een onbekende fout opgetreden'
+      setState(prev => ({ ...prev, loading: false, error: errorMessage }))
+      uiLogger.error('Failed to load logbook entries', error as Error, { page, operationId })
+      
+      toast({
+        title: "Fout bij laden logboek",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    }
+  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, toast])
+
+  // Load plant beds for filtering
+  const loadPlantBeds = React.useCallback(async () => {
+    try {
+      const response = await getPlantBeds()
+      if (response.success && response.data) {
+        setState(prev => ({ ...prev, plantBeds: response.data || [] }))
+      }
+    } catch (error) {
+      uiLogger.error('Failed to load plant beds for filtering', error as Error)
+    }
+  }, [])
+
+  // Initial load
+  React.useEffect(() => {
+    loadEntries()
+    loadPlantBeds()
+  }, [])
+
+  // Reload when filters change
+  React.useEffect(() => {
+    if (state.selectedGarden !== "" || state.selectedPlantBed !== "" || state.searchTerm !== "") {
+      loadEntries(1, false)
+    }
+  }, [state.selectedGarden, state.selectedPlantBed, state.searchTerm, loadEntries])
+
+  // Handle search
+  const handleSearchChange = (value: string) => {
+    setState(prev => ({ ...prev, searchTerm: value, page: 1 }))
+  }
+
+  // Handle filter changes
+  const handleGardenChange = (value: string) => {
+    setState(prev => ({ 
+      ...prev, 
+      selectedGarden: value, 
+      selectedPlantBed: "", // Reset plant bed when garden changes
+      page: 1 
+    }))
+  }
+
+  const handlePlantBedChange = (value: string) => {
+    setState(prev => ({ ...prev, selectedPlantBed: value, page: 1 }))
+  }
+
+  // Clear filters
+  const clearFilters = () => {
+    setState(prev => ({ 
+      ...prev, 
+      searchTerm: "", 
+      selectedGarden: "", 
+      selectedPlantBed: "", 
+      page: 1 
+    }))
+    loadEntries(1, false)
+  }
+
+  // Load more entries
+  const loadMore = () => {
+    if (!state.loading && state.hasMore) {
+      loadEntries(state.page + 1, true)
+    }
+  }
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    try {
+      return format(parseISO(dateString), 'dd MMMM yyyy', { locale: nl })
+    } catch {
+      return dateString
+    }
+  }
+
+  // Get unique gardens from plant beds
+  const gardens = React.useMemo(() => {
+    const uniqueGardens = new Map()
+    state.plantBeds.forEach(bed => {
+      if (!uniqueGardens.has(bed.garden_id)) {
+        // We would need garden name from a join, for now use garden_id
+        uniqueGardens.set(bed.garden_id, bed.garden_id)
+      }
+    })
+    return Array.from(uniqueGardens.entries()).map(([id, name]) => ({ id, name }))
+  }, [state.plantBeds])
+
+  // Filter plant beds by selected garden
+  const filteredPlantBeds = React.useMemo(() => {
+    return state.selectedGarden 
+      ? state.plantBeds.filter(bed => bed.garden_id === state.selectedGarden)
+      : state.plantBeds
+  }, [state.plantBeds, state.selectedGarden])
+
+  if (state.error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="text-red-600 mb-4">
+            <BookOpen className="h-12 w-12 mx-auto mb-2" />
+            <h2 className="text-xl font-semibold">Fout bij laden logboek</h2>
+          </div>
+          <p className="text-gray-600 mb-4">{state.error}</p>
+          <Button onClick={() => loadEntries()} variant="outline">
+            Opnieuw proberen
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <BookOpen className="h-8 w-8" />
+            Logboek
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Overzicht van alle logboek entries voor je tuinen
+          </p>
+        </div>
+        
+        <Button asChild>
+          <Link href="/logbook/new">
+            <Plus className="h-4 w-4 mr-2" />
+            Nieuwe entry
+          </Link>
+        </Button>
+      </div>
+
+      {/* Filters */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Zoek in opmerkingen, plantvakken of planten..."
+                  value={state.searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            {/* Garden filter */}
+            <Select value={state.selectedGarden} onValueChange={handleGardenChange}>
+              <SelectTrigger className="w-full lg:w-48">
+                <SelectValue placeholder="Alle tuinen" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Alle tuinen</SelectItem>
+                {gardens.map((garden) => (
+                  <SelectItem key={garden.id} value={garden.id}>
+                    {garden.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Plant bed filter */}
+            <Select value={state.selectedPlantBed} onValueChange={handlePlantBedChange}>
+              <SelectTrigger className="w-full lg:w-48">
+                <SelectValue placeholder="Alle plantvakken" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Alle plantvakken</SelectItem>
+                {filteredPlantBeds.map((bed) => (
+                  <SelectItem key={bed.id} value={bed.id}>
+                    {bed.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Clear filters */}
+            {(state.searchTerm || state.selectedGarden || state.selectedPlantBed) && (
+              <Button variant="outline" onClick={clearFilters}>
+                <X className="h-4 w-4 mr-2" />
+                Wissen
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Loading state */}
+      {state.loading && state.entries.length === 0 && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-20 w-full mb-3" />
+                <Skeleton className="h-3 w-full mb-2" />
+                <Skeleton className="h-3 w-2/3" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {!state.loading && state.entries.length === 0 && (
+        <div className="text-center py-12">
+          <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Geen logboek entries gevonden
+          </h3>
+          <p className="text-gray-600 mb-6">
+            {state.searchTerm || state.selectedGarden || state.selectedPlantBed
+              ? "Probeer je filters aan te passen of maak een nieuwe entry aan."
+              : "Begin met het maken van je eerste logboek entry."}
+          </p>
+          <Button asChild>
+            <Link href="/logbook/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Eerste entry maken
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {/* Logbook entries */}
+      {state.entries.length > 0 && (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {state.entries.map((entry) => (
+            <Card key={entry.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-blue-600" />
+                      {entry.plant_bed_name}
+                    </CardTitle>
+                    {entry.plant_name && (
+                      <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                        <Leaf className="h-3 w-3" />
+                        {entry.plant_name}
+                        {entry.plant_variety && ` (${entry.plant_variety})`}
+                      </p>
+                    )}
+                  </div>
+                  {entry.photo_url && (
+                    <Camera className="h-4 w-4 text-gray-400" />
+                  )}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <Calendar className="h-3 w-3" />
+                  {formatDate(entry.entry_date)}
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                {entry.photo_url && (
+                  <div className="mb-4">
+                    <img 
+                      src={entry.photo_url} 
+                      alt="Logboek foto"
+                      className="w-full h-32 object-cover rounded-md"
+                    />
+                  </div>
+                )}
+                
+                <p className="text-gray-700 text-sm leading-relaxed">
+                  {entry.notes.length > 150 
+                    ? `${entry.notes.substring(0, 150)}...` 
+                    : entry.notes}
+                </p>
+                
+                <div className="flex items-center justify-between mt-4">
+                  <Badge variant="outline" className="text-xs">
+                    {entry.garden_name}
+                  </Badge>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => router.push(`/logbook/${entry.id}`)}
+                  >
+                    Details
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Load more button */}
+      {state.hasMore && (
+        <div className="text-center mt-8">
+          <Button 
+            onClick={loadMore} 
+            disabled={state.loading}
+            variant="outline"
+          >
+            {state.loading ? 'Laden...' : 'Meer laden'}
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function LogbookPage() {
+  return (
+    <ErrorBoundary>
+      <LogbookPageContent />
+    </ErrorBoundary>
+  )
+}

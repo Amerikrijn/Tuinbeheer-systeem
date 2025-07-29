@@ -84,6 +84,24 @@ CREATE TABLE IF NOT EXISTS plants (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Logbook entries table
+CREATE TABLE IF NOT EXISTS logbook_entries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    plant_bed_id UUID NOT NULL REFERENCES plant_beds(id) ON DELETE CASCADE,
+    plant_id UUID REFERENCES plants(id) ON DELETE CASCADE,
+    entry_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    notes TEXT NOT NULL,
+    photo_url TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    -- Constraint to ensure either plant_bed level or plant level entry
+    CONSTRAINT logbook_entry_level_check CHECK (
+        (plant_id IS NULL) OR 
+        (plant_id IS NOT NULL AND EXISTS (SELECT 1 FROM plants WHERE id = plant_id AND plant_bed_id = logbook_entries.plant_bed_id))
+    )
+);
+
 -- ===========================================
 -- INDEXES
 -- ===========================================
@@ -101,6 +119,12 @@ CREATE INDEX idx_plant_beds_garden_active ON plant_beds(garden_id, is_active);
 CREATE INDEX idx_plants_plant_bed_id ON plants(plant_bed_id);
 CREATE INDEX idx_plants_status ON plants(status);
 CREATE INDEX idx_plants_planting_date ON plants(planting_date);
+
+-- Logbook entries indexes
+CREATE INDEX idx_logbook_entries_plant_bed_id ON logbook_entries(plant_bed_id);
+CREATE INDEX idx_logbook_entries_plant_id ON logbook_entries(plant_id);
+CREATE INDEX idx_logbook_entries_entry_date ON logbook_entries(entry_date DESC);
+CREATE INDEX idx_logbook_entries_plant_bed_date ON logbook_entries(plant_bed_id, entry_date DESC);
 
 -- ===========================================
 -- TRIGGERS
@@ -125,6 +149,9 @@ CREATE TRIGGER update_plant_beds_updated_at BEFORE UPDATE ON plant_beds
 CREATE TRIGGER update_plants_updated_at BEFORE UPDATE ON plants
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_logbook_entries_updated_at BEFORE UPDATE ON logbook_entries
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- ===========================================
 -- ROW LEVEL SECURITY (RLS)
 -- ===========================================
@@ -133,6 +160,7 @@ CREATE TRIGGER update_plants_updated_at BEFORE UPDATE ON plants
 ALTER TABLE gardens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE plant_beds ENABLE ROW LEVEL SECURITY;
 ALTER TABLE plants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE logbook_entries ENABLE ROW LEVEL SECURITY;
 
 -- Gardens policies
 CREATE POLICY "Gardens are viewable by everyone" ON gardens
@@ -173,6 +201,19 @@ CREATE POLICY "Plants are updatable by authenticated users" ON plants
 CREATE POLICY "Plants are deletable by authenticated users" ON plants
     FOR DELETE USING (auth.role() = 'authenticated');
 
+-- Logbook entries policies
+CREATE POLICY "Logbook entries are viewable by everyone" ON logbook_entries
+    FOR SELECT USING (true);
+
+CREATE POLICY "Logbook entries are insertable by authenticated users" ON logbook_entries
+    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Logbook entries are updatable by authenticated users" ON logbook_entries
+    FOR UPDATE USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Logbook entries are deletable by authenticated users" ON logbook_entries
+    FOR DELETE USING (auth.role() = 'authenticated');
+
 -- ===========================================
 -- VIEWS (Optional - voor gemakkelijke queries)
 -- ===========================================
@@ -197,6 +238,22 @@ LEFT JOIN plant_beds pb ON g.id = pb.garden_id AND pb.is_active = true
 LEFT JOIN plants p ON pb.id = p.plant_bed_id
 WHERE g.is_active = true
 GROUP BY g.id;
+
+-- View voor logbook entries met gerelateerde data
+CREATE OR REPLACE VIEW logbook_entries_with_details AS
+SELECT 
+    le.*,
+    pb.name as plant_bed_name,
+    pb.garden_id,
+    g.name as garden_name,
+    p.name as plant_name,
+    p.scientific_name as plant_scientific_name,
+    p.variety as plant_variety
+FROM logbook_entries le
+JOIN plant_beds pb ON le.plant_bed_id = pb.id
+JOIN gardens g ON pb.garden_id = g.id
+LEFT JOIN plants p ON le.plant_id = p.id
+WHERE pb.is_active = true AND g.is_active = true;
 
 -- ===========================================
 -- SEED DATA (Optional - voor test doeleinden)
