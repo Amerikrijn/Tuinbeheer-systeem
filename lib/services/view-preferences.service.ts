@@ -5,7 +5,7 @@ export class ViewPreferencesService {
 
   // Get the preferred view mode
   static getViewMode(): ViewMode {
-    if (typeof window === 'undefined') return 'visual'
+    if (typeof window === 'undefined') return 'list'
     
     // Clear old cache keys that might interfere
     const oldKeys = ['garden-view-preference', 'tuinbeheer_view_mode']
@@ -21,8 +21,8 @@ export class ViewPreferencesService {
       return savedMode
     }
     
-    // Always default to visual view
-    return 'visual'
+    // Always default to list view (mobile-friendly)
+    return 'list'
   }
 
   // Save the view mode preference
