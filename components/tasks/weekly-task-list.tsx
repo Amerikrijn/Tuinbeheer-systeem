@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Checkbox } from "@/components/ui/checkbox"
+
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { 
   Calendar, 
@@ -15,7 +15,8 @@ import {
   Clock, 
   Plus,
   Filter,
-  MoreVertical
+  MoreVertical,
+  CheckCircle
 } from "lucide-react"
 import { TaskService } from "@/lib/services/task.service"
 import type { 
@@ -76,49 +77,35 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     }
   }
 
-  // Complete/uncomplete task with better state management
+  // Complete/uncomplete task with simple, reliable approach
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
-    console.log('handleTaskComplete called:', { taskId, completed, updatingTasks: Array.from(updatingTasks) })
-    
     // Prevent multiple simultaneous updates of the same task
     if (updatingTasks.has(taskId)) {
-      console.log('Task already updating, skipping:', taskId)
       return
     }
 
     try {
       // Add task to updating set
-      setUpdatingTasks(prev => {
-        const newSet = new Set(prev)
-        newSet.add(taskId)
-        console.log('Added to updating set:', taskId, 'Set size:', newSet.size)
-        return newSet
-      })
+      setUpdatingTasks(prev => new Set(prev).add(taskId))
 
-      // Update task in database first (no optimistic update to prevent conflicts)
-      console.log('Updating task in database:', taskId, completed)
+      // Update task in database
       const { error } = await TaskService.updateTask(taskId, { completed })
       
       if (error) {
         console.error('Error updating task:', error)
-        throw new Error(error)
+        return
       }
-      
-      console.log('Task updated successfully in database:', taskId)
       
       // Reload calendar to get fresh data from database
       await loadWeeklyCalendar(currentWeekStart)
       
     } catch (err) {
       console.error('Error completing task:', err)
-      // Ensure we reload on any error
-      await loadWeeklyCalendar(currentWeekStart)
     } finally {
       // Always remove task from updating set
       setUpdatingTasks(prev => {
         const newSet = new Set(prev)
         newSet.delete(taskId)
-        console.log('Removed from updating set:', taskId, 'Set size:', newSet.size)
         return newSet
       })
     }
@@ -155,13 +142,24 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       <Card className={`mb-3 transition-all duration-200 ${task.completed ? 'opacity-70 bg-gray-50 border-gray-300' : 'bg-white border-gray-200'} ${compact ? 'p-2' : ''}`}>
         <CardContent className={compact ? 'p-3' : 'p-4'}>
           <div className="flex items-start gap-3">
-            {/* Enhanced Checkbox with better styling */}
-            <Checkbox
-              checked={task.completed}
-              onCheckedChange={(checked) => handleTaskComplete(task.id, !!checked)}
-              className={`mt-1 transition-all duration-200 ${task.completed ? 'data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600' : ''}`}
+            {/* Simple button approach instead of Checkbox for better reliability */}
+            <button
+              onClick={() => handleTaskComplete(task.id, !task.completed)}
+              className={`mt-1 transition-all duration-200 ${
+                updatingTasks.has(task.id) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-110'
+              }`}
               disabled={updatingTasks.has(task.id)}
-            />
+            >
+              <CheckCircle
+                className={`h-5 w-5 ${
+                  task.completed 
+                    ? 'text-green-600 fill-green-100' 
+                    : updatingTasks.has(task.id) 
+                      ? 'text-gray-300' 
+                      : 'text-gray-400 hover:text-green-600'
+                }`}
+              />
+            </button>
             
             <div className="flex-1 min-w-0">
               {/* Plantvak → Bloem info - always show for now */}
@@ -457,13 +455,19 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center gap-4 flex-wrap">
-            <label className="flex items-center gap-2">
-              <Checkbox
-                checked={config.show_completed}
-                onCheckedChange={(checked) => 
-                  setConfig(prev => ({ ...prev, show_completed: !!checked }))
-                }
-              />
+            <label className="flex items-center gap-2 cursor-pointer">
+              <button
+                onClick={() => setConfig(prev => ({ ...prev, show_completed: !prev.show_completed }))}
+                className="transition-colors"
+              >
+                <CheckCircle
+                  className={`h-4 w-4 ${
+                    config.show_completed 
+                      ? 'text-green-600 fill-green-100' 
+                      : 'text-gray-400'
+                  }`}
+                />
+              </button>
               <span className="text-sm">Toon afgeronde taken</span>
             </label>
             
