@@ -297,9 +297,15 @@ export default function PlantBedViewPage() {
       const plantTaskResults = await Promise.all(plantTaskPromises)
       const allPlantTasks = plantTaskResults.flatMap(result => result.data || [])
       
-      // Combine and sort all tasks: incomplete first (by due date), then completed at bottom
+      // Combine and deduplicate all tasks: incomplete first (by due date), then completed at bottom
       const allTasks = [...(plantBedTasks || []), ...allPlantTasks]
-      allTasks.sort((a, b) => {
+      
+      // Remove duplicates based on task ID
+      const uniqueTasks = allTasks.filter((task, index, array) => 
+        array.findIndex(t => t.id === task.id) === index
+      )
+      
+      uniqueTasks.sort((a, b) => {
         // Completed tasks go to bottom
         if (a.completed && !b.completed) return 1
         if (!a.completed && b.completed) return -1
@@ -308,7 +314,7 @@ export default function PlantBedViewPage() {
         return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
       })
       
-      setTasks(allTasks)
+      setTasks(uniqueTasks)
     } catch (error) {
       console.error('Error loading tasks:', error)
     } finally {
