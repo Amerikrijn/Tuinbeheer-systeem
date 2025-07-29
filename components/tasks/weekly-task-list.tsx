@@ -78,47 +78,47 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
 
   // Complete/uncomplete task with better state management
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
+    console.log('handleTaskComplete called:', { taskId, completed, updatingTasks: Array.from(updatingTasks) })
+    
     // Prevent multiple simultaneous updates of the same task
     if (updatingTasks.has(taskId)) {
+      console.log('Task already updating, skipping:', taskId)
       return
     }
 
     try {
       // Add task to updating set
-      setUpdatingTasks(prev => new Set(prev).add(taskId))
+      setUpdatingTasks(prev => {
+        const newSet = new Set(prev)
+        newSet.add(taskId)
+        console.log('Added to updating set:', taskId, 'Set size:', newSet.size)
+        return newSet
+      })
 
-      // Optimistic update - update the calendar state immediately for better UX
-      if (calendar) {
-        const updatedCalendar = { ...calendar }
-        updatedCalendar.days = updatedCalendar.days.map(day => ({
-          ...day,
-          tasks: day.tasks.map(task => 
-            task.id === taskId 
-              ? { ...task, completed, completed_at: completed ? new Date().toISOString() : undefined }
-              : task
-          )
-        }))
-        setCalendar(updatedCalendar)
-      }
-
-      // Update task in database
+      // Update task in database first (no optimistic update to prevent conflicts)
+      console.log('Updating task in database:', taskId, completed)
       const { error } = await TaskService.updateTask(taskId, { completed })
       
       if (error) {
         console.error('Error updating task:', error)
-        // Revert optimistic update on error by reloading
-        await loadWeeklyCalendar(currentWeekStart)
+        throw new Error(error)
       }
+      
+      console.log('Task updated successfully in database:', taskId)
+      
+      // Reload calendar to get fresh data from database
+      await loadWeeklyCalendar(currentWeekStart)
       
     } catch (err) {
       console.error('Error completing task:', err)
-      // Revert optimistic update on error
+      // Ensure we reload on any error
       await loadWeeklyCalendar(currentWeekStart)
     } finally {
       // Always remove task from updating set
       setUpdatingTasks(prev => {
         const newSet = new Set(prev)
         newSet.delete(taskId)
+        console.log('Removed from updating set:', taskId, 'Set size:', newSet.size)
         return newSet
       })
     }
