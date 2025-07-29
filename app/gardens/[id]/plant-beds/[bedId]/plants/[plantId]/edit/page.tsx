@@ -23,7 +23,6 @@ interface EditPlant {
   latin_name: string
   variety: string
   color: string
-  plant_color: string
   height: string
   plant_height: string
   plants_per_sqm: string
@@ -51,7 +50,6 @@ export default function EditPlantPage() {
     latin_name: '',
     variety: '',
     color: '',
-    plant_color: '',
     height: '',
     plant_height: '',
     plants_per_sqm: '',
@@ -95,7 +93,6 @@ export default function EditPlantPage() {
           latin_name: plantData.latin_name || '',
           variety: plantData.variety || '',
           color: plantData.color || '',
-          plant_color: plantData.plant_color || '',
           height: plantData.height?.toString() || '',
           plant_height: plantData.plant_height?.toString() || '',
           plants_per_sqm: plantData.plants_per_sqm?.toString() || '',
@@ -144,7 +141,6 @@ export default function EditPlantPage() {
         latin_name: editPlant.latin_name || undefined,
         variety: editPlant.variety || undefined,
         color: editPlant.color || undefined,
-        plant_color: editPlant.plant_color || undefined,
         height: editPlant.height ? Number.parseInt(editPlant.height) : undefined,
         plant_height: editPlant.plant_height ? Number.parseInt(editPlant.plant_height) : undefined,
         plants_per_sqm: editPlant.plants_per_sqm ? Number.parseInt(editPlant.plants_per_sqm) : undefined,
@@ -365,15 +361,6 @@ export default function EditPlantPage() {
                         id="color"
                         value={editPlant.color}
                         onChange={(e) => setEditPlant(prev => ({ ...prev, color: e.target.value }))}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="plantColor">Plant kleur</Label>
-                      <Input
-                        id="plantColor"
-                        value={editPlant.plant_color}
-                        onChange={(e) => setEditPlant(prev => ({ ...prev, plant_color: e.target.value }))}
                       />
                     </div>
 
