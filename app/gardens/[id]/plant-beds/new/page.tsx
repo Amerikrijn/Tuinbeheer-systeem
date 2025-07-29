@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useNavigation } from "@/hooks/use-navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -25,7 +26,7 @@ interface NewPlantBed {
 }
 
 export default function NewPlantBedPage() {
-  const router = useRouter()
+  const { goBack, navigateTo } = useNavigation()
   const params = useParams()
   const { toast } = useToast()
 
@@ -137,9 +138,9 @@ export default function NewPlantBedPage() {
       })
 
       if (plantBed) {
-        router.push(`/gardens/${garden.id}/plant-beds/${plantBed.id}`)
+        navigateTo(`/gardens/${garden.id}/plant-beds/${plantBed.id}`)
       } else {
-        router.push(`/gardens/${garden.id}/plant-beds`)
+        navigateTo(`/gardens/${garden.id}/plant-beds`)
       }
     } catch (err) {
       console.error("Error creating plant bed:", err)
@@ -184,11 +185,11 @@ export default function NewPlantBedPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/gardens/${garden.id}/plant-beds`)}
+            onClick={goBack}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Terug naar Plantvakken
+            Terug
           </Button>
 
           <div>

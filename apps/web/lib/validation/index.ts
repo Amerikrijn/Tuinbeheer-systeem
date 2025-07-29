@@ -335,7 +335,7 @@ function validateBloem(data: BloemFormData): ValidationResult {
   })
 
   validator.validateOption('status', data.status, [
-    'healthy', 'needs_attention', 'diseased', 'dead', 'harvested'
+    'gezond', 'aandacht_nodig', 'ziek', 'dood', 'geoogst'
   ], true)
 
   // Optional fields

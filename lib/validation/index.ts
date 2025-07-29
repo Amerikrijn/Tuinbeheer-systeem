@@ -323,7 +323,7 @@ export function validateBloemFormData(data: Partial<BloemFormData>): ValidationR
   }
 
   validator.validateOption('status', data.status as any, [
-    'healthy', 'needs_attention', 'diseased', 'dead', 'harvested'
+    'gezond', 'aandacht_nodig', 'ziek', 'dood', 'geoogst'
   ], true)
 
   return validator.getResult()

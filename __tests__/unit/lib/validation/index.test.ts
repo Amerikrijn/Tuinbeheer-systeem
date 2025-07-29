@@ -230,7 +230,7 @@ describe('Validation Functions', () => {
         height: 50,
         planting_date: '2024-01-01',
         expected_harvest_date: '2024-06-01',
-        status: 'healthy' as const,
+        status: 'gezond' as const,
         notes: 'Growing well',
         care_instructions: 'Water daily',
         watering_frequency: 7,
@@ -246,7 +246,7 @@ describe('Validation Functions', () => {
     it('should validate required name field', () => {
       const invalidData = {
         name: '',
-        status: 'healthy' as const,
+        status: 'gezond' as const,
       }
 
       const result = validateBloemFormData(invalidData)
@@ -262,7 +262,7 @@ describe('Validation Functions', () => {
       const invalidColor = {
         name: 'Rose',
         color: 'invalid-color',
-        status: 'healthy' as const,
+        status: 'gezond' as const,
       }
 
       const result = validateBloemFormData(invalidColor)
@@ -278,13 +278,13 @@ describe('Validation Functions', () => {
       const negativeHeight = {
         name: 'Rose',
         height: -10,
-        status: 'healthy' as const,
+        status: 'gezond' as const,
       }
 
       const tooTallHeight = {
         name: 'Rose',
         height: 10000,
-        status: 'healthy' as const,
+        status: 'gezond' as const,
       }
 
       const negativeResult = validateBloemFormData(negativeHeight)
@@ -323,7 +323,7 @@ describe('Validation Functions', () => {
         name: 'Rose',
         planting_date: 'invalid-date',
         expected_harvest_date: '2024-13-01', // Invalid month
-        status: 'healthy' as const,
+        status: 'gezond' as const,
       }
 
       const result = validateBloemFormData(invalidDates)

@@ -1,19 +1,23 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useNavigation } from "@/hooks/use-navigation"
+import { useViewPreference } from "@/hooks/use-view-preference"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Leaf, Plus, Search, Eye, Edit, Trash2, Calendar, AlertTriangle, CheckCircle } from "lucide-react"
+import { ArrowLeft, Leaf, Plus, Search, Eye, Edit, Trash2, Calendar, AlertTriangle, CheckCircle, Grid3X3 } from "lucide-react"
 import { getGarden, getPlantBed, deletePlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
+import { AddTaskForm } from '@/components/tasks/add-task-form'
 
 export default function PlantBedPlantsPage() {
-  const router = useRouter()
+  const { goBack, navigateTo } = useNavigation()
+  const { isVisualView, toggleView } = useViewPreference()
   const params = useParams()
   const { toast } = useToast()
 
@@ -21,6 +25,8 @@ export default function PlantBedPlantsPage() {
   const [plantBed, setPlantBed] = useState<PlantBedWithPlants | null>(null)
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [showAddTask, setShowAddTask] = useState(false)
+  const [selectedPlantId, setSelectedPlantId] = useState<string | undefined>()
 
   useEffect(() => {
     const loadData = async () => {
@@ -82,15 +88,15 @@ export default function PlantBedPlantsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "healthy":
+      case "gezond":
         return <CheckCircle className="h-4 w-4 text-green-600" />
-      case "needs_attention":
+      case "aandacht_nodig":
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />
-      case "diseased":
+      case "ziek":
         return <AlertTriangle className="h-4 w-4 text-red-600" />
-      case "dead":
+      case "dood":
         return <AlertTriangle className="h-4 w-4 text-gray-600" />
-      case "harvested":
+      case "geoogst":
         return <CheckCircle className="h-4 w-4 text-blue-600" />
       default:
         return <CheckCircle className="h-4 w-4 text-green-600" />
@@ -99,15 +105,15 @@ export default function PlantBedPlantsPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "healthy":
+      case "gezond":
         return "Gezond"
-      case "needs_attention":
+      case "aandacht_nodig":
         return "Aandacht nodig"
-      case "diseased":
+      case "ziek":
         return "Ziek"
-      case "dead":
+      case "dood":
         return "Dood"
-      case "harvested":
+      case "geoogst":
         return "Geoogst"
       default:
         return "Gezond"
@@ -116,15 +122,15 @@ export default function PlantBedPlantsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "healthy":
+      case "gezond":
         return "bg-green-100 text-green-800"
-      case "needs_attention":
+      case "aandacht_nodig":
         return "bg-yellow-100 text-yellow-800"
-      case "diseased":
+      case "ziek":
         return "bg-red-100 text-red-800"
-      case "dead":
+      case "dood":
         return "bg-gray-100 text-gray-800"
-      case "harvested":
+      case "geoogst":
         return "bg-blue-100 text-blue-800"
       default:
         return "bg-green-100 text-green-800"
@@ -171,11 +177,11 @@ export default function PlantBedPlantsPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/gardens/${garden.id}/plant-beds`)}
+            onClick={goBack}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            Plantvakken
+            Terug
           </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -188,6 +194,25 @@ export default function PlantBedPlantsPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant={isVisualView ? "default" : "outline"}
+            size="sm"
+            onClick={toggleView}
+            className="px-2"
+          >
+            <Grid3X3 className="h-4 w-4 mr-1" />
+            {isVisualView ? "Lijst" : "Visueel"}
+          </Button>
+          <Button
+            onClick={() => {
+              setSelectedPlantId(undefined)
+              setShowAddTask(true)
+            }}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Calendar className="h-4 w-4 mr-2" />
+            Plantvak Taak
+          </Button>
           <Link href="/plant-beds/new">
             <Button className="bg-green-600 hover:bg-green-700">
               <Plus className="h-4 w-4 mr-2" />
@@ -216,13 +241,20 @@ export default function PlantBedPlantsPage() {
 
       {/* Plants Grid */}
       {filteredPlants.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={isVisualView 
+          ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          : "space-y-4"
+        }>
           {filteredPlants.map((plant) => (
-            <Card key={plant.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
+            <Card key={plant.id} className={`hover:shadow-lg transition-shadow ${
+              !isVisualView ? 'mb-2' : ''
+            }`}>
+              <CardHeader className={isVisualView ? "" : "pb-2 py-3"}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="flex items-center gap-2 text-lg">
+                    <CardTitle className={`flex items-center gap-2 ${
+                      isVisualView ? 'text-lg' : 'text-base'
+                    }`}>
                       <Leaf className="h-5 w-5 text-green-600" />
                       {plant.name}
                     </CardTitle>
@@ -239,72 +271,165 @@ export default function PlantBedPlantsPage() {
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {plant.variety && (
-                    <div>
-                      <div className="font-medium">Variëteit</div>
-                      <div className="text-gray-600">{plant.variety}</div>
+              <CardContent className={isVisualView ? "space-y-4" : "py-3"}>
+                {isVisualView ? (
+                  // Visual view - full content
+                  <>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      {plant.variety && (
+                        <div>
+                          <div className="font-medium">Variëteit</div>
+                          <div className="text-gray-600">{plant.variety}</div>
+                        </div>
+                      )}
+                      {plant.color && (
+                        <div>
+                          <div className="font-medium">Kleur</div>
+                          <div className="text-gray-600">{plant.color}</div>
+                        </div>
+                      )}
+                      {plant.height && (
+                        <div>
+                          <div className="font-medium">Hoogte</div>
+                          <div className="text-gray-600">{plant.height}cm</div>
+                        </div>
+                      )}
+                      {plant.watering_frequency && (
+                        <div>
+                          <div className="font-medium">Water</div>
+                          <div className="text-gray-600">{plant.watering_frequency}x/week</div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {plant.color && (
-                    <div>
-                      <div className="font-medium">Kleur</div>
-                      <div className="text-gray-600">{plant.color}</div>
-                    </div>
-                  )}
-                  {plant.height && (
-                    <div>
-                      <div className="font-medium">Hoogte</div>
-                      <div className="text-gray-600">{plant.height}cm</div>
-                    </div>
-                  )}
-                  {plant.watering_frequency && (
-                    <div>
-                      <div className="font-medium">Water</div>
-                      <div className="text-gray-600">{plant.watering_frequency}x/week</div>
-                    </div>
-                  )}
-                </div>
 
-                {plant.planting_date && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="h-3 w-3" />
-                    Geplant: {new Date(plant.planting_date).toLocaleDateString("nl-NL")}
+                    {plant.planting_date && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="h-3 w-3" />
+                        Geplant: {new Date(plant.planting_date).toLocaleDateString("nl-NL")}
+                      </div>
+                    )}
+
+                    {plant.expected_harvest_date && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="h-3 w-3" />
+                        Oogst verwacht: {new Date(plant.expected_harvest_date).toLocaleDateString("nl-NL")}
+                      </div>
+                    )}
+
+                    {plant.notes && <p className="text-sm text-gray-600 line-clamp-2">{plant.notes}</p>}
+                  </>
+                ) : (
+                  // List view - compact content
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                      {plant.variety && (
+                        <div className="truncate">
+                          <span className="text-gray-500 text-xs">Variëteit:</span>
+                          <div className="text-gray-700 font-medium truncate">{plant.variety}</div>
+                        </div>
+                      )}
+                      {plant.color && (
+                        <div className="truncate">
+                          <span className="text-gray-500 text-xs">Kleur:</span>
+                          <div className="text-gray-700 font-medium truncate">{plant.color}</div>
+                        </div>
+                      )}
+                      {plant.height && (
+                        <div className="truncate">
+                          <span className="text-gray-500 text-xs">Hoogte:</span>
+                          <div className="text-gray-700 font-medium">{plant.height}cm</div>
+                        </div>
+                      )}
+                      {plant.watering_frequency && (
+                        <div className="truncate">
+                          <span className="text-gray-500 text-xs">Water:</span>
+                          <div className="text-gray-700 font-medium">{plant.watering_frequency}x/week</div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {plant.planting_date && (
+                      <div className="text-xs text-gray-500">
+                        Geplant: {new Date(plant.planting_date).toLocaleDateString("nl-NL", { 
+                          year: 'numeric', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
-                {plant.expected_harvest_date && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="h-3 w-3" />
-                    Oogst verwacht: {new Date(plant.expected_harvest_date).toLocaleDateString("nl-NL")}
+                {plant.notes && !isVisualView && <p className="text-xs text-gray-500 mt-2 line-clamp-1">{plant.notes}</p>}
+
+{isVisualView ? (
+                  <div className="flex gap-2 pt-2">
+                    <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}`} className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full bg-transparent">
+                        <Eye className="h-3 w-3 mr-1" />
+                        Bekijk
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedPlantId(plant.id)
+                        setShowAddTask(true)
+                      }}
+                      className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                    >
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Taak
+                    </Button>
+                    <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-3 w-3 mr-1" />
+                        Bewerk
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeletePlant(plant.id, plant.name)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex justify-end gap-1 mt-3 pt-2 border-t border-gray-100">
+                    <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}`}>
+                      <Button variant="outline" size="sm" className="px-2 h-7">
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedPlantId(plant.id)
+                        setShowAddTask(true)
+                      }}
+                      className="px-2 h-7 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                    >
+                      <Calendar className="h-3 w-3" />
+                    </Button>
+                    <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}/edit`}>
+                      <Button variant="outline" size="sm" className="px-2 h-7">
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeletePlant(plant.id, plant.name)}
+                      className="px-2 h-7 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 )}
-
-                {plant.notes && <p className="text-sm text-gray-600 line-clamp-2">{plant.notes}</p>}
-
-                <div className="flex gap-2 pt-2">
-                  <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full bg-transparent">
-                      <Eye className="h-3 w-3 mr-1" />
-                      Bekijk
-                    </Button>
-                  </Link>
-                  <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}/edit`}>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-3 w-3 mr-1" />
-                      Bewerk
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeletePlant(plant.id, plant.name)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           ))}
@@ -337,25 +462,25 @@ export default function PlantBedPlantsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-green-600">
-                  {plantBed.plants.filter((p) => p.status === "healthy").length}
+                  {plantBed.plants.filter((p) => p.status === "gezond").length}
                 </div>
                 <div className="text-sm text-gray-600">Gezond</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-yellow-600">
-                  {plantBed.plants.filter((p) => p.status === "needs_attention").length}
+                  {plantBed.plants.filter((p) => p.status === "aandacht_nodig").length}
                 </div>
                 <div className="text-sm text-gray-600">Aandacht</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-red-600">
-                  {plantBed.plants.filter((p) => p.status === "diseased").length}
+                  {plantBed.plants.filter((p) => p.status === "ziek").length}
                 </div>
                 <div className="text-sm text-gray-600">Ziek</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {plantBed.plants.filter((p) => p.status === "harvested").length}
+                  {plantBed.plants.filter((p) => p.status === "geoogst").length}
                 </div>
                 <div className="text-sm text-gray-600">Geoogst</div>
               </div>
@@ -363,6 +488,22 @@ export default function PlantBedPlantsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Add Task Dialog */}
+      <AddTaskForm
+        isOpen={showAddTask}
+        onClose={() => {
+          setShowAddTask(false)
+          setSelectedPlantId(undefined)
+        }}
+        onTaskAdded={() => {
+          // Task added successfully - could show toast or refresh
+          setShowAddTask(false)
+          setSelectedPlantId(undefined)
+        }}
+        preselectedPlantId={selectedPlantId}
+        preselectedPlantBedId={selectedPlantId ? undefined : plantBed?.id}
+      />
     </div>
   )
 }

@@ -298,20 +298,26 @@ export async function createPlant(plant: {
   plant_bed_id: string
   name: string
   scientific_name?: string
+  latin_name?: string
   variety?: string
   color?: string
+  plant_color?: string
   height?: number
+  plant_height?: number
+  plants_per_sqm?: number
+  sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
   stem_length?: number
   photo_url?: string
   category?: string
   bloom_period?: string
   planting_date?: string
   expected_harvest_date?: string
-  status?: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  status?: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   notes?: string
   care_instructions?: string
   watering_frequency?: number
   fertilizer_schedule?: string
+  emoji?: string
 }): Promise<Plant | null> {
   const { data, error } = await supabase.from("plants").insert(plant).select().single()
 
@@ -387,7 +393,7 @@ export async function createVisualPlant(plant: {
   plant_bed_id: string
   name: string
   color: string
-  status: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  status: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   position_x: number
   position_y: number
   visual_width: number
@@ -397,6 +403,11 @@ export async function createVisualPlant(plant: {
   is_custom?: boolean
   category?: string
   notes?: string
+  latin_name?: string
+  plant_color?: string
+  plant_height?: number
+  plants_per_sqm?: number
+  sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
 }): Promise<PlantWithPosition | null> {
   const { data, error } = await supabase.from("plants").insert({
     plant_bed_id: plant.plant_bed_id,
@@ -412,6 +423,11 @@ export async function createVisualPlant(plant: {
     is_custom: plant.is_custom,
     category: plant.category,
     notes: plant.notes,
+    latin_name: plant.latin_name,
+    plant_color: plant.plant_color,
+    plant_height: plant.plant_height,
+    plants_per_sqm: plant.plants_per_sqm,
+    sun_preference: plant.sun_preference,
   }).select().single()
 
   if (error) {
@@ -430,12 +446,17 @@ export async function updatePlantPosition(id: string, updates: {
   visual_height?: number
   name?: string
   color?: string
-  status?: "healthy" | "needs_attention" | "diseased" | "dead" | "harvested"
+  status?: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   emoji?: string
   is_custom?: boolean
   category?: string
   notes?: string
   photo_url?: string | null
+  latin_name?: string
+  plant_color?: string
+  plant_height?: number
+  plants_per_sqm?: number
+  sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
 }): Promise<PlantWithPosition | null> {
   const { data, error } = await supabase
     .from("plants")
