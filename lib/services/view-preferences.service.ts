@@ -1,27 +1,27 @@
 export type ViewMode = 'visual' | 'list'
 
 export class ViewPreferencesService {
-  private static readonly STORAGE_KEY = 'tuinbeheer_view_mode'
-
-  // Detect if user is on mobile device
-  static isMobileDevice(): boolean {
-    if (typeof window === 'undefined') return false
-    
-    return window.matchMedia('(max-width: 768px)').matches || 
-           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-  }
+  private static readonly STORAGE_KEY = 'tuinbeheer_view_mode_v2' // Changed to clear old cache
 
   // Get the preferred view mode
   static getViewMode(): ViewMode {
     if (typeof window === 'undefined') return 'visual'
     
+    // Clear old cache keys that might interfere
+    const oldKeys = ['garden-view-preference', 'tuinbeheer_view_mode']
+    oldKeys.forEach(key => {
+      if (localStorage.getItem(key)) {
+        localStorage.removeItem(key)
+      }
+    })
+    
     // Check if user has a saved preference
     const savedMode = localStorage.getItem(this.STORAGE_KEY) as ViewMode
-    if (savedMode) {
+    if (savedMode && (savedMode === 'visual' || savedMode === 'list')) {
       return savedMode
     }
     
-    // Default to visual view (original behavior)
+    // Always default to visual view
     return 'visual'
   }
 
