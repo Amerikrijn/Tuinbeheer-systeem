@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
-import { parsePlantBedDimensions, PLANTVAK_CANVAS_PADDING, calculatePlantBedCanvasSize } from "@/lib/scaling-constants"
+import { parsePlantBedDimensions, PLANTVAK_CANVAS_PADDING } from "@/lib/scaling-constants"
 
 interface FlowerVisualizationProps {
   plantBed: PlantBedWithPlants
@@ -17,8 +17,6 @@ interface FlowerInstance {
   color: string
   emoji?: string
   size: number
-  width: number
-  height: number
   x: number
   y: number
   opacity: number
@@ -66,8 +64,6 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
   // Generate flower instances based on plants - SYNCHRONIZED WITH PLANTVAK-VIEW
   useEffect(() => {
-
-    
     if (plants.length === 0) {
       setFlowerInstances([])
       return
@@ -83,31 +79,20 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       const hasCustomPosition = 'position_x' in plant && plant.position_x !== undefined && plant.position_y !== undefined
       const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
       
-
-      
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // IMPROVED: Use consistent canvas size calculation between plantvak-view and garden-view
-        const plantvakCanvasSize = calculatePlantBedCanvasSize(plantBed.size || '')
-        const plantvakCanvasWidth = plantvakCanvasSize.width
-        const plantvakCanvasHeight = plantvakCanvasSize.height
+        // EXACT WORKING VERSION: Use the original coordinate system that worked
         
-        // Calculate percentages based on the actual canvas used in plantvak-view
+        // Plantvak canvas dimensions (what plantvak-view uses)
+        const plantvakCanvasWidth = dimensions.lengthPixels * 2   // e.g. 1600px for 10m plantvak
+        const plantvakCanvasHeight = dimensions.widthPixels * 2   // e.g. 320px for 2m plantvak
+        
+        // Simple percentage calculation based on canvas coordinates
         const percentageX = plant.position_x! / plantvakCanvasWidth
         const percentageY = plant.position_y! / plantvakCanvasHeight
         
-        // Apply percentages to the garden container
+        // Apply percentage to garden container
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
-        
-        // DEBUG: Log coordinate transformation for troubleshooting
-        console.log('🔍 FLOWER POSITION SYNC DEBUG:', {
-          plantName: plant.name,
-          storedPosition: { x: plant.position_x, y: plant.position_y },
-          plantvakCanvas: { w: plantvakCanvasWidth, h: plantvakCanvasHeight },
-          percentage: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
-          gardenContainer: { w: containerWidth, h: containerHeight },
-          finalPosition: { x: finalX.toFixed(1), y: finalY.toFixed(1) }
-        })
         
         // Size scaling based on container vs plantvak real dimensions
         const plantvakRealWidth = dimensions.lengthPixels   // e.g. 800px for 10m
@@ -121,8 +106,6 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           color: plant.color || '#FF69B4',
           emoji: getPlantEmoji(plant.name, plant.emoji),
           size: scaledSize,
-          width: scaledSize, // Added width
-          height: scaledSize, // Added height
           x: Math.max(scaledSize/2, Math.min(finalX, containerWidth - scaledSize/2)),
           y: Math.max(scaledSize/2, Math.min(finalY, containerHeight - scaledSize/2)),
           opacity: 1,
@@ -153,8 +136,6 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           color: plant.color || '#FF69B4',
           emoji: getPlantEmoji(plant.name, plant.emoji),
           size: flowerSize,
-          width: flowerSize, // Added width
-          height: flowerSize, // Added height
           x,
           y,
           opacity: 1,
@@ -180,10 +161,10 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           key={flower.id}
           className="absolute transition-all duration-500 ease-in-out"
           style={{
-            left: flower.x - flower.width / 2, // Center the flower horizontally
-            top: flower.y - flower.height / 2,  // Center the flower vertically
-            width: flower.width,
-            height: flower.height,
+            left: flower.x - flower.size / 2, // Center the flower horizontally
+            top: flower.y - flower.size / 2,  // Center the flower vertically
+            width: flower.size,
+            height: flower.size,
             opacity: flower.opacity,
             transform: `rotate(${flower.rotation}deg)`,
             zIndex: flower.isMainFlower ? 10 : 8,
@@ -201,7 +182,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             <span 
               className="select-none"
               style={{
-                fontSize: Math.max(12, Math.min(flower.width, flower.height) * 0.4),
+                fontSize: Math.max(12, flower.size * 0.4),
                 filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
               }}
             >
@@ -209,12 +190,12 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             </span>
             
             {/* Flower name below the emoji - only show if there's space */}
-            {Math.min(flower.width, flower.height) > 30 && (
+            {flower.size > 30 && (
               <div 
                 className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
                 style={{
-                  fontSize: Math.max(6, Math.min(flower.width, flower.height) * 0.2),
-                  maxWidth: Math.min(flower.width, flower.height) * 0.9,
+                  fontSize: Math.max(6, flower.size * 0.2),
+                  maxWidth: flower.size * 0.9,
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',

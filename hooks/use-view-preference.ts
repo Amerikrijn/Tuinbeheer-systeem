@@ -1,27 +1,29 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-
-export type ViewMode = 'visual' | 'list'
-
-const VIEW_PREFERENCE_KEY = 'garden-view-preference'
+import { ViewPreferencesService, ViewMode } from '@/lib/services/view-preferences.service'
 
 export function useViewPreference() {
   const [viewMode, setViewMode] = useState<ViewMode>('visual')
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
-    // Load preference from localStorage on mount
-    const savedPreference = localStorage.getItem(VIEW_PREFERENCE_KEY) as ViewMode
-    if (savedPreference && (savedPreference === 'visual' || savedPreference === 'list')) {
-      setViewMode(savedPreference)
-    }
+    // Load preference from ViewPreferencesService (includes mobile detection)
+    const initialMode = ViewPreferencesService.getViewMode()
+    setViewMode(initialMode)
     setIsInitialized(true)
+
+    // Listen for view mode changes from other components
+    const cleanup = ViewPreferencesService.onViewModeChange((newMode) => {
+      setViewMode(newMode)
+    })
+
+    return cleanup
   }, [])
 
   const setViewPreference = (mode: ViewMode) => {
     setViewMode(mode)
-    localStorage.setItem(VIEW_PREFERENCE_KEY, mode)
+    ViewPreferencesService.setViewMode(mode)
   }
 
   const toggleView = () => {

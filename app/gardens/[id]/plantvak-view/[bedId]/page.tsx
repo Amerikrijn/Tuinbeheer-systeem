@@ -60,6 +60,7 @@ import {
   calculatePlantBedCanvasSize,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
+import { ViewPreferencesService, ViewMode } from '@/lib/services/view-preferences.service'
 
 const GRID_SIZE = 10
 const SCALE_MIN = 0.5
@@ -232,7 +233,29 @@ export default function PlantBedViewPage() {
     sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
     soil_type: 'loam' as 'clay' | 'sand' | 'loam' | 'peat'
   })
-  const [viewMode, setViewMode] = useState<'visual' | 'list'>('visual')
+  // Use global view preferences with mobile detection
+  const [viewMode, setViewMode] = useState<ViewMode>('visual')
+  const [isViewInitialized, setIsViewInitialized] = useState(false)
+
+  // Initialize view mode from global preferences
+  useEffect(() => {
+    const initialMode = ViewPreferencesService.getViewMode()
+    setViewMode(initialMode)
+    setIsViewInitialized(true)
+
+    // Listen for view mode changes from other components
+    const cleanup = ViewPreferencesService.onViewModeChange((newMode) => {
+      setViewMode(newMode)
+    })
+
+    return cleanup
+  }, [])
+
+  // Update view mode and sync globally
+  const updateViewMode = (mode: ViewMode) => {
+    setViewMode(mode)
+    ViewPreferencesService.setViewMode(mode)
+  }
   
   // Task-related state
   const [tasks, setTasks] = useState<TaskWithPlantInfo[]>([])
@@ -274,9 +297,15 @@ export default function PlantBedViewPage() {
       const plantTaskResults = await Promise.all(plantTaskPromises)
       const allPlantTasks = plantTaskResults.flatMap(result => result.data || [])
       
-      // Combine and sort all tasks: incomplete first (by due date), then completed at bottom
+      // Combine and deduplicate all tasks: incomplete first (by due date), then completed at bottom
       const allTasks = [...(plantBedTasks || []), ...allPlantTasks]
-      allTasks.sort((a, b) => {
+      
+      // Remove duplicates based on task ID
+      const uniqueTasks = allTasks.filter((task, index, array) => 
+        array.findIndex(t => t.id === task.id) === index
+      )
+      
+      uniqueTasks.sort((a, b) => {
         // Completed tasks go to bottom
         if (a.completed && !b.completed) return 1
         if (!a.completed && b.completed) return -1
@@ -285,7 +314,7 @@ export default function PlantBedViewPage() {
         return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
       })
       
-      setTasks(allTasks)
+      setTasks(uniqueTasks)
     } catch (error) {
       console.error('Error loading tasks:', error)
     } finally {
@@ -2164,7 +2193,7 @@ export default function PlantBedViewPage() {
             <Button 
               variant={viewMode === 'visual' ? 'default' : 'outline'} 
               size="sm" 
-              onClick={() => setViewMode('visual')}
+              onClick={() => updateViewMode('visual')}
               className="rounded-r-none border-r-0"
             >
               <Eye className="h-4 w-4 mr-1" />
@@ -2173,7 +2202,7 @@ export default function PlantBedViewPage() {
             <Button 
               variant={viewMode === 'list' ? 'default' : 'outline'} 
               size="sm" 
-              onClick={() => setViewMode('list')}
+              onClick={() => updateViewMode('list')}
               className="rounded-l-none"
             >
               <List className="h-4 w-4 mr-1" />
