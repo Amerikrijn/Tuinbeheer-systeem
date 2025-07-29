@@ -18,6 +18,7 @@ interface PlantWithBeds extends Bloem {
     name: string
     sun_exposure?: string
     gardens?: {
+      id: string
       name: string
     }
   }
@@ -35,7 +36,8 @@ import {
   Plus,
   CheckCircle2,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Edit
 } from "lucide-react"
 import { getTaskTypeConfig, getPriorityConfig, formatTaskDate } from '@/lib/types/tasks'
 
@@ -65,6 +67,7 @@ export default function PlantDetailPage() {
             name,
             sun_exposure,
             gardens!inner (
+              id,
               name
             )
           )
@@ -184,21 +187,31 @@ export default function PlantDetailPage() {
     <div className="container mx-auto p-4 max-w-4xl">
       {/* Header */}
       <div className="mb-6">
-        <div className="flex items-center gap-4 mb-4">
-          <Button asChild variant="outline" size="sm">
-            <Link href="/">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Terug
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline" size="sm">
+              <Link href="/">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Terug
+              </Link>
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <Leaf className="w-6 h-6 text-green-600" />
+              <h1 className="text-2xl font-bold text-gray-900">{plant.name}</h1>
+              <Badge className={getStatusColor(plant.status)}>
+                {getStatusLabel(plant.status)}
+              </Badge>
+            </div>
+          </div>
+          
+          {/* Edit Button */}
+          <Button asChild>
+            <Link href={`/gardens/${plant.plant_beds?.gardens?.id}/plant-beds/${plant.plant_bed_id}/plants/${plant.id}/edit`}>
+              <Edit className="w-4 h-4 mr-2" />
+              Bewerken
             </Link>
           </Button>
-          
-          <div className="flex items-center gap-2">
-            <Leaf className="w-6 h-6 text-green-600" />
-            <h1 className="text-2xl font-bold text-gray-900">{plant.name}</h1>
-            <Badge className={getStatusColor(plant.status)}>
-              {getStatusLabel(plant.status)}
-            </Badge>
-          </div>
         </div>
       </div>
 
