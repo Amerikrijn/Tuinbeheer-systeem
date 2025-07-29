@@ -80,22 +80,13 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
       const hasCustomSize = 'visual_width' in plant && plant.visual_width && plant.visual_height
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // FIXED: Use the same canvas size calculation as plantvak-view
+        // EXACT WORKING VERSION: Use the original coordinate system that worked
         
-        // Get the actual canvas size that plantvak-view uses
-        const padding = PLANTVAK_CANVAS_PADDING
-        const minWidth = 600
-        const minHeight = 450
+        // Plantvak canvas dimensions (what plantvak-view uses)
+        const plantvakCanvasWidth = dimensions.lengthPixels * 2   // e.g. 1600px for 10m plantvak
+        const plantvakCanvasHeight = dimensions.widthPixels * 2   // e.g. 320px for 2m plantvak
         
-        let plantvakCanvasWidth = Math.max(minWidth, dimensions.lengthPixels + padding * 2)
-        const plantvakCanvasHeight = Math.max(minHeight, dimensions.widthPixels + padding * 2)
-        
-        // Ensure minimum aspect ratio is maintained (same as plantvak-view)
-        if (plantvakCanvasWidth / plantvakCanvasHeight < 1.2) {
-          plantvakCanvasWidth = plantvakCanvasHeight * 1.2
-        }
-        
-        // Simple percentage calculation based on actual canvas coordinates
+        // Simple percentage calculation based on canvas coordinates
         const percentageX = plant.position_x! / plantvakCanvasWidth
         const percentageY = plant.position_y! / plantvakCanvasHeight
         
@@ -103,9 +94,11 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
         
-        // Better size scaling - make flowers more visible
-        const sizeScale = Math.min(containerWidth / plantvakCanvasWidth, containerHeight / plantvakCanvasHeight)
-        const scaledSize = Math.max(20, Math.min(40, plant.visual_width! * sizeScale * 1.5)) // 1.5x bigger
+        // Size scaling based on container vs plantvak real dimensions
+        const plantvakRealWidth = dimensions.lengthPixels   // e.g. 800px for 10m
+        const plantvakRealHeight = dimensions.widthPixels   // e.g. 160px for 2m
+        const sizeScale = Math.min(containerWidth / plantvakRealWidth, containerHeight / plantvakRealHeight)
+        const scaledSize = Math.max(16, (plant.visual_width! * sizeScale))
         
         instances.push({
           id: `${plant.id}-flower-sync`,
