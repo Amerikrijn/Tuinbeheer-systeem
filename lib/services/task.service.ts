@@ -52,6 +52,8 @@ export class TaskService {
   // Update a task
   static async updateTask(taskId: string, data: UpdateTaskData): Promise<{ data: Task | null; error: string | null }> {
     try {
+      console.log('TaskService.updateTask called:', { taskId, data })
+      
       const updateData: any = { ...data }
       
       // If completing a task, set completed_at timestamp
@@ -61,6 +63,8 @@ export class TaskService {
         updateData.completed_at = null
       }
 
+      console.log('Updating task with data:', { taskId, updateData })
+
       const { data: task, error } = await supabase
         .from('tasks')
         .update(updateData)
@@ -68,7 +72,12 @@ export class TaskService {
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase update error:', error)
+        throw error
+      }
+      
+      console.log('Task updated successfully:', task)
       return { data: task, error: null }
     } catch (error) {
       console.error('Error updating task:', error)
