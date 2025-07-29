@@ -76,17 +76,35 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
   // Complete/uncomplete task with consistent reordering
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
     try {
+      // Optimistic update - update the calendar state immediately for better UX
+      if (calendar) {
+        const updatedCalendar = { ...calendar }
+        updatedCalendar.days = updatedCalendar.days.map(day => ({
+          ...day,
+          tasks: day.tasks.map(task => 
+            task.id === taskId 
+              ? { ...task, completed, completed_at: completed ? new Date().toISOString() : undefined }
+              : task
+          )
+        }))
+        setCalendar(updatedCalendar)
+      }
+
       const { error } = await TaskService.updateTask(taskId, { completed })
       
       if (error) {
         console.error('Error updating task:', error)
+        // Revert optimistic update on error
+        await loadWeeklyCalendar(currentWeekStart)
         return
       }
       
-      // Reload calendar to get updated sorting
+      // Reload calendar to get updated sorting and ensure data consistency
       await loadWeeklyCalendar(currentWeekStart)
     } catch (err) {
       console.error('Error completing task:', err)
+      // Revert optimistic update on error
+      await loadWeeklyCalendar(currentWeekStart)
     }
   }
 
@@ -118,14 +136,14 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     const priorityConfig = getPriorityConfig(task.priority)
     
     return (
-      <Card className={`mb-3 ${task.completed ? 'opacity-60' : ''} ${compact ? 'p-2' : ''}`}>
+      <Card className={`mb-3 transition-all duration-200 ${task.completed ? 'opacity-70 bg-gray-50 border-gray-300' : 'bg-white border-gray-200'} ${compact ? 'p-2' : ''}`}>
         <CardContent className={compact ? 'p-3' : 'p-4'}>
           <div className="flex items-start gap-3">
-            {/* Checkbox */}
+            {/* Enhanced Checkbox with better styling */}
             <Checkbox
               checked={task.completed}
               onCheckedChange={(checked) => handleTaskComplete(task.id, !!checked)}
-              className="mt-1"
+              className={`mt-1 transition-all duration-200 ${task.completed ? 'data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600' : ''}`}
             />
             
             <div className="flex-1 min-w-0">
@@ -145,49 +163,78 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 <span className="text-gray-800 font-medium">{task.plant_name}</span>
               </div>
 
-              {/* Task title */}
+              {/* Task title with better completed styling */}
               <div className="flex items-start gap-2 mb-2">
-                <span className="text-lg">{taskTypeConfig?.icon || '📝'}</span>
+                <span className={`text-lg transition-all duration-200 ${task.completed ? 'opacity-60' : ''}`}>
+                  {taskTypeConfig?.icon || '📝'}
+                </span>
                 <div className="flex-1">
-                  <h4 className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                  <h4 className={`font-medium transition-all duration-200 ${
+                    task.completed 
+                      ? 'line-through text-gray-500' 
+                      : 'text-gray-900'
+                  }`}>
                     {task.title}
                   </h4>
                   {task.description && (
-                    <p className="text-sm text-gray-600 mt-1">{task.description}</p>
+                    <p className={`text-sm mt-1 transition-all duration-200 ${
+                      task.completed ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      {task.description}
+                    </p>
                   )}
                 </div>
               </div>
 
-              {/* Task metadata */}
+              {/* Task metadata with improved completed state styling */}
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Priority badge */}
                 <Badge 
                   variant="secondary" 
-                  className={priorityConfig?.badge_color || 'bg-gray-100 text-gray-800'}
+                  className={`transition-all duration-200 ${
+                    task.completed 
+                      ? 'opacity-60 bg-gray-200 text-gray-500' 
+                      : priorityConfig?.badge_color || 'bg-gray-100 text-gray-800'
+                  }`}
                 >
                   {priorityConfig?.label || task.priority}
                 </Badge>
 
                 {/* Task type badge */}
-                <Badge variant="outline" className="text-xs">
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs transition-all duration-200 ${
+                    task.completed ? 'opacity-60 border-gray-300 text-gray-400' : ''
+                  }`}
+                >
                   {taskTypeConfig?.label || task.task_type}
                 </Badge>
 
                 {/* Due date */}
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className={`flex items-center gap-1 text-xs transition-all duration-200 ${
+                  task.completed ? 'text-gray-400' : 'text-gray-500'
+                }`}>
                   <Clock className="w-3 h-3" />
                   {formatTaskDate(task.due_date)}
                 </div>
 
-                {/* Status indicator */}
-                {task.status_category === 'overdue' && !task.completed && (
+                {/* Completed indicator */}
+                {task.completed && (
+                  <Badge className="bg-green-100 text-green-800 text-xs">
+                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                    Voltooid
+                  </Badge>
+                )}
+
+                {/* Status indicator - only show for non-completed tasks */}
+                {!task.completed && task.status_category === 'overdue' && (
                   <Badge variant="destructive" className="text-xs">
                     <AlertCircle className="w-3 h-3 mr-1" />
                     Verlopen
                   </Badge>
                 )}
                 
-                {task.status_category === 'today' && !task.completed && (
+                {!task.completed && task.status_category === 'today' && (
                   <Badge className="bg-orange-100 text-orange-800 text-xs">
                     <Clock className="w-3 h-3 mr-1" />
                     Vandaag
