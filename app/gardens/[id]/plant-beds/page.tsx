@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useNavigation } from "@/hooks/use-navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -14,7 +15,7 @@ import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 
 export default function PlantBedsPage() {
-  const router = useRouter()
+  const { goBack, navigateTo } = useNavigation()
   const params = useParams()
   const { toast } = useToast()
   const [garden, setGarden] = useState<Garden | null>(null)
@@ -118,9 +119,9 @@ export default function PlantBedsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push("/gardens")} className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={goBack} className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Tuinen
+            Terug
           </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
@@ -225,7 +226,7 @@ export default function PlantBedsPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => router.push(`/gardens/${garden.id}/plantvak-view/${bed.id}`)}
+                    onClick={() => navigateTo(`/gardens/${garden.id}/plantvak-view/${bed.id}`)}
                     className="flex-1"
                   >
                     <Eye className="h-4 w-4 mr-1" />
@@ -234,7 +235,7 @@ export default function PlantBedsPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => router.push(`/gardens/${garden.id}/plant-beds/${bed.id}/plants`)}
+                    onClick={() => navigateTo(`/gardens/${garden.id}/plant-beds/${bed.id}/plants`)}
                   >
                     <Leaf className="h-4 w-4" />
                   </Button>

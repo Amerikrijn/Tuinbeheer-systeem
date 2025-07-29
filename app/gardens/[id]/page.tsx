@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useParams } from "next/navigation"
+import { useNavigation } from "@/hooks/use-navigation"
+import { useViewPreference } from "@/hooks/use-view-preference"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -54,14 +56,14 @@ interface PlantBedPosition {
 }
 
 export default function GardenDetailPage() {
-  const router = useRouter()
+  const { goBack, navigateTo } = useNavigation()
+  const { isVisualView, toggleView, isInitialized } = useViewPreference()
   const params = useParams()
   // toast removed - no more notifications
   const [garden, setGarden] = useState<Garden | null>(null)
   const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])
   const [loading, setLoading] = useState(true)
   const [scale, setScale] = useState(1)
-  const [showVisualView, setShowVisualView] = useState(true)
   const [selectedBed, setSelectedBed] = useState<string | null>(null)
   
   // Enhanced drag state for better plant bed editing
@@ -456,8 +458,8 @@ export default function GardenDetailPage() {
     setIsDragMode(false)
     setSelectedBed(null)
     
-    router.push(`/gardens/${garden?.id}/plantvak-view/${bedId}`)
-  }, [router, garden])
+    navigateTo(`/gardens/${garden?.id}/plantvak-view/${bedId}`)
+  }, [navigateTo, garden])
 
   // Handle drag move - unified for mouse and touch with improved boundaries
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
@@ -989,7 +991,7 @@ export default function GardenDetailPage() {
           <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
           <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
-          <Button onClick={() => router.push("/gardens")} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={() => navigateTo("/gardens")} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar Tuinen
           </Button>
@@ -999,54 +1001,54 @@ export default function GardenDetailPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
+    <div className="container mx-auto p-4 space-y-4">
+      {/* Compact Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/gardens")}
-            className="flex items-center gap-2"
+            onClick={goBack}
+            className="flex items-center gap-1 px-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Terug
           </Button>
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <TreePine className="h-8 w-8 text-green-600" />
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <TreePine className="h-6 w-6 text-green-600" />
               {garden.name}
             </h1>
             {(garden.total_area || (garden.length && garden.width)) && (
-              <p className="text-gray-600">
-                <span className="text-sm font-medium text-green-600">
-                  • Afmetingen: {garden.length}m × {garden.width}m • Oppervlakte: {garden.total_area || 
-                    (garden.length && garden.width && 
-                      `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
-                    )
-                  }
-                </span>
+              <p className="text-xs text-gray-600">
+                {garden.length}m × {garden.width}m • {garden.total_area || 
+                  (garden.length && garden.width && 
+                    `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
+                  )
+                }
               </p>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsEditingGarden(true)}
+            className="px-2"
           >
-            <Edit className="h-4 w-4 mr-2" />
-            Tuin Bewerken
+            <Edit className="h-4 w-4 mr-1" />
+            Bewerken
           </Button>
           
           <Button
-            variant={showVisualView ? "default" : "outline"}
+            variant={isVisualView ? "default" : "outline"}
             size="sm"
-            onClick={() => setShowVisualView(!showVisualView)}
+            onClick={toggleView}
+            className="px-2"
           >
-            <Grid3X3 className="h-4 w-4 mr-2" />
-            {showVisualView ? "Lijst Weergave" : "Visuele Weergave"}
+            <Grid3X3 className="h-4 w-4 mr-1" />
+            {isVisualView ? "Lijst" : "Visueel"}
           </Button>
           
           <Dialog open={isAddingPlantBed} onOpenChange={(open) => {
@@ -1064,9 +1066,9 @@ export default function GardenDetailPage() {
             setIsAddingPlantBed(open)
           }}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Plantvak Toevoegen
+              <Button variant="outline" size="sm" className="px-2">
+                <Plus className="h-4 w-4 mr-1" />
+                Toevoegen
               </Button>
             </DialogTrigger>
             <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
@@ -1193,7 +1195,7 @@ export default function GardenDetailPage() {
         </div>
       </div>
 
-      {showVisualView ? (
+      {isVisualView ? (
         /* Visual Garden Layout */
         <Card>
           <CardHeader>
