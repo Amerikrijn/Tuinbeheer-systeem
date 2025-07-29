@@ -6,6 +6,9 @@ import type {
   Bloem, 
   PlantvakWithBloemen, 
   TuinWithPlantvakken,
+  LogbookEntry,
+  LogbookEntryWithDetails,
+  LogbookEntryFormData,
   ApiResponse,
   PaginatedResponse,
   SearchFilters,
@@ -403,8 +406,420 @@ export class TuinService {
   }
 }
 
+/**
+ * Logbook Service
+ * Handles all logbook entry operations with comprehensive logging and error handling
+ */
+export class LogbookService {
+  /**
+   * Create a new logbook entry
+   */
+  static async create(formData: LogbookEntryFormData): Promise<ApiResponse<LogbookEntry>> {
+    const operationId = `logbook-create-${Date.now()}`
+    const performanceTimer = PerformanceLogger.startTimer()
+    
+    try {
+      await validateConnection()
+      
+      // Validate required fields
+      if (!formData.plant_bed_id) {
+        throw new ValidationError('Plant bed ID is required', 'plant_bed_id')
+      }
+      if (!formData.notes?.trim()) {
+        throw new ValidationError('Notes are required', 'notes')
+      }
+      if (!formData.entry_date) {
+        throw new ValidationError('Entry date is required', 'entry_date')
+      }
+
+      // Verify plant bed exists
+      const { data: plantBed, error: plantBedError } = await supabase
+        .from('plant_beds')
+        .select('id, name')
+        .eq('id', formData.plant_bed_id)
+        .eq('is_active', true)
+        .single()
+
+      if (plantBedError || !plantBed) {
+        throw new NotFoundError('Plant bed', formData.plant_bed_id)
+      }
+
+      // If plant_id is provided, verify it exists and belongs to the plant bed
+      if (formData.plant_id) {
+        const { data: plant, error: plantError } = await supabase
+          .from('plants')
+          .select('id, name')
+          .eq('id', formData.plant_id)
+          .eq('plant_bed_id', formData.plant_bed_id)
+          .single()
+
+        if (plantError || !plant) {
+          throw new NotFoundError('Plant', formData.plant_id)
+        }
+      }
+
+      const logbookData = {
+        plant_bed_id: formData.plant_bed_id,
+        plant_id: formData.plant_id || null,
+        entry_date: formData.entry_date,
+        notes: formData.notes.trim(),
+        photo_url: null // Will be updated after photo upload if provided
+      }
+
+      const { data, error } = await supabase
+        .from('logbook_entries')
+        .insert([logbookData])
+        .select()
+        .single()
+
+      if (error) {
+        throw new DatabaseError('Failed to create logbook entry', error.code, error)
+      }
+
+      AuditLogger.logDataChange('CREATE', 'logbook_entries', data.id, logbookData)
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-create')
+      
+      databaseLogger.info('Logbook entry created successfully', { 
+        id: data.id, 
+        plant_bed_id: formData.plant_bed_id,
+        plant_id: formData.plant_id,
+        operationId 
+      })
+
+      return createResponse<LogbookEntry>(data, null, 'create logbook entry')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-create', true)
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError) {
+        databaseLogger.warn('Logbook entry creation validation failed', error, { formData, operationId })
+        return createResponse<LogbookEntry>(null, error.message, 'create logbook entry')
+      }
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in LogbookService.create', error, { formData, operationId })
+        return createResponse<LogbookEntry>(null, error.message, 'create logbook entry')
+      }
+      
+      databaseLogger.error('Unexpected error in LogbookService.create', error as Error, { formData, operationId })
+      return createResponse<LogbookEntry>(null, 'An unexpected error occurred', 'create logbook entry')
+    }
+  }
+
+  /**
+   * Get all logbook entries with details, sorted by date (newest first)
+   */
+  static async getAll(filters?: {
+    plant_bed_id?: string
+    plant_id?: string
+    garden_id?: string
+    limit?: number
+    offset?: number
+  }): Promise<ApiResponse<LogbookEntryWithDetails[]>> {
+    const operationId = `logbook-getAll-${Date.now()}`
+    const performanceTimer = PerformanceLogger.startTimer()
+    
+    try {
+      await validateConnection()
+      
+      let query = supabase
+        .from('logbook_entries_with_details')
+        .select('*')
+        .order('entry_date', { ascending: false })
+        .order('created_at', { ascending: false })
+
+      // Apply filters
+      if (filters?.plant_bed_id) {
+        query = query.eq('plant_bed_id', filters.plant_bed_id)
+      }
+      if (filters?.plant_id) {
+        query = query.eq('plant_id', filters.plant_id)
+      }
+      if (filters?.garden_id) {
+        query = query.eq('garden_id', filters.garden_id)
+      }
+      if (filters?.limit) {
+        query = query.limit(filters.limit)
+      }
+      if (filters?.offset) {
+        query = query.range(filters.offset, (filters.offset + (filters.limit || 50)) - 1)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        throw new DatabaseError('Failed to fetch logbook entries', error.code, error)
+      }
+
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-getAll')
+      
+      databaseLogger.debug('Logbook entries fetched successfully', { 
+        count: data?.length || 0,
+        filters,
+        operationId 
+      })
+
+      return createResponse<LogbookEntryWithDetails[]>(data || [], null, 'fetch logbook entries')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-getAll', true)
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in LogbookService.getAll', error, { filters, operationId })
+        return createResponse<LogbookEntryWithDetails[]>(null, error.message, 'fetch logbook entries')
+      }
+      
+      databaseLogger.error('Unexpected error in LogbookService.getAll', error as Error, { filters, operationId })
+      return createResponse<LogbookEntryWithDetails[]>(null, 'An unexpected error occurred', 'fetch logbook entries')
+    }
+  }
+
+  /**
+   * Get a single logbook entry by ID
+   */
+  static async getById(id: string): Promise<ApiResponse<LogbookEntryWithDetails>> {
+    const operationId = `logbook-getById-${Date.now()}`
+    const performanceTimer = PerformanceLogger.startTimer()
+    
+    try {
+      await validateConnection()
+      
+      if (!id) {
+        throw new ValidationError('Logbook entry ID is required', 'id')
+      }
+
+      const { data, error } = await supabase
+        .from('logbook_entries_with_details')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          throw new NotFoundError('Logbook entry', id)
+        }
+        throw new DatabaseError('Failed to fetch logbook entry', error.code, error)
+      }
+
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-getById')
+      
+      databaseLogger.debug('Logbook entry fetched successfully', { id, operationId })
+
+      return createResponse<LogbookEntryWithDetails>(data, null, 'fetch logbook entry')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-getById', true)
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError) {
+        databaseLogger.warn('Logbook entry fetch validation failed', error, { id, operationId })
+        return createResponse<LogbookEntryWithDetails>(null, error.message, 'fetch logbook entry')
+      }
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in LogbookService.getById', error, { id, operationId })
+        return createResponse<LogbookEntryWithDetails>(null, error.message, 'fetch logbook entry')
+      }
+      
+      databaseLogger.error('Unexpected error in LogbookService.getById', error as Error, { id, operationId })
+      return createResponse<LogbookEntryWithDetails>(null, 'An unexpected error occurred', 'fetch logbook entry')
+    }
+  }
+
+  /**
+   * Update a logbook entry
+   */
+  static async update(id: string, formData: Partial<LogbookEntryFormData>): Promise<ApiResponse<LogbookEntry>> {
+    const operationId = `logbook-update-${Date.now()}`
+    const performanceTimer = PerformanceLogger.startTimer()
+    
+    try {
+      await validateConnection()
+      
+      if (!id) {
+        throw new ValidationError('Logbook entry ID is required', 'id')
+      }
+
+      // Get existing entry
+      const { data: existing, error: fetchError } = await supabase
+        .from('logbook_entries')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (fetchError || !existing) {
+        throw new NotFoundError('Logbook entry', id)
+      }
+
+      const updateData: Record<string, any> = {}
+      
+      if (formData.notes !== undefined) {
+        if (!formData.notes.trim()) {
+          throw new ValidationError('Notes cannot be empty', 'notes')
+        }
+        updateData.notes = formData.notes.trim()
+      }
+      
+      if (formData.entry_date !== undefined) {
+        updateData.entry_date = formData.entry_date
+      }
+
+      // Only update if there are changes
+      if (Object.keys(updateData).length === 0) {
+        return createResponse<LogbookEntry>(existing, null, 'update logbook entry (no changes)')
+      }
+
+      const { data, error } = await supabase
+        .from('logbook_entries')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        throw new DatabaseError('Failed to update logbook entry', error.code, error)
+      }
+
+      AuditLogger.logDataChange('UPDATE', 'logbook_entries', id, updateData, existing)
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-update')
+      
+      databaseLogger.info('Logbook entry updated successfully', { id, updateData, operationId })
+
+      return createResponse<LogbookEntry>(data, null, 'update logbook entry')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-update', true)
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError) {
+        databaseLogger.warn('Logbook entry update validation failed', error, { id, formData, operationId })
+        return createResponse<LogbookEntry>(null, error.message, 'update logbook entry')
+      }
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in LogbookService.update', error, { id, formData, operationId })
+        return createResponse<LogbookEntry>(null, error.message, 'update logbook entry')
+      }
+      
+      databaseLogger.error('Unexpected error in LogbookService.update', error as Error, { id, formData, operationId })
+      return createResponse<LogbookEntry>(null, 'An unexpected error occurred', 'update logbook entry')
+    }
+  }
+
+  /**
+   * Delete a logbook entry
+   */
+  static async delete(id: string): Promise<ApiResponse<boolean>> {
+    const operationId = `logbook-delete-${Date.now()}`
+    const performanceTimer = PerformanceLogger.startTimer()
+    
+    try {
+      await validateConnection()
+      
+      if (!id) {
+        throw new ValidationError('Logbook entry ID is required', 'id')
+      }
+
+      // Verify entry exists
+      const { data: existing, error: fetchError } = await supabase
+        .from('logbook_entries')
+        .select('id, notes')
+        .eq('id', id)
+        .single()
+
+      if (fetchError || !existing) {
+        throw new NotFoundError('Logbook entry', id)
+      }
+
+      const { error } = await supabase
+        .from('logbook_entries')
+        .delete()
+        .eq('id', id)
+
+      if (error) {
+        throw new DatabaseError('Failed to delete logbook entry', error.code, error)
+      }
+
+      AuditLogger.logDataChange('DELETE', 'logbook_entries', id, null, existing)
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-delete')
+      
+      databaseLogger.info('Logbook entry deleted successfully', { id, operationId })
+
+      return createResponse<boolean>(true, null, 'delete logbook entry')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-delete', true)
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError) {
+        databaseLogger.warn('Logbook entry deletion validation failed', error, { id, operationId })
+        return createResponse<boolean>(false, error.message, 'delete logbook entry')
+      }
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in LogbookService.delete', error, { id, operationId })
+        return createResponse<boolean>(false, error.message, 'delete logbook entry')
+      }
+      
+      databaseLogger.error('Unexpected error in LogbookService.delete', error as Error, { id, operationId })
+      return createResponse<boolean>(false, 'An unexpected error occurred', 'delete logbook entry')
+    }
+  }
+
+  /**
+   * Update photo URL for a logbook entry
+   */
+  static async updatePhotoUrl(id: string, photoUrl: string | null): Promise<ApiResponse<LogbookEntry>> {
+    const operationId = `logbook-updatePhoto-${Date.now()}`
+    const performanceTimer = PerformanceLogger.startTimer()
+    
+    try {
+      await validateConnection()
+      
+      if (!id) {
+        throw new ValidationError('Logbook entry ID is required', 'id')
+      }
+
+      const { data, error } = await supabase
+        .from('logbook_entries')
+        .update({ photo_url: photoUrl })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          throw new NotFoundError('Logbook entry', id)
+        }
+        throw new DatabaseError('Failed to update logbook entry photo', error.code, error)
+      }
+
+      AuditLogger.logDataChange('UPDATE', 'logbook_entries', id, { photo_url: photoUrl })
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-updatePhoto')
+      
+      databaseLogger.info('Logbook entry photo updated successfully', { id, photoUrl, operationId })
+
+      return createResponse<LogbookEntry>(data, null, 'update logbook entry photo')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(performanceTimer, 'logbook-updatePhoto', true)
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError) {
+        databaseLogger.warn('Logbook entry photo update validation failed', error, { id, photoUrl, operationId })
+        return createResponse<LogbookEntry>(null, error.message, 'update logbook entry photo')
+      }
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in LogbookService.updatePhotoUrl', error, { id, photoUrl, operationId })
+        return createResponse<LogbookEntry>(null, error.message, 'update logbook entry photo')
+      }
+      
+      databaseLogger.error('Unexpected error in LogbookService.updatePhotoUrl', error as Error, { id, photoUrl, operationId })
+      return createResponse<LogbookEntry>(null, 'An unexpected error occurred', 'update logbook entry photo')
+    }
+  }
+}
+
 // For backward compatibility, create a unified DatabaseService
 export const DatabaseService = {
   Tuin: TuinService,
+  Logbook: LogbookService,
   // TODO: Add PlantvakService and BloemService following the same pattern
 }

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, TreePine, Plus, Search, Eye, Leaf, Sun, MapPin, Grid3X3 } from "lucide-react"
+import { ArrowLeft, TreePine, Plus, Search, Eye, Leaf, Sun, MapPin, Grid3X3, BookOpen } from "lucide-react"
 import { getGarden, getPlantBeds } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
@@ -294,6 +294,14 @@ export default function PlantBedsPage() {
                     >
                       <Leaf className="h-4 w-4" />
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => navigateTo(`/logbook/new?plant_bed_id=${bed.id}`)}
+                      title="Logboek entry toevoegen"
+                    >
+                      <BookOpen className="h-4 w-4" />
+                    </Button>
                   </div>
                 ) : (
                   <div className="flex gap-1 justify-end mt-3 pt-2 border-t border-gray-100">
@@ -312,6 +320,15 @@ export default function PlantBedsPage() {
                       className="px-2 h-7"
                     >
                       <Leaf className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => navigateTo(`/logbook/new?plant_bed_id=${bed.id}`)}
+                      className="px-2 h-7"
+                      title="Logboek entry toevoegen"
+                    >
+                      <BookOpen className="h-3 w-3" />
                     </Button>
                   </div>
                 )}

@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Leaf, Plus, Search, Eye, Edit, Trash2, Calendar, AlertTriangle, CheckCircle, Grid3X3 } from "lucide-react"
+import { ArrowLeft, Leaf, Plus, Search, Eye, Edit, Trash2, Calendar, AlertTriangle, CheckCircle, Grid3X3, BookOpen } from "lucide-react"
 import { getGarden, getPlantBed, deletePlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
@@ -382,6 +382,16 @@ export default function PlantBedPlantsPage() {
                       <Calendar className="h-3 w-3 mr-1" />
                       Taak
                     </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigateTo(`/logbook/new?plant_bed_id=${plantBed.id}&plant_id=${plant.id}`)}
+                      className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                      title="Logboek entry toevoegen"
+                    >
+                      <BookOpen className="h-3 w-3 mr-1" />
+                      Logboek
+                    </Button>
                     <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}/edit`}>
                       <Button variant="outline" size="sm">
                         <Edit className="h-3 w-3 mr-1" />
@@ -414,6 +424,15 @@ export default function PlantBedPlantsPage() {
                       className="px-2 h-7 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
                     >
                       <Calendar className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigateTo(`/logbook/new?plant_bed_id=${plantBed.id}&plant_id=${plant.id}`)}
+                      className="px-2 h-7 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                      title="Logboek entry toevoegen"
+                    >
+                      <BookOpen className="h-3 w-3" />
                     </Button>
                     <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}/edit`}>
                       <Button variant="outline" size="sm" className="px-2 h-7">
