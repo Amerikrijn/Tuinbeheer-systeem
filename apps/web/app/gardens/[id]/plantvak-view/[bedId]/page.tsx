@@ -1799,7 +1799,7 @@ export default function PlantBedViewPage() {
                 {/* Minimale velden - altijd zichtbaar */}
                 <div className="grid gap-2">
                   <label htmlFor="name" className="text-sm font-medium">
-                    Bloemnaam *
+                    Bloemnaam * (NIEUWE LAYOUT)
                   </label>
                   <Input
                     id="name"
