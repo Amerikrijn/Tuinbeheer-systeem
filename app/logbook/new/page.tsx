@@ -56,10 +56,7 @@ function NewLogbookPageContent() {
       setState(prev => ({ ...prev, loading: true, error: null }))
       
       // Load plant beds
-      const plantBedsResponse = await getPlantBeds()
-      if (!plantBedsResponse.success) {
-        throw new Error(plantBedsResponse.error || 'Failed to load plant beds')
-      }
+      const plantBeds = await getPlantBeds()
 
       // Load plants if a plant bed is selected
       let plants: Bloem[] = []
@@ -72,13 +69,13 @@ function NewLogbookPageContent() {
 
       setState(prev => ({
         ...prev,
-        plantBeds: plantBedsResponse.data || [],
+        plantBeds: plantBeds || [],
         plants,
         loading: false
       }))
 
       uiLogger.debug('New logbook data loaded successfully', { 
-        plantBedsCount: plantBedsResponse.data?.length || 0,
+        plantBedsCount: plantBeds?.length || 0,
         plantsCount: plants.length,
         operationId 
       })
