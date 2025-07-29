@@ -1273,9 +1273,6 @@ export default function GardenDetailPage() {
                     bedWidth = dims.width
                     bedHeight = dims.height
                     
-                    console.log(`🎯 RENDERING ${bed.name}: ${bed.size} -> ${bedWidth}px x ${bedHeight}px (stored: ${bed.visual_width}x${bed.visual_height})`)
-                  } else {
-                    console.log("⚠️ Plantvak zonder size:", bed.name, "using default 2x2m")
                   }
 
                   return (

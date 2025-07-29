@@ -84,35 +84,25 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // ROLLBACK: Terug naar absolute pixels (percentage systeem gefaald)
+        // FIXED: Correct coordinate transformation from plantvak-view to garden view
         
-        // Plantvak canvas dimensions (wat plantvak-view gebruikt)
-        const plantvakCanvasWidth = dimensions.lengthPixels * 2   // e.g. 1600px for 10m plantvak
-        const plantvakCanvasHeight = dimensions.widthPixels * 2   // e.g. 320px for 2m plantvak
+        // Plantvak canvas dimensions (what plantvak-view uses internally)
+        const plantvakCanvasWidth = dimensions.lengthPixels + (PLANTVAK_CANVAS_PADDING * 2)
+        const plantvakCanvasHeight = dimensions.widthPixels + (PLANTVAK_CANVAS_PADDING * 2)
         
-        // Simpele percentage berekening op basis van canvas coordinaten
+        // Convert absolute pixel positions to relative percentages
         const percentageX = plant.position_x! / plantvakCanvasWidth
         const percentageY = plant.position_y! / plantvakCanvasHeight
         
-        // Apply percentage to tuin container
+        // Apply percentage to the garden container (which represents the plantvak)
         const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
         
-        // DEBUG: Log coordinate transformation
-        console.log('🔍 GARDEN COORDINATE DEBUG:', {
-          plantName: plant.name,
-          storedPosition: { x: plant.position_x, y: plant.position_y },
-          plantvakCanvas: { w: plantvakCanvasWidth, h: plantvakCanvasHeight },
-          percentage: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
-          containerSize: { w: containerWidth, h: containerHeight },
-          finalPosition: { x: finalX.toFixed(1), y: finalY.toFixed(1) }
-        })
-        
-        // Size scaling based on container vs plantvak real dimensions
-        const plantvakRealWidth = dimensions.lengthPixels   // e.g. 800px for 10m
-        const plantvakRealHeight = dimensions.widthPixels   // e.g. 160px for 2m
-        const sizeScale = Math.min(containerWidth / plantvakRealWidth, containerHeight / plantvakRealHeight)
-        const scaledSize = Math.max(16, (plant.visual_width! * sizeScale))
+        // Size scaling - scale the flower size to match the container
+        const sizeScaleX = containerWidth / plantvakCanvasWidth
+        const sizeScaleY = containerHeight / plantvakCanvasHeight
+        const sizeScale = Math.min(sizeScaleX, sizeScaleY)
+        const scaledSize = Math.max(12, Math.min(30, plant.visual_width! * sizeScale))
         
         instances.push({
           id: `${plant.id}-flower-sync`,
