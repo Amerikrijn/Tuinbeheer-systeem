@@ -335,24 +335,43 @@ export default function PlantBedPlantsPage() {
                   </>
                 ) : (
                   // List view - compact content
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <div className="flex items-center gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-4 text-sm">
-                            {plant.variety && <span className="text-gray-600 truncate">Variëteit: {plant.variety}</span>}
-                            {plant.color && <span className="text-gray-600">Kleur: {plant.color}</span>}
-                          </div>
-                          <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-                            {plant.height && <span>Hoogte: {plant.height}cm</span>}
-                            {plant.watering_frequency && <span>Water: {plant.watering_frequency}x/week</span>}
-                            {plant.planting_date && (
-                              <span>Geplant: {new Date(plant.planting_date).toLocaleDateString("nl-NL", { month: 'short', day: 'numeric' })}</span>
-                            )}
-                          </div>
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                      {plant.variety && (
+                        <div className="truncate">
+                          <span className="text-gray-500 text-xs">Variëteit:</span>
+                          <div className="text-gray-700 font-medium truncate">{plant.variety}</div>
                         </div>
-                      </div>
+                      )}
+                      {plant.color && (
+                        <div className="truncate">
+                          <span className="text-gray-500 text-xs">Kleur:</span>
+                          <div className="text-gray-700 font-medium truncate">{plant.color}</div>
+                        </div>
+                      )}
+                      {plant.height && (
+                        <div className="truncate">
+                          <span className="text-gray-500 text-xs">Hoogte:</span>
+                          <div className="text-gray-700 font-medium">{plant.height}cm</div>
+                        </div>
+                      )}
+                      {plant.watering_frequency && (
+                        <div className="truncate">
+                          <span className="text-gray-500 text-xs">Water:</span>
+                          <div className="text-gray-700 font-medium">{plant.watering_frequency}x/week</div>
+                        </div>
+                      )}
                     </div>
+                    
+                    {plant.planting_date && (
+                      <div className="text-xs text-gray-500">
+                        Geplant: {new Date(plant.planting_date).toLocaleDateString("nl-NL", { 
+                          year: 'numeric', 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -394,9 +413,9 @@ export default function PlantBedPlantsPage() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex gap-1 flex-shrink-0 mt-2">
+                  <div className="flex justify-end gap-1 mt-3 pt-2 border-t border-gray-100">
                     <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}`}>
-                      <Button variant="outline" size="sm" className="px-2">
+                      <Button variant="outline" size="sm" className="px-2 h-7">
                         <Eye className="h-3 w-3" />
                       </Button>
                     </Link>
@@ -407,12 +426,12 @@ export default function PlantBedPlantsPage() {
                         setSelectedPlantId(plant.id)
                         setShowAddTask(true)
                       }}
-                      className="px-2 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                      className="px-2 h-7 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
                     >
                       <Calendar className="h-3 w-3" />
                     </Button>
                     <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}/edit`}>
-                      <Button variant="outline" size="sm" className="px-2">
+                      <Button variant="outline" size="sm" className="px-2 h-7">
                         <Edit className="h-3 w-3" />
                       </Button>
                     </Link>
@@ -420,7 +439,7 @@ export default function PlantBedPlantsPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeletePlant(plant.id, plant.name)}
-                      className="px-2 text-red-600 hover:text-red-700"
+                      className="px-2 h-7 text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -476,7 +495,7 @@ export default function PlantBedPlantsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {plantBed.plants.filter((p) => p.status === "harvested").length}
+                  {plantBed.plants.filter((p) => p.status === "geoogst").length}
                 </div>
                 <div className="text-sm text-gray-600">Geoogst</div>
               </div>

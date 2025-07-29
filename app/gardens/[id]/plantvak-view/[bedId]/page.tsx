@@ -755,7 +755,7 @@ export default function PlantBedViewPage() {
         plant_bed_id: plantBed.id,
         name: newFlower.name,
         color: newFlower.plantColor || '#FF69B4',
-        status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
+        status: dbStatus as "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst",
         position_x: initialX,
         position_y: initialY,
         visual_width: flowerSize,
@@ -816,7 +816,7 @@ export default function PlantBedViewPage() {
       const updatedPlant = await updatePlantPosition(selectedFlower.id, {
         name: newFlower.name,
         color: newFlower.plantColor || '#FF69B4',
-        status: dbStatus as "healthy" | "needs_attention" | "diseased" | "dead" | "harvested",
+        status: dbStatus as "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst",
         emoji: newFlower.emoji,
         photo_url: null,
         is_custom: !newFlower.isStandardFlower,
@@ -3065,8 +3065,16 @@ export default function PlantBedViewPage() {
                                   type="checkbox"
                                   checked={task.completed}
                                   onChange={(e) => handleTaskComplete(task.id, e.target.checked)}
-                                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                  disabled={updatingTasks.has(task.id)}
+                                  className={`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 transition-opacity ${
+                                    updatingTasks.has(task.id) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                                  }`}
                                 />
+                                {updatingTasks.has(task.id) && (
+                                  <div className="absolute mt-1 ml-1">
+                                    <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                  </div>
+                                )}
                               </div>
                               
                               {/* Task Content */}
