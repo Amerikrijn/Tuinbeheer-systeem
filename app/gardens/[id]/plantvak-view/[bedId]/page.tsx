@@ -239,6 +239,7 @@ export default function PlantBedViewPage() {
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [showAddTask, setShowAddTask] = useState(false)
   const [selectedTaskPlantId, setSelectedTaskPlantId] = useState<string | undefined>()
+  const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set())
   
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -294,15 +295,10 @@ export default function PlantBedViewPage() {
 
   // Consistent task completion handler with automatic reordering
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
+    // Add task to updating set for visual feedback
+    setUpdatingTasks(prev => new Set(prev).add(taskId))
+    
     try {
-      // Update task in database
-      const { error } = await TaskService.updateTask(taskId, { completed })
-      
-      if (error) {
-        console.error('Error updating task:', error)
-        return
-      }
-      
       // Immediately update local state for responsive UI
       setTasks(prevTasks => {
         const updatedTasks = prevTasks.map(task => 
@@ -320,15 +316,45 @@ export default function PlantBedViewPage() {
         })
       })
       
-      // Reload tasks after a short delay to ensure consistency
-      setTimeout(() => {
-        loadTasks()
-      }, 500)
+      // Update task in database
+      const { error } = await TaskService.updateTask(taskId, { completed })
+      
+      if (error) {
+        console.error('Error updating task:', error)
+        // Revert the optimistic update
+        setTasks(prevTasks => {
+          const revertedTasks = prevTasks.map(task => 
+            task.id === taskId ? { ...task, completed: !completed, completed_at: !completed ? new Date().toISOString() : undefined } : task
+          )
+          return revertedTasks.sort((a, b) => {
+            if (a.completed && !b.completed) return 1
+            if (!a.completed && b.completed) return -1
+            return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+          })
+        })
+        return
+      }
       
     } catch (error) {
       console.error('Error completing task:', error)
-      // Reload tasks to restore correct state on error
-      loadTasks()
+      // Revert optimistic update on error
+      setTasks(prevTasks => {
+        const revertedTasks = prevTasks.map(task => 
+          task.id === taskId ? { ...task, completed: !completed, completed_at: !completed ? new Date().toISOString() : undefined } : task
+        )
+        return revertedTasks.sort((a, b) => {
+          if (a.completed && !b.completed) return 1
+          if (!a.completed && b.completed) return -1
+          return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+        })
+      })
+    } finally {
+      // Remove task from updating set
+      setUpdatingTasks(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(taskId)
+        return newSet
+      })
     }
   }
 
