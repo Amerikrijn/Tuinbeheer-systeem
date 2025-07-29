@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Calendar, Camera, Upload, X, Loader2 } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
-import { getPlantBeds, getPlants } from "@/lib/database"
+import { getPlantBeds, getPlantBed } from "@/lib/database"
 import { uiLogger } from "@/lib/logger"
 import type { LogbookEntryFormData, Plantvak, Bloem } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -64,9 +64,9 @@ function NewLogbookPageContent() {
       // Load plants if a plant bed is selected
       let plants: Bloem[] = []
       if (state.formData.plant_bed_id) {
-        const plantsResponse = await getPlants(state.formData.plant_bed_id)
-        if (plantsResponse.success && plantsResponse.data) {
-          plants = plantsResponse.data
+        const plantBedWithPlants = await getPlantBed(state.formData.plant_bed_id)
+        if (plantBedWithPlants && plantBedWithPlants.plants) {
+          plants = plantBedWithPlants.plants
         }
       }
 
@@ -104,9 +104,9 @@ function NewLogbookPageContent() {
     }
 
     try {
-      const response = await getPlants(plantBedId)
-      if (response.success && response.data) {
-        setState(prev => ({ ...prev, plants: response.data || [] }))
+      const plantBedWithPlants = await getPlantBed(plantBedId)
+      if (plantBedWithPlants && plantBedWithPlants.plants) {
+        setState(prev => ({ ...prev, plants: plantBedWithPlants.plants }))
       }
     } catch (error) {
       uiLogger.error('Failed to load plants for bed', error as Error, { plantBedId })
