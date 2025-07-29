@@ -84,25 +84,25 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // FIXED: Correct coordinate transformation from plantvak-view to garden view
+        // IMPROVED: Better coordinate transformation and sizing
         
-        // Plantvak canvas dimensions (what plantvak-view uses internally)
+        // Get the actual plantvak canvas size that plantvak-view uses
         const plantvakCanvasWidth = dimensions.lengthPixels + (PLANTVAK_CANVAS_PADDING * 2)
         const plantvakCanvasHeight = dimensions.widthPixels + (PLANTVAK_CANVAS_PADDING * 2)
         
-        // Convert absolute pixel positions to relative percentages
-        const percentageX = plant.position_x! / plantvakCanvasWidth
-        const percentageY = plant.position_y! / plantvakCanvasHeight
+        // Direct pixel mapping - use the stored positions as-is but scale to container
+        const scaleX = containerWidth / plantvakCanvasWidth
+        const scaleY = containerHeight / plantvakCanvasHeight
         
-        // Apply percentage to the garden container (which represents the plantvak)
-        const finalX = percentageX * containerWidth
-        const finalY = percentageY * containerHeight
+        // Apply scaling to position
+        const finalX = plant.position_x! * scaleX
+        const finalY = plant.position_y! * scaleY
         
-        // Size scaling - scale the flower size to match the container
-        const sizeScaleX = containerWidth / plantvakCanvasWidth
-        const sizeScaleY = containerHeight / plantvakCanvasHeight
-        const sizeScale = Math.min(sizeScaleX, sizeScaleY)
-        const scaledSize = Math.max(12, Math.min(30, plant.visual_width! * sizeScale))
+        // Make flowers much larger and more visible in garden view
+        const baseSize = Math.min(containerWidth, containerHeight) / 8 // Base size relative to container
+        const minSize = 20 // Minimum readable size
+        const maxSize = 50 // Maximum size to prevent overwhelming
+        const scaledSize = Math.max(minSize, Math.min(maxSize, baseSize))
         
         instances.push({
           id: `${plant.id}-flower-sync`,
@@ -118,8 +118,9 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
           canFillContainer: false
         })
       } else {
-        // Fallback for plants without custom positioning - use simple grid layout
-        const flowerSize = Math.max(20, Math.min(40, Math.min(containerWidth, containerHeight) / 8))
+        // Fallback for plants without custom positioning - use simple grid layout with larger flowers
+        const baseSize = Math.min(containerWidth, containerHeight) / 6 // Larger base size
+        const flowerSize = Math.max(24, Math.min(45, baseSize)) // Bigger flowers
         
         // Create a simple grid layout for plants without positioning
         const cols = Math.ceil(Math.sqrt(plants.length))
@@ -127,7 +128,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const col = plantIndex % cols
         const row = Math.floor(plantIndex / cols)
         
-        const padding = 10
+        const padding = 15 // More padding
         const cellWidth = (containerWidth - padding * 2) / cols
         const cellHeight = (containerHeight - padding * 2) / rows
         
