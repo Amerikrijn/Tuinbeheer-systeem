@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
-import { parsePlantBedDimensions, PLANTVAK_CANVAS_PADDING } from "@/lib/scaling-constants"
+import { parsePlantBedDimensions, PLANTVAK_CANVAS_PADDING, calculatePlantBedCanvasSize } from "@/lib/scaling-constants"
 
 interface FlowerVisualizationProps {
   plantBed: PlantBedWithPlants
@@ -86,27 +86,26 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
 
       
       if (hasCustomPosition && hasCustomSize && dimensions) {
-        // ROLLBACK: Terug naar absolute pixels (percentage systeem gefaald)
+        // IMPROVED: Use consistent canvas size calculation between plantvak-view and garden-view
+        const plantvakCanvasSize = calculatePlantBedCanvasSize(plantBed.size || '')
+        const plantvakCanvasWidth = plantvakCanvasSize.width
+        const plantvakCanvasHeight = plantvakCanvasSize.height
         
-        // Plantvak canvas dimensions (wat plantvak-view gebruikt)
-        const plantvakCanvasWidth = dimensions.lengthPixels * 2   // e.g. 1600px for 10m plantvak
-        const plantvakCanvasHeight = dimensions.widthPixels * 2   // e.g. 320px for 2m plantvak
-        
-        // Simpele percentage berekening op basis van canvas coordinaten
+        // Calculate percentages based on the actual canvas used in plantvak-view
         const percentageX = plant.position_x! / plantvakCanvasWidth
         const percentageY = plant.position_y! / plantvakCanvasHeight
         
-        // EXPERIMENT: Verdubbel X-coordinaat voor garden sync fix
-        const finalX = percentageX * containerWidth * 2  // Test: verdubbel X
+        // Apply percentages to the garden container
+        const finalX = percentageX * containerWidth
         const finalY = percentageY * containerHeight
         
-        // DEBUG: Log coordinate transformation
-        console.log('🔍 GARDEN COORDINATE DEBUG:', {
+        // DEBUG: Log coordinate transformation for troubleshooting
+        console.log('🔍 FLOWER POSITION SYNC DEBUG:', {
           plantName: plant.name,
           storedPosition: { x: plant.position_x, y: plant.position_y },
           plantvakCanvas: { w: plantvakCanvasWidth, h: plantvakCanvasHeight },
           percentage: { x: percentageX.toFixed(3), y: percentageY.toFixed(3) },
-          containerSize: { w: containerWidth, h: containerHeight },
+          gardenContainer: { w: containerWidth, h: containerHeight },
           finalPosition: { x: finalX.toFixed(1), y: finalY.toFixed(1) }
         })
         
