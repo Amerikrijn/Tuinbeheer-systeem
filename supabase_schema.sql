@@ -86,8 +86,8 @@ CREATE TABLE IF NOT EXISTS plants (
 
 -- Logbook entries table
 CREATE TABLE IF NOT EXISTS logbook_entries (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    plant_bed_id UUID NOT NULL REFERENCES plant_beds(id) ON DELETE CASCADE,
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    plant_bed_id TEXT NOT NULL REFERENCES plant_beds(id) ON DELETE CASCADE,
     plant_id UUID REFERENCES plants(id) ON DELETE CASCADE,
     entry_date DATE NOT NULL DEFAULT CURRENT_DATE,
     notes TEXT NOT NULL,
