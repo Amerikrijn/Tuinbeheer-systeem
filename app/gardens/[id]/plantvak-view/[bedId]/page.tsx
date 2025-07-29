@@ -303,7 +303,7 @@ export default function PlantBedViewPage() {
         return
       }
       
-      // Update local state with reordering
+      // Immediately update local state for responsive UI
       setTasks(prevTasks => {
         const updatedTasks = prevTasks.map(task => 
           task.id === taskId ? { ...task, completed, completed_at: completed ? new Date().toISOString() : undefined } : task
@@ -319,8 +319,16 @@ export default function PlantBedViewPage() {
           return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
         })
       })
+      
+      // Reload tasks after a short delay to ensure consistency
+      setTimeout(() => {
+        loadTasks()
+      }, 500)
+      
     } catch (error) {
       console.error('Error completing task:', error)
+      // Reload tasks to restore correct state on error
+      loadTasks()
     }
   }
 
