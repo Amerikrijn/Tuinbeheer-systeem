@@ -32,6 +32,7 @@ import {
   Minus,
   Upload,
   Image as ImageIcon,
+  ChevronRight,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
@@ -49,6 +50,7 @@ import {
   calculatePlantBedCanvasSize,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 // Temporary fix for FLOWER_SIZE_TINY until import issue is resolved
 const FLOWER_SIZE_TINY = 20
@@ -1793,6 +1795,7 @@ export default function PlantBedViewPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2 bg-white">
+                {/* Minimale velden - altijd zichtbaar */}
                 <div className="grid gap-2">
                   <label htmlFor="name" className="text-sm font-medium">
                     Bloemnaam *
@@ -1805,143 +1808,8 @@ export default function PlantBedViewPage() {
                   />
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="customFlower"
-                    checked={isCustomFlower}
-                    onChange={(e) => setIsCustomFlower(e.target.checked)}
-                  />
-                  <label htmlFor="customFlower" className="text-sm font-medium">
-                    Aangepaste bloem maken
-                  </label>
-                </div>
-
-                {!isCustomFlower ? (
-                  <div>
-                    <label className="text-sm font-medium">Type (optioneel)</label>
-                    <Select value={newFlower.type} onValueChange={(value) => {
-                      const selectedType = FLOWER_TYPES.find(type => type.name === value)
-                      setNewFlower(prev => ({ 
-                        ...prev, 
-                        type: value,
-                        color: selectedType?.color || prev.color
-                      }))
-                    }}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecteer bloem type (optioneel)" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-white">
-                        {FLOWER_TYPES.map((type) => (
-                          <SelectItem key={type.name} value={type.name}>
-                            <div className="flex items-center gap-2">
-                              <span>{type.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Emoji (optioneel)</label>
-                      <Input
-                        value={newFlower.customEmoji}
-                        onChange={(e) => setNewFlower(prev => ({ ...prev, customEmoji: e.target.value }))}
-                        placeholder="🌺"
-                        maxLength={2}
-                        className="text-2xl text-center"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Kies een emoji voor je bloem</p>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Foto (optioneel)</label>
-                      <div className="mt-2">
-                        {uploadedImageUrl ? (
-                          <div className="relative">
-                            <img 
-                              src={uploadedImageUrl} 
-                              alt="Uploaded flower" 
-                              className="w-20 h-20 object-cover rounded-lg border"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                              onClick={() => setUploadedImageUrl('')}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={async (e) => {
-                                const file = e.target.files?.[0]
-                                if (file) {
-                                  setIsUploading(true)
-                                  try {
-                                    const result = await uploadImage(file)
-                                    if (result.success && result.url) {
-                                      setUploadedImageUrl(result.url)
-                                      toast({
-                                        title: "Foto geüpload",
-                                        description: "Je foto is succesvol geüpload.",
-                                      })
-                                    } else {
-                                      toast({
-                                        title: "Upload mislukt",
-                                        description: result.error || "Er ging iets mis bij het uploaden.",
-                                        variant: "destructive",
-                                      })
-                                    }
-                                  } catch (error) {
-                                    toast({
-                                      title: "Upload mislukt",
-                                      description: "Er ging iets mis bij het uploaden.",
-                                      variant: "destructive",
-                                    })
-                                  } finally {
-                                    setIsUploading(false)
-                                  }
-                                }
-                              }}
-                              className="hidden"
-                              id="photo-upload"
-                              disabled={isUploading}
-                            />
-                            <label
-                              htmlFor="photo-upload"
-                              className="flex flex-col items-center cursor-pointer"
-                            >
-                              {isUploading ? (
-                                <>
-                                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                                  <p className="text-sm text-gray-500 mt-2">Uploading...</p>
-                                </>
-                              ) : (
-                                <>
-                                  <ImageIcon className="h-8 w-8 text-gray-400" />
-                                  <p className="text-sm text-gray-500 mt-2">Klik om een foto te uploaden</p>
-                                  <p className="text-xs text-gray-400">PNG, JPG tot 5MB</p>
-                                </>
-                              )}
-                            </label>
-                          </div>
-                        )}
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">Upload een foto van je bloem (optioneel)</p>
-                    </div>
-                  </div>
-                )}
-
                 <div>
-                  <label className="text-sm font-medium">Kleur</label>
+                  <label className="text-sm font-medium">Kleur *</label>
                   <div className="flex gap-2 flex-wrap mt-2">
                     {DEFAULT_FLOWER_COLORS.map((color) => (
                       <button
@@ -1963,67 +1831,215 @@ export default function PlantBedViewPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="text-sm font-medium">Status</label>
-                  <Select value={newFlower.status} onValueChange={(value: 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek') => 
-                    setNewFlower(prev => ({ ...prev, status: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FLOWER_STATUS_OPTIONS.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full border-2 ${status.color}`}></div>
-                            <span>{status.label}</span>
+                {/* Uitklapbare sectie voor optionele velden */}
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="advanced-fields">
+                    <AccordionTrigger className="text-sm font-medium text-gray-600 hover:text-gray-800">
+                      <div className="flex items-center gap-2">
+                        <ChevronRight className="h-4 w-4" />
+                        Meer details (optioneel)
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="space-y-4 pt-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="customFlower"
+                          checked={isCustomFlower}
+                          onChange={(e) => setIsCustomFlower(e.target.checked)}
+                        />
+                        <label htmlFor="customFlower" className="text-sm font-medium">
+                          Aangepaste bloem maken
+                        </label>
+                      </div>
+
+                      {!isCustomFlower ? (
+                        <div>
+                          <label className="text-sm font-medium">Type (optioneel)</label>
+                          <Select value={newFlower.type} onValueChange={(value) => {
+                            const selectedType = FLOWER_TYPES.find(type => type.name === value)
+                            setNewFlower(prev => ({ 
+                              ...prev, 
+                              type: value,
+                              color: selectedType?.color || prev.color
+                            }))
+                          }}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecteer bloem type (optioneel)" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white">
+                              {FLOWER_TYPES.map((type) => (
+                                <SelectItem key={type.name} value={type.name}>
+                                  <div className="flex items-center gap-2">
+                                    <span>{type.name}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div>
+                            <label className="text-sm font-medium">Emoji (optioneel)</label>
+                            <Input
+                              value={newFlower.customEmoji}
+                              onChange={(e) => setNewFlower(prev => ({ ...prev, customEmoji: e.target.value }))}
+                              placeholder="🌺"
+                              maxLength={2}
+                              className="text-2xl text-center"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Kies een emoji voor je bloem</p>
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                          
+                          <div>
+                            <label className="text-sm font-medium">Foto (optioneel)</label>
+                            <div className="mt-2">
+                              {uploadedImageUrl ? (
+                                <div className="relative">
+                                  <img 
+                                    src={uploadedImageUrl} 
+                                    alt="Uploaded flower" 
+                                    className="w-20 h-20 object-cover rounded-lg border"
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                                    onClick={() => setUploadedImageUrl('')}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={async (e) => {
+                                      const file = e.target.files?.[0]
+                                      if (file) {
+                                        setIsUploading(true)
+                                        try {
+                                          const result = await uploadImage(file)
+                                          if (result.success && result.url) {
+                                            setUploadedImageUrl(result.url)
+                                            toast({
+                                              title: "Foto geüpload",
+                                              description: "Je foto is succesvol geüpload.",
+                                            })
+                                          } else {
+                                            toast({
+                                              title: "Upload mislukt",
+                                              description: result.error || "Er ging iets mis bij het uploaden.",
+                                              variant: "destructive",
+                                            })
+                                          }
+                                        } catch (error) {
+                                          toast({
+                                            title: "Upload mislukt",
+                                            description: "Er ging iets mis bij het uploaden.",
+                                            variant: "destructive",
+                                          })
+                                        } finally {
+                                          setIsUploading(false)
+                                        }
+                                      }
+                                    }}
+                                    className="hidden"
+                                    id="photo-upload"
+                                    disabled={isUploading}
+                                  />
+                                  <label
+                                    htmlFor="photo-upload"
+                                    className="flex flex-col items-center cursor-pointer"
+                                  >
+                                    {isUploading ? (
+                                      <>
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                                        <p className="text-sm text-gray-500 mt-2">Uploading...</p>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <ImageIcon className="h-8 w-8 text-gray-400" />
+                                        <p className="text-sm text-gray-500 mt-2">Klik om een foto te uploaden</p>
+                                        <p className="text-xs text-gray-400">PNG, JPG tot 5MB</p>
+                                      </>
+                                    )}
+                                  </label>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">Upload een foto van je bloem (optioneel)</p>
+                          </div>
+                        </div>
+                      )}
 
-                <div>
-                  <label className="text-sm font-medium">Grootte</label>
-                  <Select value={newFlower.size} onValueChange={(value: 'small' | 'medium' | 'large') => 
-                    setNewFlower(prev => ({ ...prev, size: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-green-400 rounded-full"></div>
-                          <span>1x1 meter (80px)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="medium">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 bg-green-500 rounded-full"></div>
-                          <span>2x2 meter (160px)</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="large">
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 bg-green-600 rounded-full"></div>
-                          <span>2x1 meter (160x80px)</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                      <div>
+                        <label className="text-sm font-medium">Status</label>
+                        <Select value={newFlower.status} onValueChange={(value: 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek') => 
+                          setNewFlower(prev => ({ ...prev, status: value }))
+                        }>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {FLOWER_STATUS_OPTIONS.map((status) => (
+                              <SelectItem key={status.value} value={status.value}>
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-3 h-3 rounded-full border-2 ${status.color}`}></div>
+                                  <span>{status.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-                <div>
-                  <label className="text-sm font-medium">Beschrijving (optioneel)</label>
-                  <Textarea
-                    value={newFlower.description}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Beschrijf je bloem..."
-                    rows={2}
-                  />
-                </div>
+                      <div>
+                        <label className="text-sm font-medium">Grootte</label>
+                        <Select value={newFlower.size} onValueChange={(value: 'small' | 'medium' | 'large') => 
+                          setNewFlower(prev => ({ ...prev, size: value }))
+                        }>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="small">
+                              <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                                <span>1x1 meter (80px)</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="medium">
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                                <span>2x2 meter (160px)</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="large">
+                              <div className="flex items-center gap-2">
+                                <div className="w-5 h-5 bg-green-600 rounded-full"></div>
+                                <span>2x1 meter (160x80px)</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium">Beschrijving (optioneel)</label>
+                        <Textarea
+                          value={newFlower.description}
+                          onChange={(e) => setNewFlower(prev => ({ ...prev, description: e.target.value }))}
+                          placeholder="Beschrijf je bloem..."
+                          rows={2}
+                        />
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
                 
                 <div className="flex gap-2">
                   <Button onClick={addFlower} className="flex-1 bg-pink-600 hover:bg-pink-700">
