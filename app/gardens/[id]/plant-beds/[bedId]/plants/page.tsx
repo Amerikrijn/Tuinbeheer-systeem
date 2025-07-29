@@ -88,14 +88,19 @@ export default function PlantBedPlantsPage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
+      case "gezond":
       case "healthy":
         return <CheckCircle className="h-4 w-4 text-green-600" />
+      case "aandacht_nodig":
       case "needs_attention":
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />
+      case "ziek":
       case "diseased":
         return <AlertTriangle className="h-4 w-4 text-red-600" />
+      case "dood":
       case "dead":
         return <AlertTriangle className="h-4 w-4 text-gray-600" />
+      case "geoogst":
       case "harvested":
         return <CheckCircle className="h-4 w-4 text-blue-600" />
       default:
@@ -105,14 +110,19 @@ export default function PlantBedPlantsPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
+      case "gezond":
       case "healthy":
         return "Gezond"
+      case "aandacht_nodig":
       case "needs_attention":
         return "Aandacht nodig"
+      case "ziek":
       case "diseased":
         return "Ziek"
+      case "dood":
       case "dead":
         return "Dood"
+      case "geoogst":
       case "harvested":
         return "Geoogst"
       default:
@@ -122,14 +132,19 @@ export default function PlantBedPlantsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case "gezond":
       case "healthy":
         return "bg-green-100 text-green-800"
+      case "aandacht_nodig":
       case "needs_attention":
         return "bg-yellow-100 text-yellow-800"
+      case "ziek":
       case "diseased":
         return "bg-red-100 text-red-800"
+      case "dood":
       case "dead":
         return "bg-gray-100 text-gray-800"
+      case "geoogst":
       case "harvested":
         return "bg-blue-100 text-blue-800"
       default:
@@ -271,84 +286,146 @@ export default function PlantBedPlantsPage() {
                 </div>
               </CardHeader>
 
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {plant.variety && (
-                    <div>
-                      <div className="font-medium">Variëteit</div>
-                      <div className="text-gray-600">{plant.variety}</div>
+              <CardContent className={isVisualView ? "space-y-4" : "py-3"}>
+                {isVisualView ? (
+                  // Visual view - full content
+                  <>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      {plant.variety && (
+                        <div>
+                          <div className="font-medium">Variëteit</div>
+                          <div className="text-gray-600">{plant.variety}</div>
+                        </div>
+                      )}
+                      {plant.color && (
+                        <div>
+                          <div className="font-medium">Kleur</div>
+                          <div className="text-gray-600">{plant.color}</div>
+                        </div>
+                      )}
+                      {plant.height && (
+                        <div>
+                          <div className="font-medium">Hoogte</div>
+                          <div className="text-gray-600">{plant.height}cm</div>
+                        </div>
+                      )}
+                      {plant.watering_frequency && (
+                        <div>
+                          <div className="font-medium">Water</div>
+                          <div className="text-gray-600">{plant.watering_frequency}x/week</div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {plant.color && (
-                    <div>
-                      <div className="font-medium">Kleur</div>
-                      <div className="text-gray-600">{plant.color}</div>
-                    </div>
-                  )}
-                  {plant.height && (
-                    <div>
-                      <div className="font-medium">Hoogte</div>
-                      <div className="text-gray-600">{plant.height}cm</div>
-                    </div>
-                  )}
-                  {plant.watering_frequency && (
-                    <div>
-                      <div className="font-medium">Water</div>
-                      <div className="text-gray-600">{plant.watering_frequency}x/week</div>
-                    </div>
-                  )}
-                </div>
 
-                {plant.planting_date && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="h-3 w-3" />
-                    Geplant: {new Date(plant.planting_date).toLocaleDateString("nl-NL")}
+                    {plant.planting_date && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="h-3 w-3" />
+                        Geplant: {new Date(plant.planting_date).toLocaleDateString("nl-NL")}
+                      </div>
+                    )}
+
+                    {plant.expected_harvest_date && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="h-3 w-3" />
+                        Oogst verwacht: {new Date(plant.expected_harvest_date).toLocaleDateString("nl-NL")}
+                      </div>
+                    )}
+
+                    {plant.notes && <p className="text-sm text-gray-600 line-clamp-2">{plant.notes}</p>}
+                  </>
+                ) : (
+                  // List view - compact content
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0 pr-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-4 text-sm">
+                            {plant.variety && <span className="text-gray-600 truncate">Variëteit: {plant.variety}</span>}
+                            {plant.color && <span className="text-gray-600">Kleur: {plant.color}</span>}
+                          </div>
+                          <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+                            {plant.height && <span>Hoogte: {plant.height}cm</span>}
+                            {plant.watering_frequency && <span>Water: {plant.watering_frequency}x/week</span>}
+                            {plant.planting_date && (
+                              <span>Geplant: {new Date(plant.planting_date).toLocaleDateString("nl-NL", { month: 'short', day: 'numeric' })}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                {plant.expected_harvest_date && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Calendar className="h-3 w-3" />
-                    Oogst verwacht: {new Date(plant.expected_harvest_date).toLocaleDateString("nl-NL")}
+                {plant.notes && !isVisualView && <p className="text-xs text-gray-500 mt-2 line-clamp-1">{plant.notes}</p>}
+
+{isVisualView ? (
+                  <div className="flex gap-2 pt-2">
+                    <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}`} className="flex-1">
+                      <Button variant="outline" size="sm" className="w-full bg-transparent">
+                        <Eye className="h-3 w-3 mr-1" />
+                        Bekijk
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedPlantId(plant.id)
+                        setShowAddTask(true)
+                      }}
+                      className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                    >
+                      <Calendar className="h-3 w-3 mr-1" />
+                      Taak
+                    </Button>
+                    <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}/edit`}>
+                      <Button variant="outline" size="sm">
+                        <Edit className="h-3 w-3 mr-1" />
+                        Bewerk
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeletePlant(plant.id, plant.name)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex gap-1 flex-shrink-0 mt-2">
+                    <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}`}>
+                      <Button variant="outline" size="sm" className="px-2">
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedPlantId(plant.id)
+                        setShowAddTask(true)
+                      }}
+                      className="px-2 bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                    >
+                      <Calendar className="h-3 w-3" />
+                    </Button>
+                    <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}/edit`}>
+                      <Button variant="outline" size="sm" className="px-2">
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeletePlant(plant.id, plant.name)}
+                      className="px-2 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 )}
-
-                {plant.notes && <p className="text-sm text-gray-600 line-clamp-2">{plant.notes}</p>}
-
-                <div className="flex gap-2 pt-2">
-                  <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}`} className="flex-1">
-                    <Button variant="outline" size="sm" className="w-full bg-transparent">
-                      <Eye className="h-3 w-3 mr-1" />
-                      Bekijk
-                    </Button>
-                  </Link>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      setSelectedPlantId(plant.id)
-                      setShowAddTask(true)
-                    }}
-                    className="bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-                  >
-                    <Calendar className="h-3 w-3 mr-1" />
-                    Taak
-                  </Button>
-                  <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/${plant.id}/edit`}>
-                    <Button variant="outline" size="sm">
-                      <Edit className="h-3 w-3 mr-1" />
-                      Bewerk
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeletePlant(plant.id, plant.name)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
               </CardContent>
             </Card>
           ))}
@@ -381,19 +458,19 @@ export default function PlantBedPlantsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-green-600">
-                  {plantBed.plants.filter((p) => p.status === "healthy").length}
+                  {plantBed.plants.filter((p) => p.status === "gezond").length}
                 </div>
                 <div className="text-sm text-gray-600">Gezond</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-yellow-600">
-                  {plantBed.plants.filter((p) => p.status === "needs_attention").length}
+                  {plantBed.plants.filter((p) => p.status === "aandacht_nodig").length}
                 </div>
                 <div className="text-sm text-gray-600">Aandacht</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-red-600">
-                  {plantBed.plants.filter((p) => p.status === "diseased").length}
+                  {plantBed.plants.filter((p) => p.status === "ziek").length}
                 </div>
                 <div className="text-sm text-gray-600">Ziek</div>
               </div>
