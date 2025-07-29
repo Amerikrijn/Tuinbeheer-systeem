@@ -38,17 +38,6 @@ interface EditPlant {
   emoji: string
 }
 
-// Helper function to map old English status to Dutch
-function mapStatusToNL(status: string): 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst' {
-  switch (status) {
-    case 'healthy': return 'gezond'
-    case 'needs_attention': return 'aandacht_nodig'
-    case 'diseased': return 'ziek'
-    case 'dead': return 'dood'
-    case 'harvested': return 'geoogst'
-    default: return status as 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst'
-  }
-}
 
 export default function EditPlantPage() {
   const router = useRouter()
@@ -111,7 +100,7 @@ export default function EditPlantPage() {
           sun_preference: plantData.sun_preference || 'full-sun',
           planting_date: plantData.planting_date || '',
           expected_harvest_date: plantData.expected_harvest_date || '',
-          status: (plantData.status ? mapStatusToNL(plantData.status) : 'gezond') as 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst',
+          status: (plantData.status || 'gezond') as 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst',
           notes: plantData.notes || '',
           care_instructions: plantData.care_instructions || '',
           watering_frequency: plantData.watering_frequency?.toString() || '',

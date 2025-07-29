@@ -520,7 +520,7 @@ export default function GardenDetailPage() {
           name: flowerType.name,
           color: flowerType.color,
           emoji: flowerType.emoji,
-          status: 'healthy' as const,
+          status: 'gezond' as const,
           position_x: 0, // Will be positioned by FlowerVisualization
           position_y: 0,
           visual_width: 24,

@@ -89,19 +89,14 @@ export default function PlantBedPlantsPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "gezond":
-      case "healthy":
         return <CheckCircle className="h-4 w-4 text-green-600" />
       case "aandacht_nodig":
-      case "needs_attention":
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />
       case "ziek":
-      case "diseased":
         return <AlertTriangle className="h-4 w-4 text-red-600" />
       case "dood":
-      case "dead":
         return <AlertTriangle className="h-4 w-4 text-gray-600" />
       case "geoogst":
-      case "harvested":
         return <CheckCircle className="h-4 w-4 text-blue-600" />
       default:
         return <CheckCircle className="h-4 w-4 text-green-600" />
@@ -111,19 +106,14 @@ export default function PlantBedPlantsPage() {
   const getStatusText = (status: string) => {
     switch (status) {
       case "gezond":
-      case "healthy":
         return "Gezond"
       case "aandacht_nodig":
-      case "needs_attention":
         return "Aandacht nodig"
       case "ziek":
-      case "diseased":
         return "Ziek"
       case "dood":
-      case "dead":
         return "Dood"
       case "geoogst":
-      case "harvested":
         return "Geoogst"
       default:
         return "Gezond"
@@ -133,19 +123,14 @@ export default function PlantBedPlantsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "gezond":
-      case "healthy":
         return "bg-green-100 text-green-800"
       case "aandacht_nodig":
-      case "needs_attention":
         return "bg-yellow-100 text-yellow-800"
       case "ziek":
-      case "diseased":
         return "bg-red-100 text-red-800"
       case "dood":
-      case "dead":
         return "bg-gray-100 text-gray-800"
       case "geoogst":
-      case "harvested":
         return "bg-blue-100 text-blue-800"
       default:
         return "bg-green-100 text-green-800"
