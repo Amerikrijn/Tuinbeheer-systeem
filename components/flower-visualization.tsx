@@ -95,7 +95,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         const scaledY = plant.position_y! * scale
         
         // IMPROVED: Much larger flower size for better visibility
-        const flowerSize = Math.max(32, Math.min(64, Math.min(containerWidth, containerHeight) / 8))
+        const flowerSize = Math.max(48, Math.min(96, Math.min(containerWidth, containerHeight) / 6))
         
         instances.push({
           id: `${plant.id}-flower`,
@@ -111,7 +111,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         })
       } else {
         // IMPROVED: Much larger grid layout for plants without positioning
-        const flowerSize = Math.max(32, Math.min(64, Math.min(containerWidth, containerHeight) / 6))
+        const flowerSize = Math.max(48, Math.min(96, Math.min(containerWidth, containerHeight) / 4))
         
         // Create a better grid layout for plants without positioning
         const cols = Math.ceil(Math.sqrt(plants.length))
@@ -178,7 +178,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
             <span 
               className="select-none"
               style={{
-                fontSize: Math.max(20, flower.size * 0.7),
+                fontSize: Math.max(32, flower.size * 0.8),
                 filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))',
               }}
             >

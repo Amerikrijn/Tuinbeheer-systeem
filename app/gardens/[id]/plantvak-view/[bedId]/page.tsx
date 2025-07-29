@@ -2614,9 +2614,9 @@ export default function PlantBedViewPage() {
                 const isBeingResized = isResizing === flower.id
 
                 // IMPROVED: Calculate better flower size for visibility
-                const minFlowerSize = 40  // Minimum size for visibility
-                const maxFlowerSize = 80  // Maximum size
-                const flowerSize = Math.max(minFlowerSize, Math.min(maxFlowerSize, flower.visual_width || 50))
+                const minFlowerSize = 60  // MUCH larger minimum size for visibility
+                const maxFlowerSize = 120  // MUCH larger maximum size
+                const flowerSize = Math.max(minFlowerSize, Math.min(maxFlowerSize, flower.visual_width || 80))
 
                 return (
                   <div
@@ -2655,7 +2655,7 @@ export default function PlantBedViewPage() {
                       <div 
                         className="flex items-center justify-center"
                         style={{ 
-                          fontSize: Math.max(16, Math.min(32, flowerSize * 0.6)) + 'px'
+                          fontSize: Math.max(24, Math.min(48, flowerSize * 0.8)) + 'px'
                         }}
                       >
                         {flower.photo_url ? (
@@ -2684,7 +2684,7 @@ export default function PlantBedViewPage() {
                       <div 
                         className="text-center text-white font-bold mt-1 px-1 leading-tight"
                         style={{ 
-                          fontSize: Math.max(8, Math.min(14, flowerSize * 0.2)) + 'px',
+                          fontSize: Math.max(12, Math.min(18, flowerSize * 0.25)) + 'px',
                           textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
                         }}
                       >
