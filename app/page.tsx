@@ -14,7 +14,7 @@ import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3 } 
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger, AuditLogger } from "@/lib/logger"
-import type { Tuin, PlantBedWithPlants } from "@/lib/types/index"
+import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 
@@ -367,7 +367,7 @@ interface GardenCardProps {
 }
 
 function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
-  const [plantBeds, setPlantBeds] = React.useState<PlantBedWithPlants[]>([])
+  const [plantBeds, setPlantBeds] = React.useState<PlantvakWithBloemen[]>([])
   const [loadingFlowers, setLoadingFlowers] = React.useState(true)
 
   // Helper function to get emoji based on plant name
@@ -410,7 +410,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
       try {
         setLoadingFlowers(true)
         const beds = await getPlantBeds(garden.id)
-        setPlantBeds(beds)
+        setPlantBeds(beds as PlantvakWithBloemen[])
       } catch (error) {
         console.error('Error loading flowers for garden preview:', error)
         setPlantBeds([])
