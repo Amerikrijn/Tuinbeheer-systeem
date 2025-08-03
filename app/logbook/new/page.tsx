@@ -67,9 +67,15 @@ function NewLogbookPageContent() {
         }
       }
 
+      // Transform plantBeds to include season_year field
+      const transformedPlantBeds = (plantBeds || []).map(bed => ({
+        ...bed,
+        season_year: bed.season_year || new Date().getFullYear()
+      }))
+
       setState(prev => ({
         ...prev,
-        plantBeds: plantBeds || [],
+        plantBeds: transformedPlantBeds,
         plants,
         loading: false
       }))
