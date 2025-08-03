@@ -191,7 +191,7 @@ export function TaskDetailsDialog({
               <Badge variant={task.completed ? "default" : "secondary"}>
                 {task.completed ? "Voltooid" : "Actief"}
               </Badge>
-              <Badge variant="outline" className={priorityConfig?.className}>
+              <Badge variant="outline" className={priorityConfig?.badge_color}>
                 {priorityConfig?.label}
               </Badge>
                               <Badge variant="outline">
