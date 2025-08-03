@@ -249,6 +249,13 @@ JOIN gardens g ON pb.garden_id = g.id
 LEFT JOIN plants p ON le.plant_id = p.id
 WHERE pb.is_active = true AND g.is_active = true;
 
+-- Enable RLS on the view
+ALTER TABLE logbook_entries_with_details ENABLE ROW LEVEL SECURITY;
+
+-- RLS policies for the view (allowing anonymous access for demo purposes)
+CREATE POLICY "Logbook entries with details are viewable by everyone" ON logbook_entries_with_details
+    FOR SELECT USING (true);
+
 -- ===========================================
 -- SEED DATA (Optional - voor test doeleinden)
 -- ===========================================
