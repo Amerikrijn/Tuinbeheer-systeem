@@ -250,12 +250,7 @@ function HomePageContent() {
             <Grid3X3 className="h-4 w-4 mr-1" />
             {isVisualView ? "Lijst" : "Visueel"}
           </Button>
-          <Button asChild variant="outline" className="border-green-600 text-green-600 hover:bg-green-50">
-            <Link href="/tasks">
-              <Calendar className="h-4 w-4 mr-2" />
-              Taken
-            </Link>
-          </Button>
+
           <Button asChild className="bg-green-600 hover:bg-green-700">
             <Link href="/gardens/new">
               <Plus className="h-4 w-4 mr-2" />

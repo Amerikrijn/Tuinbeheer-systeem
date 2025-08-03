@@ -8,7 +8,7 @@ import { TreePine, BookOpen, Home, Settings } from "lucide-react"
 
 const navigationItems = [
   {
-    name: "Dashboard",
+    name: "Home",
     href: "/",
     icon: Home,
   },
