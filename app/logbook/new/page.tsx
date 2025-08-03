@@ -41,7 +41,7 @@ function NewLogbookPageContent() {
     error: null,
     formData: {
       plant_bed_id: searchParams.get('plant_bed_id') || '',
-      plant_id: searchParams.get('plant_id') || '',
+      plant_id: searchParams.get('plant_id') || 'none',
       entry_date: format(new Date(), 'yyyy-MM-dd'),
       notes: '',
     },
@@ -138,7 +138,7 @@ function NewLogbookPageContent() {
         ...prev,
         formData: {
           ...prev.formData,
-          plant_id: ''
+          plant_id: 'none'
         }
       }))
     }
@@ -216,7 +216,13 @@ function NewLogbookPageContent() {
         throw new Error('Selecteer een datum')
       }
 
-      const response = await LogbookService.create(state.formData)
+      // Prepare form data, converting "none" plant_id to empty string
+      const submitData = {
+        ...state.formData,
+        plant_id: state.formData.plant_id === "none" ? "" : state.formData.plant_id
+      }
+      
+      const response = await LogbookService.create(submitData)
       
       if (!response.success || !response.data) {
         throw new Error(response.error || 'Failed to create logbook entry')
@@ -252,7 +258,9 @@ function NewLogbookPageContent() {
 
   // Get selected plant bed name
   const selectedPlantBed = state.plantBeds.find(bed => bed.id === state.formData.plant_bed_id)
-  const selectedPlant = state.plants.find(plant => plant.id === state.formData.plant_id)
+  const selectedPlant = state.formData.plant_id && state.formData.plant_id !== "none" 
+    ? state.plants.find(plant => plant.id === state.formData.plant_id)
+    : null
 
   if (state.loading) {
     return (
@@ -362,14 +370,14 @@ function NewLogbookPageContent() {
                 <div className="space-y-2">
                   <Label htmlFor="plant_id">Plant (optioneel)</Label>
                   <Select 
-                    value={state.formData.plant_id || ''} 
+                    value={state.formData.plant_id} 
                     onValueChange={(value) => handleFieldChange('plant_id', value)}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecteer een plant (optioneel)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Geen specifieke plant</SelectItem>
+                      <SelectItem value="none">Geen specifieke plant</SelectItem>
                       {state.plants.map((plant) => (
                         <SelectItem key={plant.id} value={plant.id}>
                           {plant.name}
