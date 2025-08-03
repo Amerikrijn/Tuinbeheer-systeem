@@ -243,11 +243,11 @@ export default function PlantDetailPage() {
                   </div>
                 )}
 
-                {(plant.height || plant.plant_height) && (
+                {plant.height && (
                   <div>
                     <label className="text-sm font-medium text-gray-700">Hoogte</label>
                     <p className="text-lg font-medium text-gray-900">
-                      {plant.height || plant.plant_height} cm
+                      {plant.height} cm
                     </p>
                   </div>
                 )}
@@ -261,7 +261,7 @@ export default function PlantDetailPage() {
           </Card>
 
           {/* Scientific Information - Only show if any field is filled */}
-          {(plant.scientific_name || plant.latin_name || plant.variety) && (
+          {(plant.scientific_name || plant.variety) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -277,16 +277,9 @@ export default function PlantDetailPage() {
                       <p className="text-gray-900 italic">{plant.scientific_name}</p>
                     </div>
                   )}
-                  
-                  {plant.latin_name && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-700">Latijnse naam</label>
-                      <p className="text-gray-900 italic">{plant.latin_name}</p>
-                    </div>
-                  )}
 
                   {plant.variety && (
-                    <div className="md:col-span-2">
+                    <div className={plant.scientific_name ? "md:col-span-1" : "md:col-span-2"}>
                       <label className="text-sm font-medium text-gray-700">Variëteit</label>
                       <p className="text-gray-900">{plant.variety}</p>
                     </div>
@@ -297,7 +290,7 @@ export default function PlantDetailPage() {
           )}
 
           {/* Growing Conditions - Only show if any field is filled */}
-          {(plant.sun_preference || plant.plant_color || plant.plants_per_sqm || plant.planting_date || plant.expected_harvest_date) && (
+          {(plant.sun_preference || plant.plants_per_sqm || plant.planting_date || plant.expected_harvest_date) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -313,16 +306,6 @@ export default function PlantDetailPage() {
                       <div>
                         <p className="text-sm text-gray-600">Zonvoorkeur</p>
                         <p className="font-medium text-gray-900">{getSunLabel(plant.sun_preference)}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {plant.plant_color && (
-                    <div className="flex items-center gap-3">
-                      <Palette className="w-5 h-5 text-purple-500" />
-                      <div>
-                        <p className="text-sm text-gray-600">Plant kleur</p>
-                        <p className="font-medium text-gray-900">{plant.plant_color}</p>
                       </div>
                     </div>
                   )}

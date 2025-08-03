@@ -34,10 +34,7 @@ export interface PlantFormData {
   height: string
   // Optional advanced fields
   scientificName: string
-  latinName: string
   variety: string
-  plantColor: string
-  plantHeight: string
   plantsPerSqm: string
   sunPreference: 'full-sun' | 'partial-sun' | 'shade'
   plantingDate: string
@@ -134,8 +131,7 @@ export function PlantForm({
   // Count filled optional fields
   const filledOptionalFields = React.useMemo(() => {
     const optionalFields = [
-      'scientificName', 'latinName', 'variety', 'plantColor', 'plantHeight',
-      'plantsPerSqm', 'plantingDate', 'expectedHarvestDate', 'notes',
+      'scientificName', 'variety', 'plantingDate', 'expectedHarvestDate', 'notes',
       'careInstructions', 'wateringFrequency', 'fertilizerSchedule'
     ]
     return optionalFields.filter(field => {
@@ -327,20 +323,6 @@ export function PlantForm({
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="latinName" className="text-sm font-medium text-gray-700">
-                        Latijnse naam
-                      </Label>
-                      <Input
-                        id="latinName"
-                        placeholder="Bijv. Rosa"
-                        value={data.latinName}
-                        onChange={(e) => handleFieldChange('latinName', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500"
-                        autoComplete="off"
-                      />
-                    </div>
-
                     <div className="space-y-2 md:col-span-2">
                       <Label htmlFor="variety" className="text-sm font-medium text-gray-700">
                         Variëteit
@@ -364,37 +346,6 @@ export function PlantForm({
                     <h4 className="font-medium text-gray-900">Groei Informatie</h4>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="plantColor" className="text-sm font-medium text-gray-700">
-                        Plant kleur
-                      </Label>
-                      <Input
-                        id="plantColor"
-                        placeholder="Bijv. Donkergroen, Lichtgroen"
-                        value={data.plantColor}
-                        onChange={(e) => handleFieldChange('plantColor', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500"
-                        autoComplete="off"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="plantHeight" className="text-sm font-medium text-gray-700">
-                        Plant hoogte (cm)
-                      </Label>
-                      <Input
-                        id="plantHeight"
-                        type="number"
-                        placeholder="Bijv. 80"
-                        value={data.plantHeight}
-                        onChange={(e) => handleFieldChange('plantHeight', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500"
-                        min="1"
-                        max="500"
-                        autoComplete="off"
-                      />
-                    </div>
-
                     <div className="space-y-2">
                       <Label htmlFor="plantsPerSqm" className="text-sm font-medium text-gray-700">
                         Planten per m²
@@ -602,10 +553,7 @@ export function createInitialPlantFormData(): PlantFormData {
     color: "",
     height: "",
     scientificName: "",
-    latinName: "",
     variety: "",
-    plantColor: "",
-    plantHeight: "",
     plantsPerSqm: "4",
     sunPreference: 'partial-sun',
     plantingDate: "",

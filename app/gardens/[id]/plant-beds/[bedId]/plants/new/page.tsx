@@ -96,22 +96,8 @@ export default function NewPlantPage() {
       newErrors.scientificName = "Wetenschappelijke naam mag maximaal 200 karakters bevatten"
     }
 
-    if (data.latinName && data.latinName.length > 100) {
-      newErrors.latinName = "Latijnse naam mag maximaal 100 karakters bevatten"
-    }
-
     if (data.variety && data.variety.length > 100) {
       newErrors.variety = "Variëteit mag maximaal 100 karakters bevatten"
-    }
-
-    if (data.plantColor && data.plantColor.length > 50) {
-      newErrors.plantColor = "Plant kleur mag maximaal 50 karakters bevatten"
-    }
-
-    if (data.plantHeight && (isNaN(Number(data.plantHeight)) || Number(data.plantHeight) <= 0)) {
-      newErrors.plantHeight = "Plant hoogte moet een geldig getal groter dan 0 zijn"
-    } else if (data.plantHeight && Number(data.plantHeight) > 500) {
-      newErrors.plantHeight = "Plant hoogte mag niet meer dan 500 cm zijn"
     }
 
     if (data.plantsPerSqm && (isNaN(Number(data.plantsPerSqm)) || Number(data.plantsPerSqm) <= 0)) {
@@ -168,12 +154,9 @@ export default function NewPlantPage() {
         plant_bed_id: plantBed.id,
         name: plantData.name,
         scientific_name: plantData.scientificName || undefined,
-        latin_name: plantData.latinName || undefined,
         variety: plantData.variety || undefined,
         color: plantData.color || undefined,
-        plant_color: plantData.plantColor || undefined,
         height: plantData.height ? Number.parseInt(plantData.height) : undefined,
-        plant_height: plantData.plantHeight ? Number.parseInt(plantData.plantHeight) : undefined,
         plants_per_sqm: plantData.plantsPerSqm ? Number.parseInt(plantData.plantsPerSqm) : undefined,
         sun_preference: plantData.sunPreference,
         planting_date: plantData.plantingDate || undefined,

@@ -328,28 +328,9 @@ export function validateBloemFormData(data: Partial<BloemFormData>): ValidationR
     })
   }
 
-  if (data.latin_name) {
-    validator.validateString('latin_name', data.latin_name, { 
-      maxLength: 100
-    })
-  }
-
   if (data.variety) {
     validator.validateString('variety', data.variety, { 
       maxLength: 100
-    })
-  }
-
-  if (data.plant_color) {
-    validator.validateString('plant_color', data.plant_color, { 
-      maxLength: 50
-    })
-  }
-
-  if (data.plant_height !== undefined && data.plant_height !== null) {
-    validator.validateNumber('plant_height', data.plant_height, {
-      min: 1,
-      max: 500
     })
   }
 
