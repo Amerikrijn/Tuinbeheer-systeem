@@ -2,12 +2,12 @@
 
 ## 📋 Inleiding
 
-Het Tuinbeheer Systeem is een webapplicatie ontworpen voor het professioneel beheren van tuinen, plantvakken en individuele planten. Het systeem biedt een intuïtieve interface met visuele drag-and-drop functionaliteit voor tuinontwerp en uitgebreid beheer van plantgegevens.
+Het Tuinbeheer Systeem is een webapplicatie ontworpen voor het professioneel beheren van tuinen, plantvakken en individuele bloemen. Het systeem biedt een intuïtieve interface met visuele drag-and-drop functionaliteit voor tuinontwerp en vereenvoudigd beheer van bloemengegevens.
 
 ## 🎯 Doelgroep
 
 - **Particuliere tuinliefhebbers**: Voor het plannen en bijhouden van hun eigen tuin
-- **Tuincentra**: Voor het beheren van klanttuinen en plantenvoorraad
+- **Tuincentra**: Voor het beheren van klanttuinen en bloemenvoorraad
 - **Landschapsarchitecten**: Voor het ontwerpen van tuinprojecten
 - **Hoveniers**: Voor het onderhouden van meerdere tuinen
 
@@ -94,53 +94,58 @@ Het Tuinbeheer Systeem is een webapplicatie ontworpen voor het professioneel beh
   - Toegewezen gebruiker
   - Notities en opmerkingen
 
-### 3. Plantenbeheer (Plants)
+### 3. Bloemenbeheer (Plants/Flowers)
 
-#### 3.1 Nederlandse Bloemen Database
-Het systeem bevat een uitgebreide database met Nederlandse bloemen en planten:
+#### 3.1 Vereenvoudigde Bloemen Interface
+Het systeem gebruikt een **vereenvoudigde, gebruiksvriendelijke interface** voor het beheren van bloemen:
 
-- **Bloemen Categorieën**:
-  - Voorjaarsbloemen (tulpen, narcissen, krokussen)
-  - Zomerbloemen (rozen, lavendel, zonnebloemen)
-  - Najaarsbloemen (chrysanten, dahlia's, asters)
-  - Winterharde planten (heide, winterviooltjes)
+- **Verplichte Velden** (altijd zichtbaar):
+  - **Bloemnaam** (met autocomplete uit standaard bloemen database)
+  - **Kleur** (bloem kleur)
+  - **Lengte** (hoogte in cm)
 
-- **Plant Eigenschappen**:
-  - Nederlandse en Latijnse naam
-  - Variëteit/cultivar
-  - Bloeiperiode
-  - Kleur(en)
-  - Hoogte (cm)
-  - Stengellengte
+- **Optionele Velden** (uitklapbaar via "Meer opties"):
+  - Latijnse naam
+  - Variëteit
   - Planten per m²
   - Zonvoorkeur
+  - Status
+  - Plantdatum
+  - Verwachte oogstdatum
+  - Bewatering frequentie
+  - Bemestingsschema
+  - Verzorgingsinstructies
+  - Notities
   - Emoji representatie
 
-#### 3.2 Plant Toevoegen
-- **Basis Informatie**:
-  - Plantnaam (met autocomplete uit database)
-  - Wetenschappelijke naam
-  - Variëteit
-  - Kleur
+#### 3.2 Nederlandse Bloemen Database
+Het systeem bevat een uitgebreide database met Nederlandse bloemen:
 
-- **Groei Eigenschappen**:
-  - Verwachte hoogte
-  - Stengellengte
-  - Plantdichtheid (planten per m²)
-  - Zonvoorkeur
+- **Standaard Bloemen** (met automatische emoji en kleur):
+  - Roos 🌹, Tulp 🌷, Zonnebloem 🌻
+  - Lavendel 🪻, Dahlia 🌺, Chrysant 🌼
+  - Narcis, Iris 🌸, Petunia, Begonia
+  - Lelie, Anjer
 
-- **Planning**:
-  - Plantdatum
-  - Verwachte oogst/bloeidatum
-  - Seizoen planning
+- **Slimme Autocomplete**:
+  - Type-to-search functionaliteit
+  - Automatische emoji toewijzing
+  - Voorgestelde kleuren
+  - Standaard eigenschappen
 
-#### 3.3 Plant Status Beheer
+#### 3.3 Gestroomlijnde Workflow
+- **Toevoegen**: Identieke interface voor nieuwe bloemen
+- **Bewerken**: Dezelfde vereenvoudigde interface voor aanpassingen
+- **Consistentie**: Geen verwarrende dubbele velden meer
+- **Snelheid**: Minimale invoer vereist, uitbreidbaar naar behoefte
+
+#### 3.4 Bloem Status Beheer
 - **Status Opties**:
-  - `healthy` - Gezond
-  - `needs_attention` - Heeft aandacht nodig
-  - `diseased` - Ziek
-  - `dead` - Dood
-  - `harvested` - Geoogst
+  - `gezond` - Gezond 🌱
+  - `aandacht_nodig` - Heeft aandacht nodig ⚠️
+  - `ziek` - Ziek 🦠
+  - `dood` - Dood 💀
+  - `geoogst` - Geoogst 🌾
 
 - **Status Tracking**:
   - Automatische status updates
@@ -148,15 +153,15 @@ Het systeem bevat een uitgebreide database met Nederlandse bloemen en planten:
   - Notificaties bij status veranderingen
   - Bulk status updates
 
-#### 3.4 Verzorging en Onderhoud
+#### 3.5 Verzorging en Onderhoud
 - **Verzorgingsinstructies**:
-  - Watergeeffrequentie
+  - Watergeeffrequentie (keer per week)
   - Bemestingsschema
   - Snoeimomenten
   - Ziektepreventie
 
 - **Foto Management**:
-  - Plant foto's uploaden
+  - Bloem foto's uploaden
   - Voortgang foto's
   - Voor/na vergelijkingen
   - Automatische foto organisatie
@@ -210,18 +215,18 @@ Het systeem bevat een uitgebreide database met Nederlandse bloemen en planten:
 - **Overzicht Widgets**:
   - Totaal aantal tuinen
   - Actieve plantvakken
-  - Aantal planten per status
+  - Aantal bloemen per status
   - Openstaande taken
   - Seizoen planning
 
 #### 5.2 Rapporten
 - **Tuin Rapporten**:
-  - Plantenoverzicht per tuin
+  - Bloemen overzicht per tuin
   - Groei statistieken
   - Onderhoud geschiedenis
   - Kosten overzicht
 
-- **Plant Rapporten**:
+- **Bloem Rapporten**:
   - Bloei kalender
   - Verzorging schema
   - Succes/faal ratio
@@ -250,28 +255,44 @@ Het systeem bevat een uitgebreide database met Nederlandse bloemen en planten:
    - Stel afmetingen en eigenschappen in
    - Configureer grondsoort en zonexpositie
 
-3. **Planten Toevoegen**
+3. **Bloemen Toevoegen** (Vereenvoudigd!)
    - Selecteer plantvak
-   - Zoek planten in database
-   - Voeg planten toe met eigenschappen
-   - Plan plantdata en verzorging
+   - Vul verplichte velden in: naam, kleur, lengte
+   - Gebruik autocomplete voor standaard bloemen
+   - Klik "Meer opties" voor extra details indien gewenst
+   - Sla bloem op
 
 4. **Taken Plannen**
    - Maak onderhoudstaken aan
    - Stel schema's in
    - Wijs prioriteiten toe
 
-### Workflow 2: Seizoen Onderhoud
+### Workflow 2: Bloem Bewerken (Gestroomlijnd!)
+
+1. **Bloem Selecteren**
+   - Navigeer naar bloem overzicht
+   - Klik op "Bewerken" bij gewenste bloem
+
+2. **Aanpassingen Maken**
+   - Wijzig verplichte velden indien nodig
+   - Klap "Meer opties" uit voor extra velden
+   - Gebruik dezelfde interface als bij toevoegen
+
+3. **Opslaan**
+   - Wijzigingen worden direct opgeslagen
+   - Identieke ervaring als nieuwe bloem toevoegen
+
+### Workflow 3: Seizoen Onderhoud
 
 1. **Status Controle**
    - Bekijk dashboard overzicht
-   - Controleer plant status
+   - Controleer bloem status
    - Identificeer aandachtspunten
 
 2. **Taken Uitvoeren**
    - Open takenlijst
    - Werk taken af per prioriteit
-   - Update plant status
+   - Update bloem status
    - Voeg notities toe
 
 3. **Voortgang Bijhouden**
@@ -279,25 +300,20 @@ Het systeem bevat een uitgebreide database met Nederlandse bloemen en planten:
    - Update groei gegevens
    - Plan volgende acties
 
-### Workflow 3: Seizoen Planning
-
-1. **Jaarplanning**
-   - Bekijk seizoen kalender
-   - Plan nieuwe beplanting
-   - Schedule onderhoudstaken
-
-2. **Voorraad Planning**
-   - Controleer huidige planten
-   - Plan nieuwe aankopen
-   - Bereken benodigde materialen
-
 ## 🎨 Gebruikersinterface
 
-### Design Principes
+### Design Principes (Recent Verbeterd!)
 - **Intuïtief**: Duidelijke navigatie en logische workflows
+- **Vereenvoudigd**: Minimale vereiste invoer, uitbreidbaar naar behoefte
+- **Consistent**: Identieke interface voor toevoegen en bewerken
 - **Responsive**: Werkt op desktop, tablet en mobiel
 - **Toegankelijk**: Voldoet aan WCAG 2.1 richtlijnen
-- **Consistent**: Uniforme styling en interactiepatronen
+
+### Interface Verbeteringen
+- **Harmonica/Accordeon**: Optionele velden zijn uitklapbaar
+- **Smart Autocomplete**: Intelligente suggesties voor bloemen
+- **Visuele Feedback**: Duidelijke foutmeldingen en validatie
+- **Consistent Styling**: Uniforme kaarten en formulieren
 
 ### Kleurenschema
 - **Primair**: Groen (#22c55e) - Natuur en groei
@@ -366,19 +382,29 @@ Het systeem bevat een uitgebreide database met Nederlandse bloemen en planten:
 ### Geplande Features
 - **Weather Integration**: Automatische weersdata integratie
 - **IoT Sensoren**: Bodemvochtigheid en temperatuur monitoring
-- **AI Plant Recognition**: Automatische plant identificatie via foto
+- **AI Plant Recognition**: Automatische bloem identificatie via foto
 - **Community Features**: Delen van tuinen en tips
-- **E-commerce**: Directe plant en materiaal bestelling
+- **E-commerce**: Directe bloem en materiaal bestelling
 - **Augmented Reality**: AR voor tuinvisualisatie
 
 ### API Uitbreidingen
 - **Third-party Integrations**: Tuincentra en leveranciers
 - **Weather APIs**: Automatische weersvoorspellingen
-- **Plant Databases**: Uitgebreide internationale plant databases
+- **Plant Databases**: Uitgebreide internationale bloemen databases
 - **Social Features**: Delen en samenwerken functionaliteiten
 
 ---
 
-**Versie**: 1.0.0  
+## 📋 Recente Verbeteringen (December 2024)
+
+### Interface Vereenvoudiging
+- ✅ **Unified Form Component**: Één FlowerForm component voor toevoegen én bewerken
+- ✅ **Verplichte Velden**: Alleen bloemnaam, kleur en lengte zijn verplicht
+- ✅ **Uitklapbare Opties**: Alle andere velden via "Meer opties" harmonica
+- ✅ **Dubbele Velden Verwijderd**: Geen wetenschappelijke naam, plant kleur en plant hoogte meer
+- ✅ **Smart Autocomplete**: Intelligente suggesties met emoji en kleur toewijzing
+- ✅ **Consistente UX**: Identieke interface voor alle bloem operaties
+
+**Versie**: 1.1.0  
 **Laatste update**: December 2024  
 **Status**: Productie Ready
