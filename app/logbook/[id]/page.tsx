@@ -214,7 +214,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Back button */}
         <Button asChild variant="ghost" className="mb-6">
           <Link href="/logbook">
@@ -240,54 +240,63 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
         </div>
 
         {/* Main content */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Entry details */}
-          <div className="lg:col-span-2">
+        <div className="grid gap-6 lg:grid-cols-4">
+          {/* Entry details - wider column */}
+          <div className="lg:col-span-3">
             <Card>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-xl flex items-center gap-2">
+                    <CardTitle className="text-xl flex items-center gap-2 mb-3">
                       <MapPin className="h-5 w-5 text-blue-600" />
                       {state.entry.plant_bed_name}
                     </CardTitle>
                     {state.entry.plant_name && (
-                      <p className="text-gray-600 flex items-center gap-2 mt-2">
-                        <Leaf className="h-4 w-4" />
-                        <span>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Leaf className="h-4 w-4 text-green-600" />
+                        <span className="font-medium">
                           {state.entry.plant_name}
                           {state.entry.plant_variety && ` (${state.entry.plant_variety})`}
-                          {state.entry.plant_scientific_name && (
-                            <span className="italic text-sm text-gray-500 ml-2">
-                              {state.entry.plant_scientific_name}
-                            </span>
-                          )}
                         </span>
-                      </p>
+                        {state.entry.plant_scientific_name && (
+                          <span className="italic text-sm text-gray-500 ml-2">
+                            {state.entry.plant_scientific_name}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </div>
-                  {state.entry.photo_url && (
-                    <Camera className="h-5 w-5 text-gray-400" />
-                  )}
                 </div>
               </CardHeader>
               
               <CardContent>
-                {/* Photo */}
+                {/* Photo - improved display */}
                 {state.entry.photo_url && (
                   <div className="mb-6">
-                    <img 
-                      src={state.entry.photo_url} 
-                      alt="Logboek foto"
-                      className="w-full max-h-96 object-cover rounded-lg"
-                    />
+                    <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                      <Camera className="h-4 w-4" />
+                      Foto
+                    </h3>
+                    <div className="relative group">
+                      <img 
+                        src={state.entry.photo_url} 
+                        alt="Logboek foto"
+                        className="w-full max-h-[500px] object-cover rounded-lg border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
+                        onClick={() => state.entry?.photo_url && window.open(state.entry.photo_url, '_blank')}
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded">
+                          Klik om te vergroten
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
                 {/* Notes */}
                 <div className="mb-6">
                   <h3 className="font-medium text-gray-900 mb-3">Opmerkingen</h3>
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="bg-gray-50 rounded-lg p-4 border">
                     <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                       {state.entry.notes}
                     </p>
@@ -315,7 +324,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - narrower column */}
           <div className="space-y-6">
             {/* Actions */}
             <Card>
@@ -342,67 +351,55 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
               </CardContent>
             </Card>
 
-            {/* Location info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Locatie</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <span className="font-medium text-gray-700">Tuin:</span>
-                  <p className="text-gray-600">{state.entry.garden_name}</p>
-                </div>
-                
-                <div>
-                  <span className="font-medium text-gray-700">Plantvak:</span>
-                  <p className="text-gray-600">{state.entry.plant_bed_name}</p>
-                </div>
-                
-                {state.entry.plant_name && (
-                  <div>
-                    <span className="font-medium text-gray-700">Plant:</span>
-                    <p className="text-gray-600">
-                      {state.entry.plant_name}
-                      {state.entry.plant_variety && (
-                        <span className="text-sm text-gray-500 block">
-                          Variëteit: {state.entry.plant_variety}
-                        </span>
-                      )}
-                      {state.entry.plant_scientific_name && (
-                        <span className="text-sm text-gray-500 italic block">
-                          {state.entry.plant_scientific_name}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
             {/* Quick actions */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Gerelateerd</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button asChild variant="outline" className="w-full">
+                <Button asChild variant="outline" className="w-full text-sm">
                   <Link href={`/gardens/${state.entry.garden_id}`}>
                     Bekijk tuin
                   </Link>
                 </Button>
                 
-                <Button asChild variant="outline" className="w-full">
+                <Button asChild variant="outline" className="w-full text-sm">
                   <Link href={`/logbook/new?plant_bed_id=${state.entry.plant_bed_id}`}>
                     Nieuwe entry voor dit plantvak
                   </Link>
                 </Button>
                 
                 {state.entry.plant_id && (
-                  <Button asChild variant="outline" className="w-full">
+                  <Button asChild variant="outline" className="w-full text-sm">
                     <Link href={`/logbook/new?plant_bed_id=${state.entry.plant_bed_id}&plant_id=${state.entry.plant_id}`}>
                       Nieuwe entry voor deze plant
                     </Link>
                   </Button>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Entry Info Summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Entry Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                <div>
+                  <span className="font-medium text-gray-700">Tuin:</span>
+                  <p className="text-gray-600">{state.entry.garden_name}</p>
+                </div>
+                
+                <div>
+                  <span className="font-medium text-gray-700">Datum:</span>
+                  <p className="text-gray-600">{formatDate(state.entry.entry_date)}</p>
+                </div>
+                
+                {!state.entry.photo_url && (
+                  <div className="text-center py-4 text-gray-400 border border-dashed border-gray-200 rounded-lg">
+                    <Camera className="h-6 w-6 mx-auto mb-2" />
+                    <p className="text-xs">Geen foto</p>
+                  </div>
                 )}
               </CardContent>
             </Card>
