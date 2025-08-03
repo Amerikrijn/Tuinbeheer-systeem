@@ -476,7 +476,8 @@ export class LogbookService {
         throw new DatabaseError('Failed to create logbook entry', error.code, error)
       }
 
-      AuditLogger.logDataChange('CREATE', 'logbook_entries', data.id, logbookData)
+      AuditLogger.logUserAction(null, 'CREATE', 'logbook_entries', data.id, logbookData)
+      AuditLogger.logDataAccess(null, 'CREATE', 'logbook_entries', data.id)
       PerformanceLogger.endTimer(performanceTimer, 'logbook-create')
       
       databaseLogger.info('Logbook entry created successfully', { 
@@ -679,7 +680,8 @@ export class LogbookService {
         throw new DatabaseError('Failed to update logbook entry', error.code, error)
       }
 
-      AuditLogger.logDataChange('UPDATE', 'logbook_entries', id, updateData, existing)
+      AuditLogger.logUserAction(null, 'UPDATE', 'logbook_entries', id, updateData)
+      AuditLogger.logDataAccess(null, 'UPDATE', 'logbook_entries', id)
       PerformanceLogger.endTimer(performanceTimer, 'logbook-update')
       
       databaseLogger.info('Logbook entry updated successfully', { id, updateData, operationId })
@@ -738,7 +740,8 @@ export class LogbookService {
         throw new DatabaseError('Failed to delete logbook entry', error.code, error)
       }
 
-      AuditLogger.logDataChange('DELETE', 'logbook_entries', id, null, existing)
+      AuditLogger.logUserAction(null, 'DELETE', 'logbook_entries', id)
+      AuditLogger.logDataAccess(null, 'DELETE', 'logbook_entries', id)
       PerformanceLogger.endTimer(performanceTimer, 'logbook-delete')
       
       databaseLogger.info('Logbook entry deleted successfully', { id, operationId })
@@ -791,7 +794,8 @@ export class LogbookService {
         throw new DatabaseError('Failed to update logbook entry photo', error.code, error)
       }
 
-      AuditLogger.logDataChange('UPDATE', 'logbook_entries', id, { photo_url: photoUrl })
+      AuditLogger.logUserAction(null, 'UPDATE', 'logbook_entries', id, { photo_url: photoUrl })
+      AuditLogger.logDataAccess(null, 'UPDATE', 'logbook_entries', id)
       PerformanceLogger.endTimer(performanceTimer, 'logbook-updatePhoto')
       
       databaseLogger.info('Logbook entry photo updated successfully', { id, photoUrl, operationId })
