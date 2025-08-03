@@ -210,21 +210,8 @@ export default function PlantBedViewPage() {
   const [isEditCustomFlower, setIsEditCustomFlower] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('')
-  const [newFlower, setNewFlower] = useState({
-    name: '',
-    type: '',
-    emoji: DEFAULT_FLOWER_EMOJI,
-    description: '',
-    status: 'gezond' as 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek',
-
-    isStandardFlower: false,
-    // New plant fields
-    latinName: '',
-    plantColor: '',
-    plantHeight: '',
-    plantsPerSqm: '',
-    sunPreference: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade'
-  })
+  const [newFlower, setNewFlower] = useState<PlantFormData>(createInitialPlantFormData())
+  const [newFlowerErrors, setNewFlowerErrors] = useState<PlantFormErrors>({})
   const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
   const [showDeletePlantBedDialog, setShowDeletePlantBedDialog] = useState(false)
   const [plantBedForm, setPlantBedForm] = useState({
