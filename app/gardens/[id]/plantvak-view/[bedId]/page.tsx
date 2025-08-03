@@ -1973,10 +1973,10 @@ export default function PlantBedViewPage() {
                       // Populate form with selected flower data
                       setNewFlower({
                         name: selectedFlower.name,
-                        color: selectedFlower.color,
+                        color: selectedFlower.color || '',
                         height: selectedFlower.height?.toString() || '',
                         emoji: selectedFlower.emoji || DEFAULT_FLOWER_EMOJI,
-                        status: selectedFlower.status,
+                        status: selectedFlower.status || 'gezond',
                         notes: selectedFlower.notes || '',
                         isStandardFlower: !selectedFlower.is_custom,
                         // Populate optional fields
@@ -2506,21 +2506,22 @@ export default function PlantBedViewPage() {
                               // Populate form with selected flower data
                               setNewFlower({
                                 name: flower.name,
-                                type: flower.category || '',
+                                color: flower.color || '',
+                                height: flower.height?.toString() || '',
                                 emoji: flower.emoji || DEFAULT_FLOWER_EMOJI,
-                                description: flower.notes || '',
-                                status: flower.status === 'ziek' ? 'ziek' : 
-                                       flower.status === 'gezond' ? 'gezond' :
-                                       flower.status === 'aandacht_nodig' ? 'aandacht_nodig' :
-                                       'gezond' as 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek',
-                                
+                                status: flower.status || 'gezond',
+                                notes: flower.notes || '',
                                 isStandardFlower: !flower.is_custom,
-                                // Populate new fields
-                                latinName: flower.latin_name || '',
-                                plantColor: flower.plant_color || flower.color || '',
-                                plantHeight: flower.plant_height?.toString() || '',
+                                // Populate optional fields
+                                scientificName: flower.latin_name || '',
+                                variety: '',
                                 plantsPerSqm: flower.plants_per_sqm?.toString() || '',
-                                sunPreference: flower.sun_preference || 'full-sun'
+                                sunPreference: flower.sun_preference || 'full-sun',
+                                plantingDate: '',
+                                expectedHarvestDate: '',
+                                careInstructions: '',
+                                wateringFrequency: '',
+                                fertilizerSchedule: ''
                               })
                               setIsEditingFlower(true)
                             }}
