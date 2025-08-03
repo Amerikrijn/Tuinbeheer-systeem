@@ -95,18 +95,72 @@ export default function EditPlantPage() {
   const validateForm = (data: PlantFormData): PlantFormErrors => {
     const newErrors: PlantFormErrors = {}
 
+    // Required fields
     if (!data.name.trim()) {
-      newErrors.name = "Plantnaam is verplicht"
+      newErrors.name = "Bloemnaam is verplicht"
+    } else if (data.name.length > 100) {
+      newErrors.name = "Bloemnaam mag maximaal 100 karakters bevatten"
     }
 
     if (!data.color.trim()) {
       newErrors.color = "Kleur is verplicht"
+    } else if (data.color.length > 50) {
+      newErrors.color = "Kleur mag maximaal 50 karakters bevatten"
     }
 
     if (!data.height.trim()) {
       newErrors.height = "Hoogte is verplicht"
     } else if (isNaN(Number(data.height)) || Number(data.height) <= 0) {
       newErrors.height = "Hoogte moet een geldig getal groter dan 0 zijn"
+    } else if (Number(data.height) > 500) {
+      newErrors.height = "Hoogte mag niet meer dan 500 cm zijn"
+    }
+
+    // Optional field validations
+    if (data.scientificName && data.scientificName.length > 200) {
+      newErrors.scientificName = "Wetenschappelijke naam mag maximaal 200 karakters bevatten"
+    }
+
+    if (data.latinName && data.latinName.length > 100) {
+      newErrors.latinName = "Latijnse naam mag maximaal 100 karakters bevatten"
+    }
+
+    if (data.variety && data.variety.length > 100) {
+      newErrors.variety = "Variëteit mag maximaal 100 karakters bevatten"
+    }
+
+    if (data.plantColor && data.plantColor.length > 50) {
+      newErrors.plantColor = "Plant kleur mag maximaal 50 karakters bevatten"
+    }
+
+    if (data.plantHeight && (isNaN(Number(data.plantHeight)) || Number(data.plantHeight) <= 0)) {
+      newErrors.plantHeight = "Plant hoogte moet een geldig getal groter dan 0 zijn"
+    } else if (data.plantHeight && Number(data.plantHeight) > 500) {
+      newErrors.plantHeight = "Plant hoogte mag niet meer dan 500 cm zijn"
+    }
+
+    if (data.plantsPerSqm && (isNaN(Number(data.plantsPerSqm)) || Number(data.plantsPerSqm) <= 0)) {
+      newErrors.plantsPerSqm = "Planten per m² moet een geldig getal groter dan 0 zijn"
+    } else if (data.plantsPerSqm && Number(data.plantsPerSqm) > 100) {
+      newErrors.plantsPerSqm = "Planten per m² mag niet meer dan 100 zijn"
+    }
+
+    if (data.wateringFrequency && (isNaN(Number(data.wateringFrequency)) || Number(data.wateringFrequency) <= 0)) {
+      newErrors.wateringFrequency = "Water frequentie moet een geldig getal groter dan 0 zijn"
+    } else if (data.wateringFrequency && Number(data.wateringFrequency) > 365) {
+      newErrors.wateringFrequency = "Water frequentie mag niet meer dan 365 dagen zijn"
+    }
+
+    if (data.notes && data.notes.length > 1000) {
+      newErrors.notes = "Opmerkingen mogen maximaal 1000 karakters bevatten"
+    }
+
+    if (data.careInstructions && data.careInstructions.length > 1000) {
+      newErrors.careInstructions = "Verzorgingsinstructies mogen maximaal 1000 karakters bevatten"
+    }
+
+    if (data.fertilizerSchedule && data.fertilizerSchedule.length > 100) {
+      newErrors.fertilizerSchedule = "Bemestingsschema mag maximaal 100 karakters bevatten"
     }
 
     return newErrors
@@ -267,7 +321,7 @@ export default function EditPlantPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
           <Leaf className="h-8 w-8 text-green-600" />
-          Plant Bewerken
+          Bloem Bewerken
         </h1>
         <div className="text-gray-600">
           <p>{plant.name}</p>
@@ -277,10 +331,10 @@ export default function EditPlantPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Plant Form */}
         <div className="lg:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Plant Details</CardTitle>
-            </CardHeader>
+                      <Card>
+              <CardHeader>
+                <CardTitle>Bloem Details</CardTitle>
+              </CardHeader>
             <CardContent>
               <PlantForm
                 data={plantData}
