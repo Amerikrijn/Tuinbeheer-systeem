@@ -1951,8 +1951,8 @@ export default function PlantBedViewPage() {
             </DialogContent>
           </Dialog>
 
-          {/* Edit Flower Dialog - Disabled due to syntax issues */}
-          <Dialog open={false} onOpenChange={(open) => {
+          {/* Edit Flower Dialog */}
+          <Dialog open={isEditingFlower} onOpenChange={(open) => {
             setIsEditingFlower(open)
             if (!open) {
               // Reset form when dialog closes
