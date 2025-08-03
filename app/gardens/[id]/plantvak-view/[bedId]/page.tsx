@@ -771,17 +771,7 @@ export default function PlantBedViewPage() {
         photo_url: null,
         is_custom: !newFlower.isStandardFlower,
         category: newFlower.isStandardFlower ? 'Standaard' : 'Aangepast',
-        notes: newFlower.notes || '',
-        scientific_name: newFlower.scientificName || undefined,
-        variety: newFlower.variety || undefined,
-        height: newFlower.height ? Number.parseInt(newFlower.height) : undefined,
-        plants_per_sqm: newFlower.plantsPerSqm ? parseInt(newFlower.plantsPerSqm) : undefined,
-        sun_preference: newFlower.sunPreference,
-        planting_date: newFlower.plantingDate || undefined,
-        expected_harvest_date: newFlower.expectedHarvestDate || undefined,
-        care_instructions: newFlower.careInstructions || undefined,
-        watering_frequency: newFlower.wateringFrequency ? parseInt(newFlower.wateringFrequency) : undefined,
-        fertilizer_schedule: newFlower.fertilizerSchedule || undefined
+        notes: newFlower.notes || ''
       })
 
       if (newPlant) {
