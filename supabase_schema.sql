@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS gardens (
     width VARCHAR(50),
     garden_type VARCHAR(100),
     established_date DATE,
+    season_year INTEGER NOT NULL DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
     notes TEXT,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -44,6 +45,7 @@ CREATE TABLE IF NOT EXISTS plant_beds (
     size VARCHAR(50),
     soil_type VARCHAR(100),
     sun_exposure VARCHAR(20) CHECK (sun_exposure IN ('full-sun', 'partial-sun', 'shade')),
+    season_year INTEGER NOT NULL DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
     description TEXT,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -103,11 +105,14 @@ CREATE TABLE IF NOT EXISTS logbook_entries (
 -- Gardens indexes
 CREATE INDEX idx_gardens_is_active ON gardens(is_active);
 CREATE INDEX idx_gardens_created_at ON gardens(created_at DESC);
+CREATE INDEX idx_gardens_season_year ON gardens(season_year);
 
 -- Plant beds indexes
 CREATE INDEX idx_plant_beds_garden_id ON plant_beds(garden_id);
 CREATE INDEX idx_plant_beds_is_active ON plant_beds(is_active);
 CREATE INDEX idx_plant_beds_garden_active ON plant_beds(garden_id, is_active);
+CREATE INDEX idx_plant_beds_season_year ON plant_beds(season_year);
+CREATE INDEX idx_plant_beds_season_garden ON plant_beds(season_year, garden_id);
 
 -- Plants indexes
 CREATE INDEX idx_plants_plant_bed_id ON plants(plant_bed_id);

@@ -9,6 +9,7 @@ export interface Tuin {
   width?: string
   garden_type?: string
   established_date?: string
+  season_year: number
   notes?: string
   is_active: boolean
   created_at: string
@@ -31,6 +32,7 @@ export interface Plantvak {
   size?: string
   soil_type?: string
   sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
+  season_year: number
   description?: string
   is_active?: boolean
   created_at: string
