@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-
+import { TaskDetailsDialog } from "./task-details-dialog"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { 
   Calendar, 
@@ -55,6 +55,10 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
 
   // Add loading state for individual tasks
   const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set())
+  
+  // Task details dialog state
+  const [selectedTask, setSelectedTask] = useState<WeeklyTask | null>(null)
+  const [showTaskDialog, setShowTaskDialog] = useState(false)
 
   // Load weekly calendar
   const loadWeeklyCalendar = async (weekStart: Date) => {
@@ -138,8 +142,16 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     const taskTypeConfig = getTaskTypeConfig(task.task_type)
     const priorityConfig = getPriorityConfig(task.priority)
     
+    const handleTaskDoubleClick = () => {
+      setSelectedTask(task)
+      setShowTaskDialog(true)
+    }
+    
     return (
-      <Card className={`mb-3 transition-all duration-200 ${task.completed ? 'opacity-70 bg-gray-50 border-gray-300' : 'bg-white border-gray-200'} ${compact ? 'p-2' : ''}`}>
+      <Card 
+        className={`mb-3 transition-all duration-200 cursor-pointer hover:shadow-md ${task.completed ? 'opacity-70 bg-gray-50 border-gray-300' : 'bg-white border-gray-200'} ${compact ? 'p-2' : ''}`}
+        onDoubleClick={handleTaskDoubleClick}
+      >
         <CardContent className={compact ? 'p-3' : 'p-4'}>
           <div className="flex items-start gap-3">
             {/* Simple button approach instead of Checkbox for better reliability */}
@@ -555,6 +567,22 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Task Details Dialog */}
+      <TaskDetailsDialog
+        task={selectedTask}
+        isOpen={showTaskDialog}
+        onClose={() => {
+          setShowTaskDialog(false)
+          setSelectedTask(null)
+        }}
+        onTaskUpdated={() => {
+          loadWeeklyCalendar(currentWeekStart)
+        }}
+        onTaskDeleted={() => {
+          loadWeeklyCalendar(currentWeekStart)
+        }}
+      />
     </div>
   )
 }
