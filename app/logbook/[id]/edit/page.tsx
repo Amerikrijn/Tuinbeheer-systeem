@@ -163,7 +163,7 @@ export default function EditLogbookPage() {
         throw new Error(result.error || 'Failed to upload photo')
       }
 
-      setFormData(prev => ({ ...prev, photo_url: result.url }))
+      setFormData(prev => ({ ...prev, photo_url: result.url as string }))
 
       toast({
         title: "Foto geüpload",
