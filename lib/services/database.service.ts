@@ -493,7 +493,7 @@ export class LogbookService {
       PerformanceLogger.endTimer(operationId, 'logbook-create', { error: true })
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
-        databaseLogger.warn('Logbook entry creation validation failed', error, { formData, operationId })
+        databaseLogger.error('Logbook entry creation validation failed', error, { formData, operationId })
         return createResponse<LogbookEntry>(null, error.message, 'create logbook entry')
       }
       
@@ -612,7 +612,7 @@ export class LogbookService {
       PerformanceLogger.endTimer(operationId, 'logbook-getById', { error: true })
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
-        databaseLogger.warn('Logbook entry fetch validation failed', error, { id, operationId })
+        databaseLogger.error('Logbook entry fetch validation failed', error, { id, operationId })
         return createResponse<LogbookEntryWithDetails>(null, error.message, 'fetch logbook entry')
       }
       
@@ -692,7 +692,7 @@ export class LogbookService {
       PerformanceLogger.endTimer(operationId, 'logbook-update', { error: true })
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
-        databaseLogger.warn('Logbook entry update validation failed', error, { id, formData, operationId })
+        databaseLogger.error('Logbook entry update validation failed', error, { id, formData, operationId })
         return createResponse<LogbookEntry>(null, error.message, 'update logbook entry')
       }
       
@@ -752,7 +752,7 @@ export class LogbookService {
       PerformanceLogger.endTimer(operationId, 'logbook-delete', { error: true })
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
-        databaseLogger.warn('Logbook entry deletion validation failed', error, { id, operationId })
+        databaseLogger.error('Logbook entry deletion validation failed', error, { id, operationId })
         return createResponse<boolean>(false, error.message, 'delete logbook entry')
       }
       
@@ -806,7 +806,7 @@ export class LogbookService {
       PerformanceLogger.endTimer(operationId, 'logbook-updatePhoto', { error: true })
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
-        databaseLogger.warn('Logbook entry photo update validation failed', error, { id, photoUrl, operationId })
+        databaseLogger.error('Logbook entry photo update validation failed', error, { id, photoUrl, operationId })
         return createResponse<LogbookEntry>(null, error.message, 'update logbook entry photo')
       }
       
