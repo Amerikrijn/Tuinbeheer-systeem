@@ -524,8 +524,25 @@ export class LogbookService {
       await validateConnection()
       
       let query = supabase
-        .from('logbook_entries_with_details')
-        .select('*')
+        .from('logbook_entries')
+        .select(`
+          *,
+          plant_beds!inner(
+            id,
+            name,
+            garden_id,
+            gardens!inner(
+              id,
+              name
+            )
+          ),
+          plants(
+            id,
+            name,
+            scientific_name,
+            variety
+          )
+        `)
         .order('entry_date', { ascending: false })
         .order('created_at', { ascending: false })
 
@@ -537,7 +554,7 @@ export class LogbookService {
         query = query.eq('plant_id', filters.plant_id)
       }
       if (filters?.garden_id) {
-        query = query.eq('garden_id', filters.garden_id)
+        query = query.eq('plant_beds.garden_id', filters.garden_id)
       }
       if (filters?.limit) {
         query = query.limit(filters.limit)
@@ -552,15 +569,26 @@ export class LogbookService {
         throw new DatabaseError('Failed to fetch logbook entries', error.code, error)
       }
 
+      // Transform nested data to flat structure
+      const transformedData = data?.map(entry => ({
+        ...entry,
+        plant_bed_name: entry.plant_beds?.name || '',
+        garden_id: entry.plant_beds?.garden_id || '',
+        garden_name: entry.plant_beds?.gardens?.name || '',
+        plant_name: entry.plants?.name || null,
+        plant_scientific_name: entry.plants?.scientific_name || null,
+        plant_variety: entry.plants?.variety || null,
+      })) || []
+
       PerformanceLogger.endTimer(operationId, 'logbook-getAll')
       
       databaseLogger.debug('Logbook entries fetched successfully', { 
-        count: data?.length || 0,
+        count: transformedData?.length || 0,
         filters,
         operationId 
       })
 
-      return createResponse<LogbookEntryWithDetails[]>(data || [], null, 'fetch logbook entries')
+      return createResponse<LogbookEntryWithDetails[]>(transformedData, null, 'fetch logbook entries')
 
     } catch (error) {
       PerformanceLogger.endTimer(operationId, 'logbook-getAll', { error: true })
@@ -590,8 +618,25 @@ export class LogbookService {
       }
 
       const { data, error } = await supabase
-        .from('logbook_entries_with_details')
-        .select('*')
+        .from('logbook_entries')
+        .select(`
+          *,
+          plant_beds!inner(
+            id,
+            name,
+            garden_id,
+            gardens!inner(
+              id,
+              name
+            )
+          ),
+          plants(
+            id,
+            name,
+            scientific_name,
+            variety
+          )
+        `)
         .eq('id', id)
         .single()
 
@@ -602,11 +647,22 @@ export class LogbookService {
         throw new DatabaseError('Failed to fetch logbook entry', error.code, error)
       }
 
+      // Transform nested data to flat structure
+      const transformedData = {
+        ...data,
+        plant_bed_name: data.plant_beds?.name || '',
+        garden_id: data.plant_beds?.garden_id || '',
+        garden_name: data.plant_beds?.gardens?.name || '',
+        plant_name: data.plants?.name || null,
+        plant_scientific_name: data.plants?.scientific_name || null,
+        plant_variety: data.plants?.variety || null,
+      }
+
       PerformanceLogger.endTimer(operationId, 'logbook-getById')
       
       databaseLogger.debug('Logbook entry fetched successfully', { id, operationId })
 
-      return createResponse<LogbookEntryWithDetails>(data, null, 'fetch logbook entry')
+      return createResponse<LogbookEntryWithDetails>(transformedData, null, 'fetch logbook entry')
 
     } catch (error) {
       PerformanceLogger.endTimer(operationId, 'logbook-getById', { error: true })
