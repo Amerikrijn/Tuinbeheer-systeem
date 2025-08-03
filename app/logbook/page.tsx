@@ -438,8 +438,16 @@ function LogbookPageContent() {
                     </p>
                   </TableCell>
                   <TableCell className="text-center">
-                    {entry.photo_url && (
-                      <Camera className="h-4 w-4 text-gray-400 mx-auto" />
+                    {entry.photo_url ? (
+                      <div className="flex justify-center">
+                        <img 
+                          src={entry.photo_url} 
+                          alt="Logboek foto"
+                          className="w-12 h-12 object-cover rounded-lg border border-gray-200"
+                        />
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-xs">Geen foto</span>
                     )}
                   </TableCell>
                 </TableRow>
