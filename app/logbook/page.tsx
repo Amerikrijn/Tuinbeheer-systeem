@@ -181,17 +181,16 @@ function LogbookPageContent() {
     }
   }
 
-  // Get unique gardens from plant beds
+  // Get unique gardens from logbook entries (which have garden names)
   const gardens = React.useMemo(() => {
     const uniqueGardens = new Map()
-    state.plantBeds.forEach(bed => {
-      if (!uniqueGardens.has(bed.garden_id)) {
-        // We would need garden name from a join, for now use garden_id
-        uniqueGardens.set(bed.garden_id, bed.garden_id)
+    state.entries.forEach(entry => {
+      if (!uniqueGardens.has(entry.garden_id)) {
+        uniqueGardens.set(entry.garden_id, entry.garden_name)
       }
     })
     return Array.from(uniqueGardens.entries()).map(([id, name]) => ({ id, name }))
-  }, [state.plantBeds])
+  }, [state.entries])
 
   // Filter plant beds by selected garden
   const filteredPlantBeds = React.useMemo(() => {
