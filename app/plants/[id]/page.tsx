@@ -12,6 +12,7 @@ import { TaskService } from '@/lib/services/task.service'
 import { supabase } from '@/lib/supabase'
 import type { TaskWithPlantInfo } from '@/lib/types/tasks'
 import type { Bloem } from '@/lib/types/index'
+import { BloemDetailView } from '@/components/ui/bloem-detail-view'
 
 interface PlantWithBeds extends Bloem {
   plant_beds?: {
@@ -218,116 +219,46 @@ export default function PlantDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Plant Details */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Basic Info */}
-          <Card>
+          {/* Location Info */}
+          <Card className="border-blue-200 bg-blue-50/30">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-blue-800">
                 <Leaf className="w-5 h-5" />
-                Plant Informatie
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Nederlandse naam</label>
-                  <p className="text-lg font-semibold">{plant.name}</p>
-                </div>
-                
-                {plant.latin_name && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Latijnse naam</label>
-                    <p className="text-lg italic text-gray-600">{plant.latin_name}</p>
-                  </div>
-                )}
-
-                {plant.variety && (
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Variëteit</label>
-                    <p>{plant.variety}</p>
-                  </div>
-                )}
-
-                <div>
-                  <label className="text-sm font-medium text-gray-700">Locatie</label>
-                  <p>{plant.plant_beds?.name} • {plant.plant_beds?.gardens?.name}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Growing Conditions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sun className="w-5 h-5" />
-                Groeiomstandigheden
+                Locatie
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="flex items-center gap-2">
-                  {getSunIcon(plant.sun_preference)}
-                  <div>
-                    <p className="text-sm text-gray-600">Zonvoorkeur</p>
-                    <p className="font-medium">{getSunLabel(plant.sun_preference)}</p>
-                  </div>
-                </div>
-
-                {plant.plant_height && (
-                  <div className="flex items-center gap-2">
-                    <Ruler className="w-4 h-4 text-blue-500" />
-                    <div>
-                      <p className="text-sm text-gray-600">Hoogte</p>
-                      <p className="font-medium">{plant.plant_height} cm</p>
-                    </div>
-                  </div>
-                )}
-
-                {plant.plant_color && (
-                  <div className="flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-purple-500" />
-                    <div>
-                      <p className="text-sm text-gray-600">Kleur</p>
-                      <p className="font-medium">{plant.plant_color}</p>
-                    </div>
-                  </div>
-                )}
-
-                {plant.plants_per_sqm && (
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-green-500" />
-                    <div>
-                      <p className="text-sm text-gray-600">Per m²</p>
-                      <p className="font-medium">{plant.plants_per_sqm} stuks</p>
-                    </div>
-                  </div>
-                )}
+              <div>
+                <label className="text-sm font-medium text-blue-700">Locatie</label>
+                <p className="text-lg font-semibold text-blue-900">{plant.plant_beds?.name} • {plant.plant_beds?.gardens?.name}</p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Care Instructions */}
-          {(plant.notes || plant.care_instructions) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Verzorging & Notities</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {plant.care_instructions && (
-                  <div>
-                    <h4 className="font-medium mb-2">Verzorgingsinstructies</h4>
-                    <p className="text-gray-700">{plant.care_instructions}</p>
-                  </div>
-                )}
-                {plant.notes && (
-                  <div>
-                    <h4 className="font-medium mb-2">Notities</h4>
-                    <p className="text-gray-700">{plant.notes}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+          {/* Flower Details using new consistent view */}
+          <BloemDetailView 
+            data={{
+              name: plant.name,
+              color: plant.color || '',
+              height: plant.height || plant.plant_height || 0,
+              scientific_name: plant.scientific_name,
+              latin_name: plant.latin_name,
+              variety: plant.variety,
+              plant_color: plant.plant_color,
+              plant_height: plant.plant_height,
+              plants_per_sqm: plant.plants_per_sqm,
+              sun_preference: plant.sun_preference,
+              planting_date: plant.planting_date,
+              expected_harvest_date: plant.expected_harvest_date,
+              status: plant.status,
+              notes: plant.notes,
+              care_instructions: plant.care_instructions,
+              watering_frequency: plant.watering_frequency,
+              fertilizer_schedule: plant.fertilizer_schedule,
+              emoji: plant.emoji
+            }}
+            showAllSections={false}
+          />
         </div>
 
         {/* Tasks Sidebar */}

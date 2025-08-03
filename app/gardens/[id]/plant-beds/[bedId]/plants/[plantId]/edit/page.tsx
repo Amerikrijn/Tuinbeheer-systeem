@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PlantForm, PlantFormData, PlantFormErrors, createInitialPlantFormData } from "@/components/ui/plant-form"
+import { BloemForm, BloemFormData, BloemFormErrors, createInitialBloemFormData } from "@/components/ui/bloem-form"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Leaf, Save, Trash2 } from "lucide-react"
 import { getPlant, updatePlant, deletePlant } from "@/lib/database"
@@ -20,8 +20,8 @@ export default function EditPlantPage() {
   const { toast } = useToast()
   
   const [plant, setPlant] = useState<Plant | null>(null)
-  const [plantData, setPlantData] = useState<PlantFormData>(createInitialPlantFormData())
-  const [errors, setErrors] = useState<PlantFormErrors>({})
+  const [plantData, setPlantData] = useState<BloemFormData>(createInitialBloemFormData())
+  const [errors, setErrors] = useState<BloemFormErrors>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -92,8 +92,8 @@ export default function EditPlantPage() {
     }
   }, [params.plantId, toast])
 
-  const validateForm = (data: PlantFormData): PlantFormErrors => {
-    const newErrors: PlantFormErrors = {}
+  const validateForm = (data: BloemFormData): BloemFormErrors => {
+    const newErrors: BloemFormErrors = {}
 
     if (!data.name.trim()) {
       newErrors.name = "Plantnaam is verplicht"
@@ -282,14 +282,14 @@ export default function EditPlantPage() {
               <CardTitle>Plant Details</CardTitle>
             </CardHeader>
             <CardContent>
-              <PlantForm
+              <BloemForm
                 data={plantData}
                 errors={errors}
                 onChange={setPlantData}
                 onSubmit={handleSubmit}
                 submitLabel="Wijzigingen opslaan"
                 isSubmitting={saving}
-                showAdvanced={true}
+                mode="edit"
               />
             </CardContent>
           </Card>

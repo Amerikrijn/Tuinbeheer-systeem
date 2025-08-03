@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { PlantForm, PlantFormData, PlantFormErrors, createInitialPlantFormData } from "@/components/ui/plant-form"
+import { BloemForm, BloemFormData, BloemFormErrors, createInitialBloemFormData } from "@/components/ui/bloem-form"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Leaf } from "lucide-react"
 import { getGarden, getPlantBed, createPlant } from "@/lib/database"
@@ -22,10 +22,10 @@ export default function NewPlantPage() {
   const [garden, setGarden] = React.useState<Garden | null>(null)
   const [plantBed, setPlantBed] = React.useState<PlantBedWithPlants | null>(null)
   const [loading, setLoading] = React.useState(false)
-  const [errors, setErrors] = React.useState<PlantFormErrors>({})
+  const [errors, setErrors] = React.useState<BloemFormErrors>({})
   const [showAddTask, setShowAddTask] = React.useState(false)
   const [createdPlantId, setCreatedPlantId] = React.useState<string | null>(null)
-  const [plantData, setPlantData] = React.useState<PlantFormData>(createInitialPlantFormData())
+  const [plantData, setPlantData] = React.useState<BloemFormData>(createInitialBloemFormData())
 
   // Clear any dialog states that might be stuck
   React.useEffect(() => {
@@ -67,8 +67,8 @@ export default function NewPlantPage() {
     }
   }, [params.id, params.bedId, toast])
 
-  const validateForm = (data: PlantFormData): PlantFormErrors => {
-    const newErrors: PlantFormErrors = {}
+  const validateForm = (data: BloemFormData): BloemFormErrors => {
+    const newErrors: BloemFormErrors = {}
 
     if (!data.name.trim()) {
       newErrors.name = "Plantnaam is verplicht"
@@ -155,7 +155,7 @@ export default function NewPlantPage() {
   }
 
   const handleReset = () => {
-    setPlantData(createInitialPlantFormData())
+    setPlantData(createInitialBloemFormData())
     setErrors({})
   }
 
@@ -219,15 +219,15 @@ export default function NewPlantPage() {
           <CardTitle>Plant Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <PlantForm
+          <BloemForm
             data={plantData}
             errors={errors}
             onChange={setPlantData}
             onSubmit={handleSubmit}
             onReset={handleReset}
-            submitLabel="Plant toevoegen"
+            submitLabel="Bloem toevoegen"
             isSubmitting={loading}
-            showAdvanced={true}
+            mode="create"
           />
         </CardContent>
       </Card>
