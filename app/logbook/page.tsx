@@ -46,8 +46,8 @@ function LogbookPageContent() {
     loading: true,
     error: null,
     searchTerm: "",
-    selectedGarden: "",
-    selectedPlantBed: "",
+    selectedGarden: "all",
+    selectedPlantBed: "all",
     page: 1,
     hasMore: false,
   })
@@ -64,9 +64,9 @@ function LogbookPageContent() {
         offset: (page - 1) * ITEMS_PER_PAGE
       }
 
-      if (state.selectedPlantBed) {
+      if (state.selectedPlantBed && state.selectedPlantBed !== "all") {
         filters.plant_bed_id = state.selectedPlantBed
-      } else if (state.selectedGarden) {
+      } else if (state.selectedGarden && state.selectedGarden !== "all") {
         filters.garden_id = state.selectedGarden
       }
 
@@ -129,7 +129,7 @@ function LogbookPageContent() {
 
   // Reload when filters change
   React.useEffect(() => {
-    if (state.selectedGarden !== "" || state.selectedPlantBed !== "" || state.searchTerm !== "") {
+    if (state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.searchTerm !== "") {
       loadEntries(1, false)
     }
   }, [state.selectedGarden, state.selectedPlantBed, state.searchTerm, loadEntries])
@@ -144,7 +144,7 @@ function LogbookPageContent() {
     setState(prev => ({ 
       ...prev, 
       selectedGarden: value, 
-      selectedPlantBed: "", // Reset plant bed when garden changes
+      selectedPlantBed: "all", // Reset plant bed when garden changes
       page: 1 
     }))
   }
@@ -158,8 +158,8 @@ function LogbookPageContent() {
     setState(prev => ({ 
       ...prev, 
       searchTerm: "", 
-      selectedGarden: "", 
-      selectedPlantBed: "", 
+      selectedGarden: "all", 
+      selectedPlantBed: "all", 
       page: 1 
     }))
     loadEntries(1, false)
@@ -195,7 +195,7 @@ function LogbookPageContent() {
 
   // Filter plant beds by selected garden
   const filteredPlantBeds = React.useMemo(() => {
-    return state.selectedGarden 
+    return state.selectedGarden && state.selectedGarden !== "all"
       ? state.plantBeds.filter(bed => bed.garden_id === state.selectedGarden)
       : state.plantBeds
   }, [state.plantBeds, state.selectedGarden])
@@ -262,7 +262,7 @@ function LogbookPageContent() {
                 <SelectValue placeholder="Alle tuinen" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Alle tuinen</SelectItem>
+                <SelectItem value="all">Alle tuinen</SelectItem>
                 {gardens.map((garden) => (
                   <SelectItem key={garden.id} value={garden.id}>
                     {garden.name}
@@ -277,7 +277,7 @@ function LogbookPageContent() {
                 <SelectValue placeholder="Alle plantvakken" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Alle plantvakken</SelectItem>
+                <SelectItem value="all">Alle plantvakken</SelectItem>
                 {filteredPlantBeds.map((bed) => (
                   <SelectItem key={bed.id} value={bed.id}>
                     {bed.name}
@@ -287,7 +287,7 @@ function LogbookPageContent() {
             </Select>
 
             {/* Clear filters */}
-            {(state.searchTerm || state.selectedGarden || state.selectedPlantBed) && (
+            {(state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all") && (
               <Button variant="outline" onClick={clearFilters}>
                 <X className="h-4 w-4 mr-2" />
                 Wissen
@@ -324,7 +324,7 @@ function LogbookPageContent() {
             Geen logboek entries gevonden
           </h3>
           <p className="text-gray-600 mb-6">
-            {state.searchTerm || state.selectedGarden || state.selectedPlantBed
+            {state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all"
               ? "Probeer je filters aan te passen of maak een nieuwe entry aan."
               : "Begin met het maken van je eerste logboek entry."}
           </p>
