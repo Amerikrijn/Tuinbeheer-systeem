@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { LogbookService } from '@/lib/services/database.service'
 import type { 
   Task, 
   TaskWithPlantInfo, 
@@ -61,6 +62,22 @@ export class TaskService {
         updateData.completed_at = null
       }
 
+      // First get the current task data to check if it's being completed
+      const { data: currentTask, error: fetchError } = await supabase
+        .from('tasks')
+        .select(`
+          *,
+          plants(id, name, plant_bed_id),
+          plant_beds(id, name)
+        `)
+        .eq('id', taskId)
+        .single()
+
+      if (fetchError) {
+        console.error('Error fetching current task:', fetchError)
+        throw fetchError
+      }
+
       const { data: task, error } = await supabase
         .from('tasks')
         .update(updateData)
@@ -71,6 +88,40 @@ export class TaskService {
       if (error) {
         console.error('Supabase update error:', error)
         throw error
+      }
+
+      // If task is being completed (was not completed before, now is completed)
+      if (data.completed === true && !currentTask.completed) {
+        try {
+          // Create logbook entry for completed task
+          let plantBedId = currentTask.plant_bed_id
+          if (!plantBedId && currentTask.plants?.plant_bed_id) {
+            plantBedId = currentTask.plants.plant_bed_id
+          }
+          if (!plantBedId && currentTask.plant_beds?.id) {
+            plantBedId = currentTask.plant_beds.id
+          }
+
+          if (plantBedId) {
+            const logbookData = {
+              plant_bed_id: plantBedId,
+              plant_id: currentTask.plant_id,
+              entry_date: new Date().toISOString().split('T')[0], // Today's date
+              notes: `Taak voltooid: ${currentTask.title}${currentTask.description ? ` - ${currentTask.description}` : ''}${currentTask.notes ? ` | Opmerkingen: ${currentTask.notes}` : ''}`
+            }
+
+                      const logbookResult = await LogbookService.create(logbookData)
+            if (!logbookResult.success) {
+              console.error('Failed to create logbook entry for completed task:', logbookResult.error)
+              // Don't fail the task update if logbook creation fails
+            }
+          } else {
+            console.warn('Could not determine plant_bed_id for completed task logbook entry')
+          }
+        } catch (logbookError) {
+          console.error('Error creating logbook entry for completed task:', logbookError)
+          // Don't fail the task update if logbook creation fails
+        }
       }
       
       return { data: task, error: null }

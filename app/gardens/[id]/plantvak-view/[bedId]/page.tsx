@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+
 import { Textarea } from "@/components/ui/textarea"
 import {
   Grid3X3,
@@ -1700,20 +1701,16 @@ export default function PlantBedViewPage() {
                             ...prev,
                             name: value,
                             emoji: selectedFlower.emoji,
-                            plantColor: selectedFlower.color || '',
-                            type: value,
+                            color: selectedFlower.color,
                             isStandardFlower: true,
                           }))
-                          setIsCustomFlower(false)
                         } else {
                           setNewFlower(prev => ({
                             ...prev,
                             name: value,
                             emoji: prev.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : prev.emoji,
-                            type: '',
                             isStandardFlower: false,
                           }))
-                          setIsCustomFlower(true)
                         }
                       }}
                       className="pr-8"
@@ -1722,39 +1719,30 @@ export default function PlantBedViewPage() {
                     <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     {/* Show suggestions only when typing and there's input */}
                     {newFlower.name && newFlower.name.length > 0 && (
-                      <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-md shadow-xl max-h-60 overflow-auto">
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                         {STANDARD_FLOWERS
                           .filter(flower => 
                             flower.name.toLowerCase().includes(newFlower.name.toLowerCase())
                           )
-                          .slice(0, 8)
+                          .slice(0, 5)
                           .map((flower) => (
                             <div
                               key={flower.name}
-                              className="px-3 py-2 cursor-pointer hover:bg-green-50 hover:text-green-800 flex items-center gap-2 transition-colors"
+                              className="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
                               onClick={() => {
                                 setNewFlower(prev => ({
                                   ...prev,
                                   name: flower.name,
                                   emoji: flower.emoji,
-                                  plantColor: flower.color || '',
-                                  type: flower.name,
+                                  color: flower.color,
                                   isStandardFlower: true,
                                 }))
-                                setIsCustomFlower(false)
                               }}
                             >
-                              <span className="text-lg">{flower.emoji}</span>
-                              <span className="font-medium">{flower.name}</span>
+                              <span>{flower.emoji}</span>
+                              <span>{flower.name}</span>
                             </div>
                           ))}
-                        {STANDARD_FLOWERS.filter(flower => 
-                          flower.name.toLowerCase().includes(newFlower.name.toLowerCase())
-                        ).length === 0 && (
-                          <div className="px-3 py-2 text-gray-500 text-sm italic">
-                            Geen eenjarige bloemen gevonden. Typ een eigen naam.
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
@@ -1964,8 +1952,7 @@ export default function PlantBedViewPage() {
                             ...prev,
                             name: value,
                             emoji: selectedFlower.emoji,
-                            plantColor: selectedFlower.color || '',
-                            type: value,
+                            color: selectedFlower.color,
                             isStandardFlower: true,
                           }))
                         } else {
@@ -1973,7 +1960,6 @@ export default function PlantBedViewPage() {
                             ...prev,
                             name: value,
                             emoji: prev.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : prev.emoji,
-                            type: '',
                             isStandardFlower: false,
                           }))
                         }
@@ -1984,7 +1970,7 @@ export default function PlantBedViewPage() {
                     <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     {/* Show suggestions only when typing and there's input */}
                     {newFlower.name && newFlower.name.length > 0 && (
-                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
                         {STANDARD_FLOWERS
                           .filter(flower => 
                             flower.name.toLowerCase().includes(newFlower.name.toLowerCase())
@@ -1999,8 +1985,7 @@ export default function PlantBedViewPage() {
                                   ...prev,
                                   name: flower.name,
                                   emoji: flower.emoji,
-                                  plantColor: flower.color || '',
-                                  type: flower.name,
+                                  color: flower.color,
                                   isStandardFlower: true,
                                 }))
                               }}
