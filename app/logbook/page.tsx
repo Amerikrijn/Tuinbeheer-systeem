@@ -31,6 +31,7 @@ interface LogbookPageState {
   searchTerm: string
   selectedGarden: string
   selectedPlantBed: string
+  selectedYear: string
   page: number
   hasMore: boolean
 }
@@ -49,6 +50,7 @@ function LogbookPageContent() {
     searchTerm: "",
     selectedGarden: "all",
     selectedPlantBed: "all",
+    selectedYear: new Date().getFullYear().toString(),
     page: 1,
     hasMore: false,
   })
@@ -77,13 +79,20 @@ function LogbookPageContent() {
         throw new Error(response.error || 'Failed to load logbook entries')
       }
 
+      // Filter by year first
+      const yearFilteredEntries = response.data.filter(entry => {
+        const entryYear = new Date(entry.entry_date).getFullYear()
+        return entryYear.toString() === state.selectedYear
+      })
+
+      // Then apply search filter
       const filteredEntries = state.searchTerm 
-        ? response.data.filter(entry => 
+        ? yearFilteredEntries.filter(entry => 
             entry.notes.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
             entry.plant_bed_name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
             (entry.plant_name && entry.plant_name.toLowerCase().includes(state.searchTerm.toLowerCase()))
           )
-        : response.data
+        : yearFilteredEntries
 
       setState(prev => ({
         ...prev,
@@ -130,10 +139,10 @@ function LogbookPageContent() {
 
   // Reload when filters change
   React.useEffect(() => {
-    if (state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.searchTerm !== "") {
+    if (state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.searchTerm !== "" || state.selectedYear !== new Date().getFullYear().toString()) {
       loadEntries(1, false)
     }
-  }, [state.selectedGarden, state.selectedPlantBed, state.searchTerm, loadEntries])
+  }, [state.selectedGarden, state.selectedPlantBed, state.searchTerm, state.selectedYear, loadEntries])
 
   // Handle search
   const handleSearchChange = (value: string) => {
@@ -154,13 +163,18 @@ function LogbookPageContent() {
     setState(prev => ({ ...prev, selectedPlantBed: value, page: 1 }))
   }
 
+  const handleYearChange = (value: string) => {
+    setState(prev => ({ ...prev, selectedYear: value, page: 1 }))
+  }
+
   // Clear filters
   const clearFilters = () => {
     setState(prev => ({ 
       ...prev, 
       searchTerm: "", 
       selectedGarden: "all", 
-      selectedPlantBed: "all", 
+      selectedPlantBed: "all",
+      selectedYear: new Date().getFullYear().toString(),
       page: 1 
     }))
     loadEntries(1, false)
@@ -180,6 +194,16 @@ function LogbookPageContent() {
     } catch {
       return dateString
     }
+  }
+
+  // Get available years for filtering
+  const getAvailableYears = () => {
+    const currentYear = new Date().getFullYear()
+    const years = []
+    for (let year = currentYear; year >= currentYear - 5; year--) {
+      years.push(year)
+    }
+    return years
   }
 
   // Get unique gardens from logbook entries (which have garden names)
@@ -286,8 +310,22 @@ function LogbookPageContent() {
               </SelectContent>
             </Select>
 
+            {/* Year filter */}
+            <Select value={state.selectedYear} onValueChange={handleYearChange}>
+              <SelectTrigger className="w-full lg:w-32">
+                <SelectValue placeholder="Jaar" />
+              </SelectTrigger>
+              <SelectContent>
+                {getAvailableYears().map((year) => (
+                  <SelectItem key={year} value={year.toString()}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             {/* Clear filters */}
-            {(state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all") && (
+            {(state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString()) && (
               <Button variant="outline" onClick={clearFilters}>
                 <X className="h-4 w-4 mr-2" />
                 Wissen
@@ -324,7 +362,7 @@ function LogbookPageContent() {
             Geen logboek entries gevonden
           </h3>
           <p className="text-gray-600 mb-6">
-            {state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all"
+            {state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString()
               ? "Probeer je filters aan te passen of maak een nieuwe entry aan."
               : "Begin met het maken van je eerste logboek entry."}
           </p>
