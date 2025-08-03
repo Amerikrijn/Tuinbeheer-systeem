@@ -290,11 +290,11 @@ export default function EditLogbookPage() {
               <div className="space-y-2">
                 <Label htmlFor="plant">Plant (optioneel)</Label>
                 <Select 
-                  value={formData.plant_id || ''} 
+                  value={formData.plant_id || 'none'} 
                   onValueChange={(value) => {
                     setFormData(prev => ({ 
                       ...prev, 
-                      plant_id: value || null
+                      plant_id: value === 'none' ? null : value
                     }))
                   }}
                 >
@@ -302,7 +302,7 @@ export default function EditLogbookPage() {
                     <SelectValue placeholder="Selecteer een plant (optioneel)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Geen specifieke plant</SelectItem>
+                    <SelectItem value="none">Geen specifieke plant</SelectItem>
                     {availablePlants.map((plant) => (
                       <SelectItem key={plant.id} value={plant.id}>
                         {plant.name}
