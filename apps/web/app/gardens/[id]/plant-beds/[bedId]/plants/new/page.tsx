@@ -56,13 +56,10 @@ export default function NewPlantPage() {
       const createdPlant = await createPlant({
         plant_bed_id: plantBed.id,
         name: formData.name,
-        scientific_name: formData.scientificName || undefined,
         latin_name: formData.latinName || undefined,
         variety: formData.variety || undefined,
         color: formData.color || undefined,
-        plant_color: formData.plantColor || undefined,
         height: formData.height ? Number.parseInt(formData.height) : undefined,
-        plant_height: formData.plantHeight ? Number.parseInt(formData.plantHeight) : undefined,
         plants_per_sqm: formData.plantsPerSqm ? Number.parseInt(formData.plantsPerSqm) : undefined,
         sun_preference: formData.sunPreference,
         planting_date: formData.plantingDate || undefined,
