@@ -820,20 +820,7 @@ export default function PlantBedViewPage() {
 
         setIsEditingFlower(false)
         setSelectedFlower(null)
-        setNewFlower({
-          name: '',
-          type: '',
-          emoji: DEFAULT_FLOWER_EMOJI,
-          description: '',
-          status: 'gezond',
-          isStandardFlower: false,
-          // Reset new fields
-          latinName: '',
-          plantColor: '',
-          plantHeight: '',
-          plantsPerSqm: '',
-          sunPreference: 'full-sun'
-        })
+        setNewFlower(createInitialPlantFormData())
         
         // Removed toast notification
       }
@@ -1580,42 +1567,14 @@ export default function PlantBedViewPage() {
             setIsAddingFlower(open)
             if (!open) {
               // Reset form when dialog closes
-              setNewFlower({
-                name: '',
-                type: '',
-                emoji: DEFAULT_FLOWER_EMOJI,
-                description: '',
-                status: 'gezond',
-                
-                isStandardFlower: false,
-                // Reset new fields
-                latinName: '',
-                plantColor: '',
-                plantHeight: '',
-                plantsPerSqm: '',
-                sunPreference: 'full-sun'
-              })
+              setNewFlower(createInitialPlantFormData())
               setIsCustomFlower(false)
             }
           }}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" onClick={() => {
                 // Reset form when opening dialog
-                setNewFlower({
-                  name: '',
-                  type: '',
-                  emoji: DEFAULT_FLOWER_EMOJI,
-                  description: '',
-                  status: 'gezond',
-                  
-                  isStandardFlower: false,
-                  // Reset new fields
-                  latinName: '',
-                  plantColor: '',
-                  plantHeight: '',
-                  plantsPerSqm: '',
-                  sunPreference: 'full-sun'
-                })
+                setNewFlower(createInitialPlantFormData())
                 setIsCustomFlower(false)
               }}>
                 <Plus className="h-4 w-4 mr-2" />
