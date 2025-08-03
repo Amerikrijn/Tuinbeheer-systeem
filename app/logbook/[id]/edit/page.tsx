@@ -154,6 +154,25 @@ export default function EditLogbookPage() {
 
   // Handle photo upload
   const handlePhotoUpload = async (file: File) => {
+    // Validate file before upload
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Ongeldig bestandstype",
+        description: "Alleen afbeeldingen zijn toegestaan (JPEG, PNG, WebP, GIF).",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+      toast({
+        title: "Bestand te groot",
+        description: "De afbeelding mag maximaal 5MB groot zijn.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setState(prev => ({ ...prev, uploadingPhoto: true }))
 
     try {
@@ -171,10 +190,11 @@ export default function EditLogbookPage() {
       })
 
     } catch (error) {
+      console.error('Photo upload error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo'
       toast({
         title: "Fout bij uploaden",
-        description: errorMessage,
+        description: `${errorMessage}. Controleer of de storage bucket correct is geconfigureerd.`,
         variant: "destructive",
       })
     } finally {
@@ -290,11 +310,11 @@ export default function EditLogbookPage() {
               <div className="space-y-2">
                 <Label htmlFor="plant">Plant (optioneel)</Label>
                 <Select 
-                  value={formData.plant_id || ''} 
+                  value={formData.plant_id || 'none'} 
                   onValueChange={(value) => {
                     setFormData(prev => ({ 
                       ...prev, 
-                      plant_id: value || null
+                      plant_id: value === 'none' ? null : value
                     }))
                   }}
                 >
@@ -302,7 +322,7 @@ export default function EditLogbookPage() {
                     <SelectValue placeholder="Selecteer een plant (optioneel)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Geen specifieke plant</SelectItem>
+                    <SelectItem value="none">Geen specifieke plant</SelectItem>
                     {availablePlants.map((plant) => (
                       <SelectItem key={plant.id} value={plant.id}>
                         {plant.name}
@@ -330,26 +350,33 @@ export default function EditLogbookPage() {
                 <Label>Foto (optioneel)</Label>
                 <div className="space-y-3">
                   {formData.photo_url ? (
-                    <div className="relative">
+                    <div className="relative group">
                       <img 
                         src={formData.photo_url} 
                         alt="Logboek foto"
-                        className="w-full max-h-64 object-cover rounded-lg border"
+                        className="w-full max-h-64 object-cover rounded-lg border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
+                        onClick={() => formData.photo_url && window.open(formData.photo_url, '_blank')}
                       />
                       <Button
                         type="button"
                         variant="destructive"
                         size="sm"
-                        className="absolute top-2 right-2"
+                        className="absolute top-2 right-2 opacity-80 hover:opacity-100"
                         onClick={removePhoto}
                       >
                         <X className="h-4 w-4" />
                       </Button>
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
+                          Klik om te vergroten
+                        </div>
+                      </div>
                     </div>
                   ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
                       <ImageIcon className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm text-gray-600 mb-2">Geen foto geselecteerd</p>
+                      <p className="text-xs text-gray-500">Klik op 'Foto uploaden' om een afbeelding toe te voegen</p>
                     </div>
                   )}
                   
