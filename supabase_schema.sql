@@ -195,18 +195,18 @@ CREATE POLICY "Plants are updatable by authenticated users" ON plants
 CREATE POLICY "Plants are deletable by authenticated users" ON plants
     FOR DELETE USING (auth.role() = 'authenticated');
 
--- Logbook entries policies
+-- Logbook entries policies (allowing anonymous access for demo purposes)
 CREATE POLICY "Logbook entries are viewable by everyone" ON logbook_entries
     FOR SELECT USING (true);
 
-CREATE POLICY "Logbook entries are insertable by authenticated users" ON logbook_entries
-    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+CREATE POLICY "Logbook entries are insertable by everyone" ON logbook_entries
+    FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Logbook entries are updatable by authenticated users" ON logbook_entries
-    FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Logbook entries are updatable by everyone" ON logbook_entries
+    FOR UPDATE USING (true);
 
-CREATE POLICY "Logbook entries are deletable by authenticated users" ON logbook_entries
-    FOR DELETE USING (auth.role() = 'authenticated');
+CREATE POLICY "Logbook entries are deletable by everyone" ON logbook_entries
+    FOR DELETE USING (true);
 
 -- ===========================================
 -- VIEWS (Optional - voor gemakkelijke queries)
