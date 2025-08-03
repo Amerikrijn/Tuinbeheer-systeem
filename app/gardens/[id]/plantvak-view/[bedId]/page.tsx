@@ -791,32 +791,26 @@ export default function PlantBedViewPage() {
 
   const updateFlower = async () => {
     if (!selectedFlower || !newFlower.name) {
-        // Removed toast notification
-            return
+      return
+    }
+
+    // Validate form
+    const newErrors: PlantFormErrors = {}
+    if (!newFlower.name.trim()) newErrors.name = "Bloemnaam is verplicht"
+    if (!newFlower.color.trim()) newErrors.color = "Kleur is verplicht"
+    if (!newFlower.height.trim()) newErrors.height = "Hoogte is verplicht"
+    
+    if (Object.keys(newErrors).length > 0) {
+      setNewFlowerErrors(newErrors)
+      return
     }
 
     try {
-      const selectedType = STANDARD_FLOWERS.find(type => type.name === newFlower.type)
-
-      // Map status to database format
-      const dbStatus = newFlower.status === 'ziek' ? 'ziek' : 
-                      newFlower.status === 'bloeiend' ? 'gezond' : 
-                      newFlower.status
-
       const updatedPlant = await updatePlantPosition(selectedFlower.id, {
         name: newFlower.name,
-        color: newFlower.plantColor || '#FF69B4',
-        status: dbStatus as "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst",
-        emoji: newFlower.emoji,
-        photo_url: null,
-        is_custom: !newFlower.isStandardFlower,
-        category: newFlower.isStandardFlower ? newFlower.type : 'Aangepast',
-        notes: newFlower.description,
-        latin_name: newFlower.latinName || undefined,
-        plant_color: newFlower.plantColor || undefined,
-        plant_height: newFlower.plantHeight ? parseFloat(newFlower.plantHeight) : undefined,
-        plants_per_sqm: newFlower.plantsPerSqm ? parseInt(newFlower.plantsPerSqm) : undefined,
-        sun_preference: newFlower.sunPreference
+        color: newFlower.color,
+        status: newFlower.status,
+        emoji: newFlower.emoji
       })
 
       if (updatedPlant) {
@@ -1670,229 +1664,36 @@ export default function PlantBedViewPage() {
           <Dialog open={isEditingFlower} onOpenChange={(open) => {
             setIsEditingFlower(open)
             if (!open) {
-              // Reset form when dialog closes
-              setNewFlower({
-                name: '',
-                type: '',
-                emoji: DEFAULT_FLOWER_EMOJI,
-                description: '',
-                status: 'gezond',
-                
-                isStandardFlower: false,
-                // Reset new fields
-                latinName: '',
-                plantColor: '',
-                plantHeight: '',
-                plantsPerSqm: '',
-                sunPreference: 'full-sun'
-              })
+              setNewFlower(createInitialPlantFormData())
+              setNewFlowerErrors({})
               setSelectedFlower(null)
             }
-                                           }}>
-            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white z-50 border border-gray-200 shadow-xl">
+          }}>
+            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-white z-50 border border-gray-200 shadow-xl">
               <DialogHeader>
                 <DialogTitle>Bloem Bewerken</DialogTitle>
                 <DialogDescription>
                   Wijzig de eigenschappen van deze bloem.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2 bg-white">
-                <div className="grid gap-2">
-                  <label htmlFor="edit-name" className="text-sm font-medium">
-                    Bloemnaam *
-                  </label>
-                  <div className="relative">
-                    <Input
-                      id="edit-name"
-                      placeholder="Typ een nieuwe bloem of kies uit de lijst..."
-                      value={newFlower.name}
-                      onChange={(e) => {
-                        const value = e.target.value
-                        setNewFlower(prev => ({
-                          ...prev,
-                          name: value,
-                        }))
-                        
-                        // Check if it matches a standard flower
-                        const selectedFlower = STANDARD_FLOWERS.find(f => 
-                          f.name.toLowerCase() === value.toLowerCase()
-                        )
-                        if (selectedFlower) {
-                          setNewFlower(prev => ({
-                            ...prev,
-                            name: value,
-                            emoji: selectedFlower.emoji,
-                            color: selectedFlower.color,
-                            isStandardFlower: true,
-                          }))
-                        } else {
-                          setNewFlower(prev => ({
-                            ...prev,
-                            name: value,
-                            emoji: prev.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : prev.emoji,
-                            isStandardFlower: false,
-                          }))
-                        }
-                      }}
-                      className="pr-8"
-                      autoComplete="off"
-                    />
-                    <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                    {/* Show suggestions only when typing and there's input */}
-                    {newFlower.name && newFlower.name.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                        {STANDARD_FLOWERS
-                          .filter(flower => 
-                            flower.name.toLowerCase().includes(newFlower.name.toLowerCase())
-                          )
-                          .slice(0, 5)
-                          .map((flower) => (
-                            <div
-                              key={flower.name}
-                              className="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
-                              onClick={() => {
-                                setNewFlower(prev => ({
-                                  ...prev,
-                                  name: flower.name,
-                                  emoji: flower.emoji,
-                                  color: flower.color,
-                                  isStandardFlower: true,
-                                }))
-                              }}
-                            >
-                              <span>{flower.emoji}</span>
-                              <span>{flower.name}</span>
-                            </div>
-                          ))}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    Tip: Begin te typen om uit standaard bloemen te kiezen, of typ een eigen naam
-                  </p>
-                </div>
-
-                {!newFlower.isStandardFlower && (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Emoji (optioneel)</label>
-                      <Input
-                        value={newFlower.emoji}
-                        onChange={(e) => setNewFlower(prev => ({ ...prev, emoji: e.target.value }))}
-                        placeholder="🌺"
-                        maxLength={2}
-                        className="text-2xl text-center"
-                        autoComplete="off"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Kies een emoji voor je bloem</p>
-                    </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="text-sm font-medium">Status</label>
-                  <Select value={newFlower.status} onValueChange={(value: 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek') => 
-                    setNewFlower(prev => ({ ...prev, status: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FLOWER_STATUS_OPTIONS.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          <div className="flex items-center gap-2">
-                            <div className={`w-3 h-3 rounded-full border-2 ${status.color}`}></div>
-                            <span>{status.label}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">Beschrijving (optioneel)</label>
-                  <Textarea
-                    value={newFlower.description}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Beschrijf je bloem..."
-                    rows={2}
-                  />
-                </div>
-
-                {/* New plant fields for edit form */}
-                <div>
-                  <label className="text-sm font-medium">Latijnse naam (optioneel)</label>
-                  <Input
-                    value={newFlower.latinName}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, latinName: e.target.value }))}
-                    placeholder="Bijv. Rosa gallica"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">Plantkleur (optioneel)</label>
-                  <Input
-                    value={newFlower.plantColor}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, plantColor: e.target.value }))}
-                    placeholder="Bijv. Roze, Wit, Geel"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">Planthoogte (optioneel)</label>
-                  <Input
-                    value={newFlower.plantHeight}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, plantHeight: e.target.value }))}
-                    placeholder="Bijv. 30-50 cm"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">Planten per m² (optioneel)</label>
-                  <Input
-                    value={newFlower.plantsPerSqm}
-                    onChange={(e) => setNewFlower(prev => ({ ...prev, plantsPerSqm: e.target.value }))}
-                    placeholder="Bijv. 6-8"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium">Zon voorkeur</label>
-                  <Select value={newFlower.sunPreference} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
-                    setNewFlower(prev => ({ ...prev, sunPreference: value }))
-                  }>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full-sun">
-                        <div className="flex items-center gap-2">
-                          <Sun className="h-4 w-4 text-yellow-500" />
-                          <span>Volle zon</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="partial-sun">
-                        <div className="flex items-center gap-2">
-                          <CloudSun className="h-4 w-4 text-yellow-400" />
-                          <span>Halfschaduw</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="shade">
-                        <div className="flex items-center gap-2">
-                          <Cloud className="h-4 w-4 text-gray-500" />
-                          <span>Schaduw</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button onClick={updateFlower} className="flex-1 bg-blue-600 hover:bg-blue-700">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Wijzigen
-                  </Button>
+              <div className="py-4">
+                <PlantForm
+                  data={newFlower}
+                  errors={newFlowerErrors}
+                  onChange={setNewFlower}
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    updateFlower()
+                  }}
+                  onReset={() => {
+                    setNewFlower(createInitialPlantFormData())
+                    setNewFlowerErrors({})
+                  }}
+                  submitLabel="Bloem wijzigen"
+                  isSubmitting={false}
+                  showAdvanced={true}
+                />
+                <div className="flex gap-2 mt-4">
                   <Button 
                     variant="outline" 
                     onClick={() => selectedFlower && removeFlower(selectedFlower.id)}
@@ -1903,22 +1704,8 @@ export default function PlantBedViewPage() {
                   </Button>
                   <Button variant="outline" onClick={() => {
                     setIsEditingFlower(false)
-                    // Reset form state
-                    setNewFlower({
-                      name: '',
-                      type: '',
-                      emoji: DEFAULT_FLOWER_EMOJI,
-                      description: '',
-                      status: 'gezond',
-                      
-                      isStandardFlower: false,
-                      // Reset new fields
-                      latinName: '',
-                      plantColor: '',
-                      plantHeight: '',
-                      plantsPerSqm: '',
-                      sunPreference: 'full-sun'
-                    })
+                    setNewFlower(createInitialPlantFormData())
+                    setNewFlowerErrors({})
                     setSelectedFlower(null)
                   }}>
                     Annuleren
