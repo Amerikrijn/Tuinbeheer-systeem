@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { BookOpen, Plus, Search, Calendar, Camera, Leaf, MapPin, Filter, X } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
@@ -336,71 +337,80 @@ function LogbookPageContent() {
         </div>
       )}
 
-      {/* Logbook entries */}
+      {/* Logbook entries table */}
       {state.entries.length > 0 && (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {state.entries.map((entry) => (
-            <Card key={entry.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg flex items-center gap-2">
+        <div className="space-y-4">
+          <p className="text-sm text-gray-600">
+            💡 Dubbelklik op een rij om de details te bekijken
+          </p>
+          <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Tuin</TableHead>
+                <TableHead>Plantvak</TableHead>
+                <TableHead>Plant</TableHead>
+                <TableHead>Datum</TableHead>
+                <TableHead>Opmerkingen</TableHead>
+                <TableHead className="text-center">Foto</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {state.entries.map((entry) => (
+                <TableRow 
+                  key={entry.id} 
+                  className="cursor-pointer hover:bg-gray-50"
+                  onDoubleClick={() => router.push(`/logbook/${entry.id}`)}
+                >
+                  <TableCell>
+                    <Badge variant="outline" className="text-xs">
+                      {entry.garden_name}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
                       <MapPin className="h-4 w-4 text-blue-600" />
-                      {entry.plant_bed_name}
-                    </CardTitle>
-                    {entry.plant_name && (
-                      <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                        <Leaf className="h-3 w-3" />
-                        {entry.plant_name}
-                        {entry.plant_variety && ` (${entry.plant_variety})`}
-                      </p>
+                      <span className="font-medium">{entry.plant_bed_name}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {entry.plant_name ? (
+                      <div className="flex items-center gap-1">
+                        <Leaf className="h-3 w-3 text-green-600" />
+                        <span>{entry.plant_name}</span>
+                        {entry.plant_variety && (
+                          <span className="text-gray-500 text-sm">({entry.plant_variety})</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-sm">Geen specifieke plant</span>
                     )}
-                  </div>
-                  {entry.photo_url && (
-                    <Camera className="h-4 w-4 text-gray-400" />
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Calendar className="h-3 w-3" />
-                  {formatDate(entry.entry_date)}
-                </div>
-              </CardHeader>
-              
-              <CardContent>
-                {entry.photo_url && (
-                  <div className="mb-4">
-                    <img 
-                      src={entry.photo_url} 
-                      alt="Logboek foto"
-                      className="w-full h-32 object-cover rounded-md"
-                    />
-                  </div>
-                )}
-                
-                <p className="text-gray-700 text-sm leading-relaxed">
-                  {entry.notes.length > 150 
-                    ? `${entry.notes.substring(0, 150)}...` 
-                    : entry.notes}
-                </p>
-                
-                <div className="flex items-center justify-between mt-4">
-                  <Badge variant="outline" className="text-xs">
-                    {entry.garden_name}
-                  </Badge>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => router.push(`/logbook/${entry.id}`)}
-                  >
-                    Details
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="h-3 w-3 text-gray-400" />
+                      {formatDate(entry.entry_date)}
+                    </div>
+                  </TableCell>
+                  <TableCell className="max-w-md">
+                    <p className="text-sm text-gray-700 truncate">
+                      {entry.notes.length > 100 
+                        ? `${entry.notes.substring(0, 100)}...` 
+                        : entry.notes}
+                    </p>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {entry.photo_url && (
+                      <Camera className="h-4 w-4 text-gray-400 mx-auto" />
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+                     </Table>
+         </Card>
         </div>
-      )}
+       )}
 
       {/* Load more button */}
       {state.hasMore && (
