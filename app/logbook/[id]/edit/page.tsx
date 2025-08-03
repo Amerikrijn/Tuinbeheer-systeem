@@ -121,10 +121,10 @@ export default function EditLogbookPage() {
     try {
       const updateData = {
         plant_bed_id: formData.plant_bed_id,
-        plant_id: formData.plant_id,
+        plant_id: formData.plant_id || undefined,
         entry_date: formData.entry_date,
         notes: formData.notes.trim(),
-        photo_url: formData.photo_url,
+        photo_url: formData.photo_url || undefined,
       }
 
       const response = await LogbookService.update(state.entry.id, updateData)
