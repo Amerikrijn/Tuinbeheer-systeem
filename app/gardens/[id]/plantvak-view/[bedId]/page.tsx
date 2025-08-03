@@ -1973,21 +1973,22 @@ export default function PlantBedViewPage() {
                       // Populate form with selected flower data
                       setNewFlower({
                         name: selectedFlower.name,
-                        type: selectedFlower.category || '',
+                        color: selectedFlower.color,
+                        height: selectedFlower.height?.toString() || '',
                         emoji: selectedFlower.emoji || DEFAULT_FLOWER_EMOJI,
-                        description: selectedFlower.notes || '',
-                        status: selectedFlower.status === 'ziek' ? 'ziek' : 
-                               selectedFlower.status === 'gezond' ? 'gezond' :
-                               selectedFlower.status === 'aandacht_nodig' ? 'aandacht_nodig' :
-                               'gezond' as 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek',
-                        
+                        status: selectedFlower.status,
+                        notes: selectedFlower.notes || '',
                         isStandardFlower: !selectedFlower.is_custom,
-                        // Populate new fields
-                        latinName: selectedFlower.latin_name || '',
-                        plantColor: selectedFlower.plant_color || '',
-                        plantHeight: selectedFlower.plant_height?.toString() || '',
+                        // Populate optional fields
+                        scientificName: selectedFlower.latin_name || '',
+                        variety: '',
                         plantsPerSqm: selectedFlower.plants_per_sqm?.toString() || '',
-                        sunPreference: selectedFlower.sun_preference || 'full-sun'
+                        sunPreference: selectedFlower.sun_preference || 'full-sun',
+                        plantingDate: '',
+                        expectedHarvestDate: '',
+                        careInstructions: '',
+                        wateringFrequency: '',
+                        fertilizerSchedule: ''
                       })
                       setIsEditingFlower(true)
         // Removed toast notification
