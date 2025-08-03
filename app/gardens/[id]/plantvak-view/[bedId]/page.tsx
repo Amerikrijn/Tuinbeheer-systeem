@@ -45,6 +45,7 @@ import {
 import { getGarden, getPlantBeds, getPlantsWithPositions, createVisualPlant, updatePlantPosition, deletePlant, updatePlantBed, deletePlantBed } from "@/lib/database"
 import { TaskService } from "@/lib/services/task.service"
 import { AddTaskForm } from "@/components/tasks/add-task-form"
+import { PlantForm, PlantFormData, PlantFormErrors, createInitialPlantFormData } from "@/components/ui/plant-form"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
 import type { TaskWithPlantInfo, WeeklyTask } from "@/lib/types/tasks"
 import { getTaskTypeConfig, getPriorityConfig, formatTaskDate } from "@/lib/types/tasks"
