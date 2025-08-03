@@ -13,13 +13,13 @@ import { ArrowLeft, Calendar, Camera, Upload, X, Loader2 } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds, getPlantBed } from "@/lib/database"
 import { uiLogger } from "@/lib/logger"
-import type { LogbookEntryFormData, Plantvak, Bloem } from "@/lib/types/index"
+import type { LogbookEntryFormData, Plantvak, Bloem, PlantBedWithPlants } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
 
 interface NewLogbookPageState {
-  plantBeds: Plantvak[]
+  plantBeds: PlantBedWithPlants[]
   plants: Bloem[]
   loading: boolean
   submitting: boolean
