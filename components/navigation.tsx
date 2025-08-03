@@ -31,17 +31,22 @@ export function Navigation() {
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-semibold text-gray-900">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <TreePine className="h-5 w-5 text-green-600" />
+          {/* Home Button */}
+          <Link href="/" className={cn(
+            "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+            pathname === "/"
+              ? "bg-green-100 text-green-700"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+          )}>
+            <div className="p-1 bg-green-100 rounded-lg">
+              <TreePine className="h-4 w-4 text-green-600" />
             </div>
-            <span className="hidden sm:block">Tuinbeheer</span>
+            <span>Home</span>
           </Link>
 
           {/* Navigation items */}
           <div className="flex items-center space-x-1">
-            {navigationItems.map((item) => {
+            {navigationItems.filter(item => item.href !== "/").map((item) => {
               const isActive = pathname === item.href || 
                 (item.href !== "/" && pathname.startsWith(item.href))
               
