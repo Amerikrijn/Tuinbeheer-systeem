@@ -355,7 +355,7 @@ export default function EditLogbookPage() {
                         src={formData.photo_url} 
                         alt="Logboek foto"
                         className="w-full max-h-64 object-cover rounded-lg border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
-                        onClick={() => window.open(formData.photo_url, '_blank')}
+                        onClick={() => formData.photo_url && window.open(formData.photo_url, '_blank')}
                       />
                       <Button
                         type="button"

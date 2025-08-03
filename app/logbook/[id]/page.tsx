@@ -282,7 +282,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                         src={state.entry.photo_url} 
                         alt="Logboek foto"
                         className="w-full max-h-[500px] object-cover rounded-lg border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
-                        onClick={() => window.open(state.entry.photo_url, '_blank')}
+                        onClick={() => state.entry?.photo_url && window.open(state.entry.photo_url, '_blank')}
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded">
