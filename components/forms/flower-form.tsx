@@ -32,11 +32,8 @@ export interface FlowerFormData {
   color: string
   height: string
   // Optional fields
-  scientificName: string
   latinName: string
   variety: string
-  plantColor: string
-  plantHeight: string
   plantsPerSqm: string
   sunPreference: 'full-sun' | 'partial-sun' | 'shade'
   plantingDate: string
@@ -71,11 +68,8 @@ export function FlowerForm({
     name: "",
     color: "",
     height: "",
-    scientificName: "",
     latinName: "",
     variety: "",
-    plantColor: "",
-    plantHeight: "",
     plantsPerSqm: "4",
     sunPreference: 'partial-sun',
     plantingDate: "",
@@ -253,18 +247,6 @@ export function FlowerForm({
               <h3 className="text-sm font-medium text-gray-900">Optionele gegevens</h3>
               
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                {/* Wetenschappelijke naam */}
-                <div className="space-y-2">
-                  <Label htmlFor="scientificName">Wetenschappelijke naam</Label>
-                  <Input
-                    id="scientificName"
-                    placeholder="Bijv. Solanum lycopersicum"
-                    value={formData.scientificName}
-                    onChange={(e) => setFormData(prev => ({ ...prev, scientificName: e.target.value }))}
-                    autoComplete="off"
-                  />
-                </div>
-
                 {/* Latijnse naam */}
                 <div className="space-y-2">
                   <Label htmlFor="latinName">Latijnse naam</Label>
@@ -285,31 +267,6 @@ export function FlowerForm({
                     placeholder="Bijv. Cherry tomaat"
                     value={formData.variety}
                     onChange={(e) => setFormData(prev => ({ ...prev, variety: e.target.value }))}
-                    autoComplete="off"
-                  />
-                </div>
-
-                {/* Plant kleur */}
-                <div className="space-y-2">
-                  <Label htmlFor="plantColor">Plant kleur</Label>
-                  <Input
-                    id="plantColor"
-                    placeholder="Bijv. Groen, Donkergroen"
-                    value={formData.plantColor}
-                    onChange={(e) => setFormData(prev => ({ ...prev, plantColor: e.target.value }))}
-                    autoComplete="off"
-                  />
-                </div>
-
-                {/* Plant hoogte */}
-                <div className="space-y-2">
-                  <Label htmlFor="plantHeight">Plant hoogte (cm)</Label>
-                  <Input
-                    id="plantHeight"
-                    type="number"
-                    placeholder="Bijv. 80"
-                    value={formData.plantHeight}
-                    onChange={(e) => setFormData(prev => ({ ...prev, plantHeight: e.target.value }))}
                     autoComplete="off"
                   />
                 </div>
