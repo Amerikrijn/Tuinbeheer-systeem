@@ -416,7 +416,7 @@ export class LogbookService {
    */
   static async create(formData: LogbookEntryFormData): Promise<ApiResponse<LogbookEntry>> {
     const operationId = `logbook-create-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer(operationId)
+    PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -478,7 +478,7 @@ export class LogbookService {
 
       AuditLogger.logUserAction(null, 'CREATE', 'logbook_entries', data.id, logbookData)
       AuditLogger.logDataAccess(null, 'CREATE', 'logbook_entries', data.id)
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-create')
+      PerformanceLogger.endTimer(operationId, 'logbook-create')
       
       databaseLogger.info('Logbook entry created successfully', { 
         id: data.id, 
@@ -490,7 +490,7 @@ export class LogbookService {
       return createResponse<LogbookEntry>(data, null, 'create logbook entry')
 
     } catch (error) {
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-create', true)
+      PerformanceLogger.endTimer(operationId, 'logbook-create', true)
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
         databaseLogger.warn('Logbook entry creation validation failed', error, { formData, operationId })
@@ -518,7 +518,7 @@ export class LogbookService {
     offset?: number
   }): Promise<ApiResponse<LogbookEntryWithDetails[]>> {
     const operationId = `logbook-getAll-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer(operationId)
+    PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -552,7 +552,7 @@ export class LogbookService {
         throw new DatabaseError('Failed to fetch logbook entries', error.code, error)
       }
 
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-getAll')
+      PerformanceLogger.endTimer(operationId, 'logbook-getAll')
       
       databaseLogger.debug('Logbook entries fetched successfully', { 
         count: data?.length || 0,
@@ -563,7 +563,7 @@ export class LogbookService {
       return createResponse<LogbookEntryWithDetails[]>(data || [], null, 'fetch logbook entries')
 
     } catch (error) {
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-getAll', true)
+      PerformanceLogger.endTimer(operationId, 'logbook-getAll', true)
       
       if (error instanceof DatabaseError) {
         databaseLogger.error('Database error in LogbookService.getAll', error, { filters, operationId })
@@ -580,7 +580,7 @@ export class LogbookService {
    */
   static async getById(id: string): Promise<ApiResponse<LogbookEntryWithDetails>> {
     const operationId = `logbook-getById-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer(operationId)
+    PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -602,14 +602,14 @@ export class LogbookService {
         throw new DatabaseError('Failed to fetch logbook entry', error.code, error)
       }
 
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-getById')
+      PerformanceLogger.endTimer(operationId, 'logbook-getById')
       
       databaseLogger.debug('Logbook entry fetched successfully', { id, operationId })
 
       return createResponse<LogbookEntryWithDetails>(data, null, 'fetch logbook entry')
 
     } catch (error) {
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-getById', true)
+      PerformanceLogger.endTimer(operationId, 'logbook-getById', true)
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
         databaseLogger.warn('Logbook entry fetch validation failed', error, { id, operationId })
@@ -631,7 +631,7 @@ export class LogbookService {
    */
   static async update(id: string, formData: Partial<LogbookEntryFormData>): Promise<ApiResponse<LogbookEntry>> {
     const operationId = `logbook-update-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer(operationId)
+    PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -682,14 +682,14 @@ export class LogbookService {
 
       AuditLogger.logUserAction(null, 'UPDATE', 'logbook_entries', id, updateData)
       AuditLogger.logDataAccess(null, 'UPDATE', 'logbook_entries', id)
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-update')
+      PerformanceLogger.endTimer(operationId, 'logbook-update')
       
       databaseLogger.info('Logbook entry updated successfully', { id, updateData, operationId })
 
       return createResponse<LogbookEntry>(data, null, 'update logbook entry')
 
     } catch (error) {
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-update', true)
+      PerformanceLogger.endTimer(operationId, 'logbook-update', true)
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
         databaseLogger.warn('Logbook entry update validation failed', error, { id, formData, operationId })
@@ -711,7 +711,7 @@ export class LogbookService {
    */
   static async delete(id: string): Promise<ApiResponse<boolean>> {
     const operationId = `logbook-delete-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer(operationId)
+    PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -742,14 +742,14 @@ export class LogbookService {
 
       AuditLogger.logUserAction(null, 'DELETE', 'logbook_entries', id)
       AuditLogger.logDataAccess(null, 'DELETE', 'logbook_entries', id)
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-delete')
+      PerformanceLogger.endTimer(operationId, 'logbook-delete')
       
       databaseLogger.info('Logbook entry deleted successfully', { id, operationId })
 
       return createResponse<boolean>(true, null, 'delete logbook entry')
 
     } catch (error) {
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-delete', true)
+      PerformanceLogger.endTimer(operationId, 'logbook-delete', true)
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
         databaseLogger.warn('Logbook entry deletion validation failed', error, { id, operationId })
@@ -771,7 +771,7 @@ export class LogbookService {
    */
   static async updatePhotoUrl(id: string, photoUrl: string | null): Promise<ApiResponse<LogbookEntry>> {
     const operationId = `logbook-updatePhoto-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer(operationId)
+    PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -796,14 +796,14 @@ export class LogbookService {
 
       AuditLogger.logUserAction(null, 'UPDATE', 'logbook_entries', id, { photo_url: photoUrl })
       AuditLogger.logDataAccess(null, 'UPDATE', 'logbook_entries', id)
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-updatePhoto')
+      PerformanceLogger.endTimer(operationId, 'logbook-updatePhoto')
       
       databaseLogger.info('Logbook entry photo updated successfully', { id, photoUrl, operationId })
 
       return createResponse<LogbookEntry>(data, null, 'update logbook entry photo')
 
     } catch (error) {
-      PerformanceLogger.endTimer(performanceTimer, 'logbook-updatePhoto', true)
+      PerformanceLogger.endTimer(operationId, 'logbook-updatePhoto', true)
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
         databaseLogger.warn('Logbook entry photo update validation failed', error, { id, photoUrl, operationId })
