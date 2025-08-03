@@ -17,7 +17,7 @@ import { BookOpen, Plus, Search, Calendar, Camera, Leaf, MapPin, Filter, X } fro
 import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger } from "@/lib/logger"
-import type { LogbookEntryWithDetails, Plantvak } from "@/lib/types/index"
+import type { LogbookEntryWithDetails, Plantvak, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { format, parseISO } from "date-fns"
