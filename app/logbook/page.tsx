@@ -25,7 +25,7 @@ import { nl } from "date-fns/locale"
 
 interface LogbookPageState {
   entries: LogbookEntryWithDetails[]
-  plantBeds: Plantvak[]
+  plantBeds: PlantvakWithBloemen[]
   loading: boolean
   error: string | null
   searchTerm: string
@@ -125,7 +125,7 @@ function LogbookPageContent() {
   const loadPlantBeds = React.useCallback(async () => {
     try {
       const plantBeds = await getPlantBeds()
-      setState(prev => ({ ...prev, plantBeds: plantBeds || [] }))
+      setState(prev => ({ ...prev, plantBeds: (plantBeds || []) as PlantvakWithBloemen[] }))
     } catch (error) {
       uiLogger.error('Failed to load plant beds for filtering', error as Error)
     }
