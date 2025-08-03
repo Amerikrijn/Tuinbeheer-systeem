@@ -219,110 +219,202 @@ export default function PlantDetailPage() {
         {/* Plant Details */}
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Info */}
-          <Card>
+          <Card className="border-2 border-green-200 bg-green-50/30">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <CardTitle className="flex items-center gap-2 text-green-800">
                 <Leaf className="w-5 h-5" />
-                Plant Informatie
+                Basis Bloemgegevens
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Nederlandse naam</label>
-                  <p className="text-lg font-semibold">{plant.name}</p>
+                  <label className="text-sm font-medium text-gray-700">Bloemnaam</label>
+                  <p className="text-lg font-semibold flex items-center gap-2">
+                    {plant.emoji && <span className="text-xl">{plant.emoji}</span>}
+                    {plant.name}
+                  </p>
                 </div>
                 
-                {plant.latin_name && (
+                {plant.color && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Latijnse naam</label>
-                    <p className="text-lg italic text-gray-600">{plant.latin_name}</p>
+                    <label className="text-sm font-medium text-gray-700">Kleur</label>
+                    <p className="text-lg font-medium text-gray-900">{plant.color}</p>
                   </div>
                 )}
 
-                {plant.variety && (
+                {(plant.height || plant.plant_height) && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Variëteit</label>
-                    <p>{plant.variety}</p>
+                    <label className="text-sm font-medium text-gray-700">Hoogte</label>
+                    <p className="text-lg font-medium text-gray-900">
+                      {plant.height || plant.plant_height} cm
+                    </p>
                   </div>
                 )}
 
                 <div>
                   <label className="text-sm font-medium text-gray-700">Locatie</label>
-                  <p>{plant.plant_beds?.name} • {plant.plant_beds?.gardens?.name}</p>
+                  <p className="text-gray-900">{plant.plant_beds?.name} • {plant.plant_beds?.gardens?.name}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Growing Conditions */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sun className="w-5 h-5" />
-                Groeiomstandigheden
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="flex items-center gap-2">
-                  {getSunIcon(plant.sun_preference)}
-                  <div>
-                    <p className="text-sm text-gray-600">Zonvoorkeur</p>
-                    <p className="font-medium">{getSunLabel(plant.sun_preference)}</p>
-                  </div>
-                </div>
-
-                {plant.plant_height && (
-                  <div className="flex items-center gap-2">
-                    <Ruler className="w-4 h-4 text-blue-500" />
-                    <div>
-                      <p className="text-sm text-gray-600">Hoogte</p>
-                      <p className="font-medium">{plant.plant_height} cm</p>
-                    </div>
-                  </div>
-                )}
-
-                {plant.plant_color && (
-                  <div className="flex items-center gap-2">
-                    <Palette className="w-4 h-4 text-purple-500" />
-                    <div>
-                      <p className="text-sm text-gray-600">Kleur</p>
-                      <p className="font-medium">{plant.plant_color}</p>
-                    </div>
-                  </div>
-                )}
-
-                {plant.plants_per_sqm && (
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-green-500" />
-                    <div>
-                      <p className="text-sm text-gray-600">Per m²</p>
-                      <p className="font-medium">{plant.plants_per_sqm} stuks</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Care Instructions */}
-          {(plant.notes || plant.care_instructions) && (
+          {/* Scientific Information - Only show if any field is filled */}
+          {(plant.scientific_name || plant.latin_name || plant.variety) && (
             <Card>
               <CardHeader>
-                <CardTitle>Verzorging & Notities</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="w-5 h-5 text-blue-600">🔬</span>
+                  Wetenschappelijke Informatie
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {plant.scientific_name && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Wetenschappelijke naam</label>
+                      <p className="text-gray-900 italic">{plant.scientific_name}</p>
+                    </div>
+                  )}
+                  
+                  {plant.latin_name && (
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Latijnse naam</label>
+                      <p className="text-gray-900 italic">{plant.latin_name}</p>
+                    </div>
+                  )}
+
+                  {plant.variety && (
+                    <div className="md:col-span-2">
+                      <label className="text-sm font-medium text-gray-700">Variëteit</label>
+                      <p className="text-gray-900">{plant.variety}</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Growing Conditions - Only show if any field is filled */}
+          {(plant.sun_preference || plant.plant_color || plant.plants_per_sqm || plant.planting_date || plant.expected_harvest_date) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sun className="w-5 h-5 text-orange-600" />
+                  Groei Informatie
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {plant.sun_preference && (
+                    <div className="flex items-center gap-3">
+                      {getSunIcon(plant.sun_preference)}
+                      <div>
+                        <p className="text-sm text-gray-600">Zonvoorkeur</p>
+                        <p className="font-medium text-gray-900">{getSunLabel(plant.sun_preference)}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {plant.plant_color && (
+                    <div className="flex items-center gap-3">
+                      <Palette className="w-5 h-5 text-purple-500" />
+                      <div>
+                        <p className="text-sm text-gray-600">Plant kleur</p>
+                        <p className="font-medium text-gray-900">{plant.plant_color}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {plant.plants_per_sqm && (
+                    <div className="flex items-center gap-3">
+                      <Users className="w-5 h-5 text-green-500" />
+                      <div>
+                        <p className="text-sm text-gray-600">Planten per m²</p>
+                        <p className="font-medium text-gray-900">{plant.plants_per_sqm} stuks</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {(plant.planting_date || plant.expected_harvest_date) && (
+                    <div className="md:col-span-2">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Calendar className="w-5 h-5 text-blue-500" />
+                        <p className="text-sm font-medium text-gray-700">Planning</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-8">
+                        {plant.planting_date && (
+                          <div>
+                            <p className="text-sm text-gray-600">Plantdatum</p>
+                            <p className="font-medium text-gray-900">
+                              {new Date(plant.planting_date).toLocaleDateString('nl-NL')}
+                            </p>
+                          </div>
+                        )}
+                        {plant.expected_harvest_date && (
+                          <div>
+                            <p className="text-sm text-gray-600">Verwachte bloeitijd</p>
+                            <p className="font-medium text-gray-900">
+                              {new Date(plant.expected_harvest_date).toLocaleDateString('nl-NL')}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Care Instructions */}
+          {(plant.notes || plant.care_instructions || plant.watering_frequency || plant.fertilizer_schedule) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="w-5 h-5 text-green-600">🌿</span>
+                  Verzorging
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {plant.care_instructions && (
                   <div>
-                    <h4 className="font-medium mb-2">Verzorgingsinstructies</h4>
-                    <p className="text-gray-700">{plant.care_instructions}</p>
+                    <h4 className="font-medium mb-2 text-gray-700">Verzorgingsinstructies</h4>
+                    <p className="text-gray-900 bg-gray-50 p-3 rounded-md">{plant.care_instructions}</p>
                   </div>
                 )}
+                
+                {(plant.watering_frequency || plant.fertilizer_schedule) && (
+                  <div>
+                    <h4 className="font-medium mb-3 text-gray-700">Verzorgingsschema</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {plant.watering_frequency && (
+                        <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-md">
+                          <span className="text-blue-600">💧</span>
+                          <div>
+                            <p className="text-sm text-gray-600">Water frequentie</p>
+                            <p className="font-medium text-gray-900">Elke {plant.watering_frequency} dagen</p>
+                          </div>
+                        </div>
+                      )}
+                      {plant.fertilizer_schedule && (
+                        <div className="flex items-center gap-3 bg-green-50 p-3 rounded-md">
+                          <span className="text-green-600">🧪</span>
+                          <div>
+                            <p className="text-sm text-gray-600">Bemesting</p>
+                            <p className="font-medium text-gray-900">{plant.fertilizer_schedule}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
                 {plant.notes && (
                   <div>
-                    <h4 className="font-medium mb-2">Notities</h4>
-                    <p className="text-gray-700">{plant.notes}</p>
+                    <h4 className="font-medium mb-2 text-gray-700">Opmerkingen</h4>
+                    <p className="text-gray-900 bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400">{plant.notes}</p>
                   </div>
                 )}
               </CardContent>

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
-import { ChevronDown, ChevronUp, AlertCircle } from "lucide-react"
+import { ChevronDown, ChevronUp, AlertCircle, Settings, Flower, Info } from "lucide-react"
 
 // Standard flower types with emojis
 const STANDARD_FLOWERS = [
@@ -75,11 +75,12 @@ export function PlantForm({
   onChange,
   onSubmit,
   onReset,
-  submitLabel = "Plant toevoegen",
+  submitLabel = "Bloem toevoegen",
   isSubmitting = false,
   showAdvanced = true
 }: PlantFormProps) {
   const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
+  const [showSuggestions, setShowSuggestions] = React.useState(false)
 
   const handleFieldChange = (field: keyof PlantFormData, value: string | boolean) => {
     onChange({ ...data, [field]: value })
@@ -107,63 +108,111 @@ export function PlantForm({
         isStandardFlower: false,
       })
     }
+    setShowSuggestions(value.length > 0)
   }
+
+  const handleNameFocus = () => {
+    setShowSuggestions(data.name.length > 0)
+  }
+
+  const handleNameBlur = () => {
+    // Delay hiding suggestions to allow clicks
+    setTimeout(() => setShowSuggestions(false), 200)
+  }
+
+  const selectFlower = (flower: typeof STANDARD_FLOWERS[0]) => {
+    onChange({
+      ...data,
+      name: flower.name,
+      emoji: flower.emoji,
+      color: data.color || flower.color,
+      isStandardFlower: true,
+    })
+    setShowSuggestions(false)
+  }
+
+  // Count filled optional fields
+  const filledOptionalFields = React.useMemo(() => {
+    const optionalFields = [
+      'scientificName', 'latinName', 'variety', 'plantColor', 'plantHeight',
+      'plantsPerSqm', 'plantingDate', 'expectedHarvestDate', 'notes',
+      'careInstructions', 'wateringFrequency', 'fertilizerSchedule'
+    ]
+    return optionalFields.filter(field => {
+      const value = data[field as keyof PlantFormData]
+      return value && value.toString().trim() !== '' && value !== 'partial-sun' && value !== 'gezond' && value !== '4'
+    }).length
+  }, [data])
 
   return (
     <form onSubmit={onSubmit} onReset={onReset} className="space-y-6">
-      {/* Required Fields */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Basis Informatie</CardTitle>
+      {/* Required Fields Card */}
+      <Card className="border-2 border-green-200 bg-green-50/30">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-green-800">
+            <Flower className="h-5 w-5" />
+            Basis Bloemgegevens
+            <span className="text-sm font-normal text-green-600">(verplicht)</span>
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {/* Plant Name with suggestions */}
           <div className="space-y-2">
-            <Label htmlFor="name">Bloemnaam *</Label>
+            <Label htmlFor="name" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+              Bloemnaam
+              <span className="text-red-500">*</span>
+            </Label>
             <div className="relative">
               <Input
                 id="name"
-                placeholder="Typ een nieuwe bloem of kies uit de lijst..."
+                placeholder="Typ een bloemnaam of kies uit de lijst..."
                 value={data.name}
                 onChange={(e) => handleNameChange(e.target.value)}
-                className={`${errors.name ? "border-destructive" : ""} pr-8`}
+                onFocus={handleNameFocus}
+                onBlur={handleNameBlur}
+                className={`${errors.name ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"} text-base`}
                 required
                 autoComplete="off"
               />
-              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               
               {/* Suggestions dropdown */}
-              {data.name && data.name.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+              {showSuggestions && (
+                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
                   {STANDARD_FLOWERS
                     .filter(flower => 
                       flower.name.toLowerCase().includes(data.name.toLowerCase())
                     )
-                    .slice(0, 5)
+                    .slice(0, 6)
                     .map((flower) => (
                       <div
                         key={flower.name}
-                        className="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
-                        onClick={() => {
-                          onChange({
-                            ...data,
-                            name: flower.name,
-                            emoji: flower.emoji,
-                            color: data.color || flower.color,
-                            isStandardFlower: true,
-                          })
-                        }}
+                        className="px-4 py-3 cursor-pointer hover:bg-green-50 flex items-center gap-3 border-b border-gray-100 last:border-b-0"
+                        onClick={() => selectFlower(flower)}
                       >
-                        <span>{flower.emoji}</span>
-                        <span>{flower.name}</span>
+                        <span className="text-xl">{flower.emoji}</span>
+                        <div>
+                          <span className="font-medium">{flower.name}</span>
+                          <div className="text-xs text-gray-500">Standaard bloem</div>
+                        </div>
                       </div>
                     ))}
+                  {data.name && !STANDARD_FLOWERS.some(f => 
+                    f.name.toLowerCase().includes(data.name.toLowerCase())
+                  ) && (
+                    <div className="px-4 py-3 text-gray-500 text-sm border-b border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{DEFAULT_FLOWER_EMOJI}</span>
+                        <span>"{data.name}" als nieuwe bloem</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
             {errors.name && (
-              <div className="flex items-center gap-1 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-2 rounded-md">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 {errors.name}
               </div>
             )}
@@ -171,19 +220,22 @@ export function PlantForm({
 
           {/* Color */}
           <div className="space-y-2">
-            <Label htmlFor="color">Kleur *</Label>
+            <Label htmlFor="color" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+              Kleur
+              <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="color"
-              placeholder="Bijv. Rood, Geel, Wit"
+              placeholder="Bijv. Rood, Geel, Wit, Roze"
               value={data.color}
               onChange={(e) => handleFieldChange('color', e.target.value)}
-              className={errors.color ? "border-destructive" : ""}
+              className={`${errors.color ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"} text-base`}
               required
               autoComplete="off"
             />
             {errors.color && (
-              <div className="flex items-center gap-1 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-2 rounded-md">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 {errors.color}
               </div>
             )}
@@ -191,20 +243,25 @@ export function PlantForm({
 
           {/* Height */}
           <div className="space-y-2">
-            <Label htmlFor="height">Hoogte (cm) *</Label>
+            <Label htmlFor="height" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+              Hoogte (cm)
+              <span className="text-red-500">*</span>
+            </Label>
             <Input
               id="height"
               type="number"
-              placeholder="Bijv. 150"
+              placeholder="Bijv. 30, 60, 150"
               value={data.height}
               onChange={(e) => handleFieldChange('height', e.target.value)}
-              className={errors.height ? "border-destructive" : ""}
+              className={`${errors.height ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"} text-base`}
               required
+              min="1"
+              max="500"
               autoComplete="off"
             />
             {errors.height && (
-              <div className="flex items-center gap-1 text-destructive text-sm">
-                <AlertCircle className="h-4 w-4" />
+              <div className="flex items-center gap-2 text-red-600 text-sm bg-red-50 p-2 rounded-md">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 {errors.height}
               </div>
             )}
@@ -212,202 +269,297 @@ export function PlantForm({
         </CardContent>
       </Card>
 
-      {/* Advanced Fields (Collapsible) */}
+      {/* Optional Fields (Collapsible) */}
       {showAdvanced && (
         <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
           <CollapsibleTrigger asChild>
-            <Button variant="outline" className="w-full">
-              <span>Geavanceerde opties</span>
-              {isAdvancedOpen ? (
-                <ChevronUp className="h-4 w-4 ml-2" />
-              ) : (
-                <ChevronDown className="h-4 w-4 ml-2" />
-              )}
-            </Button>
+            <Card className="cursor-pointer hover:shadow-md transition-shadow border-gray-200 bg-gray-50/30">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Settings className="h-5 w-5 text-gray-600" />
+                    <CardTitle className="text-gray-800">
+                      Aanvullende Informatie
+                      <span className="text-sm font-normal text-gray-600 ml-2">(optioneel)</span>
+                    </CardTitle>
+                    {filledOptionalFields > 0 && (
+                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                        {filledOptionalFields} ingevuld
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">
+                      {isAdvancedOpen ? 'Inklappen' : 'Uitklappen'}
+                    </span>
+                    {isAdvancedOpen ? (
+                      <ChevronUp className="h-5 w-5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 text-gray-600" />
+                    )}
+                  </div>
+                </div>
+              </CardHeader>
+            </Card>
           </CollapsibleTrigger>
           
-          <CollapsibleContent className="space-y-4 mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Aanvullende Informatie</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="scientificName">Wetenschappelijke naam</Label>
-                    <Input
-                      id="scientificName"
-                      placeholder="Bijv. Rosa rubiginosa"
-                      value={data.scientificName}
-                      onChange={(e) => handleFieldChange('scientificName', e.target.value)}
-                      autoComplete="off"
-                    />
+          <CollapsibleContent className="mt-4">
+            <Card className="border-gray-200">
+              <CardContent className="pt-6 space-y-6">
+                {/* Scientific Information Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                    <Info className="h-4 w-4 text-gray-600" />
+                    <h4 className="font-medium text-gray-900">Wetenschappelijke Informatie</h4>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="scientificName" className="text-sm font-medium text-gray-700">
+                        Wetenschappelijke naam
+                      </Label>
+                      <Input
+                        id="scientificName"
+                        placeholder="Bijv. Rosa rubiginosa"
+                        value={data.scientificName}
+                        onChange={(e) => handleFieldChange('scientificName', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500"
+                        autoComplete="off"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="latinName">Latijnse naam</Label>
-                    <Input
-                      id="latinName"
-                      placeholder="Bijv. Rosa"
-                      value={data.latinName}
-                      onChange={(e) => handleFieldChange('latinName', e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="latinName" className="text-sm font-medium text-gray-700">
+                        Latijnse naam
+                      </Label>
+                      <Input
+                        id="latinName"
+                        placeholder="Bijv. Rosa"
+                        value={data.latinName}
+                        onChange={(e) => handleFieldChange('latinName', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500"
+                        autoComplete="off"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="variety">Variëteit</Label>
-                    <Input
-                      id="variety"
-                      placeholder="Bijv. Red Eden"
-                      value={data.variety}
-                      onChange={(e) => handleFieldChange('variety', e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="plantColor">Plant kleur</Label>
-                    <Input
-                      id="plantColor"
-                      placeholder="Bijv. Groen, Donkergroen"
-                      value={data.plantColor}
-                      onChange={(e) => handleFieldChange('plantColor', e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="plantHeight">Plant hoogte (cm)</Label>
-                    <Input
-                      id="plantHeight"
-                      type="number"
-                      placeholder="Bijv. 80"
-                      value={data.plantHeight}
-                      onChange={(e) => handleFieldChange('plantHeight', e.target.value)}
-                      autoComplete="off"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="plantsPerSqm">Planten per m²</Label>
-                    <Input
-                      id="plantsPerSqm"
-                      type="number"
-                      placeholder="Bijv. 4"
-                      value={data.plantsPerSqm}
-                      onChange={(e) => handleFieldChange('plantsPerSqm', e.target.value)}
-                      autoComplete="off"
-                    />
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="variety" className="text-sm font-medium text-gray-700">
+                        Variëteit
+                      </Label>
+                      <Input
+                        id="variety"
+                        placeholder="Bijv. Red Eden, Double Delight"
+                        value={data.variety}
+                        onChange={(e) => handleFieldChange('variety', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500"
+                        autoComplete="off"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="sunPreference">Zonvoorkeur</Label>
-                  <Select 
-                    value={data.sunPreference} 
-                    onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
-                      handleFieldChange('sunPreference', value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full-sun">Volle zon</SelectItem>
-                      <SelectItem value="partial-sun">Halfschaduw</SelectItem>
-                      <SelectItem value="shade">Schaduw</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="plantingDate">Plantdatum</Label>
-                    <Input
-                      id="plantingDate"
-                      type="date"
-                      value={data.plantingDate}
-                      onChange={(e) => handleFieldChange('plantingDate', e.target.value)}
-                    />
+                {/* Growing Information Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                    <Flower className="h-4 w-4 text-gray-600" />
+                    <h4 className="font-medium text-gray-900">Groei Informatie</h4>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="plantColor" className="text-sm font-medium text-gray-700">
+                        Plant kleur
+                      </Label>
+                      <Input
+                        id="plantColor"
+                        placeholder="Bijv. Donkergroen, Lichtgroen"
+                        value={data.plantColor}
+                        onChange={(e) => handleFieldChange('plantColor', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500"
+                        autoComplete="off"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="expectedHarvestDate">Verwachte oogstdatum</Label>
-                    <Input
-                      id="expectedHarvestDate"
-                      type="date"
-                      value={data.expectedHarvestDate}
-                      onChange={(e) => handleFieldChange('expectedHarvestDate', e.target.value)}
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="plantHeight" className="text-sm font-medium text-gray-700">
+                        Plant hoogte (cm)
+                      </Label>
+                      <Input
+                        id="plantHeight"
+                        type="number"
+                        placeholder="Bijv. 80"
+                        value={data.plantHeight}
+                        onChange={(e) => handleFieldChange('plantHeight', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500"
+                        min="1"
+                        max="500"
+                        autoComplete="off"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="plantsPerSqm" className="text-sm font-medium text-gray-700">
+                        Planten per m²
+                      </Label>
+                      <Input
+                        id="plantsPerSqm"
+                        type="number"
+                        placeholder="Bijv. 4"
+                        value={data.plantsPerSqm}
+                        onChange={(e) => handleFieldChange('plantsPerSqm', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500"
+                        min="1"
+                        max="100"
+                        autoComplete="off"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="sunPreference" className="text-sm font-medium text-gray-700">
+                        Zonvoorkeur
+                      </Label>
+                      <Select 
+                        value={data.sunPreference} 
+                        onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
+                          handleFieldChange('sunPreference', value)
+                        }
+                      >
+                        <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="full-sun">☀️ Volle zon</SelectItem>
+                          <SelectItem value="partial-sun">⛅ Halfschaduw</SelectItem>
+                          <SelectItem value="shade">🌤️ Schaduw</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select 
-                    value={data.status} 
-                    onValueChange={(value: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst") => 
-                      handleFieldChange('status', value)
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gezond">Gezond</SelectItem>
-                      <SelectItem value="aandacht_nodig">Aandacht nodig</SelectItem>
-                      <SelectItem value="ziek">Ziek</SelectItem>
-                      <SelectItem value="dood">Dood</SelectItem>
-                      <SelectItem value="geoogst">Geoogst</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Opmerkingen</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Aanvullende opmerkingen over deze plant..."
-                    value={data.notes}
-                    onChange={(e) => handleFieldChange('notes', e.target.value)}
-                    rows={3}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="careInstructions">Verzorgingsinstructies</Label>
-                  <Textarea
-                    id="careInstructions"
-                    placeholder="Specifieke verzorgingsinstructies..."
-                    value={data.careInstructions}
-                    onChange={(e) => handleFieldChange('careInstructions', e.target.value)}
-                    rows={3}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="wateringFrequency">Water frequentie (dagen)</Label>
-                    <Input
-                      id="wateringFrequency"
-                      type="number"
-                      placeholder="Bijv. 3"
-                      value={data.wateringFrequency}
-                      onChange={(e) => handleFieldChange('wateringFrequency', e.target.value)}
-                      autoComplete="off"
-                    />
+                {/* Planning Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                    <span className="h-4 w-4 text-gray-600">📅</span>
+                    <h4 className="font-medium text-gray-900">Planning & Status</h4>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="plantingDate" className="text-sm font-medium text-gray-700">
+                        Plantdatum
+                      </Label>
+                      <Input
+                        id="plantingDate"
+                        type="date"
+                        value={data.plantingDate}
+                        onChange={(e) => handleFieldChange('plantingDate', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500"
+                      />
+                    </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="fertilizerSchedule">Bemestingsschema</Label>
-                    <Input
-                      id="fertilizerSchedule"
-                      placeholder="Bijv. Wekelijks"
-                      value={data.fertilizerSchedule}
-                      onChange={(e) => handleFieldChange('fertilizerSchedule', e.target.value)}
-                      autoComplete="off"
-                    />
+                    <div className="space-y-2">
+                      <Label htmlFor="expectedHarvestDate" className="text-sm font-medium text-gray-700">
+                        Verwachte bloeitijd
+                      </Label>
+                      <Input
+                        id="expectedHarvestDate"
+                        type="date"
+                        value={data.expectedHarvestDate}
+                        onChange={(e) => handleFieldChange('expectedHarvestDate', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="status" className="text-sm font-medium text-gray-700">
+                        Status
+                      </Label>
+                      <Select 
+                        value={data.status} 
+                        onValueChange={(value: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst") => 
+                          handleFieldChange('status', value)
+                        }
+                      >
+                        <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="gezond">✅ Gezond</SelectItem>
+                          <SelectItem value="aandacht_nodig">⚠️ Aandacht nodig</SelectItem>
+                          <SelectItem value="ziek">🤒 Ziek</SelectItem>
+                          <SelectItem value="dood">💀 Dood</SelectItem>
+                          <SelectItem value="geoogst">🌸 Geoogst</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Care Instructions Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                    <span className="h-4 w-4 text-gray-600">🌿</span>
+                    <h4 className="font-medium text-gray-900">Verzorging</h4>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="notes" className="text-sm font-medium text-gray-700">
+                        Opmerkingen
+                      </Label>
+                      <Textarea
+                        id="notes"
+                        placeholder="Bijv. Mooi in combinatie met lavendel, bloeit van mei tot oktober..."
+                        value={data.notes}
+                        onChange={(e) => handleFieldChange('notes', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500 min-h-[80px]"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="careInstructions" className="text-sm font-medium text-gray-700">
+                        Verzorgingsinstructies
+                      </Label>
+                      <Textarea
+                        id="careInstructions"
+                        placeholder="Bijv. Wekelijks water geven, maandelijks bemesten, dode bloemen wegknippen..."
+                        value={data.careInstructions}
+                        onChange={(e) => handleFieldChange('careInstructions', e.target.value)}
+                        className="border-gray-300 focus:border-blue-500 min-h-[80px]"
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="wateringFrequency" className="text-sm font-medium text-gray-700">
+                          Water frequentie (dagen)
+                        </Label>
+                        <Input
+                          id="wateringFrequency"
+                          type="number"
+                          placeholder="Bijv. 3"
+                          value={data.wateringFrequency}
+                          onChange={(e) => handleFieldChange('wateringFrequency', e.target.value)}
+                          className="border-gray-300 focus:border-blue-500"
+                          min="1"
+                          max="365"
+                          autoComplete="off"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="fertilizerSchedule" className="text-sm font-medium text-gray-700">
+                          Bemestingsschema
+                        </Label>
+                        <Input
+                          id="fertilizerSchedule"
+                          placeholder="Bijv. Wekelijks, Maandelijks"
+                          value={data.fertilizerSchedule}
+                          onChange={(e) => handleFieldChange('fertilizerSchedule', e.target.value)}
+                          className="border-gray-300 focus:border-blue-500"
+                          autoComplete="off"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -417,16 +569,24 @@ export function PlantForm({
       )}
 
       {/* Submit buttons */}
-      <div className="flex gap-3 pt-6">
+      <div className="flex gap-3 pt-6 border-t border-gray-200">
         <Button 
           type="submit" 
           disabled={isSubmitting || !data.name.trim() || !data.color.trim() || !data.height.trim()}
-          className="flex-1"
+          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+          size="lg"
         >
-          {isSubmitting ? 'Bezig...' : submitLabel}
+          {isSubmitting ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              Bezig...
+            </div>
+          ) : (
+            submitLabel
+          )}
         </Button>
         {onReset && (
-          <Button type="reset" variant="outline">
+          <Button type="reset" variant="outline" size="lg">
             Reset
           </Button>
         )}

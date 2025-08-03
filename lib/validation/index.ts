@@ -296,23 +296,76 @@ export function validatePlantvakFormData(data: Partial<PlantvakFormData>): Valid
 export function validateBloemFormData(data: Partial<BloemFormData>): ValidationResult {
   const validator = new Validator()
 
+  // Required fields validation
   validator.validateString('name', data.name || '', {
     required: true,
     maxLength: 100
   })
 
+  // Color validation - accept text colors, not just hex
+  if (!data.color || data.color.trim() === '') {
+    validator.addError('color', 'Kleur is verplicht')
+  } else if (data.color.length > 50) {
+    validator.addError('color', 'Kleur mag maximaal 50 karakters bevatten')
+  }
+
+  // Height validation - required field
+  if (!data.height) {
+    validator.addError('height', 'Hoogte is verplicht')
+  } else {
+    const heightNum = typeof data.height === 'string' ? parseFloat(data.height) : data.height
+    if (isNaN(heightNum) || heightNum <= 0) {
+      validator.addError('height', 'Hoogte moet een geldig getal groter dan 0 zijn')
+    } else if (heightNum > 500) {
+      validator.addError('height', 'Hoogte mag niet meer dan 500 cm zijn')
+    }
+  }
+
+  // Optional field validations
   if (data.scientific_name) {
-    validator.validateString('scientific_name', data.scientific_name, { maxLength: 200 })
+    validator.validateString('scientific_name', data.scientific_name, { 
+      maxLength: 200
+    })
   }
 
-  if (data.color && !PATTERNS.COLOR_HEX.test(data.color)) {
-    validator.addError('color', MESSAGES.INVALID_COLOR)
+  if (data.latin_name) {
+    validator.validateString('latin_name', data.latin_name, { 
+      maxLength: 100
+    })
   }
 
-  validator.validateNumber('height', data.height, {
-    min: 0,
-    max: 1000
-  })
+  if (data.variety) {
+    validator.validateString('variety', data.variety, { 
+      maxLength: 100
+    })
+  }
+
+  if (data.plant_color) {
+    validator.validateString('plant_color', data.plant_color, { 
+      maxLength: 50
+    })
+  }
+
+  if (data.plant_height !== undefined && data.plant_height !== null) {
+    validator.validateNumber('plant_height', data.plant_height, {
+      min: 1,
+      max: 500
+    })
+  }
+
+  if (data.plants_per_sqm !== undefined && data.plants_per_sqm !== null) {
+    validator.validateNumber('plants_per_sqm', data.plants_per_sqm, {
+      min: 1,
+      max: 100
+    })
+  }
+
+  if (data.watering_frequency !== undefined && data.watering_frequency !== null) {
+    validator.validateNumber('watering_frequency', data.watering_frequency, {
+      min: 1,
+      max: 365
+    })
+  }
 
   if (data.planting_date) {
     validator.validateDate('planting_date', data.planting_date)
@@ -322,9 +375,27 @@ export function validateBloemFormData(data: Partial<BloemFormData>): ValidationR
     validator.validateDate('expected_harvest_date', data.expected_harvest_date)
   }
 
+  // Sun preference validation
+  if (data.sun_preference && !['full-sun', 'partial-sun', 'shade'].includes(data.sun_preference)) {
+    validator.addError('sun_preference', 'Ongeldige zonvoorkeur geselecteerd')
+  }
+
+  // Status validation
   validator.validateOption('status', data.status as any, [
     'gezond', 'aandacht_nodig', 'ziek', 'dood', 'geoogst'
   ], true)
+
+  if (data.notes && data.notes.length > 1000) {
+    validator.addError('notes', 'Opmerkingen mogen maximaal 1000 karakters bevatten')
+  }
+
+  if (data.care_instructions && data.care_instructions.length > 1000) {
+    validator.addError('care_instructions', 'Verzorgingsinstructies mogen maximaal 1000 karakters bevatten')
+  }
+
+  if (data.fertilizer_schedule && data.fertilizer_schedule.length > 100) {
+    validator.addError('fertilizer_schedule', 'Bemestingsschema mag maximaal 100 karakters bevatten')
+  }
 
   return validator.getResult()
 }
