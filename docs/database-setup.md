@@ -9,15 +9,19 @@ Het Tuinbeheer Systeem gebruikt Supabase (PostgreSQL) als database backend. Deze
 ### Hoofdtabellen
 
 ```sql
--- Hiërarchische structuur
+-- Hiërarchische structuur (SIMPLIFIED)
 gardens (tuinen)
   ├── plant_beds (plantvakken)
-      └── plants (bloemen/planten)
+      └── plants (bloemen - VEREENVOUDIGD SCHEMA)
 
 -- Ondersteunende tabellen
 tasks (taken)
 audit_logs (audit trail)
 user_preferences (gebruiker instellingen)
+
+-- ✨ RECENT: Simplified plants table
+-- ❌ Removed duplicate fields: scientific_name, plant_color, plant_height
+-- ✅ Streamlined to essential fields only
 ```
 
 ### Entity Relationship Diagram
@@ -144,40 +148,74 @@ CREATE TABLE IF NOT EXISTS plant_beds (
 - `position_*`: Coördinaten voor visuele designer
 - `visual_*`: Afmetingen en styling voor drag & drop
 
-### 3. Plants Table (Bloemen/Planten)
+### 3. Plants Table (Bloemen/Planten) - SIMPLIFIED SCHEMA ✨
 
 ```sql
+-- 🌟 VEREENVOUDIGDE PLANTS TABLE (December 2024)
 CREATE TABLE IF NOT EXISTS plants (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     plant_bed_id UUID NOT NULL REFERENCES plant_beds(id) ON DELETE CASCADE,
-    name VARCHAR(255) NOT NULL,
-    scientific_name VARCHAR(255),
-    variety VARCHAR(255),
-    color VARCHAR(100),
-    height DECIMAL(10,2),
-    stem_length DECIMAL(10,2),
-    photo_url TEXT,
-    category VARCHAR(100),
-    bloom_period VARCHAR(100),
+    
+    -- ✅ VERPLICHTE VELDEN (Required Fields)
+    name VARCHAR(255) NOT NULL,           -- Bloemnaam
+    color VARCHAR(100),                   -- Kleur (was: both color AND plant_color)
+    height INTEGER,                       -- Lengte in cm (was: both height AND plant_height)
+    
+    -- ✅ OPTIONELE VELDEN (Optional Fields)
+    latin_name VARCHAR(255),              -- Latijnse naam (was: both latin_name AND scientific_name)
+    variety VARCHAR(255),                 -- Variëteit
+    plants_per_sqm INTEGER,               -- Planten per m²
+    sun_preference VARCHAR(20) CHECK (sun_preference IN ('full-sun', 'partial-sun', 'shade')),
+    
+    -- Planning & Status
     planting_date DATE,
     expected_harvest_date DATE,
-    status VARCHAR(20) NOT NULL DEFAULT 'healthy' 
-        CHECK (status IN ('healthy', 'needs_attention', 'diseased', 'dead', 'harvested')),
+    status VARCHAR(20) NOT NULL DEFAULT 'gezond' 
+        CHECK (status IN ('gezond', 'aandacht_nodig', 'ziek', 'dood', 'geoogst')),
+    
+    -- Care & Maintenance
     notes TEXT,
     care_instructions TEXT,
-    watering_frequency INTEGER,
+    watering_frequency INTEGER,           -- keer per week
     fertilizer_schedule VARCHAR(255),
+    
+    -- Visual
+    emoji VARCHAR(10) DEFAULT '🌼',
+    
+    -- Visual positioning (for future plant-level positioning)
+    position_x DECIMAL(10,2),
+    position_y DECIMAL(10,2),
+    visual_width DECIMAL(10,2),
+    visual_height DECIMAL(10,2),
+    
+    -- Timestamps
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    
+    -- ❌ REMOVED DUPLICATE FIELDS (December 2024):
+    -- scientific_name (merged into latin_name)
+    -- plant_color (merged into color)  
+    -- plant_height (merged into height)
+    -- stem_length (not used in current UI)
+    -- photo_url (moved to separate media table if needed)
+    -- category (inferred from name/type)
+    -- bloom_period (calculated from dates)
 );
 ```
 
-**Status Opties:**
-- `healthy`: Gezonde plant
-- `needs_attention`: Heeft aandacht nodig
-- `diseased`: Zieke plant
-- `dead`: Dode plant
-- `harvested`: Geoogste plant
+**Status Opties (Nederlandse Labels):**
+- `gezond`: Gezonde bloem 🌱
+- `aandacht_nodig`: Heeft aandacht nodig ⚠️
+- `ziek`: Zieke bloem 🦠
+- `dood`: Dode bloem 💀
+- `geoogst`: Geoogste bloem 🌾
+
+**🔄 Database Wijzigingen (December 2024):**
+- ✅ **Vereenvoudigd**: 3 verplichte velden (name, color, height)
+- ✅ **Geconsolideerd**: Dubbele velden samengevoegd
+- ✅ **Nederlandse statussen**: Gebruiksvriendelijke labels
+- ✅ **Emoji ondersteuning**: Visuele representatie
+- ❌ **Verwijderd**: Ongebruikte en dubbele velden
 
 ## 🔧 Database Scripts
 

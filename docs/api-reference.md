@@ -248,73 +248,103 @@ interface BulkPositionUpdateRequest {
 ApiResponse<boolean>
 ```
 
-## 🌸 Plants API
+## 🌸 Flowers API (Updated - Simplified Schema)
 
 ### GET /api/plant-beds/[plantBedId]/plants
-Haal alle planten van een plantvak op.
+Haal alle bloemen van een plantvak op.
 
 **Path Parameters:**
 - `plantBedId` (string): UUID van het plantvak
 
 **Query Parameters:**
-- `status` (string, optional): Filter op plant status
-- `category` (string, optional): Filter op plant categorie
+- `status` (string, optional): Filter op bloem status ('gezond', 'aandacht_nodig', 'ziek', 'dood', 'geoogst')
+- `name` (string, optional): Filter op bloemnaam
 
 **Response:**
 ```typescript
-ApiResponse<Plant[]>
+ApiResponse<Flower[]>
 ```
 
 ### POST /api/plant-beds/[plantBedId]/plants
-Voeg een nieuwe plant toe aan een plantvak.
+Voeg een nieuwe bloem toe aan een plantvak.
 
-**Request Body:**
+**Request Body (Simplified):**
 ```typescript
-interface CreatePlantRequest {
-  name: string
-  scientific_name?: string
-  variety?: string
-  color?: string
-  height?: number
-  stem_length?: number
-  category?: string
-  bloom_period?: string
-  planting_date?: string
-  expected_harvest_date?: string
-  status?: 'healthy' | 'needs_attention' | 'diseased' | 'dead' | 'harvested'
+interface CreateFlowerRequest {
+  // ✅ VERPLICHTE VELDEN (Required Fields)
+  name: string                    // Bloemnaam
+  color: string                   // Kleur (was: both color AND plant_color)
+  height: number                  // Lengte in cm (was: both height AND plant_height)
+  
+  // ✅ OPTIONELE VELDEN (Optional Fields)
+  latin_name?: string             // Latijnse naam (was: both latin_name AND scientific_name)
+  variety?: string                // Variëteit
+  plants_per_sqm?: number         // Planten per m²
+  sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
+  planting_date?: string          // ISO date string
+  expected_harvest_date?: string  // ISO date string
+  status?: 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst'
   notes?: string
   care_instructions?: string
-  watering_frequency?: number
+  watering_frequency?: number     // keer per week
   fertilizer_schedule?: string
+  emoji?: string                  // Default: '🌼'
+  
+  // ❌ REMOVED FIELDS (No longer supported):
+  // scientific_name, plant_color, plant_height, stem_length, 
+  // category, bloom_period, photo_url
 }
 ```
 
 **Response:**
 ```typescript
-ApiResponse<Plant>
+ApiResponse<Flower>
+```
+
+**Example Request:**
+```json
+{
+  "name": "Roos",
+  "color": "Rood", 
+  "height": 60,
+  "latin_name": "Rosa gallica",
+  "variety": "Rode roos",
+  "status": "gezond",
+  "emoji": "🌹"
+}
 ```
 
 ### PUT /api/plants/[id]
-Update een plant.
+Update een bloem.
 
 **Path Parameters:**
-- `id` (string): UUID van de plant
+- `id` (string): UUID van de bloem
 
 **Request Body:**
 ```typescript
-Partial<CreatePlantRequest>
+Partial<CreateFlowerRequest>
 ```
 
 **Response:**
 ```typescript
-ApiResponse<Plant>
+ApiResponse<Flower>
+```
+
+**Example Update Request:**
+```json
+{
+  "color": "Roze",
+  "height": 65,
+  "status": "aandacht_nodig",
+  "notes": "Heeft water nodig"
+}
 ```
 
 ### DELETE /api/plants/[id]
-Verwijder een plant.
+Verwijder een bloem.
 
 **Path Parameters:**
-- `id` (string): UUID van de plant
+- `id` (string): UUID van de bloem
 
 **Response:**
 ```typescript

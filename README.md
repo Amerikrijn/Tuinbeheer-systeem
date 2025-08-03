@@ -1,6 +1,6 @@
 # Tuinbeheer Systeem 🌱
 
-Een professioneel tuinbeheersysteem voor het beheren van tuinen, plantvakken en bloemen met visuele drag-and-drop functionaliteit.
+Een professioneel tuinbeheersysteem voor het beheren van tuinen, plantvakken en bloemen met **vereenvoudigde gebruikersinterface** en visuele drag-and-drop functionaliteit.
 
 ## 📋 Overzicht
 
@@ -10,7 +10,9 @@ Het Tuinbeheer Systeem is een moderne webapplicatie die tuinliefhebbers en profe
 
 - **Tuinbeheer**: Aanmaken en beheren van meerdere tuinen
 - **Plantvak Management**: Visuele indeling van tuinen in plantvakken
-- **Plantenbeheer**: Uitgebreid beheer van individuele planten met Nederlandse bloemendata
+- **Bloemenbeheer**: **Vereenvoudigd** beheer van bloemen met slimme autocomplete
+- **Unified Interface**: **Identieke interface** voor toevoegen én bewerken van bloemen
+- **Progressive Disclosure**: Alleen essentiële velden zichtbaar, uitbreidbaar naar behoefte
 - **Visuele Designer**: Drag-and-drop interface voor tuinontwerp
 - **Takenbeheer**: Planning en tracking van tuinonderhoudstaken
 - **Cross-platform**: Web-applicatie met mobiele ondersteuning
@@ -39,7 +41,9 @@ tuinbeheer-systeem/
 │   ├── admin/             # Admin functionaliteit
 │   └── api/               # API routes
 ├── components/            # Herbruikbare componenten
-│   ├── ui/               # shadcn/ui componenten
+│   ├── ui/               # shadcn/ui componenten (incl. collapsible)
+│   ├── forms/            # ✨ NEW: Unified form components
+│   │   └── flower-form.tsx # 🌟 Single form voor toevoegen/bewerken
 │   └── tasks/            # Taak-specifieke componenten
 ├── lib/                   # Utilities en services
 │   ├── services/         # Database services
@@ -156,5 +160,29 @@ Voor vragen of problemen:
 
 ---
 
-**Versie**: 1.0.0  
-**Laatste update**: December 2024
+## 🎉 Recente Verbeteringen (December 2024)
+
+### ✨ Vereenvoudigde Bloemen Interface
+- **Unified FlowerForm**: Één component voor toevoegen én bewerken
+- **Verplichte velden**: Alleen bloemnaam, kleur en lengte
+- **Smart Autocomplete**: Intelligente suggesties voor standaard bloemen  
+- **Progressive Disclosure**: Geavanceerde opties uitklapbaar via "Meer opties"
+- **Consistente UX**: Identieke ervaring voor alle bloem operaties
+
+### 🗄️ Database Optimalisaties
+- **Simplified Schema**: Dubbele velden verwijderd (scientific_name, plant_color, plant_height)
+- **Nederlandse Labels**: Gebruiksvriendelijke status labels
+- **Better Performance**: Minder database kolommen, snellere queries
+- **Type Safety**: Verbeterde TypeScript interfaces
+
+### 🧹 Technical Debt Opgeruimd
+- ❌ **Verwijderd**: Verwarrende dubbele velden
+- ❌ **Geëlimineerd**: Inconsistente form interfaces
+- ✅ **Toegevoegd**: Comprehensive test coverage
+- ✅ **Verbeterd**: Component architectuur en performance
+
+---
+
+**Versie**: 1.1.0  
+**Laatste update**: December 2024  
+**Status**: Productie Ready met Verbeterde UX

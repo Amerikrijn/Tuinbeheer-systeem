@@ -2,7 +2,7 @@
 
 ## 🏗️ Overzicht
 
-Het Tuinbeheer Systeem is gebouwd volgens moderne webapplicatie architectuur principes met een focus op schaalbaarheid, onderhoudbaarheid en prestaties. Het systeem volgt een gelaagde architectuur met duidelijke scheiding van verantwoordelijkheden.
+Het Tuinbeheer Systeem is gebouwd volgens moderne webapplicatie architectuur principes met een focus op schaalbaarheid, onderhoudbaarheid en prestaties. Het systeem volgt een gelaagde architectuur met duidelijke scheiding van verantwoordelijkheden en een **vereenvoudigde gebruikersinterface** voor optimale gebruikerservaring.
 
 ## 📐 Architectuur Principes
 
@@ -22,6 +22,12 @@ Het Tuinbeheer Systeem is gebouwd volgens moderne webapplicatie architectuur pri
 - Testbare architectuur door dependency injection
 - Configuratie via environment variables
 
+### 4. User-Centric Design (Recent Toegevoegd)
+- **Minimale cognitieve belasting**: Alleen essentiële velden zichtbaar
+- **Progressive disclosure**: Geavanceerde opties uitklapbaar
+- **Consistente interface**: Identieke ervaring voor alle operaties
+- **Smart defaults**: Intelligente suggesties en automatische vulling
+
 ## 🎯 Tech Stack
 
 ### Frontend Stack
@@ -36,6 +42,11 @@ Tailwind CSS 3.4+
 shadcn/ui (Radix UI primitives)
 Lucide React (Icons)
 
+// Enhanced UI Components (Recent)
+Collapsible (Accordeon functionality)
+Smart Autocomplete
+Form Validation with real-time feedback
+
 // State Management
 React Hooks (useState, useEffect, useContext)
 Custom hooks voor business logic
@@ -43,6 +54,7 @@ Custom hooks voor business logic
 // Forms & Validation
 React Hook Form
 Zod (Schema validation)
+Custom FlowerForm component (Unified)
 
 // Development Tools
 ESLint (Next.js config)
@@ -59,33 +71,138 @@ Node.js 18+
 // Database
 Supabase (PostgreSQL)
 Row Level Security (RLS)
+Simplified schema (removed duplicate fields)
 
 // Logging & Monitoring
 Winston (Structured logging)
 Custom audit logging
+Performance monitoring
 
 // Validation
 Zod schemas
 Custom validators
+Simplified validation rules
+```
+
+## 🎨 Visuele Architectuur Representatie
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           🌻 TUINBEHEER SYSTEEM                                  │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐              │
+│  │   🖥️ Frontend    │    │   📱 Mobile     │    │   🌐 Web App    │              │
+│  │   (Next.js 14)  │    │   (React Native)│    │   (PWA Ready)   │              │
+│  │                 │    │                 │    │                 │              │
+│  │  • Dashboard    │    │  • Touch UI     │    │  • Responsive   │              │
+│  │  • Garden Designer│  │  • Offline Mode │    │  • Installable  │              │
+│  │  • Flower Forms │    │  • Camera       │    │  • Push Notifs  │              │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘              │
+│           │                       │                       │                     │
+│           └───────────────────────┼───────────────────────┘                     │
+│                                   │                                             │
+├───────────────────────────────────┼─────────────────────────────────────────────┤
+│                    📡 API LAYER   │                                             │
+│                                   │                                             │
+│  ┌─────────────────────────────────┼─────────────────────────────────────────┐   │
+│  │              Next.js API Routes │                                         │   │
+│  │                                 ▼                                         │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │   │
+│  │  │  🏡 Gardens │  │  🌱 Plants  │  │  📋 Tasks   │  │  👤 Users   │     │   │
+│  │  │   Routes    │  │   Routes    │  │   Routes    │  │   Routes    │     │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘     │   │
+│  └─────────────────────────────────────────────────────────────────────────┘   │
+│                                   │                                             │
+├───────────────────────────────────┼─────────────────────────────────────────────┤
+│                🧠 BUSINESS LOGIC  │                                             │
+│                                   │                                             │
+│  ┌─────────────────────────────────┼─────────────────────────────────────────┐   │
+│  │                                 ▼                                         │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │   │
+│  │  │ Garden      │  │ FlowerForm  │  │ Task        │  │ Validation  │     │   │
+│  │  │ Service     │  │ Component   │  │ Service     │  │ Service     │     │   │
+│  │  │             │  │ (Unified)   │  │             │  │             │     │   │
+│  │  │ • CRUD      │  │ • Required: │  │ • Scheduling│  │ • Zod       │     │   │
+│  │  │ • Validation│  │   - Name    │  │ • Status    │  │ • Sanitize  │     │   │
+│  │  │ • Business  │  │   - Color   │  │ • Reminders │  │ • Type Safe │     │   │
+│  │  │   Rules     │  │   - Height  │  │             │  │             │     │   │
+│  │  │             │  │ • Optional: │  │             │  │             │     │   │
+│  │  │             │  │   Expandable│  │             │  │             │     │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘     │   │
+│  └─────────────────────────────────────────────────────────────────────────┘   │
+│                                   │                                             │
+├───────────────────────────────────┼─────────────────────────────────────────────┤
+│                 💾 DATA LAYER     │                                             │
+│                                   │                                             │
+│  ┌─────────────────────────────────┼─────────────────────────────────────────┐   │
+│  │                                 ▼                                         │   │
+│  │                    ┌─────────────────────┐                               │   │
+│  │                    │   Supabase Client   │                               │   │
+│  │                    │   (Type-Safe)       │                               │   │
+│  │                    └─────────────────────┘                               │   │
+│  │                                 │                                         │   │
+│  │                                 ▼                                         │   │
+│  │  ┌─────────────────────────────────────────────────────────────────┐     │   │
+│  │  │                    🗄️ PostgreSQL Database                        │     │   │
+│  │  │                                                                 │     │   │
+│  │  │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐        │     │   │
+│  │  │  │   gardens   │    │ plant_beds  │    │   plants    │        │     │   │
+│  │  │  │             │    │             │    │ (SIMPLIFIED)│        │     │   │
+│  │  │  │ • id        │───▶│ • id        │───▶│ • id        │        │     │   │
+│  │  │  │ • name      │    │ • garden_id │    │ • bed_id    │        │     │   │
+│  │  │  │ • location  │    │ • name      │    │ • name ✓    │        │     │   │
+│  │  │  │ • canvas_*  │    │ • position_*│    │ • color ✓   │        │     │   │
+│  │  │  └─────────────┘    │ • visual_*  │    │ • height ✓  │        │     │   │
+│  │  │                     └─────────────┘    │ • latin_name│        │     │   │
+│  │  │                                        │ • variety   │        │     │   │
+│  │  │  ┌─────────────┐    ┌─────────────┐    │ • status    │        │     │   │
+│  │  │  │    tasks    │    │ audit_logs  │    │ • emoji     │        │     │   │
+│  │  │  │             │    │             │    │ • notes     │        │     │   │
+│  │  │  │ • plant_id  │    │ • table     │    │ ❌ No more: │        │     │   │
+│  │  │  │ • title     │    │ • operation │    │   - sci_name│        │     │   │
+│  │  │  │ • due_date  │    │ • user_id   │    │   - plant_* │        │     │   │
+│  │  │  │ • completed │    │ • timestamp │    │             │        │     │   │
+│  │  │  └─────────────┘    └─────────────┘    └─────────────┘        │     │   │
+│  │  │                                                                 │     │   │
+│  │  │  🔒 Row Level Security (RLS) - Users see only their data       │     │   │
+│  │  └─────────────────────────────────────────────────────────────────┘     │   │
+│  └─────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                 │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                           🔧 INFRASTRUCTURE                                     │
+│                                                                                 │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐            │
+│  │   Vercel    │  │  Supabase   │  │   GitHub    │  │  Monitoring │            │
+│  │  Hosting    │  │  Database   │  │   Actions   │  │   & Logs    │            │
+│  │             │  │    Auth     │  │    CI/CD    │  │             │            │
+│  │ • CDN       │  │  Storage    │  │             │  │ • Winston   │            │
+│  │ • Edge      │  │  Realtime   │  │ • Tests     │  │ • Analytics │            │
+│  │ • Analytics │  │             │  │ • Deploy    │  │ • Errors    │            │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘            │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## 🏛️ Architectuur Lagen
 
 ### 1. Presentatie Laag (Presentation Layer)
 
-#### Component Architectuur
+#### Component Architectuur (Updated)
 ```
 components/
-├── ui/                 # Basis UI componenten (shadcn/ui)
+├── ui/                     # Basis UI componenten (shadcn/ui)
 │   ├── button.tsx
 │   ├── card.tsx
 │   ├── dialog.tsx
+│   ├── collapsible.tsx     # ✨ NEW: Voor uitklapbare secties
 │   └── ...
-├── feature/           # Feature-specifieke componenten
+├── forms/                  # ✨ NEW: Dedicated forms directory
+│   └── flower-form.tsx     # 🌟 UNIFIED: Single form component
+├── feature/               # Feature-specifieke componenten
 │   ├── garden-card.tsx
-│   ├── plant-form.tsx
+│   ├── plant-bed-designer.tsx
 │   └── task-list.tsx
-└── layout/           # Layout componenten
+└── layout/               # Layout componenten
     ├── header.tsx
     ├── sidebar.tsx
     └── footer.tsx
@@ -127,14 +244,14 @@ export function GardenList({ gardens, onRefresh }: GardenListProps) {
 
 ### 2. Business Logic Laag (Service Layer)
 
-#### Service Architectuur
+#### Service Architectuur (Updated)
 ```
 lib/services/
 ├── database.service.ts    # Generic database operations
 ├── garden.service.ts      # Garden-specific business logic
-├── plant.service.ts       # Plant management
+├── flower.service.ts      # 🌟 RENAMED: plant.service.ts → flower.service.ts
 ├── task.service.ts        # Task management
-└── validation.service.ts  # Cross-cutting validation
+└── validation.service.ts  # Cross-cutting validation (simplified)
 ```
 
 #### Service Pattern
@@ -860,6 +977,48 @@ jobs:
 
 ---
 
-**Versie**: 1.0.0  
+## 📋 Recente Architectuur Wijzigingen (December 2024)
+
+### 🌟 Major Improvements
+
+#### 1. Unified FlowerForm Component
+- ✅ **Single Responsibility**: Één component voor toevoegen én bewerken
+- ✅ **Progressive Disclosure**: Verplichte velden zichtbaar, optionele uitklapbaar
+- ✅ **Smart Autocomplete**: Intelligente suggesties met auto-fill
+- ✅ **Consistent UX**: Identieke interface voor alle bloem operaties
+
+#### 2. Simplified Database Schema
+- ✅ **Duplicate Fields Removed**: 
+  - `scientific_name` → merged into `latin_name`
+  - `plant_color` → merged into `color`
+  - `plant_height` → merged into `height`
+- ✅ **Cleaner Data Model**: Reduced complexity and confusion
+- ✅ **Better Performance**: Fewer columns, simpler queries
+
+#### 3. Enhanced Component Architecture
+- ✅ **forms/ Directory**: Dedicated directory for form components
+- ✅ **Collapsible UI**: Modern accordeon functionality
+- ✅ **Memoization**: Performance optimized components
+- ✅ **Lazy Loading**: Advanced fields loaded on demand
+
+#### 4. Improved Developer Experience
+- ✅ **Type Safety**: Updated TypeScript interfaces
+- ✅ **Simplified Validation**: Focus on essential fields
+- ✅ **Better Testing**: Comprehensive test coverage
+- ✅ **Enhanced Monitoring**: Form interaction analytics
+
+### 🔧 Technical Debt Resolved
+- ❌ **Removed**: Confusing duplicate fields
+- ❌ **Eliminated**: Inconsistent form interfaces  
+- ❌ **Cleaned**: Redundant validation logic
+- ❌ **Simplified**: Over-complex component hierarchies
+
+### 📈 Performance Improvements
+- ⚡ **Faster Renders**: Memoized components
+- ⚡ **Smaller Bundles**: Removed unused code
+- ⚡ **Better Caching**: Simplified data structures
+- ⚡ **Optimized Queries**: Fewer database columns
+
+**Versie**: 1.1.0  
 **Laatste update**: December 2024  
-**Auteur**: Development Team
+**Status**: Productie Ready met Verbeterde UX
