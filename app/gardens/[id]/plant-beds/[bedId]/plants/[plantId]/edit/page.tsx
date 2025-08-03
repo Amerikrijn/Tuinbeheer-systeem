@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FlowerSelector } from "@/components/ui/flower-selector"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Leaf, Save, Calendar, Plus, CheckCircle, AlertTriangle, Trash2 } from "lucide-react"
 import { getPlant, updatePlant, deletePlant } from "@/lib/database"
@@ -320,11 +321,12 @@ export default function EditPlantPage() {
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div className="space-y-2">
                       <Label htmlFor="name">Bloemnaam *</Label>
-                      <Input
-                        id="name"
+                      <FlowerSelector
                         value={editPlant.name}
-                        onChange={(e) => setEditPlant(prev => ({ ...prev, name: e.target.value }))}
-                        required
+                        onValueChange={(value) => {
+                          setEditPlant(prev => ({ ...prev, name: value }))
+                        }}
+                        placeholder="Zoek een bloem of typ een nieuwe naam..."
                       />
                     </div>
 

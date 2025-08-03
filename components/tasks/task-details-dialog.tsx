@@ -191,12 +191,12 @@ export function TaskDetailsDialog({
               <Badge variant={task.completed ? "default" : "secondary"}>
                 {task.completed ? "Voltooid" : "Actief"}
               </Badge>
-              <Badge variant="outline" className={priorityConfig.className}>
-                {priorityConfig.label}
+              <Badge variant="outline" className={priorityConfig?.className}>
+                {priorityConfig?.label}
               </Badge>
-              <Badge variant="outline">
-                {taskTypeConfig.label}
-              </Badge>
+                              <Badge variant="outline">
+                  {taskTypeConfig?.label}
+                </Badge>
             </div>
             <div className="flex items-center gap-2">
               <Button

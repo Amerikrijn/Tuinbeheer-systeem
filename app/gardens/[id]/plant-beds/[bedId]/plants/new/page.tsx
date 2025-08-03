@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FlowerSelector } from "@/components/ui/flower-selector"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Leaf, Plus, AlertCircle, Calendar, ChevronDown } from "lucide-react"
 import { getGarden, getPlantBed, createPlant } from "@/lib/database"
@@ -273,76 +274,16 @@ export default function NewPlantPage() {
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="name">Bloemnaam *</Label>
-                    <div className="relative">
-                      <Input
-                        id="name"
-                        placeholder="Typ een nieuwe bloem of kies uit de lijst..."
-                        value={newPlant.name}
-                        onChange={(e) => {
-                          const value = e.target.value
-                          setNewPlant((p) => ({
-                            ...p,
-                            name: value,
-                          }))
-                          
-                          // Check if it matches a standard flower
-                          const selectedFlower = STANDARD_FLOWERS.find(f => 
-                            f.name.toLowerCase() === value.toLowerCase()
-                          )
-                          if (selectedFlower) {
-                            setNewPlant((p) => ({
-                              ...p,
-                              name: value,
-                              emoji: selectedFlower.emoji,
-                              color: selectedFlower.color,
-                              isStandardFlower: true,
-                            }))
-                          } else {
-                            setNewPlant((p) => ({
-                              ...p,
-                              name: value,
-                              emoji: p.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : p.emoji,
-                              isStandardFlower: false,
-                            }))
-                          }
-                        }}
-                        className={`${errors.name ? "border-destructive" : ""} pr-8`}
-                        required
-                        autoComplete="off"
-                      />
-                      <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-                      {/* Show suggestions only when typing and there's input */}
-                      {newPlant.name && newPlant.name.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
-                          {STANDARD_FLOWERS
-                            .filter(flower => 
-                              flower.name.toLowerCase().includes(newPlant.name.toLowerCase())
-                            )
-                            .slice(0, 5)
-                            .map((flower) => (
-                              <div
-                                key={flower.name}
-                                className="px-3 py-2 cursor-pointer hover:bg-gray-100 flex items-center gap-2"
-                                onClick={() => {
-                                  setNewPlant((p) => ({
-                                    ...p,
-                                    name: flower.name,
-                                    emoji: flower.emoji,
-                                    color: flower.color,
-                                    isStandardFlower: true,
-                                  }))
-                                }}
-                              >
-                                <span>{flower.emoji}</span>
-                                <span>{flower.name}</span>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Tip: Begin te typen om uit standaard bloemen te kiezen, of typ een eigen naam
-                    </p>
+                    <FlowerSelector
+                      value={newPlant.name}
+                      onValueChange={(value) => {
+                        setNewPlant((p) => ({
+                          ...p,
+                          name: value,
+                        }))
+                      }}
+                      placeholder="Zoek een bloem of typ een nieuwe naam..."
+                    />
                     {errors.name && (
                       <div className="flex items-center gap-1 text-destructive text-sm">
                         <AlertCircle className="h-4 w-4" />
