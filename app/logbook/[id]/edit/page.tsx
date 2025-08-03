@@ -78,10 +78,10 @@ export default function EditLogbookPage() {
         // Set form data
         setFormData({
           plant_bed_id: entry.plant_bed_id,
-          plant_id: entry.plant_id,
+          plant_id: entry.plant_id || null,
           entry_date: entry.entry_date,
           notes: entry.notes,
-          photo_url: entry.photo_url,
+          photo_url: entry.photo_url || null,
         })
 
         setState(prev => ({
