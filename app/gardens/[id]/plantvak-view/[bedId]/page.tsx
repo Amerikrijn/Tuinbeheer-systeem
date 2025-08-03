@@ -62,6 +62,7 @@ import {
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { ViewPreferencesService, ViewMode } from '@/lib/services/view-preferences.service'
+import { BloemForm, BloemFormData, BloemFormErrors, createInitialBloemFormData } from "@/components/ui/bloem-form"
 
 const GRID_SIZE = 10
 const SCALE_MIN = 0.5
@@ -209,6 +210,8 @@ export default function PlantBedViewPage() {
   const [isEditCustomFlower, setIsEditCustomFlower] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('')
+  const [editFlowerData, setEditFlowerData] = useState<BloemFormData>(createInitialBloemFormData())
+  const [editFlowerErrors, setEditFlowerErrors] = useState<BloemFormErrors>({})
   const [newFlower, setNewFlower] = useState({
     name: '',
     type: '',
@@ -399,6 +402,63 @@ export default function PlantBedViewPage() {
     loadTasks()
     setShowAddTask(false)
     setSelectedTaskPlantId(undefined)
+  }
+
+  // Convert PlantWithPosition to BloemFormData for editing
+  const convertPlantToBloemFormData = (plant: PlantWithPosition): BloemFormData => {
+    return {
+      // Required fields
+      name: plant.name || '',
+      color: plant.color || '#FF69B4',
+      height: plant.height?.toString() || '',
+      
+      // Optional fields - Plant Information
+      scientificName: plant.scientific_name || '',
+      latinName: plant.latin_name || '',
+      variety: plant.variety || '',
+      plantColor: plant.plant_color || '',
+      plantHeight: plant.plant_height || '',
+      plantsPerSqm: plant.plants_per_sqm?.toString() || '',
+      
+      // Optional fields - Growing Conditions
+      sunPreference: plant.sun_preference || 'full-sun',
+      
+      // Optional fields - Timeline
+      plantingDate: plant.planting_date || '',
+      expectedHarvestDate: plant.expected_harvest_date || '',
+      
+      // Optional fields - Care & Status
+      status: plant.status || 'gezond',
+      notes: plant.notes || '',
+      careInstructions: plant.care_instructions || '',
+      wateringFrequency: plant.watering_frequency || '',
+      fertilizerSchedule: plant.fertilizer_schedule || '',
+      
+      // Internal fields
+      emoji: plant.emoji || DEFAULT_FLOWER_EMOJI,
+      isStandardFlower: plant.is_standard_flower || false
+    }
+  }
+
+  // Validate edit form data
+  const validateEditForm = (data: BloemFormData): BloemFormErrors => {
+    const newErrors: BloemFormErrors = {}
+    
+    if (!data.name.trim()) {
+      newErrors.name = 'Bloemnaam is verplicht'
+    }
+    
+    if (!data.color.trim()) {
+      newErrors.color = 'Kleur is verplicht'
+    }
+    
+    if (!data.height.trim()) {
+      newErrors.height = 'Lengte is verplicht'
+    } else if (isNaN(Number(data.height)) || Number(data.height) <= 0) {
+      newErrors.height = 'Lengte moet een geldig getal zijn'
+    }
+    
+    return newErrors
   }
 
   // Calculate canvas size based on plant bed size using consistent scaling
@@ -829,34 +889,44 @@ export default function PlantBedViewPage() {
     }
   }
 
-  const updateFlower = async () => {
-    if (!selectedFlower || !newFlower.name) {
-        // Removed toast notification
-            return
+  const updateFlower = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!selectedFlower) {
+      return
+    }
+
+    // Validate form
+    const errors = validateEditForm(editFlowerData)
+    setEditFlowerErrors(errors)
+    
+    if (Object.keys(errors).length > 0) {
+      return
     }
 
     try {
-      const selectedType = STANDARD_FLOWERS.find(type => type.name === newFlower.type)
-
-      // Map status to database format
-      const dbStatus = newFlower.status === 'ziek' ? 'ziek' : 
-                      newFlower.status === 'bloeiend' ? 'gezond' : 
-                      newFlower.status
-
       const updatedPlant = await updatePlantPosition(selectedFlower.id, {
-        name: newFlower.name,
-        color: newFlower.plantColor || '#FF69B4',
-        status: dbStatus as "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst",
-        emoji: newFlower.emoji,
+        name: editFlowerData.name,
+        color: editFlowerData.color,
+        height: parseFloat(editFlowerData.height),
+        status: editFlowerData.status as "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst",
+        emoji: editFlowerData.emoji,
         photo_url: null,
-        is_custom: !newFlower.isStandardFlower,
-        category: newFlower.isStandardFlower ? newFlower.type : 'Aangepast',
-        notes: newFlower.description,
-        latin_name: newFlower.latinName || undefined,
-        plant_color: newFlower.plantColor || undefined,
-        plant_height: newFlower.plantHeight ? parseFloat(newFlower.plantHeight) : undefined,
-        plants_per_sqm: newFlower.plantsPerSqm ? parseInt(newFlower.plantsPerSqm) : undefined,
-        sun_preference: newFlower.sunPreference
+        is_custom: !editFlowerData.isStandardFlower,
+        category: editFlowerData.isStandardFlower ? editFlowerData.name : 'Aangepast',
+        notes: editFlowerData.notes,
+        scientific_name: editFlowerData.scientificName || undefined,
+        latin_name: editFlowerData.latinName || undefined,
+        variety: editFlowerData.variety || undefined,
+        plant_color: editFlowerData.plantColor || undefined,
+        plant_height: editFlowerData.plantHeight || undefined,
+        plants_per_sqm: editFlowerData.plantsPerSqm ? parseInt(editFlowerData.plantsPerSqm) : undefined,
+        sun_preference: editFlowerData.sunPreference,
+        planting_date: editFlowerData.plantingDate || undefined,
+        expected_harvest_date: editFlowerData.expectedHarvestDate || undefined,
+        care_instructions: editFlowerData.careInstructions || undefined,
+        watering_frequency: editFlowerData.wateringFrequency || undefined,
+        fertilizer_schedule: editFlowerData.fertilizerSchedule || undefined
       })
 
       if (updatedPlant) {
@@ -866,26 +936,11 @@ export default function PlantBedViewPage() {
 
         setIsEditingFlower(false)
         setSelectedFlower(null)
-        setNewFlower({
-          name: '',
-          type: '',
-          emoji: DEFAULT_FLOWER_EMOJI,
-          description: '',
-          status: 'gezond',
-          isStandardFlower: false,
-          // Reset new fields
-          latinName: '',
-          plantColor: '',
-          plantHeight: '',
-          plantsPerSqm: '',
-          sunPreference: 'full-sun'
-        })
-        
-        // Removed toast notification
+        setEditFlowerData(createInitialBloemFormData())
+        setEditFlowerErrors({})
       }
     } catch (error) {
       console.error("Error updating flower:", error)
-        // Removed toast notification
     }
   }
 
@@ -1901,41 +1956,50 @@ export default function PlantBedViewPage() {
             setIsEditingFlower(open)
             if (!open) {
               // Reset form when dialog closes
-              setNewFlower({
-                name: '',
-                type: '',
-                emoji: DEFAULT_FLOWER_EMOJI,
-                description: '',
-                status: 'gezond',
-                
-                isStandardFlower: false,
-                // Reset new fields
-                latinName: '',
-                plantColor: '',
-                plantHeight: '',
-                plantsPerSqm: '',
-                sunPreference: 'full-sun'
-              })
+              setEditFlowerData(createInitialBloemFormData())
+              setEditFlowerErrors({})
               setSelectedFlower(null)
             }
-                                           }}>
-            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto bg-white z-50 border border-gray-200 shadow-xl">
+          }}>
+            <DialogContent className="w-[95vw] max-w-[800px] max-h-[90vh] overflow-y-auto bg-white z-50 border border-gray-200 shadow-xl">
               <DialogHeader>
                 <DialogTitle>Bloem Bewerken</DialogTitle>
                 <DialogDescription>
                   Wijzig de eigenschappen van deze bloem.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2 bg-white">
-                <div className="grid gap-2">
-                  <label htmlFor="edit-name" className="text-sm font-medium">
-                    Bloemnaam *
-                  </label>
-                  <div className="relative">
-                    <Input
-                      id="edit-name"
-                      placeholder="Typ een nieuwe bloem of kies uit de lijst..."
-                      value={newFlower.name}
+              
+              <BloemForm
+                data={editFlowerData}
+                errors={editFlowerErrors}
+                onChange={setEditFlowerData}
+                onSubmit={updateFlower}
+                onReset={() => {
+                  setEditFlowerData(createInitialBloemFormData())
+                  setEditFlowerErrors({})
+                }}
+                submitLabel="Bloem wijzigen"
+                mode="edit"
+              />
+              
+              <div className="flex gap-2 mt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => selectedFlower && removeFlower(selectedFlower.id)}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Verwijderen
+                </Button>
+                <Button variant="outline" onClick={() => {
+                  setIsEditingFlower(false)
+                  setEditFlowerData(createInitialBloemFormData())
+                  setEditFlowerErrors({})
+                  setSelectedFlower(null)
+                }}>
+                  Annuleren
+                </Button>
+              </div>
                       onChange={(e) => {
                         const value = e.target.value
                         setNewFlower(prev => ({
@@ -2986,25 +3050,9 @@ export default function PlantBedViewPage() {
                             variant="outline"
                             onClick={() => {
                               setSelectedFlower(flower)
-                              // Populate form with selected flower data
-                              setNewFlower({
-                                name: flower.name,
-                                type: flower.category || '',
-                                emoji: flower.emoji || DEFAULT_FLOWER_EMOJI,
-                                description: flower.notes || '',
-                                status: flower.status === 'ziek' ? 'ziek' : 
-                                       flower.status === 'gezond' ? 'gezond' :
-                                       flower.status === 'aandacht_nodig' ? 'aandacht_nodig' :
-                                       'gezond' as 'gezond' | 'aandacht_nodig' | 'bloeiend' | 'ziek',
-                                
-                                isStandardFlower: !flower.is_custom,
-                                // Populate new fields
-                                latinName: flower.latin_name || '',
-                                plantColor: flower.plant_color || flower.color || '',
-                                plantHeight: flower.plant_height?.toString() || '',
-                                plantsPerSqm: flower.plants_per_sqm?.toString() || '',
-                                sunPreference: flower.sun_preference || 'full-sun'
-                              })
+                              // Populate form with selected flower data using BloemForm format
+                              setEditFlowerData(convertPlantToBloemFormData(flower))
+                              setEditFlowerErrors({})
                               setIsEditingFlower(true)
                             }}
                           >
