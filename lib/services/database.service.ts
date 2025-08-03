@@ -416,7 +416,7 @@ export class LogbookService {
    */
   static async create(formData: LogbookEntryFormData): Promise<ApiResponse<LogbookEntry>> {
     const operationId = `logbook-create-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer()
+    const performanceTimer = PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -517,7 +517,7 @@ export class LogbookService {
     offset?: number
   }): Promise<ApiResponse<LogbookEntryWithDetails[]>> {
     const operationId = `logbook-getAll-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer()
+    const performanceTimer = PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -579,7 +579,7 @@ export class LogbookService {
    */
   static async getById(id: string): Promise<ApiResponse<LogbookEntryWithDetails>> {
     const operationId = `logbook-getById-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer()
+    const performanceTimer = PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -630,7 +630,7 @@ export class LogbookService {
    */
   static async update(id: string, formData: Partial<LogbookEntryFormData>): Promise<ApiResponse<LogbookEntry>> {
     const operationId = `logbook-update-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer()
+    const performanceTimer = PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -709,7 +709,7 @@ export class LogbookService {
    */
   static async delete(id: string): Promise<ApiResponse<boolean>> {
     const operationId = `logbook-delete-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer()
+    const performanceTimer = PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
@@ -768,7 +768,7 @@ export class LogbookService {
    */
   static async updatePhotoUrl(id: string, photoUrl: string | null): Promise<ApiResponse<LogbookEntry>> {
     const operationId = `logbook-updatePhoto-${Date.now()}`
-    const performanceTimer = PerformanceLogger.startTimer()
+    const performanceTimer = PerformanceLogger.startTimer(operationId)
     
     try {
       await validateConnection()
