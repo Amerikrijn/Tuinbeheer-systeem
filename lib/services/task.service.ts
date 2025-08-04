@@ -157,12 +157,12 @@ export class TaskService {
           .from('tasks')
           .select(`
             *,
-            plants!inner (
+            plants (
               name,
               color,
-              plant_beds!inner (
+              plant_beds (
                 name,
-                gardens!inner (
+                gardens (
                   name
                 )
               )
@@ -176,10 +176,10 @@ export class TaskService {
           .from('tasks')
           .select(`
             *,
-            plant_beds!inner (
+            plant_beds (
               name,
               color_code,
-              gardens!inner (
+              gardens (
                 name
               )
             )
@@ -271,12 +271,12 @@ export class TaskService {
           .from('tasks')
           .select(`
             *,
-            plants!inner (
+            plants (
               name,
               color,
-              plant_beds!inner (
+              plant_beds (
                 name,
-                gardens!inner (
+                gardens (
                   name
                 )
               )
@@ -293,10 +293,10 @@ export class TaskService {
           .from('tasks')
           .select(`
             *,
-            plant_beds!inner (
+            plant_beds (
               name,
               color_code,
-              gardens!inner (
+              gardens (
                 name
               )
             )
@@ -457,12 +457,12 @@ export class TaskService {
           .from('tasks')
           .select(`
             *,
-            plants!inner (
+            plants (
               name,
               color,
-              plant_beds!inner (
+              plant_beds (
                 name,
-                gardens!inner (
+                gardens (
                   name
                 )
               )
@@ -476,10 +476,10 @@ export class TaskService {
           .from('tasks')
           .select(`
             *,
-            plant_beds!inner (
+            plant_beds (
               name,
               color_code,
-              gardens!inner (
+              gardens (
                 name
               )
             )
