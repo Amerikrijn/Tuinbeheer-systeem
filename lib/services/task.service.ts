@@ -169,7 +169,9 @@ export class TaskService {
             )
           `)
           .not('plant_id', 'is', null)
-          .order('due_date', { ascending: true }),
+          .order('completed', { ascending: true })
+          .order('due_date', { ascending: true })
+          .order('created_at', { ascending: true }),
         
         // Plant bed tasks
         supabase
@@ -186,7 +188,9 @@ export class TaskService {
           `)
           .not('plant_bed_id', 'is', null)
           .is('plant_id', null)
+          .order('completed', { ascending: true })
           .order('due_date', { ascending: true })
+          .order('created_at', { ascending: true })
       ])
 
       if (plantTasksResult.error) throw plantTasksResult.error
@@ -220,12 +224,16 @@ export class TaskService {
         if (!a.completed && b.completed) return -1
         
         // Within same completion status, sort by due date first
-        const dateCompare = new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+        const dateA = new Date(a.due_date)
+        const dateB = new Date(b.due_date)
+        const dateCompare = dateA.getTime() - dateB.getTime()
         if (dateCompare !== 0) return dateCompare
         
         // Then by priority (high=3, medium=2, low=1)
-        const priorityWeight = { high: 3, medium: 2, low: 1 }
-        return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2)
+        const priorityWeight: { [key: string]: number } = { high: 3, medium: 2, low: 1 }
+        const priorityA = priorityWeight[a.priority] || 2
+        const priorityB = priorityWeight[b.priority] || 2
+        return priorityB - priorityA
       })
 
       // Apply client-side filtering if needed
@@ -360,12 +368,16 @@ export class TaskService {
         if (!a.completed && b.completed) return -1
         
         // Within same completion status, sort by due date first
-        const dateCompare = new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+        const dateA = new Date(a.due_date)
+        const dateB = new Date(b.due_date)
+        const dateCompare = dateA.getTime() - dateB.getTime()
         if (dateCompare !== 0) return dateCompare
         
         // Then by priority (high=3, medium=2, low=1)
-        const priorityWeight = { high: 3, medium: 2, low: 1 }
-        return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2)
+        const priorityWeight: { [key: string]: number } = { high: 3, medium: 2, low: 1 }
+        const priorityA = priorityWeight[a.priority] || 2
+        const priorityB = priorityWeight[b.priority] || 2
+        return priorityB - priorityA
       })
 
       return { data: transformedData, error: null }
