@@ -150,34 +150,68 @@ export class TaskService {
   // Get tasks with plant information
   static async getTasksWithPlantInfo(filters?: TaskFilters): Promise<{ data: TaskWithPlantInfo[]; error: string | null }> {
     try {
-      // Simple query without complex filtering for now
-      const { data: tasks, error } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          plants!inner (
-            name,
-            color,
+      // Get both plant tasks and plant bed tasks
+      const [plantTasksResult, plantBedTasksResult] = await Promise.all([
+        // Plant tasks
+        supabase
+          .from('tasks')
+          .select(`
+            *,
+            plants!inner (
+              name,
+              color,
+              plant_beds!inner (
+                name,
+                gardens!inner (
+                  name
+                )
+              )
+            )
+          `)
+          .not('plant_id', 'is', null)
+          .order('due_date', { ascending: true }),
+        
+        // Plant bed tasks
+        supabase
+          .from('tasks')
+          .select(`
+            *,
             plant_beds!inner (
               name,
+              color_code,
               gardens!inner (
                 name
               )
             )
-          )
-        `)
-        .order('due_date', { ascending: true })
+          `)
+          .not('plant_bed_id', 'is', null)
+          .is('plant_id', null)
+          .order('due_date', { ascending: true })
+      ])
 
-      if (error) throw error
+      if (plantTasksResult.error) throw plantTasksResult.error
+      if (plantBedTasksResult.error) throw plantBedTasksResult.error
 
-      // Transform the data to match TaskWithPlantInfo interface
-      let transformedData: TaskWithPlantInfo[] = (tasks || []).map((task: any) => ({
+      // Transform plant tasks
+      const plantTasks: TaskWithPlantInfo[] = (plantTasksResult.data || []).map((task: any) => ({
         ...task,
         plant_name: task.plants?.name || '',
         plant_color: task.plants?.color || '',
         plant_bed_name: task.plants?.plant_beds?.name || '',
         garden_name: task.plants?.plant_beds?.gardens?.name || ''
       }))
+
+      // Transform plant bed tasks
+      const plantBedTasks: TaskWithPlantInfo[] = (plantBedTasksResult.data || []).map((task: any) => ({
+        ...task,
+        plant_name: 'Plantvak taak',
+        plant_color: task.plant_beds?.color_code || '#10B981',
+        plant_bed_name: task.plant_beds?.name || '',
+        garden_name: task.plant_beds?.gardens?.name || ''
+      }))
+
+      // Combine all tasks
+      let transformedData: TaskWithPlantInfo[] = [...plantTasks, ...plantBedTasks]
 
       // Apply consistent sorting: incomplete first (by due date), then completed at bottom
       transformedData.sort((a, b) => {
@@ -225,31 +259,58 @@ export class TaskService {
       const startDateStr = startDate.toISOString().split('T')[0]
       const endDateStr = new Date(startDate.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-      const { data, error } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          plants!inner (
-            name,
-            color,
+      // Get both plant tasks and plant bed tasks
+      const [plantTasksResult, plantBedTasksResult] = await Promise.all([
+        // Plant tasks
+        supabase
+          .from('tasks')
+          .select(`
+            *,
+            plants!inner (
+              name,
+              color,
+              plant_beds!inner (
+                name,
+                gardens!inner (
+                  name
+                )
+              )
+            )
+          `)
+          .not('plant_id', 'is', null)
+          .gte('due_date', startDateStr)
+          .lt('due_date', endDateStr)
+          .order('due_date', { ascending: true })
+          .order('priority', { ascending: false }),
+        
+        // Plant bed tasks
+        supabase
+          .from('tasks')
+          .select(`
+            *,
             plant_beds!inner (
               name,
+              color_code,
               gardens!inner (
                 name
               )
             )
-          )
-        `)
-        .gte('due_date', startDateStr)
-        .lt('due_date', endDateStr)
-        .order('due_date', { ascending: true })
-        .order('priority', { ascending: false })
+          `)
+          .not('plant_bed_id', 'is', null)
+          .is('plant_id', null)
+          .gte('due_date', startDateStr)
+          .lt('due_date', endDateStr)
+          .order('due_date', { ascending: true })
+          .order('priority', { ascending: false })
+      ])
 
-      if (error) throw error
+      if (plantTasksResult.error) throw plantTasksResult.error
+      if (plantBedTasksResult.error) throw plantBedTasksResult.error
 
       // Transform and add status category
       const today = new Date().toISOString().split('T')[0]
-      const transformedData: WeeklyTask[] = (data || []).map((task: any) => {
+      
+      const plantTasks: WeeklyTask[] = (plantTasksResult.data || []).map((task: any) => {
         let status_category: 'overdue' | 'today' | 'upcoming' | 'future' = 'future'
         
         if (task.due_date < today) status_category = 'overdue'
@@ -266,6 +327,26 @@ export class TaskService {
           status_category
         }
       })
+
+      const plantBedTasks: WeeklyTask[] = (plantBedTasksResult.data || []).map((task: any) => {
+        let status_category: 'overdue' | 'today' | 'upcoming' | 'future' = 'future'
+        
+        if (task.due_date < today) status_category = 'overdue'
+        else if (task.due_date === today) status_category = 'today'
+        else if (task.due_date <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]) status_category = 'upcoming'
+
+        return {
+          ...task,
+          plant_name: 'Plantvak taak',
+          plant_color: task.plant_beds?.color_code || '#10B981',
+          plant_bed_name: task.plant_beds?.name || '',
+          garden_name: task.plant_beds?.gardens?.name || '',
+          day_of_week: new Date(task.due_date).getDay(),
+          status_category
+        }
+      })
+
+      const transformedData: WeeklyTask[] = [...plantTasks, ...plantBedTasks]
 
       // Apply consistent sorting: incomplete first (by due date), then completed at bottom
       transformedData.sort((a, b) => {
@@ -362,35 +443,68 @@ export class TaskService {
       const today = new Date().toISOString().split('T')[0]
       const weekStart = getWeekStartDate().toISOString().split('T')[0]
       const weekEnd = getWeekEndDate(getWeekStartDate()).toISOString().split('T')[0]
+      const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-      // Get all relevant tasks
-      const { data: tasksData, error } = await supabase
-        .from('tasks')
-        .select(`
-          *,
-          plants!inner (
-            name,
-            color,
+      // Get both plant tasks and plant bed tasks
+      const [plantTasksResult, plantBedTasksResult] = await Promise.all([
+        // Plant tasks
+        supabase
+          .from('tasks')
+          .select(`
+            *,
+            plants!inner (
+              name,
+              color,
+              plant_beds!inner (
+                name,
+                gardens!inner (
+                  name
+                )
+              )
+            )
+          `)
+          .not('plant_id', 'is', null)
+          .gte('due_date', lastWeek),
+        
+        // Plant bed tasks
+        supabase
+          .from('tasks')
+          .select(`
+            *,
             plant_beds!inner (
               name,
+              color_code,
               gardens!inner (
                 name
               )
             )
-          )
-        `)
-        .gte('due_date', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]) // Last week to current + future
+          `)
+          .not('plant_bed_id', 'is', null)
+          .is('plant_id', null)
+          .gte('due_date', lastWeek)
+      ])
 
-      if (error) throw error
+      if (plantTasksResult.error) throw plantTasksResult.error
+      if (plantBedTasksResult.error) throw plantBedTasksResult.error
 
       // Transform data
-      const tasks = (tasksData || []).map((task: any) => ({
+      const plantTasks = (plantTasksResult.data || []).map((task: any) => ({
         ...task,
         plant_name: task.plants?.name || '',
         plant_color: task.plants?.color || '',
         plant_bed_name: task.plants?.plant_beds?.name || '',
         garden_name: task.plants?.plant_beds?.gardens?.name || ''
       }))
+
+      const plantBedTasks = (plantBedTasksResult.data || []).map((task: any) => ({
+        ...task,
+        plant_name: 'Plantvak taak',
+        plant_color: task.plant_beds?.color_code || '#10B981',
+        plant_bed_name: task.plant_beds?.name || '',
+        garden_name: task.plant_beds?.gardens?.name || ''
+      }))
+
+      const tasks = [...plantTasks, ...plantBedTasks]
 
       const todayTasks = tasks.filter(t => t.due_date === today && !t.completed).length
       const overdueTasks = tasks.filter(t => t.due_date < today && !t.completed).length
