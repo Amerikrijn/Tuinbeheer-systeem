@@ -290,13 +290,6 @@ export default function PlantBedsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => navigateTo(`/gardens/${garden.id}/plant-beds/${bed.id}/plants`)}
-                    >
-                      <Leaf className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
                       onClick={() => navigateTo(`/logbook/new?plant_bed_id=${bed.id}`)}
                       title="Logboek entry toevoegen"
                     >
@@ -312,14 +305,6 @@ export default function PlantBedsPage() {
                       className="px-2 h-7"
                     >
                       <Eye className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => navigateTo(`/gardens/${garden.id}/plant-beds/${bed.id}/plants`)}
-                      className="px-2 h-7"
-                    >
-                      <Leaf className="h-3 w-3" />
                     </Button>
                     <Button
                       size="sm"
