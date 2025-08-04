@@ -61,7 +61,7 @@ export default function PlantBedPlantsPage() {
     ) || []
 
   const handleDeletePlant = async (plantId: string, plantName: string) => {
-    if (!confirm(`Weet je zeker dat je plant "${plantName}" wilt verwijderen?`)) {
+    if (!confirm(`Weet je zeker dat je bloem "${plantName}" wilt verwijderen?`)) {
       return
     }
 
@@ -74,13 +74,13 @@ export default function PlantBedPlantsPage() {
         })
       }
       toast({
-        title: "Plant verwijderd",
-        description: `Plant "${plantName}" is succesvol verwijderd.`,
+        title: "Bloem verwijderd",
+        description: `Bloem "${plantName}" is succesvol verwijderd.`,
       })
     } catch (error) {
       toast({
         title: "Fout",
-        description: "Er is een fout opgetreden bij het verwijderen van de plant.",
+        description: "Er is een fout opgetreden bij het verwijderen van de bloem.",
         variant: "destructive",
       })
     }
@@ -186,7 +186,7 @@ export default function PlantBedPlantsPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Leaf className="h-8 w-8 text-green-600" />
-              Planten in {plantBed.name}
+              Bloemen in {plantBed.name}
             </h1>
             <p className="text-gray-600 mt-1">
               Plantvak {plantBed.id} • {garden.name}
@@ -222,7 +222,7 @@ export default function PlantBedPlantsPage() {
           <Link href={`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants/new`}>
             <Button className="bg-green-600 hover:bg-green-700">
               <Plus className="h-4 w-4 mr-2" />
-              Nieuwe Plant
+              Nieuwe Bloem
             </Button>
           </Link>
         </div>
@@ -232,7 +232,7 @@ export default function PlantBedPlantsPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         <Input
-          placeholder="Zoek planten..."
+          placeholder="Zoek bloemen..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -457,12 +457,12 @@ export default function PlantBedPlantsPage() {
         <div className="text-center py-12">
           <Leaf className="h-16 w-16 mx-auto text-gray-400 mb-4" />
           <h3 className="text-xl font-medium text-gray-900 mb-2">
-            {searchTerm ? "Geen planten gevonden" : "Nog geen planten"}
+            {searchTerm ? "Geen bloemen gevonden" : "Nog geen bloemen"}
           </h3>
           <p className="text-gray-600 mb-6">
             {searchTerm
-              ? `Geen planten gevonden voor "${searchTerm}"`
-              : `${plantBed.name} heeft nog geen planten`}
+              ? `Geen bloemen gevonden voor "${searchTerm}"`
+              : `${plantBed.name} heeft nog geen bloemen`}
           </p>
         </div>
       )}
@@ -471,7 +471,7 @@ export default function PlantBedPlantsPage() {
       {plantBed.plants.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Overzicht Planten</CardTitle>
+            <CardTitle>Overzicht Bloemen</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
