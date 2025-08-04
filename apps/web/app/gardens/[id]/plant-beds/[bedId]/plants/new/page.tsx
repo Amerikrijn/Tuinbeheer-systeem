@@ -117,7 +117,7 @@ export default function NewPlantPage() {
         title: "Plant toegevoegd!",
         description: `Plant "${newPlant.name}" is succesvol toegevoegd aan ${plantBed.name}.`,
       })
-      router.push(`/gardens/${garden?.id}/plant-beds/${plantBed.id}/plants`)
+      router.push(`/gardens/${garden?.id}/plantvak-view/${plantBed.id}`)
     } catch (err) {
       console.error("Error creating plant:", err)
       toast({
@@ -166,11 +166,11 @@ export default function NewPlantPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/gardens/${garden.id}/plant-beds/${plantBed.id}/plants`)}
+            onClick={() => router.push(`/gardens/${garden.id}/plantvak-view/${plantBed.id}`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
-            {plantBed.name} - Planten
+            {plantBed.name} - Plantvak
           </Button>
 
           <div>

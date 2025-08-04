@@ -194,7 +194,7 @@ export default function EditPlantPage() {
         description: `Plant "${plantData.name}" is succesvol bijgewerkt.`,
       })
 
-      router.push(`/gardens/${params.id}/plant-beds/${params.bedId}/plants`)
+      router.push(`/gardens/${params.id}/plantvak-view/${params.bedId}`)
     } catch (error) {
       console.error('Error updating plant:', error)
       toast({
@@ -224,7 +224,7 @@ export default function EditPlantPage() {
         description: `Plant "${plant.name}" is succesvol verwijderd.`,
       })
 
-      router.push(`/gardens/${params.id}/plant-beds/${params.bedId}/plants`)
+      router.push(`/gardens/${params.id}/plantvak-view/${params.bedId}`)
     } catch (error) {
       console.error('Error deleting plant:', error)
       toast({
@@ -277,9 +277,9 @@ export default function EditPlantPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Plant niet gevonden</h2>
           <p className="text-gray-600 mb-6">De opgevraagde plant bestaat niet of is verwijderd.</p>
           <Button asChild>
-            <Link href={`/gardens/${params.id}/plant-beds/${params.bedId}/plants`}>
+            <Link href={`/gardens/${params.id}/plantvak-view/${params.bedId}`}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Terug naar planten
+              Terug naar plantvak
             </Link>
           </Button>
         </div>
@@ -291,9 +291,9 @@ export default function EditPlantPage() {
     <div className="container mx-auto p-6 max-w-4xl">
       {/* Back button */}
       <Button asChild variant="ghost" className="mb-6">
-        <Link href={`/gardens/${params.id}/plant-beds/${params.bedId}/plants`}>
+        <Link href={`/gardens/${params.id}/plantvak-view/${params.bedId}`}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Terug naar planten
+          Terug naar plantvak
         </Link>
       </Button>
 

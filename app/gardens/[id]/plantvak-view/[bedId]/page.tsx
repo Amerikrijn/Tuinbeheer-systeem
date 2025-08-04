@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useNavigation } from "@/hooks/use-navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -181,6 +182,7 @@ const FLOWER_STATUS_OPTIONS = [
 export default function PlantBedViewPage() {
   const router = useRouter()
   const params = useParams()
+  const { goBack } = useNavigation()
   // toast removed - no more notifications
   
   const [garden, setGarden] = useState<Garden | null>(null)
@@ -255,16 +257,7 @@ export default function PlantBedViewPage() {
   
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Smart navigation - go back to where user came from
-  const handleBackNavigation = () => {
-    // Check if user can go back in browser history
-    if (window.history.length > 1) {
-      router.back()
-    } else {
-      // Fallback to garden page
-      router.push(`/gardens/${params.id}`)
-    }
-  }
+  // Use consistent navigation hook for back navigation
 
   // Load tasks for this plant bed and its plants
   const loadTasks = async () => {
@@ -1531,7 +1524,7 @@ export default function PlantBedViewPage() {
           <Leaf className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Plantvak niet gevonden</h3>
           <p className="text-gray-600 mb-4">Het plantvak dat je zoekt bestaat niet.</p>
-          <Button onClick={handleBackNavigation} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={goBack} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug
           </Button>
@@ -1548,7 +1541,7 @@ export default function PlantBedViewPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleBackNavigation}
+            onClick={goBack}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
