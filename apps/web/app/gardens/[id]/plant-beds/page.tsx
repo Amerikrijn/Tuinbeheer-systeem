@@ -230,10 +230,10 @@ export default function PlantBedsPage() {
                       Bekijk
                     </Button>
                   </Link>
-                  <Link href={`/gardens/${garden.id}/plant-beds/${bed.id}/plants`}>
+                  <Link href={`/gardens/${garden.id}/plantvak-view/${bed.id}`}>
                     <Button size="sm" className="bg-green-600 hover:bg-green-700">
                       <Leaf className="h-3 w-3 mr-1" />
-                      Planten
+                      Plantvak
                     </Button>
                   </Link>
                 </div>
