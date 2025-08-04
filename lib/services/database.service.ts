@@ -719,6 +719,10 @@ export class LogbookService {
       if (formData.entry_date !== undefined) {
         updateData.entry_date = formData.entry_date
       }
+      
+      if (formData.photo_url !== undefined) {
+        updateData.photo_url = formData.photo_url || null
+      }
 
       // Only update if there are changes
       if (Object.keys(updateData).length === 0) {
