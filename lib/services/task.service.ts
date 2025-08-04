@@ -213,14 +213,19 @@ export class TaskService {
       // Combine all tasks
       let transformedData: TaskWithPlantInfo[] = [...plantTasks, ...plantBedTasks]
 
-      // Apply consistent sorting: incomplete first (by due date), then completed at bottom
+      // Apply consistent sorting: incomplete first (by due date + priority), then completed at bottom
       transformedData.sort((a, b) => {
         // Completed tasks go to bottom
         if (a.completed && !b.completed) return 1
         if (!a.completed && b.completed) return -1
         
-        // Within same completion status, sort by due date
-        return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+        // Within same completion status, sort by due date first
+        const dateCompare = new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+        if (dateCompare !== 0) return dateCompare
+        
+        // Then by priority (high=3, medium=2, low=1)
+        const priorityWeight = { high: 3, medium: 2, low: 1 }
+        return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2)
       })
 
       // Apply client-side filtering if needed
@@ -348,19 +353,19 @@ export class TaskService {
 
       const transformedData: WeeklyTask[] = [...plantTasks, ...plantBedTasks]
 
-      // Apply consistent sorting: incomplete first (by due date), then completed at bottom
+      // Apply consistent sorting: incomplete first (by due date + priority), then completed at bottom
       transformedData.sort((a, b) => {
         // Completed tasks go to bottom
         if (a.completed && !b.completed) return 1
         if (!a.completed && b.completed) return -1
         
-        // Within same completion status, sort by due date, then priority
+        // Within same completion status, sort by due date first
         const dateCompare = new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
         if (dateCompare !== 0) return dateCompare
         
-        // Higher priority first (high=3, medium=2, low=1)
+        // Then by priority (high=3, medium=2, low=1)
         const priorityWeight = { high: 3, medium: 2, low: 1 }
-        return priorityWeight[b.priority] - priorityWeight[a.priority]
+        return (priorityWeight[b.priority] || 2) - (priorityWeight[a.priority] || 2)
       })
 
       return { data: transformedData, error: null }
