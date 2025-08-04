@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Calendar, Camera, Upload, X, Loader2 } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds, getPlantBed } from "@/lib/database"
+import { uploadImage, type UploadResult } from "@/lib/storage"
 import { uiLogger } from "@/lib/logger"
 import type { LogbookEntryFormData, Plantvak, Bloem, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -23,6 +24,7 @@ interface NewLogbookPageState {
   plants: Bloem[]
   loading: boolean
   submitting: boolean
+  uploadingPhoto: boolean
   error: string | null
   formData: LogbookEntryFormData
   photoPreview: string | null
@@ -38,6 +40,7 @@ function NewLogbookPageContent() {
     plants: [],
     loading: true,
     submitting: false,
+    uploadingPhoto: false,
     error: null,
     formData: {
       plant_bed_id: searchParams.get('plant_bed_id') || '',
@@ -145,7 +148,7 @@ function NewLogbookPageContent() {
   }
 
   // Handle photo upload
-  const handlePhotoChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
@@ -169,19 +172,51 @@ function NewLogbookPageContent() {
       return
     }
 
-    // Create preview
+    // Create preview first
     const reader = new FileReader()
     reader.onload = (e) => {
       setState(prev => ({
         ...prev,
-        formData: {
-          ...prev.formData,
-          photo: file
-        },
         photoPreview: e.target?.result as string
       }))
     }
     reader.readAsDataURL(file)
+
+    // Upload photo to storage
+    setState(prev => ({ ...prev, uploadingPhoto: true }))
+    
+    try {
+      const result: UploadResult = await uploadImage(file, 'logbook')
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to upload photo')
+      }
+
+      setState(prev => ({
+        ...prev,
+        formData: {
+          ...prev.formData,
+          photo_url: result.url
+        },
+        uploadingPhoto: false
+      }))
+
+      toast({
+        title: "Foto geüpload",
+        description: "De foto is succesvol geüpload.",
+      })
+
+    } catch (error) {
+      console.error('Photo upload error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo'
+      setState(prev => ({ ...prev, uploadingPhoto: false }))
+      
+      toast({
+        title: "Fout bij uploaden",
+        description: `${errorMessage}. Controleer of de storage bucket correct is geconfigureerd.`,
+        variant: "destructive",
+      })
+    }
   }
 
   // Remove photo
@@ -190,7 +225,7 @@ function NewLogbookPageContent() {
       ...prev,
       formData: {
         ...prev.formData,
-        photo: undefined
+        photo_url: undefined
       },
       photoPreview: null
     }))
@@ -228,8 +263,19 @@ function NewLogbookPageContent() {
         throw new Error(response.error || 'Failed to create logbook entry')
       }
 
-      // TODO: Handle photo upload if present
-      // For now, we'll implement this in the photo upload todo
+      // Update logbook entry with photo URL if present
+      if (state.formData.photo_url) {
+        const updateResponse = await LogbookService.update(response.data.id, {
+          photo_url: state.formData.photo_url
+        })
+        
+        if (!updateResponse.success) {
+          uiLogger.warn('Failed to update logbook entry with photo URL', { 
+            entryId: response.data.id, 
+            photoUrl: state.formData.photo_url 
+          })
+        }
+      }
 
       toast({
         title: "Logboek entry aangemaakt",
@@ -459,9 +505,19 @@ function NewLogbookPageContent() {
                       type="button"
                       variant="outline"
                       onClick={() => document.getElementById('photo')?.click()}
+                      disabled={state.uploadingPhoto}
                     >
-                      <Upload className="h-4 w-4 mr-2" />
-                      Foto selecteren
+                      {state.uploadingPhoto ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploaden...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          Foto selecteren
+                        </>
+                      )}
                     </Button>
                   </div>
                 )}
@@ -495,7 +551,7 @@ function NewLogbookPageContent() {
               <div className="flex gap-3 pt-4">
                 <Button
                   type="submit"
-                  disabled={state.submitting || !state.formData.plant_bed_id || !state.formData.notes.trim()}
+                  disabled={state.submitting || state.uploadingPhoto || !state.formData.plant_bed_id || !state.formData.notes.trim()}
                   className="flex-1"
                 >
                   {state.submitting ? (
