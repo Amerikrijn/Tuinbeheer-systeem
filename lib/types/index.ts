@@ -151,7 +151,7 @@ export interface LogbookEntryFormData {
   plant_id?: string
   entry_date: string
   notes: string
-  photo?: File
+  photo_url?: string
 }
 
 // Composite Types
