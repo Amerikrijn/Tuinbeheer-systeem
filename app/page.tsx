@@ -597,10 +597,221 @@ function getUserFriendlyErrorMessage(error: string): string {
 // Main page component with error boundary and auth protection
 export default function HomePage() {
   return (
-    <ProtectedRoute requireAdmin={true}>
+    <ProtectedRoute>
       <ErrorBoundary>
-        <HomePageContent />
+        <RoleBasedHomeContent />
       </ErrorBoundary>
     </ProtectedRoute>
+  )
+}
+
+// Role-based home content
+function RoleBasedHomeContent() {
+  const { user, isAdmin } = useAuth()
+
+  if (isAdmin()) {
+    return <HomePageContent />
+  } else {
+    // Simple user home with tasks and logbook only
+    return <UserSimpleHome />
+  }
+}
+
+// Simple user home component
+function UserSimpleHome() {
+  const { user, getAccessibleGardens } = useAuth()
+  const { toast } = useToast()
+  const [tasks, setTasks] = React.useState<any[]>([])
+  const [logbookEntries, setLogbookEntries] = React.useState<any[]>([])
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    if (user) {
+      loadUserData()
+    }
+  }, [user])
+
+  const loadUserData = async () => {
+    if (!user) return
+    
+    setLoading(true)
+    try {
+      const accessibleGardens = getAccessibleGardens()
+      console.log('🔍 User accessible gardens:', accessibleGardens)
+      
+      // Load tasks for accessible gardens
+      let tasksQuery = supabase
+        .from('tasks')
+        .select('*, gardens(name)')
+        .eq('status', 'todo')
+        .order('due_date', { ascending: true })
+        .limit(5)
+
+      if (accessibleGardens.length > 0) {
+        tasksQuery = tasksQuery.in('garden_id', accessibleGardens)
+      }
+
+      const { data: tasksData } = await tasksQuery
+      setTasks(tasksData || [])
+
+      // Load recent logbook entries
+      let logbookQuery = supabase
+        .from('logbook_entries')
+        .select('*, gardens(name)')
+        .order('created_at', { ascending: false })
+        .limit(5)
+
+      if (accessibleGardens.length > 0) {
+        logbookQuery = logbookQuery.in('garden_id', accessibleGardens)
+      }
+
+      const { data: logbookData } = await logbookQuery
+      setLogbookEntries(logbookData || [])
+
+    } catch (error) {
+      console.error('Error loading user data:', error)
+      toast({
+        title: "Fout bij laden",
+        description: "Kon gegevens niet laden",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const markTaskCompleted = async (taskId: string) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ 
+          status: 'completed',
+          completed_by: user?.id,
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', taskId)
+
+      if (error) throw error
+
+      toast({
+        title: "Taak voltooid",
+        description: "Taak is gemarkeerd als voltooid",
+      })
+
+      loadUserData() // Reload data
+    } catch (error) {
+      toast({
+        title: "Fout",
+        description: "Kon taak niet voltooien",
+        variant: "destructive"
+      })
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <span className="ml-2">Gegevens laden...</span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto py-8 space-y-6">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold">Welkom, {user?.full_name || user?.email?.split('@')[0]}!</h1>
+        <p className="text-muted-foreground mt-2">Jouw taken en logboek overzicht</p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-6">
+        {/* Recent Tasks */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="w-5 h-5" />
+              Openstaande Taken
+            </CardTitle>
+            <CardDescription>Jouw toegewezen taken</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {tasks.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">Geen openstaande taken</p>
+            ) : (
+              <div className="space-y-3">
+                {tasks.map((task) => (
+                  <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium">{task.title}</h4>
+                      <p className="text-sm text-muted-foreground">{task.gardens?.name}</p>
+                      {task.due_date && (
+                        <p className="text-xs text-orange-600 mt-1">
+                          Deadline: {new Date(task.due_date).toLocaleDateString('nl-NL')}
+                        </p>
+                      )}
+                    </div>
+                    <Button 
+                      size="sm" 
+                      onClick={() => markTaskCompleted(task.id)}
+                      className="ml-2"
+                    >
+                      Voltooien
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Logbook */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5" />
+              Recent Logboek
+            </CardTitle>
+            <CardDescription>Laatste logboek items</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {logbookEntries.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">Geen logboek items</p>
+            ) : (
+              <div className="space-y-3">
+                {logbookEntries.map((entry) => (
+                  <div key={entry.id} className="p-3 border rounded-lg">
+                    <h4 className="font-medium">{entry.title}</h4>
+                    <p className="text-sm text-muted-foreground">{entry.gardens?.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {new Date(entry.created_at).toLocaleDateString('nl-NL')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="text-center">
+        <div className="flex justify-center gap-4">
+          <Button asChild>
+            <Link href="/user-dashboard">
+              <ClipboardList className="w-4 h-4 mr-2" />
+              Alle Taken
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/logbook">
+              <BookOpen className="w-4 h-4 mr-2" />
+              Volledig Logboek
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }

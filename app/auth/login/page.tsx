@@ -69,7 +69,7 @@ export default function LoginPage() {
       
       // Force redirect using window.location for more reliable navigation
       setTimeout(() => {
-        console.log('🔍 Attempting redirect to /')
+        console.log('🔍 Attempting redirect to homepage (role-based)')
         window.location.href = '/'
       }, 1000)
       

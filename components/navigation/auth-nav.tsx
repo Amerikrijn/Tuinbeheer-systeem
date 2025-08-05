@@ -97,12 +97,26 @@ export function AuthNavigation() {
         description: 'Tuinlogboek bijhouden'
       })
     } else {
-      // Regular users only get their task dashboard
+      // Regular users get simple homepage and task dashboard
       items.push({
-        title: 'Mijn Taken',
+        title: 'Home',
+        href: '/',
+        icon: Home,
+        description: 'Overzicht van jouw taken en logboek'
+      })
+      
+      items.push({
+        title: 'Alle Taken',
         href: '/user-dashboard',
         icon: ClipboardList,
         description: 'Bekijk je toegewezen taken'
+      })
+
+      items.push({
+        title: 'Logboek',
+        href: '/logbook',
+        icon: BookOpen,
+        description: 'Bekijk logboek items'
       })
     }
 
