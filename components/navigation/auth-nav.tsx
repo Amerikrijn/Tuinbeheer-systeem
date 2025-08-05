@@ -35,7 +35,7 @@ import {
   BookOpen,
   ChevronDown
 } from 'lucide-react'
-import { useAuth } from '@/hooks/use-auth'
+import { useAuth } from '@/hooks/use-supabase-auth'
 import { cn } from '@/lib/utils'
 
 export function AuthNavigation() {

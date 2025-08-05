@@ -2,134 +2,25 @@
 
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CheckCircle, Clock, AlertTriangle, TreePine, BookOpen, Plus, Calendar } from 'lucide-react'
-import { useAuth } from '@/hooks/use-auth'
-import { cn } from '@/lib/utils'
-
-// Mock garden data
-const MOCK_GARDENS = [
-  {
-    id: '1',
-    name: 'Hoofdtuin',
-    description: 'De centrale tuin achter het huis'
-  },
-  {
-    id: '2', 
-    name: 'Vooruin',
-    description: 'De tuin aan de voorkant bij de straat'
-  },
-  {
-    id: '3',
-    name: 'Moestuin', 
-    description: 'De moestuin met groenten en kruiden'
-  }
-]
-
-// Mock tasks for specific gardens
-const MOCK_TASKS: Task[] = [
-  {
-    id: '1',
-    title: 'Rozen bijsnoeien',
-    description: 'De rozen in het eerste bed moeten gesnoeid worden',
-    garden_id: '1',
-    priority: 'high' as const,
-    status: 'pending' as const,
-    due_date: '2024-01-20',
-    estimated_duration: 30
-  },
-  {
-    id: '2',
-    title: 'Onkruid wieden',
-    description: 'Onkruid verwijderen tussen de planten',
-    garden_id: '1', 
-    priority: 'medium' as const,
-    status: 'pending' as const,
-    due_date: '2024-01-22',
-    estimated_duration: 45
-  },
-  {
-    id: '3',
-    title: 'Gras maaien',
-    description: 'Het gazon in de vooruin maaien',
-    garden_id: '2',
-    priority: 'medium' as const, 
-    status: 'completed' as const,
-    due_date: '2024-01-18',
-    estimated_duration: 60
-  },
-  {
-    id: '4',
-    title: 'Water geven',
-    description: 'Alle planten water geven',
-    garden_id: '2',
-    priority: 'high' as const,
-    status: 'pending' as const, 
-    due_date: '2024-01-19',
-    estimated_duration: 20
-  }
-]
-
-// Mock logbook entries for specific gardens
-const MOCK_LOGBOOK_ENTRIES: LogbookEntry[] = [
-  {
-    id: '1',
-    title: 'Eerste rozen geplant',
-    description: 'Vandaag 5 nieuwe rozenstruiken geplant in het eerste bed. Rode en witte variëteiten.',
-    garden_id: '1',
-    entry_type: 'planting',
-    created_at: '2024-01-15T14:30:00Z',
-    weather: 'Zonnig, 12°C'
-  },
-  {
-    id: '2', 
-    title: 'Onkruid verwijderd',
-    description: 'Alle onkruid tussen de planten weggehaald. Grond is nu schoon.',
-    garden_id: '1',
-    entry_type: 'maintenance', 
-    created_at: '2024-01-18T09:15:00Z',
-    weather: 'Bewolkt, 8°C'
-  },
-  {
-    id: '3',
-    title: 'Gazon gemaaid',
-    description: 'Het gras was te lang geworden, alles netjes gemaaid op 3cm hoogte.',
-    garden_id: '2',
-    entry_type: 'maintenance',
-    created_at: '2024-01-16T16:00:00Z', 
-    weather: 'Droog, 15°C'
-  },
-  {
-    id: '4',
-    title: 'Nieuwe bloembollen geplant',
-    description: 'Tulpen en narcissen geplant voor het voorjaar. 50 bollen in totaal.',
-    garden_id: '2',
-    entry_type: 'planting',
-    created_at: '2024-01-12T11:30:00Z',
-    weather: 'Licht bewolkt, 10°C'
-  },
-  {
-    id: '5',
-    title: 'Eerste oogst sla',
-    description: 'De eerste sla geoogst uit de moestuin. Heerlijk vers voor de salade!',
-    garden_id: '3',
-    entry_type: 'harvest',
-    created_at: '2024-01-19T08:00:00Z',
-    weather: 'Zonnig, 11°C'
-  }
-]
+import { Calendar, CheckCircle, Clock, CloudRain, Sun, CloudDrizzle, Snowflake, Loader2 } from 'lucide-react'
+import { useAuth } from '@/hooks/use-supabase-auth'
+import { supabase } from '@/lib/supabase'
+import { useToast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button'
 
 interface Task {
   id: string
   title: string
-  description: string
-  garden_id: string
-  priority: 'high' | 'medium' | 'low'
-  status: 'pending' | 'completed' | 'in_progress'
-  due_date: string
-  estimated_duration: number
+  description?: string
+  status: 'todo' | 'in_progress' | 'completed'
+  priority: 'low' | 'medium' | 'high'
+  due_date?: string
+  garden_id?: string
+  garden_name?: string
+  completed_by?: string
+  completed_at?: string
 }
 
 interface LogbookEntry {
@@ -137,360 +28,403 @@ interface LogbookEntry {
   title: string
   description: string
   garden_id: string
-  entry_type: 'planting' | 'maintenance' | 'harvest' | 'observation' | 'other'
+  garden_name?: string
+  entry_type: 'planting' | 'maintenance' | 'harvest' | 'observation' | 'problem'
   created_at: string
-  weather?: string
+  created_by?: string
+  weather?: 'sunny' | 'cloudy' | 'rainy' | 'snowy'
 }
 
-export default function UserDashboardPage() {
+export default function UserDashboard() {
   const { user, hasGardenAccess, getAccessibleGardens } = useAuth()
+  const { toast } = useToast()
+  
   const [tasks, setTasks] = useState<Task[]>([])
   const [logbookEntries, setLogbookEntries] = useState<LogbookEntry[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('tasks')
 
   useEffect(() => {
     if (user) {
-      // Filter tasks and logbook entries based on user's garden access
+      loadUserData()
+    }
+  }, [user])
+
+  const loadUserData = async () => {
+    if (!user) return
+    
+    setLoading(true)
+    try {
       const accessibleGardens = getAccessibleGardens()
       
-      const userTasks = MOCK_TASKS.filter(task => 
-        user.role === 'admin' || accessibleGardens.includes(task.garden_id)
-      )
-      
-      const userLogbookEntries = MOCK_LOGBOOK_ENTRIES.filter(entry => 
-        user.role === 'admin' || accessibleGardens.includes(entry.garden_id)
-      )
-      
-      setTasks(userTasks)
-      setLogbookEntries(userLogbookEntries)
+      // Load tasks for accessible gardens
+      let tasksQuery = supabase
+        .from('tasks')
+        .select(`
+          *,
+          gardens(name)
+        `)
+        .order('due_date', { ascending: true })
+
+      // If user has limited garden access, filter by those gardens
+      if (accessibleGardens.length > 0) {
+        tasksQuery = tasksQuery.in('garden_id', accessibleGardens)
+      }
+
+      const { data: tasksData, error: tasksError } = await tasksQuery
+
+      if (tasksError) {
+        throw tasksError
+      }
+
+      // Transform tasks data
+      const transformedTasks = tasksData?.map(task => ({
+        ...task,
+        garden_name: task.gardens?.name
+      })) || []
+
+      setTasks(transformedTasks)
+
+      // Load logbook entries for accessible gardens
+      let logbookQuery = supabase
+        .from('logbook_entries')
+        .select(`
+          *,
+          gardens(name),
+          users(full_name, email)
+        `)
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      // If user has limited garden access, filter by those gardens
+      if (accessibleGardens.length > 0) {
+        logbookQuery = logbookQuery.in('garden_id', accessibleGardens)
+      }
+
+      const { data: logbookData, error: logbookError } = await logbookQuery
+
+      if (logbookError) {
+        throw logbookError
+      }
+
+      // Transform logbook data
+      const transformedLogbook = logbookData?.map(entry => ({
+        id: entry.id,
+        title: entry.notes.substring(0, 50) + (entry.notes.length > 50 ? '...' : ''),
+        description: entry.notes,
+        garden_id: entry.garden_id,
+        garden_name: entry.gardens?.name,
+        entry_type: getEntryTypeFromNotes(entry.notes),
+        created_at: entry.created_at,
+        created_by: entry.users?.full_name || entry.users?.email,
+        weather: getRandomWeather() // For preview purposes
+      })) || []
+
+      setLogbookEntries(transformedLogbook)
+
+    } catch (error) {
+      console.error('Error loading user data:', error)
+      toast({
+        title: "Fout bij laden",
+        description: "Kon taken en logboek niet laden",
+        variant: "destructive"
+      })
+    } finally {
       setLoading(false)
     }
-  }, [user, getAccessibleGardens])
+  }
 
-  const handleCompleteTask = (taskId: string) => {
-    setTasks(prev => prev.map(task => 
-      task.id === taskId 
-        ? { ...task, status: 'completed' as const }
-        : task
-    ))
+  const getEntryTypeFromNotes = (notes: string): LogbookEntry['entry_type'] => {
+    const lowerNotes = notes.toLowerCase()
+    if (lowerNotes.includes('plant') || lowerNotes.includes('zaai')) return 'planting'
+    if (lowerNotes.includes('onderhoud') || lowerNotes.includes('snoeien')) return 'maintenance'
+    if (lowerNotes.includes('oogst') || lowerNotes.includes('geoogst')) return 'harvest'
+    if (lowerNotes.includes('probleem') || lowerNotes.includes('ziekte')) return 'problem'
+    return 'observation'
+  }
+
+  const getRandomWeather = (): LogbookEntry['weather'] => {
+    const options: LogbookEntry['weather'][] = ['sunny', 'cloudy', 'rainy', 'snowy']
+    return options[Math.floor(Math.random() * options.length)]
+  }
+
+  const markTaskCompleted = async (taskId: string) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ 
+          completed: true,
+          completed_at: new Date().toISOString(),
+          completed_by: user?.id
+        })
+        .eq('id', taskId)
+
+      if (error) {
+        throw error
+      }
+
+      toast({
+        title: "Taak voltooid",
+        description: "De taak is succesvol afgerond",
+      })
+
+      // Reload tasks
+      loadUserData()
+
+    } catch (error) {
+      console.error('Error completing task:', error)
+      toast({
+        title: "Fout bij voltooien",
+        description: "Kon taak niet markeren als voltooid",
+        variant: "destructive"
+      })
+    }
   }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'bg-red-100 text-red-800 border-red-200'
-      case 'medium': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      default: return 'bg-green-100 text-green-800 border-green-200'
+      case 'high': return 'destructive'
+      case 'medium': return 'default'
+      case 'low': return 'secondary'
+      default: return 'secondary'
     }
   }
 
-  const getStatusIcon = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return <CheckCircle className="w-4 h-4 text-green-600" />
-      case 'in_progress': return <Clock className="w-4 h-4 text-blue-600" />
-      default: return <AlertTriangle className="w-4 h-4 text-orange-600" />
+      case 'completed': return 'default'
+      case 'in_progress': return 'secondary'
+      case 'todo': return 'outline'
+      default: return 'outline'
     }
   }
 
-  const getGardenName = (gardenId: string) => {
-    return MOCK_GARDENS.find(g => g.id === gardenId)?.name || 'Onbekende tuin'
-  }
-
-  const getEntryTypeColor = (type: string) => {
+  const getEntryTypeColor = (type: LogbookEntry['entry_type']) => {
     switch (type) {
-      case 'planting': return 'bg-green-100 text-green-800 border-green-200'
-      case 'harvest': return 'bg-orange-100 text-orange-800 border-orange-200'
-      case 'maintenance': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'observation': return 'bg-purple-100 text-purple-800 border-purple-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+      case 'planting': return 'bg-green-100 text-green-800'
+      case 'maintenance': return 'bg-blue-100 text-blue-800'
+      case 'harvest': return 'bg-orange-100 text-orange-800'
+      case 'observation': return 'bg-purple-100 text-purple-800'
+      case 'problem': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
     }
   }
 
-  const getEntryTypeLabel = (type: string) => {
+  const getEntryTypeLabel = (type: LogbookEntry['entry_type']) => {
     switch (type) {
       case 'planting': return 'Planten'
-      case 'harvest': return 'Oogst'
       case 'maintenance': return 'Onderhoud'
+      case 'harvest': return 'Oogst'
       case 'observation': return 'Observatie'
+      case 'problem': return 'Probleem'
       default: return 'Overig'
     }
   }
 
-  const pendingTasks = tasks.filter(t => t.status === 'pending')
-  const completedTasks = tasks.filter(t => t.status === 'completed')
+  const getWeatherIcon = (weather?: LogbookEntry['weather']) => {
+    switch (weather) {
+      case 'sunny': return <Sun className="w-4 h-4 text-yellow-500" />
+      case 'cloudy': return <CloudDrizzle className="w-4 h-4 text-gray-500" />
+      case 'rainy': return <CloudRain className="w-4 h-4 text-blue-500" />
+      case 'snowy': return <Snowflake className="w-4 h-4 text-blue-300" />
+      default: return null
+    }
+  }
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Taken laden...</p>
-          </div>
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-muted-foreground">Dashboard laden...</span>
         </div>
       </div>
     )
   }
 
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Geen gebruiker ingelogd</p>
+        </div>
+      </div>
+    )
+  }
+
+  const pendingTasks = tasks.filter(task => task.status !== 'completed')
+  const completedTasks = tasks.filter(task => task.status === 'completed')
+
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto px-4 py-6 max-w-6xl">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Mijn Taken</h1>
-          <p className="text-muted-foreground mt-1">
-            Welkom terug, {user?.full_name || user?.email}
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <TreePine className="w-5 h-5 text-green-600" />
-          <span className="text-sm text-muted-foreground">
-            {user?.role === 'admin' ? 'Alle tuinen' : `${getAccessibleGardens().length} tuin(en)`}
-          </span>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Mijn Dashboard</h1>
+        <p className="text-gray-600 mt-1">
+          Welkom {user.full_name || user.email}! Hier zijn jouw taken en logboek items.
+        </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Te Doen Taken
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Open Taken</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {pendingTasks.length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              openstaande taken
-            </p>
+            <div className="text-2xl font-bold">{pendingTasks.length}</div>
           </CardContent>
         </Card>
-
+        
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Voltooide Taken
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Voltooide Taken</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {completedTasks.length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              afgeronde taken
-            </p>
+            <div className="text-2xl font-bold">{completedTasks.length}</div>
           </CardContent>
         </Card>
-
+        
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Logboek Items
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Logboek Items</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              {logbookEntries.length}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              vastgelegde activiteiten
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Totale Tijd
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-600">
-              {pendingTasks.reduce((acc, task) => acc + task.estimated_duration, 0)}m
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              geschatte werktijd
-            </p>
+            <div className="text-2xl font-bold">{logbookEntries.length}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tasks and Logbook Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="tasks" className="flex items-center space-x-2">
-            <AlertTriangle className="w-4 h-4" />
-            <span>Taken ({tasks.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="logbook" className="flex items-center space-x-2">
-            <BookOpen className="w-4 h-4" />
-            <span>Logboek ({logbookEntries.length})</span>
-          </TabsTrigger>
+      {/* Tabs for Tasks and Logbook */}
+      <Tabs defaultValue="tasks" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="tasks">Taken ({pendingTasks.length})</TabsTrigger>
+          <TabsTrigger value="logbook">Logboek ({logbookEntries.length})</TabsTrigger>
         </TabsList>
-
-        <TabsContent value="tasks" className="space-y-6">
-        {/* Pending Tasks */}
-        {pendingTasks.length > 0 && (
+        
+        <TabsContent value="tasks">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
-                <span>Openstaande Taken ({pendingTasks.length})</span>
-              </CardTitle>
+              <CardTitle>Mijn Taken</CardTitle>
               <CardDescription>
-                Deze taken wachten nog op uitvoering
+                Taken voor jouw toegewezen tuinen
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {pendingTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      {getStatusIcon(task.status)}
-                      <h3 className="font-medium">{task.title}</h3>
-                      <Badge className={cn("text-xs", getPriorityColor(task.priority))}>
-                        {task.priority === 'high' ? 'Hoog' : 
-                         task.priority === 'medium' ? 'Middel' : 'Laag'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {task.description}
-                    </p>
-                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                      <span>📍 {getGardenName(task.garden_id)}</span>
-                      <span>⏱️ {task.estimated_duration} min</span>
-                      <span>📅 {new Date(task.due_date).toLocaleDateString('nl-NL')}</span>
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button 
-                      size="sm"
-                      onClick={() => handleCompleteTask(task.id)}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Voltooid
-                    </Button>
-                  </div>
+            <CardContent>
+              {pendingTasks.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">Geen openstaande taken</p>
+                  <p>Alle taken zijn voltooid! 🎉</p>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Completed Tasks */}
-        {completedTasks.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>Voltooide Taken ({completedTasks.length})</span>
-              </CardTitle>
-              <CardDescription>
-                Deze taken zijn succesvol afgerond
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {completedTasks.map((task) => (
-                <div key={task.id} className="flex items-center justify-between p-4 border rounded-lg bg-green-50/50">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      {getStatusIcon(task.status)}
-                      <h3 className="font-medium text-green-800">{task.title}</h3>
-                      <Badge className="bg-green-100 text-green-800 border-green-200 text-xs">
-                        Voltooid
-                      </Badge>
+              ) : (
+                <div className="space-y-4">
+                  {pendingTasks.map((task) => (
+                    <div key={task.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold">{task.title}</h3>
+                            <Badge variant={getPriorityColor(task.priority)}>
+                              {task.priority === 'high' ? 'Hoog' : 
+                               task.priority === 'medium' ? 'Gemiddeld' : 'Laag'}
+                            </Badge>
+                            <Badge variant={getStatusColor(task.status)}>
+                              {task.status === 'in_progress' ? 'Bezig' : 
+                               task.status === 'completed' ? 'Voltooid' : 'Te doen'}
+                            </Badge>
+                          </div>
+                          {task.description && (
+                            <p className="text-muted-foreground mb-2">{task.description}</p>
+                          )}
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            {task.garden_name && (
+                              <span className="flex items-center gap-1">
+                                🌱 {task.garden_name}
+                              </span>
+                            )}
+                            {task.due_date && (
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4" />
+                                {new Date(task.due_date).toLocaleDateString('nl-NL')}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {task.status !== 'completed' && (
+                          <Button 
+                            size="sm" 
+                            onClick={() => markTaskCompleted(task.id)}
+                            className="ml-4"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Voltooien
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {task.description}
-                    </p>
-                    <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                      <span>📍 {getGardenName(task.garden_id)}</span>
-                      <span>⏱️ {task.estimated_duration} min</span>
-                      <span>✅ Afgerond</span>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </CardContent>
           </Card>
-        )}
-
-        {/* No Tasks */}
-        {tasks.length === 0 && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <TreePine className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Geen taken gevonden</h3>
-              <p className="text-muted-foreground">
-                Er zijn momenteel geen taken toegewezen aan jouw tuin(en).
-              </p>
-            </CardContent>
-          </Card>
-        )}
         </TabsContent>
-
-        <TabsContent value="logbook" className="space-y-6">
-        {/* Logbook Entries */}
-        {logbookEntries.length > 0 && (
+        
+        <TabsContent value="logbook">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BookOpen className="w-5 h-5 text-blue-600" />
-                <span>Logboek Items ({logbookEntries.length})</span>
-              </CardTitle>
+              <CardTitle>Mijn Logboek</CardTitle>
               <CardDescription>
-                Jouw vastgelegde activiteiten voor toegewezen tuinen
+                Recente activiteiten in jouw toegewezen tuinen
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {logbookEntries.map((entry) => (
-                <div key={entry.id} className="p-4 border rounded-lg">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <Calendar className="w-4 h-4 text-blue-600" />
-                        <h3 className="font-medium">{entry.title}</h3>
-                        <Badge className={cn("text-xs", getEntryTypeColor(entry.entry_type))}>
-                          {getEntryTypeLabel(entry.entry_type)}
-                        </Badge>
+            <CardContent>
+              {logbookEntries.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className="text-lg font-medium">Geen logboek items</p>
+                  <p>Nog geen activiteiten geregistreerd</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {logbookEntries.map((entry) => (
+                    <div key={entry.id} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold">{entry.title}</h3>
+                          <Badge className={getEntryTypeColor(entry.entry_type)}>
+                            {getEntryTypeLabel(entry.entry_type)}
+                          </Badge>
+                        </div>
+                        {getWeatherIcon(entry.weather)}
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {entry.description}
-                      </p>
-                      <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                        <span>📍 {getGardenName(entry.garden_id)}</span>
-                        <span>📅 {new Date(entry.created_at).toLocaleDateString('nl-NL', {
-                          year: 'numeric',
-                          month: 'short', 
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}</span>
-                        {entry.weather && <span>🌤️ {entry.weather}</span>}
+                      
+                      <p className="text-muted-foreground mb-3">{entry.description}</p>
+                      
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        {entry.garden_name && (
+                          <span className="flex items-center gap-1">
+                            🌱 {entry.garden_name}
+                          </span>
+                        )}
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          {new Date(entry.created_at).toLocaleDateString('nl-NL')}
+                        </span>
+                        {entry.created_by && (
+                          <span className="flex items-center gap-1">
+                            👤 {entry.created_by}
+                          </span>
+                        )}
                       </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </CardContent>
           </Card>
-        )}
-
-        {/* No Logbook Entries */}
-        {logbookEntries.length === 0 && (
-          <Card>
-            <CardContent className="text-center py-12">
-              <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Geen logboek items gevonden</h3>
-              <p className="text-muted-foreground">
-                Er zijn nog geen logboek items voor jouw toegewezen tuin(en).
-              </p>
-            </CardContent>
-          </Card>
-        )}
         </TabsContent>
       </Tabs>
     </div>
