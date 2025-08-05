@@ -318,6 +318,7 @@ $$;
 -- Enable RLS on new tables
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_permissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_garden_access ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.role_permissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_log ENABLE ROW LEVEL SECURITY;
 
@@ -336,6 +337,13 @@ CREATE POLICY "Users can view own permissions" ON public.user_permissions
   FOR SELECT USING (user_id = auth.uid());
 
 CREATE POLICY "Admins can manage permissions" ON public.user_permissions
+  FOR ALL USING (authorize('users.manage'));
+
+-- User garden access policies
+CREATE POLICY "Users can view own garden access" ON public.user_garden_access
+  FOR SELECT USING (user_id = auth.uid());
+
+CREATE POLICY "Admins can manage garden access" ON public.user_garden_access 
   FOR ALL USING (authorize('users.manage'));
 
 -- Role permissions policies  
