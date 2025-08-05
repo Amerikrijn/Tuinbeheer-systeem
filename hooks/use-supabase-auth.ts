@@ -86,11 +86,11 @@ export function useSupabaseAuth(): AuthContextType {
             return null
           }
           
-          // Return basic user profile
+          // Return basic user profile (fallback for missing record)
           return {
             id: supabaseUser.id,
             email: supabaseUser.email || '',
-            role: 'user',
+            role: supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
             status: 'active',
             permissions: [],
             garden_access: [],
