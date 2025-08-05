@@ -198,7 +198,11 @@ function AdminUsersPageContent() {
 
       console.log('🔍 Step 3: Creating user profile...')
       
-      // 2. Create user profile in public.users
+      // 2. Create user profile in public.users  
+      if (!authData.user?.id) {
+        throw new Error('No user ID received from auth signup')
+      }
+
       const { error: profileError } = await supabase
         .from('users')
         .insert({
@@ -218,7 +222,7 @@ function AdminUsersPageContent() {
       console.log('🔍 User profile created successfully')
 
       // 3. Add garden access if user role and gardens selected
-      if (formData.role === 'user' && formData.garden_access.length > 0 && authData.user) {
+      if (formData.role === 'user' && formData.garden_access.length > 0 && authData.user?.id) {
         console.log('🔍 Step 4: Adding garden access for gardens:', formData.garden_access)
         const gardenAccessInserts = formData.garden_access.map(gardenId => ({
           user_id: authData.user.id,
