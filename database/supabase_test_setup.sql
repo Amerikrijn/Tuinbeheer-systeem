@@ -169,7 +169,6 @@ CREATE TABLE plants (
 CREATE INDEX idx_gardens_active ON gardens(is_active) WHERE is_active = true;
 CREATE INDEX idx_gardens_created_at ON gardens(created_at DESC);
 CREATE INDEX idx_gardens_type ON gardens(garden_type);
-CREATE INDEX idx_gardens_season_year ON gardens(EXTRACT(YEAR FROM created_at));
 
 -- Plant beds indexes
 CREATE INDEX idx_plant_beds_garden_id ON plant_beds(garden_id);
