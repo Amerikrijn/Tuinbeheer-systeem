@@ -154,8 +154,13 @@ export function useSupabaseAuth(): AuthContextType {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔍 Auth state change:', event, !!session)
+      
       if (event === 'SIGNED_IN' && session?.user) {
+        console.log('🔍 Loading user profile for:', session.user.email)
         const userProfile = await loadUserProfile(session.user)
+        console.log('🔍 User profile loaded:', userProfile)
+        
         setState({
           user: userProfile,
           session,
@@ -163,6 +168,7 @@ export function useSupabaseAuth(): AuthContextType {
           error: null
         })
       } else if (event === 'SIGNED_OUT') {
+        console.log('🔍 User signed out')
         setState({
           user: null,
           session: null,
