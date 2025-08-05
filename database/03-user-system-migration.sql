@@ -565,5 +565,54 @@ COMMENT ON TABLE public.role_permissions IS 'Default permissions for each role';
 COMMENT ON TABLE public.audit_log IS 'Audit trail for all user actions';
 
 -- =======================
+-- 14. ADMIN HELPER FUNCTIONS
+-- =======================
+
+-- Function to create user profile (bypasses RLS)
+CREATE OR REPLACE FUNCTION create_user_profile(
+  p_user_id UUID,
+  p_email TEXT,
+  p_role app_role,
+  p_status user_status,
+  p_full_name TEXT
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  INSERT INTO public.users (id, email, role, status, full_name, avatar_url, created_at)
+  VALUES (p_user_id, p_email, p_role, p_status, p_full_name, null, NOW())
+  ON CONFLICT (id) DO UPDATE SET
+    role = p_role,
+    status = p_status,
+    full_name = p_full_name,
+    updated_at = NOW();
+END;
+$$;
+
+-- Function to ensure admin user exists
+CREATE OR REPLACE FUNCTION ensure_admin_user()
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  INSERT INTO public.users (id, email, role, status, full_name, avatar_url)
+  SELECT id, email, 'admin', 'active', 'System Administrator', null
+  FROM auth.users 
+  WHERE email = 'admin@tuinbeheer.nl'
+  ON CONFLICT (id) DO UPDATE SET 
+    role = 'admin', 
+    status = 'active',
+    full_name = 'System Administrator',
+    updated_at = NOW();
+END;
+$$;
+
+-- Run admin user creation
+SELECT ensure_admin_user();
+
+-- =======================
 -- Migration Complete!
 -- =======================
