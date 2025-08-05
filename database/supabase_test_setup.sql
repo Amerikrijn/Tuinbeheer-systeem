@@ -3,7 +3,7 @@
 -- =====================================================
 -- Gebaseerd op productie database schema
 -- Voor het opzetten van een complete testomgeving
--- Versie: 2.0.0
+-- Versie: 2.1.0 (Fixed IMMUTABLE function errors)
 -- Datum: 2024
 
 -- =====================================================
