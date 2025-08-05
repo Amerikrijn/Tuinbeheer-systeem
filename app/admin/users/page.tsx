@@ -95,16 +95,21 @@ function AdminUsersPageContent() {
       setUsers(usersWithAccess)
 
       // Load all gardens
+      console.log('🔍 Loading gardens...')
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
         .select('id, name, description')
         .order('name')
 
+      console.log('🔍 Gardens loaded:', { count: gardensData?.length, error: gardensError?.message })
+
       if (gardensError) {
+        console.error('🔍 Gardens error:', gardensError)
         throw gardensError
       }
 
       setGardens(gardensData || [])
+      console.log('🔍 Gardens state set:', gardensData?.length)
 
     } catch (error) {
       console.error('Error loading data:', error)
@@ -423,6 +428,9 @@ function AdminUsersPageContent() {
             {formData.role === 'user' && (
               <div className="space-y-2">
                 <Label>Tuin Toegang</Label>
+                <div className="text-xs text-muted-foreground mb-1">
+                  Debug: {gardens.length} tuinen beschikbaar
+                </div>
                 <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
                   {gardens.map((garden) => (
                     <div key={garden.id} className="flex items-center space-x-2">
