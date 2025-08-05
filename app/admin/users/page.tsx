@@ -125,20 +125,61 @@ function AdminUsersPageContent() {
 
   const handleInviteUser = async () => {
     setInviting(true)
+    console.log('🔍 Inviting user with data:', formData)
     try {
-      // Call Edge Function for user invitation
-      const { data, error } = await supabase.functions.invoke('invite-user', {
-        body: {
-          email: formData.email,
+      // TEMP: Direct database invite (bypass Edge Function)
+      console.log('🔍 Creating user invite directly...')
+      
+      // 1. Invite user via Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.admin.inviteUserByEmail(formData.email, {
+        data: {
           role: formData.role,
-          message: formData.message,
-          garden_access: formData.garden_access
+          message: formData.message
         }
       })
 
-      if (error) {
-        throw error
+      if (authError) {
+        console.error('🔍 Auth invite error:', authError)
+        throw new Error(`Auth invite failed: ${authError.message}`)
       }
+
+      console.log('🔍 Auth invite success:', authData)
+
+      // 2. Create user profile in public.users
+      const { error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          email: formData.email,
+          role: formData.role,
+          status: 'pending',
+          first_name: '',
+          last_name: ''
+        })
+
+      if (profileError) {
+        console.error('🔍 Profile creation error:', profileError)
+        throw new Error(`Profile creation failed: ${profileError.message}`)
+      }
+
+      // 3. Add garden access if user role and gardens selected
+      if (formData.role === 'user' && formData.garden_access.length > 0) {
+        const gardenAccessInserts = formData.garden_access.map(gardenId => ({
+          user_id: authData.user.id,
+          garden_id: gardenId
+        }))
+
+        const { error: accessError } = await supabase
+          .from('user_garden_access')
+          .insert(gardenAccessInserts)
+
+        if (accessError) {
+          console.error('🔍 Garden access error:', accessError)
+          throw new Error(`Garden access failed: ${accessError.message}`)
+        }
+      }
+
+      console.log('🔍 User invite completed successfully')
 
       toast({
         title: "Uitnodiging verzonden",
