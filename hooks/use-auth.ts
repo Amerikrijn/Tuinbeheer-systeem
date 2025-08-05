@@ -9,6 +9,7 @@ export interface User {
   role: 'admin' | 'user'
   status: 'pending' | 'active' | 'inactive'
   permissions: string[]
+  garden_access: string[] // Array of garden IDs this user can access
   created_at: string
   last_login?: string
 }
@@ -26,6 +27,8 @@ export interface AuthContextType extends AuthState {
   resetPassword: (email: string) => Promise<void>
   hasPermission: (permission: string) => boolean
   isAdmin: () => boolean
+  hasGardenAccess: (gardenId: string) => boolean
+  getAccessibleGardens: () => string[]
 }
 
 // Mock users for preview
@@ -44,6 +47,7 @@ const MOCK_USERS: User[] = [
       'logbook.create', 'logbook.edit', 'logbook.delete', 'logbook.view',
       'users.invite', 'users.manage', 'users.view'
     ],
+    garden_access: [], // Admin has access to all gardens
     created_at: '2024-01-01T00:00:00Z',
     last_login: '2024-01-15T10:30:00Z'
   },
@@ -54,10 +58,9 @@ const MOCK_USERS: User[] = [
     role: 'user',
     status: 'active',
     permissions: [
-      'gardens.view', 'plant_beds.view', 'plants.view',
-      'tasks.complete', 'tasks.view',
-      'logbook.create', 'logbook.view'
+      'tasks.complete', 'tasks.view' // Only task permissions for regular users
     ],
+    garden_access: ['1'], // Can only access garden with ID '1'
     created_at: '2024-01-05T00:00:00Z',
     last_login: '2024-01-14T08:15:00Z'
   },
@@ -68,10 +71,9 @@ const MOCK_USERS: User[] = [
     role: 'user',
     status: 'pending',
     permissions: [
-      'gardens.view', 'plant_beds.view', 'plants.view',
-      'tasks.complete', 'tasks.view',
-      'logbook.create', 'logbook.view'
+      'tasks.complete', 'tasks.view' // Only task permissions for regular users
     ],
+    garden_access: ['2'], // Can only access garden with ID '2'
     created_at: '2024-01-10T00:00:00Z',
     last_login: undefined
   }
@@ -221,6 +223,18 @@ export function useAuthState(): AuthContextType {
     return state.user?.role === 'admin' || false
   }
 
+  const hasGardenAccess = (gardenId: string): boolean => {
+    if (!state.user) return false
+    if (state.user.role === 'admin') return true // Admin has access to all gardens
+    return state.user.garden_access.includes(gardenId)
+  }
+
+  const getAccessibleGardens = (): string[] => {
+    if (!state.user) return []
+    if (state.user.role === 'admin') return [] // Empty array means access to all
+    return state.user.garden_access
+  }
+
   return {
     ...state,
     signIn,
@@ -228,6 +242,8 @@ export function useAuthState(): AuthContextType {
     signUp,
     resetPassword,
     hasPermission,
-    isAdmin
+    isAdmin,
+    hasGardenAccess,
+    getAccessibleGardens
   }
 }

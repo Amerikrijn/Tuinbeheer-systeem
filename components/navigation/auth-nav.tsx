@@ -64,15 +64,26 @@ export function AuthNavigation() {
 
   // Navigation items based on user permissions
   const getNavigationItems = () => {
-    const items = [
-      {
-        title: 'Home',
+    const items = []
+
+    // Different home page for admin vs regular users
+    if (isAdmin()) {
+      items.push({
+        title: 'Dashboard',
         href: '/',
         icon: Home,
-        description: 'Overzicht van alle tuinen'
-      }
-    ]
+        description: 'Admin overzicht van alle tuinen'
+      })
+    } else {
+      items.push({
+        title: 'Mijn Taken',
+        href: '/user-dashboard',
+        icon: ClipboardList,
+        description: 'Bekijk je toegewezen taken'
+      })
+    }
 
+    // Admin-only navigation items
     if (hasPermission('gardens.view')) {
       items.push({
         title: 'Tuinen',
@@ -82,12 +93,12 @@ export function AuthNavigation() {
       })
     }
 
-    if (hasPermission('tasks.view')) {
+    if (hasPermission('tasks.create')) {
       items.push({
-        title: 'Taken',
+        title: 'Alle Taken',
         href: '/tasks',
         icon: ClipboardList,
-        description: 'Bekijk en beheer taken'
+        description: 'Beheer alle taken'
       })
     }
 
