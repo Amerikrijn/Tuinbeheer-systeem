@@ -70,29 +70,34 @@ function AdminUsersPageContent() {
     loadUsersAndGardens()
   }, [])
 
+  // Debug gardens state changes
+  useEffect(() => {
+    console.log('🔍 Gardens state changed:', { length: gardens.length, gardens: gardens.map(g => g.name) })
+  }, [gardens])
+
   const loadUsersAndGardens = async () => {
     setLoading(true)
     try {
       // Load users with garden access
+      console.log('🔍 Loading users...')
       const { data: usersData, error: usersError } = await supabase
         .from('users')
-        .select(`
-          *,
-          user_garden_access(garden_id)
-        `)
+        .select('*')
         .order('created_at', { ascending: false })
+
+      console.log('🔍 Users query result:', { 
+        data: usersData, 
+        count: usersData?.length, 
+        error: usersError 
+      })
 
       if (usersError) {
         throw usersError
       }
 
-      // Transform users data to include garden_access array
-      const usersWithAccess = usersData?.map(user => ({
-        ...user,
-        garden_access: user.user_garden_access?.map((uga: any) => uga.garden_id) || []
-      })) || []
-
-      setUsers(usersWithAccess)
+      // Simple users data (garden access loaded separately if needed)
+      setUsers(usersData || [])
+      console.log('🔍 Users state set:', usersData?.length)
 
       // Load all gardens
       console.log('🔍 Loading gardens...')
@@ -113,9 +118,16 @@ function AdminUsersPageContent() {
         console.error('🔍 Gardens error:', gardensError)
         // Don't throw - continue without gardens for now
         setGardens([])
+        console.log('🔍 Gardens state set to EMPTY due to error')
       } else {
+        console.log('🔍 About to set gardens state with data:', gardensData)
         setGardens(gardensData || [])
-        console.log('🔍 Gardens state set:', gardensData?.length)
+        console.log('🔍 Gardens state set successfully. Length:', gardensData?.length)
+        
+        // Force re-render check
+        setTimeout(() => {
+          console.log('🔍 Gardens state after timeout check:', gardens.length)
+        }, 100)
       }
 
     } catch (error) {
@@ -471,7 +483,10 @@ function AdminUsersPageContent() {
               <div className="space-y-2">
                 <Label>Tuin Toegang</Label>
                 <div className="text-xs text-muted-foreground mb-1">
-                  Debug: {gardens.length} tuinen beschikbaar
+                  Debug: {gardens.length} tuinen beschikbaar | Loading: {loading ? 'YES' : 'NO'} | Timestamp: {new Date().toLocaleTimeString()}
+                </div>
+                <div className="text-xs text-red-500 mb-1">
+                  Raw Gardens: {JSON.stringify(gardens.map(g => ({ id: g.id, name: g.name })))}
                 </div>
                 <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
                   {gardens.map((garden) => (
