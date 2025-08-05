@@ -182,19 +182,8 @@ function AdminUsersPageContent() {
 
       console.log('🔍 Step 2: Auth user created:', authData.user!.id)
 
-      // Immediately sign out the new user to restore admin session
-      console.log('🔍 Step 2a: Signing out new user...')
-      await supabase.auth.signOut()
-      
-      // Restore admin session
-      console.log('🔍 Step 2b: Restoring admin session...')
-      if (currentSession.data.session) {
-        const { error: sessionError } = await supabase.auth.setSession(currentSession.data.session)
-        if (sessionError) {
-          console.error('🔍 Session restore error:', sessionError)
-          // Continue anyway - admin might need to refresh page
-        }
-      }
+      // Don't sign out - keep admin session active
+      console.log('🔍 Step 2a: Keeping admin session active (skipping signout)')
 
       console.log('🔍 Step 3: Creating user profile...')
       
