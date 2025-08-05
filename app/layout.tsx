@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme-provider"
 import { LanguageProvider } from "@/hooks/use-language"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { ConditionalNavigation } from "@/components/navigation/conditional-navigation"
+import { ConditionalNavigation } from "@/components/navigation/conditional-navigation" 
 import { SupabaseAuthProvider } from "@/components/auth/supabase-auth-provider"
 
 const inter = Inter({ subsets: ["latin"] })
