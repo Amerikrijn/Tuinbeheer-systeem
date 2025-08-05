@@ -50,6 +50,8 @@ export function useSupabaseAuth(): AuthContextType {
   // Load user profile with permissions and garden access
   const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<User | null> => {
     try {
+      console.log('🔍 Loading profile for user ID:', supabaseUser.id)
+      
       // Get user profile from public.users table
       const { data: userProfile, error: profileError } = await supabase
         .from('users')
@@ -61,13 +63,45 @@ export function useSupabaseAuth(): AuthContextType {
         .eq('id', supabaseUser.id)
         .single()
 
+      console.log('🔍 Profile query result:', { userProfile, profileError })
+
       if (profileError) {
-        console.error('Error loading user profile:', profileError)
+        console.error('🔍 Profile error:', profileError)
+        // If user doesn't exist in public.users, create a basic record
+        if (profileError.code === 'PGRST116') {
+          console.log('🔍 User not found in public.users, creating basic record...')
+          
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert({
+              id: supabaseUser.id,
+              email: supabaseUser.email,
+              role: 'user',
+              status: 'active',
+              created_at: new Date().toISOString()
+            })
+          
+          if (insertError) {
+            console.error('🔍 Error creating user record:', insertError)
+            return null
+          }
+          
+          // Return basic user profile
+          return {
+            id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            role: 'user',
+            status: 'active',
+            permissions: [],
+            garden_access: [],
+            created_at: new Date().toISOString()
+          }
+        }
         return null
       }
 
       if (!userProfile) {
-        console.error('No user profile found for:', supabaseUser.id)
+        console.error('🔍 No user profile found for:', supabaseUser.id)
         return null
       }
 
