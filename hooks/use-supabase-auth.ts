@@ -63,10 +63,14 @@ export function useSupabaseAuth(): AuthContextType {
         .eq('id', supabaseUser.id)
         .single()
 
-      console.log('🔍 Profile query result:', { userProfile, profileError })
+      console.log('🔍 Profile query result:', { 
+        hasData: !!userProfile, 
+        errorCode: profileError?.code, 
+        errorMessage: profileError?.message 
+      })
 
       if (profileError) {
-        console.error('🔍 Profile error:', profileError)
+        console.error('🔍 Profile error details:', profileError)
         // If user doesn't exist in public.users, create a basic record
         if (profileError.code === 'PGRST116') {
           console.log('🔍 User not found in public.users, creating basic record...')
