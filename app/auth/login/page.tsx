@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import { TreePine, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
-import { useAuth } from '@/hooks/use-auth'
+import { useAuth } from '@/hooks/use-supabase-auth'
 import { useToast } from '@/hooks/use-toast'
 
 export default function LoginPage() {

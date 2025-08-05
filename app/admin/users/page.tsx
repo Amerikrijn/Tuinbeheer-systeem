@@ -1,578 +1,271 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table'
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { 
-  UserPlus, 
-  Search, 
-  MoreHorizontal, 
-  Shield, 
-  User, 
-  Mail, 
-  Calendar,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Trash2,
-  Edit,
-  Send,
-  TreePine
-} from 'lucide-react'
-import { useAuth } from '@/hooks/use-auth'
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/use-supabase-auth'
+import { GardenAccessManager } from '@/components/admin/garden-access-manager'
 
-// Mock garden data for assignment preview
-const MOCK_GARDENS = [
-  { id: '1', name: 'Hoofdtuin', description: 'De centrale tuin achter het huis' },
-  { id: '2', name: 'Vooruin', description: 'De tuin aan de voorkant bij de straat' },
-  { id: '3', name: 'Moestuin', description: 'De moestuin met groenten en kruiden' }
-]
-
-// Mock users data - uitgebreid met meer preview data
-const MOCK_USERS = [
-  {
-    id: '1',
-    email: 'admin@tuinbeheer.nl',
-    full_name: 'Admin User',
-    role: 'admin' as const,
-    status: 'active' as const,
-    avatar_url: undefined,
-    created_at: '2024-01-01T00:00:00Z',
-    last_login: '2024-01-15T10:30:00Z',
-    invited_by: undefined,
-    garden_access: [] // Admin has access to all
-  },
-  {
-    id: '2',
-    email: 'jan@tuinbeheer.nl',
-    full_name: 'Jan de Tuinman',
-    role: 'user' as const,
-    status: 'active' as const,
-    avatar_url: undefined,
-    created_at: '2024-01-05T00:00:00Z',
-    last_login: '2024-01-14T08:15:00Z',
-    invited_by: '1',
-    garden_access: ['1'] // Toegang tot Hoofdtuin
-  },
-  {
-    id: '3',
-    email: 'maria@tuinbeheer.nl',
-    full_name: 'Maria Bloemen',
-    role: 'user' as const,
-    status: 'pending' as const,
-    avatar_url: undefined,
-    created_at: '2024-01-10T00:00:00Z',
-    last_login: undefined,
-    invited_by: '1',
-    garden_access: ['2'] // Toegang tot Vooruin
-  },
-  {
-    id: '4',
-    email: 'piet@tuinbeheer.nl',
-    full_name: 'Piet Plantenbak',
-    role: 'user' as const,
-    status: 'active' as const,
-    avatar_url: undefined,
-    created_at: '2024-01-12T00:00:00Z',
-    last_login: '2024-01-13T14:20:00Z',
-    invited_by: '1',
-    garden_access: ['1', '2'] // Toegang tot meerdere tuinen
-  },
-  {
-    id: '5',
-    email: 'sophie@tuinbeheer.nl',
-    full_name: undefined,
-    role: 'user' as const,
-    status: 'inactive' as const,
-    avatar_url: undefined,
-    created_at: '2024-01-08T00:00:00Z',
-    last_login: '2024-01-09T12:00:00Z',
-    invited_by: '1',
-    garden_access: ['3'] // Toegang tot Moestuin
-  }
-]
-
-interface InviteUserFormData {
+interface User {
+  id: string
   email: string
+  full_name?: string
+  avatar_url?: string
   role: 'admin' | 'user'
-  message?: string
+  status: 'pending' | 'active' | 'inactive'
+  created_at: string
+  last_login?: string
+  garden_access?: string[]
 }
 
-export default function UsersManagementPage() {
-  const { user, hasPermission } = useAuth()
+interface Garden {
+  id: string
+  name: string
+  description?: string
+}
+
+interface InviteFormData {
+  email: string
+  role: 'admin' | 'user'
+  message: string
+  garden_access: string[]
+}
+
+export default function RealAdminUsersPage() {
   const { toast } = useToast()
+  const { user: currentUser } = useAuth()
   
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [users] = useState(MOCK_USERS)
+  const [users, setUsers] = useState<User[]>([])
+  const [gardens, setGardens] = useState<Garden[]>([])
+  const [loading, setLoading] = useState(true)
+  const [inviting, setInviting] = useState(false)
+  
+  // Dialog states
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
-  const [inviteForm, setInviteForm] = useState<InviteUserFormData>({
+  const [isGardenAccessDialogOpen, setIsGardenAccessDialogOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  
+  // Form state
+  const [formData, setFormData] = useState<InviteFormData>({
     email: '',
     role: 'user',
-    message: ''
-  })
-  const [isInviting, setIsInviting] = useState(false)
-  const [isGardenAccessDialogOpen, setIsGardenAccessDialogOpen] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<any>(null)
-  const [gardenAccessForm, setGardenAccessForm] = useState<string[]>([])
-
-  // Check permissions
-  if (!hasPermission('users.manage')) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardContent className="text-center py-12">
-            <AlertCircle className="mx-auto h-12 w-12 text-red-500 mb-4" />
-            <h2 className="text-xl font-semibold mb-2">Geen toegang</h2>
-            <p className="text-muted-foreground">
-              Je hebt geen permissie om gebruikers te beheren.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // Filter users based on search and status
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = !searchTerm || 
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus
-    
-    return matchesSearch && matchesStatus
+    message: '',
+    garden_access: []
   })
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge variant="default" className="bg-green-100 text-green-800">
-          <CheckCircle className="w-3 h-3 mr-1" />
-          Actief
-        </Badge>
-      case 'pending':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-          <Clock className="w-3 h-3 mr-1" />
-          Uitnodiging verstuurd
-        </Badge>
-      case 'inactive':
-        return <Badge variant="outline" className="bg-gray-100 text-gray-800">
-          Inactief
-        </Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+  // Load users and gardens
+  useEffect(() => {
+    loadUsersAndGardens()
+  }, [])
+
+  const loadUsersAndGardens = async () => {
+    setLoading(true)
+    try {
+      // Load users with garden access
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select(`
+          *,
+          user_garden_access(garden_id)
+        `)
+        .order('created_at', { ascending: false })
+
+      if (usersError) {
+        throw usersError
+      }
+
+      // Transform users data to include garden_access array
+      const usersWithAccess = usersData?.map(user => ({
+        ...user,
+        garden_access: user.user_garden_access?.map((uga: any) => uga.garden_id) || []
+      })) || []
+
+      setUsers(usersWithAccess)
+
+      // Load all gardens
+      const { data: gardensData, error: gardensError } = await supabase
+        .from('gardens')
+        .select('id, name, description')
+        .order('name')
+
+      if (gardensError) {
+        throw gardensError
+      }
+
+      setGardens(gardensData || [])
+
+    } catch (error) {
+      console.error('Error loading data:', error)
+      toast({
+        title: "Fout bij laden",
+        description: "Kon gebruikers en tuinen niet laden",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
     }
   }
 
-  const getRoleBadge = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return <Badge variant="destructive">
-          <Shield className="w-3 h-3 mr-1" />
-          Administrator
-        </Badge>
-      case 'user':
-        return <Badge variant="outline">
-          <User className="w-3 h-3 mr-1" />
-          Gebruiker
-        </Badge>
-      default:
-        return <Badge variant="outline">{role}</Badge>
+  const handleInviteUser = async () => {
+    setInviting(true)
+    try {
+      // Call Edge Function for user invitation
+      const { data, error } = await supabase.functions.invoke('invite-user', {
+        body: {
+          email: formData.email,
+          role: formData.role,
+          message: formData.message,
+          garden_access: formData.garden_access
+        }
+      })
+
+      if (error) {
+        throw error
+      }
+
+      toast({
+        title: "Uitnodiging verzonden",
+        description: `${formData.email} is uitgenodigd als ${formData.role}`,
+      })
+
+      // Reset form and reload users
+      setFormData({
+        email: '',
+        role: 'user',
+        message: '',
+        garden_access: []
+      })
+      setIsInviteDialogOpen(false)
+      loadUsersAndGardens()
+
+    } catch (error) {
+      console.error('Error inviting user:', error)
+      toast({
+        title: "Uitnodiging mislukt",
+        description: error instanceof Error ? error.message : "Er is een fout opgetreden",
+        variant: "destructive"
+      })
+    } finally {
+      setInviting(false)
     }
   }
 
-  const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return 'Nooit'
-    return new Date(dateString).toLocaleDateString('nl-NL', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+  const updateUserStatus = async (userId: string, newStatus: 'active' | 'inactive') => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ status: newStatus })
+        .eq('id', userId)
+
+      if (error) {
+        throw error
+      }
+
+      toast({
+        title: "Status bijgewerkt",
+        description: `Gebruiker is nu ${newStatus === 'active' ? 'actief' : 'inactief'}`,
+      })
+
+      loadUsersAndGardens()
+
+    } catch (error) {
+      console.error('Error updating user status:', error)
+      toast({
+        title: "Status update mislukt",
+        description: "Kon gebruikersstatus niet bijwerken",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const toggleGardenAccess = (gardenId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      garden_access: prev.garden_access.includes(gardenId)
+        ? prev.garden_access.filter(id => id !== gardenId)
+        : [...prev.garden_access, gardenId]
+    }))
   }
 
   const getInitials = (name: string | null | undefined, email: string) => {
     if (name) {
       return name.split(' ').map(n => n[0]).join('').toUpperCase()
     }
-    return email.split('@')[0].slice(0, 2).toUpperCase()
+    return email.slice(0, 2).toUpperCase()
   }
 
-  const getGardenAccessDisplay = (gardenAccess: string[], role: string) => {
-    if (role === 'admin') {
-      return (
-        <Badge className="bg-green-100 text-green-800 border-green-200">
-          Alle tuinen
-        </Badge>
-      )
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return 'Nooit'
+    return new Date(dateString).toLocaleDateString('nl-NL')
+  }
+
+  const getGardenNames = (gardenIds: string[]) => {
+    return gardenIds
+      .map(id => gardens.find(g => g.id === id)?.name)
+      .filter(Boolean)
+      .join(', ')
+  }
+
+  const getGardenAccessDisplay = (gardenIds: string[]) => {
+    if (gardenIds.length === 0) {
+      return <Badge variant="secondary" className="text-xs px-1 py-0">Geen toegang</Badge>
     }
     
-    if (gardenAccess.length === 0) {
-      return (
-        <Badge variant="outline" className="text-muted-foreground">
-          Geen toegang
-        </Badge>
-      )
+    const gardenNames = getGardenNames(gardenIds)
+    if (gardenNames.length > 30) {
+      return <Badge variant="default" className="text-xs px-1 py-0">{gardenIds.length} tuinen</Badge>
     }
-
-    const gardenNames = gardenAccess.map(id => 
-      MOCK_GARDENS.find(g => g.id === id)?.name || `Tuin ${id}`
-    )
-
-    if (gardenNames.length === 1) {
-      return (
-        <Badge className="bg-blue-100 text-blue-800 border-blue-200">
-          {gardenNames[0]}
-        </Badge>
-      )
-    }
-
-    return (
-      <div className="flex flex-wrap gap-1">
-        {gardenNames.slice(0, 2).map((name, index) => (
-          <Badge key={index} className="bg-blue-100 text-blue-800 border-blue-200 text-xs">
-            {name}
-          </Badge>
-        ))}
-        {gardenNames.length > 2 && (
-          <Badge variant="outline" className="text-xs">
-            +{gardenNames.length - 2}
-          </Badge>
-        )}
-      </div>
-    )
-  }
-
-  const handleInviteUser = async () => {
-    if (!inviteForm.email) {
-      toast({
-        title: "Validatie fout",
-        description: "E-mailadres is verplicht",
-        variant: "destructive"
-      })
-      return
-    }
-
-    setIsInviting(true)
-    try {
-      // Mock invitation - in production this would call Supabase Edge Function
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      toast({
-        title: "Uitnodiging verstuurd",
-        description: `${inviteForm.email} heeft een uitnodiging ontvangen`,
-      })
-      
-      setIsInviteDialogOpen(false)
-      setInviteForm({ email: '', role: 'user', message: '' })
-    } catch (error) {
-      toast({
-        title: "Fout bij uitnodigen",
-        description: "Er is een fout opgetreden bij het versturen van de uitnodiging",
-        variant: "destructive"
-      })
-    } finally {
-      setIsInviting(false)
-    }
-  }
-
-  const handleUserAction = async (userId: string, action: string) => {
-    const targetUser = users.find(u => u.id === userId)
     
-    try {
-      // Mock actions - in production these would call actual API endpoints
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      switch (action) {
-        case 'resend-invite':
-          toast({
-            title: "Uitnodiging opnieuw verstuurd",
-            description: `Nieuwe uitnodiging verstuurd naar ${targetUser?.email}`,
-          })
-          break
-        case 'deactivate':
-          toast({
-            title: "Gebruiker gedeactiveerd",
-            description: `${targetUser?.full_name || targetUser?.email} is gedeactiveerd`,
-          })
-          break
-        case 'activate':
-          toast({
-            title: "Gebruiker geactiveerd", 
-            description: `${targetUser?.full_name || targetUser?.email} is geactiveerd`,
-          })
-          break
-        case 'delete':
-          toast({
-            title: "Gebruiker verwijderd",
-            description: `${targetUser?.full_name || targetUser?.email} is verwijderd`,
-            variant: "destructive"
-          })
-          break
-      }
-    } catch (error) {
-      toast({
-        title: "Actie mislukt",
-        description: "Er is een fout opgetreden",
-        variant: "destructive"
-      })
-    }
+    return <Badge variant="default" className="text-xs px-1 py-0">{gardenNames}</Badge>
   }
 
-  const handleEditGardenAccess = (user: any) => {
+  const handleEditGardenAccess = (user: User) => {
     setSelectedUser(user)
-    setGardenAccessForm(user.garden_access || [])
     setIsGardenAccessDialogOpen(true)
   }
 
-  const handleSaveGardenAccess = () => {
-    // Mock save - in production this would update the database
-    toast({
-      title: "Tuin toegang bijgewerkt",
-      description: `${selectedUser?.full_name || selectedUser?.email} heeft nu toegang tot ${gardenAccessForm.length} tuin(en)`,
-    })
-    setIsGardenAccessDialogOpen(false)
-    setSelectedUser(null)
-    setGardenAccessForm([])
-  }
-
-  const toggleGardenAccess = (gardenId: string) => {
-    setGardenAccessForm(prev => 
-      prev.includes(gardenId) 
-        ? prev.filter(id => id !== gardenId)
-        : [...prev, gardenId]
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-muted-foreground">Gebruikers laden...</span>
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto px-4 py-6 max-w-6xl">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Gebruikersbeheer</h1>
-          <p className="text-muted-foreground">
-            Beheer gebruikers, rollen en permissies voor het tuinbeheer systeem
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Gebruikersbeheer</h1>
+          <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
         </div>
-        
-        <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="w-4 h-4 mr-2" />
-              Gebruiker uitnodigen
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nieuwe gebruiker uitnodigen</DialogTitle>
-              <DialogDescription>
-                Verstuur een uitnodiging naar een nieuwe gebruiker om toegang te krijgen tot het systeem.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="invite-email">E-mailadres</Label>
-                <Input
-                  id="invite-email"
-                  type="email"
-                  placeholder="gebruiker@email.com"
-                  value={inviteForm.email}
-                  onChange={(e) => setInviteForm(prev => ({ ...prev, email: e.target.value }))}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="invite-role">Rol</Label>
-                <Select 
-                  value={inviteForm.role} 
-                  onValueChange={(value: 'admin' | 'user') => 
-                    setInviteForm(prev => ({ ...prev, role: value }))
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="user">
-                      <div className="flex items-center">
-                        <User className="w-4 h-4 mr-2" />
-                        Gebruiker - Alleen logboek en taken
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="admin">
-                      <div className="flex items-center">
-                        <Shield className="w-4 h-4 mr-2" />
-                        Administrator - Volledige toegang
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="invite-message">Persoonlijk bericht (optioneel)</Label>
-                <Input
-                  id="invite-message"
-                  placeholder="Welkom bij ons tuinbeheer team!"
-                  value={inviteForm.message}
-                  onChange={(e) => setInviteForm(prev => ({ ...prev, message: e.target.value }))}
-                />
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsInviteDialogOpen(false)}>
-                Annuleren
-              </Button>
-              <Button onClick={handleInviteUser} disabled={isInviting}>
-                {isInviting ? (
-                  <>Uitnodiging versturen...</>
-                ) : (
-                  <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Uitnodiging versturen
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Gebruiker Uitnodigen
+        </Button>
       </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <User className="w-4 h-4 text-blue-600" />
-              <div>
-                <p className="text-sm font-medium">Totaal Gebruikers</p>
-                <p className="text-2xl font-bold">{users.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <CheckCircle className="w-4 h-4 text-green-600" />
-              <div>
-                <p className="text-sm font-medium">Actieve Gebruikers</p>
-                <p className="text-2xl font-bold">
-                  {users.filter(u => u.status === 'active').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-yellow-600" />
-              <div>
-                <p className="text-sm font-medium">Uitnodigingen Open</p>
-                <p className="text-2xl font-bold">
-                  {users.filter(u => u.status === 'pending').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center space-x-2">
-              <Shield className="w-4 h-4 text-red-600" />
-              <div>
-                <p className="text-sm font-medium">Administrators</p>
-                <p className="text-2xl font-bold">
-                  {users.filter(u => u.role === 'admin').length}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Zoek op naam of e-mailadres..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle statussen</SelectItem>
-                <SelectItem value="active">Actief</SelectItem>
-                <SelectItem value="pending">Uitnodiging verstuurd</SelectItem>
-                <SelectItem value="inactive">Inactief</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Gebruikers ({filteredUsers.length})</CardTitle>
+          <CardTitle>Gebruikers ({users.length})</CardTitle>
           <CardDescription>
-            Overzicht van alle gebruikers in het systeem
+            Overzicht van alle gebruikers en hun toegang tot tuinen
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -583,44 +276,56 @@ export default function UsersManagementPage() {
                 <TableHead>Rol</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Tuin Toegang</TableHead>
+                <TableHead>Laatste Login</TableHead>
                 <TableHead>Aangemaakt</TableHead>
-                <TableHead>Laatste login</TableHead>
-                <TableHead className="text-right">Acties</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.map((user) => (
+              {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar_url || undefined} />
+                        <AvatarImage src={user.avatar_url} />
                         <AvatarFallback className="text-xs">
                           {getInitials(user.full_name, user.email)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">
-                          {user.full_name || 'Geen naam'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {user.email}
-                        </p>
+                        <p className="font-medium">{user.full_name || 'Geen naam'}</p>
+                        <p className="text-sm text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{getRoleBadge(user.role)}</TableCell>
-                  <TableCell>{getStatusBadge(user.status)}</TableCell>
                   <TableCell>
-                    {getGardenAccessDisplay(user.garden_access || [], user.role)}
+                    <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                      {user.role === 'admin' ? 'Administrator' : 'Gebruiker'}
+                    </Badge>
                   </TableCell>
-                  <TableCell className="text-sm">
-                    {formatDate(user.created_at)}
+                  <TableCell>
+                    <Badge variant={
+                      user.status === 'active' ? 'default' : 
+                      user.status === 'pending' ? 'secondary' : 'destructive'
+                    }>
+                      {user.status === 'active' ? 'Actief' : 
+                       user.status === 'pending' ? 'In afwachting' : 'Inactief'}
+                    </Badge>
                   </TableCell>
-                  <TableCell className="text-sm">
+                  <TableCell>
+                    {user.role === 'admin' ? (
+                      <Badge variant="default" className="text-xs px-1 py-0">Alle tuinen</Badge>
+                    ) : (
+                      getGardenAccessDisplay(user.garden_access || [])
+                    )}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
                     {formatDate(user.last_login)}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-sm text-muted-foreground">
+                    {formatDate(user.created_at)}
+                  </TableCell>
+                  <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -628,45 +333,35 @@ export default function UsersManagementPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acties</DropdownMenuLabel>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Bewerken
-                        </DropdownMenuItem>
+                        {user.status === 'active' ? (
+                          <DropdownMenuItem 
+                            onClick={() => updateUserStatus(user.id, 'inactive')}
+                            className="text-orange-600"
+                          >
+                            <UserX className="w-4 h-4 mr-2" />
+                            Deactiveren
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem 
+                            onClick={() => updateUserStatus(user.id, 'active')}
+                            className="text-green-600"
+                          >
+                            <UserCheck className="w-4 h-4 mr-2" />
+                            Activeren
+                          </DropdownMenuItem>
+                        )}
                         {user.role !== 'admin' && (
                           <DropdownMenuItem onClick={() => handleEditGardenAccess(user)}>
-                            <TreePine className="mr-2 h-4 w-4" />
+                            <TreePine className="w-4 h-4 mr-2" />
                             Tuin Toegang Beheren
                           </DropdownMenuItem>
                         )}
-                        {user.status === 'pending' && (
-                          <DropdownMenuItem 
-                            onClick={() => handleUserAction(user.id, 'resend-invite')}
-                          >
-                            <Mail className="mr-2 h-4 w-4" />
-                            Uitnodiging opnieuw versturen
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        {user.status === 'active' ? (
-                          <DropdownMenuItem 
-                            onClick={() => handleUserAction(user.id, 'deactivate')}
-                          >
-                            Deactiveren
-                          </DropdownMenuItem>
-                        ) : user.status === 'inactive' ? (
-                          <DropdownMenuItem 
-                            onClick={() => handleUserAction(user.id, 'activate')}
-                          >
-                            Activeren
-                          </DropdownMenuItem>
-                        ) : null}
                         <DropdownMenuItem 
-                          className="text-red-600"
-                          onClick={() => handleUserAction(user.id, 'delete')}
+                          onClick={() => {/* TODO: Resend invitation */}}
+                          disabled={user.status !== 'pending'}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Verwijderen
+                          <Mail className="w-4 h-4 mr-2" />
+                          Uitnodiging Versturen
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -676,78 +371,124 @@ export default function UsersManagementPage() {
             </TableBody>
           </Table>
           
-          {filteredUsers.length === 0 && (
-            <div className="text-center py-12">
-              <User className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Geen gebruikers gevonden</h3>
-              <p className="text-muted-foreground">
-                {searchTerm || selectedStatus !== 'all' 
-                  ? 'Probeer je zoekfilters aan te passen'
-                  : 'Nodig je eerste gebruiker uit om te beginnen'
-                }
-              </p>
+          {users.length === 0 && (
+            <div className="text-center py-12 text-muted-foreground">
+              <UserCheck className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="text-lg font-medium">Nog geen gebruikers</p>
+              <p>Nodig je eerste gebruiker uit om te beginnen</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Garden Access Dialog */}
-      <Dialog open={isGardenAccessDialogOpen} onOpenChange={setIsGardenAccessDialogOpen}>
-        <DialogContent>
+      {/* Invite User Dialog */}
+      <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Tuin Toegang Beheren</DialogTitle>
+            <DialogTitle>Gebruiker Uitnodigen</DialogTitle>
             <DialogDescription>
-              Selecteer welke tuinen {selectedUser?.full_name || selectedUser?.email} mag benaderen
+              Stuur een uitnodiging naar een nieuwe gebruiker
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            <div className="space-y-3">
-              {MOCK_GARDENS.map((garden) => (
-                <div key={garden.id} className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id={`garden-${garden.id}`}
-                    checked={gardenAccessForm.includes(garden.id)}
-                    onChange={() => toggleGardenAccess(garden.id)}
-                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                  />
-                  <label 
-                    htmlFor={`garden-${garden.id}`}
-                    className="flex-1 cursor-pointer"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <TreePine className="w-4 h-4 text-green-600" />
-                      <div>
-                        <p className="font-medium">{garden.name}</p>
-                        <p className="text-sm text-muted-foreground">{garden.description}</p>
-                      </div>
-                    </div>
-                  </label>
-                </div>
-              ))}
+            <div className="space-y-2">
+              <Label htmlFor="email">Email adres</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="gebruiker@email.com"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+              />
             </div>
             
-            {gardenAccessForm.length === 0 && (
-              <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
-                ⚠️ Deze gebruiker heeft geen toegang tot tuinen en kan geen taken uitvoeren.
+            <div className="space-y-2">
+              <Label htmlFor="role">Rol</Label>
+              <Select 
+                value={formData.role} 
+                onValueChange={(value: 'admin' | 'user') => setFormData(prev => ({ ...prev, role: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Gebruiker</SelectItem>
+                  <SelectItem value="admin">Administrator</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {formData.role === 'user' && (
+              <div className="space-y-2">
+                <Label>Tuin Toegang</Label>
+                <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                  {gardens.map((garden) => (
+                    <div key={garden.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`invite-garden-${garden.id}`}
+                        checked={formData.garden_access.includes(garden.id)}
+                        onChange={() => toggleGardenAccess(garden.id)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      />
+                      <label 
+                        htmlFor={`invite-garden-${garden.id}`}
+                        className="text-sm cursor-pointer flex-1"
+                      >
+                        {garden.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {gardens.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nog geen tuinen beschikbaar</p>
+                )}
               </div>
             )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="message">Persoonlijk bericht (optioneel)</Label>
+              <Input
+                id="message"
+                placeholder="Welkom bij het tuinbeheer systeem!"
+                value={formData.message}
+                onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
+              />
+            </div>
           </div>
 
           <DialogFooter>
             <Button 
               variant="outline" 
-              onClick={() => setIsGardenAccessDialogOpen(false)}
+              onClick={() => setIsInviteDialogOpen(false)}
+              disabled={inviting}
             >
               Annuleren
             </Button>
-            <Button onClick={handleSaveGardenAccess}>
-              Opslaan
+            <Button 
+              onClick={handleInviteUser}
+              disabled={!formData.email || inviting}
+            >
+              {inviting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Uitnodiging Versturen
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Garden Access Manager Dialog */}
+      <GardenAccessManager
+        user={selectedUser}
+        isOpen={isGardenAccessDialogOpen}
+        onClose={() => {
+          setIsGardenAccessDialogOpen(false)
+          setSelectedUser(null)
+        }}
+        onSave={() => {
+          loadUsersAndGardens() // Reload to reflect changes
+        }}
+      />
     </div>
   )
 }
