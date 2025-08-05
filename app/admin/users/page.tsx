@@ -180,7 +180,7 @@ function AdminUsersPageContent() {
         throw new Error('No user returned from auth signup')
       }
 
-      console.log('🔍 Step 2: Auth user created:', authData.user.id)
+      console.log('🔍 Step 2: Auth user created:', authData.user!.id)
 
       // Immediately sign out the new user to restore admin session
       console.log('🔍 Step 2a: Signing out new user...')
@@ -206,7 +206,7 @@ function AdminUsersPageContent() {
       const { error: profileError } = await supabase
         .from('users')
         .insert({
-          id: authData.user.id,
+          id: authData.user!.id, // Safe: checked above
           email: formData.email,
           role: formData.role,
           status: formData.role === 'admin' ? 'active' : 'pending', // Admins direct active
@@ -225,7 +225,7 @@ function AdminUsersPageContent() {
       if (formData.role === 'user' && formData.garden_access.length > 0 && authData.user?.id) {
         console.log('🔍 Step 4: Adding garden access for gardens:', formData.garden_access)
         const gardenAccessInserts = formData.garden_access.map(gardenId => ({
-          user_id: authData.user.id,
+          user_id: authData.user!.id, // Safe: checked in if condition
           garden_id: gardenId
         }))
 
