@@ -151,19 +151,49 @@ function AdminUsersPageContent() {
       // TEMP: Direct database invite (bypass Edge Function)
       console.log('🔍 Creating user invite directly...')
       
-      // WORKAROUND: Direct database user creation (manual auth setup required)
-      const newUserId = crypto.randomUUID()
-      console.log('🔍 Creating user record with ID:', newUserId)
+      // WORKAROUND: Create auth user first, then profile
+      console.log('🔍 Step 1: Creating auth user...')
       
-      // 1. Create user profile in public.users
+      // Save current session to restore later
+      const currentSession = await supabase.auth.getSession()
+      
+      // 1. Create auth user with temp password
+      const tempPassword = 'TempPass123!'
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: tempPassword
+      })
+
+      if (authError) {
+        console.error('🔍 Auth signup error:', authError)
+        throw new Error(`Auth user creation failed: ${authError.message}`)
+      }
+
+      if (!authData.user) {
+        throw new Error('No user returned from auth signup')
+      }
+
+      console.log('🔍 Step 2: Auth user created:', authData.user.id)
+
+      // Immediately sign out the new user to restore admin session
+      await supabase.auth.signOut()
+      
+      // Restore admin session
+      if (currentSession.data.session) {
+        await supabase.auth.setSession(currentSession.data.session)
+      }
+
+      console.log('🔍 Step 3: Creating user profile...')
+      
+      // 2. Create user profile in public.users
       const { error: profileError } = await supabase
         .from('users')
         .insert({
-          id: newUserId,
+          id: authData.user.id,
           email: formData.email,
           role: formData.role,
           status: 'pending',
-          full_name: formData.full_name, // Required field now
+          full_name: formData.full_name,
           avatar_url: null
         })
 
@@ -174,11 +204,11 @@ function AdminUsersPageContent() {
 
       console.log('🔍 User profile created successfully')
 
-      // 2. Add garden access if user role and gardens selected
+      // 3. Add garden access if user role and gardens selected
       if (formData.role === 'user' && formData.garden_access.length > 0) {
-        console.log('🔍 Adding garden access for gardens:', formData.garden_access)
+        console.log('🔍 Step 4: Adding garden access for gardens:', formData.garden_access)
         const gardenAccessInserts = formData.garden_access.map(gardenId => ({
-          user_id: newUserId,
+          user_id: authData.user.id,
           garden_id: gardenId
         }))
 
@@ -198,7 +228,7 @@ function AdminUsersPageContent() {
 
       toast({
         title: "Gebruiker aangemaakt",
-        description: `${formData.email} is aangemaakt als ${formData.role}. Auth account moet handmatig worden ingesteld.`,
+        description: `${formData.full_name} (${formData.email}) is aangemaakt als ${formData.role}. Tijdelijk wachtwoord: TempPass123!`,
       })
 
       // Reset form and reload users
@@ -210,7 +240,11 @@ function AdminUsersPageContent() {
         garden_access: []
       })
       setIsInviteDialogOpen(false)
-      loadUsersAndGardens()
+      
+      // Small delay to ensure database is updated
+      setTimeout(() => {
+        loadUsersAndGardens()
+      }, 500)
 
     } catch (error) {
       console.error('Error inviting user:', error)
