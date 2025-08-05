@@ -161,7 +161,14 @@ function AdminUsersPageContent() {
       const tempPassword = 'TempPass123!'
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
-        password: tempPassword
+        password: tempPassword,
+        options: {
+          emailRedirectTo: undefined, // No email confirmation needed
+          data: {
+            created_by_admin: true,
+            temp_password: true
+          }
+        }
       })
 
       if (authError) {
@@ -176,11 +183,17 @@ function AdminUsersPageContent() {
       console.log('🔍 Step 2: Auth user created:', authData.user.id)
 
       // Immediately sign out the new user to restore admin session
+      console.log('🔍 Step 2a: Signing out new user...')
       await supabase.auth.signOut()
       
       // Restore admin session
+      console.log('🔍 Step 2b: Restoring admin session...')
       if (currentSession.data.session) {
-        await supabase.auth.setSession(currentSession.data.session)
+        const { error: sessionError } = await supabase.auth.setSession(currentSession.data.session)
+        if (sessionError) {
+          console.error('🔍 Session restore error:', sessionError)
+          // Continue anyway - admin might need to refresh page
+        }
       }
 
       console.log('🔍 Step 3: Creating user profile...')
@@ -192,7 +205,7 @@ function AdminUsersPageContent() {
           id: authData.user.id,
           email: formData.email,
           role: formData.role,
-          status: 'pending',
+          status: formData.role === 'admin' ? 'active' : 'pending', // Admins direct active
           full_name: formData.full_name,
           avatar_url: null
         })
@@ -205,7 +218,7 @@ function AdminUsersPageContent() {
       console.log('🔍 User profile created successfully')
 
       // 3. Add garden access if user role and gardens selected
-      if (formData.role === 'user' && formData.garden_access.length > 0) {
+      if (formData.role === 'user' && formData.garden_access.length > 0 && authData.user) {
         console.log('🔍 Step 4: Adding garden access for gardens:', formData.garden_access)
         const gardenAccessInserts = formData.garden_access.map(gardenId => ({
           user_id: authData.user.id,
@@ -228,7 +241,9 @@ function AdminUsersPageContent() {
 
       toast({
         title: "Gebruiker aangemaakt",
-        description: `${formData.full_name} (${formData.email}) is aangemaakt als ${formData.role}. Tijdelijk wachtwoord: TempPass123!`,
+        description: formData.role === 'admin' 
+          ? `Admin ${formData.full_name} is direct actief. Wachtwoord: TempPass123!`
+          : `Gebruiker ${formData.full_name} heeft status 'pending'. Activeer eerst, dan kunnen ze inloggen met TempPass123!`,
       })
 
       // Reset form and reload users
