@@ -181,12 +181,17 @@ export function useSupabaseAuth(): AuthContextType {
     setState(prev => ({ ...prev, loading: true, error: null }))
     
     try {
+      console.log('🔍 Attempting sign in with:', { email })
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
 
+      console.log('🔍 Auth response:', { data: !!data, error: error?.message })
+
       if (error) {
+        console.error('🔍 Auth error:', error)
         throw error
       }
 
@@ -194,8 +199,10 @@ export function useSupabaseAuth(): AuthContextType {
         throw new Error('No user returned from sign in')
       }
 
+      console.log('🔍 User signed in:', data.user.email)
       // User profile will be loaded automatically by onAuthStateChange
     } catch (error) {
+      console.error('🔍 Sign in failed:', error)
       setState(prev => ({
         ...prev,
         loading: false,
