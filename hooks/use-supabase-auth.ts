@@ -82,13 +82,20 @@ export function useSupabaseAuth(): AuthContextType {
         setTimeout(() => reject(new Error('Profile loading timeout')), 3000)
       )
 
-      const { data: userProfile, error: profileError } = await Promise.race([
-        profilePromise,
-        timeoutPromise
-      ]).catch(error => {
-        console.log('🔍 Profile loading timed out or failed:', error.message)
-        return { data: null, error: { code: 'TIMEOUT', message: 'Profile loading timeout' } }
-      }) as any
+      let userProfile = null
+      let profileError = null
+
+      try {
+        const result = await Promise.race([
+          profilePromise,
+          timeoutPromise
+        ])
+        userProfile = result.data
+        profileError = result.error
+      } catch (error) {
+        console.log('🔍 Profile loading timed out or failed:', error)
+        profileError = { code: 'TIMEOUT', message: 'Profile loading timeout' }
+      }
 
       console.log('🔍 Profile query result:', { 
         hasData: !!userProfile, 
@@ -195,12 +202,35 @@ export function useSupabaseAuth(): AuthContextType {
           const userProfile = await loadUserProfile(session.user)
           console.log('🔍 Initial profile loaded:', !!userProfile)
 
-          setState({
-            user: userProfile,
-            session,
-            loading: false,
-            error: null
-          })
+          // CRITICAL: Never set user to null, always ensure we have a valid user object
+          if (userProfile) {
+            setState({
+              user: userProfile,
+              session,
+              loading: false,
+              error: null
+            })
+          } else {
+            console.error('🔍 CRITICAL: Initial profile loading returned null!')
+            // Emergency fallback for initial session
+            const emergencyUser = {
+              id: session.user.id,
+              email: session.user.email || '',
+              full_name: session.user.email?.split('@')[0] || 'User',
+              role: session.user.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
+              status: 'active',
+              permissions: [],
+              garden_access: [],
+              created_at: new Date().toISOString()
+            } as User
+            
+            setState({
+              user: emergencyUser,
+              session,
+              loading: false,
+              error: 'Initial profile loading failed - using emergency fallback'
+            })
+          }
         } else {
           setState({
             user: null,
@@ -244,12 +274,35 @@ export function useSupabaseAuth(): AuthContextType {
           const userProfile = await loadUserProfile(session.user)
           console.log('🔍 User profile loaded via state change:', !!userProfile)
           
-          setState({
-            user: userProfile,
-            session,
-            loading: false,
-            error: null
-          })
+          // CRITICAL: Never set user to null, always ensure we have a valid user object
+          if (userProfile) {
+            setState({
+              user: userProfile,
+              session,
+              loading: false,
+              error: null
+            })
+          } else {
+            console.error('🔍 CRITICAL: Profile loading returned null, this should never happen!')
+            // Emergency fallback - create minimal user to prevent redirect loop
+            const emergencyUser = {
+              id: session.user.id,
+              email: session.user.email || '',
+              full_name: session.user.email?.split('@')[0] || 'User',
+              role: session.user.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
+              status: 'active',
+              permissions: [],
+              garden_access: [],
+              created_at: new Date().toISOString()
+            } as User
+            
+            setState({
+              user: emergencyUser,
+              session,
+              loading: false,
+              error: 'Profile loading failed - using emergency fallback'
+            })
+          }
         } else {
           console.log('🔍 User already loaded, just updating session')
           setState(prev => ({
