@@ -39,13 +39,13 @@ const MOCK_TASKS: EnhancedTask[] = [
       id: '2',
       full_name: 'Jan de Tuinman',
       email: 'jan@tuinbeheer.nl',
-      avatar_url: null
+      avatar_url: undefined
     },
     created_by: {
       id: '1', 
       full_name: 'Admin User',
       email: 'admin@tuinbeheer.nl',
-      avatar_url: null
+      avatar_url: undefined
     },
     priority: 'high',
     task_type: 'watering',
@@ -66,7 +66,7 @@ const MOCK_TASKS: EnhancedTask[] = [
       id: '1',
       full_name: 'Admin User', 
       email: 'admin@tuinbeheer.nl',
-      avatar_url: null
+      avatar_url: undefined
     },
     priority: 'medium',
     task_type: 'pruning',
@@ -86,7 +86,7 @@ const MOCK_TASKS: EnhancedTask[] = [
       id: '2',
       full_name: 'Jan de Tuinman',
       email: 'jan@tuinbeheer.nl',
-      avatar_url: null
+      avatar_url: undefined
     },
     priority: 'high',
     task_type: 'pest_control',

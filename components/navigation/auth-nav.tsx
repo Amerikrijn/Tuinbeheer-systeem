@@ -30,7 +30,6 @@ import {
   Shield,
   Users,
   Home,
-  Garden,
   Leaf,
   ClipboardList,
   BookOpen,
@@ -78,7 +77,7 @@ export function AuthNavigation() {
       items.push({
         title: 'Tuinen',
         href: '/gardens',
-        icon: Garden,
+        icon: TreePine,
         description: 'Beheer je tuinen'
       })
     }
