@@ -52,7 +52,8 @@ import {
   Clock,
   Trash2,
   Edit,
-  Send
+  Send,
+  TreePine
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useToast } from '@/hooks/use-toast'
@@ -148,6 +149,9 @@ export default function UsersManagementPage() {
     message: ''
   })
   const [isInviting, setIsInviting] = useState(false)
+  const [isGardenAccessDialogOpen, setIsGardenAccessDialogOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<any>(null)
+  const [gardenAccessForm, setGardenAccessForm] = useState<string[]>([])
 
   // Check permissions
   if (!hasPermission('users.manage')) {
@@ -233,6 +237,51 @@ export default function UsersManagementPage() {
     return email.split('@')[0].slice(0, 2).toUpperCase()
   }
 
+  const getGardenAccessDisplay = (gardenAccess: string[], role: string) => {
+    if (role === 'admin') {
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-200">
+          Alle tuinen
+        </Badge>
+      )
+    }
+    
+    if (gardenAccess.length === 0) {
+      return (
+        <Badge variant="outline" className="text-muted-foreground">
+          Geen toegang
+        </Badge>
+      )
+    }
+
+    const gardenNames = gardenAccess.map(id => 
+      MOCK_GARDENS.find(g => g.id === id)?.name || `Tuin ${id}`
+    )
+
+    if (gardenNames.length === 1) {
+      return (
+        <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+          {gardenNames[0]}
+        </Badge>
+      )
+    }
+
+    return (
+      <div className="flex flex-wrap gap-1">
+        {gardenNames.slice(0, 2).map((name, index) => (
+          <Badge key={index} className="bg-blue-100 text-blue-800 border-blue-200 text-xs">
+            {name}
+          </Badge>
+        ))}
+        {gardenNames.length > 2 && (
+          <Badge variant="outline" className="text-xs">
+            +{gardenNames.length - 2}
+          </Badge>
+        )}
+      </div>
+    )
+  }
+
   const handleInviteUser = async () => {
     if (!inviteForm.email) {
       toast({
@@ -307,6 +356,31 @@ export default function UsersManagementPage() {
         variant: "destructive"
       })
     }
+  }
+
+  const handleEditGardenAccess = (user: any) => {
+    setSelectedUser(user)
+    setGardenAccessForm(user.garden_access || [])
+    setIsGardenAccessDialogOpen(true)
+  }
+
+  const handleSaveGardenAccess = () => {
+    // Mock save - in production this would update the database
+    toast({
+      title: "Tuin toegang bijgewerkt",
+      description: `${selectedUser?.full_name || selectedUser?.email} heeft nu toegang tot ${gardenAccessForm.length} tuin(en)`,
+    })
+    setIsGardenAccessDialogOpen(false)
+    setSelectedUser(null)
+    setGardenAccessForm([])
+  }
+
+  const toggleGardenAccess = (gardenId: string) => {
+    setGardenAccessForm(prev => 
+      prev.includes(gardenId) 
+        ? prev.filter(id => id !== gardenId)
+        : [...prev, gardenId]
+    )
   }
 
   return (
@@ -508,6 +582,7 @@ export default function UsersManagementPage() {
                 <TableHead>Gebruiker</TableHead>
                 <TableHead>Rol</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Tuin Toegang</TableHead>
                 <TableHead>Aangemaakt</TableHead>
                 <TableHead>Laatste login</TableHead>
                 <TableHead className="text-right">Acties</TableHead>
@@ -536,6 +611,9 @@ export default function UsersManagementPage() {
                   </TableCell>
                   <TableCell>{getRoleBadge(user.role)}</TableCell>
                   <TableCell>{getStatusBadge(user.status)}</TableCell>
+                  <TableCell>
+                    {getGardenAccessDisplay(user.garden_access || [], user.role)}
+                  </TableCell>
                   <TableCell className="text-sm">
                     {formatDate(user.created_at)}
                   </TableCell>
@@ -555,6 +633,12 @@ export default function UsersManagementPage() {
                           <Edit className="mr-2 h-4 w-4" />
                           Bewerken
                         </DropdownMenuItem>
+                        {user.role !== 'admin' && (
+                          <DropdownMenuItem onClick={() => handleEditGardenAccess(user)}>
+                            <TreePine className="mr-2 h-4 w-4" />
+                            Tuin Toegang Beheren
+                          </DropdownMenuItem>
+                        )}
                         {user.status === 'pending' && (
                           <DropdownMenuItem 
                             onClick={() => handleUserAction(user.id, 'resend-invite')}
@@ -606,6 +690,64 @@ export default function UsersManagementPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Garden Access Dialog */}
+      <Dialog open={isGardenAccessDialogOpen} onOpenChange={setIsGardenAccessDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tuin Toegang Beheren</DialogTitle>
+            <DialogDescription>
+              Selecteer welke tuinen {selectedUser?.full_name || selectedUser?.email} mag benaderen
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-3">
+              {MOCK_GARDENS.map((garden) => (
+                <div key={garden.id} className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id={`garden-${garden.id}`}
+                    checked={gardenAccessForm.includes(garden.id)}
+                    onChange={() => toggleGardenAccess(garden.id)}
+                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                  />
+                  <label 
+                    htmlFor={`garden-${garden.id}`}
+                    className="flex-1 cursor-pointer"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <TreePine className="w-4 h-4 text-green-600" />
+                      <div>
+                        <p className="font-medium">{garden.name}</p>
+                        <p className="text-sm text-muted-foreground">{garden.description}</p>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              ))}
+            </div>
+            
+            {gardenAccessForm.length === 0 && (
+              <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                ⚠️ Deze gebruiker heeft geen toegang tot tuinen en kan geen taken uitvoeren.
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsGardenAccessDialogOpen(false)}
+            >
+              Annuleren
+            </Button>
+            <Button onClick={handleSaveGardenAccess}>
+              Opslaan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
