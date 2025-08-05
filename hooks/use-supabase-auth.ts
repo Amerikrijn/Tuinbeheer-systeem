@@ -67,15 +67,28 @@ export function useSupabaseAuth(): AuthContextType {
         }
       }
 
-      // UNIVERSAL FALLBACK: If any user has login issues, create basic profile
-      console.log('🔍 ATTEMPTING UNIVERSAL FALLBACK for:', supabaseUser.email)
+      // Try fast database lookup first
+      console.log('🔍 Fast database lookup for:', supabaseUser.email)
       
-      // Simplified: Get user profile from public.users table (no joins first)
-      const { data: userProfile, error: profileError } = await supabase
+      // Simplified: Get user profile from public.users table with timeout
+      const profilePromise = supabase
         .from('users')
         .select('*')
         .eq('id', supabaseUser.id)
         .single()
+
+      // Add 3 second timeout to prevent infinite waits
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile loading timeout')), 3000)
+      )
+
+      const { data: userProfile, error: profileError } = await Promise.race([
+        profilePromise,
+        timeoutPromise
+      ]).catch(error => {
+        console.log('🔍 Profile loading timed out or failed:', error.message)
+        return { data: null, error: { code: 'TIMEOUT', message: 'Profile loading timeout' } }
+      }) as any
 
       console.log('🔍 Profile query result:', { 
         hasData: !!userProfile, 
@@ -83,9 +96,9 @@ export function useSupabaseAuth(): AuthContextType {
         errorMessage: profileError?.message 
       })
 
-      if (profileError) {
-        console.error('🔍 Profile error details:', profileError)
-        console.log('🔍 Profile loading failed, using UNIVERSAL FALLBACK')
+      if (profileError || !userProfile) {
+        console.log('🔍 Profile loading failed or no data, using UNIVERSAL FALLBACK')
+        console.log('🔍 Error details:', profileError)
         
         // Universal fallback - return basic user based on auth data
         // Check database for role/status, use defaults if needed
@@ -102,22 +115,6 @@ export function useSupabaseAuth(): AuthContextType {
         
         console.log('🔍 UNIVERSAL FALLBACK profile:', basicProfile)
         return basicProfile as any
-      }
-
-      if (!userProfile) {
-        console.log('🔍 No user profile found, using SECONDARY FALLBACK for:', supabaseUser.email)
-        
-        // Secondary fallback - user exists in auth but not in public.users 
-        return {
-          id: supabaseUser.id,
-          email: supabaseUser.email || '',
-          full_name: supabaseUser.email?.split('@')[0] || 'User',
-          role: supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
-          status: 'active',
-          permissions: [],
-          garden_access: [],
-          created_at: new Date().toISOString()
-        }
       }
 
       // Simplified: Just use basic permissions for now
@@ -166,15 +163,10 @@ export function useSupabaseAuth(): AuthContextType {
         }
 
         if (session?.user) {
-          // Load full user profile
+          console.log('🔍 Initial session found for:', session.user.email)
+          // Load full user profile (no database updates during init)
           const userProfile = await loadUserProfile(session.user)
-          if (userProfile) {
-            // Update last_login
-            await supabase
-              .from('users')
-              .update({ last_login: new Date().toISOString() })
-              .eq('id', session.user.id)
-          }
+          console.log('🔍 Initial profile loaded:', !!userProfile)
 
           setState({
             user: userProfile,
@@ -203,21 +195,42 @@ export function useSupabaseAuth(): AuthContextType {
 
     initializeAuth()
 
+    // Failsafe: Force loading to false after 5 seconds
+    const loadingTimeout = setTimeout(() => {
+      console.log('🔍 LOADING TIMEOUT: Forcing loading to false')
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: 'Loading timeout - please refresh page'
+      }))
+    }, 5000)
+
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔍 Auth state change:', event, !!session)
       
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log('🔍 Loading user profile for:', session.user.email)
-        const userProfile = await loadUserProfile(session.user)
-        console.log('🔍 User profile loaded:', userProfile)
-        
-        setState({
-          user: userProfile,
-          session,
-          loading: false,
-          error: null
-        })
+        console.log('🔍 Auth state SIGNED_IN for:', session.user.email)
+        // Only load profile if we don't already have it
+        if (!state.user || state.user.id !== session.user.id) {
+          console.log('🔍 Loading user profile for new/different user')
+          const userProfile = await loadUserProfile(session.user)
+          console.log('🔍 User profile loaded via state change:', !!userProfile)
+          
+          setState({
+            user: userProfile,
+            session,
+            loading: false,
+            error: null
+          })
+        } else {
+          console.log('🔍 User already loaded, just updating session')
+          setState(prev => ({
+            ...prev,
+            session,
+            loading: false
+          }))
+        }
       } else if (event === 'SIGNED_OUT') {
         console.log('🔍 User signed out')
         setState({
@@ -226,11 +239,15 @@ export function useSupabaseAuth(): AuthContextType {
           loading: false,
           error: null
         })
+      } else if (event === 'INITIAL_SESSION') {
+        console.log('🔍 Initial session event (handled by initializeAuth)')
+        // Skip - already handled by initializeAuth
       }
     })
 
     return () => {
       subscription.unsubscribe()
+      clearTimeout(loadingTimeout)
     }
   }, [])
 
