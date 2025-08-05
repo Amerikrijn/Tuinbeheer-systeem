@@ -67,10 +67,11 @@ export default function LoginPage() {
         description: "Welkom terug!",
       })
       
-      // Wait a bit for auth state to update, then redirect
+      // Force redirect using window.location for more reliable navigation
       setTimeout(() => {
-        router.push('/')
-      }, 500)
+        console.log('🔍 Attempting redirect to /')
+        window.location.href = '/'
+      }, 1000)
       
     } catch (error) {
       toast({

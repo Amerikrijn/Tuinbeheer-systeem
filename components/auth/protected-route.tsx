@@ -20,9 +20,12 @@ export function ProtectedRoute({
   const router = useRouter()
 
   useEffect(() => {
+    console.log('🔍 ProtectedRoute check:', { loading, hasUser: !!user, userRole: user?.role })
+    
     if (!loading) {
       // No user - redirect to login
       if (!user) {
+        console.log('🔍 ProtectedRoute: No user, redirecting to login')
         router.push('/auth/login')
         return
       }
