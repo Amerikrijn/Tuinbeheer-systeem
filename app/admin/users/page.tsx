@@ -60,9 +60,9 @@ import { useToast } from '@/hooks/use-toast'
 
 // Mock garden data for assignment preview
 const MOCK_GARDENS = [
-  { id: '1', name: 'Hoofdtuin' },
-  { id: '2', name: 'Vooruin' },
-  { id: '3', name: 'Moestuin' }
+  { id: '1', name: 'Hoofdtuin', description: 'De centrale tuin achter het huis' },
+  { id: '2', name: 'Vooruin', description: 'De tuin aan de voorkant bij de straat' },
+  { id: '3', name: 'Moestuin', description: 'De moestuin met groenten en kruiden' }
 ]
 
 // Mock users data - uitgebreid met meer preview data
