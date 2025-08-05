@@ -130,20 +130,26 @@ function AdminUsersPageContent() {
       // TEMP: Direct database invite (bypass Edge Function)
       console.log('🔍 Creating user invite directly...')
       
-      // 1. Invite user via Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.inviteUserByEmail(formData.email, {
-        data: {
-          role: formData.role,
-          message: formData.message
+      // 1. Create user account with temp password
+      const tempPassword = 'TempPass123!'
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: tempPassword,
+        options: {
+          data: {
+            role: formData.role,
+            message: formData.message,
+            invited_by: 'admin'
+          }
         }
       })
 
       if (authError) {
-        console.error('🔍 Auth invite error:', authError)
-        throw new Error(`Auth invite failed: ${authError.message}`)
+        console.error('🔍 Auth signup error:', authError)
+        throw new Error(`Account creation failed: ${authError.message}`)
       }
 
-      console.log('🔍 Auth invite success:', authData)
+      console.log('🔍 Auth signup success:', authData)
 
       // 2. Create user profile in public.users
       const { error: profileError } = await supabase
