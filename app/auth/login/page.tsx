@@ -67,23 +67,25 @@ export default function LoginPage() {
         description: "Welkom terug!",
       })
       
-      // Redirect will be handled automatically by auth state change
-      // The useAuth hook will update with real user data from Supabase
-      router.push('/') // Will redirect based on role in Navigation component
+      // Wait a bit for auth state to update, then redirect
+      setTimeout(() => {
+        router.push('/')
+      }, 500)
+      
     } catch (error) {
       toast({
         title: "Inloggen mislukt",
         description: error instanceof Error ? error.message : 'Er is een fout opgetreden',
         variant: "destructive",
       })
-    } finally {
       setIsSubmitting(false)
     }
+    // Don't set isSubmitting to false immediately - let redirect happen
   }
 
   const demoCredentials = [
-    { email: 'admin@tuinbeheer.nl', role: 'Administrator', password: 'demo123' },
-    { email: 'gebruiker@tuinbeheer.nl', role: 'Gebruiker', password: 'demo123' }
+    { email: 'admin@tuinbeheer.nl', role: 'Administrator', password: 'Admin123!' },
+    { email: 'gebruiker@tuinbeheer.nl', role: 'Gebruiker', password: 'User123!' }
   ]
 
   const fillDemoCredentials = (email: string, password: string) => {
