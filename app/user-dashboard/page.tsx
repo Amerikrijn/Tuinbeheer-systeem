@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CheckCircle, Clock, AlertTriangle, TreePine } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { CheckCircle, Clock, AlertTriangle, TreePine, BookOpen, Plus, Calendar } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 
@@ -19,6 +20,11 @@ const MOCK_GARDENS = [
     id: '2', 
     name: 'Vooruin',
     description: 'De tuin aan de voorkant bij de straat'
+  },
+  {
+    id: '3',
+    name: 'Moestuin', 
+    description: 'De moestuin met groenten en kruiden'
   }
 ]
 
@@ -66,6 +72,55 @@ const MOCK_TASKS: Task[] = [
   }
 ]
 
+// Mock logbook entries for specific gardens
+const MOCK_LOGBOOK_ENTRIES: LogbookEntry[] = [
+  {
+    id: '1',
+    title: 'Eerste rozen geplant',
+    description: 'Vandaag 5 nieuwe rozenstruiken geplant in het eerste bed. Rode en witte variëteiten.',
+    garden_id: '1',
+    entry_type: 'planting',
+    created_at: '2024-01-15T14:30:00Z',
+    weather: 'Zonnig, 12°C'
+  },
+  {
+    id: '2', 
+    title: 'Onkruid verwijderd',
+    description: 'Alle onkruid tussen de planten weggehaald. Grond is nu schoon.',
+    garden_id: '1',
+    entry_type: 'maintenance', 
+    created_at: '2024-01-18T09:15:00Z',
+    weather: 'Bewolkt, 8°C'
+  },
+  {
+    id: '3',
+    title: 'Gazon gemaaid',
+    description: 'Het gras was te lang geworden, alles netjes gemaaid op 3cm hoogte.',
+    garden_id: '2',
+    entry_type: 'maintenance',
+    created_at: '2024-01-16T16:00:00Z', 
+    weather: 'Droog, 15°C'
+  },
+  {
+    id: '4',
+    title: 'Nieuwe bloembollen geplant',
+    description: 'Tulpen en narcissen geplant voor het voorjaar. 50 bollen in totaal.',
+    garden_id: '2',
+    entry_type: 'planting',
+    created_at: '2024-01-12T11:30:00Z',
+    weather: 'Licht bewolkt, 10°C'
+  },
+  {
+    id: '5',
+    title: 'Eerste oogst sla',
+    description: 'De eerste sla geoogst uit de moestuin. Heerlijk vers voor de salade!',
+    garden_id: '3',
+    entry_type: 'harvest',
+    created_at: '2024-01-19T08:00:00Z',
+    weather: 'Zonnig, 11°C'
+  }
+]
+
 interface Task {
   id: string
   title: string
@@ -77,19 +132,38 @@ interface Task {
   estimated_duration: number
 }
 
+interface LogbookEntry {
+  id: string
+  title: string
+  description: string
+  garden_id: string
+  entry_type: 'planting' | 'maintenance' | 'harvest' | 'observation' | 'other'
+  created_at: string
+  weather?: string
+}
+
 export default function UserDashboardPage() {
   const { user, hasGardenAccess, getAccessibleGardens } = useAuth()
   const [tasks, setTasks] = useState<Task[]>([])
+  const [logbookEntries, setLogbookEntries] = useState<LogbookEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('tasks')
 
   useEffect(() => {
     if (user) {
-      // Filter tasks based on user's garden access
+      // Filter tasks and logbook entries based on user's garden access
       const accessibleGardens = getAccessibleGardens()
+      
       const userTasks = MOCK_TASKS.filter(task => 
         user.role === 'admin' || accessibleGardens.includes(task.garden_id)
       )
+      
+      const userLogbookEntries = MOCK_LOGBOOK_ENTRIES.filter(entry => 
+        user.role === 'admin' || accessibleGardens.includes(entry.garden_id)
+      )
+      
       setTasks(userTasks)
+      setLogbookEntries(userLogbookEntries)
       setLoading(false)
     }
   }, [user, getAccessibleGardens])
@@ -120,6 +194,26 @@ export default function UserDashboardPage() {
 
   const getGardenName = (gardenId: string) => {
     return MOCK_GARDENS.find(g => g.id === gardenId)?.name || 'Onbekende tuin'
+  }
+
+  const getEntryTypeColor = (type: string) => {
+    switch (type) {
+      case 'planting': return 'bg-green-100 text-green-800 border-green-200'
+      case 'harvest': return 'bg-orange-100 text-orange-800 border-orange-200'
+      case 'maintenance': return 'bg-blue-100 text-blue-800 border-blue-200'
+      case 'observation': return 'bg-purple-100 text-purple-800 border-purple-200'
+      default: return 'bg-gray-100 text-gray-800 border-gray-200'
+    }
+  }
+
+  const getEntryTypeLabel = (type: string) => {
+    switch (type) {
+      case 'planting': return 'Planten'
+      case 'harvest': return 'Oogst'
+      case 'maintenance': return 'Onderhoud'
+      case 'observation': return 'Observatie'
+      default: return 'Overig'
+    }
   }
 
   const pendingTasks = tasks.filter(t => t.status === 'pending')
@@ -157,11 +251,11 @@ export default function UserDashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid md:grid-cols-3 gap-6">
+      <div className="grid md:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Te Doen
+              Te Doen Taken
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -177,7 +271,7 @@ export default function UserDashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Voltooid
+              Voltooide Taken
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -193,11 +287,27 @@ export default function UserDashboardPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Totale Tijd
+              Logboek Items
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-600">
+              {logbookEntries.length}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              vastgelegde activiteiten
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Totale Tijd
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">
               {pendingTasks.reduce((acc, task) => acc + task.estimated_duration, 0)}m
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -207,8 +317,20 @@ export default function UserDashboardPage() {
         </Card>
       </div>
 
-      {/* Tasks List */}
-      <div className="space-y-6">
+      {/* Tasks and Logbook Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="tasks" className="flex items-center space-x-2">
+            <AlertTriangle className="w-4 h-4" />
+            <span>Taken ({tasks.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="logbook" className="flex items-center space-x-2">
+            <BookOpen className="w-4 h-4" />
+            <span>Logboek ({logbookEntries.length})</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="tasks" className="space-y-6">
         {/* Pending Tasks */}
         {pendingTasks.length > 0 && (
           <Card>
@@ -308,7 +430,69 @@ export default function UserDashboardPage() {
             </CardContent>
           </Card>
         )}
-      </div>
+        </TabsContent>
+
+        <TabsContent value="logbook" className="space-y-6">
+        {/* Logbook Entries */}
+        {logbookEntries.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <BookOpen className="w-5 h-5 text-blue-600" />
+                <span>Logboek Items ({logbookEntries.length})</span>
+              </CardTitle>
+              <CardDescription>
+                Jouw vastgelegde activiteiten voor toegewezen tuinen
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {logbookEntries.map((entry) => (
+                <div key={entry.id} className="p-4 border rounded-lg">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3 mb-2">
+                        <Calendar className="w-4 h-4 text-blue-600" />
+                        <h3 className="font-medium">{entry.title}</h3>
+                        <Badge className={cn("text-xs", getEntryTypeColor(entry.entry_type))}>
+                          {getEntryTypeLabel(entry.entry_type)}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {entry.description}
+                      </p>
+                      <div className="flex items-center space-x-4 text-xs text-muted-foreground">
+                        <span>📍 {getGardenName(entry.garden_id)}</span>
+                        <span>📅 {new Date(entry.created_at).toLocaleDateString('nl-NL', {
+                          year: 'numeric',
+                          month: 'short', 
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}</span>
+                        {entry.weather && <span>🌤️ {entry.weather}</span>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* No Logbook Entries */}
+        {logbookEntries.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-12">
+              <BookOpen className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Geen logboek items gevonden</h3>
+              <p className="text-muted-foreground">
+                Er zijn nog geen logboek items voor jouw toegewezen tuin(en).
+              </p>
+            </CardContent>
+          </Card>
+        )}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
