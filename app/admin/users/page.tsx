@@ -38,6 +38,7 @@ interface Garden {
 
 interface InviteFormData {
   email: string
+  full_name: string
   role: 'admin' | 'user'
   message: string
   garden_access: string[]
@@ -60,6 +61,7 @@ function AdminUsersPageContent() {
   // Form state
   const [formData, setFormData] = useState<InviteFormData>({
     email: '',
+    full_name: '',
     role: 'user',
     message: '',
     garden_access: []
@@ -161,7 +163,7 @@ function AdminUsersPageContent() {
           email: formData.email,
           role: formData.role,
           status: 'pending',
-          full_name: '',
+          full_name: formData.full_name, // Required field now
           avatar_url: null
         })
 
@@ -202,6 +204,7 @@ function AdminUsersPageContent() {
       // Reset form and reload users
       setFormData({
         email: '',
+        full_name: '',
         role: 'user',
         message: '',
         garden_access: []
@@ -462,6 +465,17 @@ function AdminUsersPageContent() {
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Volledige naam</Label>
+              <Input
+                id="full_name"
+                type="text"
+                placeholder="Jan de Vries"
+                value={formData.full_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+              />
+            </div>
             
             <div className="space-y-2">
               <Label htmlFor="role">Rol</Label>
@@ -483,10 +497,7 @@ function AdminUsersPageContent() {
               <div className="space-y-2">
                 <Label>Tuin Toegang</Label>
                 <div className="text-xs text-muted-foreground mb-1">
-                  Debug: {gardens.length} tuinen beschikbaar | Loading: {loading ? 'YES' : 'NO'} | Timestamp: {new Date().toLocaleTimeString()}
-                </div>
-                <div className="text-xs text-red-500 mb-1">
-                  Raw Gardens: {JSON.stringify(gardens.map(g => ({ id: g.id, name: g.name })))}
+                  {gardens.length} tuinen beschikbaar
                 </div>
                 <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
                   {gardens.map((garden) => (
@@ -534,7 +545,7 @@ function AdminUsersPageContent() {
             </Button>
             <Button 
               onClick={handleInviteUser}
-              disabled={!formData.email || inviting}
+              disabled={!formData.email || !formData.full_name || inviting}
             >
               {inviting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               Uitnodiging Versturen
