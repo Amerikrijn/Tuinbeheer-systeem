@@ -33,20 +33,23 @@ Demo accounts om mee in te loggen:
 - **Administrator**: `admin@tuinbeheer.nl` / `demo123`
 - **Gebruiker**: `gebruiker@tuinbeheer.nl` / `demo123`
 
-### 2. **Preview Dashboard**: `/auth/preview`
-Volledige demonstratie van alle functionaliteiten:
-- Gebruiker informatie en permissies
-- Enhanced task cards met tracking
-- Permission systeem uitleg
-- Admin functionaliteiten (alleen voor admin accounts)
-- Adaptive navigation
+**Na login worden gebruikers doorgestuurd naar hun juiste dashboard:**
 
-### 3. **Gebruikersbeheer**: `/admin/users` 
-*(Alleen toegankelijk voor administrators)*
-- Overzicht van alle gebruikers
-- Gebruiker uitnodigingen versturen
-- Status en rol management
-- Zoek en filter functionaliteit
+### 2. **Administrator Dashboard**: `/` 
+*(Alleen voor admin accounts)*
+- Volledig overzicht van alle tuinen
+- Toegang tot alle beheer functionaliteiten:
+  - `/gardens` - Tuinbeheer  
+  - `/tasks` - Alle taken beheren
+  - `/logbook` - Logboek bijhouden
+  - `/admin/users` - Gebruikersbeheer
+
+### 3. **Gebruiker Dashboard**: `/user-dashboard`
+*(Voor gewone gebruikers)*
+- **Eenvoudige interface** met alleen toegewezen taken
+- **Tuin-specifieke taken** - gebruikers zien alleen taken voor hun toegewezen tuin(en)
+- **Taak completion** - markeren van taken als voltooid
+- **Geen toegang** tot tuinbeheer, logboek of andere admin functies
 
 ---
 
