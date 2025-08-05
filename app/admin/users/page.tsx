@@ -149,8 +149,8 @@ function AdminUsersPageContent() {
           email: formData.email,
           role: formData.role,
           status: 'pending',
-          first_name: '',
-          last_name: ''
+          full_name: '',
+          avatar_url: null
         })
 
       if (profileError) {
