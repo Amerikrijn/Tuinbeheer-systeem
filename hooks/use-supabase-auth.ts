@@ -51,134 +51,31 @@ export function useSupabaseAuth(): AuthContextType {
   const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<User> => {
     console.log('🔍 START loadUserProfile for:', supabaseUser.email, 'ID:', supabaseUser.id)
     
-    // IMMEDIATE FALLBACK: Just create user from auth data, skip database entirely for now
-    const createFallbackUser = (role: 'admin' | 'user' = 'user'): User => {
-      console.log('🔍 Creating fallback user with role:', role)
-      return {
+    try {
+      // SKIP DATABASE ENTIRELY - Just use auth data for now
+      console.log('🔍 SKIPPING DATABASE: Creating user directly from auth data')
+      
+      // Determine role based on email
+      const role = supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user'
+      console.log('🔍 Determined role:', role, 'for email:', supabaseUser.email)
+      
+      const directUser = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
         full_name: supabaseUser.email?.split('@')[0] || 'User',
         role: role,
         status: 'active',
         permissions: [],
-        garden_access: [],
+        garden_access: [], // Empty for now - will load later if needed
         created_at: new Date().toISOString()
       }
-    }
-
-    // Check if admin
-    if (supabaseUser.email === 'admin@tuinbeheer.nl') {
-      console.log('🔍 ADMIN USER: Returning admin fallback')
-      return createFallbackUser('admin')
-    }
-
-    try {
-
-      // Try fast database lookup first
-      console.log('🔍 Fast database lookup for:', supabaseUser.email)
       
-      // Simplified: Get user profile from public.users table with timeout
-      const profilePromise = supabase
-        .from('users')
-        .select('*')
-        .eq('id', supabaseUser.id)
-        .single()
-
-      // Add 3 second timeout to prevent infinite waits
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile loading timeout')), 3000)
-      )
-
-      let userProfile = null
-      let profileError = null
-
-      try {
-        const result = await Promise.race([
-          profilePromise,
-          timeoutPromise
-        ]) as { data: any, error: any }
-        userProfile = result.data
-        profileError = result.error
-      } catch (error) {
-        console.log('🔍 Profile loading timed out or failed:', error)
-        profileError = { code: 'TIMEOUT', message: 'Profile loading timeout' }
-      }
-
-      console.log('🔍 Profile query result:', { 
-        hasData: !!userProfile, 
-        errorCode: profileError?.code, 
-        errorMessage: profileError?.message 
-      })
-
-      if (profileError || !userProfile) {
-        console.log('🔍 Profile loading failed or no data, using UNIVERSAL FALLBACK')
-        console.log('🔍 Error details:', profileError)
-        
-        // Universal fallback - try to get some garden access data
-        console.log('🔍 UNIVERSAL FALLBACK: Trying to load garden access...')
-        
-        let gardenAccess: string[] = []
-        try {
-          const { data: accessData } = await supabase
-            .from('user_garden_access')
-            .select('garden_id')
-            .eq('user_id', supabaseUser.id)
-          
-          gardenAccess = accessData?.map(a => a.garden_id) || []
-          console.log('🔍 Loaded garden access for fallback:', gardenAccess)
-        } catch (accessError) {
-          console.log('🔍 Could not load garden access, using empty array')
-        }
-
-        const basicProfile = {
-          id: supabaseUser.id,
-          email: supabaseUser.email || '',
-          full_name: supabaseUser.email?.split('@')[0] || 'User',
-          role: supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
-          status: 'active', // Assume active if they can authenticate
-          permissions: [],
-          garden_access: gardenAccess,
-          created_at: new Date().toISOString()
-        }
-        
-        console.log('🔍 UNIVERSAL FALLBACK profile:', basicProfile)
-        return basicProfile as any
-      }
-
-      // Simplified: Just use basic permissions for now
-      const allPermissions: string[] = []
-      const gardenAccess: string[] = []
-
-      return {
-        id: userProfile.id,
-        email: userProfile.email,
-        full_name: userProfile.full_name,
-        avatar_url: userProfile.avatar_url,
-        role: userProfile.role,
-        status: userProfile.status,
-        permissions: allPermissions,
-        garden_access: gardenAccess,
-        created_at: userProfile.created_at,
-        last_login: userProfile.last_login
-      }
+      console.log('🔍 DIRECT USER CREATED:', directUser)
+      return directUser
     } catch (error) {
-      console.error('Error in loadUserProfile:', error)
+      console.error('🔍 Error in loadUserProfile (should not happen with direct method):', error)
       
-      // FINAL FALLBACK: Even if everything fails, don't return null
-      console.log('🔍 FINAL FALLBACK: Creating emergency user for:', supabaseUser.email)
-      
-      // Try one last garden access lookup
-      let emergencyGardenAccess: string[] = []
-      try {
-        const { data } = await supabase
-          .from('user_garden_access')
-          .select('garden_id')
-          .eq('user_id', supabaseUser.id)
-        emergencyGardenAccess = data?.map(a => a.garden_id) || []
-      } catch {
-        // Ignore errors in final fallback
-      }
-      
+      // FINAL FALLBACK: Always return a valid user
       return {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
@@ -186,7 +83,7 @@ export function useSupabaseAuth(): AuthContextType {
         role: supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
         status: 'active',
         permissions: [],
-        garden_access: emergencyGardenAccess,
+        garden_access: [],
         created_at: new Date().toISOString()
       }
     }
@@ -209,35 +106,13 @@ export function useSupabaseAuth(): AuthContextType {
           const userProfile = await loadUserProfile(session.user)
           console.log('🔍 Initial profile loaded:', !!userProfile)
 
-          // CRITICAL: Never set user to null, always ensure we have a valid user object
-          if (userProfile) {
-            setState({
-              user: userProfile,
-              session,
-              loading: false,
-              error: null
-            })
-          } else {
-            console.error('🔍 CRITICAL: Initial profile loading returned null!')
-            // Emergency fallback for initial session
-            const emergencyUser = {
-              id: session.user.id,
-              email: session.user.email || '',
-              full_name: session.user.email?.split('@')[0] || 'User',
-              role: session.user.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
-              status: 'active',
-              permissions: [],
-              garden_access: [],
-              created_at: new Date().toISOString()
-            } as User
-            
-            setState({
-              user: emergencyUser,
-              session,
-              loading: false,
-              error: 'Initial profile loading failed - using emergency fallback'
-            })
-          }
+          // loadUserProfile now always returns a User object, never null
+          setState({
+            user: userProfile,
+            session,
+            loading: false,
+            error: null
+          })
         } else {
           setState({
             user: null,
@@ -281,35 +156,13 @@ export function useSupabaseAuth(): AuthContextType {
           const userProfile = await loadUserProfile(session.user)
           console.log('🔍 User profile loaded via state change:', !!userProfile)
           
-          // CRITICAL: Never set user to null, always ensure we have a valid user object
-          if (userProfile) {
-            setState({
-              user: userProfile,
-              session,
-              loading: false,
-              error: null
-            })
-          } else {
-            console.error('🔍 CRITICAL: Profile loading returned null, this should never happen!')
-            // Emergency fallback - create minimal user to prevent redirect loop
-            const emergencyUser = {
-              id: session.user.id,
-              email: session.user.email || '',
-              full_name: session.user.email?.split('@')[0] || 'User',
-              role: session.user.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
-              status: 'active',
-              permissions: [],
-              garden_access: [],
-              created_at: new Date().toISOString()
-            } as User
-            
-            setState({
-              user: emergencyUser,
-              session,
-              loading: false,
-              error: 'Profile loading failed - using emergency fallback'
-            })
-          }
+          // loadUserProfile now always returns a User object, never null
+          setState({
+            user: userProfile,
+            session,
+            loading: false,
+            error: null
+          })
         } else {
           console.log('🔍 User already loaded, just updating session')
           setState(prev => ({
