@@ -20,6 +20,7 @@ import { uiLogger } from "@/lib/logger"
 import type { LogbookEntryWithDetails, Plantvak, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 import { format, parseISO } from "date-fns"
 import { nl } from "date-fns/locale"
 
@@ -476,8 +477,10 @@ function LogbookPageContent() {
 
 export default function LogbookPage() {
   return (
-    <ErrorBoundary>
-      <LogbookPageContent />
-    </ErrorBoundary>
+    <ProtectedRoute>
+      <ErrorBoundary>
+        <LogbookPageContent />
+      </ErrorBoundary>
+    </ProtectedRoute>
   )
 }
