@@ -158,7 +158,7 @@ function AdminUsersPageContent() {
       const currentSession = await supabase.auth.getSession()
       
       // 1. Create auth user with temp password
-      const tempPassword = 'TempPass123!'
+      const tempPassword = 'Tuin123!'
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: tempPassword,
@@ -246,8 +246,8 @@ function AdminUsersPageContent() {
       toast({
         title: "Gebruiker aangemaakt",
         description: formData.role === 'admin' 
-          ? `Admin ${formData.full_name} is direct actief. Wachtwoord: TempPass123!`
-          : `Gebruiker ${formData.full_name} heeft status 'pending'. Activeer eerst, dan kunnen ze inloggen met TempPass123!`,
+          ? `Admin ${formData.full_name} is direct actief. Wachtwoord: Tuin123!`
+          : `Gebruiker ${formData.full_name} heeft status 'pending'. Activeer eerst, dan kunnen ze inloggen met Tuin123!`,
       })
 
       // Reset form and reload users
