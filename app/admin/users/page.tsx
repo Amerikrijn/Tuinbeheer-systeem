@@ -203,7 +203,7 @@ export default function UsersManagementPage() {
     }
   }
 
-  const formatDate = (dateString: string | null) => {
+  const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return 'Nooit'
     return new Date(dateString).toLocaleDateString('nl-NL', {
       year: 'numeric',
