@@ -203,16 +203,38 @@ function AdminUsersPageContent() {
         throw new Error('No user ID received from auth signup')
       }
 
-      const { error: profileError } = await supabase
+      console.log('🔍 Step 3a: Attempting direct insert...')
+      let profileError = null
+      
+      // Try direct insert first
+      const { error: directError } = await supabase
         .from('users')
         .insert({
-          id: authData.user!.id, // Safe: checked above
+          id: authData.user!.id,
           email: formData.email,
           role: formData.role,
-          status: formData.role === 'admin' ? 'active' : 'pending', // Admins direct active
+          status: formData.role === 'admin' ? 'active' : 'pending',
           full_name: formData.full_name,
           avatar_url: null
         })
+
+      if (directError) {
+        console.log('🔍 Step 3b: Direct insert failed, trying SQL function...')
+        // Fallback: Try via SQL function to bypass RLS
+        const { error: sqlError } = await supabase
+          .rpc('create_user_profile', {
+            p_user_id: authData.user!.id,
+            p_email: formData.email,
+            p_role: formData.role,
+            p_status: formData.role === 'admin' ? 'active' : 'pending',
+            p_full_name: formData.full_name
+          })
+        
+        if (sqlError) {
+          console.error('🔍 Both methods failed - RLS policy issue')
+          profileError = directError // Use original error for user feedback
+        }
+      }
 
       if (profileError) {
         console.error('🔍 Profile creation error:', profileError)
