@@ -82,8 +82,6 @@ CREATE TABLE gardens (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
     -- Constraints
-    CONSTRAINT gardens_name_length CHECK (LENGTH(name) >= 2 AND LENGTH(name) <= 100),
-    CONSTRAINT gardens_location_length CHECK (LENGTH(location) >= 2 AND LENGTH(location) <= 100),
     CONSTRAINT gardens_canvas_size CHECK (canvas_width > 0 AND canvas_height > 0),
     CONSTRAINT gardens_grid_size CHECK (grid_size > 0),
     CONSTRAINT gardens_zoom_range CHECK (default_zoom > 0 AND default_zoom <= 5)
@@ -117,8 +115,6 @@ CREATE TABLE plant_beds (
     
     -- Constraints
     CONSTRAINT plant_beds_id_format CHECK (id ~ '^[A-Z0-9\-]+$'),
-    CONSTRAINT plant_beds_name_length CHECK (LENGTH(name) >= 2 AND LENGTH(name) <= 100),
-    CONSTRAINT plant_beds_description_length CHECK (description IS NULL OR (LENGTH(description) >= 10 AND LENGTH(description) <= 500)),
     CONSTRAINT plant_beds_visual_size CHECK (visual_width > 0 AND visual_height > 0),
     CONSTRAINT plant_beds_rotation_range CHECK (rotation >= 0 AND rotation < 360),
     CONSTRAINT plant_beds_color_format CHECK (color_code ~ '^#[0-9A-Fa-f]{6}$')
@@ -150,7 +146,6 @@ CREATE TABLE plants (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     
     -- Constraints
-    CONSTRAINT plants_name_length CHECK (LENGTH(name) >= 2 AND LENGTH(name) <= 100),
     CONSTRAINT plants_height_range CHECK (height IS NULL OR (height >= 0 AND height <= 1000)),
     CONSTRAINT plants_stem_length_range CHECK (stem_length IS NULL OR (stem_length >= 0 AND stem_length <= 200)),
     CONSTRAINT plants_watering_frequency_range CHECK (watering_frequency IS NULL OR (watering_frequency >= 0 AND watering_frequency <= 365)),
