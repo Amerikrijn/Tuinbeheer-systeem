@@ -52,14 +52,10 @@ export function useSupabaseAuth(): AuthContextType {
     try {
       console.log('🔍 Loading profile for user ID:', supabaseUser.id)
       
-      // Get user profile from public.users table
+      // Simplified: Get user profile from public.users table (no joins first)
       const { data: userProfile, error: profileError } = await supabase
         .from('users')
-        .select(`
-          *,
-          user_permissions(permission),
-          user_garden_access(garden_id)
-        `)
+        .select('*')
         .eq('id', supabaseUser.id)
         .single()
 
@@ -109,19 +105,9 @@ export function useSupabaseAuth(): AuthContextType {
         return null
       }
 
-      // Get role-based permissions
-      const { data: rolePermissions } = await supabase
-        .from('role_permissions')
-        .select('permission')
-        .eq('role', userProfile.role)
-
-      // Combine user-specific and role-based permissions
-      const userPermissions = userProfile.user_permissions?.map((up: any) => up.permission) || []
-      const basePermissions = rolePermissions?.map((rp: any) => rp.permission) || []
-      const allPermissions = [...new Set([...userPermissions, ...basePermissions])]
-
-      // Get garden access
-      const gardenAccess = userProfile.user_garden_access?.map((uga: any) => uga.garden_id) || []
+      // Simplified: Just use basic permissions for now
+      const allPermissions: string[] = []
+      const gardenAccess: string[] = []
 
       return {
         id: userProfile.id,
