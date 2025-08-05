@@ -2,13 +2,14 @@
 
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/use-supabase-auth'
-import { Navigation } from '@/components/navigation'
+import { AuthNavigation } from '@/components/navigation/auth-nav'
 
 // Pages where navigation should be hidden
 const AUTH_PAGES = [
   '/auth/login',
   '/auth/forgot-password',
-  '/auth/pending'
+  '/auth/pending',
+  '/auth/change-password'
 ]
 
 export function ConditionalNavigation() {
@@ -38,7 +39,7 @@ export function ConditionalNavigation() {
   // Show navigation if user is logged in
   if (user) {
     console.log('🔍 Showing navigation - user logged in')
-    return <Navigation />
+    return <AuthNavigation />
   }
 
   // Default: no navigation

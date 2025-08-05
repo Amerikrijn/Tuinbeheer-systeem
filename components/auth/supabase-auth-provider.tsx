@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { useSupabaseAuth, SupabaseAuthContext } from '@/hooks/use-supabase-auth'
+import { useActivityTimeout } from '@/hooks/use-activity-timeout'
 
 interface SupabaseAuthProviderProps {
   children: React.ReactNode
@@ -9,6 +10,9 @@ interface SupabaseAuthProviderProps {
 
 export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   const auth = useSupabaseAuth()
+  
+  // Initialize activity timeout for automatic logout
+  useActivityTimeout()
 
   return (
     <SupabaseAuthContext.Provider value={auth}>

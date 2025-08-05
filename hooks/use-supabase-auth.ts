@@ -216,6 +216,14 @@ export function useSupabaseAuth(): AuthContextType {
       }
 
       console.log('🔍 User signed in:', data.user.email)
+      
+      // Check if user needs to change password (first login)
+      if (data.user.user_metadata?.temp_password) {
+        console.log('🔍 User has temp password, redirecting to change password')
+        // Don't throw error, let the component handle the redirect
+        return
+      }
+      
       // User profile will be loaded automatically by onAuthStateChange
     } catch (error) {
       console.error('🔍 Sign in failed:', error)
