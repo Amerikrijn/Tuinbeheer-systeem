@@ -227,7 +227,7 @@ export function EnhancedTaskCard({
               {compact && (
                 <div className="flex items-center space-x-1 ml-2">
                   <StatusIcon className={cn("w-3 h-3", statusInfo.color)} />
-                  <Badge size="sm" className={getPriorityColor(task.priority)}>
+                  <Badge className={cn("text-xs px-1 py-0", getPriorityColor(task.priority))}>
                     {task.priority === 'high' ? 'H' : 
                      task.priority === 'medium' ? 'M' : 'L'}
                   </Badge>
