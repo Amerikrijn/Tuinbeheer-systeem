@@ -100,8 +100,22 @@ export function useSupabaseAuth(): AuthContextType {
         console.log('🔍 Profile loading failed or no data, using UNIVERSAL FALLBACK')
         console.log('🔍 Error details:', profileError)
         
-        // Universal fallback - return basic user based on auth data
-        // Check database for role/status, use defaults if needed
+        // Universal fallback - try to get some garden access data
+        console.log('🔍 UNIVERSAL FALLBACK: Trying to load garden access...')
+        
+        let gardenAccess: string[] = []
+        try {
+          const { data: accessData } = await supabase
+            .from('user_garden_access')
+            .select('garden_id')
+            .eq('user_id', supabaseUser.id)
+          
+          gardenAccess = accessData?.map(a => a.garden_id) || []
+          console.log('🔍 Loaded garden access for fallback:', gardenAccess)
+        } catch (accessError) {
+          console.log('🔍 Could not load garden access, using empty array')
+        }
+
         const basicProfile = {
           id: supabaseUser.id,
           email: supabaseUser.email || '',
@@ -109,7 +123,7 @@ export function useSupabaseAuth(): AuthContextType {
           role: supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
           status: 'active', // Assume active if they can authenticate
           permissions: [],
-          garden_access: [],
+          garden_access: gardenAccess,
           created_at: new Date().toISOString()
         }
         
@@ -138,6 +152,19 @@ export function useSupabaseAuth(): AuthContextType {
       
       // FINAL FALLBACK: Even if everything fails, don't return null
       console.log('🔍 FINAL FALLBACK: Creating emergency user for:', supabaseUser.email)
+      
+      // Try one last garden access lookup
+      let emergencyGardenAccess: string[] = []
+      try {
+        const { data } = await supabase
+          .from('user_garden_access')
+          .select('garden_id')
+          .eq('user_id', supabaseUser.id)
+        emergencyGardenAccess = data?.map(a => a.garden_id) || []
+      } catch {
+        // Ignore errors in final fallback
+      }
+      
       return {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
@@ -145,7 +172,7 @@ export function useSupabaseAuth(): AuthContextType {
         role: supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
         status: 'active',
         permissions: [],
-        garden_access: [],
+        garden_access: emergencyGardenAccess,
         created_at: new Date().toISOString()
       }
     }
