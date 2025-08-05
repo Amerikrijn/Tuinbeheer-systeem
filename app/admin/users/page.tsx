@@ -214,7 +214,7 @@ export default function UsersManagementPage() {
     })
   }
 
-  const getInitials = (name: string | null, email: string) => {
+  const getInitials = (name: string | null | undefined, email: string) => {
     if (name) {
       return name.split(' ').map(n => n[0]).join('').toUpperCase()
     }
