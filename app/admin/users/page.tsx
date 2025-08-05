@@ -57,6 +57,13 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 import { useToast } from '@/hooks/use-toast'
 
+// Mock garden data for assignment preview
+const MOCK_GARDENS = [
+  { id: '1', name: 'Hoofdtuin' },
+  { id: '2', name: 'Vooruin' },
+  { id: '3', name: 'Moestuin' }
+]
+
 // Mock users data - uitgebreid met meer preview data
 const MOCK_USERS = [
   {
@@ -68,7 +75,8 @@ const MOCK_USERS = [
     avatar_url: undefined,
     created_at: '2024-01-01T00:00:00Z',
     last_login: '2024-01-15T10:30:00Z',
-    invited_by: undefined
+    invited_by: undefined,
+    garden_access: [] // Admin has access to all
   },
   {
     id: '2',
