@@ -8,6 +8,7 @@ import { Calendar, CheckCircle, Clock, CloudRain, Sun, CloudDrizzle, Snowflake, 
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Button } from '@/components/ui/button'
 
 interface Task {
@@ -35,7 +36,7 @@ interface LogbookEntry {
   weather?: 'sunny' | 'cloudy' | 'rainy' | 'snowy'
 }
 
-export default function UserDashboard() {
+function UserDashboardContent() {
   const { user, hasGardenAccess, getAccessibleGardens } = useAuth()
   const { toast } = useToast()
   
@@ -428,5 +429,14 @@ export default function UserDashboard() {
         </TabsContent>
       </Tabs>
     </div>
+  )
+}
+
+// Protected user dashboard 
+export default function UserDashboard() {
+  return (
+    <ProtectedRoute allowedRoles={['user']}>
+      <UserDashboardContent />
+    </ProtectedRoute>
   )
 }

@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { GardenAccessManager } from '@/components/admin/garden-access-manager'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 
 interface User {
   id: string
@@ -42,7 +43,7 @@ interface InviteFormData {
   garden_access: string[]
 }
 
-export default function RealAdminUsersPage() {
+function AdminUsersPageContent() {
   const { toast } = useToast()
   const { user: currentUser } = useAuth()
   
@@ -490,5 +491,14 @@ export default function RealAdminUsersPage() {
         }}
       />
     </div>
+  )
+}
+
+// Protected admin users page
+export default function AdminUsersPage() {
+  return (
+    <ProtectedRoute requireAdmin={true}>
+      <AdminUsersPageContent />
+    </ProtectedRoute>
   )
 }

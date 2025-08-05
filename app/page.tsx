@@ -18,6 +18,7 @@ import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-supabase-auth"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 interface HomePageState {
   gardens: Tuin[]
@@ -593,11 +594,13 @@ function getUserFriendlyErrorMessage(error: string): string {
   return error || 'Er is een onverwachte fout opgetreden.'
 }
 
-// Main page component with error boundary
+// Main page component with error boundary and auth protection
 export default function HomePage() {
   return (
-    <ErrorBoundary>
-      <HomePageContent />
-    </ErrorBoundary>
+    <ProtectedRoute>
+      <ErrorBoundary>
+        <HomePageContent />
+      </ErrorBoundary>
+    </ProtectedRoute>
   )
 }

@@ -8,8 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, Plus, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
-export default function TasksPage() {
+function TasksPageContent() {
   const { goBack } = useNavigation()
   const [showAddTask, setShowAddTask] = useState(false)
   const [selectedPlantId, setSelectedPlantId] = useState<string | undefined>()
@@ -66,5 +67,14 @@ export default function TasksPage() {
         preselectedPlantId={selectedPlantId}
       />
     </div>
+  )
+}
+
+// Protected tasks page
+export default function TasksPage() {
+  return (
+    <ProtectedRoute>
+      <TasksPageContent />
+    </ProtectedRoute>
   )
 }
