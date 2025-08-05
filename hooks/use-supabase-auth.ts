@@ -48,24 +48,31 @@ export function useSupabaseAuth(): AuthContextType {
   })
 
   // Load user profile with permissions and garden access
-  const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<User | null> => {
-    try {
-      console.log('🔍 Loading profile for user ID:', supabaseUser.id)
-      
-      // EMERGENCY: Skip database and return hardcoded users for testing
-      if (supabaseUser.email === 'admin@tuinbeheer.nl') {
-        console.log('🔍 EMERGENCY FALLBACK: Returning hardcoded admin user')
-        return {
-          id: supabaseUser.id,
-          email: supabaseUser.email || '',
-          full_name: 'Administrator',
-          role: 'admin',
-          status: 'active',
-          permissions: [],
-          garden_access: [],
-          created_at: new Date().toISOString()
-        }
+  const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<User> => {
+    console.log('🔍 START loadUserProfile for:', supabaseUser.email, 'ID:', supabaseUser.id)
+    
+    // IMMEDIATE FALLBACK: Just create user from auth data, skip database entirely for now
+    const createFallbackUser = (role: 'admin' | 'user' = 'user'): User => {
+      console.log('🔍 Creating fallback user with role:', role)
+      return {
+        id: supabaseUser.id,
+        email: supabaseUser.email || '',
+        full_name: supabaseUser.email?.split('@')[0] || 'User',
+        role: role,
+        status: 'active',
+        permissions: [],
+        garden_access: [],
+        created_at: new Date().toISOString()
       }
+    }
+
+    // Check if admin
+    if (supabaseUser.email === 'admin@tuinbeheer.nl') {
+      console.log('🔍 ADMIN USER: Returning admin fallback')
+      return createFallbackUser('admin')
+    }
+
+    try {
 
       // Try fast database lookup first
       console.log('🔍 Fast database lookup for:', supabaseUser.email)
