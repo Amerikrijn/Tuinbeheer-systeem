@@ -89,7 +89,7 @@ export function useSupabaseAuth(): AuthContextType {
         const result = await Promise.race([
           profilePromise,
           timeoutPromise
-        ])
+        ]) as { data: any, error: any }
         userProfile = result.data
         profileError = result.error
       } catch (error) {
