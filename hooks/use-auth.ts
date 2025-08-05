@@ -72,7 +72,8 @@ const MOCK_USERS: User[] = [
       'tasks.complete', 'tasks.view',
       'logbook.create', 'logbook.view'
     ],
-    created_at: '2024-01-10T00:00:00Z'
+    created_at: '2024-01-10T00:00:00Z',
+    last_login: undefined
   }
 ]
 

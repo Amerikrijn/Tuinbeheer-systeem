@@ -65,10 +65,10 @@ const MOCK_USERS = [
     full_name: 'Admin User',
     role: 'admin' as const,
     status: 'active' as const,
-    avatar_url: null,
+    avatar_url: undefined,
     created_at: '2024-01-01T00:00:00Z',
     last_login: '2024-01-15T10:30:00Z',
-    invited_by: null
+    invited_by: undefined
   },
   {
     id: '2',
@@ -76,7 +76,7 @@ const MOCK_USERS = [
     full_name: 'Jan de Tuinman',
     role: 'user' as const,
     status: 'active' as const,
-    avatar_url: null,
+    avatar_url: undefined,
     created_at: '2024-01-05T00:00:00Z',
     last_login: '2024-01-14T08:15:00Z',
     invited_by: '1'
@@ -87,9 +87,9 @@ const MOCK_USERS = [
     full_name: 'Maria Bloemen',
     role: 'user' as const,
     status: 'pending' as const,
-    avatar_url: null,
+    avatar_url: undefined,
     created_at: '2024-01-10T00:00:00Z',
-    last_login: null,
+    last_login: undefined,
     invited_by: '1'
   },
   {
@@ -98,7 +98,7 @@ const MOCK_USERS = [
     full_name: 'Piet Plantenbak',
     role: 'user' as const,
     status: 'active' as const,
-    avatar_url: null,
+    avatar_url: undefined,
     created_at: '2024-01-12T00:00:00Z',
     last_login: '2024-01-13T14:20:00Z',
     invited_by: '1'
@@ -106,10 +106,10 @@ const MOCK_USERS = [
   {
     id: '5',
     email: 'sophie@tuinbeheer.nl',
-    full_name: null,
+    full_name: undefined,
     role: 'user' as const,
     status: 'inactive' as const,
-    avatar_url: null,
+    avatar_url: undefined,
     created_at: '2024-01-08T00:00:00Z',
     last_login: '2024-01-09T12:00:00Z',
     invited_by: '1'
