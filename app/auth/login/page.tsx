@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { TreePine, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -61,6 +62,20 @@ export default function LoginPage() {
     setIsSubmitting(true)
     try {
       await signIn(formData.email, formData.password)
+      
+      // Check if user has temp password and needs to change it
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.user_metadata?.temp_password) {
+        console.log('🔍 User has temp password, redirecting to change password page')
+        toast({
+          title: "Eerste keer inloggen",
+          description: "Je moet eerst je wachtwoord wijzigen",
+        })
+        setTimeout(() => {
+          router.push('/auth/change-password')
+        }, 1000)
+        return
+      }
       
       toast({
         title: "Succesvol ingelogd",

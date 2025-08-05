@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-supabase-auth'
+import { supabase } from '@/lib/supabase'
 import { Loader2 } from 'lucide-react'
 
 interface ProtectedRouteProps {
@@ -47,6 +48,19 @@ export function ProtectedRoute({
         router.push('/auth/login')
         return
       }
+
+      // Check if user needs to change password (first login) - but not on change-password page itself
+      const checkTempPassword = async () => {
+        if (window.location.pathname !== '/auth/change-password') {
+          const { data: { user: authUser } } = await supabase.auth.getUser()
+          if (authUser?.user_metadata?.temp_password) {
+            console.log('🔍 ProtectedRoute: User has temp password, redirecting to change password')
+            router.push('/auth/change-password')
+            return
+          }
+        }
+      }
+      checkTempPassword()
 
       // Check admin requirement
       if (requireAdmin && user.role !== 'admin') {
