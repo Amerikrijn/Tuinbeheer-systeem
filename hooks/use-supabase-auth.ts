@@ -56,10 +56,10 @@ export function useSupabaseAuth(): AuthContextType {
       console.log('🔍 SKIPPING DATABASE: Creating user directly from auth data')
       
       // Determine role based on email
-      const role = supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user'
+      const role: 'admin' | 'user' = supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user'
       console.log('🔍 Determined role:', role, 'for email:', supabaseUser.email)
       
-      const directUser = {
+      const directUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
         full_name: supabaseUser.email?.split('@')[0] || 'User',
@@ -76,16 +76,18 @@ export function useSupabaseAuth(): AuthContextType {
       console.error('🔍 Error in loadUserProfile (should not happen with direct method):', error)
       
       // FINAL FALLBACK: Always return a valid user
-      return {
+      const fallbackRole: 'admin' | 'user' = supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user'
+      const fallbackUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
         full_name: supabaseUser.email?.split('@')[0] || 'User',
-        role: supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user',
+        role: fallbackRole,
         status: 'active',
         permissions: [],
         garden_access: [],
         created_at: new Date().toISOString()
       }
+      return fallbackUser
     }
   }
 
