@@ -403,7 +403,6 @@ INSERT INTO gardens (id, name, description, location, total_area, length, width,
 
 -- Insert test plant beds
 INSERT INTO plant_beds (id, garden_id, name, location, size, soil_type, sun_exposure, description, position_x, position_y, visual_width, visual_height, color_code) VALUES
--- Voortuin beds
 (
     'TEST-VT-001',
     '550e8400-e29b-41d4-a716-446655440001',
@@ -434,8 +433,6 @@ INSERT INTO plant_beds (id, garden_id, name, location, size, soil_type, sun_expo
     80,
     '#8b5cf6'
 ),
-
--- Moestuin beds
 (
     'TEST-MT-001',
     '550e8400-e29b-41d4-a716-446655440002',
@@ -481,8 +478,6 @@ INSERT INTO plant_beds (id, garden_id, name, location, size, soil_type, sun_expo
     110,
     '#fb923c'
 ),
-
--- Bloementuin beds
 (
     'TEST-BT-001',
     '550e8400-e29b-41d4-a716-446655440003',
@@ -513,8 +508,6 @@ INSERT INTO plant_beds (id, garden_id, name, location, size, soil_type, sun_expo
     90,
     '#ec4899'
 ),
-
--- Kruidtuin beds  
 (
     'TEST-KT-001',
     '550e8400-e29b-41d4-a716-446655440004',
@@ -548,8 +541,6 @@ INSERT INTO plant_beds (id, garden_id, name, location, size, soil_type, sun_expo
 
 -- Insert test plants
 INSERT INTO plants (plant_bed_id, name, scientific_name, variety, color, height, category, bloom_period, planting_date, expected_harvest_date, status, notes, care_instructions, watering_frequency) VALUES
-
--- Test Rozenbed (TEST-VT-001)
 (
     'TEST-VT-001',
     'Test Rode Roos',
@@ -582,8 +573,6 @@ INSERT INTO plants (plant_bed_id, name, scientific_name, variety, color, height,
     'Weinig water, snoeien na bloei',
     14
 ),
-
--- Test Borders (TEST-VT-002)
 (
     'TEST-VT-002',
     'Test Buxus',
@@ -600,8 +589,6 @@ INSERT INTO plants (plant_bed_id, name, scientific_name, variety, color, height,
     'Matig water, 2x per jaar snoeien',
     10
 ),
-
--- Test Tomatenbed (TEST-MT-001)
 (
     'TEST-MT-001',
     'Test Cherrytomaat',
@@ -634,8 +621,6 @@ INSERT INTO plants (plant_bed_id, name, scientific_name, variety, color, height,
     'Regelmatig water, ondersteuning geven',
     2
 ),
-
--- Test Saladebar (TEST-MT-002)
 (
     'TEST-MT-002',
     'Test Sla',
@@ -668,8 +653,6 @@ INSERT INTO plants (plant_bed_id, name, scientific_name, variety, color, height,
     'Regelmatig water, doorlopend oogsten',
     2
 ),
-
--- Test Wortelgewassen (TEST-MT-003)
 (
     'TEST-MT-003',
     'Test Wortels',
@@ -702,8 +685,6 @@ INSERT INTO plants (plant_bed_id, name, scientific_name, variety, color, height,
     'Dagelijks water, oogsten na 30 dagen',
     1
 ),
-
--- Test Voorjaarsbloemen (TEST-BT-001)
 (
     'TEST-BT-001',
     'Test Tulp',
@@ -736,8 +717,6 @@ INSERT INTO plants (plant_bed_id, name, scientific_name, variety, color, height,
     'Weinig onderhoud, natuurlijk verwelken',
     10
 ),
-
--- Test Zomerbloemen (TEST-BT-002)
 (
     'TEST-BT-002',
     'Test Zonnebloem',
@@ -770,8 +749,6 @@ INSERT INTO plants (plant_bed_id, name, scientific_name, variety, color, height,
     'Regelmatig water, dode bloemen wegknippen',
     3
 ),
-
--- Test Mediterrane Kruiden (TEST-KT-001)
 (
     'TEST-KT-001',
     'Test Rozemarijn',
@@ -804,8 +781,6 @@ INSERT INTO plants (plant_bed_id, name, scientific_name, variety, color, height,
     'Matig water, snoeien na bloei',
     10
 ),
-
--- Test Keukenkruiden (TEST-KT-002)
 (
     'TEST-KT-002',
     'Test Basilicum',
@@ -838,8 +813,6 @@ INSERT INTO plants (plant_bed_id, name, scientific_name, variety, color, height,
     'Regelmatig water, doorlopend oogsten',
     3
 ),
-
--- Test plant met dood status
 (
     'TEST-MT-002',
     'Test Dode Plant',
