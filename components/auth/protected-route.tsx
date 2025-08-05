@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { Loader2 } from 'lucide-react'
@@ -18,9 +18,27 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const [timeoutReached, setTimeoutReached] = useState(false)
+
+  // Add timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.log('🔍 ProtectedRoute timeout reached - forcing redirect to login')
+      setTimeoutReached(true)
+    }, 10000) // 10 second timeout
+
+    return () => clearTimeout(timeout)
+  }, [])
 
   useEffect(() => {
-    console.log('🔍 ProtectedRoute check:', { loading, hasUser: !!user, userRole: user?.role })
+    console.log('🔍 ProtectedRoute check:', { loading, hasUser: !!user, userRole: user?.role, userEmail: user?.email, timeoutReached })
+    
+    // If timeout reached, force redirect to login
+    if (timeoutReached) {
+      console.log('🔍 ProtectedRoute: Timeout reached, redirecting to login')
+      router.push('/auth/login')
+      return
+    }
     
     if (!loading) {
       // No user - redirect to login
@@ -48,10 +66,10 @@ export function ProtectedRoute({
         return
       }
     }
-  }, [user, loading, router, requireAdmin, allowedRoles])
+  }, [user, loading, router, requireAdmin, allowedRoles, timeoutReached])
 
-  // Show loading while checking auth
-  if (loading) {
+  // Show loading while checking auth (unless timeout reached)
+  if (loading && !timeoutReached) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
