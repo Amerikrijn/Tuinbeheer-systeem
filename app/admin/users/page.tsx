@@ -98,18 +98,25 @@ function AdminUsersPageContent() {
       console.log('🔍 Loading gardens...')
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
-        .select('id, name, description')
+        .select('*')
         .order('name')
 
-      console.log('🔍 Gardens loaded:', { count: gardensData?.length, error: gardensError?.message })
+      console.log('🔍 Gardens query result:', { 
+        data: gardensData, 
+        count: gardensData?.length, 
+        error: gardensError,
+        errorDetails: gardensError?.details,
+        errorMessage: gardensError?.message
+      })
 
       if (gardensError) {
         console.error('🔍 Gardens error:', gardensError)
-        throw gardensError
+        // Don't throw - continue without gardens for now
+        setGardens([])
+      } else {
+        setGardens(gardensData || [])
+        console.log('🔍 Gardens state set:', gardensData?.length)
       }
-
-      setGardens(gardensData || [])
-      console.log('🔍 Gardens state set:', gardensData?.length)
 
     } catch (error) {
       console.error('Error loading data:', error)
@@ -130,32 +137,15 @@ function AdminUsersPageContent() {
       // TEMP: Direct database invite (bypass Edge Function)
       console.log('🔍 Creating user invite directly...')
       
-      // 1. Create user account with temp password
-      const tempPassword = 'TempPass123!'
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: tempPassword,
-        options: {
-          data: {
-            role: formData.role,
-            message: formData.message,
-            invited_by: 'admin'
-          }
-        }
-      })
-
-      if (authError) {
-        console.error('🔍 Auth signup error:', authError)
-        throw new Error(`Account creation failed: ${authError.message}`)
-      }
-
-      console.log('🔍 Auth signup success:', authData)
-
-      // 2. Create user profile in public.users
+      // WORKAROUND: Direct database user creation (manual auth setup required)
+      const newUserId = crypto.randomUUID()
+      console.log('🔍 Creating user record with ID:', newUserId)
+      
+      // 1. Create user profile in public.users
       const { error: profileError } = await supabase
         .from('users')
         .insert({
-          id: authData.user.id,
+          id: newUserId,
           email: formData.email,
           role: formData.role,
           status: 'pending',
@@ -168,10 +158,13 @@ function AdminUsersPageContent() {
         throw new Error(`Profile creation failed: ${profileError.message}`)
       }
 
-      // 3. Add garden access if user role and gardens selected
+      console.log('🔍 User profile created successfully')
+
+      // 2. Add garden access if user role and gardens selected
       if (formData.role === 'user' && formData.garden_access.length > 0) {
+        console.log('🔍 Adding garden access for gardens:', formData.garden_access)
         const gardenAccessInserts = formData.garden_access.map(gardenId => ({
-          user_id: authData.user.id,
+          user_id: newUserId,
           garden_id: gardenId
         }))
 
@@ -183,13 +176,15 @@ function AdminUsersPageContent() {
           console.error('🔍 Garden access error:', accessError)
           throw new Error(`Garden access failed: ${accessError.message}`)
         }
+
+        console.log('🔍 Garden access added successfully')
       }
 
       console.log('🔍 User invite completed successfully')
 
       toast({
-        title: "Uitnodiging verzonden",
-        description: `${formData.email} is uitgenodigd als ${formData.role}`,
+        title: "Gebruiker aangemaakt",
+        description: `${formData.email} is aangemaakt als ${formData.role}. Auth account moet handmatig worden ingesteld.`,
       })
 
       // Reset form and reload users
