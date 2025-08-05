@@ -87,7 +87,8 @@ const MOCK_USERS = [
     avatar_url: undefined,
     created_at: '2024-01-05T00:00:00Z',
     last_login: '2024-01-14T08:15:00Z',
-    invited_by: '1'
+    invited_by: '1',
+    garden_access: ['1'] // Toegang tot Hoofdtuin
   },
   {
     id: '3',
@@ -98,7 +99,8 @@ const MOCK_USERS = [
     avatar_url: undefined,
     created_at: '2024-01-10T00:00:00Z',
     last_login: undefined,
-    invited_by: '1'
+    invited_by: '1',
+    garden_access: ['2'] // Toegang tot Vooruin
   },
   {
     id: '4',
@@ -109,7 +111,8 @@ const MOCK_USERS = [
     avatar_url: undefined,
     created_at: '2024-01-12T00:00:00Z',
     last_login: '2024-01-13T14:20:00Z',
-    invited_by: '1'
+    invited_by: '1',
+    garden_access: ['1', '2'] // Toegang tot meerdere tuinen
   },
   {
     id: '5',
@@ -120,7 +123,8 @@ const MOCK_USERS = [
     avatar_url: undefined,
     created_at: '2024-01-08T00:00:00Z',
     last_login: '2024-01-09T12:00:00Z',
-    invited_by: '1'
+    invited_by: '1',
+    garden_access: ['3'] // Toegang tot Moestuin
   }
 ]
 

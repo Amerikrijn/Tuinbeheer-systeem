@@ -74,40 +74,35 @@ export function AuthNavigation() {
         icon: Home,
         description: 'Admin overzicht van alle tuinen'
       })
-    } else {
-      items.push({
-        title: 'Mijn Taken',
-        href: '/user-dashboard',
-        icon: ClipboardList,
-        description: 'Bekijk je toegewezen taken'
-      })
-    }
-
-    // Admin-only navigation items
-    if (hasPermission('gardens.view')) {
+      
+      // Admin gets all the management links
       items.push({
         title: 'Tuinen',
         href: '/gardens',
         icon: TreePine,
         description: 'Beheer je tuinen'
       })
-    }
-
-    if (hasPermission('tasks.create')) {
+      
       items.push({
         title: 'Alle Taken',
         href: '/tasks',
         icon: ClipboardList,
         description: 'Beheer alle taken'
       })
-    }
-
-    if (hasPermission('logbook.view')) {
+      
       items.push({
         title: 'Logboek',
         href: '/logbook',
         icon: BookOpen,
         description: 'Tuinlogboek bijhouden'
+      })
+    } else {
+      // Regular users only get their task dashboard
+      items.push({
+        title: 'Mijn Taken',
+        href: '/user-dashboard',
+        icon: ClipboardList,
+        description: 'Bekijk je toegewezen taken'
       })
     }
 

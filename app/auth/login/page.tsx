@@ -67,7 +67,14 @@ export default function LoginPage() {
         description: "Welkom terug!",
       })
       
-      router.push('/')
+      // Redirect based on user role
+      // This will be updated with real user data after signIn
+      const userEmail = formData.email
+      if (userEmail === 'admin@tuinbeheer.nl') {
+        router.push('/') // Admin dashboard
+      } else {
+        router.push('/user-dashboard') // User task dashboard
+      }
     } catch (error) {
       toast({
         title: "Inloggen mislukt",
