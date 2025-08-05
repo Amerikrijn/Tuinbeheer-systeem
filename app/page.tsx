@@ -19,6 +19,7 @@ import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-supabase-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { supabase } from "@/lib/supabase"
 
 interface HomePageState {
   gardens: Tuin[]
