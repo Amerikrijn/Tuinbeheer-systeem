@@ -67,14 +67,9 @@ export default function LoginPage() {
         description: "Welkom terug!",
       })
       
-      // Redirect based on user role
-      // This will be updated with real user data after signIn
-      const userEmail = formData.email
-      if (userEmail === 'admin@tuinbeheer.nl') {
-        router.push('/') // Admin dashboard
-      } else {
-        router.push('/user-dashboard') // User task dashboard
-      }
+      // Redirect will be handled automatically by auth state change
+      // The useAuth hook will update with real user data from Supabase
+      router.push('/') // Will redirect based on role in Navigation component
     } catch (error) {
       toast({
         title: "Inloggen mislukt",

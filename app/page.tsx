@@ -10,13 +10,14 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3 } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3, Settings } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger, AuditLogger } from "@/lib/logger"
 import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/hooks/use-supabase-auth"
 
 interface HomePageState {
   gardens: Tuin[]
@@ -34,6 +35,7 @@ function HomePageContent() {
   const router = useRouter()
   const { toast } = useToast()
   const { isVisualView, toggleView } = useViewPreference()
+  const { user, isAdmin } = useAuth()
   
   const [state, setState] = React.useState<HomePageState>({
     gardens: [],
@@ -215,15 +217,33 @@ function HomePageContent() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       {/* Header */}
-              <header className="text-center mb-6">
-        <div className="flex items-center justify-center gap-3 mb-4">
+      <header className="text-center mb-6">
+        <div className="flex items-center justify-center gap-3 mb-4 relative">
           <div className="p-3 bg-green-100 rounded-full">
             <TreePine className="h-8 w-8 text-green-600" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900">Tuinbeheer Systeem</h1>
+          
+          {/* Admin Button - only visible for admins */}
+          {isAdmin() && (
+            <div className="absolute right-0 top-1/2 transform -translate-y-1/2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => router.push('/admin/users')}
+                className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+              >
+                <Settings className="w-4 h-4" />
+                Admin Panel
+              </Button>
+            </div>
+          )}
         </div>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Welkom bij uw persoonlijke tuinbeheer dashboard. Beheer uw tuinen, plantbedden en houd bij wat u heeft geplant.
+          {isAdmin() 
+            ? 'Administrator Dashboard - Beheer alle tuinen en gebruikers' 
+            : 'Welkom bij uw persoonlijke tuinbeheer dashboard. Beheer uw tuinen, plantbedden en houd bij wat u heeft geplant.'
+          }
         </p>
       </header>
 

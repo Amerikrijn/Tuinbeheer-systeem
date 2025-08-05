@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { LanguageProvider } from "@/hooks/use-language"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { Navigation } from "@/components/navigation"
-import { AuthProvider } from "@/components/auth/auth-provider"
+import { SupabaseAuthProvider } from "@/components/auth/supabase-auth-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -31,11 +31,11 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <LanguageProvider>
-              <AuthProvider>
+              <SupabaseAuthProvider>
                 <Navigation />
                 {children}
                 <Toaster />
-              </AuthProvider>
+              </SupabaseAuthProvider>
             </LanguageProvider>
           </ThemeProvider>
         </ErrorBoundary>
