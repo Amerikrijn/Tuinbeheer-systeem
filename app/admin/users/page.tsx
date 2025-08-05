@@ -154,9 +154,6 @@ function AdminUsersPageContent() {
       // WORKAROUND: Create auth user first, then profile
       console.log('🔍 Step 1: Creating auth user...')
       
-      // Save current session to restore later
-      const currentSession = await supabase.auth.getSession()
-      
       // 1. Create auth user with temp password
       const tempPassword = 'Tuin123!'
       const { data: authData, error: authError } = await supabase.auth.signUp({
