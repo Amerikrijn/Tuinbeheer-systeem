@@ -23,14 +23,14 @@ const MOCK_GARDENS = [
 ]
 
 // Mock tasks for specific gardens
-const MOCK_TASKS = [
+const MOCK_TASKS: Task[] = [
   {
     id: '1',
     title: 'Rozen bijsnoeien',
     description: 'De rozen in het eerste bed moeten gesnoeid worden',
     garden_id: '1',
-    priority: 'high',
-    status: 'pending',
+    priority: 'high' as const,
+    status: 'pending' as const,
     due_date: '2024-01-20',
     estimated_duration: 30
   },
@@ -39,8 +39,8 @@ const MOCK_TASKS = [
     title: 'Onkruid wieden',
     description: 'Onkruid verwijderen tussen de planten',
     garden_id: '1', 
-    priority: 'medium',
-    status: 'pending',
+    priority: 'medium' as const,
+    status: 'pending' as const,
     due_date: '2024-01-22',
     estimated_duration: 45
   },
@@ -49,8 +49,8 @@ const MOCK_TASKS = [
     title: 'Gras maaien',
     description: 'Het gazon in de vooruin maaien',
     garden_id: '2',
-    priority: 'medium', 
-    status: 'completed',
+    priority: 'medium' as const, 
+    status: 'completed' as const,
     due_date: '2024-01-18',
     estimated_duration: 60
   },
@@ -59,8 +59,8 @@ const MOCK_TASKS = [
     title: 'Water geven',
     description: 'Alle planten water geven',
     garden_id: '2',
-    priority: 'high',
-    status: 'pending', 
+    priority: 'high' as const,
+    status: 'pending' as const, 
     due_date: '2024-01-19',
     estimated_duration: 20
   }
