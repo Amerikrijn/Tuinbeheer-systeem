@@ -763,7 +763,16 @@ function UserDashboardInterface() {
         const { data: plantsCheck, error: plantsError } = await plantsQuery
         console.log('🌱 Plants found:', plantsCheck)
         
-        // Now search for tasks
+        // Calculate date ranges for this week + overdue
+        const now = new Date()
+        const startOfWeek = new Date(now)
+        startOfWeek.setDate(now.getDate() - now.getDay()) // Start of current week (Sunday)
+        startOfWeek.setHours(0, 0, 0, 0)
+        const endOfWeek = new Date(startOfWeek)
+        endOfWeek.setDate(startOfWeek.getDate() + 6) // End of current week (Saturday)
+        endOfWeek.setHours(23, 59, 59, 999)
+
+        // Now search for tasks (this week + overdue)
         let tasksQuery = supabase
           .from('tasks')
           .select(`
@@ -784,6 +793,9 @@ function UserDashboardInterface() {
           tasksQuery = tasksQuery.in('plants.plant_beds.garden_id', accessibleGardens)
         }
         
+        // Filter for this week + overdue tasks
+        tasksQuery = tasksQuery.or(`due_date.lt.${now.toISOString()},and(due_date.gte.${startOfWeek.toISOString()},due_date.lte.${endOfWeek.toISOString()})`)
+        
         const { data: taskResults, error: tasksError } = await tasksQuery.order('due_date', { ascending: true })
 
         console.log('📋 Tasks found:', taskResults)
@@ -797,19 +809,22 @@ function UserDashboardInterface() {
       }
       setTasks(tasksData)
 
-      // Load logbook entries for accessible gardens  
+      // Load logbook entries for accessible gardens (exclude task-related entries)
       let logbookData = []
       if (hasGardenAccess) {
         let logbookQuery = supabase
           .from('logbook_entries')
           .select('*, gardens(name)')
+          .is('task_id', null) // Only entries that are NOT related to completed tasks
         
         // Only filter by garden_id if user is not admin
         if (!isAdmin && accessibleGardens.length > 0) {
           logbookQuery = logbookQuery.in('garden_id', accessibleGardens)
         }
         
-        const { data: logbookResults, error: logbookError } = await logbookQuery.order('created_at', { ascending: false })
+        const { data: logbookResults, error: logbookError } = await logbookQuery
+          .order('created_at', { ascending: false })
+          .limit(20) // Limit to recent entries
 
         if (!logbookError) {
           logbookData = logbookResults || []
@@ -915,7 +930,7 @@ function UserDashboardInterface() {
               <ClipboardList className="w-5 h-5" />
               Taken ({tasks.length})
             </CardTitle>
-            <CardDescription>Openstaande taken voor jouw tuinen</CardDescription>
+            <CardDescription>Deze week + verlopen taken voor jouw tuinen</CardDescription>
           </CardHeader>
           <CardContent>
             {tasks.length === 0 ? (
@@ -925,19 +940,33 @@ function UserDashboardInterface() {
               </div>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
-                {tasks.map((task) => (
-                  <div key={task.id} className="p-3 border rounded-lg hover:bg-gray-50">
-                    <h4 className="font-medium">{task.title}</h4>
-                    <p className="text-sm text-gray-600">
-                      {task.plants?.name} - {task.plants?.plant_beds?.gardens?.name}
-                    </p>
-                    {task.due_date && (
-                      <p className="text-xs text-orange-600 mt-1">
-                        Deadline: {new Date(task.due_date).toLocaleDateString('nl-NL')}
+                {tasks.map((task) => {
+                  const isOverdue = task.due_date && new Date(task.due_date) < new Date()
+                  return (
+                    <div key={task.id} className={`p-3 border rounded-lg hover:bg-gray-50 ${
+                      isOverdue ? 'border-red-200 bg-red-50' : 'border-gray-200'
+                    }`}>
+                      <div className="flex items-start justify-between">
+                        <h4 className="font-medium">{task.title}</h4>
+                        {isOverdue && (
+                          <Badge variant="destructive" className="text-xs">
+                            Verlopen
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        {task.plants?.name} - {task.plants?.plant_beds?.gardens?.name}
                       </p>
-                    )}
-                  </div>
-                ))}
+                      {task.due_date && (
+                        <p className={`text-xs mt-1 ${
+                          isOverdue ? 'text-red-600 font-medium' : 'text-orange-600'
+                        }`}>
+                          Deadline: {new Date(task.due_date).toLocaleDateString('nl-NL')}
+                        </p>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             )}
             <div className="mt-4 pt-4 border-t">
@@ -957,7 +986,7 @@ function UserDashboardInterface() {
               <BookOpen className="w-5 h-5" />
               Logboek ({logbookEntries.length})
             </CardTitle>
-            <CardDescription>Recente logboek entries van jouw tuinen</CardDescription>
+            <CardDescription>Recente logboek entries (geen afgeronde taken) van jouw tuinen</CardDescription>
           </CardHeader>
           <CardContent>
             {logbookEntries.length === 0 ? (
