@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger, AuditLogger } from "@/lib/logger"
@@ -693,6 +693,7 @@ function UserDashboardInterface() {
   const { toast } = useToast()
   const router = useRouter()
   const [loading, setLoading] = React.useState(true)
+  const [refreshing, setRefreshing] = React.useState(false)
   const [tasks, setTasks] = React.useState<any[]>([])
   const [logbookEntries, setLogbookEntries] = React.useState<any[]>([])
   const [selectedGreeting, setSelectedGreeting] = React.useState<string | null>(null)
@@ -713,6 +714,33 @@ function UserDashboardInterface() {
     })
     // Reset after a moment
     setTimeout(() => setSelectedGreeting(null), 2000)
+  }
+
+  const handleRefresh = async () => {
+    if (refreshing) return
+    
+    setRefreshing(true)
+    try {
+      // First refresh garden access
+      await loadGardenAccess()
+      // Then reload all data
+      await loadUserData()
+      
+      toast({
+        title: "✅ Gegevens ververst",
+        description: "Taken en logboek zijn bijgewerkt",
+        duration: 2000
+      })
+    } catch (error) {
+      toast({
+        title: "❌ Fout bij verversen",
+        description: "Kon gegevens niet bijwerken",
+        variant: "destructive",
+        duration: 3000
+      })
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   const loadUserData = async () => {
@@ -871,9 +899,21 @@ function UserDashboardInterface() {
     <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
       {/* Header with Greeting */}
       <div className="text-center space-y-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welkom, {user?.full_name || user?.email?.split('@')[0]}! 👋
-        </h1>
+        <div className="flex items-center justify-center gap-4">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welkom, {user?.full_name || user?.email?.split('@')[0]}! 👋
+          </h1>
+          <Button 
+            onClick={handleRefresh}
+            disabled={refreshing}
+            variant="outline" 
+            size="sm"
+            className="mb-2"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            {refreshing ? 'Verversen...' : 'Ververs'}
+          </Button>
+        </div>
         <p className="text-gray-600">
           Taken en logboek voor {gardenNames}
         </p>
