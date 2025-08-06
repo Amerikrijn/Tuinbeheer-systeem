@@ -82,11 +82,12 @@ export function useSupabaseAuth(): AuthContextType {
       console.log('🔍 DIRECT USER CREATED:', directUser)
       console.log('🔍 User garden access count:', gardenAccess.length)
       return directUser
-    } catch (error) {
-      console.error('🔍 Error in loadUserProfile (should not happen with direct method):', error)
-      
-      // FINAL FALLBACK: Always return a valid user (default to user role)
-      const fallbackRole: 'admin' | 'user' = 'user'
+          } catch (error) {
+        console.error('🔍 Error in loadUserProfile - using fallback:', error)
+        
+        // FINAL FALLBACK: Always return a valid user
+        const adminEmails = ['admin@tuinbeheer.nl', 'amerik.rijn@gmail.com']
+        const fallbackRole: 'admin' | 'user' = adminEmails.includes(supabaseUser.email || '') ? 'admin' : 'user'
       const fallbackUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
