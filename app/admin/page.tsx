@@ -7,7 +7,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Leaf, Plus, Eye, Flower, Sparkles, TreePine, Settings } from "lucide-react"
+import { Leaf, Plus, Eye, Flower, Sparkles, TreePine, Settings, Trash2 } from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
 import { t } from "@/lib/translations"
 export default function AdminDashboard() {
@@ -51,7 +51,7 @@ export default function AdminDashboard() {
 
 
         {/* Main Actions Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Manage Gardens */}
           <Card className="hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm cursor-pointer group overflow-hidden transform hover:scale-105">
             <Link href="/admin/garden">
@@ -128,6 +128,81 @@ export default function AdminDashboard() {
             </Link>
           </Card>
 
+          {/* User Management */}
+          <Card className="hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm cursor-pointer group overflow-hidden transform hover:scale-105">
+            <Link href="/admin/users">
+              <div className="bg-gradient-to-br from-purple-400 via-purple-500 to-purple-600 p-6 sm:p-8 text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                <div className="flex items-center justify-between mb-4 sm:mb-6 relative z-10">
+                  <div className="bg-white/20 p-2 sm:p-3 rounded-full">
+                    <Settings className="h-6 w-6 sm:h-8 sm:w-8" />
+                  </div>
+                  <Eye className="h-5 w-5 sm:h-6 sm:w-6 opacity-75" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 relative z-10">
+                  Gebruikers Beheer
+                </h3>
+                <p className="text-purple-100 text-sm relative z-10">Beheer gebruikers en toegang</p>
+              </div>
+              <CardContent className="p-4 sm:p-8">
+                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full"></div>
+                    Gebruikers uitnodigen
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full"></div>
+                    Tuintoegang toewijzen
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <div className="w-3 h-3 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full"></div>
+                    Rollen beheren
+                  </div>
+                </div>
+                <Button className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold py-2 sm:py-3 rounded-lg shadow-lg transform transition-all duration-200 group-hover:scale-105">
+                  Gebruikers Beheren
+                </Button>
+              </CardContent>
+            </Link>
+          </Card>
+
+          {/* Trash/Recycle Bin */}
+          <Card className="hover:shadow-2xl transition-all duration-500 border-0 bg-white/80 backdrop-blur-sm cursor-pointer group overflow-hidden transform hover:scale-105">
+            <Link href="/admin/trash">
+              <div className="bg-gradient-to-br from-red-400 via-red-500 to-red-600 p-6 sm:p-8 text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                <div className="flex items-center justify-between mb-4 sm:mb-6 relative z-10">
+                  <div className="bg-white/20 p-2 sm:p-3 rounded-full">
+                    <Trash2 className="h-6 w-6 sm:h-8 sm:w-8" />
+                  </div>
+                  <Eye className="h-5 w-5 sm:h-6 sm:w-6 opacity-75" />
+                </div>
+                <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 relative z-10">
+                  Prullenbak
+                </h3>
+                <p className="text-red-100 text-sm relative z-10">Verwijderde tuinen beheren</p>
+              </div>
+              <CardContent className="p-4 sm:p-8">
+                <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-red-500 rounded-full"></div>
+                    Bekijk verwijderde tuinen
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-red-500 rounded-full"></div>
+                    Tuinen terughalen
+                  </div>
+                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                    <div className="w-3 h-3 bg-gradient-to-r from-red-400 to-red-500 rounded-full"></div>
+                    Permanent verwijderen
+                  </div>
+                </div>
+                <Button className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold py-2 sm:py-3 rounded-lg shadow-lg transform transition-all duration-200 group-hover:scale-105">
+                  Prullenbak Openen
+                </Button>
+              </CardContent>
+            </Link>
+          </Card>
 
         </div>
 
