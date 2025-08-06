@@ -717,8 +717,38 @@ function UserDashboardInterface() {
 
       // Load tasks for accessible gardens
       let tasksData = []
-      if (accessibleGardens.length > 0) {
-        const { data: taskResults, error: tasksError } = await supabase
+      
+      // Check if user has access (empty array for admin means all gardens)
+      const isAdmin = user?.role === 'admin'
+      const hasGardenAccess = isAdmin || accessibleGardens.length > 0
+      
+      if (hasGardenAccess) {
+        console.log('🔍 User has garden access. Admin:', isAdmin, 'Gardens:', accessibleGardens)
+        
+        // First check if there are any plants in accessible gardens
+        let plantsQuery = supabase
+          .from('plants')
+          .select(`
+            id,
+            name,
+            plant_beds!inner(
+              id,
+              name,
+              garden_id,
+              gardens!inner(name)
+            )
+          `)
+        
+        // Only filter by garden_id if user is not admin
+        if (!isAdmin && accessibleGardens.length > 0) {
+          plantsQuery = plantsQuery.in('plant_beds.garden_id', accessibleGardens)
+        }
+        
+        const { data: plantsCheck, error: plantsError } = await plantsQuery
+        console.log('🌱 Plants found:', plantsCheck)
+        
+        // Now search for tasks
+        let tasksQuery = supabase
           .from('tasks')
           .select(`
             *,
@@ -732,23 +762,38 @@ function UserDashboardInterface() {
             )
           `)
           .eq('completed', false)
-          .in('plants.plant_beds.garden_id', accessibleGardens)
-          .order('due_date', { ascending: true })
+        
+        // Only filter by garden_id if user is not admin
+        if (!isAdmin && accessibleGardens.length > 0) {
+          tasksQuery = tasksQuery.in('plants.plant_beds.garden_id', accessibleGardens)
+        }
+        
+        const { data: taskResults, error: tasksError } = await tasksQuery.order('due_date', { ascending: true })
+
+        console.log('📋 Tasks found:', taskResults)
+        console.log('❌ Tasks error:', tasksError)
 
         if (!tasksError) {
           tasksData = taskResults || []
         }
+      } else {
+        console.log('⚠️ User has no garden access')
       }
       setTasks(tasksData)
 
       // Load logbook entries for accessible gardens  
       let logbookData = []
-      if (accessibleGardens.length > 0) {
-        const { data: logbookResults, error: logbookError } = await supabase
+      if (hasGardenAccess) {
+        let logbookQuery = supabase
           .from('logbook_entries')
           .select('*, gardens(name)')
-          .in('garden_id', accessibleGardens)
-          .order('created_at', { ascending: false })
+        
+        // Only filter by garden_id if user is not admin
+        if (!isAdmin && accessibleGardens.length > 0) {
+          logbookQuery = logbookQuery.in('garden_id', accessibleGardens)
+        }
+        
+        const { data: logbookResults, error: logbookError } = await logbookQuery.order('created_at', { ascending: false })
 
         if (!logbookError) {
           logbookData = logbookResults || []

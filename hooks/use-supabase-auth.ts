@@ -52,12 +52,30 @@ export function useSupabaseAuth(): AuthContextType {
     console.log('🔍 START loadUserProfile for:', supabaseUser.email, 'ID:', supabaseUser.id)
     
     try {
-      // SKIP DATABASE ENTIRELY - Just use auth data for now
-      console.log('🔍 SKIPPING DATABASE: Creating user directly from auth data')
-      
       // Determine role based on email
       const role: 'admin' | 'user' = supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user'
       console.log('🔍 Determined role:', role, 'for email:', supabaseUser.email)
+      
+      // Load garden access for non-admin users
+      let gardenAccess: string[] = []
+      if (role === 'user') {
+        console.log('🔍 Loading garden access for user:', supabaseUser.id)
+        try {
+          const { data: accessData, error: accessError } = await supabase
+            .from('user_garden_access')
+            .select('garden_id')
+            .eq('user_id', supabaseUser.id)
+          
+          if (!accessError && accessData) {
+            gardenAccess = accessData.map(row => row.garden_id)
+            console.log('🔍 Garden access loaded:', gardenAccess)
+          } else {
+            console.log('🔍 No garden access found or error:', accessError)
+          }
+        } catch (error) {
+          console.log('🔍 Error loading garden access (non-critical):', error)
+        }
+      }
       
       const directUser: User = {
         id: supabaseUser.id,
@@ -66,7 +84,7 @@ export function useSupabaseAuth(): AuthContextType {
         role: role,
         status: 'active',
         permissions: [],
-        garden_access: [], // Empty for now - will load later if needed
+        garden_access: gardenAccess,
         created_at: new Date().toISOString()
       }
       
