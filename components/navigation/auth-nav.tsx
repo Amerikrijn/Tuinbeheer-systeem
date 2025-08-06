@@ -259,10 +259,10 @@ export function AuthNavigation() {
           </div>
 
           {/* User Menu */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
             {/* User Status Badge */}
-            <div className="hidden sm:flex items-center space-x-2">
-              <Badge variant={user.role === 'admin' ? 'destructive' : 'outline'}>
+            <div className="hidden sm:flex items-center">
+              <Badge variant={user.role === 'admin' ? 'destructive' : 'outline'} className="mr-2">
                 {user.role === 'admin' ? (
                   <>
                     <Shield className="w-3 h-3 mr-1" />
