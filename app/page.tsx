@@ -238,6 +238,37 @@ function HomePageContent() {
         </p>
       </header>
 
+      {/* Quick Navigation */}
+      <div className="flex justify-center mb-6">
+        <div className="flex gap-3">
+          {/* Tasks Button */}
+          <Button asChild variant="outline" className="flex items-center gap-2">
+            <Link href={isAdmin() ? "/tasks" : "/user-dashboard"}>
+              <ClipboardList className="w-4 h-4" />
+              Taken
+            </Link>
+          </Button>
+
+          {/* Logbook Button */}
+          <Button asChild variant="outline" className="flex items-center gap-2">
+            <Link href="/logbook">
+              <BookOpen className="w-4 h-4" />
+              Logboek
+            </Link>
+          </Button>
+
+          {/* Admin Only: Users Button */}
+          {isAdmin() && (
+            <Button asChild variant="outline" className="flex items-center gap-2 border-blue-200 text-blue-700 hover:bg-blue-50">
+              <Link href="/admin/users">
+                <Settings className="w-4 h-4" />
+                Gebruikers
+              </Link>
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* Search and Actions */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
