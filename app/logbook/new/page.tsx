@@ -290,7 +290,8 @@ function NewLogbookPageContent() {
         operationId 
       })
 
-      router.push(`/logbook/${response.data.id}`)
+      // Redirect back to logbook overview instead of detail page
+      router.push('/logbook')
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Er is een onbekende fout opgetreden'
