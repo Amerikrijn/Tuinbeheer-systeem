@@ -244,6 +244,12 @@ export function AuthNavigation() {
                   </Link>
                 </DropdownMenuItem>
 
+                <DropdownMenuSeparator />
+                
+                <DropdownMenuItem onClick={handleSignOut} className="flex items-center space-x-2 text-red-600 focus:text-red-600">
+                  <LogOut className="w-4 h-4" />
+                  <span>Uitloggen</span>
+                </DropdownMenuItem>
 
               </DropdownMenuContent>
             </DropdownMenu>
