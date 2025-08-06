@@ -206,6 +206,9 @@ function LogbookPageContent() {
 
         const { data: tasksResults } = await tasksQuery.order('updated_at', { ascending: false })
         
+        console.log('🔍 DEBUG Logbook - Completed tasks query result:', tasksResults?.length || 0, 'tasks found')
+        console.log('🔍 DEBUG Logbook - Sample completed task:', tasksResults?.[0])
+        
         if (tasksResults) {
           // Transform completed tasks to look like logbook entries
           completedTasksData = tasksResults.map(task => ({
@@ -227,6 +230,10 @@ function LogbookPageContent() {
 
       // Combine logbook entries and completed tasks
       const allEntries = [...response.data, ...completedTasksData]
+      
+      console.log('🔍 DEBUG Logbook - Regular entries:', response.data?.length || 0)
+      console.log('🔍 DEBUG Logbook - Completed tasks:', completedTasksData?.length || 0)
+      console.log('🔍 DEBUG Logbook - Combined entries:', allEntries?.length || 0)
 
       // Sort by entry_date descending FIRST (most recent first - chronological order)
       allEntries.sort((a, b) => new Date(b.entry_date).getTime() - new Date(a.entry_date).getTime())
