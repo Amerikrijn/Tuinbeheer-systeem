@@ -105,11 +105,12 @@ function AdminUsersPageContent() {
       setUsers(usersData || [])
       console.log('🔍 Users state set:', usersData?.length)
 
-      // Load all gardens
-      console.log('🔍 Loading gardens...')
+      // Load only active gardens (exclude soft-deleted ones)
+      console.log('🔍 Loading active gardens...')
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
         .select('*')
+        .eq('is_active', true)
         .order('name')
 
       console.log('🔍 Gardens query result:', { 
