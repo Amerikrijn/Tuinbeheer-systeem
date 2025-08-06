@@ -696,7 +696,8 @@ function UserDashboardInterface() {
   const [refreshing, setRefreshing] = React.useState(false)
   const [tasks, setTasks] = React.useState<any[]>([])
   const [logbookEntries, setLogbookEntries] = React.useState<any[]>([])
-  const [selectedGreeting, setSelectedGreeting] = React.useState<string | null>(null)
+  const [celebrating, setCelebrating] = React.useState(false)
+
 
   React.useEffect(() => {
     if (user) {
@@ -705,16 +706,7 @@ function UserDashboardInterface() {
     }
   }, [user])
 
-  const handleGreeting = (greeting: string) => {
-    setSelectedGreeting(greeting)
-    toast({
-      title: greeting,
-      description: "Veel succes met je tuinwerk vandaag! 🌿",
-      duration: 2000
-    })
-    // Reset after a moment
-    setTimeout(() => setSelectedGreeting(null), 2000)
-  }
+
 
   const handleRefresh = async () => {
     if (refreshing) return
@@ -741,6 +733,30 @@ function UserDashboardInterface() {
     } finally {
       setRefreshing(false)
     }
+  }
+
+  const celebrate = () => {
+    setCelebrating(true)
+    
+    // Play celebration sound
+    try {
+      const audio = new Audio('/sounds/celebration.mp3')
+      audio.play().catch(e => console.log('Could not play sound:', e))
+    } catch (e) {
+      console.log('Audio not available:', e)
+    }
+    
+    // Show celebration toast
+    toast({
+      title: "🎉 Taak voltooid!",
+      description: "Goed gedaan! De taak is succesvol afgerond.",
+      duration: 4000
+    })
+    
+    // Stop celebration after animation
+    setTimeout(() => {
+      setCelebrating(false)
+    }, 3000)
   }
 
   const loadUserData = async () => {
@@ -893,7 +909,26 @@ function UserDashboardInterface() {
   }
 
   const accessibleGardens = getAccessibleGardens()
-  const gardenNames = accessibleGardens.length > 0 ? 'je toegewezen tuinen' : 'geen tuinen toegewezen'
+  
+  // Get garden names for display
+  const [gardenNames, setGardenNames] = React.useState<string[]>([])
+  
+  React.useEffect(() => {
+    const loadGardenNames = async () => {
+      if (accessibleGardens.length > 0) {
+        const { data: gardens } = await supabase
+          .from('gardens')
+          .select('name')
+          .in('id', accessibleGardens)
+        
+        if (gardens) {
+          setGardenNames(gardens.map(g => g.name))
+        }
+      }
+    }
+    
+    loadGardenNames()
+  }, [accessibleGardens.length])
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
@@ -914,60 +949,24 @@ function UserDashboardInterface() {
             {refreshing ? 'Verversen...' : 'Ververs'}
           </Button>
         </div>
-        <p className="text-gray-600">
-          Taken en logboek voor {gardenNames}
-        </p>
-        
-        {/* Simple Greeting Buttons */}
-        <div className="flex flex-wrap justify-center gap-3 mt-6">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => handleGreeting("🌱 Goedemorgen!")}
-            className={`transition-all duration-200 ${
-              selectedGreeting === "🌱 Goedemorgen!" 
-                ? "bg-green-200 border-green-400 text-green-800 scale-105" 
-                : "bg-green-50 border-green-200 hover:bg-green-100 text-green-700"
-            }`}
-          >
-            🌱 Goedemorgen!
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => handleGreeting("☀️ Fijne dag!")}
-            className={`transition-all duration-200 ${
-              selectedGreeting === "☀️ Fijne dag!" 
-                ? "bg-blue-200 border-blue-400 text-blue-800 scale-105" 
-                : "bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700"
-            }`}
-          >
-            ☀️ Fijne dag!
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => handleGreeting("🌻 Veel plezier!")}
-            className={`transition-all duration-200 ${
-              selectedGreeting === "🌻 Veel plezier!" 
-                ? "bg-orange-200 border-orange-400 text-orange-800 scale-105" 
-                : "bg-orange-50 border-orange-200 hover:bg-orange-100 text-orange-700"
-            }`}
-          >
-            🌻 Veel plezier!
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => handleGreeting("🌸 Groene groet!")}
-            className={`transition-all duration-200 ${
-              selectedGreeting === "🌸 Groene groet!" 
-                ? "bg-purple-200 border-purple-400 text-purple-800 scale-105" 
-                : "bg-purple-50 border-purple-200 hover:bg-purple-100 text-purple-700"
-            }`}
-          >
-            🌸 Groene groet!
-          </Button>
+        {/* Current Garden Display */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 max-w-md mx-auto">
+          <div className="flex items-center justify-center gap-2 text-green-800">
+            <TreePine className="w-5 h-5" />
+            <span className="font-medium">
+              {gardenNames.length === 0 ? (
+                accessibleGardens.length === 0 ? (
+                  <span className="text-gray-500">Geen tuinen toegewezen</span>
+                ) : (
+                  <span className="text-gray-500">Laden...</span>
+                )
+              ) : gardenNames.length === 1 ? (
+                <span>Werkt in: <strong>{gardenNames[0]}</strong></span>
+              ) : (
+                <span>Werkt in: <strong>{gardenNames.join(', ')}</strong></span>
+              )}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -1018,11 +1017,20 @@ function UserDashboardInterface() {
                 })}
               </div>
             )}
-            <div className="mt-4 pt-4 border-t">
+            <div className="mt-4 pt-4 border-t space-y-2">
               <Button asChild className="w-full">
                 <Link href="/tasks">
                   Alle Taken Bekijken
                 </Link>
+              </Button>
+              {/* Test celebration button - remove in production */}
+              <Button 
+                onClick={celebrate}
+                variant="outline" 
+                size="sm"
+                className="w-full text-xs"
+              >
+                🎉 Test Viering (demo)
               </Button>
             </div>
           </CardContent>
@@ -1072,6 +1080,50 @@ function UserDashboardInterface() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Celebration Animation Overlay */}
+      {celebrating && (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+          {/* Falling Flowers */}
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute animate-bounce"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`,
+                animationDuration: `${2 + Math.random() * 2}s`,
+                fontSize: `${20 + Math.random() * 20}px`
+              }}
+            >
+              {['🌸', '🌺', '🌻', '🌷', '🌹', '🌼'][Math.floor(Math.random() * 6)]}
+            </div>
+          ))}
+          
+          {/* Sparkles */}
+          {[...Array(15)].map((_, i) => (
+            <div
+              key={`sparkle-${i}`}
+              className="absolute animate-ping"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 1}s`,
+                animationDuration: `${1 + Math.random()}s`
+              }}
+            >
+              ✨
+            </div>
+          ))}
+          
+          {/* Central celebration text */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="bg-white/90 backdrop-blur-sm rounded-full p-8 shadow-lg animate-pulse">
+              <div className="text-6xl">🎉</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
