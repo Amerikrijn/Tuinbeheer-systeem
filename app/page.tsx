@@ -765,12 +765,21 @@ function UserDashboardInterface() {
         
         // Calculate date ranges for this week + overdue
         const now = new Date()
+        const today = new Date(now)
+        today.setHours(0, 0, 0, 0)
+        
+        // Start of week (Monday in Europe)
         const startOfWeek = new Date(now)
-        startOfWeek.setDate(now.getDate() - now.getDay()) // Start of current week (Sunday)
+        const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1 // Convert Sunday=0 to Monday=0
+        startOfWeek.setDate(now.getDate() - dayOfWeek)
         startOfWeek.setHours(0, 0, 0, 0)
+        
+        // End of week (Sunday)
         const endOfWeek = new Date(startOfWeek)
-        endOfWeek.setDate(startOfWeek.getDate() + 6) // End of current week (Saturday)
+        endOfWeek.setDate(startOfWeek.getDate() + 6)
         endOfWeek.setHours(23, 59, 59, 999)
+        
+
 
         // Now search for tasks (this week + overdue)
         let tasksQuery = supabase
@@ -793,8 +802,8 @@ function UserDashboardInterface() {
           tasksQuery = tasksQuery.in('plants.plant_beds.garden_id', accessibleGardens)
         }
         
-        // Filter for this week + overdue tasks
-        tasksQuery = tasksQuery.or(`due_date.lt.${now.toISOString()},and(due_date.gte.${startOfWeek.toISOString()},due_date.lte.${endOfWeek.toISOString()})`)
+        // Filter for this week + overdue tasks (including today)
+        tasksQuery = tasksQuery.or(`due_date.lt.${today.toISOString()},and(due_date.gte.${startOfWeek.toISOString()},due_date.lte.${endOfWeek.toISOString()})`)
         
         const { data: taskResults, error: tasksError } = await tasksQuery.order('due_date', { ascending: true })
 
@@ -1007,7 +1016,13 @@ function UserDashboardInterface() {
                 ))}
               </div>
             )}
-            <div className="mt-4 pt-4 border-t">
+            <div className="mt-4 pt-4 border-t space-y-2">
+              <Button asChild className="w-full">
+                <Link href="/logbook/new">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nieuwe Logboek Entry
+                </Link>
+              </Button>
               <Button asChild variant="outline" className="w-full">
                 <Link href="/logbook">
                   Volledig Logboek Bekijken
