@@ -142,15 +142,15 @@ export function useSupabaseAuth(): AuthContextType {
 
     initializeAuth()
 
-    // Failsafe: Force loading to false after 5 seconds
+    // Failsafe: Force loading to false after 10 seconds (increased from 5)
     const loadingTimeout = setTimeout(() => {
       console.log('🔍 LOADING TIMEOUT: Forcing loading to false')
       setState(prev => ({
         ...prev,
         loading: false,
-        error: 'Loading timeout - please refresh page'
+        error: prev.user ? null : 'Loading timeout - please refresh page' // Don't show error if user is loaded
       }))
-    }, 5000)
+    }, 10000)
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {

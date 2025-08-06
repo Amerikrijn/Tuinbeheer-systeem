@@ -5,8 +5,8 @@ import { useAuth } from '@/hooks/use-supabase-auth'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 
-const INACTIVITY_TIMEOUT = 30 * 60 * 1000 // 30 minutes in milliseconds
-const WARNING_TIME = 5 * 60 * 1000 // Show warning 5 minutes before logout
+const INACTIVITY_TIMEOUT = 60 * 60 * 1000 // 60 minutes in milliseconds  
+const WARNING_TIME = 10 * 60 * 1000 // Show warning 10 minutes before logout
 
 export function useActivityTimeout() {
   // Try to get auth, but don't throw if not available
