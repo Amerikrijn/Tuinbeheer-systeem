@@ -374,6 +374,20 @@ export class TuinService {
         return createResponse<boolean>(false, existingResult.error, 'delete garden')
       }
       
+      // First, remove all user access to this garden
+      const { error: accessError } = await supabase
+        .from('user_garden_access')
+        .delete()
+        .eq('garden_id', id)
+      
+      if (accessError) {
+        databaseLogger.warn('Failed to remove user access for garden', { gardenId: id, error: accessError })
+        // Continue with garden deletion even if access cleanup fails
+      } else {
+        databaseLogger.info('Removed user access for garden', { gardenId: id })
+      }
+      
+      // Then soft delete the garden
       const { error } = await supabase
         .from(this.RESOURCE_NAME)
         .update({ 

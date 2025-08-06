@@ -363,107 +363,7 @@ function AdminUsersPageContent() {
     setIsGardenAccessDialogOpen(true)
   }
 
-  // Remove invalid garden access entries
-  const cleanupOrphanedAccess = async () => {
-    if (!confirm('Weet je zeker dat je ongeldige tuintoegang wilt verwijderen? Dit kan niet ongedaan worden gemaakt.')) {
-      return
-    }
 
-    try {
-      console.log('🔍 Checking for invalid garden access...')
-      
-      // Get all garden access entries with user info
-      const { data: accessEntries, error: accessError } = await supabase
-        .from('user_garden_access')
-        .select(`
-          *,
-          users (email, full_name)
-        `)
-      
-      if (accessError) {
-        console.error('❌ Error fetching access entries:', accessError)
-        toast({
-          title: "Fout bij laden",
-          description: "Kan gebruikerstoegang niet laden: " + accessError.message,
-          variant: "destructive"
-        })
-        return
-      }
-      
-      // Get all existing gardens
-      const { data: existingGardens, error: gardensError } = await supabase
-        .from('gardens')
-        .select('id, name')
-      
-      if (gardensError) {
-        console.error('❌ Error fetching gardens:', gardensError)
-        toast({
-          title: "Fout bij laden",
-          description: "Kan tuinen niet laden: " + gardensError.message,
-          variant: "destructive"
-        })
-        return
-      }
-      
-      const existingGardenIds = new Set(existingGardens?.map(g => g.id) || [])
-      
-      // Find orphaned entries
-      const orphanedEntries = accessEntries?.filter(entry => 
-        !existingGardenIds.has(entry.garden_id)
-      ) || []
-      
-      console.log('🔍 Found orphaned entries:', orphanedEntries)
-      
-      if (orphanedEntries.length === 0) {
-        toast({
-          title: "Alles in orde! ✅",
-          description: "Geen ongeldige tuintoegang gevonden",
-        })
-        return
-      }
-
-      // Show details of what will be removed
-      const details = orphanedEntries.map(entry => 
-        `• ${entry.users?.email || 'Unknown user'} → Garden ID: ${entry.garden_id}`
-      ).join('\n')
-      
-      console.log('🗑️ Will remove these entries:\n' + details)
-      
-      // Remove orphaned entries
-      const orphanedIds = orphanedEntries.map(e => e.id)
-      const { error: deleteError } = await supabase
-        .from('user_garden_access')
-        .delete()
-        .in('id', orphanedIds)
-      
-      if (deleteError) {
-        console.error('❌ Error deleting entries:', deleteError)
-        toast({
-          title: "Fout bij verwijderen",
-          description: "Kan ongeldige toegang niet verwijderen: " + deleteError.message,
-          variant: "destructive"
-        })
-        return
-      }
-
-      console.log('✅ Successfully removed', orphanedEntries.length, 'orphaned entries')
-      toast({
-        title: `${orphanedEntries.length} ongeldige toegangen verwijderd`,
-        description: "Gebruikers kunnen nu opnieuw toegang krijgen tot bestaande tuinen",
-      })
-      
-      // Reload users to reflect changes
-      loadUsersAndGardens()
-      
-    } catch (error) {
-      console.error('❌ Unexpected error:', error)
-      toast({
-        title: "Onverwachte fout",
-        description: "Er is iets misgegaan: " + (error instanceof Error ? error.message : 'Unknown error'),
-        variant: "destructive"
-      })
-    }
-  }
 
   if (loading) {
     return (
@@ -484,20 +384,10 @@ function AdminUsersPageContent() {
           <h1 className="text-3xl font-bold text-gray-900">Gebruikersbeheer</h1>
           <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={cleanupOrphanedAccess}
-            className="text-red-600 border-red-200 hover:bg-red-50 flex items-center gap-2"
-            title="Verwijdert gebruikerstoegang tot tuinen die niet meer bestaan"
-          >
-            🗑️ Verwijder Ongeldige Tuintoegang
-          </Button>
-          <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            Gebruiker Uitnodigen
-          </Button>
-        </div>
+        <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
+          <Plus className="w-4 h-4" />
+          Gebruiker Uitnodigen
+        </Button>
       </div>
 
       {/* Users Table */}
