@@ -4,37 +4,9 @@
   "framework": "nextjs",
   "installCommand": "npm install",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
-  "functions": {
-    "app/**/*.tsx": {
-      "runtime": "nodejs18.x"
-    }
-  },
   "env": {
     "APP_ENV": "prod",
     "NEXT_PUBLIC_SUPABASE_URL": "https://dwsgwqosmihsfaxuheji.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxOTk1MzcsImV4cCI6MjA0Nzc3NTUzN30.KJj0n-YZEGJVjQPJPnKTJhZB5GiGlGJSdF1qZdXxO5o"
-  },
-  "functions": {
-    "app/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,PUT,DELETE,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
-      ]
-    }
-  ],
-  "trailingSlash": false,
-  "cleanUrls": true
+  }
 }
