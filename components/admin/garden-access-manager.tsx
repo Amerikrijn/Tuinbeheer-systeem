@@ -47,10 +47,11 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
     
     setLoading(true)
     try {
-      // Load all gardens
+      // Load only active gardens (exclude soft-deleted ones)
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
         .select('id, name, description')
+        .eq('is_active', true)
         .order('name')
 
       if (gardensError) {
