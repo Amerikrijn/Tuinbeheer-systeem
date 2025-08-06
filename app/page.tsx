@@ -631,25 +631,33 @@ function UserSimpleHome() {
       console.log('🔍 User accessible gardens:', accessibleGardens)
       console.log('🔍 User details:', { email: user?.email, role: user?.role, garden_access: user?.garden_access })
       
-      // Load tasks for accessible gardens OR assigned to user
-      let tasksQuery = supabase
-        .from('tasks')
-        .select('*, gardens(name)')
-        .eq('status', 'todo')
-        .order('due_date', { ascending: true })
-        .limit(5)
-
-      // Filter by accessible gardens OR assigned to current user
+      // Load tasks from accessible gardens (no assignment system yet)
+      let tasksData = []
       if (accessibleGardens.length > 0) {
-        tasksQuery = tasksQuery.or(`garden_id.in.(${accessibleGardens.join(',')}),assigned_to.eq.${user?.id}`)
-      } else {
-        // If no garden access, only show tasks assigned to user
-        tasksQuery = tasksQuery.eq('assigned_to', user?.id)
-      }
+        // Get tasks from accessible gardens via plant_beds
+        const { data: plantBedTasks, error: tasksError } = await supabase
+          .from('tasks')
+          .select(`
+            *,
+            plants!inner(
+              name,
+              plant_beds!inner(
+                name,
+                garden_id,
+                gardens!inner(name)
+              )
+            )
+          `)
+          .eq('completed', false)
+          .in('plants.plant_beds.garden_id', accessibleGardens)
+          .order('due_date', { ascending: true })
+          .limit(5)
 
-      const { data: tasksData, error: tasksError } = await tasksQuery
-      console.log('🔍 Tasks query result:', { tasksData, tasksError, accessibleGardens, userId: user?.id })
-      setTasks(tasksData || [])
+        console.log('🔍 Tasks query result:', { plantBedTasks, tasksError, accessibleGardens })
+        tasksData = plantBedTasks || []
+      }
+      
+      setTasks(tasksData)
 
       // Load recent logbook entries for accessible gardens
       let logbookQuery = supabase
@@ -746,7 +754,7 @@ function UserSimpleHome() {
               <CheckCircle className="w-5 h-5 text-blue-600" />
               Openstaande Taken
             </CardTitle>
-            <CardDescription className="text-blue-700">Jouw toegewezen taken</CardDescription>
+            <CardDescription className="text-blue-700">Taken voor jouw tuinen</CardDescription>
           </CardHeader>
           <CardContent>
             {tasks.length === 0 ? (
@@ -757,7 +765,9 @@ function UserSimpleHome() {
                   <div key={task.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex-1">
                       <h4 className="font-medium">{task.title}</h4>
-                      <p className="text-sm text-muted-foreground">{task.gardens?.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {task.plants?.name} - {task.plants?.plant_beds?.gardens?.name}
+                      </p>
                       {task.due_date && (
                         <p className="text-xs text-orange-600 mt-1">
                           Deadline: {new Date(task.due_date).toLocaleDateString('nl-NL')}
@@ -807,17 +817,7 @@ function UserSimpleHome() {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="text-center">
-        <div className="flex justify-center gap-4">
-          <Button asChild>
-            <Link href="/user-dashboard">
-              <ClipboardList className="w-4 h-4 mr-2" />
-              Alle Taken
-            </Link>
-          </Button>
-        </div>
-      </div>
+
     </div>
   )
 }
