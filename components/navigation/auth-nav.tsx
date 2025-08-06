@@ -263,7 +263,7 @@ export function AuthNavigation() {
             {/* User Dropdown - hele sectie als trigger */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2 hover:bg-accent">
+                <Button variant="ghost" className="flex items-center space-x-3 h-auto px-3 py-2 rounded-md hover:bg-accent">
                   {/* User Status Badge */}
                   <div className="hidden sm:flex items-center">
                     <Badge variant={user.role === 'admin' ? 'destructive' : 'outline'}>
@@ -290,7 +290,7 @@ export function AuthNavigation() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="start" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
