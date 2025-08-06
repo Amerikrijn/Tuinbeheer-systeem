@@ -104,7 +104,8 @@ export default function LoginPage() {
 
   const demoCredentials = [
     { email: 'admin@tuinbeheer.nl', role: 'Administrator', password: 'Admin123!' },
-    { email: 'gebruiker@tuinbeheer.nl', role: 'Gebruiker', password: 'User123!' }
+    { email: 'gebruiker@tuinbeheer.nl', role: 'Gebruiker', password: 'User123!' },
+    { email: 'amerik.rijn@gmail.com', role: 'Test Gebruiker', password: 'testpass' }
   ]
 
   const fillDemoCredentials = (email: string, password: string) => {
