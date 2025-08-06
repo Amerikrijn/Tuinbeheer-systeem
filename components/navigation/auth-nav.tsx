@@ -259,29 +259,30 @@ export function AuthNavigation() {
           </div>
 
           {/* User Menu */}
-          <div className="flex items-center space-x-2">
-            {/* User Status Badge */}
-            <div className="hidden sm:flex items-center">
-              <Badge variant={user.role === 'admin' ? 'destructive' : 'outline'} className="mr-2">
-                {user.role === 'admin' ? (
-                  <>
-                    <Shield className="w-3 h-3 mr-1" />
-                    Administrator
-                  </>
-                ) : (
-                  <>
-                    <User className="w-3 h-3 mr-1" />
-                    Gebruiker
-                  </>
-                )}
-              </Badge>
-            </div>
-
-            {/* User Dropdown */}
+          <div className="flex items-center">
+            {/* User Dropdown - hele sectie als trigger */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                  <Avatar className="h-10 w-10">
+                <Button variant="ghost" className="flex items-center space-x-2 h-auto p-2 hover:bg-accent">
+                  {/* User Status Badge */}
+                  <div className="hidden sm:flex items-center">
+                    <Badge variant={user.role === 'admin' ? 'destructive' : 'outline'}>
+                      {user.role === 'admin' ? (
+                        <>
+                          <Shield className="w-3 h-3 mr-1" />
+                          Administrator
+                        </>
+                      ) : (
+                        <>
+                          <User className="w-3 h-3 mr-1" />
+                          Gebruiker
+                        </>
+                      )}
+                    </Badge>
+                  </div>
+                  
+                  {/* Avatar */}
+                  <Avatar className="h-8 w-8">
                     <AvatarImage src={user.avatar_url || undefined} />
                     <AvatarFallback>
                       {getInitials(user.full_name, user.email)}
