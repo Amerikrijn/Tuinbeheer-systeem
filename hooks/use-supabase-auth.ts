@@ -341,6 +341,12 @@ export function useSupabaseAuth(): AuthContextType {
   }
 
   const getAccessibleGardens = (): string[] => {
+    console.log('🔍 getAccessibleGardens called:', { 
+      hasUser: !!state.user, 
+      role: state.user?.role, 
+      gardenAccess: state.user?.garden_access 
+    })
+    
     if (!state.user) return []
     if (state.user.role === 'admin') return [] // Empty array means access to all
     return state.user.garden_access

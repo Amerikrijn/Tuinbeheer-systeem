@@ -931,15 +931,13 @@ function UserDashboardInterface() {
                 ))}
               </div>
             )}
-            {tasks.length > 0 && (
-              <div className="mt-4 pt-4 border-t">
-                <Button asChild className="w-full">
-                  <Link href="/tasks">
-                    Alle Taken Bekijken
-                  </Link>
-                </Button>
-              </div>
-            )}
+            <div className="mt-4 pt-4 border-t">
+              <Button asChild className="w-full">
+                <Link href="/tasks">
+                  Alle Taken Bekijken
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
@@ -971,15 +969,13 @@ function UserDashboardInterface() {
                 ))}
               </div>
             )}
-            {logbookEntries.length > 0 && (
-              <div className="mt-4 pt-4 border-t">
-                <Button asChild variant="outline" className="w-full">
-                  <Link href="/logbook">
-                    Volledig Logboek Bekijken
-                  </Link>
-                </Button>
-              </div>
-            )}
+            <div className="mt-4 pt-4 border-t">
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/logbook">
+                  Volledig Logboek Bekijken
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
