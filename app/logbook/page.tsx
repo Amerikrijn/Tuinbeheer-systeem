@@ -157,13 +157,20 @@ function LogbookPageContent() {
         setTimeout(() => reject(new Error('Query timeout - verbinding te traag')), 30000) // 30 second timeout
       })
       
-      const response = await Promise.race([
-        LogbookService.getAll(filters),
-        timeoutPromise
-      ]) as any
+      let response
+      try {
+        response = await Promise.race([
+          LogbookService.getAll(filters),
+          timeoutPromise
+        ]) as any
+      } catch (error) {
+        console.error('🔥 Logbook query error:', error)
+        throw new Error(`Logbook query failed: ${error.message}`)
+      }
       
-      if (!response.success || !response.data) {
-        throw new Error(response.error || 'Failed to load logbook entries')
+      if (!response || !response.success || !response.data) {
+        console.error('🔥 Logbook response invalid:', response)
+        throw new Error(response?.error || 'Failed to load logbook entries')
       }
 
       // Also load completed tasks as logbook entries
@@ -194,6 +201,7 @@ function LogbookPageContent() {
         // Apply same garden filtering as logbook entries
         if (!isAdmin()) {
           if (accessibleGardens.length === 0) {
+            console.log('🔍 Logbook - No garden access, skipping tasks query')
             completedTasksData = []
           } else {
             if (filters.garden_id) {
@@ -232,11 +240,23 @@ function LogbookPageContent() {
         completedTasksData = []
       }
 
-      // Combine logbook entries and completed tasks
-      const allEntries = [...response.data, ...completedTasksData]
+      // Combine logbook entries and completed tasks with safety checks
+      const logbookEntries = Array.isArray(response.data) ? response.data : []
+      const completedTasks = Array.isArray(completedTasksData) ? completedTasksData : []
+      const allEntries = [...logbookEntries, ...completedTasks]
+
+      console.log('🔍 Logbook - Combined entries:', {
+        logbookCount: logbookEntries.length,
+        tasksCount: completedTasks.length,
+        totalCount: allEntries.length
+      })
 
       // Sort by entry_date descending FIRST (most recent first - chronological order)
-      allEntries.sort((a, b) => new Date(b.entry_date).getTime() - new Date(a.entry_date).getTime())
+      allEntries.sort((a, b) => {
+        const aDate = a?.entry_date ? new Date(a.entry_date) : new Date(0)
+        const bDate = b?.entry_date ? new Date(b.entry_date) : new Date(0)
+        return bDate.getTime() - aDate.getTime()
+      })
 
       // Filter by year first
       const yearFilteredEntries = allEntries.filter(entry => {
