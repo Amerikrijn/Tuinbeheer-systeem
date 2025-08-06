@@ -12,18 +12,25 @@ export function useActivityTimeout() {
   // Try to get auth, but don't throw if not available
   let user = null
   let signOut = null
+  let authAvailable = false
   
   try {
     const auth = useAuth()
     user = auth.user
     signOut = auth.signOut
+    authAvailable = true
   } catch (error) {
     // Auth not available, skip activity timeout
-    return
+    authAvailable = false
   }
   
   const router = useRouter()
   const { toast } = useToast()
+  
+  // Early return if auth is not available
+  if (!authAvailable) {
+    return
+  }
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastActivityRef = useRef<number>(Date.now())
