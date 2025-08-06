@@ -79,15 +79,18 @@ export function useActivityTimeout() {
   }, [user, clearTimeouts, showWarning, handleAutoLogout])
 
   const handleActivity = useCallback(() => {
+    if (!user) return
+    
     const now = Date.now()
     const timeSinceLastActivity = now - lastActivityRef.current
 
     // Only reset if it's been more than 30 seconds since last activity
     // This prevents excessive timeout resets
     if (timeSinceLastActivity > 30000) {
+      console.log('🔍 User activity detected, resetting timeout')
       resetTimeout()
     }
-  }, [resetTimeout])
+  }, [resetTimeout, user])
 
   useEffect(() => {
     if (!user) {
@@ -95,8 +98,11 @@ export function useActivityTimeout() {
       return
     }
 
-    // Initial timeout setup
-    resetTimeout()
+    // Delay initial setup to avoid immediate logout
+    const setupTimer = setTimeout(() => {
+      console.log('🔍 Setting up activity timeout for user:', user.email)
+      resetTimeout()
+    }, 1000) // 1 second delay
 
     // Activity event listeners
     const events = [
@@ -115,6 +121,7 @@ export function useActivityTimeout() {
 
     // Cleanup
     return () => {
+      clearTimeout(setupTimer)
       clearTimeouts()
       events.forEach(event => {
         document.removeEventListener(event, handleActivity)
