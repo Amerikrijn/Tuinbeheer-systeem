@@ -93,6 +93,52 @@ export function AuthNavigation() {
             <span className="font-semibold text-lg">Tuinbeheer</span>
           </Link>
 
+          {/* Main Navigation - Desktop */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
+              <Link href={isAdmin() ? "/tasks" : "/user-dashboard"} className="flex items-center space-x-2">
+                <ClipboardList className="w-4 h-4" />
+                <span>Taken</span>
+              </Link>
+            </Button>
+
+            {isAdmin() && (
+              <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
+                <Link href="/admin/users" className="flex items-center space-x-2">
+                  <Users className="w-4 h-4" />
+                  <span>Gebruikers</span>
+                </Link>
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile Menu */}
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  Menu <ChevronDown className="w-4 h-4 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href={isAdmin() ? "/tasks" : "/user-dashboard"} className="flex items-center space-x-2">
+                    <ClipboardList className="w-4 h-4" />
+                    <span>Taken</span>
+                  </Link>
+                </DropdownMenuItem>
+                {isAdmin() && (
+                  <DropdownMenuItem asChild>
+                    <Link href="/admin/users" className="flex items-center space-x-2">
+                      <Users className="w-4 h-4" />
+                      <span>Gebruikers</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           {/* Spacer to push user menu to the right */}
           <div className="flex-1"></div>
 
