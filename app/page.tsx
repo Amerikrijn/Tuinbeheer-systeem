@@ -853,8 +853,8 @@ function UserDashboardInterface() {
         
 
 
-        // Now search for tasks (this week + overdue)
-        let tasksQuery = supabase
+        // Load both pending tasks (this week + overdue) AND recent completed tasks
+        let allTasksQuery = supabase
           .from('tasks')
           .select(`
             *,
@@ -867,31 +867,50 @@ function UserDashboardInterface() {
               )
             )
           `)
-          .eq('completed', false)
         
-        // SECURITY: ALWAYS filter by garden access for non-admin users  
-        if (!isAdmin) {
-          if (accessibleGardens.length === 0) {
-            console.warn('⚠️ SECURITY: User has no garden access, blocking tasks query')
-            tasksData = []
-            setTasks(tasksData)
-            return // Early return to prevent any data leakage
+                  // SECURITY: ALWAYS filter by garden access for non-admin users  
+          if (!isAdmin) {
+            if (accessibleGardens.length === 0) {
+              console.warn('⚠️ SECURITY: User has no garden access, blocking tasks query')
+              tasksData = []
+              setTasks(tasksData)
+              return // Early return to prevent any data leakage
+            }
+            allTasksQuery = allTasksQuery.in('plants.plant_beds.garden_id', accessibleGardens)
+            console.log('🔍 SECURITY: User tasks query filtering by gardens:', accessibleGardens)
           }
-          tasksQuery = tasksQuery.in('plants.plant_beds.garden_id', accessibleGardens)
-          console.log('🔍 SECURITY: User tasks query filtering by gardens:', accessibleGardens)
-        }
-        
-        // Filter for this week + overdue tasks (including today)
-        tasksQuery = tasksQuery.or(`due_date.lt.${today.toISOString()},and(due_date.gte.${startOfWeek.toISOString()},due_date.lte.${endOfWeek.toISOString()})`)
-        
-        const { data: taskResults, error: tasksError } = await tasksQuery.order('due_date', { ascending: true })
+          
+          const { data: allTaskResults, error: tasksError } = await allTasksQuery.order('updated_at', { ascending: false })
 
-        console.log('📋 Tasks found:', taskResults)
-        console.log('❌ Tasks error:', tasksError)
+          if (!tasksError && allTaskResults) {
+            // Filter and combine pending tasks (this week + overdue) with recent completed tasks
+            const pendingTasks = allTaskResults.filter(task => {
+              if (task.completed) return false
+              if (!task.due_date) return true // Tasks without due date are always shown
+              
+              const dueDate = new Date(task.due_date)
+              const isOverdue = dueDate < today
+              const isThisWeek = dueDate >= startOfWeek && dueDate <= endOfWeek
+              
+              return isOverdue || isThisWeek
+            })
 
-        if (!tasksError) {
-          tasksData = taskResults || []
-        }
+            // Get recent completed tasks (last 7 days)
+            const sevenDaysAgo = new Date(now)
+            sevenDaysAgo.setDate(now.getDate() - 7)
+            
+            const recentCompletedTasks = allTaskResults.filter(task => {
+              if (!task.completed) return false
+              const updatedDate = new Date(task.updated_at)
+              return updatedDate >= sevenDaysAgo
+            }).slice(0, 5) // Limit to 5 recent completed tasks
+
+            // Combine pending and recent completed tasks
+            tasksData = [...pendingTasks, ...recentCompletedTasks]
+          }
+
+        console.log('📋 All tasks loaded:', allTaskResults?.length || 0)
+        console.log('📋 Final tasks data:', tasksData.length)
       } else {
         console.log('⚠️ User has no garden access')
       }
@@ -1019,27 +1038,45 @@ function UserDashboardInterface() {
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {tasks.map((task) => {
-                  const isOverdue = task.due_date && new Date(task.due_date) < new Date()
+                  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && !task.completed
+                  const isCompleted = task.completed
+                  
                   return (
                     <div key={task.id} className={`p-3 border rounded-lg hover:bg-gray-50 ${
-                      isOverdue ? 'border-red-200 bg-red-50' : 'border-gray-200'
+                      isCompleted 
+                        ? 'border-green-200 bg-green-50' 
+                        : isOverdue 
+                          ? 'border-red-200 bg-red-50' 
+                          : 'border-gray-200'
                     }`}>
                       <div className="flex items-start justify-between">
-                        <h4 className="font-medium">{task.title}</h4>
-                        {isOverdue && (
+                        <h4 className={`font-medium ${isCompleted ? 'line-through text-green-700' : ''}`}>
+                          {task.title}
+                        </h4>
+                        {isCompleted && (
+                          <Badge variant="outline" className="text-xs border-green-500 text-green-700">
+                            ✅ Voltooid
+                          </Badge>
+                        )}
+                        {isOverdue && !isCompleted && (
                           <Badge variant="destructive" className="text-xs">
                             Verlopen
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600">
+                      <p className={`text-sm ${isCompleted ? 'text-green-600' : 'text-gray-600'}`}>
                         {task.plants?.name} - {task.plants?.plant_beds?.gardens?.name}
                       </p>
                       {task.due_date && (
                         <p className={`text-xs mt-1 ${
-                          isOverdue ? 'text-red-600 font-medium' : 'text-orange-600'
+                          isCompleted 
+                            ? 'text-green-600' 
+                            : isOverdue 
+                              ? 'text-red-600 font-medium' 
+                              : 'text-orange-600'
                         }`}>
-                          Deadline: {new Date(task.due_date).toLocaleDateString('nl-NL')}
+                          {isCompleted ? 'Voltooid op: ' : 'Deadline: '}
+                          {new Date(isCompleted ? task.updated_at : task.due_date).toLocaleDateString('nl-NL')}
                         </p>
                       )}
                     </div>
@@ -1047,11 +1084,20 @@ function UserDashboardInterface() {
                 })}
               </div>
             )}
-            {/* SECURITY: No navigation buttons for users - only show tasks in dashboard */}
-            <div className="mt-4 pt-4 border-t">
-              <p className="text-center text-sm text-gray-500">
-                Dit zijn jouw taken voor deze week en verlopen taken
-              </p>
+            <div className="mt-4 pt-4 border-t space-y-2">
+              <Button asChild className="w-full">
+                <Link href="/tasks">
+                  Alle Taken Bekijken
+                </Link>
+              </Button>
+              <Button 
+                onClick={celebrate}
+                variant="outline" 
+                size="sm"
+                className="w-full text-xs"
+              >
+                🎉 Test Viering (demo)
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -1084,17 +1130,18 @@ function UserDashboardInterface() {
                 ))}
               </div>
             )}
-            {/* SECURITY: Only allow creating new entries, no navigation to full logbook */}
-            <div className="mt-4 pt-4 border-t">
+            <div className="mt-4 pt-4 border-t space-y-2">
               <Button asChild className="w-full">
                 <Link href="/logbook/new">
                   <Plus className="w-4 h-4 mr-2" />
                   Nieuwe Logboek Entry
                 </Link>
               </Button>
-              <p className="text-center text-sm text-gray-500 mt-2">
-                Recente logboek entries van jouw tuin
-              </p>
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/logbook">
+                  Volledig Logboek Bekijken
+                </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
