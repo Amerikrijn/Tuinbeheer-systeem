@@ -17,11 +17,12 @@ interface SimpleTasksViewProps {
 
 export function SimpleTasksView({}: SimpleTasksViewProps) {
   const router = useRouter()
-  const { user, getAccessibleGardens } = useAuth()
+  const { user, getAccessibleGardens, loadGardenAccess } = useAuth()
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [gardenNames, setGardenNames] = useState<string[]>([])
+  const [gardenAccessLoaded, setGardenAccessLoaded] = useState(false)
 
   // Calculate week dates
   const getWeekDates = (date: Date) => {
@@ -43,10 +44,41 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
     return `${start} - ${end}`
   }
 
+  // Load garden access first
+  useEffect(() => {
+    async function ensureGardenAccess() {
+      if (!user) return
+      
+      console.log('🔍 SimpleTasksView - Initial user state:', {
+        email: user.email,
+        role: user.role,
+        garden_access: user.garden_access,
+        hasAccess: user.garden_access?.length > 0
+      })
+      
+      // For users, ensure garden access is loaded
+      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
+        console.log('🔍 SimpleTasksView - Loading garden access for user...')
+        try {
+          await loadGardenAccess()
+          setGardenAccessLoaded(true)
+          console.log('✅ SimpleTasksView - Garden access loaded')
+        } catch (error) {
+          console.error('❌ SimpleTasksView - Failed to load garden access:', error)
+          setGardenAccessLoaded(true) // Still mark as loaded to avoid infinite loop
+        }
+      } else {
+        setGardenAccessLoaded(true)
+      }
+    }
+    
+    ensureGardenAccess()
+  }, [user?.id, loadGardenAccess])
+
   // Load garden names
   useEffect(() => {
     async function loadGardenNames() {
-      if (!user?.garden_access || loading) return
+      if (!user?.garden_access || !gardenAccessLoaded) return
       
       try {
         const accessibleGardens = getAccessibleGardens()
@@ -64,12 +96,12 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
     }
     
     loadGardenNames()
-  }, [user?.garden_access, getAccessibleGardens, loading])
+  }, [user?.garden_access, getAccessibleGardens, gardenAccessLoaded])
 
   // Load tasks for current week
   useEffect(() => {
     async function loadWeeklyTasks() {
-      if (!user) return
+      if (!user || !gardenAccessLoaded) return
       
       setLoading(true)
       try {
@@ -142,7 +174,7 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
     }
 
     loadWeeklyTasks()
-  }, [user, currentWeek, getAccessibleGardens])
+  }, [user, currentWeek, getAccessibleGardens, gardenAccessLoaded])
 
   const navigateWeek = (direction: 'prev' | 'next') => {
     const newWeek = new Date(currentWeek)
@@ -152,7 +184,7 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
 
   const { startOfWeek, endOfWeek } = getWeekDates(currentWeek)
 
-  if (loading) {
+  if (loading || !gardenAccessLoaded) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto">
