@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  output: 'export',
+  trailingSlash: true,
+  skipTrailingSlashRedirect: true,
   
   // Build configuration
   typescript: {
@@ -12,6 +14,11 @@ const nextConfig = {
   
   // Server external packages (moved from experimental in Next.js 15)
   serverExternalPackages: ['@supabase/supabase-js'],
+  
+  // Disable image optimization for static export
+  images: {
+    unoptimized: true,
+  },
   
   // Simple webpack configuration
   webpack: (config, { isServer }) => {
