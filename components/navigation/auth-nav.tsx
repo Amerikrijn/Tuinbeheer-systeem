@@ -72,58 +72,22 @@ export function AuthNavigation() {
         title: 'Home',
         href: '/',
         icon: Home,
-        description: 'Admin overzicht van alle tuinen'
+        description: 'Dashboard overzicht'
       })
       
-      // Admin gets all the management links
       items.push({
         title: 'Tuinen',
         href: '/gardens',
         icon: TreePine,
-        description: 'Beheer je tuinen'
-      })
-      
-      items.push({
-        title: 'Alle Taken',
-        href: '/tasks',
-        icon: ClipboardList,
-        description: 'Beheer alle taken'
-      })
-      
-      items.push({
-        title: 'Logboek',
-        href: '/logbook',
-        icon: BookOpen,
-        description: 'Tuinlogboek bijhouden'
-      })
-      
-      items.push({
-        title: 'Admin Panel',
-        href: '/admin/users',
-        icon: Settings,
-        description: 'Beheer gebruikers en instellingen'
+        description: 'Beheer tuinen'
       })
     } else {
-      // Regular users get simple homepage and task dashboard
+      // Regular users get simple homepage
       items.push({
         title: 'Home',
         href: '/',
         icon: Home,
-        description: 'Overzicht van jouw taken en logboek'
-      })
-      
-      items.push({
-        title: 'Alle Taken',
-        href: '/user-dashboard',
-        icon: ClipboardList,
-        description: 'Bekijk je toegewezen taken'
-      })
-
-      items.push({
-        title: 'Logboek',
-        href: '/logbook',
-        icon: BookOpen,
-        description: 'Bekijk logboek items'
+        description: 'Jouw dashboard'
       })
     }
 
