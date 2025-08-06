@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BookOpen, Plus, Search, Calendar, Camera, Leaf, MapPin, Filter, X } from "lucide-react"
+import { BookOpen, Plus, Search, Calendar, Camera, Leaf, MapPin, Filter, X, ClipboardList } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger } from "@/lib/logger"
@@ -450,6 +450,18 @@ function LogbookPageContent() {
             </div>
           )}
         </div>
+
+        {/* Tasks button for users */}
+        {!isAdmin() && (
+          <Button 
+            onClick={() => router.push('/')}
+            variant="outline"
+            className="flex items-center gap-2"
+          >
+            <ClipboardList className="w-4 h-4" />
+            Taken
+          </Button>
+        )}
         
         <Button asChild>
           <Link href="/logbook/new">

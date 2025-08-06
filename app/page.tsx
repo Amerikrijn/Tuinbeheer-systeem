@@ -25,6 +25,7 @@ import { useAuth } from "@/hooks/use-supabase-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { supabase } from "@/lib/supabase"
 import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
+import { SimpleTasksView } from "@/components/user/simple-tasks-view"
 
 interface HomePageState {
   gardens: Tuin[]
@@ -683,40 +684,12 @@ function RoleBasedHomeContent() {
   if (isAdmin()) {
     return <HomePageContent />
   } else {
-    // Users get their own dedicated interface
-    return <UserDashboardInterface />
+    // Users get simple weekly tasks view
+    return <SimpleTasksView />
   }
 }
 
-// User Dashboard Interface - only tasks and logbook for assigned gardens
-function UserDashboardInterface() {
-  const { user, getAccessibleGardens, loadGardenAccess } = useAuth()
-  const { toast } = useToast()
-  const router = useRouter()
-  const [loading, setLoading] = React.useState(true)
-  const [refreshing, setRefreshing] = React.useState(false)
-  const [tasks, setTasks] = React.useState<any[]>([])
-  const [logbookEntries, setLogbookEntries] = React.useState<any[]>([])
-    const [celebrating, setCelebrating] = React.useState(false)
-  const [gardenNames, setGardenNames] = React.useState<string[]>([])
-
-  React.useEffect(() => {
-    if (user) {
- 
-      loadUserData()
-    }
-  }, [user])
-
-  // Load garden names when user data is available
-  React.useEffect(() => {
-    const loadGardenNames = async () => {
-      if (!user || loading) return
-      
-      const accessibleGardens = getAccessibleGardens()
-      if (accessibleGardens.length > 0) {
-        try {
-          const { data: gardens } = await supabase
-            .from('gardens')
+// Old UserDashboardInterface removed - now using SimpleTasksView
             .select('name')
             .in('id', accessibleGardens)
           
