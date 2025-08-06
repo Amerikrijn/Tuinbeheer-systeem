@@ -56,15 +56,31 @@ export function useSupabaseAuth(): AuthContextType {
       const role: 'admin' | 'user' = supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user'
       console.log('🔍 Determined role:', role, 'for email:', supabaseUser.email)
       
-      // TEMPORARILY SKIP garden access loading to fix login hanging
+      // Load garden access for non-admin users (with improved error handling)
       let gardenAccess: string[] = []
-      console.log('🔍 SKIPPING garden access loading for now - will load later')
-      
-      // TODO: Load garden access after login is complete
-      // if (role === 'user') {
-      //   console.log('🔍 Loading garden access for user:', supabaseUser.id)
-      //   // Garden access query code here...
-      // }
+      if (role === 'user') {
+        console.log('🔍 Loading garden access for user:', supabaseUser.id)
+        try {
+          const { data: accessData, error: accessError } = await supabase
+            .from('user_garden_access')
+            .select('garden_id')
+            .eq('user_id', supabaseUser.id)
+          
+          if (accessError) {
+            console.log('🔍 Garden access query error:', accessError)
+            gardenAccess = []
+          } else if (accessData) {
+            gardenAccess = accessData.map(row => row.garden_id)
+            console.log('🔍 Garden access loaded successfully:', gardenAccess)
+          } else {
+            console.log('🔍 No garden access data returned')
+            gardenAccess = []
+          }
+        } catch (error) {
+          console.log('🔍 Garden access loading failed, continuing with empty access:', error)
+          gardenAccess = []
+        }
+      }
       
       const directUser: User = {
         id: supabaseUser.id,
