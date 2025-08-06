@@ -628,6 +628,7 @@ function UserSimpleHome() {
     try {
       const accessibleGardens = getAccessibleGardens()
       console.log('🔍 User accessible gardens:', accessibleGardens)
+      console.log('🔍 User details:', { email: user?.email, role: user?.role, garden_access: user?.garden_access })
       
       // Load tasks for accessible gardens
       let tasksQuery = supabase
@@ -710,21 +711,31 @@ function UserSimpleHome() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold">Welkom, {user?.full_name || user?.email?.split('@')[0]}!</h1>
-        <p className="text-muted-foreground mt-2">Jouw taken en logboek overzicht</p>
+    <div className="container mx-auto py-8 space-y-8">
+      {/* Welcome Header */}
+      <div className="text-center bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-8">
+        <div className="flex items-center justify-center mb-4">
+          <div className="p-3 bg-green-100 rounded-full mr-4">
+            <User className="h-8 w-8 text-green-600" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Welkom, {user?.full_name || user?.email?.split('@')[0]}!
+            </h1>
+            <p className="text-gray-600 mt-2">Jouw persoonlijke tuin dashboard</p>
+          </div>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Recent Tasks */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
+        <Card className="shadow-lg border-0 bg-white">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 text-blue-900">
+              <CheckCircle className="w-5 h-5 text-blue-600" />
               Openstaande Taken
             </CardTitle>
-            <CardDescription>Jouw toegewezen taken</CardDescription>
+            <CardDescription className="text-blue-700">Jouw toegewezen taken</CardDescription>
           </CardHeader>
           <CardContent>
             {tasks.length === 0 ? (
@@ -757,13 +768,13 @@ function UserSimpleHome() {
         </Card>
 
         {/* Recent Logbook */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="w-5 h-5" />
+        <Card className="shadow-lg border-0 bg-white">
+          <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+            <CardTitle className="flex items-center gap-2 text-green-900">
+              <BookOpen className="w-5 h-5 text-green-600" />
               Recent Logboek
             </CardTitle>
-            <CardDescription>Laatste logboek items</CardDescription>
+            <CardDescription className="text-green-700">Laatste logboek items</CardDescription>
           </CardHeader>
           <CardContent>
             {logbookEntries.length === 0 ? (
@@ -792,12 +803,6 @@ function UserSimpleHome() {
             <Link href="/user-dashboard">
               <ClipboardList className="w-4 h-4 mr-2" />
               Alle Taken
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/logbook">
-              <BookOpen className="w-4 h-4 mr-2" />
-              Volledig Logboek
             </Link>
           </Button>
         </div>

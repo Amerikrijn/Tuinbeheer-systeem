@@ -102,6 +102,13 @@ export function AuthNavigation() {
               </Link>
             </Button>
 
+            <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
+              <Link href="/logbook" className="flex items-center space-x-2">
+                <BookOpen className="w-4 h-4" />
+                <span>Logboek</span>
+              </Link>
+            </Button>
+
             {isAdmin() && (
               <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
                 <Link href="/admin/users" className="flex items-center space-x-2">
@@ -125,6 +132,12 @@ export function AuthNavigation() {
                   <Link href={isAdmin() ? "/tasks" : "/user-dashboard"} className="flex items-center space-x-2">
                     <ClipboardList className="w-4 h-4" />
                     <span>Taken</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/logbook" className="flex items-center space-x-2">
+                    <BookOpen className="w-4 h-4" />
+                    <span>Logboek</span>
                   </Link>
                 </DropdownMenuItem>
                 {isAdmin() && (
