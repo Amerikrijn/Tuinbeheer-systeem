@@ -599,8 +599,203 @@ export default function HomePage() {
 function RoleBasedHomeContent() {
   const { user, isAdmin } = useAuth()
 
-  // Everyone gets the same interface - just filtered by garden access
-  return <HomePageContent />
+  if (isAdmin()) {
+    return <HomePageContent />
+  } else {
+    // Users get their own dedicated interface
+    return <UserDashboardInterface />
+  }
+}
+
+// User Dashboard Interface - only tasks and logbook for assigned gardens
+function UserDashboardInterface() {
+  const { user, getAccessibleGardens } = useAuth()
+  const { toast } = useToast()
+  const router = useRouter()
+  const [loading, setLoading] = React.useState(true)
+  const [tasks, setTasks] = React.useState<any[]>([])
+  const [logbookEntries, setLogbookEntries] = React.useState<any[]>([])
+
+  React.useEffect(() => {
+    if (user) {
+      loadUserData()
+    }
+  }, [user])
+
+  const loadUserData = async () => {
+    if (!user) return
+    
+    setLoading(true)
+    try {
+      const accessibleGardens = getAccessibleGardens()
+      console.log('🔍 User accessible gardens:', accessibleGardens)
+
+      // Load tasks for accessible gardens
+      let tasksData = []
+      if (accessibleGardens.length > 0) {
+        const { data: taskResults, error: tasksError } = await supabase
+          .from('tasks')
+          .select(`
+            *,
+            plants!inner(
+              name,
+              plant_beds!inner(
+                name,
+                garden_id,
+                gardens!inner(name)
+              )
+            )
+          `)
+          .eq('completed', false)
+          .in('plants.plant_beds.garden_id', accessibleGardens)
+          .order('due_date', { ascending: true })
+
+        if (!tasksError) {
+          tasksData = taskResults || []
+        }
+      }
+      setTasks(tasksData)
+
+      // Load logbook entries for accessible gardens  
+      let logbookData = []
+      if (accessibleGardens.length > 0) {
+        const { data: logbookResults, error: logbookError } = await supabase
+          .from('logbook_entries')
+          .select('*, gardens(name)')
+          .in('garden_id', accessibleGardens)
+          .order('created_at', { ascending: false })
+
+        if (!logbookError) {
+          logbookData = logbookResults || []
+        }
+      }
+      setLogbookEntries(logbookData)
+
+    } catch (error) {
+      console.error('Error loading user data:', error)
+      toast({
+        title: "Fout bij laden",
+        description: "Kon gegevens niet laden",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <span className="ml-2">Gegevens laden...</span>
+        </div>
+      </div>
+    )
+  }
+
+  const accessibleGardens = getAccessibleGardens()
+  const gardenNames = accessibleGardens.length > 0 ? 'je toegewezen tuinen' : 'geen tuinen toegewezen'
+
+  return (
+    <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
+      {/* Header */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          Welkom, {user?.full_name || user?.email?.split('@')[0]}
+        </h1>
+        <p className="text-gray-600">
+          Taken en logboek voor {gardenNames}
+        </p>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8">
+        {/* Tasks Section - Same layout as admin */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5" />
+              Taken ({tasks.length})
+            </CardTitle>
+            <CardDescription>Openstaande taken voor jouw tuinen</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {tasks.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <ClipboardList className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Geen openstaande taken</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {tasks.map((task) => (
+                  <div key={task.id} className="p-3 border rounded-lg hover:bg-gray-50">
+                    <h4 className="font-medium">{task.title}</h4>
+                    <p className="text-sm text-gray-600">
+                      {task.plants?.name} - {task.plants?.plant_beds?.gardens?.name}
+                    </p>
+                    {task.due_date && (
+                      <p className="text-xs text-orange-600 mt-1">
+                        Deadline: {new Date(task.due_date).toLocaleDateString('nl-NL')}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            {tasks.length > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <Button asChild className="w-full">
+                  <Link href="/tasks">
+                    Alle Taken Bekijken
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Logbook Section - Same layout as admin */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5" />
+              Logboek ({logbookEntries.length})
+            </CardTitle>
+            <CardDescription>Recente logboek entries van jouw tuinen</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {logbookEntries.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <BookOpen className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                <p>Geen logboek entries</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {logbookEntries.slice(0, 10).map((entry) => (
+                  <div key={entry.id} className="p-3 border rounded-lg hover:bg-gray-50">
+                    <h4 className="font-medium">{entry.notes}</h4>
+                    <p className="text-sm text-gray-600">{entry.gardens?.name}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {new Date(entry.entry_date).toLocaleDateString('nl-NL')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {logbookEntries.length > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <Button asChild variant="outline" className="w-full">
+                  <Link href="/logbook">
+                    Volledig Logboek Bekijken
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  )
 }
 
 
