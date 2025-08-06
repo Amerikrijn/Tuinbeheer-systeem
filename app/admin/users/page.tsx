@@ -305,10 +305,43 @@ function AdminUsersPageContent() {
     }
   }
 
+  // Check if auth user exists
+  const checkAuthUser = async (email: string) => {
+    try {
+      console.log('🔍 Checking if auth user exists for:', email)
+      
+      const { data, error } = await supabase.auth.admin.listUsers()
+      
+      if (error) {
+        console.error('❌ Error checking auth users:', error)
+        return false
+      }
+      
+      const userExists = data.users.find(u => u.email === email)
+      console.log('🔍 Auth user exists:', !!userExists, 'for email:', email)
+      
+      return !!userExists
+      
+    } catch (error) {
+      console.error('❌ Error in checkAuthUser:', error)
+      return false
+    }
+  }
+
   // Create auth user if missing
   const createMissingAuthUser = async (email: string) => {
     try {
       console.log('🔧 Creating auth user for:', email)
+      
+      // First check if user already exists
+      const exists = await checkAuthUser(email)
+      if (exists) {
+        toast({
+          title: "Gebruiker bestaat al",
+          description: `Auth gebruiker voor ${email} bestaat al in Supabase`,
+        })
+        return null
+      }
       
       // Generate a temporary password
       const tempPassword = 'TempPass123!'
@@ -449,6 +482,13 @@ function AdminUsersPageContent() {
           <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => checkAuthUser('amerik.rijn@gmail.com')}
+            className="flex items-center gap-2 text-blue-600"
+          >
+            🔍 Check amerik.rijn@gmail.com
+          </Button>
           <Button 
             variant="outline"
             onClick={() => createMissingAuthUser('amerik.rijn@gmail.com')}
