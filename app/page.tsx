@@ -689,7 +689,7 @@ function RoleBasedHomeContent() {
 
 // User Dashboard Interface - only tasks and logbook for assigned gardens
 function UserDashboardInterface() {
-  const { user, getAccessibleGardens } = useAuth()
+  const { user, getAccessibleGardens, loadGardenAccess } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
   const [loading, setLoading] = React.useState(true)
@@ -699,7 +699,10 @@ function UserDashboardInterface() {
 
   React.useEffect(() => {
     if (user) {
-      loadUserData()
+      // Load garden access first, then load user data
+      loadGardenAccess().then(() => {
+        loadUserData()
+      })
     }
   }, [user])
 
