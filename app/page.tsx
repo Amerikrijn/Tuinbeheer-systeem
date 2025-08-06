@@ -878,6 +878,7 @@ function UserDashboardInterface() {
             return // Early return to prevent any data leakage
           }
           tasksQuery = tasksQuery.in('plants.plant_beds.garden_id', accessibleGardens)
+          console.log('🔍 SECURITY: User tasks query filtering by gardens:', accessibleGardens)
         }
         
         // Filter for this week + overdue tasks (including today)
@@ -921,6 +922,7 @@ function UserDashboardInterface() {
             return // Early return to prevent any data leakage
           }
           logbookQuery = logbookQuery.in('plant_beds.garden_id', accessibleGardens)
+          console.log('🔍 SECURITY: User logbook query filtering by gardens:', accessibleGardens)
         }
         
         const { data: logbookResults, error: logbookError } = await logbookQuery
@@ -1045,21 +1047,11 @@ function UserDashboardInterface() {
                 })}
               </div>
             )}
-            <div className="mt-4 pt-4 border-t space-y-2">
-              <Button asChild className="w-full">
-                <Link href="/tasks">
-                  Alle Taken Bekijken
-                </Link>
-              </Button>
-              {/* Test celebration button - remove in production */}
-              <Button 
-                onClick={celebrate}
-                variant="outline" 
-                size="sm"
-                className="w-full text-xs"
-              >
-                🎉 Test Viering (demo)
-              </Button>
+            {/* SECURITY: No navigation buttons for users - only show tasks in dashboard */}
+            <div className="mt-4 pt-4 border-t">
+              <p className="text-center text-sm text-gray-500">
+                Dit zijn jouw taken voor deze week en verlopen taken
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -1092,18 +1084,17 @@ function UserDashboardInterface() {
                 ))}
               </div>
             )}
-            <div className="mt-4 pt-4 border-t space-y-2">
+            {/* SECURITY: Only allow creating new entries, no navigation to full logbook */}
+            <div className="mt-4 pt-4 border-t">
               <Button asChild className="w-full">
                 <Link href="/logbook/new">
                   <Plus className="w-4 h-4 mr-2" />
                   Nieuwe Logboek Entry
                 </Link>
               </Button>
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/logbook">
-                  Volledig Logboek Bekijken
-                </Link>
-              </Button>
+              <p className="text-center text-sm text-gray-500 mt-2">
+                Recente logboek entries van jouw tuin
+              </p>
             </div>
           </CardContent>
         </Card>

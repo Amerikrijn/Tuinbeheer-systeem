@@ -24,6 +24,7 @@ import type { LogbookEntryWithDetails, Plantvak, PlantvakWithBloemen } from "@/l
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { UserRestrictedRoute } from "@/components/auth/user-restricted-route"
 import { useAuth } from "@/hooks/use-supabase-auth"
 import { supabase } from "@/lib/supabase"
 import { format, parseISO } from "date-fns"
@@ -571,14 +572,17 @@ function LogbookPageContent() {
   )
 }
 
+// SECURITY: Logbook overview only for admins
 export default function LogbookPage() {
   return (
     <ProtectedRoute>
-      <ErrorBoundary>
-        <React.Suspense fallback={<div>Loading...</div>}>
-          <LogbookPageContent />
-        </React.Suspense>
-      </ErrorBoundary>
+      <UserRestrictedRoute>
+        <ErrorBoundary>
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <LogbookPageContent />
+          </React.Suspense>
+        </ErrorBoundary>
+      </UserRestrictedRoute>
     </ProtectedRoute>
   )
 }
