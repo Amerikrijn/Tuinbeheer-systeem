@@ -110,7 +110,12 @@ function LogbookPageContent() {
         // Regular user or admin viewing own logbook
         accessibleGardens = getAccessibleGardens()
         hasGardenRestriction = !isAdmin() && accessibleGardens.length > 0
-        // console.log('🔍 Viewing own logbook:', { gardens: accessibleGardens, restricted: hasGardenRestriction })
+        console.log('🔍 Logbook viewing own:', { 
+          isAdmin: isAdmin(), 
+          gardens: accessibleGardens, 
+          restricted: hasGardenRestriction,
+          gardenCount: accessibleGardens.length 
+        })
       }
 
       const filters: any = {
