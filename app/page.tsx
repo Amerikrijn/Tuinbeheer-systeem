@@ -869,21 +869,45 @@ function UserDashboardInterface() {
             // Use utility function to sort all tasks properly
             const sortedTasks = sortTasks(allTaskResults)
             
-            // For dashboard, show: all pending + recent completed (last 7 days)
+            // For dashboard, show: this week + overdue pending + recent completed (last 7 days)
             const now = new Date()
+            const today = new Date(now)
+            today.setHours(0, 0, 0, 0)
+            
+            // Start of week (Monday)
+            const startOfWeek = new Date(now)
+            const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1 // Convert Sunday=0 to Monday=0
+            startOfWeek.setDate(now.getDate() - dayOfWeek)
+            startOfWeek.setHours(0, 0, 0, 0)
+            
+            // End of week (Sunday)
+            const endOfWeek = new Date(startOfWeek)
+            endOfWeek.setDate(startOfWeek.getDate() + 6)
+            endOfWeek.setHours(23, 59, 59, 999)
+            
+            // Filter pending tasks: this week + overdue only
+            const relevantPendingTasks = sortedTasks.filter(task => {
+              if (task.completed) return false
+              if (!task.due_date) return false // Only show tasks with due dates on dashboard
+              
+              const dueDate = new Date(task.due_date)
+              const isOverdue = dueDate < today
+              const isThisWeek = dueDate >= startOfWeek && dueDate <= endOfWeek
+              
+              return isOverdue || isThisWeek
+            })
+            
+            // Recent completed tasks (last 7 days)
             const sevenDaysAgo = new Date(now)
             sevenDaysAgo.setDate(now.getDate() - 7)
             
-            const pendingTasks = sortedTasks.filter(task => !task.completed)
             const recentCompletedTasks = sortedTasks.filter(task => {
               if (!task.completed) return false
               const updatedDate = new Date(task.updated_at)
               return updatedDate >= sevenDaysAgo
             }).slice(0, 5) // Limit to 5 recent completed tasks
 
-
-
-            tasksData = [...pendingTasks, ...recentCompletedTasks]
+            tasksData = [...relevantPendingTasks, ...recentCompletedTasks]
           }
 
         console.log('📋 All tasks loaded:', allTaskResults?.length || 0)
@@ -1004,7 +1028,7 @@ function UserDashboardInterface() {
               <ClipboardList className="w-5 h-5" />
               Taken ({tasks.length})
             </CardTitle>
-            <CardDescription>Alle openstaande taken + recente voltooide taken</CardDescription>
+            <CardDescription>Deze week + verlopen taken + recente voltooide taken</CardDescription>
           </CardHeader>
           <CardContent>
             {tasks.length === 0 ? (
