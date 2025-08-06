@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,6 +25,7 @@ import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useAuth } from "@/hooks/use-supabase-auth"
+import { supabase } from "@/lib/supabase"
 import { format, parseISO } from "date-fns"
 import { nl } from "date-fns/locale"
 
@@ -45,8 +46,13 @@ const ITEMS_PER_PAGE = 20
 
 function LogbookPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
   const { getAccessibleGardens, isAdmin } = useAuth()
+  
+  // Check if we're viewing a specific user's logbook (admin only)
+  const viewingUserId = searchParams.get('user_id')
+  const [viewingUser, setViewingUser] = React.useState<any>(null)
   
   const [state, setState] = React.useState<LogbookPageState>({
     entries: [],
@@ -61,7 +67,30 @@ function LogbookPageContent() {
     hasMore: false,
   })
 
-  // Load logbook entries (filtered by accessible gardens)
+  // Load specific user data if viewing for another user (admin only)
+  const loadViewingUser = React.useCallback(async () => {
+    if (!viewingUserId || !isAdmin()) return
+    
+    try {
+      const { data: userData, error } = await supabase
+        .from('users')
+        .select('id, email, full_name, garden_access')
+        .eq('id', viewingUserId)
+        .single()
+      
+      if (error) throw error
+      setViewingUser(userData)
+    } catch (error) {
+      console.error('Error loading user:', error)
+      toast({
+        title: "Fout bij laden gebruiker",
+        description: "Kon gebruikersgegevens niet laden",
+        variant: "destructive"
+      })
+    }
+  }, [viewingUserId, isAdmin, toast])
+
+  // Load logbook entries (filtered by accessible gardens or specific user)
   const loadEntries = React.useCallback(async (page = 1, append = false) => {
     const operationId = `loadLogbookEntries-${Date.now()}`
     
@@ -69,8 +98,20 @@ function LogbookPageContent() {
       setState(prev => ({ ...prev, loading: !append, error: null }))
       
       // Get accessible gardens for filtering
-      const accessibleGardens = getAccessibleGardens()
-      const hasGardenRestriction = !isAdmin() && accessibleGardens.length > 0
+      let accessibleGardens: string[]
+      let hasGardenRestriction: boolean
+      
+      if (viewingUser && isAdmin()) {
+        // Admin viewing specific user - use that user's garden access
+        accessibleGardens = viewingUser.garden_access || []
+        hasGardenRestriction = accessibleGardens.length > 0
+        console.log('🔍 Admin viewing user logbook:', { user: viewingUser.email, gardens: accessibleGardens })
+      } else {
+        // Regular user or admin viewing own logbook
+        accessibleGardens = getAccessibleGardens()
+        hasGardenRestriction = !isAdmin() && accessibleGardens.length > 0
+        console.log('🔍 Viewing own logbook:', { gardens: accessibleGardens, restricted: hasGardenRestriction })
+      }
 
       const filters: any = {
         limit: ITEMS_PER_PAGE,
@@ -143,7 +184,7 @@ function LogbookPageContent() {
         variant: "destructive",
       })
     }
-  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin])
+  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin, viewingUser])
 
   // Load plant beds for filtering
   const loadPlantBeds = React.useCallback(async () => {
@@ -155,11 +196,20 @@ function LogbookPageContent() {
     }
   }, [])
 
+  // Load viewing user data when user_id parameter changes
+  React.useEffect(() => {
+    loadViewingUser()
+  }, [loadViewingUser])
+
   // Initial load
   React.useEffect(() => {
+    if (viewingUserId && !viewingUser && isAdmin()) {
+      // Wait for viewing user to load first
+      return
+    }
     loadEntries()
     loadPlantBeds()
-  }, [])
+  }, [loadEntries, loadPlantBeds, viewingUserId, viewingUser, isAdmin])
 
   // Reload when filters change
   React.useEffect(() => {
@@ -272,11 +322,21 @@ function LogbookPageContent() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
             <BookOpen className="h-8 w-8" />
-            Logboek
+            {viewingUser ? `Logboek van ${viewingUser.full_name || viewingUser.email}` : 'Logboek'}
           </h1>
           <p className="text-gray-600 mt-1">
-            Overzicht van alle logboek entries voor je tuinen
+            {viewingUser 
+              ? `Logboek entries van ${viewingUser.full_name || viewingUser.email}`
+              : 'Overzicht van alle logboek entries voor je tuinen'
+            }
           </p>
+          {viewingUser && (
+            <div className="mt-2">
+              <Badge variant="outline" className="text-xs">
+                Toegang tot: {viewingUser.garden_access?.length || 0} tuin(en)
+              </Badge>
+            </div>
+          )}
         </div>
         
         <Button asChild>

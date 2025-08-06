@@ -4,6 +4,7 @@
 export const dynamic = 'force-dynamic'
 
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -14,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2 } from 'lucide-react'
+import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
@@ -478,10 +479,18 @@ function AdminUsersPageContent() {
                           </DropdownMenuItem>
                         )}
                         {user.role !== 'admin' && (
-                          <DropdownMenuItem onClick={() => handleEditGardenAccess(user)}>
-                            <TreePine className="w-4 h-4 mr-2" />
-                            Tuin Toegang Beheren
-                          </DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem onClick={() => handleEditGardenAccess(user)}>
+                              <TreePine className="w-4 h-4 mr-2" />
+                              Tuin Toegang Beheren
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/logbook?user_id=${user.id}`}>
+                                <BookOpen className="w-4 h-4 mr-2" />
+                                Bekijk Logboek
+                              </Link>
+                            </DropdownMenuItem>
+                          </>
                         )}
                         <DropdownMenuItem 
                           onClick={() => {/* TODO: Resend invitation */}}
