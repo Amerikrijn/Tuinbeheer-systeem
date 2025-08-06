@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, Plus, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { UserRestrictedRoute } from "@/components/auth/user-restricted-route"
 
 function TasksPageContent() {
   const { goBack } = useNavigation()
@@ -73,11 +74,13 @@ function TasksPageContent() {
   )
 }
 
-// Protected tasks page
+// SECURITY: Tasks page only for admins
 export default function TasksPage() {
   return (
     <ProtectedRoute>
-      <TasksPageContent />
+      <UserRestrictedRoute>
+        <TasksPageContent />
+      </UserRestrictedRoute>
     </ProtectedRoute>
   )
 }

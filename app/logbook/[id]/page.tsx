@@ -357,11 +357,14 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                 <CardTitle className="text-lg">Gerelateerd</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button asChild variant="outline" className="w-full text-sm">
-                  <Link href={`/gardens/${state.entry.garden_id}`}>
-                    Bekijk tuin
-                  </Link>
-                </Button>
+                                  {/* SECURITY: Only show garden link for admins */}
+                  {isAdmin() && (
+                    <Button asChild variant="outline" className="w-full text-sm">
+                      <Link href={`/gardens/${state.entry.garden_id}`}>
+                        Bekijk tuin
+                      </Link>
+                    </Button>
+                  )}
                 
                 <Button asChild variant="outline" className="w-full text-sm">
                   <Link href={`/logbook/new?plant_bed_id=${state.entry.plant_bed_id}`}>
