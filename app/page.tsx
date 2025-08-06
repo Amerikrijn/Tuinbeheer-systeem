@@ -627,11 +627,11 @@ function UserSimpleHome() {
     setLoading(true)
     try {
       const accessibleGardens = getAccessibleGardens()
-      // Debug logging (temporarily disabled)
-      // console.log('🔍 User accessible gardens:', accessibleGardens)
-      // console.log('🔍 User details:', { email: user?.email, role: user?.role, garden_access: user?.garden_access })
+      // Debug logging for troubleshooting
+      console.log('🔍 User accessible gardens:', accessibleGardens)
+      console.log('🔍 User details:', { email: user?.email, role: user?.role, garden_access: user?.garden_access })
       
-      // Load tasks for accessible gardens
+      // Load tasks for accessible gardens OR assigned to user
       let tasksQuery = supabase
         .from('tasks')
         .select('*, gardens(name)')
@@ -639,14 +639,19 @@ function UserSimpleHome() {
         .order('due_date', { ascending: true })
         .limit(5)
 
+      // Filter by accessible gardens OR assigned to current user
       if (accessibleGardens.length > 0) {
-        tasksQuery = tasksQuery.in('garden_id', accessibleGardens)
+        tasksQuery = tasksQuery.or(`garden_id.in.(${accessibleGardens.join(',')}),assigned_to.eq.${user?.id}`)
+      } else {
+        // If no garden access, only show tasks assigned to user
+        tasksQuery = tasksQuery.eq('assigned_to', user?.id)
       }
 
-      const { data: tasksData } = await tasksQuery
+      const { data: tasksData, error: tasksError } = await tasksQuery
+      console.log('🔍 Tasks query result:', { tasksData, tasksError, accessibleGardens, userId: user?.id })
       setTasks(tasksData || [])
 
-      // Load recent logbook entries
+      // Load recent logbook entries for accessible gardens
       let logbookQuery = supabase
         .from('logbook_entries')
         .select('*, gardens(name)')
@@ -655,9 +660,14 @@ function UserSimpleHome() {
 
       if (accessibleGardens.length > 0) {
         logbookQuery = logbookQuery.in('garden_id', accessibleGardens)
+      } else {
+        // If no garden access, show empty logbook
+        setLogbookEntries([])
+        return
       }
 
-      const { data: logbookData } = await logbookQuery
+      const { data: logbookData, error: logbookError } = await logbookQuery
+      console.log('🔍 Logbook query result:', { logbookData, logbookError, accessibleGardens })
       setLogbookEntries(logbookData || [])
 
     } catch (error) {
