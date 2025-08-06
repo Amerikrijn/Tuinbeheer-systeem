@@ -1,5 +1,6 @@
 {
-  "buildCommand": "node build-ignore-errors.js",
+  "version": 2,
+  "buildCommand": "./vercel-build.sh",
   "outputDirectory": ".next",
   "framework": "nextjs",
   "installCommand": "npm install",
