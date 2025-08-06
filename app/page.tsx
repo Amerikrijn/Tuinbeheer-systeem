@@ -696,15 +696,43 @@ function UserDashboardInterface() {
   const [refreshing, setRefreshing] = React.useState(false)
   const [tasks, setTasks] = React.useState<any[]>([])
   const [logbookEntries, setLogbookEntries] = React.useState<any[]>([])
-  const [celebrating, setCelebrating] = React.useState(false)
-
+    const [celebrating, setCelebrating] = React.useState(false)
+  const [gardenNames, setGardenNames] = React.useState<string[]>([])
 
   React.useEffect(() => {
     if (user) {
-
+ 
       loadUserData()
     }
   }, [user])
+
+  // Load garden names when user data is available
+  React.useEffect(() => {
+    const loadGardenNames = async () => {
+      if (!user || loading) return
+      
+      const accessibleGardens = getAccessibleGardens()
+      if (accessibleGardens.length > 0) {
+        try {
+          const { data: gardens } = await supabase
+            .from('gardens')
+            .select('name')
+            .in('id', accessibleGardens)
+          
+          if (gardens) {
+            setGardenNames(gardens.map(g => g.name))
+          }
+        } catch (error) {
+          console.error('Error loading garden names:', error)
+          setGardenNames([])
+        }
+      } else {
+        setGardenNames([])
+      }
+    }
+    
+    loadGardenNames()
+  }, [user?.id, user?.garden_access?.length, loading])
 
 
 
@@ -909,26 +937,6 @@ function UserDashboardInterface() {
   }
 
   const accessibleGardens = getAccessibleGardens()
-  
-  // Get garden names for display
-  const [gardenNames, setGardenNames] = React.useState<string[]>([])
-  
-  React.useEffect(() => {
-    const loadGardenNames = async () => {
-      if (accessibleGardens.length > 0) {
-        const { data: gardens } = await supabase
-          .from('gardens')
-          .select('name')
-          .in('id', accessibleGardens)
-        
-        if (gardens) {
-          setGardenNames(gardens.map(g => g.name))
-        }
-      }
-    }
-    
-    loadGardenNames()
-  }, [accessibleGardens.length])
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
