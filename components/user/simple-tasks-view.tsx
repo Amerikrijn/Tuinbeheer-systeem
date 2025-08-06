@@ -156,6 +156,22 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
     return (
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-4xl mx-auto">
+          {/* Header with Logbook button - always visible */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Mijn Taken</h1>
+              <p className="text-gray-600 mt-1">Laden...</p>
+            </div>
+            <Button 
+              onClick={() => router.push('/logbook')}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <BookOpen className="w-4 h-4" />
+              Logboek
+            </Button>
+          </div>
+          
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
             <div className="h-64 bg-gray-200 rounded"></div>
@@ -227,6 +243,13 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
                 <Calendar className="w-16 h-16 mx-auto mb-4 opacity-30" />
                 <h3 className="text-lg font-medium mb-2">Geen taken deze week</h3>
                 <p>Je hebt geen openstaande taken voor deze periode.</p>
+                {gardenNames.length === 0 && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800">
+                      ⚠️ Je hebt nog geen tuinen toegewezen gekregen. Neem contact op met de beheerder.
+                    </p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-3">
