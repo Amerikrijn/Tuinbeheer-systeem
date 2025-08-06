@@ -48,46 +48,88 @@ export function useSupabaseAuth(): AuthContextType {
     error: null
   })
 
-  // Load user profile with permissions and garden access
+  // Load user profile with proper database lookup and timeout handling
   const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<User> => {
     console.log('🔍 START loadUserProfile for:', supabaseUser.email, 'ID:', supabaseUser.id)
     
     try {
-      // TEMPORARY: Skip database lookup to prevent hanging, use fallback logic
-      console.log('🔍 SKIPPING database lookup to prevent hanging')
-      
-      // Temporary admin emails until we fix the database lookup properly
-      const adminEmails = ['admin@tuinbeheer.nl', 'amerik.rijn@gmail.com']
-      const role: 'admin' | 'user' = adminEmails.includes(supabaseUser.email || '') ? 'admin' : 'user'
-      console.log('🔍 Temporary role assignment:', role, 'for email:', supabaseUser.email)
-      
-      // SKIP garden access loading during login to prevent hanging
-      let gardenAccess: string[] = []
-      console.log('🔍 TEMPORARILY SKIPPING garden access loading during login')
-      
-      // TODO: Load garden access after successful login via separate API call
-      // The hanging query is causing login failures, so we skip it for now
-      
-      const directUser: User = {
+      // Create timeout promise to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database lookup timeout')), 3000)
+      })
+
+      // Database lookup with timeout
+      const databasePromise = supabase
+        .from('users')
+        .select('id, email, full_name, role, status, created_at')
+        .eq('email', supabaseUser.email)
+        .single()
+
+      console.log('🔍 Fetching user profile from database...')
+      const { data: userProfile, error: userError } = await Promise.race([
+        databasePromise,
+        timeoutPromise
+      ]) as { data: any, error: any }
+
+      let role: 'admin' | 'user' = 'user'
+      let fullName = supabaseUser.email?.split('@')[0] || 'User'
+      let status: 'active' | 'inactive' | 'pending' = 'active'
+
+      if (userError || !userProfile) {
+        console.log('🔍 No database profile found or error:', userError?.message)
+        console.log('🔍 Creating new user profile in database...')
+        
+        // Determine role for new user
+        const adminEmails = ['admin@tuinbeheer.nl', 'amerik.rijn@gmail.com']
+        role = adminEmails.includes(supabaseUser.email || '') ? 'admin' : 'user'
+        
+        // Create user in database
+        const { error: createError } = await supabase
+          .from('users')
+          .insert([{
+            id: supabaseUser.id,
+            email: supabaseUser.email,
+            full_name: fullName,
+            role: role,
+            status: status,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }])
+        
+        if (createError) {
+          console.error('🔍 Error creating user profile:', createError)
+        } else {
+          console.log('🔍 User profile created successfully')
+        }
+      } else {
+        console.log('🔍 Found existing user profile:', userProfile)
+        role = userProfile.role || 'user'
+        fullName = userProfile.full_name || fullName
+        status = userProfile.status || 'active'
+      }
+
+      const user: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
-        full_name: supabaseUser.email?.split('@')[0] || 'User',
+        full_name: fullName,
         role: role,
-        status: 'active',
+        status: status,
         permissions: [],
-        garden_access: gardenAccess,
-        created_at: new Date().toISOString()
+        garden_access: [], // Load separately to avoid blocking login
+        created_at: userProfile?.created_at || new Date().toISOString()
       }
       
-      console.log('🔍 DIRECT USER CREATED:', directUser)
-      console.log('🔍 User garden access count:', gardenAccess.length)
-      return directUser
-          } catch (error) {
-        console.error('🔍 Error in loadUserProfile - using fallback:', error)
-        
-        // FINAL FALLBACK: Always return a valid user
-        const adminEmails = ['admin@tuinbeheer.nl', 'amerik.rijn@gmail.com']
-        const fallbackRole: 'admin' | 'user' = adminEmails.includes(supabaseUser.email || '') ? 'admin' : 'user'
+      console.log('🔍 USER PROFILE LOADED:', user)
+      console.log('🔍 User role:', user.role)
+      return user
+
+    } catch (error) {
+      console.error('🔍 Error in loadUserProfile:', error)
+      
+      // Fallback user with smart role detection
+      const adminEmails = ['admin@tuinbeheer.nl', 'amerik.rijn@gmail.com']
+      const fallbackRole: 'admin' | 'user' = adminEmails.includes(supabaseUser.email || '') ? 'admin' : 'user'
+      
       const fallbackUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
@@ -98,6 +140,8 @@ export function useSupabaseAuth(): AuthContextType {
         garden_access: [],
         created_at: new Date().toISOString()
       }
+      
+      console.log('🔍 FALLBACK USER CREATED:', fallbackUser)
       return fallbackUser
     }
   }
