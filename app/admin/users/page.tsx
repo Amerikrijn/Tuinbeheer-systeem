@@ -363,28 +363,45 @@ function AdminUsersPageContent() {
     setIsGardenAccessDialogOpen(true)
   }
 
-  // Add cleanup function for orphaned garden access
+  // Remove invalid garden access entries
   const cleanupOrphanedAccess = async () => {
+    if (!confirm('Weet je zeker dat je ongeldige tuintoegang wilt verwijderen? Dit kan niet ongedaan worden gemaakt.')) {
+      return
+    }
+
     try {
-      console.log('🧹 Cleaning up orphaned garden access...')
+      console.log('🔍 Checking for invalid garden access...')
       
-      // Get all garden access entries
+      // Get all garden access entries with user info
       const { data: accessEntries, error: accessError } = await supabase
         .from('user_garden_access')
-        .select('*')
+        .select(`
+          *,
+          users (email, full_name)
+        `)
       
       if (accessError) {
-        console.error('Error fetching access entries:', accessError)
+        console.error('❌ Error fetching access entries:', accessError)
+        toast({
+          title: "Fout bij laden",
+          description: "Kan gebruikerstoegang niet laden: " + accessError.message,
+          variant: "destructive"
+        })
         return
       }
       
       // Get all existing gardens
       const { data: existingGardens, error: gardensError } = await supabase
         .from('gardens')
-        .select('id')
+        .select('id, name')
       
       if (gardensError) {
-        console.error('Error fetching gardens:', gardensError)
+        console.error('❌ Error fetching gardens:', gardensError)
+        toast({
+          title: "Fout bij laden",
+          description: "Kan tuinen niet laden: " + gardensError.message,
+          variant: "destructive"
+        })
         return
       }
       
@@ -397,29 +414,54 @@ function AdminUsersPageContent() {
       
       console.log('🔍 Found orphaned entries:', orphanedEntries)
       
-      // Remove orphaned entries
-      if (orphanedEntries.length > 0) {
-        const orphanedIds = orphanedEntries.map(e => e.id)
-        const { error: deleteError } = await supabase
-          .from('user_garden_access')
-          .delete()
-          .in('id', orphanedIds)
-        
-        if (!deleteError) {
-          console.log('✅ Cleaned up', orphanedEntries.length, 'orphaned entries')
-          toast({
-            title: "Database opgeschoond",
-            description: `${orphanedEntries.length} ongeldige tuin toegangen verwijderd`,
-          })
-          // Reload users to reflect changes
-          loadUsersAndGardens()
-        }
-      } else {
-        console.log('✅ No orphaned entries found')
+      if (orphanedEntries.length === 0) {
+        toast({
+          title: "Alles in orde! ✅",
+          description: "Geen ongeldige tuintoegang gevonden",
+        })
+        return
       }
+
+      // Show details of what will be removed
+      const details = orphanedEntries.map(entry => 
+        `• ${entry.users?.email || 'Unknown user'} → Garden ID: ${entry.garden_id}`
+      ).join('\n')
+      
+      console.log('🗑️ Will remove these entries:\n' + details)
+      
+      // Remove orphaned entries
+      const orphanedIds = orphanedEntries.map(e => e.id)
+      const { error: deleteError } = await supabase
+        .from('user_garden_access')
+        .delete()
+        .in('id', orphanedIds)
+      
+      if (deleteError) {
+        console.error('❌ Error deleting entries:', deleteError)
+        toast({
+          title: "Fout bij verwijderen",
+          description: "Kan ongeldige toegang niet verwijderen: " + deleteError.message,
+          variant: "destructive"
+        })
+        return
+      }
+
+      console.log('✅ Successfully removed', orphanedEntries.length, 'orphaned entries')
+      toast({
+        title: `${orphanedEntries.length} ongeldige toegangen verwijderd`,
+        description: "Gebruikers kunnen nu opnieuw toegang krijgen tot bestaande tuinen",
+      })
+      
+      // Reload users to reflect changes
+      loadUsersAndGardens()
       
     } catch (error) {
-      console.error('Error cleaning up orphaned access:', error)
+      console.error('❌ Unexpected error:', error)
+      toast({
+        title: "Onverwachte fout",
+        description: "Er is iets misgegaan: " + (error instanceof Error ? error.message : 'Unknown error'),
+        variant: "destructive"
+      })
     }
   }
 
@@ -446,9 +488,10 @@ function AdminUsersPageContent() {
           <Button 
             variant="outline" 
             onClick={cleanupOrphanedAccess}
-            className="text-orange-600 border-orange-200 hover:bg-orange-50 flex items-center gap-2"
+            className="text-red-600 border-red-200 hover:bg-red-50 flex items-center gap-2"
+            title="Verwijdert gebruikerstoegang tot tuinen die niet meer bestaan"
           >
-            🧹 Database Opschonen
+            🗑️ Verwijder Ongeldige Tuintoegang
           </Button>
           <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
