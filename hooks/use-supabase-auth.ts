@@ -35,6 +35,7 @@ export interface AuthContextType extends AuthState {
   hasGardenAccess: (gardenId: string) => boolean
   getAccessibleGardens: () => string[]
   refreshUser: () => Promise<void>
+  loadGardenAccess: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -56,31 +57,12 @@ export function useSupabaseAuth(): AuthContextType {
       const role: 'admin' | 'user' = supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user'
       console.log('🔍 Determined role:', role, 'for email:', supabaseUser.email)
       
-      // Load garden access for non-admin users (with improved error handling)
+      // SKIP garden access loading during login to prevent hanging
       let gardenAccess: string[] = []
-      if (role === 'user') {
-        console.log('🔍 Loading garden access for user:', supabaseUser.id)
-        try {
-          const { data: accessData, error: accessError } = await supabase
-            .from('user_garden_access')
-            .select('garden_id')
-            .eq('user_id', supabaseUser.id)
-          
-          if (accessError) {
-            console.log('🔍 Garden access query error:', accessError)
-            gardenAccess = []
-          } else if (accessData) {
-            gardenAccess = accessData.map(row => row.garden_id)
-            console.log('🔍 Garden access loaded successfully:', gardenAccess)
-          } else {
-            console.log('🔍 No garden access data returned')
-            gardenAccess = []
-          }
-        } catch (error) {
-          console.log('🔍 Garden access loading failed, continuing with empty access:', error)
-          gardenAccess = []
-        }
-      }
+      console.log('🔍 TEMPORARILY SKIPPING garden access loading during login')
+      
+      // TODO: Load garden access after successful login via separate API call
+      // The hanging query is causing login failures, so we skip it for now
       
       const directUser: User = {
         id: supabaseUser.id,
@@ -324,6 +306,31 @@ export function useSupabaseAuth(): AuthContextType {
     }
   }
 
+  // Load garden access separately after login
+  const loadGardenAccess = async (): Promise<void> => {
+    if (!state.user || state.user.role === 'admin') return
+    
+    console.log('🔍 Loading garden access post-login for:', state.user.id)
+    try {
+      const { data: accessData, error: accessError } = await supabase
+        .from('user_garden_access')
+        .select('garden_id')
+        .eq('user_id', state.user.id)
+      
+      if (!accessError && accessData) {
+        const gardenAccess = accessData.map(row => row.garden_id)
+        console.log('🔍 Post-login garden access loaded:', gardenAccess)
+        
+        setState(prev => ({
+          ...prev,
+          user: prev.user ? { ...prev.user, garden_access: gardenAccess } : null
+        }))
+      }
+    } catch (error) {
+      console.log('🔍 Post-login garden access loading failed:', error)
+    }
+  }
+
   const hasPermission = (permission: string): boolean => {
     if (!state.user) return false
     if (state.user.role === 'admin') return true // Admin has all permissions
@@ -362,7 +369,8 @@ export function useSupabaseAuth(): AuthContextType {
     isAdmin,
     hasGardenAccess,
     getAccessibleGardens,
-    refreshUser
+    refreshUser,
+    loadGardenAccess
   }
 }
 
