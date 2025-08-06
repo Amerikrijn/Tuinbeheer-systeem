@@ -305,6 +305,54 @@ function AdminUsersPageContent() {
     }
   }
 
+  // Create auth user if missing
+  const createMissingAuthUser = async (email: string) => {
+    try {
+      console.log('🔧 Creating auth user for:', email)
+      
+      // Generate a temporary password
+      const tempPassword = 'TempPass123!'
+      
+      // Create user in Supabase Auth
+      const { data, error } = await supabase.auth.admin.createUser({
+        email: email,
+        password: tempPassword,
+        email_confirm: true,
+        user_metadata: {
+          temp_password: true,
+          created_by_admin: true
+        }
+      })
+      
+      if (error) {
+        console.error('❌ Error creating auth user:', error)
+        toast({
+          title: "Fout bij aanmaken gebruiker",
+          description: "Kan auth gebruiker niet aanmaken: " + error.message,
+          variant: "destructive"
+        })
+        return null
+      }
+      
+      console.log('✅ Auth user created:', data.user?.email)
+      toast({
+        title: "Gebruiker aangemaakt! ✅",
+        description: `Auth gebruiker voor ${email} aangemaakt met tijdelijk wachtwoord`,
+      })
+      
+      return data.user
+      
+    } catch (error) {
+      console.error('❌ Unexpected error creating auth user:', error)
+      toast({
+        title: "Onverwachte fout",
+        description: "Er is iets misgegaan bij het aanmaken van de gebruiker",
+        variant: "destructive"
+      })
+      return null
+    }
+  }
+
   const updateUserStatus = async (userId: string, newStatus: 'active' | 'inactive') => {
     try {
       const { error } = await supabase
@@ -400,10 +448,19 @@ function AdminUsersPageContent() {
           <h1 className="text-3xl font-bold text-gray-900">Gebruikersbeheer</h1>
           <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
         </div>
-        <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Gebruiker Uitnodigen
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline"
+            onClick={() => createMissingAuthUser('amerik.rijn@gmail.com')}
+            className="flex items-center gap-2"
+          >
+            🔧 Fix amerik.rijn@gmail.com
+          </Button>
+          <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Gebruiker Uitnodigen
+          </Button>
+        </div>
       </div>
 
       {/* Users Table */}
