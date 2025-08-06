@@ -147,14 +147,7 @@ export function AuthNavigation() {
                     <DropdownMenuItem asChild>
                       <Link href="/gardens" className="flex items-center space-x-2">
                         <TreePine className="w-4 h-4" />
-                        <span>Tuinen</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin/users" className="flex items-center space-x-2">
-                        <Users className="w-4 h-4" />
-                        <span>Gebruikers</span>
+                        <span>Tuinen Beheer</span>
                       </Link>
                     </DropdownMenuItem>
                     
