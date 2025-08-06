@@ -92,6 +92,7 @@ export default function LoginPage() {
       }, 1000)
       
     } catch (error) {
+      console.error('🔍 Login error details:', error)
       toast({
         title: "Inloggen mislukt",
         description: error instanceof Error ? error.message : 'Er is een fout opgetreden',
