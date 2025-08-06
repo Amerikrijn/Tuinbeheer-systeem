@@ -25,24 +25,9 @@ try {
   
   // Check if build artifacts exist
   const nextDir = path.join(process.cwd(), '.next');
-  const standaloneDir = path.join(nextDir, 'standalone');
-  const serverDir = path.join(nextDir, 'server');
-  const staticDir = path.join(nextDir, 'static');
   
   if (fs.existsSync(nextDir)) {
     console.log('✅ .next directory found');
-    
-    // List what we have
-    if (fs.existsSync(standaloneDir)) {
-      console.log('✅ Standalone build found');
-    }
-    if (fs.existsSync(serverDir)) {
-      console.log('✅ Server build found');
-    }
-    if (fs.existsSync(staticDir)) {
-      console.log('✅ Static assets found');
-    }
-    
     console.log('🎉 Build artifacts ready for Vercel deployment!');
     process.exit(0);
   } else {
