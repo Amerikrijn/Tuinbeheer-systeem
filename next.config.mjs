@@ -10,10 +10,8 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // Experimental features
-  experimental: {
-    serverComponentsExternalPackages: ['@supabase/supabase-js'],
-  },
+  // Server external packages (moved from experimental in Next.js 15)
+  serverExternalPackages: ['@supabase/supabase-js'],
   
   // Simple webpack configuration
   webpack: (config, { isServer }) => {

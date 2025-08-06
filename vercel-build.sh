@@ -6,6 +6,10 @@ echo "🚀 Starting simple Vercel build..."
 export SKIP_ENV_VALIDATION=1
 export NODE_OPTIONS="--max-old-space-size=4096"
 
+# Install dev dependencies (needed for tailwindcss)
+echo "📦 Installing dev dependencies..."
+npm install --include=dev
+
 # Simple Next.js build with timeout
 echo "📦 Running Next.js build..."
 timeout 600s npx next build --no-lint || echo "Build completed with warnings"
