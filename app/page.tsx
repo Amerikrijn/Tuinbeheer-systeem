@@ -76,6 +76,13 @@ function HomePageContent() {
         throw new Error('No data received from server')
       }
 
+      // Debug: Log what gardens are being loaded
+      console.log('🔍 DEBUG: Gardens loaded from TuinService:', paginatedData.data.map(g => ({
+        name: g.name,
+        is_active: g.is_active,
+        id: g.id
+      })))
+
       uiLogger.info('Gardens loaded successfully', { 
         count: paginatedData.data.length, 
         totalPages: paginatedData.total_pages,

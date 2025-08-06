@@ -37,6 +37,19 @@ export default function TrashPage() {
     try {
       setLoading(true)
       
+      // Debug: Check ALL gardens first
+      const { data: allGardens, error: allError } = await supabase
+        .from('gardens')
+        .select('*')
+        .order('updated_at', { ascending: false })
+
+      console.log('🔍 DEBUG: ALL gardens in database:', allGardens?.map(g => ({
+        name: g.name,
+        is_active: g.is_active,
+        id: g.id,
+        updated_at: g.updated_at
+      })))
+      
       // Query for soft-deleted gardens (is_active = false)
       const { data, error } = await supabase
         .from('gardens')
@@ -54,6 +67,7 @@ export default function TrashPage() {
         return
       }
 
+      console.log('🔍 DEBUG: Deleted gardens found:', data)
       setDeletedGardens(data || [])
       
     } catch (error) {
