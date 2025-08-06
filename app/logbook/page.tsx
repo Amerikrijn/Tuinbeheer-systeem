@@ -152,8 +152,15 @@ function LogbookPageContent() {
         filters.plant_bed_id = state.selectedPlantBed
       }
 
-      // Load regular logbook entries
-      const response = await LogbookService.getAll(filters)
+      // Load regular logbook entries with timeout
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Query timeout - verbinding te traag')), 30000) // 30 second timeout
+      })
+      
+      const response = await Promise.race([
+        LogbookService.getAll(filters),
+        timeoutPromise
+      ]) as any
       
       if (!response.success || !response.data) {
         throw new Error(response.error || 'Failed to load logbook entries')
@@ -265,10 +272,28 @@ function LogbookPageContent() {
       setState(prev => ({ ...prev, loading: false, error: errorMessage }))
       uiLogger.error('Failed to load logbook entries', error as Error, { page, operationId })
       
+      // More user-friendly error messages
+      let userMessage = errorMessage
+      if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
+        userMessage = 'Verbinding verbroken. Probeer de pagina te vernieuwen.'
+      } else if (errorMessage.includes('SECURITY VIOLATION')) {
+        userMessage = 'Geen toegang tot deze gegevens.'
+      } else if (errorMessage.includes('Failed to fetch')) {
+        userMessage = 'Kan gegevens niet laden. Controleer je internetverbinding.'
+      }
+      
       toast({
         title: "Fout bij laden logboek",
-        description: errorMessage,
+        description: userMessage,
         variant: "destructive",
+        action: (
+          <button 
+            onClick={() => window.location.reload()} 
+            className="text-sm underline"
+          >
+            Pagina vernieuwen
+          </button>
+        )
       })
     }
   }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin, viewingUser])
@@ -616,22 +641,22 @@ function LogbookPageContent() {
                               : entry.notes}
                           </p>
                           <p className="text-xs text-green-600 mt-1">
-                            📋 Voltooide taak
+                            📋 Taak
                           </p>
                         </div>
                       </div>
                     ) : (
                       <div className="flex items-start gap-2">
                         <div className="flex-shrink-0 mt-0.5">
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-700 truncate">
+                          <p className="text-sm text-gray-900 truncate">
                             {entry.notes.length > 100 
                               ? `${entry.notes.substring(0, 100)}...` 
                               : entry.notes}
                           </p>
-                          <p className="text-xs text-blue-600 mt-1">
+                          <p className="text-xs text-gray-600 mt-1">
                             📝 Logboek entry
                           </p>
                         </div>
