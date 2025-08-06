@@ -28,15 +28,18 @@ function ProtectedRouteComponent({
     setMounted(true)
   }, [])
 
-  // Add timeout to prevent infinite loading
+  // Add timeout to prevent infinite loading - but only when actually loading
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      console.log('🔍 ProtectedRoute timeout reached - forcing redirect to login')
-      setTimeoutReached(true)
-    }, 10000) // 10 second timeout
+    if (!loading && !user) {
+      // Only set timeout if we're not loading and have no user
+      const timeout = setTimeout(() => {
+        console.log('🔍 ProtectedRoute timeout reached - forcing redirect to login')
+        setTimeoutReached(true)
+      }, 10000) // 10 second timeout
 
-    return () => clearTimeout(timeout)
-  }, [])
+      return () => clearTimeout(timeout)
+    }
+  }, [loading, user])
 
   useEffect(() => {
     console.log('🔍 ProtectedRoute check:', { loading, hasUser: !!user, userRole: user?.role, userEmail: user?.email, timeoutReached })
