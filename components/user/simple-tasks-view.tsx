@@ -76,7 +76,12 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
         const accessibleGardens = getAccessibleGardens()
         const { startOfWeek, endOfWeek } = getWeekDates(currentWeek)
         
+        console.log('🔍 SimpleTasksView - User:', user?.email)
+        console.log('🔍 SimpleTasksView - Garden access:', user?.garden_access)
+        console.log('🔍 SimpleTasksView - Accessible gardens:', accessibleGardens)
+        
         if (accessibleGardens.length === 0) {
+          console.log('⚠️ SimpleTasksView - No accessible gardens, showing empty state')
           setTasks([])
           return
         }
