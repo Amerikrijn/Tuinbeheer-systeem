@@ -570,6 +570,9 @@ export class LogbookService {
       if (filters?.garden_id) {
         query = query.eq('plant_beds.garden_id', filters.garden_id)
       }
+      if (filters?.garden_ids && filters.garden_ids.length > 0) {
+        query = query.in('plant_beds.garden_id', filters.garden_ids)
+      }
       if (filters?.limit) {
         query = query.limit(filters.limit)
       }
