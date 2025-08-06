@@ -53,15 +53,13 @@ export function useSupabaseAuth(): AuthContextType {
     console.log('🔍 START loadUserProfile for:', supabaseUser.email, 'ID:', supabaseUser.id)
     
     try {
-      // Fetch user profile from database to get actual role
-      const { data: userProfile, error: userError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('email', supabaseUser.email)
-        .single()
-
-      const role: 'admin' | 'user' = userProfile?.role || 'user'
-      console.log('🔍 Role from database:', role, 'for email:', supabaseUser.email)
+      // TEMPORARY: Skip database lookup to prevent hanging, use fallback logic
+      console.log('🔍 SKIPPING database lookup to prevent hanging')
+      
+      // Temporary admin emails until we fix the database lookup properly
+      const adminEmails = ['admin@tuinbeheer.nl', 'amerik.rijn@gmail.com']
+      const role: 'admin' | 'user' = adminEmails.includes(supabaseUser.email || '') ? 'admin' : 'user'
+      console.log('🔍 Temporary role assignment:', role, 'for email:', supabaseUser.email)
       
       // SKIP garden access loading during login to prevent hanging
       let gardenAccess: string[] = []
