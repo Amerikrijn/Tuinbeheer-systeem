@@ -3,23 +3,9 @@
   "buildCommand": "./vercel-build.sh",
   "outputDirectory": ".next",
   "installCommand": "npm install",
-  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
   "env": {
     "APP_ENV": "prod",
     "NEXT_PUBLIC_SUPABASE_URL": "https://dwsgwqosmihsfaxuheji.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxOTk1MzcsImV4cCI6MjA0Nzc3NTUzN30.KJj0n-YZEGJVjQPJPnKTJhZB5GiGlGJSdF1qZdXxO5o",
-    "DISABLE_STATIC_GENERATION": "1",
-    "FORCE_DYNAMIC": "1"
-  },
-  "functions": {
-    "app/**/*.js": {
-      "maxDuration": 30
-    }
-  },
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/node"
-    }
-  ]
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxOTk1MzcsImV4cCI6MjA0Nzc3NTUzN30.KJj0n-YZEGJVjQPJPnKTJhZB5GiGlGJSdF1qZdXxO5o"
+  }
 }
