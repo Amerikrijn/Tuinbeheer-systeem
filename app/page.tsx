@@ -699,10 +699,18 @@ function UserDashboardInterface() {
 
   React.useEffect(() => {
     if (user) {
+      console.log('🔍 UserDashboard: User loaded, starting data loading process')
       // Load garden access first, then load user data
-      loadGardenAccess().then(() => {
-        loadUserData()
-      })
+      loadGardenAccess()
+        .then(() => {
+          console.log('🔍 UserDashboard: Garden access loaded, now loading user data')
+          return loadUserData()
+        })
+        .catch((error) => {
+          console.error('🔍 UserDashboard: Error in loading process:', error)
+          // Even if garden access fails, still try to load user data
+          loadUserData()
+        })
     }
   }, [user])
 
