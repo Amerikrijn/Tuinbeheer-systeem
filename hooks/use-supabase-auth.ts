@@ -56,15 +56,28 @@ export function useSupabaseAuth(): AuthContextType {
       const role: 'admin' | 'user' = supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user'
       console.log('🔍 Determined role:', role, 'for email:', supabaseUser.email)
       
-      // Load garden access for non-admin users
+      // Load garden access for non-admin users with timeout
       let gardenAccess: string[] = []
       if (role === 'user') {
         console.log('🔍 Loading garden access for user:', supabaseUser.id)
         try {
-          const { data: accessData, error: accessError } = await supabase
+          // Add timeout to prevent hanging
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Garden access query timeout')), 5000)
+          )
+          
+          const queryPromise = supabase
             .from('user_garden_access')
             .select('garden_id')
             .eq('user_id', supabaseUser.id)
+          
+          console.log('🔍 Starting garden access query...')
+          const { data: accessData, error: accessError } = await Promise.race([
+            queryPromise,
+            timeoutPromise
+          ]) as any
+          
+          console.log('🔍 Garden access query completed')
           
           if (!accessError && accessData) {
             gardenAccess = accessData.map(row => row.garden_id)
@@ -73,7 +86,9 @@ export function useSupabaseAuth(): AuthContextType {
             console.log('🔍 No garden access found or error:', accessError)
           }
         } catch (error) {
-          console.log('🔍 Error loading garden access (non-critical):', error)
+          console.log('🔍 Error loading garden access (continuing without access):', error)
+          // Continue with empty access array - don't block login
+          gardenAccess = []
         }
       }
       
@@ -89,6 +104,7 @@ export function useSupabaseAuth(): AuthContextType {
       }
       
       console.log('🔍 DIRECT USER CREATED:', directUser)
+      console.log('🔍 User garden access count:', gardenAccess.length)
       return directUser
     } catch (error) {
       console.error('🔍 Error in loadUserProfile (should not happen with direct method):', error)
