@@ -228,13 +228,16 @@ function LogbookPageContent() {
       // Combine logbook entries and completed tasks
       const allEntries = [...response.data, ...completedTasksData]
 
+      // Sort by entry_date descending FIRST (most recent first - chronological order)
+      allEntries.sort((a, b) => new Date(b.entry_date).getTime() - new Date(a.entry_date).getTime())
+
       // Filter by year first
       const yearFilteredEntries = allEntries.filter(entry => {
         const entryYear = new Date(entry.entry_date).getFullYear()
         return entryYear.toString() === state.selectedYear
       })
 
-      // Then apply search filter
+      // Then apply search filter (maintain chronological order)
       const filteredEntries = state.searchTerm 
         ? yearFilteredEntries.filter(entry => 
             entry.notes.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
@@ -242,9 +245,6 @@ function LogbookPageContent() {
             (entry.plant_name && entry.plant_name.toLowerCase().includes(state.searchTerm.toLowerCase()))
           )
         : yearFilteredEntries
-
-      // Sort by entry_date descending (most recent first)
-      filteredEntries.sort((a, b) => new Date(b.entry_date).getTime() - new Date(a.entry_date).getTime())
 
       setState(prev => ({
         ...prev,
@@ -604,11 +604,39 @@ function LogbookPageContent() {
                     </div>
                   </TableCell>
                   <TableCell className="max-w-md">
-                    <p className="text-sm text-gray-700 truncate">
-                      {entry.notes.length > 100 
-                        ? `${entry.notes.substring(0, 100)}...` 
-                        : entry.notes}
-                    </p>
+                    {entry.is_completed_task ? (
+                      <div className="flex items-start gap-2">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-green-800 truncate">
+                            {entry.notes.length > 100 
+                              ? `${entry.notes.substring(0, 100)}...` 
+                              : entry.notes}
+                          </p>
+                          <p className="text-xs text-green-600 mt-1">
+                            📋 Voltooide taak
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-2">
+                        <div className="flex-shrink-0 mt-0.5">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-700 truncate">
+                            {entry.notes.length > 100 
+                              ? `${entry.notes.substring(0, 100)}...` 
+                              : entry.notes}
+                          </p>
+                          <p className="text-xs text-blue-600 mt-1">
+                            📝 Logboek entry
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="text-center">
                     {entry.photo_url ? (
