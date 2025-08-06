@@ -69,7 +69,7 @@ export function AuthNavigation() {
     // Different home page for admin vs regular users
     if (isAdmin()) {
       items.push({
-        title: 'Dashboard',
+        title: 'Home',
         href: '/',
         icon: Home,
         description: 'Admin overzicht van alle tuinen'
@@ -95,6 +95,13 @@ export function AuthNavigation() {
         href: '/logbook',
         icon: BookOpen,
         description: 'Tuinlogboek bijhouden'
+      })
+      
+      items.push({
+        title: 'Admin Panel',
+        href: '/admin/users',
+        icon: Settings,
+        description: 'Beheer gebruikers en instellingen'
       })
     } else {
       // Regular users get simple homepage and task dashboard
@@ -290,7 +297,7 @@ export function AuthNavigation() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuContent align="end" side="bottom" className="w-56 mt-2">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">
