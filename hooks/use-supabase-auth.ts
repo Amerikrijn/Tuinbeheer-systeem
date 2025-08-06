@@ -53,9 +53,15 @@ export function useSupabaseAuth(): AuthContextType {
     console.log('🔍 START loadUserProfile for:', supabaseUser.email, 'ID:', supabaseUser.id)
     
     try {
-      // Determine role based on email
-      const role: 'admin' | 'user' = supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user'
-      console.log('🔍 Determined role:', role, 'for email:', supabaseUser.email)
+      // Fetch user profile from database to get actual role
+      const { data: userProfile, error: userError } = await supabase
+        .from('users')
+        .select('role')
+        .eq('email', supabaseUser.email)
+        .single()
+
+      const role: 'admin' | 'user' = userProfile?.role || 'user'
+      console.log('🔍 Role from database:', role, 'for email:', supabaseUser.email)
       
       // SKIP garden access loading during login to prevent hanging
       let gardenAccess: string[] = []
@@ -81,8 +87,8 @@ export function useSupabaseAuth(): AuthContextType {
     } catch (error) {
       console.error('🔍 Error in loadUserProfile (should not happen with direct method):', error)
       
-      // FINAL FALLBACK: Always return a valid user
-      const fallbackRole: 'admin' | 'user' = supabaseUser.email === 'admin@tuinbeheer.nl' ? 'admin' : 'user'
+      // FINAL FALLBACK: Always return a valid user (default to user role)
+      const fallbackRole: 'admin' | 'user' = 'user'
       const fallbackUser: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
