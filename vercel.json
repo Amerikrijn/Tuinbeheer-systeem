@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "framework": null,
   "buildCommand": "./vercel-build.sh",
   "outputDirectory": ".next",
   "installCommand": "npm install",
@@ -7,5 +8,11 @@
     "APP_ENV": "prod",
     "NEXT_PUBLIC_SUPABASE_URL": "https://dwsgwqosmihsfaxuheji.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzIxOTk1MzcsImV4cCI6MjA0Nzc3NTUzN30.KJj0n-YZEGJVjQPJPnKTJhZB5GiGlGJSdF1qZdXxO5o"
-  }
+  },
+  "builds": [
+    {
+      "src": "./vercel-build.sh",
+      "use": "@vercel/static-build"
+    }
+  ]
 }
