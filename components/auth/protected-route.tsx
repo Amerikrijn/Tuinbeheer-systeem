@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { supabase } from '@/lib/supabase'
 import { Loader2 } from 'lucide-react'
+import dynamic from 'next/dynamic'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -12,7 +13,7 @@ interface ProtectedRouteProps {
   allowedRoles?: ('admin' | 'user')[]
 }
 
-export function ProtectedRoute({ 
+function ProtectedRouteComponent({ 
   children, 
   requireAdmin = false, 
   allowedRoles 
@@ -20,6 +21,12 @@ export function ProtectedRoute({
   const { user, loading } = useAuth()
   const router = useRouter()
   const [timeoutReached, setTimeoutReached] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Ensure component is mounted on client-side
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   // Add timeout to prevent infinite loading
   useEffect(() => {
@@ -33,6 +40,9 @@ export function ProtectedRoute({
 
   useEffect(() => {
     console.log('🔍 ProtectedRoute check:', { loading, hasUser: !!user, userRole: user?.role, userEmail: user?.email, timeoutReached })
+    
+    // Only run checks after component is mounted
+    if (!mounted) return
     
     // If timeout reached, force redirect to login
     if (timeoutReached) {
@@ -49,77 +59,84 @@ export function ProtectedRoute({
         return
       }
 
-      // Check if user needs to change password (first login) - but not on change-password page itself
+      // Check if user has temp password and needs to change it
       const checkTempPassword = async () => {
-        if (window.location.pathname !== '/auth/change-password') {
-          const { data: { user: authUser } } = await supabase.auth.getUser()
-          if (authUser?.user_metadata?.temp_password) {
-            console.log('🔍 ProtectedRoute: User has temp password, redirecting to change password')
+        try {
+          const { data: { user: freshUser } } = await supabase.auth.getUser()
+          if (freshUser?.user_metadata?.temp_password && router.pathname !== '/auth/change-password') {
+            console.log('🔍 ProtectedRoute: User has temp_password, redirecting to change password page')
             router.push('/auth/change-password')
             return
           }
+        } catch (error) {
+          console.error('🔍 ProtectedRoute: Error checking temp password:', error)
         }
       }
+      
       checkTempPassword()
+
+      // Check user status
+      if (user.status !== 'active') {
+        console.log('🔍 ProtectedRoute: User not active, redirecting to login')
+        router.push('/auth/login')
+        return
+      }
 
       // Check admin requirement
       if (requireAdmin && user.role !== 'admin') {
-        router.push('/user-dashboard')
+        console.log('🔍 ProtectedRoute: Admin required but user is not admin')
+        router.push('/')
         return
       }
 
       // Check allowed roles
-      if (allowedRoles && !allowedRoles.includes(user.role)) {
-        router.push(user.role === 'admin' ? '/' : '/user-dashboard')
+      if (allowedRoles && !allowedRoles.includes(user.role as 'admin' | 'user')) {
+        console.log('🔍 ProtectedRoute: User role not in allowed roles')
+        router.push('/')
         return
       }
 
-      // Check if user is active
-      if (user.status !== 'active') {
-        router.push('/auth/pending')
-        return
-      }
+      console.log('🔍 ProtectedRoute: All checks passed, rendering children')
     }
-  }, [user, loading, router, requireAdmin, allowedRoles, timeoutReached])
+  }, [user, loading, requireAdmin, allowedRoles, router, timeoutReached, mounted])
 
-  // Show loading while checking auth (unless timeout reached)
-  if (loading && !timeoutReached) {
+  // Show loading during SSR or while mounting
+  if (!mounted || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-green-600 mx-auto mb-4" />
-          <p className="text-muted-foreground">Authenticatie controleren...</p>
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+          <p className="text-gray-600">Laden...</p>
         </div>
       </div>
     )
   }
 
-  // Show loading if no user yet (redirect happening)
-  if (!user) {
+  // Don't render children until auth checks are complete
+  if (!user || (requireAdmin && user.role !== 'admin') || 
+      (allowedRoles && !allowedRoles.includes(user.role as 'admin' | 'user'))) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin text-green-600 mx-auto mb-4" />
-          <p className="text-muted-foreground">Doorverwijzen...</p>
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+          <p className="text-gray-600">Authenticatie controleren...</p>
         </div>
       </div>
     )
   }
 
-  // Check role permissions
-  if (requireAdmin && user.role !== 'admin') {
-    return null // Redirect happening
-  }
-
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return null // Redirect happening
-  }
-
-  // Check user status
-  if (user.status !== 'active') {
-    return null // Redirect happening
-  }
-
-  // All checks passed - render children
   return <>{children}</>
 }
+
+// Export with dynamic import and SSR disabled
+export const ProtectedRoute = dynamic(() => Promise.resolve(ProtectedRouteComponent), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center space-y-4">
+        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        <p className="text-gray-600">Laden...</p>
+      </div>
+    </div>
+  )
+})
