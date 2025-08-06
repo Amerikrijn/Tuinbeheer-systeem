@@ -105,12 +105,12 @@ function LogbookPageContent() {
         // Admin viewing specific user - use that user's garden access
         accessibleGardens = viewingUser.garden_access || []
         hasGardenRestriction = accessibleGardens.length > 0
-        console.log('🔍 Admin viewing user logbook:', { user: viewingUser.email, gardens: accessibleGardens })
+        // console.log('🔍 Admin viewing user logbook:', { user: viewingUser.email, gardens: accessibleGardens })
       } else {
         // Regular user or admin viewing own logbook
         accessibleGardens = getAccessibleGardens()
         hasGardenRestriction = !isAdmin() && accessibleGardens.length > 0
-        console.log('🔍 Viewing own logbook:', { gardens: accessibleGardens, restricted: hasGardenRestriction })
+        // console.log('🔍 Viewing own logbook:', { gardens: accessibleGardens, restricted: hasGardenRestriction })
       }
 
       const filters: any = {
@@ -562,7 +562,9 @@ export default function LogbookPage() {
   return (
     <ProtectedRoute>
       <ErrorBoundary>
-        <LogbookPageContent />
+        <React.Suspense fallback={<div>Loading...</div>}>
+          <LogbookPageContent />
+        </React.Suspense>
       </ErrorBoundary>
     </ProtectedRoute>
   )

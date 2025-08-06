@@ -627,8 +627,9 @@ function UserSimpleHome() {
     setLoading(true)
     try {
       const accessibleGardens = getAccessibleGardens()
-      console.log('🔍 User accessible gardens:', accessibleGardens)
-      console.log('🔍 User details:', { email: user?.email, role: user?.role, garden_access: user?.garden_access })
+      // Debug logging (temporarily disabled)
+      // console.log('🔍 User accessible gardens:', accessibleGardens)
+      // console.log('🔍 User details:', { email: user?.email, role: user?.role, garden_access: user?.garden_access })
       
       // Load tasks for accessible gardens
       let tasksQuery = supabase
