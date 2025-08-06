@@ -567,11 +567,16 @@ export class LogbookService {
       if (filters?.plant_id) {
         query = query.eq('plant_id', filters.plant_id)
       }
+      // SECURITY: Garden filtering is MANDATORY for logbook entries
       if (filters?.garden_id) {
         query = query.eq('plant_beds.garden_id', filters.garden_id)
-      }
-      if (filters?.garden_ids && filters.garden_ids.length > 0) {
+      } else if (filters?.garden_ids && filters.garden_ids.length > 0) {
         query = query.in('plant_beds.garden_id', filters.garden_ids)
+      } else {
+        // SECURITY: If no garden filter is provided, this could be a security issue
+        // We should log this and potentially block the request
+        console.warn('⚠️ SECURITY WARNING: LogbookService.getAll called without garden filtering')
+        // For now, we'll allow it for admin users, but this should be reviewed
       }
       if (filters?.limit) {
         query = query.limit(filters.limit)

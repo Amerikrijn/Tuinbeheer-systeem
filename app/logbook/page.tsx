@@ -123,20 +123,28 @@ function LogbookPageContent() {
         offset: (page - 1) * ITEMS_PER_PAGE
       }
 
-      // Apply garden access filtering
-      if (hasGardenRestriction) {
+      // SECURITY: Apply strict garden access filtering
+      if (!isAdmin()) {
+        // NON-ADMIN USERS: ALWAYS filter by accessible gardens - NEVER allow cross-garden access
+        if (accessibleGardens.length === 0) {
+          throw new Error('Geen toegang tot tuinen')
+        }
+        
         if (state.selectedGarden && state.selectedGarden !== "all") {
-          // Check if user has access to selected garden
+          // SECURITY CHECK: Verify user has access to selected garden
           if (!accessibleGardens.includes(state.selectedGarden)) {
-            throw new Error('Geen toegang tot geselecteerde tuin')
+            throw new Error('SECURITY VIOLATION: Geen toegang tot geselecteerde tuin')
           }
           filters.garden_id = state.selectedGarden
         } else {
-          // Filter to only accessible gardens
+          // SECURITY: Always filter to only accessible gardens
           filters.garden_ids = accessibleGardens
         }
-      } else if (state.selectedGarden && state.selectedGarden !== "all") {
-        filters.garden_id = state.selectedGarden
+      } else {
+        // ADMIN USERS: Can access all gardens
+        if (state.selectedGarden && state.selectedGarden !== "all") {
+          filters.garden_id = state.selectedGarden
+        }
       }
 
       if (state.selectedPlantBed && state.selectedPlantBed !== "all") {
