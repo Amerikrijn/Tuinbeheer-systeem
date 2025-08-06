@@ -5,8 +5,8 @@ import { useAuth } from '@/hooks/use-supabase-auth'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/hooks/use-toast'
 
-const INACTIVITY_TIMEOUT = 10 * 60 * 1000 // 10 minutes in milliseconds
-const WARNING_TIME = 2 * 60 * 1000 // Show warning 2 minutes before logout
+const INACTIVITY_TIMEOUT = 30 * 60 * 1000 // 30 minutes in milliseconds
+const WARNING_TIME = 5 * 60 * 1000 // Show warning 5 minutes before logout
 
 export function useActivityTimeout() {
   // Try to get auth, but don't throw if not available
@@ -64,7 +64,7 @@ export function useActivityTimeout() {
   const showWarning = useCallback(() => {
     toast({
       title: "Sessie verloopt binnenkort",
-      description: "Je wordt over 2 minuten automatisch uitgelogd vanwege inactiviteit",
+      description: "Je wordt over 5 minuten automatisch uitgelogd vanwege inactiviteit",
     })
   }, [toast])
 
@@ -74,12 +74,12 @@ export function useActivityTimeout() {
     lastActivityRef.current = Date.now()
     clearTimeouts()
 
-    // Set warning timeout (8 minutes)
+    // Set warning timeout (25 minutes)
     warningTimeoutRef.current = setTimeout(() => {
       showWarning()
     }, INACTIVITY_TIMEOUT - WARNING_TIME)
 
-    // Set logout timeout (10 minutes)
+    // Set logout timeout (30 minutes)
     timeoutRef.current = setTimeout(() => {
       handleAutoLogout()
     }, INACTIVITY_TIMEOUT)
