@@ -2,7 +2,6 @@
   "version": 2,
   "buildCommand": "./vercel-build.sh",
   "outputDirectory": ".next",
-  "framework": "nextjs",
   "installCommand": "npm install",
   "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
   "env": {
