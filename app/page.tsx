@@ -895,12 +895,20 @@ function UserDashboardInterface() {
       if (hasGardenAccess) {
         let logbookQuery = supabase
           .from('logbook_entries')
-          .select('*, gardens(name)')
+          .select(`
+            *,
+            plant_beds!inner(
+              id,
+              name,
+              garden_id,
+              gardens!inner(name)
+            )
+          `)
           .is('task_id', null) // Only entries that are NOT related to completed tasks
         
         // Only filter by garden_id if user is not admin
         if (!isAdmin && accessibleGardens.length > 0) {
-          logbookQuery = logbookQuery.in('garden_id', accessibleGardens)
+          logbookQuery = logbookQuery.in('plant_beds.garden_id', accessibleGardens)
         }
         
         const { data: logbookResults, error: logbookError } = await logbookQuery
@@ -1064,7 +1072,7 @@ function UserDashboardInterface() {
                 {logbookEntries.slice(0, 10).map((entry) => (
                   <div key={entry.id} className="p-3 border rounded-lg hover:bg-gray-50">
                     <h4 className="font-medium">{entry.notes}</h4>
-                    <p className="text-sm text-gray-600">{entry.gardens?.name}</p>
+                    <p className="text-sm text-gray-600">{entry.plant_beds?.gardens?.name}</p>
                     <p className="text-xs text-gray-500 mt-1">
                       {new Date(entry.entry_date).toLocaleDateString('nl-NL')}
                     </p>
