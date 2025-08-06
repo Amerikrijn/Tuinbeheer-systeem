@@ -74,13 +74,11 @@ function TasksPageContent() {
   )
 }
 
-// SECURITY: Tasks page only for admins
+// Protected tasks page
 export default function TasksPage() {
   return (
     <ProtectedRoute>
-      <UserRestrictedRoute>
-        <TasksPageContent />
-      </UserRestrictedRoute>
+      <TasksPageContent />
     </ProtectedRoute>
   )
 }

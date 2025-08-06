@@ -93,31 +93,31 @@ export function AuthNavigation() {
             <span className="font-semibold text-lg">Tuinbeheer</span>
           </Link>
 
-          {/* Main Navigation - Desktop */}
-          <div className="hidden md:flex items-center space-x-4">
-            <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
-              <Link href={isAdmin() ? "/tasks" : "/user-dashboard"} className="flex items-center space-x-2">
-                <ClipboardList className="w-4 h-4" />
-                <span>Taken</span>
-              </Link>
-            </Button>
+          {/* Main Navigation - Desktop - ONLY FOR ADMINS */}
+          {isAdmin() && (
+            <div className="hidden md:flex items-center space-x-4">
+              <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
+                <Link href="/tasks" className="flex items-center space-x-2">
+                  <ClipboardList className="w-4 h-4" />
+                  <span>Taken</span>
+                </Link>
+              </Button>
 
-            <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
-              <Link href="/logbook" className="flex items-center space-x-2">
-                <BookOpen className="w-4 h-4" />
-                <span>Logboek</span>
-              </Link>
-            </Button>
+              <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
+                <Link href="/logbook" className="flex items-center space-x-2">
+                  <BookOpen className="w-4 h-4" />
+                  <span>Logboek</span>
+                </Link>
+              </Button>
 
-            {isAdmin() && (
               <Button asChild variant="ghost" className="text-gray-600 hover:text-gray-900">
                 <Link href="/admin/users" className="flex items-center space-x-2">
                   <Users className="w-4 h-4" />
                   <span>Gebruikers</span>
                 </Link>
               </Button>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Mobile Menu */}
           <div className="md:hidden">
@@ -128,27 +128,30 @@ export function AuthNavigation() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem asChild>
-                  <Link href={isAdmin() ? "/tasks" : "/user-dashboard"} className="flex items-center space-x-2">
-                    <ClipboardList className="w-4 h-4" />
-                    <span>Taken</span>
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/logbook" className="flex items-center space-x-2">
-                    <BookOpen className="w-4 h-4" />
-                    <span>Logboek</span>
-                  </Link>
-                </DropdownMenuItem>
+                {/* Mobile Navigation - ONLY FOR ADMINS */}
                 {isAdmin() && (
-                  <DropdownMenuItem asChild>
-                    <Link href="/admin/users" className="flex items-center space-x-2">
-                      <Users className="w-4 h-4" />
-                      <span>Gebruikers</span>
-                    </Link>
-                  </DropdownMenuItem>
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/tasks" className="flex items-center space-x-2">
+                        <ClipboardList className="w-4 h-4" />
+                        <span>Taken</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/logbook" className="flex items-center space-x-2">
+                        <BookOpen className="w-4 h-4" />
+                        <span>Logboek</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/users" className="flex items-center space-x-2">
+                        <Users className="w-4 h-4" />
+                        <span>Gebruikers</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
                 )}
-                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
                   <LogOut className="w-4 h-4 mr-2" />
                   <span>Uitloggen</span>

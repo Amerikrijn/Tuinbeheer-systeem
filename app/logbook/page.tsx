@@ -152,14 +152,84 @@ function LogbookPageContent() {
         filters.plant_bed_id = state.selectedPlantBed
       }
 
+      // Load regular logbook entries
       const response = await LogbookService.getAll(filters)
       
       if (!response.success || !response.data) {
         throw new Error(response.error || 'Failed to load logbook entries')
       }
 
+      // Also load completed tasks as logbook entries
+      let completedTasksData = []
+      try {
+        let tasksQuery = supabase
+          .from('tasks')
+          .select(`
+            id,
+            title,
+            description,
+            due_date,
+            updated_at,
+            completed,
+            plants!inner(
+              id,
+              name,
+              plant_beds!inner(
+                id,
+                name,
+                garden_id,
+                gardens!inner(name)
+              )
+            )
+          `)
+          .eq('completed', true)
+
+        // Apply same garden filtering as logbook entries
+        if (!isAdmin()) {
+          if (accessibleGardens.length === 0) {
+            completedTasksData = []
+          } else {
+            if (filters.garden_id) {
+              tasksQuery = tasksQuery.eq('plants.plant_beds.garden_id', filters.garden_id)
+            } else if (filters.garden_ids && filters.garden_ids.length > 0) {
+              tasksQuery = tasksQuery.in('plants.plant_beds.garden_id', filters.garden_ids)
+            } else {
+              tasksQuery = tasksQuery.in('plants.plant_beds.garden_id', accessibleGardens)
+            }
+          }
+        } else {
+          // Admin can see all, apply same filters as logbook
+          if (filters.garden_id) {
+            tasksQuery = tasksQuery.eq('plants.plant_beds.garden_id', filters.garden_id)
+          }
+        }
+
+        const { data: tasksResults } = await tasksQuery.order('updated_at', { ascending: false })
+        
+        if (tasksResults) {
+          // Transform completed tasks to look like logbook entries
+          completedTasksData = tasksResults.map(task => ({
+            id: `task-${task.id}`,
+            entry_date: task.updated_at,
+            notes: `✅ Taak voltooid: ${task.title}${task.description ? ` - ${task.description}` : ''}`,
+            plant_bed_name: task.plants.plant_beds.name,
+            plant_name: task.plants.name,
+            garden_name: task.plants.plant_beds.gardens.name,
+            photo_url: null,
+            is_completed_task: true, // Flag to identify this as a completed task
+            original_task: task
+          }))
+        }
+      } catch (error) {
+        console.warn('Failed to load completed tasks for logbook:', error)
+        completedTasksData = []
+      }
+
+      // Combine logbook entries and completed tasks
+      const allEntries = [...response.data, ...completedTasksData]
+
       // Filter by year first
-      const yearFilteredEntries = response.data.filter(entry => {
+      const yearFilteredEntries = allEntries.filter(entry => {
         const entryYear = new Date(entry.entry_date).getFullYear()
         return entryYear.toString() === state.selectedYear
       })
@@ -172,6 +242,9 @@ function LogbookPageContent() {
             (entry.plant_name && entry.plant_name.toLowerCase().includes(state.searchTerm.toLowerCase()))
           )
         : yearFilteredEntries
+
+      // Sort by entry_date descending (most recent first)
+      filteredEntries.sort((a, b) => new Date(b.entry_date).getTime() - new Date(a.entry_date).getTime())
 
       setState(prev => ({
         ...prev,
@@ -495,8 +568,10 @@ function LogbookPageContent() {
               {state.entries.map((entry) => (
                 <TableRow 
                   key={entry.id} 
-                  className="cursor-pointer hover:bg-gray-50"
-                  onDoubleClick={() => router.push(`/logbook/${entry.id}`)}
+                  className={`cursor-pointer hover:bg-gray-50 ${
+                    entry.is_completed_task ? 'bg-green-50 border-l-4 border-l-green-500' : ''
+                  }`}
+                  onDoubleClick={() => entry.is_completed_task ? null : router.push(`/logbook/${entry.id}`)}
                 >
                   <TableCell>
                     <Badge variant="outline" className="text-xs">
@@ -572,17 +647,14 @@ function LogbookPageContent() {
   )
 }
 
-// SECURITY: Logbook overview only for admins
 export default function LogbookPage() {
   return (
     <ProtectedRoute>
-      <UserRestrictedRoute>
-        <ErrorBoundary>
-          <React.Suspense fallback={<div>Loading...</div>}>
-            <LogbookPageContent />
-          </React.Suspense>
-        </ErrorBoundary>
-      </UserRestrictedRoute>
+      <ErrorBoundary>
+        <React.Suspense fallback={<div>Loading...</div>}>
+          <LogbookPageContent />
+        </React.Suspense>
+      </ErrorBoundary>
     </ProtectedRoute>
   )
 }
