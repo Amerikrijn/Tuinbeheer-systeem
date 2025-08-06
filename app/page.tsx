@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-supabase-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { supabase } from "@/lib/supabase"
+import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
 
 interface HomePageState {
   gardens: Tuin[]
@@ -835,25 +836,7 @@ function UserDashboardInterface() {
         const { data: plantsCheck, error: plantsError } = await plantsQuery
         console.log('🌱 Plants found:', plantsCheck)
         
-        // Calculate date ranges for this week + overdue
-        const now = new Date()
-        const today = new Date(now)
-        today.setHours(0, 0, 0, 0)
-        
-        // Start of week (Monday in Europe)
-        const startOfWeek = new Date(now)
-        const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1 // Convert Sunday=0 to Monday=0
-        startOfWeek.setDate(now.getDate() - dayOfWeek)
-        startOfWeek.setHours(0, 0, 0, 0)
-        
-        // End of week (Sunday)
-        const endOfWeek = new Date(startOfWeek)
-        endOfWeek.setDate(startOfWeek.getDate() + 6)
-        endOfWeek.setHours(23, 59, 59, 999)
-        
-
-
-        // Load both pending tasks (this week + overdue) AND recent completed tasks
+        // Load all tasks (will be filtered and sorted by utility function)
         let allTasksQuery = supabase
           .from('tasks')
           .select(`
@@ -880,32 +863,24 @@ function UserDashboardInterface() {
             console.log('🔍 SECURITY: User tasks query filtering by gardens:', accessibleGardens)
           }
           
-          const { data: allTaskResults, error: tasksError } = await allTasksQuery.order('updated_at', { ascending: false })
+          const { data: allTaskResults, error: tasksError } = await allTasksQuery
 
           if (!tasksError && allTaskResults) {
-            // Filter and combine pending tasks (this week + overdue) with recent completed tasks
-            const pendingTasks = allTaskResults.filter(task => {
-              if (task.completed) return false
-              if (!task.due_date) return true // Tasks without due date are always shown
-              
-              const dueDate = new Date(task.due_date)
-              const isOverdue = dueDate < today
-              const isThisWeek = dueDate >= startOfWeek && dueDate <= endOfWeek
-              
-              return isOverdue || isThisWeek
-            })
-
-            // Get recent completed tasks (last 7 days)
+            // Use utility function to sort all tasks properly
+            const sortedTasks = sortTasks(allTaskResults)
+            
+            // For dashboard, show: all pending + recent completed (last 7 days)
+            const now = new Date()
             const sevenDaysAgo = new Date(now)
             sevenDaysAgo.setDate(now.getDate() - 7)
             
-            const recentCompletedTasks = allTaskResults.filter(task => {
+            const pendingTasks = sortedTasks.filter(task => !task.completed)
+            const recentCompletedTasks = sortedTasks.filter(task => {
               if (!task.completed) return false
               const updatedDate = new Date(task.updated_at)
               return updatedDate >= sevenDaysAgo
             }).slice(0, 5) // Limit to 5 recent completed tasks
 
-            // Combine pending and recent completed tasks
             tasksData = [...pendingTasks, ...recentCompletedTasks]
           }
 
@@ -1027,7 +1002,7 @@ function UserDashboardInterface() {
               <ClipboardList className="w-5 h-5" />
               Taken ({tasks.length})
             </CardTitle>
-            <CardDescription>Deze week + verlopen taken voor jouw tuinen</CardDescription>
+            <CardDescription>Alle openstaande taken + recente voltooide taken</CardDescription>
           </CardHeader>
           <CardContent>
             {tasks.length === 0 ? (
@@ -1038,45 +1013,31 @@ function UserDashboardInterface() {
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {tasks.map((task) => {
-                  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && !task.completed
-                  const isCompleted = task.completed
+                  const urgency = getTaskUrgency(task)
+                  const styles = getTaskUrgencyStyles(urgency)
                   
                   return (
-                    <div key={task.id} className={`p-3 border rounded-lg hover:bg-gray-50 ${
-                      isCompleted 
-                        ? 'border-green-200 bg-green-50' 
-                        : isOverdue 
-                          ? 'border-red-200 bg-red-50' 
-                          : 'border-gray-200'
-                    }`}>
+                    <div key={task.id} className={`p-3 border rounded-lg hover:bg-gray-50 ${styles.container}`}>
                       <div className="flex items-start justify-between">
-                        <h4 className={`font-medium ${isCompleted ? 'line-through text-green-700' : ''}`}>
+                        <h4 className={`font-medium ${styles.title}`}>
                           {task.title}
                         </h4>
-                        {isCompleted && (
-                          <Badge variant="outline" className="text-xs border-green-500 text-green-700">
-                            ✅ Voltooid
-                          </Badge>
-                        )}
-                        {isOverdue && !isCompleted && (
-                          <Badge variant="destructive" className="text-xs">
-                            Verlopen
-                          </Badge>
-                        )}
+                        <Badge className={`text-xs ${styles.badge}`}>
+                          {styles.badgeText}
+                        </Badge>
                       </div>
-                      <p className={`text-sm ${isCompleted ? 'text-green-600' : 'text-gray-600'}`}>
+                      <p className="text-sm text-gray-600">
                         {task.plants?.name} - {task.plants?.plant_beds?.gardens?.name}
                       </p>
                       {task.due_date && (
-                        <p className={`text-xs mt-1 ${
-                          isCompleted 
-                            ? 'text-green-600' 
-                            : isOverdue 
-                              ? 'text-red-600 font-medium' 
-                              : 'text-orange-600'
-                        }`}>
-                          {isCompleted ? 'Voltooid op: ' : 'Deadline: '}
-                          {new Date(isCompleted ? task.updated_at : task.due_date).toLocaleDateString('nl-NL')}
+                        <p className="text-xs mt-1 text-gray-500">
+                          {task.completed ? 'Voltooid op: ' : 'Deadline: '}
+                          {new Date(task.completed ? task.updated_at : task.due_date).toLocaleDateString('nl-NL')}
+                        </p>
+                      )}
+                      {task.priority && task.priority !== 'medium' && (
+                        <p className="text-xs mt-1 font-medium">
+                          Prioriteit: {task.priority === 'high' ? '🔴 Hoog' : '🔵 Laag'}
                         </p>
                       )}
                     </div>
