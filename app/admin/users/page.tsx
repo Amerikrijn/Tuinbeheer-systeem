@@ -363,6 +363,66 @@ function AdminUsersPageContent() {
     setIsGardenAccessDialogOpen(true)
   }
 
+  // Add cleanup function for orphaned garden access
+  const cleanupOrphanedAccess = async () => {
+    try {
+      console.log('🧹 Cleaning up orphaned garden access...')
+      
+      // Get all garden access entries
+      const { data: accessEntries, error: accessError } = await supabase
+        .from('user_garden_access')
+        .select('*')
+      
+      if (accessError) {
+        console.error('Error fetching access entries:', accessError)
+        return
+      }
+      
+      // Get all existing gardens
+      const { data: existingGardens, error: gardensError } = await supabase
+        .from('gardens')
+        .select('id')
+      
+      if (gardensError) {
+        console.error('Error fetching gardens:', gardensError)
+        return
+      }
+      
+      const existingGardenIds = new Set(existingGardens?.map(g => g.id) || [])
+      
+      // Find orphaned entries
+      const orphanedEntries = accessEntries?.filter(entry => 
+        !existingGardenIds.has(entry.garden_id)
+      ) || []
+      
+      console.log('🔍 Found orphaned entries:', orphanedEntries)
+      
+      // Remove orphaned entries
+      if (orphanedEntries.length > 0) {
+        const orphanedIds = orphanedEntries.map(e => e.id)
+        const { error: deleteError } = await supabase
+          .from('user_garden_access')
+          .delete()
+          .in('id', orphanedIds)
+        
+        if (!deleteError) {
+          console.log('✅ Cleaned up', orphanedEntries.length, 'orphaned entries')
+          toast({
+            title: "Database opgeschoond",
+            description: `${orphanedEntries.length} ongeldige tuin toegangen verwijderd`,
+          })
+          // Reload users to reflect changes
+          loadUsersAndGardens()
+        }
+      } else {
+        console.log('✅ No orphaned entries found')
+      }
+      
+    } catch (error) {
+      console.error('Error cleaning up orphaned access:', error)
+    }
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-6 max-w-6xl">
@@ -382,10 +442,19 @@ function AdminUsersPageContent() {
           <h1 className="text-3xl font-bold text-gray-900">Gebruikersbeheer</h1>
           <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
         </div>
-        <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          Gebruiker Uitnodigen
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={cleanupOrphanedAccess}
+            className="text-orange-600 border-orange-200 hover:bg-orange-50 flex items-center gap-2"
+          >
+            🧹 Database Opschonen
+          </Button>
+          <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            Gebruiker Uitnodigen
+          </Button>
+        </div>
       </div>
 
       {/* Users Table */}
