@@ -84,26 +84,41 @@ function AdminUsersPageContent() {
   const loadUsersAndGardens = async () => {
     setLoading(true)
     try {
-      // Load users with garden access
-      console.log('🔍 Loading users...')
+      // Load users with their garden access
+      console.log('🔍 Loading users with garden access...')
+      
+      // First load all users
       const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select('*')
         .order('created_at', { ascending: false })
 
-      console.log('🔍 Users query result:', { 
-        data: usersData, 
-        count: usersData?.length, 
-        error: usersError 
-      })
-
       if (usersError) {
         throw usersError
       }
 
-      // Simple users data (garden access loaded separately if needed)
-      setUsers(usersData || [])
-      console.log('🔍 Users state set:', usersData?.length)
+      // Then load garden access for each user
+      const usersWithAccess = await Promise.all(
+        (usersData || []).map(async (user) => {
+          const { data: accessData, error: accessError } = await supabase
+            .from('user_garden_access')
+            .select('garden_id')
+            .eq('user_id', user.id)
+          
+          if (accessError) {
+            console.log('🔍 Error loading access for user:', user.email, accessError)
+            return { ...user, garden_access: [] }
+          }
+          
+          const gardenIds = accessData?.map(row => row.garden_id) || []
+          console.log('🔍 User', user.email, 'has access to gardens:', gardenIds)
+          
+          return { ...user, garden_access: gardenIds }
+        })
+      )
+
+      setUsers(usersWithAccess)
+      console.log('🔍 Users with garden access loaded:', usersWithAccess.length)
 
       // Load only active gardens (exclude soft-deleted ones)
       console.log('🔍 Loading active gardens...')
