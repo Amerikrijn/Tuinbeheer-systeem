@@ -615,12 +615,24 @@ function UserDashboardInterface() {
   const [loading, setLoading] = React.useState(true)
   const [tasks, setTasks] = React.useState<any[]>([])
   const [logbookEntries, setLogbookEntries] = React.useState<any[]>([])
+  const [selectedGreeting, setSelectedGreeting] = React.useState<string | null>(null)
 
   React.useEffect(() => {
     if (user) {
       loadUserData()
     }
   }, [user])
+
+  const handleGreeting = (greeting: string) => {
+    setSelectedGreeting(greeting)
+    toast({
+      title: greeting,
+      description: "Veel succes met je tuinwerk vandaag! 🌿",
+      duration: 2000
+    })
+    // Reset after a moment
+    setTimeout(() => setSelectedGreeting(null), 2000)
+  }
 
   const loadUserData = async () => {
     if (!user) return
@@ -699,14 +711,66 @@ function UserDashboardInterface() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
-      {/* Header */}
-      <div className="text-center">
+      {/* Header with Greeting */}
+      <div className="text-center space-y-4">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Welkom, {user?.full_name || user?.email?.split('@')[0]}
+          Welkom, {user?.full_name || user?.email?.split('@')[0]}! 👋
         </h1>
         <p className="text-gray-600">
           Taken en logboek voor {gardenNames}
         </p>
+        
+        {/* Simple Greeting Buttons */}
+        <div className="flex flex-wrap justify-center gap-3 mt-6">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleGreeting("🌱 Goedemorgen!")}
+            className={`transition-all duration-200 ${
+              selectedGreeting === "🌱 Goedemorgen!" 
+                ? "bg-green-200 border-green-400 text-green-800 scale-105" 
+                : "bg-green-50 border-green-200 hover:bg-green-100 text-green-700"
+            }`}
+          >
+            🌱 Goedemorgen!
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleGreeting("☀️ Fijne dag!")}
+            className={`transition-all duration-200 ${
+              selectedGreeting === "☀️ Fijne dag!" 
+                ? "bg-blue-200 border-blue-400 text-blue-800 scale-105" 
+                : "bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-700"
+            }`}
+          >
+            ☀️ Fijne dag!
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleGreeting("🌻 Veel plezier!")}
+            className={`transition-all duration-200 ${
+              selectedGreeting === "🌻 Veel plezier!" 
+                ? "bg-orange-200 border-orange-400 text-orange-800 scale-105" 
+                : "bg-orange-50 border-orange-200 hover:bg-orange-100 text-orange-700"
+            }`}
+          >
+            🌻 Veel plezier!
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => handleGreeting("🌸 Groene groet!")}
+            className={`transition-all duration-200 ${
+              selectedGreeting === "🌸 Groene groet!" 
+                ? "bg-purple-200 border-purple-400 text-purple-800 scale-105" 
+                : "bg-purple-50 border-purple-200 hover:bg-purple-100 text-purple-700"
+            }`}
+          >
+            🌸 Groene groet!
+          </Button>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-8">
