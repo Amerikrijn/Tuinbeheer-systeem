@@ -75,12 +75,10 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
       try {
         // Check if user garden access is loaded
         if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
-          console.log('🔍 SimpleTasksView - User has no garden access loaded, trying to load...')
-          // Try to load garden access first
-          const { loadGardenAccess } = useAuth()
-          await loadGardenAccess()
-          // Small delay to ensure state is updated
-          await new Promise(resolve => setTimeout(resolve, 100))
+          console.log('🔍 SimpleTasksView - User has no garden access loaded')
+          setTasks([])
+          setLoading(false)
+          return
         }
         
         const accessibleGardens = getAccessibleGardens()
