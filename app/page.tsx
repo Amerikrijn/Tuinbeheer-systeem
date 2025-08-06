@@ -869,8 +869,14 @@ function UserDashboardInterface() {
           `)
           .eq('completed', false)
         
-        // Only filter by garden_id if user is not admin
-        if (!isAdmin && accessibleGardens.length > 0) {
+        // SECURITY: ALWAYS filter by garden access for non-admin users  
+        if (!isAdmin) {
+          if (accessibleGardens.length === 0) {
+            console.warn('⚠️ SECURITY: User has no garden access, blocking tasks query')
+            tasksData = []
+            setTasks(tasksData)
+            return // Early return to prevent any data leakage
+          }
           tasksQuery = tasksQuery.in('plants.plant_beds.garden_id', accessibleGardens)
         }
         
@@ -904,10 +910,16 @@ function UserDashboardInterface() {
               gardens!inner(name)
             )
           `)
-          .is('task_id', null) // Only entries that are NOT related to completed tasks
+          // Show both logbook entries AND completed tasks for complete history
         
-        // Only filter by garden_id if user is not admin
-        if (!isAdmin && accessibleGardens.length > 0) {
+        // SECURITY: ALWAYS filter by garden access for non-admin users
+        if (!isAdmin) {
+          if (accessibleGardens.length === 0) {
+            console.warn('⚠️ SECURITY: User has no garden access, blocking logbook query')
+            logbookData = []
+            setLogbookEntries(logbookData)
+            return // Early return to prevent any data leakage
+          }
           logbookQuery = logbookQuery.in('plant_beds.garden_id', accessibleGardens)
         }
         
