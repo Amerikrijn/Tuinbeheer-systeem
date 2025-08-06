@@ -521,6 +521,64 @@ function AdminUsersPageContent() {
           >
             🔑 Reset Password
           </Button>
+          <Button 
+            variant="outline"
+            onClick={async () => {
+              try {
+                // Get first active garden
+                const { data: gardensData, error: gardensError } = await supabase
+                  .from('gardens')
+                  .select('id, name')
+                  .eq('is_active', true)
+                  .limit(1)
+                
+                if (gardensError || !gardensData || gardensData.length === 0) {
+                  toast({
+                    title: "Geen tuinen gevonden",
+                    description: "Er zijn geen actieve tuinen om toegang toe te wijzen",
+                    variant: "destructive"
+                  })
+                  return
+                }
+                
+                const garden = gardensData[0]
+                
+                // Add garden access
+                const { error: accessError } = await supabase
+                  .from('user_garden_access')
+                  .insert({
+                    user_id: 'bc468b8b-65ec-4979-8cc2-d277a954a344',
+                    garden_id: garden.id
+                  })
+                
+                if (accessError) {
+                  if (accessError.code === '23505') { // Duplicate key
+                    toast({
+                      title: "Toegang bestaat al",
+                      description: `Gebruiker heeft al toegang tot ${garden.name}`,
+                    })
+                  } else {
+                    throw accessError
+                  }
+                } else {
+                  toast({
+                    title: "Tuintoegang toegevoegd! ✅",
+                    description: `Toegang tot "${garden.name}" toegevoegd`,
+                  })
+                  loadUsersAndGardens() // Refresh the list
+                }
+              } catch (error) {
+                toast({
+                  title: "Fout bij toewijzen",
+                  description: error instanceof Error ? error.message : 'Assignment failed',
+                  variant: "destructive"
+                })
+              }
+            }}
+            className="flex items-center gap-2 text-green-600"
+          >
+            🌿 Assign Garden
+          </Button>
           <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
             Gebruiker Uitnodigen
