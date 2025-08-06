@@ -135,6 +135,11 @@ export function AuthNavigation() {
                     </Link>
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
+                  <LogOut className="w-4 h-4 mr-2" />
+                  <span>Uitloggen</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -143,7 +148,18 @@ export function AuthNavigation() {
           <div className="flex-1"></div>
 
           {/* User Menu */}
-          <div className="flex items-center">
+          <div className="flex items-center space-x-3">
+            {/* Logout Button */}
+            <Button 
+              onClick={handleSignOut}
+              variant="outline" 
+              size="sm"
+              className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Uitloggen</span>
+            </Button>
+
             {/* User Dropdown - hele sectie als trigger */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -215,12 +231,7 @@ export function AuthNavigation() {
                   </Link>
                 </DropdownMenuItem>
 
-                <DropdownMenuSeparator />
-                
-                <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  <span>Uitloggen</span>
-                </DropdownMenuItem>
+
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
