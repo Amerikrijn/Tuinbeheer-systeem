@@ -375,6 +375,8 @@ interface GardenCardProps {
 function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
   const [plantBeds, setPlantBeds] = React.useState<PlantvakWithBloemen[]>([])
   const [loadingFlowers, setLoadingFlowers] = React.useState(true)
+  const [gardenUsers, setGardenUsers] = React.useState<any[]>([])
+  const [loadingUsers, setLoadingUsers] = React.useState(true)
 
   // Helper function to get emoji based on plant name
   const getPlantEmoji = (name?: string, storedEmoji?: string): string => {
@@ -426,6 +428,36 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
     }
 
     loadFlowers()
+  }, [garden.id])
+
+  // Load users with access to this garden
+  React.useEffect(() => {
+    const loadGardenUsers = async () => {
+      try {
+        setLoadingUsers(true)
+        const { data: users, error } = await supabase
+          .from('user_garden_access')
+          .select(`
+            users (
+              id,
+              email,
+              full_name
+            )
+          `)
+          .eq('garden_id', garden.id)
+
+        if (!error && users) {
+          setGardenUsers(users.map(u => u.users).filter(Boolean))
+        }
+      } catch (error) {
+        console.error('Error loading garden users:', error)
+        setGardenUsers([])
+      } finally {
+        setLoadingUsers(false)
+      }
+    }
+
+    loadGardenUsers()
   }, [garden.id])
 
   // Get all unique flowers from all plant beds
@@ -529,6 +561,47 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
             ) : (
               <div className="text-xs text-gray-500 italic">
                 Nog geen bloemen geplant
+              </div>
+            )}
+          </div>
+
+          {/* Users with access section */}
+          <div className={isListView ? "mb-2" : "mb-4"}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Gebruikers met toegang:</span>
+              <span className="text-xs text-gray-500">
+                {loadingUsers ? 'Laden...' : `${gardenUsers.length} gebruiker(s)`}
+              </span>
+            </div>
+            
+            {loadingUsers ? (
+              <div className="flex gap-1">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+                ))}
+              </div>
+            ) : gardenUsers.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {gardenUsers.slice(0, 3).map((user) => (
+                  <div 
+                    key={user.id}
+                    className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs"
+                  >
+                    <User className="h-3 w-3" />
+                    <span className="max-w-20 truncate">
+                      {user.full_name || user.email?.split('@')[0]}
+                    </span>
+                  </div>
+                ))}
+                {gardenUsers.length > 3 && (
+                  <div className="flex items-center justify-center bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                    +{gardenUsers.length - 3}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-xs text-gray-500 italic">
+                Geen gebruikers toegewezen
               </div>
             )}
           </div>
