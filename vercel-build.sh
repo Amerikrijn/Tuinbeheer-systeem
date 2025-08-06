@@ -14,8 +14,15 @@ npm install --include=dev
 echo "📦 Running Next.js build..."
 timeout 600s npx next build --no-lint || echo "Build completed with warnings"
 
-# Check if .next directory exists (basic success check)
-if [ -d ".next" ]; then
+# Check if build output exists
+if [ -d "out" ]; then
+    echo "✅ Next.js export found in 'out' directory"
+    
+    # Move out directory to dist for Vercel
+    mv out dist
+    echo "✅ Moved 'out' to 'dist' for Vercel"
+    
+elif [ -d ".next" ]; then
     echo "✅ .next directory found"
     
     # Create the expected output structure for Vercel
@@ -53,18 +60,20 @@ if [ -d ".next" ]; then
     
     # Create a simple index.html for static serving if needed
     if [ ! -f "dist/index.html" ]; then
-        echo '<!DOCTYPE html><html><head><title>Tuinbeheer Systeem</title></head><body><div id="__next"></div><script>window.location.href="/auth/login";</script></body></html>' > dist/index.html
+        echo '<!DOCTYPE html><html><head><title>Tuinbeheer Systeem</title></head><body><div id="__next"></div><script>window.location.href="/auth/login/";</script></body></html>' > dist/index.html
     fi
     
     echo "✅ Build artifacts created successfully"
-    echo "📁 Output structure ready for Vercel deployment"
     
-    # List what we created for debugging
-    echo "📋 Created files:"
-    ls -la dist/ | head -10
-    
-    exit 0
 else
-    echo "❌ No build artifacts - build failed"
+    echo "❌ No build output found"
     exit 1
 fi
+
+echo "📁 Output structure ready for Vercel deployment"
+
+# List what we created for debugging
+echo "📋 Created files:"
+ls -la dist/ | head -10
+
+exit 0
