@@ -1,10 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  trailingSlash: true,
-  skipTrailingSlashRedirect: true,
+  // Use standalone for proper Next.js app deployment
+  output: 'standalone',
   
-  // Build configuration
+  // Build configuration - only ignore errors during build, not at runtime
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -12,17 +11,13 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // Server external packages (moved from experimental in Next.js 15)
-  serverExternalPackages: ['@supabase/supabase-js'],
-  
-  // Disable image optimization for static export
-  images: {
-    unoptimized: true,
+  // External packages for server components
+  experimental: {
+    serverComponentsExternalPackages: ['@supabase/supabase-js'],
   },
   
-  // Simple webpack configuration
+  // Webpack configuration for client-side polyfills
   webpack: (config, { isServer }) => {
-    // Basic Node.js polyfills for client-side
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -31,7 +26,6 @@ const nextConfig = {
         tls: false,
       }
     }
-    
     return config
   },
 }
