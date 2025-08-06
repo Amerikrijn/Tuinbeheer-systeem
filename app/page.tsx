@@ -699,28 +699,8 @@ function UserDashboardInterface() {
 
   React.useEffect(() => {
     if (user) {
-      console.log('🔍 UserDashboard: User loaded, starting data loading process')
-      setLoading(true)
-      
-      // Load garden access first, then load user data
-      loadGardenAccess()
-        .then(() => {
-          console.log('🔍 UserDashboard: Garden access loaded, now loading user data')
-          return loadUserData()
-        })
-        .catch((error) => {
-          console.error('🔍 UserDashboard: Error in loading process:', error)
-          // Even if garden access fails, still try to load user data
-          loadUserData()
-        })
-        .finally(() => {
-          // Ensure loading is set to false after everything
-          console.log('🔍 UserDashboard: Force setting loading to false in 2 seconds')
-          setTimeout(() => {
-            console.log('🔍 UserDashboard: Setting loading to false NOW')
-            setLoading(false)
-          }, 2000)
-        })
+
+      loadUserData()
     }
   }, [user])
 
@@ -740,6 +720,14 @@ function UserDashboardInterface() {
     
     setLoading(true)
     try {
+      // Load garden access first if user has none
+      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
+        console.log('🔍 User has no garden access, loading from database...')
+        await loadGardenAccess()
+        // Small delay to ensure state is updated
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+      
       const accessibleGardens = getAccessibleGardens()
       console.log('🔍 User accessible gardens:', accessibleGardens)
 
@@ -837,7 +825,6 @@ function UserDashboardInterface() {
         variant: "destructive"
       })
     } finally {
-      console.log('🔍 UserDashboard: loadUserData completed, setting loading to false')
       setLoading(false)
     }
   }
