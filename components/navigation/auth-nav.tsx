@@ -14,14 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from '@/components/ui/navigation-menu'
+
 import { 
   TreePine,
   User,
@@ -62,39 +55,7 @@ export function AuthNavigation() {
     return '??'
   }
 
-  // Navigation items based on user permissions
-  const getNavigationItems = () => {
-    const items = []
-
-    // Different home page for admin vs regular users
-    if (isAdmin()) {
-      items.push({
-        title: 'Home',
-        href: '/',
-        icon: Home,
-        description: 'Dashboard overzicht'
-      })
-      
-      items.push({
-        title: 'Tuinen',
-        href: '/gardens',
-        icon: TreePine,
-        description: 'Beheer tuinen'
-      })
-    } else {
-      // Regular users get simple homepage
-      items.push({
-        title: 'Home',
-        href: '/',
-        icon: Home,
-        description: 'Jouw dashboard'
-      })
-    }
-
-    return items
-  }
-
-  const navigationItems = getNavigationItems()
+  // No navigation menu needed - just logo and user dropdown
 
   // If user is not logged in, show minimal nav
   if (!user) {
@@ -132,102 +93,8 @@ export function AuthNavigation() {
             <span className="font-semibold text-lg">Tuinbeheer</span>
           </Link>
 
-          {/* Main Navigation */}
-          <NavigationMenu className="hidden md:flex">
-            <NavigationMenuList>
-              {navigationItems.map((item) => {
-                const Icon = item.icon
-                const isActive = pathname === item.href || 
-                  (item.href !== '/' && pathname.startsWith(item.href))
-                
-                return (
-                  <NavigationMenuItem key={item.href}>
-                    <NavigationMenuLink asChild>
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          "flex items-center space-x-2 px-4 py-2 text-sm font-medium rounded-md transition-colors",
-                          isActive 
-                            ? "bg-green-100 text-green-700" 
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                        )}
-                      >
-                        <Icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </NavigationMenuLink>
-                  </NavigationMenuItem>
-                )
-              })}
-
-              {/* Admin Menu */}
-              {isAdmin() && (
-                <NavigationMenuItem>
-                  <NavigationMenuTrigger className="text-gray-600 hover:text-gray-900">
-                    <Shield className="w-4 h-4 mr-2" />
-                    Admin
-                  </NavigationMenuTrigger>
-                  <NavigationMenuContent>
-                    <div className="w-48 p-2">
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href="/admin/users"
-                          className="flex items-center space-x-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
-                        >
-                          <Users className="w-4 h-4" />
-                          <span>Gebruikersbeheer</span>
-                        </Link>
-                      </NavigationMenuLink>
-                      <NavigationMenuLink asChild>
-                        <Link
-                          href="/admin/permissions"
-                          className="flex items-center space-x-2 px-3 py-2 text-sm rounded-md hover:bg-gray-100"
-                        >
-                          <Settings className="w-4 h-4" />
-                          <span>Permissies</span>
-                        </Link>
-                      </NavigationMenuLink>
-                    </div>
-                  </NavigationMenuContent>
-                </NavigationMenuItem>
-              )}
-            </NavigationMenuList>
-          </NavigationMenu>
-
-          {/* Mobile Menu Button (simplified for now) */}
-          <div className="md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  Menu <ChevronDown className="w-4 h-4 ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {navigationItems.map((item) => {
-                  const Icon = item.icon
-                  return (
-                    <DropdownMenuItem key={item.href} asChild>
-                      <Link href={item.href} className="flex items-center space-x-2">
-                        <Icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  )
-                })}
-                {isAdmin() && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/admin/users" className="flex items-center space-x-2">
-                        <Users className="w-4 h-4" />
-                        <span>Gebruikersbeheer</span>
-                      </Link>
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {/* Spacer to push user menu to the right */}
+          <div className="flex-1"></div>
 
           {/* User Menu */}
           <div className="flex items-center">
@@ -273,6 +140,27 @@ export function AuthNavigation() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                
+                {/* Admin-only menu items */}
+                {isAdmin() && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link href="/gardens" className="flex items-center space-x-2">
+                        <TreePine className="w-4 h-4" />
+                        <span>Tuinen</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/users" className="flex items-center space-x-2">
+                        <Users className="w-4 h-4" />
+                        <span>Gebruikers</span>
+                      </Link>
+                    </DropdownMenuItem>
+                    
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="flex items-center space-x-2">
