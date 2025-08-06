@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering to prevent SSR issues with auth
+export const dynamic = 'force-dynamic'
+
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"

@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering to prevent SSR issues with auth
+export const dynamic = 'force-dynamic'
+
 import React, { useState } from 'react'
 import { useNavigation } from '@/hooks/use-navigation'
 import { WeeklyTaskList } from '@/components/tasks/weekly-task-list'

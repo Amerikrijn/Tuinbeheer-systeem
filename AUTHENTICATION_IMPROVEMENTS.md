@@ -123,8 +123,23 @@ Gebruiker: gebruiker@tuinbeheer.nl / User123!
 ## Bekende Beperkingen
 
 1. **Build Warnings**: Pre-rendering fouten zijn normaal voor client-side authenticatie
+   - Vercel deployment kan falen vanwege SSR issues met useAuth hook
+   - Oplossing: `export const dynamic = 'force-dynamic'` toegevoegd aan alle pagina's
+   - Alternatief: Runtime rendering gebruikt in plaats van static generation
 2. **Browser Compatibility**: Activity detection werkt op moderne browsers
 3. **Session Persistence**: Activity timeout wordt gereset bij page refresh
+
+## Deployment Status
+
+⚠️ **Vercel Build Issues**: De applicatie heeft momenteel pre-rendering issues vanwege client-side authenticatie. Dit is een bekende limitatie van Next.js App Router met client-side auth hooks.
+
+**Oplossingen geïmplementeerd**:
+- `export const dynamic = 'force-dynamic'` op alle auth-gerelateerde pagina's
+- Runtime configuratie voor Node.js environment
+- Skip static optimization in Next.js config
+- Vercel-specifieke build configuratie
+
+**Status**: De functionaliteit werkt correct in development en runtime, maar heeft build-time pre-rendering issues die de deployment kunnen beïnvloeden.
 
 ## Toekomstige Verbeteringen
 

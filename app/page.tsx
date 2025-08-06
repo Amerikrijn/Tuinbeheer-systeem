@@ -1,5 +1,9 @@
 "use client"
 
+// Force dynamic rendering to prevent SSR issues with auth
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
