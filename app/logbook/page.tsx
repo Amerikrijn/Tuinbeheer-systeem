@@ -24,6 +24,7 @@ import type { LogbookEntryWithDetails, Plantvak, PlantvakWithBloemen } from "@/l
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { useAuth } from "@/hooks/use-supabase-auth"
 import { format, parseISO } from "date-fns"
 import { nl } from "date-fns/locale"
 
@@ -45,6 +46,7 @@ const ITEMS_PER_PAGE = 20
 function LogbookPageContent() {
   const router = useRouter()
   const { toast } = useToast()
+  const { getAccessibleGardens, isAdmin } = useAuth()
   
   const [state, setState] = React.useState<LogbookPageState>({
     entries: [],
@@ -59,22 +61,40 @@ function LogbookPageContent() {
     hasMore: false,
   })
 
-  // Load logbook entries
+  // Load logbook entries (filtered by accessible gardens)
   const loadEntries = React.useCallback(async (page = 1, append = false) => {
     const operationId = `loadLogbookEntries-${Date.now()}`
     
     try {
       setState(prev => ({ ...prev, loading: !append, error: null }))
       
+      // Get accessible gardens for filtering
+      const accessibleGardens = getAccessibleGardens()
+      const hasGardenRestriction = !isAdmin() && accessibleGardens.length > 0
+
       const filters: any = {
         limit: ITEMS_PER_PAGE,
         offset: (page - 1) * ITEMS_PER_PAGE
       }
 
-      if (state.selectedPlantBed && state.selectedPlantBed !== "all") {
-        filters.plant_bed_id = state.selectedPlantBed
+      // Apply garden access filtering
+      if (hasGardenRestriction) {
+        if (state.selectedGarden && state.selectedGarden !== "all") {
+          // Check if user has access to selected garden
+          if (!accessibleGardens.includes(state.selectedGarden)) {
+            throw new Error('Geen toegang tot geselecteerde tuin')
+          }
+          filters.garden_id = state.selectedGarden
+        } else {
+          // Filter to only accessible gardens
+          filters.garden_ids = accessibleGardens
+        }
       } else if (state.selectedGarden && state.selectedGarden !== "all") {
         filters.garden_id = state.selectedGarden
+      }
+
+      if (state.selectedPlantBed && state.selectedPlantBed !== "all") {
+        filters.plant_bed_id = state.selectedPlantBed
       }
 
       const response = await LogbookService.getAll(filters)
@@ -123,7 +143,7 @@ function LogbookPageContent() {
         variant: "destructive",
       })
     }
-  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, toast])
+  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin])
 
   // Load plant beds for filtering
   const loadPlantBeds = React.useCallback(async () => {
