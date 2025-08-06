@@ -881,6 +881,11 @@ function UserDashboardInterface() {
               return updatedDate >= sevenDaysAgo
             }).slice(0, 5) // Limit to 5 recent completed tasks
 
+            console.log('📋 DEBUG Dashboard - Pending tasks:', pendingTasks.length)
+            console.log('📋 DEBUG Dashboard - Recent completed:', recentCompletedTasks.length)
+            console.log('📋 DEBUG Dashboard - Sample pending task:', pendingTasks[0])
+            console.log('📋 DEBUG Dashboard - User accessible gardens:', accessibleGardens)
+
             tasksData = [...pendingTasks, ...recentCompletedTasks]
           }
 
