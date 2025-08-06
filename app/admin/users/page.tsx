@@ -494,7 +494,32 @@ function AdminUsersPageContent() {
             onClick={() => createMissingAuthUser('amerik.rijn@gmail.com')}
             className="flex items-center gap-2"
           >
-            🔧 Fix amerik.rijn@gmail.com
+            🔧 Create amerik.rijn@gmail.com
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={async () => {
+              try {
+                const { data, error } = await supabase.auth.admin.updateUserById(
+                  'bc468b8b-65ec-4979-8cc2-d277a954a344', // User ID from logs
+                  { password: 'SimplePass123!' }
+                )
+                if (error) throw error
+                toast({
+                  title: "Wachtwoord reset! ✅",
+                  description: "Nieuw wachtwoord: SimplePass123!",
+                })
+              } catch (error) {
+                toast({
+                  title: "Fout bij reset",
+                  description: error instanceof Error ? error.message : 'Reset failed',
+                  variant: "destructive"
+                })
+              }
+            }}
+            className="flex items-center gap-2 text-orange-600"
+          >
+            🔑 Reset Password
           </Button>
           <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
             <Plus className="w-4 h-4" />
