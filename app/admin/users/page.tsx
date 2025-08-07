@@ -466,6 +466,48 @@ function AdminUsersPageContent() {
     }
   }
 
+  const handleDeleteUser = async (user: User) => {
+    if (!confirm(`Weet je zeker dat je ${user.full_name || user.email} wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`)) {
+      return
+    }
+
+    try {
+      // First delete from public.users table
+      const { error: profileError } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', user.id)
+
+      if (profileError) {
+        throw profileError
+      }
+
+      // Also delete user garden access
+      const { error: accessError } = await supabase
+        .from('user_garden_access')
+        .delete()
+        .eq('user_id', user.id)
+
+      // Don't throw for access error - user might not have garden access
+
+      toast({
+        title: "Gebruiker verwijderd",
+        description: `${user.full_name || user.email} is succesvol verwijderd`,
+      })
+
+      // Reload users list
+      loadUsersAndGardens()
+
+    } catch (error: any) {
+      console.error('Error deleting user:', error)
+      toast({
+        title: "Verwijderen mislukt",
+        description: error.message || "Kon gebruiker niet verwijderen",
+        variant: "destructive"
+      })
+    }
+  }
+
 
 
   if (loading) {
@@ -606,6 +648,14 @@ function AdminUsersPageContent() {
                           <Mail className="w-4 h-4 mr-2" />
                           {inviting ? 'Versturen...' : 
                            user.status === 'pending' ? 'Uitnodiging Versturen' : 'Herinneringsmail Versturen'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteUser(user)}
+                          className="text-red-600 hover:text-red-700"
+                          disabled={user.id === currentUser?.id}
+                        >
+                          <UserX className="w-4 h-4 mr-2" />
+                          Gebruiker Verwijderen
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
