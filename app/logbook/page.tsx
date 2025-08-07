@@ -75,7 +75,7 @@ function LogbookPageContent() {
     try {
       const { data: userData, error } = await supabase
         .from('users')
-        .select('id, email, full_name, garden_access')
+        .select('id, email, full_name')
         .eq('id', viewingUserId)
         .single()
       
@@ -103,10 +103,26 @@ function LogbookPageContent() {
       let hasGardenRestriction: boolean
       
       if (viewingUser && isAdmin()) {
-        // Admin viewing specific user - use that user's garden access
-        accessibleGardens = viewingUser.garden_access || []
+        // Admin viewing specific user - get that user's garden access from database
+        try {
+          const { data: gardenAccess, error } = await supabase
+            .from('user_garden_access')
+            .select('garden_id')
+            .eq('user_id', viewingUser.id)
+          
+          if (error) {
+            console.error('Error fetching user garden access:', error)
+            accessibleGardens = []
+          } else {
+            accessibleGardens = gardenAccess?.map(access => access.garden_id) || []
+          }
+        } catch (error) {
+          console.error('Exception fetching user garden access:', error)
+          accessibleGardens = []
+        }
+        
         hasGardenRestriction = accessibleGardens.length > 0
-        // console.log('🔍 Admin viewing user logbook:', { user: viewingUser.email, gardens: accessibleGardens })
+        console.log('🔍 Admin viewing user logbook:', { user: viewingUser.email, gardens: accessibleGardens })
       } else {
         // Regular user or admin viewing own logbook
         accessibleGardens = getAccessibleGardens()
