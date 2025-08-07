@@ -165,9 +165,40 @@ function AdminUsersPageContent() {
   }
 
   const handleInviteUser = async () => {
+    if (!formData.email || !formData.full_name) {
+      toast({
+        title: "Ontbrekende gegevens",
+        description: "Email en volledige naam zijn verplicht",
+        variant: "destructive"
+      })
+      return
+    }
+
     setInviting(true)
     console.log('🔍 Inviting user with data:', formData)
+    
     try {
+      // Check if user already exists
+      console.log('🔍 Checking if user already exists...')
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('users')
+        .select('id, email')
+        .eq('email', formData.email.toLowerCase().trim())
+
+      if (checkError) {
+        console.error('🔍 Error checking existing users:', checkError)
+        throw new Error(`Kon niet controleren of gebruiker al bestaat: ${checkError.message}`)
+      }
+
+      if (existingUsers && existingUsers.length > 0) {
+        toast({
+          title: "Gebruiker bestaat al",
+          description: "Er bestaat al een gebruiker met dit email adres",
+          variant: "destructive"
+        })
+        return
+      }
+
       // TEMP: Direct database invite (bypass Edge Function)
       console.log('🔍 Creating user invite directly...')
       
@@ -177,27 +208,36 @@ function AdminUsersPageContent() {
       // 1. Create auth user with temp password
       const tempPassword = 'Tuin123!'
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
+        email: formData.email.toLowerCase().trim(),
         password: tempPassword,
         options: {
           emailRedirectTo: undefined, // No email confirmation needed
           data: {
             created_by_admin: true,
-            temp_password: true
+            temp_password: true,
+            full_name: formData.full_name
           }
         }
       })
 
       if (authError) {
         console.error('🔍 Auth signup error:', authError)
-        throw new Error(`Auth user creation failed: ${authError.message}`)
+        if (authError.message.includes('already registered')) {
+          toast({
+            title: "Email al in gebruik",
+            description: "Dit email adres is al geregistreerd in het systeem",
+            variant: "destructive"
+          })
+          return
+        }
+        throw new Error(`Auth gebruiker aanmaken mislukt: ${authError.message}`)
       }
 
-      if (!authData.user) {
-        throw new Error('No user returned from auth signup')
+      if (!authData.user?.id) {
+        throw new Error('Geen gebruiker ontvangen van auth signup')
       }
 
-      console.log('🔍 Step 2: Auth user created:', authData.user!.id)
+      console.log('🔍 Step 2: Auth user created:', authData.user.id)
 
       // Don't sign out - keep admin session active
       console.log('🔍 Step 2a: Keeping admin session active (skipping signout)')
@@ -205,10 +245,6 @@ function AdminUsersPageContent() {
       console.log('🔍 Step 3: Creating user profile...')
       
       // 2. Create user profile in public.users  
-      if (!authData.user?.id) {
-        throw new Error('No user ID received from auth signup')
-      }
-
       console.log('🔍 Step 3a: Attempting direct insert...')
       let profileError = null
       
@@ -216,44 +252,51 @@ function AdminUsersPageContent() {
       const { error: directError } = await supabase
         .from('users')
         .insert({
-          id: authData.user!.id,
-          email: formData.email,
+          id: authData.user.id,
+          email: formData.email.toLowerCase().trim(),
           role: formData.role,
           status: formData.role === 'admin' ? 'active' : 'pending',
-          full_name: formData.full_name,
+          full_name: formData.full_name.trim(),
           avatar_url: null
         })
 
       if (directError) {
         console.log('🔍 Step 3b: Direct insert failed, trying SQL function...')
+        console.log('🔍 Direct insert error:', directError)
+        
         // Fallback: Try via SQL function to bypass RLS
         const { error: sqlError } = await supabase
           .rpc('create_user_profile', {
-            p_user_id: authData.user!.id,
-            p_email: formData.email,
+            p_user_id: authData.user.id,
+            p_email: formData.email.toLowerCase().trim(),
             p_role: formData.role,
             p_status: formData.role === 'admin' ? 'active' : 'pending',
-            p_full_name: formData.full_name
+            p_full_name: formData.full_name.trim()
           })
         
         if (sqlError) {
+          console.error('🔍 SQL function also failed:', sqlError)
           console.error('🔍 Both methods failed - RLS policy issue')
           profileError = directError // Use original error for user feedback
+        } else {
+          console.log('🔍 SQL function succeeded')
         }
+      } else {
+        console.log('🔍 Direct insert succeeded')
       }
 
       if (profileError) {
         console.error('🔍 Profile creation error:', profileError)
-        throw new Error(`Profile creation failed: ${profileError.message}`)
+        throw new Error(`Profiel aanmaken mislukt: ${profileError.message}`)
       }
 
       console.log('🔍 User profile created successfully')
 
       // 3. Add garden access if user role and gardens selected
-      if (formData.role === 'user' && formData.garden_access.length > 0 && authData.user?.id) {
+      if (formData.role === 'user' && formData.garden_access.length > 0) {
         console.log('🔍 Step 4: Adding garden access for gardens:', formData.garden_access)
         const gardenAccessInserts = formData.garden_access.map(gardenId => ({
-          user_id: authData.user!.id, // Safe: checked in if condition
+          user_id: authData.user!.id,
           garden_id: gardenId
         }))
 
@@ -263,19 +306,25 @@ function AdminUsersPageContent() {
 
         if (accessError) {
           console.error('🔍 Garden access error:', accessError)
-          throw new Error(`Garden access failed: ${accessError.message}`)
+          // Don't fail the entire operation for garden access issues
+          console.warn('🔍 Continuing despite garden access error')
+          toast({
+            title: "Gedeeltelijk succesvol",
+            description: "Gebruiker aangemaakt, maar tuin toegang kon niet worden ingesteld",
+            variant: "default"
+          })
+        } else {
+          console.log('🔍 Garden access added successfully')
         }
-
-        console.log('🔍 Garden access added successfully')
       }
 
       console.log('🔍 User invite completed successfully')
 
       toast({
-        title: "Gebruiker aangemaakt",
+        title: "Gebruiker succesvol aangemaakt",
         description: formData.role === 'admin' 
-          ? `Admin ${formData.full_name} is direct actief. Wachtwoord: Tuin123!`
-          : `Gebruiker ${formData.full_name} heeft status 'pending'. Activeer eerst, dan kunnen ze inloggen met Tuin123!`,
+          ? `Administrator ${formData.full_name} is direct actief. Tijdelijk wachtwoord: ${tempPassword}`
+          : `Gebruiker ${formData.full_name} heeft status 'pending'. Activeer eerst, dan kunnen ze inloggen met: ${tempPassword}`,
       })
 
       // Reset form and reload users
@@ -297,7 +346,7 @@ function AdminUsersPageContent() {
       console.error('Error inviting user:', error)
       toast({
         title: "Uitnodiging mislukt",
-        description: error instanceof Error ? error.message : "Er is een fout opgetreden",
+        description: error instanceof Error ? error.message : "Er is een onbekende fout opgetreden",
         variant: "destructive"
       })
     } finally {
@@ -551,25 +600,35 @@ function AdminUsersPageContent() {
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email adres</Label>
+              <Label htmlFor="email">Email adres *</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="gebruiker@email.com"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className={!formData.email?.trim() && formData.email !== '' ? 'border-red-300' : ''}
+                required
               />
+              {!formData.email?.trim() && formData.email !== '' && (
+                <p className="text-sm text-red-600">Email adres is verplicht</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="full_name">Volledige naam</Label>
+              <Label htmlFor="full_name">Volledige naam *</Label>
               <Input
                 id="full_name"
                 type="text"
                 placeholder="Jan de Vries"
                 value={formData.full_name}
                 onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                className={!formData.full_name?.trim() && formData.full_name !== '' ? 'border-red-300' : ''}
+                required
               />
+              {!formData.full_name?.trim() && formData.full_name !== '' && (
+                <p className="text-sm text-red-600">Volledige naam is verplicht</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -640,10 +699,20 @@ function AdminUsersPageContent() {
             </Button>
             <Button 
               onClick={handleInviteUser}
-              disabled={!formData.email || !formData.full_name || inviting}
+              disabled={!formData.email?.trim() || !formData.full_name?.trim() || inviting}
+              className="min-w-[160px]"
             >
-              {inviting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Uitnodiging Versturen
+              {inviting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Bezig met uitnodigen...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Uitnodiging Versturen
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
