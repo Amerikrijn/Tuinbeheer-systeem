@@ -24,9 +24,10 @@ export function middleware(request: NextRequest) {
   } else if (isPublicPage) {
     response.headers.set('Cache-Control', 'public, max-age=300, must-revalidate') // 5 minutes
   } else {
-    // For authenticated pages, use shorter cache with revalidation
-    response.headers.set('Cache-Control', 'private, max-age=60, must-revalidate') // 1 minute
+    // For authenticated pages, disable caching for critical updates
+    response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate')
     response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
   }
   
   return response

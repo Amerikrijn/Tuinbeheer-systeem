@@ -2,6 +2,7 @@
 
 import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase } from '@/lib/supabase'
+import { clearStaleCache } from '@/lib/version'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 
 // Enhanced User interface with garden access and permissions
@@ -42,7 +43,7 @@ const AuthContext = createContext<AuthContextType | null>(null)
 
 // Session cache to prevent redundant database calls
 const SESSION_CACHE_KEY = 'tuinbeheer_user_profile'
-const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+const CACHE_DURATION = 30 * 1000 // 30 seconds - shorter for critical updates
 
 interface CachedUserProfile {
   user: User
