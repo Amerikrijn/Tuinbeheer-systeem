@@ -433,6 +433,39 @@ function AdminUsersPageContent() {
     setIsGardenAccessDialogOpen(true)
   }
 
+  const handleResendInvitation = async (user: User) => {
+    setInviting(true)
+    
+    try {
+      // Send password reset email which acts as invitation reminder
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        user.email,
+        {
+          redirectTo: `${window.location.origin}/auth/accept-invite`
+        }
+      )
+
+      if (error) {
+        throw error
+      }
+
+      toast({
+        title: "Herinneringsmail verstuurd",
+        description: `${user.full_name || user.email} heeft een herinneringsmail ontvangen om hun account te activeren.`,
+      })
+
+    } catch (error: any) {
+      console.error('Error resending invitation:', error)
+      toast({
+        title: "Verzenden mislukt",
+        description: error.message || "Kon herinneringsmail niet versturen",
+        variant: "destructive"
+      })
+    } finally {
+      setInviting(false)
+    }
+  }
+
 
 
   if (loading) {
@@ -567,11 +600,11 @@ function AdminUsersPageContent() {
                           </>
                         )}
                         <DropdownMenuItem 
-                          onClick={() => {/* TODO: Resend invitation */}}
-                          disabled={user.status !== 'pending'}
+                          onClick={() => handleResendInvitation(user)}
+                          disabled={user.status !== 'pending' || inviting}
                         >
                           <Mail className="w-4 h-4 mr-2" />
-                          Uitnodiging Versturen
+                          {inviting ? 'Versturen...' : 'Uitnodiging Versturen'}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
