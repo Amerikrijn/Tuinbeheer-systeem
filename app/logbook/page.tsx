@@ -49,11 +49,38 @@ function LogbookPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const { getAccessibleGardens, isAdmin } = useAuth()
+  const { user, getAccessibleGardens, isAdmin, loadGardenAccess } = useAuth()
+  
+  // Track garden access loading state
+  const [gardenAccessLoaded, setGardenAccessLoaded] = React.useState(false)
   
   // Check if we're viewing a specific user's logbook (admin only)
   const viewingUserId = searchParams.get('user_id')
   const [viewingUser, setViewingUser] = React.useState<any>(null)
+
+  // Ensure garden access is loaded for regular users
+  React.useEffect(() => {
+    async function ensureGardenAccess() {
+      if (!user) return
+      
+      // For users, ensure garden access is loaded
+      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
+        console.log('🔍 Logbook - Loading garden access for user...')
+        try {
+          await loadGardenAccess()
+          setGardenAccessLoaded(true)
+          console.log('✅ Logbook - Garden access loaded')
+        } catch (error) {
+          console.error('❌ Logbook - Failed to load garden access:', error)
+          setGardenAccessLoaded(true) // Still mark as loaded to avoid infinite loop
+        }
+      } else {
+        setGardenAccessLoaded(true)
+      }
+    }
+    
+    ensureGardenAccess()
+  }, [user?.id, loadGardenAccess])
   
   const [state, setState] = React.useState<LogbookPageState>({
     entries: [],
@@ -97,6 +124,12 @@ function LogbookPageContent() {
     
     try {
       setState(prev => ({ ...prev, loading: !append, error: null }))
+      
+      // Wait for garden access to be loaded for regular users
+      if (user?.role === 'user' && !gardenAccessLoaded) {
+        console.log('🔍 Logbook - Waiting for garden access to be loaded...')
+        return
+      }
       
       // Get accessible gardens for filtering
       let accessibleGardens: string[]
@@ -316,7 +349,7 @@ function LogbookPageContent() {
         )
       })
     }
-  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin, viewingUser])
+  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin, viewingUser, user, gardenAccessLoaded])
 
   // Load plant beds for filtering
   const loadPlantBeds = React.useCallback(async () => {
@@ -349,6 +382,13 @@ function LogbookPageContent() {
       loadEntries(1, false)
     }
   }, [state.selectedGarden, state.selectedPlantBed, state.searchTerm, state.selectedYear, loadEntries])
+
+  // Reload when garden access becomes available
+  React.useEffect(() => {
+    if (gardenAccessLoaded && user) {
+      loadEntries(1, false)
+    }
+  }, [gardenAccessLoaded, user, loadEntries])
 
   // Handle search
   const handleSearchChange = (value: string) => {
