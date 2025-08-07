@@ -85,6 +85,21 @@ export function useSupabaseAuth(): AuthContextType {
         status = userProfile.status || 'active'
       }
 
+      // Update last_login (non-blocking)
+      if (userProfile) {
+        supabase
+          .from('users')
+          .update({ last_login: new Date().toISOString() })
+          .eq('id', userProfile.id)
+          .then(({ error }) => {
+            if (error) {
+              console.log('🔍 Last login update failed (non-critical):', error.message)
+            } else {
+              console.log('🔍 Last login updated successfully')
+            }
+          })
+      }
+
       const user: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
