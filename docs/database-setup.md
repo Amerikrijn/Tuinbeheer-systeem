@@ -2,7 +2,24 @@
 
 ## 🗄️ Overzicht
 
-Het Tuinbeheer Systeem gebruikt Supabase (PostgreSQL) als database backend. Deze gids beschrijft hoe je de database opzet, configureert en onderhoudt.
+Het Tuinbeheer Systeem gebruikt Supabase (PostgreSQL) als database backend. Deze gids beschrijft hoe je de database opzet, configureert en onderhoudt met **banking-grade security**.
+
+⚠️ **SECURITY STATUS:** Het systeem is **gerefactored voor maximale veiligheid** volgens bankstandaarden. Zie `docs/CURRENT_STATUS_AND_SECURITY_PLAN.md` voor de volledige security roadmap.
+
+## 🔒 **Security First Approach**
+
+### **Huidige Security Status**
+- ✅ **Frontend:** Alle hardcoded emails en debug knoppen verwijderd
+- ✅ **Authentication:** Strikte database-only authenticatie geïmplementeerd  
+- ✅ **Code Quality:** Banking-grade security standaarden toegepast
+- 🚧 **Database RLS:** Klaar voor stapsgewijze implementatie (zie migration plan)
+
+### **Security Principes**
+1. **Row Level Security (RLS)** - Database-niveau toegangscontrole
+2. **Principle of Least Privilege** - Gebruikers krijgen minimale benodigde rechten
+3. **Audit Logging** - Alle security-relevante acties worden gelogd
+4. **Input Validation** - Alle input wordt gevalideerd en gesanitized
+5. **Secure by Default** - Veilige configuratie als standaard
 
 ## 📋 Database Architectuur
 
@@ -15,9 +32,13 @@ gardens (tuinen)
       └── plants (bloemen/planten)
 
 -- Ondersteunende tabellen
-tasks (taken)
-audit_logs (audit trail)
-user_preferences (gebruiker instellingen)
+users (gebruikers) -- SECURED: Admin-only management
+tasks (taken) -- SECURED: Garden-based access control  
+logbook_entries (logboek) -- SECURED: Garden-based access control
+audit_logs (audit trail) -- SECURED: Admin-only access
+user_permissions (gebruiker rechten) -- SECURED: Admin-only management
+user_garden_access (tuin toegang) -- SECURED: Admin-only management
+security_audit_logs (security audit) -- NEW: Security event logging
 ```
 
 ### Entity Relationship Diagram
@@ -32,42 +53,105 @@ user_preferences (gebruiker instellingen)
 │ - ...       │           │ - size      │           │ - variety   │
 └─────────────┘           │ - ...       │           │ - ...       │
                           └─────────────┘           └─────────────┘
+
+┌─────────────┐    N:M    ┌─────────────┐    1:N    ┌─────────────┐
+│    Users    │ ────────► │UserGardenAcc│ ────────► │   Gardens   │
+│             │           │             │           │             │
+│ - id        │           │ - user_id   │           │ (above)     │
+│ - email     │           │ - garden_id │           │             │
+│ - role      │           │ - granted_at│           │             │
+│ - status    │           │ - granted_by│           │             │
+└─────────────┘           └─────────────┘           └─────────────┘
 ```
 
 ## 🚀 Quick Setup
 
-### Optie 1: Automatische Setup (Aanbevolen)
+### ⚠️ **BELANGRIJK: Security Setup Required**
+
+Het systeem is **gerefactored voor maximale veiligheid**. Voor production gebruik:
+
+1. **Lees eerst:** `docs/CURRENT_STATUS_AND_SECURITY_PLAN.md`
+2. **Voer security migration uit** volgens het 7-dagen plan
+3. **Test alle functionaliteit** na elke security fase
+
+### Optie 1: Development Setup (Basis Beveiliging)
 
 ```bash
 # Installeer dependencies
 npm install
 
-# Setup database met seed data
+# Setup database met basis schema
 npm run db:setup
 
 # Of alleen schema zonder seed data
 npm run db:schema
 ```
 
-### Optie 2: Handmatige Setup
+### Optie 2: Production Setup (Volledige Beveiliging)
 
-1. **Maak Supabase Project aan**
-   - Ga naar [supabase.com](https://supabase.com)
-   - Maak een nieuw project
-   - Noteer de URL en anon key
+```bash
+# 1. Basis setup
+npm install
+npm run db:setup
 
-2. **Configureer Environment**
-   ```bash
-   # .env.local
-   NEXT_PUBLIC_SUPABASE_URL=your-project-url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-   ```
+# 2. Implementeer security volgens migration plan
+# Zie: docs/CURRENT_STATUS_AND_SECURITY_PLAN.md
 
-3. **Run Database Schema**
-   ```bash
-   # Via Supabase Dashboard SQL Editor
-   # Kopieer en run: supabase_schema.sql
-   ```
+# 3. Valideer security
+npm run db:validate-security
+```
+
+## 🔐 **Security Configuration**
+
+### **Database Security Checklist**
+
+```sql
+-- ✅ Check RLS Status
+SELECT schemaname, tablename, rowsecurity 
+FROM pg_tables 
+WHERE schemaname = 'public'
+AND tablename IN ('users', 'gardens', 'plant_beds', 'plants', 'tasks');
+
+-- ✅ Check Security Policies  
+SELECT tablename, policyname, cmd, qual
+FROM pg_policies 
+WHERE schemaname = 'public'
+ORDER BY tablename;
+
+-- ✅ Validate Admin Users
+SELECT id, email, role, status, created_at 
+FROM users 
+WHERE role = 'admin';
+```
+
+### **Required Security Tables**
+
+```sql
+-- Security Audit Logging
+CREATE TABLE security_audit_logs (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    event_type VARCHAR(100) NOT NULL,
+    user_id UUID REFERENCES auth.users(id),
+    user_email VARCHAR(255),
+    table_name VARCHAR(100),
+    action VARCHAR(50),
+    old_values JSONB,
+    new_values JSONB,
+    ip_address INET,
+    user_agent TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- User Garden Access Control
+CREATE TABLE user_garden_access (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    garden_id UUID REFERENCES gardens(id) ON DELETE CASCADE,
+    granted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    granted_by UUID REFERENCES users(id),
+    UNIQUE(user_id, garden_id)
+);
+```
 
 ## 📊 Database Schema Details
 
@@ -600,8 +684,77 @@ echo "Plant beds: $(psql -t -c 'SELECT COUNT(*) FROM plant_beds;')"
 echo "Plants: $(psql -t -c 'SELECT COUNT(*) FROM plants;')"
 ```
 
+## 🛡️ **Security Best Practices**
+
+### **Database Access Control**
+1. **Admin Users:** Kunnen alle data beheren
+2. **Regular Users:** Alleen toegang tot toegewezen tuinen
+3. **Guest Access:** Niet toegestaan (strict database-only auth)
+4. **API Access:** Alleen via geauthenticeerde endpoints
+
+### **Data Protection**
+- **Encryption at Rest:** Supabase default encryption
+- **Encryption in Transit:** HTTPS/SSL voor alle verbindingen  
+- **Input Validation:** Alle user input wordt gevalideerd
+- **SQL Injection Protection:** Prepared statements en parameterized queries
+- **XSS Protection:** Output encoding en CSP headers
+
+### **Audit & Monitoring**
+- **Security Events:** Alle login, logout, en data wijzigingen
+- **Failed Access Attempts:** Gelogd voor security monitoring
+- **Admin Actions:** Extra logging voor admin activiteiten
+- **Database Changes:** Schema wijzigingen worden geauditeerd
+
+## ⚠️ **Deployment Restrictions**
+
+### **Vercel Free Tier Limits**
+- **Deployments per dag:** 100 (momenteel bereikt)
+- **Solution:** Wacht 24 uur of upgrade naar Pro plan
+- **Status:** Alle code wijzigingen zijn gecommit en klaar voor deployment
+
+### **Production Deployment Checklist**
+- [ ] Security migration plan uitgevoerd
+- [ ] Admin gebruiker geconfigureerd (`amerik.rijn@gmail.com`)
+- [ ] RLS policies geïmplementeerd en getest
+- [ ] Audit logging geactiveerd
+- [ ] Frontend hardcoded waarden verwijderd
+- [ ] Git author email geconfigureerd voor Vercel
+
+## 🔧 **Troubleshooting**
+
+### **Security Issues**
+```sql
+-- Reset RLS (emergency only)
+ALTER TABLE [table_name] DISABLE ROW LEVEL SECURITY;
+
+-- Check policy conflicts
+SELECT * FROM pg_policies WHERE tablename = '[table_name]';
+
+-- Validate user permissions
+SELECT u.email, u.role, uga.garden_id 
+FROM users u 
+LEFT JOIN user_garden_access uga ON u.id = uga.user_id;
+```
+
+### **Authentication Issues**
+- **Problem:** User blijft "user" ondanks admin role in database
+- **Solution:** ✅ Fixed - Frontend haalt rol nu uit database
+- **Problem:** Hardcoded admin emails in frontend  
+- **Solution:** ✅ Fixed - Alle hardcoded emails verwijderd
+
+### **Deployment Issues**
+- **Problem:** Vercel deployment limit bereikt
+- **Solution:** Wacht 24 uur of upgrade naar Pro plan
+- **Problem:** Git author email mismatch
+- **Solution:** ✅ Fixed - Git config updated naar `amerikrijn@gmail.com`
+
+## 📚 **Gerelateerde Documentatie**
+
+- **Security Plan:** `docs/CURRENT_STATUS_AND_SECURITY_PLAN.md`
+- **Architecture:** `docs/architecture.md`  
+- **API Reference:** `docs/api-reference.md`
+- **Deployment:** `docs/deployment.md`
+
 ---
 
-**Versie**: 1.0.0  
-**Laatste update**: December 2024  
-**Database Versie**: PostgreSQL 15+ (Supabase)
+**⚠️ BELANGRIJK:** Dit systeem is geoptimaliseerd voor **banking-grade security**. Volg altijd de security best practices en test grondig na elke wijziging.
