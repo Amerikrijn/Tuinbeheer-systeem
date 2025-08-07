@@ -77,7 +77,16 @@ export function useSupabaseAuth(): AuthContextType {
 
       if (userError || !userProfile) {
         console.log('🔍 No database profile found:', userError?.message)
-        throw new Error('Access denied: User not found in system. Contact admin to create your account.')
+        
+        // 🚨 EMERGENCY ADMIN ACCESS - Allow amerik.rijn@gmail.com to login as admin
+        if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
+          console.log('🚨 EMERGENCY: Granting admin access to amerik.rijn@gmail.com')
+          role = 'admin'
+          fullName = 'Amerik (Emergency Admin)'
+          status = 'active'
+        } else {
+          throw new Error('Access denied: User not found in system. Contact admin to create your account.')
+        }
       } else {
         console.log('🔍 Found existing user profile:', userProfile)
         role = userProfile.role || 'user'
@@ -85,7 +94,7 @@ export function useSupabaseAuth(): AuthContextType {
         status = userProfile.status || 'active'
       }
 
-      // Update last_login (non-blocking)
+      // Update last_login (non-blocking) - only if user exists in database
       if (userProfile) {
         supabase
           .from('users')
