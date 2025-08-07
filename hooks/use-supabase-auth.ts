@@ -76,31 +76,17 @@ export function useSupabaseAuth(): AuthContextType {
       let status: 'active' | 'inactive' | 'pending' = 'active'
 
       if (userError || !userProfile) {
-        console.log('🔍 No database profile found or error:', userError?.message)
-        console.log('🔍 Creating new user profile in database...')
+        console.log('🔍 No database profile found:', userError?.message)
+        console.log('🔍 User not found in database - access denied')
         
-        // Determine role for new user
+        // Only allow known admin emails to login without database record
         const adminEmails = ['admin@tuinbeheer.nl', 'amerik.rijn@gmail.com']
-        role = adminEmails.includes(supabaseUser.email || '') ? 'admin' : 'user'
-        
-        // Create user in database
-        const { error: createError } = await supabase
-          .from('users')
-          .insert([{
-            id: supabaseUser.id,
-            email: supabaseUser.email,
-            full_name: fullName,
-            role: role,
-            status: status,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }])
-        
-        if (createError) {
-          console.error('🔍 Error creating user profile:', createError)
-        } else {
-          console.log('🔍 User profile created successfully')
+        if (!adminEmails.includes(supabaseUser.email || '')) {
+          throw new Error('Access denied: User not found in system. Contact admin to create account.')
         }
+        
+        console.log('🔍 Admin email detected, allowing login with fallback role')
+        role = 'admin'
       } else {
         console.log('🔍 Found existing user profile:', userProfile)
         role = userProfile.role || 'user'
