@@ -638,7 +638,7 @@ function AdminUsersPageContent() {
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user)}
                           className="text-red-600 hover:text-red-700"
-                          disabled={user.id === currentUser?.id}
+                          disabled={user.id === currentUser?.id || user.email === 'admin@tuinbeheer.nl'}
                         >
                           <UserX className="w-4 h-4 mr-2" />
                           Gebruiker Verwijderen
