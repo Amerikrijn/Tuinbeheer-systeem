@@ -47,7 +47,6 @@ export function useActivityTimeout() {
   }, [])
 
   const handleAutoLogout = useCallback(async () => {
-    console.log('🔍 Auto logout triggered due to inactivity')
     try {
       await signOut()
       toast({
@@ -94,7 +93,6 @@ export function useActivityTimeout() {
     // Only reset if it's been more than 30 seconds since last activity
     // This prevents excessive timeout resets
     if (timeSinceLastActivity > 30000) {
-      console.log('🔍 User activity detected, resetting timeout')
       resetTimeout()
     }
   }, [resetTimeout, user])
@@ -107,7 +105,6 @@ export function useActivityTimeout() {
 
     // Delay initial setup to avoid immediate logout
     const setupTimer = setTimeout(() => {
-      console.log('🔍 Setting up activity timeout for user:', user.email)
       resetTimeout()
     }, 1000) // 1 second delay
 

@@ -40,6 +40,61 @@ export interface AuthContextType extends AuthState {
 
 const AuthContext = createContext<AuthContextType | null>(null)
 
+// Session cache to prevent redundant database calls
+const SESSION_CACHE_KEY = 'tuinbeheer_user_profile'
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
+
+interface CachedUserProfile {
+  user: User
+  timestamp: number
+}
+
+function getCachedUserProfile(): User | null {
+  if (typeof window === 'undefined') return null
+  
+  try {
+    const cached = localStorage.getItem(SESSION_CACHE_KEY)
+    if (!cached) return null
+    
+    const { user, timestamp }: CachedUserProfile = JSON.parse(cached)
+    const isExpired = Date.now() - timestamp > CACHE_DURATION
+    
+    if (isExpired) {
+      localStorage.removeItem(SESSION_CACHE_KEY)
+      return null
+    }
+    
+    return user
+  } catch {
+    localStorage.removeItem(SESSION_CACHE_KEY)
+    return null
+  }
+}
+
+function setCachedUserProfile(user: User): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    const cached: CachedUserProfile = {
+      user,
+      timestamp: Date.now()
+    }
+    localStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(cached))
+  } catch {
+    // Ignore localStorage errors
+  }
+}
+
+function clearCachedUserProfile(): void {
+  if (typeof window === 'undefined') return
+  
+  try {
+    localStorage.removeItem(SESSION_CACHE_KEY)
+  } catch {
+    // Ignore localStorage errors
+  }
+}
+
 export function useSupabaseAuth(): AuthContextType {
   const [state, setState] = useState<AuthState>({
     user: null,
@@ -48,14 +103,21 @@ export function useSupabaseAuth(): AuthContextType {
     error: null
   })
 
-  // Load user profile with proper database lookup and timeout handling
-  const loadUserProfile = async (supabaseUser: SupabaseUser): Promise<User> => {
-    console.log('🔍 START loadUserProfile for:', supabaseUser.email, 'ID:', supabaseUser.id)
+  // Load user profile with caching and optimized database lookup
+  const loadUserProfile = async (supabaseUser: SupabaseUser, useCache = true): Promise<User> => {
+    // Check cache first for faster loading
+    if (useCache) {
+      const cached = getCachedUserProfile()
+      if (cached && cached.id === supabaseUser.id) {
+        console.log('🚀 Using cached user profile for faster loading')
+        return cached
+      }
+    }
     
     try {
-      // Create timeout promise to prevent hanging
+      // Reduced timeout for better UX
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 3000)
+        setTimeout(() => reject(new Error('Database lookup timeout')), 2000) // Reduced from 3000ms
       })
 
       // Database lookup with timeout
@@ -65,7 +127,6 @@ export function useSupabaseAuth(): AuthContextType {
         .eq('email', supabaseUser.email)
         .single()
 
-      console.log('🔍 Fetching user profile from database...')
       const { data: userProfile, error: userError } = await Promise.race([
         databasePromise,
         timeoutPromise
@@ -76,11 +137,8 @@ export function useSupabaseAuth(): AuthContextType {
       let status: 'active' | 'inactive' | 'pending' = 'active'
 
       if (userError || !userProfile) {
-        console.log('🔍 No database profile found:', userError?.message)
-        
         // 🚨 EMERGENCY ADMIN ACCESS - Allow amerik.rijn@gmail.com to login as admin
         if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
-          console.log('🚨 EMERGENCY: Granting admin access to amerik.rijn@gmail.com')
           role = 'admin'
           fullName = 'Amerik (Emergency Admin)'
           status = 'active'
@@ -88,13 +146,12 @@ export function useSupabaseAuth(): AuthContextType {
           throw new Error('Access denied: User not found in system. Contact admin to create your account.')
         }
       } else {
-        console.log('🔍 Found existing user profile:', userProfile)
         role = userProfile.role || 'user'
         fullName = userProfile.full_name || fullName
         status = userProfile.status || 'active'
       }
 
-      // Update last_login (non-blocking) - only if user exists in database
+      // Update last_login asynchronously (non-blocking)
       if (userProfile) {
         supabase
           .from('users')
@@ -102,9 +159,7 @@ export function useSupabaseAuth(): AuthContextType {
           .eq('id', userProfile.id)
           .then(({ error }) => {
             if (error) {
-              console.log('🔍 Last login update failed (non-critical):', error.message)
-            } else {
-              console.log('🔍 Last login updated successfully')
+              console.warn('Last login update failed (non-critical):', error.message)
             }
           })
       }
@@ -120,22 +175,32 @@ export function useSupabaseAuth(): AuthContextType {
         created_at: userProfile?.created_at || new Date().toISOString()
       }
       
-      console.log('🔍 USER PROFILE LOADED:', user)
-      console.log('🔍 User role:', user.role)
+      // Cache the user profile for faster subsequent loads
+      setCachedUserProfile(user)
+      
       return user
 
     } catch (error) {
-      console.error('🔍 Error in loadUserProfile:', error)
-      // Re-throw the error - no fallback, no exceptions
+      console.error('Error in loadUserProfile:', error)
       throw error
     }
   }
 
-  // Initialize auth state
+  // Initialize auth state with faster session recovery
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Get initial session
+        // Try to get cached user first for instant loading
+        const cachedUser = getCachedUserProfile()
+        if (cachedUser) {
+          setState(prev => ({
+            ...prev,
+            user: cachedUser,
+            loading: false
+          }))
+        }
+
+        // Get current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
         
         if (sessionError) {
@@ -143,19 +208,27 @@ export function useSupabaseAuth(): AuthContextType {
         }
 
         if (session?.user) {
-          console.log('🔍 Initial session found for:', session.user.email)
-          // Load full user profile (no database updates during init)
-          const userProfile = await loadUserProfile(session.user)
-          console.log('🔍 Initial profile loaded:', !!userProfile)
-
-          // loadUserProfile now always returns a User object, never null
-          setState({
-            user: userProfile,
-            session,
-            loading: false,
-            error: null
-          })
+          // If we have a cached user and it matches, just update session
+          if (cachedUser && cachedUser.id === session.user.id) {
+            setState(prev => ({
+              ...prev,
+              session,
+              loading: false,
+              error: null
+            }))
+          } else {
+            // Load fresh profile if no cache or different user
+            const userProfile = await loadUserProfile(session.user, false) // Don't use cache on init
+            setState({
+              user: userProfile,
+              session,
+              loading: false,
+              error: null
+            })
+          }
         } else {
+          // Clear cache if no session
+          clearCachedUserProfile()
           setState({
             user: null,
             session: null,
@@ -165,6 +238,7 @@ export function useSupabaseAuth(): AuthContextType {
         }
       } catch (error) {
         console.error('Auth initialization error:', error)
+        clearCachedUserProfile()
         setState({
           user: null,
           session: null,
@@ -176,29 +250,21 @@ export function useSupabaseAuth(): AuthContextType {
 
     initializeAuth()
 
-    // Failsafe: Force loading to false after 10 seconds (increased from 5)
+    // Reduced loading timeout for better UX
     const loadingTimeout = setTimeout(() => {
-      console.log('🔍 LOADING TIMEOUT: Forcing loading to false')
       setState(prev => ({
         ...prev,
         loading: false,
-        error: prev.user ? null : 'Loading timeout - please refresh page' // Don't show error if user is loaded
+        error: prev.user ? null : 'Loading timeout - please refresh page'
       }))
-    }, 10000)
+    }, 8000) // Reduced from 10000ms
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔍 Auth state change:', event, !!session)
-      
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log('🔍 Auth state SIGNED_IN for:', session.user.email)
-        // Only load profile if we don't already have it
+        // Only load profile if we don't already have it or it's a different user
         if (!state.user || state.user.id !== session.user.id) {
-          console.log('🔍 Loading user profile for new/different user')
           const userProfile = await loadUserProfile(session.user)
-          console.log('🔍 User profile loaded via state change:', !!userProfile)
-          
-          // loadUserProfile now always returns a User object, never null
           setState({
             user: userProfile,
             session,
@@ -206,7 +272,7 @@ export function useSupabaseAuth(): AuthContextType {
             error: null
           })
         } else {
-          console.log('🔍 User already loaded, just updating session')
+          // Just update session if user is the same
           setState(prev => ({
             ...prev,
             session,
@@ -214,16 +280,13 @@ export function useSupabaseAuth(): AuthContextType {
           }))
         }
       } else if (event === 'SIGNED_OUT') {
-        console.log('🔍 User signed out')
+        clearCachedUserProfile()
         setState({
           user: null,
           session: null,
           loading: false,
           error: null
         })
-      } else if (event === 'INITIAL_SESSION') {
-        console.log('🔍 Initial session event (handled by initializeAuth)')
-        // Skip - already handled by initializeAuth
       }
     })
 
@@ -237,36 +300,26 @@ export function useSupabaseAuth(): AuthContextType {
     setState(prev => ({ ...prev, loading: true, error: null }))
     
     try {
-      console.log('🔍 Attempting sign in with:', { email })
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
 
-      console.log('🔍 Auth response:', { data: !!data, error: error?.message })
-
       if (error) {
-        console.error('🔍 Auth error:', error)
         throw error
       }
 
       if (!data.user) {
         throw new Error('No user returned from sign in')
       }
-
-      console.log('🔍 User signed in:', data.user.email)
       
       // Check if user needs to change password (first login)
       if (data.user.user_metadata?.temp_password) {
-        console.log('🔍 User has temp password, redirecting to change password')
-        // Don't throw error, let the component handle the redirect
-        return
+        return // Let the component handle the redirect
       }
       
       // User profile will be loaded automatically by onAuthStateChange
     } catch (error) {
-      console.error('🔍 Sign in failed:', error)
       setState(prev => ({
         ...prev,
         loading: false,
@@ -280,6 +333,7 @@ export function useSupabaseAuth(): AuthContextType {
     setState(prev => ({ ...prev, loading: true }))
     
     try {
+      clearCachedUserProfile()
       const { error } = await supabase.auth.signOut()
       if (error) {
         throw error
@@ -335,7 +389,7 @@ export function useSupabaseAuth(): AuthContextType {
 
   const refreshUser = async (): Promise<void> => {
     if (state.session?.user) {
-      const userProfile = await loadUserProfile(state.session.user)
+      const userProfile = await loadUserProfile(state.session.user, false) // Force fresh load
       setState(prev => ({ ...prev, user: userProfile }))
     }
   }
@@ -344,7 +398,6 @@ export function useSupabaseAuth(): AuthContextType {
   const loadGardenAccess = async (): Promise<void> => {
     if (!state.user || state.user.role === 'admin') return
     
-    console.log('🔍 Loading garden access post-login for:', state.user.id)
     try {
       const { data: accessData, error: accessError } = await supabase
         .from('user_garden_access')
@@ -353,7 +406,6 @@ export function useSupabaseAuth(): AuthContextType {
       
       if (!accessError && accessData) {
         const gardenAccess = accessData.map(row => row.garden_id)
-        console.log('🔍 Post-login garden access loaded:', gardenAccess)
         
         setState(prev => ({
           ...prev,
@@ -361,7 +413,7 @@ export function useSupabaseAuth(): AuthContextType {
         }))
       }
     } catch (error) {
-      console.log('🔍 Post-login garden access loading failed:', error)
+      console.warn('Garden access loading failed:', error)
     }
   }
 
@@ -391,11 +443,6 @@ export function useSupabaseAuth(): AuthContextType {
     }
     
     const gardens = state.user.garden_access || []
-    console.log('🔍 SECURITY: User garden access:', { 
-      user: state.user.email, 
-      role: state.user.role, 
-      gardens: gardens 
-    })
     return gardens
   }
 
