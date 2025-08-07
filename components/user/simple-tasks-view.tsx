@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { BookOpen, ChevronLeft, ChevronRight, Calendar } from "lucide-react"
+import { BookOpen, ChevronLeft, ChevronRight, Calendar, CheckCircle2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-supabase-auth"
 import { supabase } from "@/lib/supabase"
@@ -23,6 +23,44 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [gardenNames, setGardenNames] = useState<string[]>([])
   const [gardenAccessLoaded, setGardenAccessLoaded] = useState(false)
+  const [completingTasks, setCompletingTasks] = useState<Set<string>>(new Set())
+
+  // Handle task completion
+  const handleTaskComplete = async (taskId: string, completed: boolean) => {
+    if (completingTasks.has(taskId)) return // Prevent double clicks
+    
+    try {
+      setCompletingTasks(prev => new Set(prev).add(taskId))
+      
+      const { error } = await supabase
+        .from('tasks')
+        .update({ completed, completed_at: completed ? new Date().toISOString() : null })
+        .eq('id', taskId)
+      
+      if (error) {
+        console.error('Error updating task:', error)
+        return
+      }
+      
+      // Update local state
+      setTasks(prevTasks => 
+        prevTasks.map(task => 
+          task.id === taskId 
+            ? { ...task, completed, completed_at: completed ? new Date().toISOString() : null }
+            : task
+        )
+      )
+      
+    } catch (error) {
+      console.error('Error completing task:', error)
+    } finally {
+      setCompletingTasks(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(taskId)
+        return newSet
+      })
+    }
+  }
 
   // Calculate week dates
   const getWeekDates = (date: Date) => {
