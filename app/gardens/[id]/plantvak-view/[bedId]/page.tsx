@@ -282,8 +282,28 @@ export default function PlantBedViewPage() {
       // Combine and deduplicate all tasks: incomplete first (by due date), then completed at bottom
       const allTasks = [...(plantBedTasks || []), ...allPlantTasks]
       
+      // Filter tasks to only show tasks from this garden (for admins)
+      const gardenId = params.id as string
+      const filteredTasks = allTasks.filter(task => {
+        // Check if task belongs to this garden via plant -> plant_bed -> garden
+        if (task.plants?.plant_beds?.gardens?.id) {
+          return task.plants.plant_beds.gardens.id === gardenId
+        }
+        // Check if task belongs to this garden via plant_bed -> garden (for plant bed tasks)
+        if (task.plant_beds?.gardens?.id) {
+          return task.plant_beds.gardens.id === gardenId
+        }
+        return false
+      })
+      
+      console.log('🔍 Plantvak tasks filtered by garden:', {
+        gardenId,
+        totalTasks: allTasks.length,
+        filteredTasks: filteredTasks.length
+      })
+      
       // Remove duplicates based on task ID
-      const uniqueTasks = allTasks.filter((task, index, array) => 
+      const uniqueTasks = filteredTasks.filter((task, index, array) => 
         array.findIndex(t => t.id === task.id) === index
       )
       
