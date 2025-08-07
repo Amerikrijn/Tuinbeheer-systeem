@@ -685,7 +685,7 @@ function RoleBasedHomeContent() {
   if (isAdmin()) {
     return <HomePageContent />
   } else {
-    // Users get their simple task view for now - will unify UI after fixing task visibility
+    // Users get the exact same task interface as admin /tasks page
     return (
       <div className="container mx-auto p-4 max-w-4xl">
         <div className="mb-6">
@@ -698,7 +698,8 @@ function RoleBasedHomeContent() {
           </p>
         </div>
 
-        <SimpleTasksView />
+        {/* Use the same WeeklyTaskList component as admin */}
+        <WeeklyTaskList />
       </div>
     )
   }
