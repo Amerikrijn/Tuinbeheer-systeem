@@ -119,6 +119,7 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
         console.log('🔍 SimpleTasksView - User:', user?.email)
         console.log('🔍 SimpleTasksView - Garden access:', user?.garden_access)
         console.log('🔍 SimpleTasksView - Accessible gardens:', accessibleGardens)
+        console.log('🔍 SimpleTasksView - Week range:', { startOfWeek: startOfWeek.toISOString(), endOfWeek: endOfWeek.toISOString() })
         
         if (accessibleGardens.length === 0) {
           console.log('⚠️ SimpleTasksView - No accessible gardens, showing empty state')
@@ -177,6 +178,13 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
 
         const allTasks = [...plantTasks, ...plantBedTasks]
 
+        console.log('🔍 SimpleTasksView - Raw tasks loaded:', {
+          plantTasks: plantTasks.length,
+          plantBedTasks: plantBedTasks.length,
+          total: allTasks.length,
+          sampleTask: allTasks[0] // Show first task for debugging
+        })
+
         if (allTasks) {
           const sortedTasks = sortTasks(allTasks)
           
@@ -197,6 +205,10 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
           })
           
           setTasks(weeklyTasks)
+          console.log('🔍 SimpleTasksView - Final tasks set:', {
+            weeklyTasks: weeklyTasks.length,
+            sampleTask: weeklyTasks[0]
+          })
         }
       } catch (error) {
         console.error('Error loading weekly tasks:', error)
@@ -321,24 +333,39 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
                   const urgency = getTaskUrgency(task)
                   const styles = getTaskUrgencyStyles(urgency)
                   
+                  // Create a display title from task_type and description
+                  const taskTitle = task.description || `${task.task_type} taak` || 'Taak'
+                  
                   return (
                     <div key={task.id} className={`p-4 border rounded-lg ${styles.container}`}>
                       <div className="flex items-start justify-between mb-2">
                         <h4 className={`font-medium ${styles.title}`}>
-                          {task.title}
+                          {taskTitle}
                         </h4>
                         <Badge className={`text-xs ${styles.badge}`}>
                           {styles.badgeText}
                         </Badge>
                       </div>
                       
-                      <p className="text-sm text-gray-600 mb-2">
-                        {task.plants?.name} - {task.plants?.plant_beds?.gardens?.name}
-                      </p>
+                      {/* Show plant or plant bed info */}
+                      {task.plants ? (
+                        <p className="text-sm text-gray-600 mb-2">
+                          {task.plants.name} - {task.plants.plant_beds?.name} ({task.plants.plant_beds?.gardens?.name})
+                        </p>
+                      ) : task.plant_beds ? (
+                        <p className="text-sm text-gray-600 mb-2">
+                          {task.plant_beds.name} ({task.plant_beds.gardens?.name})
+                        </p>
+                      ) : (
+                        <p className="text-sm text-gray-600 mb-2">
+                          Algemene taak
+                        </p>
+                      )}
                       
-                      {task.description && (
-                        <p className="text-sm text-gray-700 mb-2">
-                          {task.description}
+                      {/* Show task type if no description */}
+                      {!task.description && task.task_type && (
+                        <p className="text-sm text-gray-700 mb-2 capitalize">
+                          Type: {task.task_type}
                         </p>
                       )}
                       
