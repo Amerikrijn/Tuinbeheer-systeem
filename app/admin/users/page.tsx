@@ -627,20 +627,6 @@ function AdminUsersPageContent() {
                             Activeren
                           </DropdownMenuItem>
                         )}
-                        {user.role !== 'admin' && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleEditGardenAccess(user)}>
-                              <TreePine className="w-4 h-4 mr-2" />
-                              Tuin Toegang Beheren
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/logbook?user_id=${user.id}`}>
-                                <BookOpen className="w-4 h-4 mr-2" />
-                                Bekijk Logboek
-                              </Link>
-                            </DropdownMenuItem>
-                          </>
-                        )}
                         <DropdownMenuItem 
                           onClick={() => handleResendInvitation(user)}
                           disabled={inviting}
