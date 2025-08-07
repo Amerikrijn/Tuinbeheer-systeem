@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { LogbookService } from '@/lib/services/database.service'
+import { validateGardenAccess, filterAccessibleGardens, type User } from '@/lib/security/garden-access'
 import type { 
   Task, 
   TaskWithPlantInfo, 
@@ -265,8 +266,58 @@ export class TaskService {
     }
   }
 
-  // Get weekly tasks
-  static async getWeeklyTasks(weekStart?: Date): Promise<{ data: WeeklyTask[]; error: string | null }> {
+  // Apply garden access filtering to tasks
+  private static applyGardenAccessFilter(tasks: any[], user: User | null): any[] {
+    if (!user) {
+      console.warn('⚠️ SECURITY: No user provided for garden access filtering')
+      return []
+    }
+
+    // Admin has access to all tasks
+    if (user.role === 'admin') {
+      return tasks
+    }
+
+    // Filter tasks based on user's garden access
+    const accessibleGardens = user.garden_access || []
+    if (accessibleGardens.length === 0) {
+      console.warn('⚠️ SECURITY: User has no garden access', { user: user.email })
+      return []
+    }
+
+    const filteredTasks = tasks.filter(task => {
+      // For plant tasks: check via plant -> plant_bed -> garden
+      if (task.plants?.plant_beds?.gardens) {
+        const gardenId = task.plants.plant_beds.gardens.id || task.plants.plant_beds.garden_id
+        return accessibleGardens.includes(gardenId)
+      }
+
+      // For plant bed tasks: check via plant_bed -> garden  
+      if (task.plant_beds?.gardens) {
+        const gardenId = task.plant_beds.gardens.id || task.plant_beds.garden_id
+        return accessibleGardens.includes(gardenId)
+      }
+
+      // If no garden relationship found, exclude for security
+      console.warn('⚠️ SECURITY: Task has no garden relationship, excluding', { 
+        taskId: task.id, 
+        user: user.email 
+      })
+      return false
+    })
+
+    console.log('🔍 SECURITY: Filtered tasks by garden access', {
+      user: user.email,
+      totalTasks: tasks.length,
+      filteredTasks: filteredTasks.length,
+      userGardens: accessibleGardens
+    })
+
+    return filteredTasks
+  }
+
+  // Get weekly tasks with garden access filtering
+  static async getWeeklyTasks(weekStart?: Date, user?: User | null): Promise<{ data: WeeklyTask[]; error: string | null }> {
     try {
       const startDate = weekStart || getWeekStartDate()
       const startDateStr = startDate.toISOString().split('T')[0]
