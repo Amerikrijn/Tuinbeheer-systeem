@@ -199,30 +199,34 @@ function AdminUsersPageContent() {
         return
       }
 
-      // TEMP: Direct database invite (bypass Edge Function)
-      console.log('🔍 Creating user invite directly...')
+      // Create user invite with automatic email
+      console.log('🔍 Creating user invite with email notification...')
       
-      // WORKAROUND: Create auth user first, then profile
-      console.log('🔍 Step 1: Creating auth user...')
+      // Use regular signup with email confirmation to send invite email
+      console.log('🔍 Step 1: Creating user with email confirmation...')
       
-      // 1. Create auth user with temp password
-      const tempPassword = 'Tuin123!'
+      // Generate a secure temporary password
+      const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!'
+      
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email.toLowerCase().trim(),
         password: tempPassword,
         options: {
-          emailRedirectTo: undefined, // No email confirmation needed
+          emailRedirectTo: `${window.location.origin}/auth/accept-invite`,
           data: {
             created_by_admin: true,
-            temp_password: true,
-            full_name: formData.full_name
+            full_name: formData.full_name,
+            role: formData.role,
+            invited_by: currentUser?.email,
+            message: formData.message || 'Welkom bij het tuinbeheer systeem!',
+            temp_password: true
           }
         }
       })
 
       if (authError) {
-        console.error('🔍 Auth signup error:', authError)
-        if (authError.message.includes('already registered')) {
+        console.error('🔍 Auth invite error:', authError)
+        if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
           toast({
             title: "Email al in gebruik",
             description: "Dit email adres is al geregistreerd in het systeem",
@@ -230,14 +234,15 @@ function AdminUsersPageContent() {
           })
           return
         }
-        throw new Error(`Auth gebruiker aanmaken mislukt: ${authError.message}`)
+        throw new Error(`Gebruiker uitnodigen mislukt: ${authError.message}`)
       }
 
       if (!authData.user?.id) {
-        throw new Error('Geen gebruiker ontvangen van auth signup')
+        throw new Error('Geen gebruiker ontvangen van uitnodiging')
       }
 
-      console.log('🔍 Step 2: Auth user created:', authData.user.id)
+      console.log('🔍 Step 2: User invited successfully:', authData.user.id)
+      console.log('🔍 Invitation email sent to:', formData.email)
 
       // Don't sign out - keep admin session active
       console.log('🔍 Step 2a: Keeping admin session active (skipping signout)')
@@ -321,10 +326,8 @@ function AdminUsersPageContent() {
       console.log('🔍 User invite completed successfully')
 
       toast({
-        title: "Gebruiker succesvol aangemaakt",
-        description: formData.role === 'admin' 
-          ? `Administrator ${formData.full_name} is direct actief. Tijdelijk wachtwoord: ${tempPassword}`
-          : `Gebruiker ${formData.full_name} heeft status 'pending'. Activeer eerst, dan kunnen ze inloggen met: ${tempPassword}`,
+        title: "Uitnodiging verstuurd!",
+        description: `${formData.full_name} heeft een bevestigingsmail ontvangen op ${formData.email}. Ze moeten eerst hun email bevestigen om in te loggen.`,
       })
 
       // Reset form and reload users
