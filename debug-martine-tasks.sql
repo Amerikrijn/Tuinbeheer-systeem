@@ -1,12 +1,11 @@
 -- Debug script voor Martine's taken en garden access
 -- Run dit in Supabase SQL Editor
 
--- 1. Check Martine's user info en garden access
+-- 1. Check Martine's user info (zonder garden_access kolom)
 SELECT 
     u.id,
     u.email,
     u.role,
-    u.garden_access,
     u.created_at as user_created
 FROM users u 
 WHERE u.email = 'groenesteinm@hotmail.com';
