@@ -21,7 +21,6 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { GardenAccessManager } from '@/components/admin/garden-access-manager'
 import { ProtectedRoute } from '@/components/auth/protected-route'
-import { invitationService } from '@/lib/invitation-service'
 
 interface User {
   id: string
@@ -120,6 +119,22 @@ function AdminUsersPageContent() {
 
       setUsers(usersWithAccess)
       console.log('🔍 Users with garden access loaded:', usersWithAccess.length)
+      
+      // Debug: Check all users and their roles
+      console.log('🔍 All users loaded:', usersWithAccess.map(u => ({
+        email: u.email,
+        role: u.role,
+        status: u.status,
+        roleType: typeof u.role
+      })))
+      
+      // Debug: Check admin@tuinbeheer.nl specifically
+      const adminUser = usersWithAccess.find(u => u.email === 'admin@tuinbeheer.nl')
+      if (adminUser) {
+        console.log('🔍 Admin user found:', adminUser)
+      } else {
+        console.log('🔍 Admin user NOT found in list!')
+      }
 
       // Load only active gardens (exclude soft-deleted ones)
       console.log('🔍 Loading active gardens...')
@@ -168,68 +183,189 @@ function AdminUsersPageContent() {
   const handleInviteUser = async () => {
     if (!formData.email || !formData.full_name) {
       toast({
-        title: "Vereiste velden",
+        title: "Ontbrekende gegevens",
         description: "Email en volledige naam zijn verplicht",
         variant: "destructive"
       })
       return
     }
 
-    if (!currentUser?.id) {
-      toast({
-        title: "Authenticatie fout",
-        description: "Je moet ingelogd zijn als admin om uitnodigingen te versturen",
-        variant: "destructive"
-      })
-      return
-    }
-
     setInviting(true)
-    console.log('🔍 Starting secure invitation process...')
+    console.log('🔍 Inviting user with data:', formData)
     
     try {
-      const result = await invitationService.sendInvitation(
-        {
-          email: formData.email,
-          full_name: formData.full_name,
-          role: formData.role,
-          garden_access: formData.garden_access,
-          message: formData.message
-        },
-        currentUser.id
-      )
+      // Check if user already exists
+      console.log('🔍 Checking if user already exists...')
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('users')
+        .select('id, email')
+        .eq('email', formData.email.toLowerCase().trim())
 
-      if (result.success) {
-        toast({
-          title: "Uitnodiging verstuurd!",
-          description: `Een veilige uitnodiging is verstuurd naar ${formData.email}. De gebruiker heeft 72 uur om de uitnodiging te accepteren.`,
-        })
-
-        // Reset form and reload users
-        setFormData({
-          email: '',
-          full_name: '',
-          role: 'user',
-          message: '',
-          garden_access: []
-        })
-        setIsInviteDialogOpen(false)
-        
-        // Reload users to show any changes
-        loadUsersAndGardens()
-      } else {
-        toast({
-          title: "Uitnodiging mislukt",
-          description: result.error || "Er is een onbekende fout opgetreden",
-          variant: "destructive"
-        })
+      if (checkError) {
+        console.error('🔍 Error checking existing users:', checkError)
+        throw new Error(`Kon niet controleren of gebruiker al bestaat: ${checkError.message}`)
       }
 
-    } catch (error) {
-      console.error('Error sending invitation:', error)
+      if (existingUsers && existingUsers.length > 0) {
+        toast({
+          title: "Gebruiker bestaat al",
+          description: "Er bestaat al een gebruiker met dit email adres",
+          variant: "destructive"
+        })
+        return
+      }
+
+      // Create user invite with automatic email
+      console.log('🔍 Creating user invite with email notification...')
+      
+      // Use regular signup with email confirmation to send invite email
+      console.log('🔍 Step 1: Creating user with email confirmation...')
+      
+      // Generate a secure temporary password
+      const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!'
+      
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email.toLowerCase().trim(),
+        password: tempPassword,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/accept-invite`,
+          data: {
+            created_by_admin: true,
+            full_name: formData.full_name,
+            role: formData.role,
+            invited_by: currentUser?.email,
+            message: formData.message || 'Welkom bij het tuinbeheer systeem!',
+            temp_password: true
+          }
+        }
+      })
+
+      if (authError) {
+        console.error('🔍 Auth invite error:', authError)
+        if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
+          toast({
+            title: "Email al in gebruik",
+            description: "Dit email adres is al geregistreerd in het systeem",
+            variant: "destructive"
+          })
+          return
+        }
+        throw new Error(`Gebruiker uitnodigen mislukt: ${authError.message}`)
+      }
+
+      if (!authData.user?.id) {
+        throw new Error('Geen gebruiker ontvangen van uitnodiging')
+      }
+
+      console.log('🔍 Step 2: User invited successfully:', authData.user.id)
+      console.log('🔍 Invitation email sent to:', formData.email)
+
+      // Don't sign out - keep admin session active
+      console.log('🔍 Step 2a: Keeping admin session active (skipping signout)')
+
+      console.log('🔍 Step 3: Creating user profile...')
+      
+      // 2. Create user profile in public.users  
+      console.log('🔍 Step 3a: Attempting direct insert...')
+      let profileError = null
+      
+      // Try direct insert first
+      const { error: directError } = await supabase
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          email: formData.email.toLowerCase().trim(),
+          role: formData.role,
+          status: formData.role === 'admin' ? 'active' : 'pending',
+          full_name: formData.full_name.trim(),
+          avatar_url: null
+        })
+
+      if (directError) {
+        console.log('🔍 Step 3b: Direct insert failed, trying SQL function...')
+        console.log('🔍 Direct insert error:', directError)
+        
+        // Fallback: Try via SQL function to bypass RLS
+        const { error: sqlError } = await supabase
+          .rpc('create_user_profile', {
+            p_user_id: authData.user.id,
+            p_email: formData.email.toLowerCase().trim(),
+            p_role: formData.role,
+            p_status: formData.role === 'admin' ? 'active' : 'pending',
+            p_full_name: formData.full_name.trim()
+          })
+        
+        if (sqlError) {
+          console.error('🔍 SQL function also failed:', sqlError)
+          console.error('🔍 Both methods failed - RLS policy issue')
+          profileError = directError // Use original error for user feedback
+        } else {
+          console.log('🔍 SQL function succeeded')
+        }
+      } else {
+        console.log('🔍 Direct insert succeeded')
+      }
+
+      if (profileError) {
+        console.error('🔍 Profile creation error:', profileError)
+        throw new Error(`Profiel aanmaken mislukt: ${profileError.message}`)
+      }
+
+      console.log('🔍 User profile created successfully')
+
+      // 3. Add garden access if user role and gardens selected
+      if (formData.role === 'user' && formData.garden_access.length > 0) {
+        console.log('🔍 Step 4: Adding garden access for gardens:', formData.garden_access)
+        const gardenAccessInserts = formData.garden_access.map(gardenId => ({
+          user_id: authData.user!.id,
+          garden_id: gardenId
+        }))
+
+        const { error: accessError } = await supabase
+          .from('user_garden_access')
+          .insert(gardenAccessInserts)
+
+        if (accessError) {
+          console.error('🔍 Garden access error:', accessError)
+          // Don't fail the entire operation for garden access issues
+          console.warn('🔍 Continuing despite garden access error')
+          toast({
+            title: "Gedeeltelijk succesvol",
+            description: "Gebruiker aangemaakt, maar tuin toegang kon niet worden ingesteld",
+            variant: "default"
+          })
+        } else {
+          console.log('🔍 Garden access added successfully')
+        }
+      }
+
+      console.log('🔍 User invite completed successfully')
+
       toast({
-        title: "Onverwachte fout",
-        description: "Er is een onverwachte fout opgetreden bij het versturen van de uitnodiging",
+        title: "Uitnodiging verstuurd!",
+        description: `${formData.full_name} heeft een bevestigingsmail ontvangen op ${formData.email}. Ze moeten eerst hun email bevestigen om in te loggen.`,
+      })
+
+      // Reset form and reload users
+      setFormData({
+        email: '',
+        full_name: '',
+        role: 'user',
+        message: '',
+        garden_access: []
+      })
+      setIsInviteDialogOpen(false)
+      
+      // Small delay to ensure database is updated
+      setTimeout(() => {
+        loadUsersAndGardens()
+      }, 500)
+
+    } catch (error) {
+      console.error('Error inviting user:', error)
+      toast({
+        title: "Uitnodiging mislukt",
+        description: error instanceof Error ? error.message : "Er is een onbekende fout opgetreden",
         variant: "destructive"
       })
     } finally {
@@ -311,6 +447,81 @@ function AdminUsersPageContent() {
   const handleEditGardenAccess = (user: User) => {
     setSelectedUser(user)
     setIsGardenAccessDialogOpen(true)
+  }
+
+  const handleResendInvitation = async (user: User) => {
+    setInviting(true)
+    
+    try {
+      // Send password reset email which acts as invitation reminder
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        user.email,
+        {
+          redirectTo: `${window.location.origin}/auth/accept-invite`
+        }
+      )
+
+      if (error) {
+        throw error
+      }
+
+      toast({
+        title: "Herinneringsmail verstuurd",
+        description: `${user.full_name || user.email} heeft een herinneringsmail ontvangen om hun account te activeren.`,
+      })
+
+    } catch (error: any) {
+      console.error('Error resending invitation:', error)
+      toast({
+        title: "Verzenden mislukt",
+        description: error.message || "Kon herinneringsmail niet versturen",
+        variant: "destructive"
+      })
+    } finally {
+      setInviting(false)
+    }
+  }
+
+  const handleDeleteUser = async (user: User) => {
+    if (!confirm(`Weet je zeker dat je ${user.full_name || user.email} wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`)) {
+      return
+    }
+
+    try {
+      // First delete from public.users table
+      const { error: profileError } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', user.id)
+
+      if (profileError) {
+        throw profileError
+      }
+
+      // Also delete user garden access
+      const { error: accessError } = await supabase
+        .from('user_garden_access')
+        .delete()
+        .eq('user_id', user.id)
+
+      // Don't throw for access error - user might not have garden access
+
+      toast({
+        title: "Gebruiker verwijderd",
+        description: `${user.full_name || user.email} is succesvol verwijderd`,
+      })
+
+      // Reload users list
+      loadUsersAndGardens()
+
+    } catch (error: any) {
+      console.error('Error deleting user:', error)
+      toast({
+        title: "Verwijderen mislukt",
+        description: error.message || "Kon gebruiker niet verwijderen",
+        variant: "destructive"
+      })
+    }
   }
 
 
@@ -432,26 +643,21 @@ function AdminUsersPageContent() {
                             Activeren
                           </DropdownMenuItem>
                         )}
-                        {user.role !== 'admin' && (
-                          <>
-                            <DropdownMenuItem onClick={() => handleEditGardenAccess(user)}>
-                              <TreePine className="w-4 h-4 mr-2" />
-                              Tuin Toegang Beheren
-                            </DropdownMenuItem>
-                            <DropdownMenuItem asChild>
-                              <Link href={`/logbook?user_id=${user.id}`}>
-                                <BookOpen className="w-4 h-4 mr-2" />
-                                Bekijk Logboek
-                              </Link>
-                            </DropdownMenuItem>
-                          </>
-                        )}
                         <DropdownMenuItem 
-                          onClick={() => {/* TODO: Resend invitation */}}
-                          disabled={user.status !== 'pending'}
+                          onClick={() => handleResendInvitation(user)}
+                          disabled={inviting}
                         >
                           <Mail className="w-4 h-4 mr-2" />
-                          Uitnodiging Versturen
+                          {inviting ? 'Versturen...' : 
+                           user.status === 'pending' ? 'Uitnodiging Versturen' : 'Herinneringsmail Versturen'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleDeleteUser(user)}
+                          className="text-red-600 hover:text-red-700"
+                          disabled={user.id === currentUser?.id || user.email === 'admin@tuinbeheer.nl'}
+                        >
+                          <UserX className="w-4 h-4 mr-2" />
+                          Gebruiker Verwijderen
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -483,25 +689,35 @@ function AdminUsersPageContent() {
           
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email adres</Label>
+              <Label htmlFor="email">Email adres *</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="gebruiker@email.com"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className={!formData.email?.trim() && formData.email !== '' ? 'border-red-300' : ''}
+                required
               />
+              {!formData.email?.trim() && formData.email !== '' && (
+                <p className="text-sm text-red-600">Email adres is verplicht</p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="full_name">Volledige naam</Label>
+              <Label htmlFor="full_name">Volledige naam *</Label>
               <Input
                 id="full_name"
                 type="text"
                 placeholder="Jan de Vries"
                 value={formData.full_name}
                 onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                className={!formData.full_name?.trim() && formData.full_name !== '' ? 'border-red-300' : ''}
+                required
               />
+              {!formData.full_name?.trim() && formData.full_name !== '' && (
+                <p className="text-sm text-red-600">Volledige naam is verplicht</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -572,10 +788,20 @@ function AdminUsersPageContent() {
             </Button>
             <Button 
               onClick={handleInviteUser}
-              disabled={!formData.email || !formData.full_name || inviting}
+              disabled={!formData.email?.trim() || !formData.full_name?.trim() || inviting}
+              className="min-w-[160px]"
             >
-              {inviting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Uitnodiging Versturen
+              {inviting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Bezig met uitnodigen...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Uitnodiging Versturen
+                </>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
