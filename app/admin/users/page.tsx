@@ -21,6 +21,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { GardenAccessManager } from '@/components/admin/garden-access-manager'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { invitationService } from '@/lib/invitation-service'
 
 interface User {
   id: string
@@ -165,139 +166,70 @@ function AdminUsersPageContent() {
   }
 
   const handleInviteUser = async () => {
-    setInviting(true)
-    console.log('🔍 Inviting user with data:', formData)
-    try {
-      // TEMP: Direct database invite (bypass Edge Function)
-      console.log('🔍 Creating user invite directly...')
-      
-      // WORKAROUND: Create auth user first, then profile
-      console.log('🔍 Step 1: Creating auth user...')
-      
-      // 1. Create auth user with temp password
-      const tempPassword = 'Tuin123!'
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: tempPassword,
-        options: {
-          emailRedirectTo: undefined, // No email confirmation needed
-          data: {
-            created_by_admin: true,
-            temp_password: true
-          }
-        }
+    if (!formData.email || !formData.full_name) {
+      toast({
+        title: "Vereiste velden",
+        description: "Email en volledige naam zijn verplicht",
+        variant: "destructive"
       })
+      return
+    }
 
-      if (authError) {
-        console.error('🔍 Auth signup error:', authError)
-        throw new Error(`Auth user creation failed: ${authError.message}`)
-      }
+    if (!currentUser?.id) {
+      toast({
+        title: "Authenticatie fout",
+        description: "Je moet ingelogd zijn als admin om uitnodigingen te versturen",
+        variant: "destructive"
+      })
+      return
+    }
 
-      if (!authData.user) {
-        throw new Error('No user returned from auth signup')
-      }
-
-      console.log('🔍 Step 2: Auth user created:', authData.user!.id)
-
-      // Don't sign out - keep admin session active
-      console.log('🔍 Step 2a: Keeping admin session active (skipping signout)')
-
-      console.log('🔍 Step 3: Creating user profile...')
-      
-      // 2. Create user profile in public.users  
-      if (!authData.user?.id) {
-        throw new Error('No user ID received from auth signup')
-      }
-
-      console.log('🔍 Step 3a: Attempting direct insert...')
-      let profileError = null
-      
-      // Try direct insert first
-      const { error: directError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user!.id,
+    setInviting(true)
+    console.log('🔍 Starting secure invitation process...')
+    
+    try {
+      const result = await invitationService.sendInvitation(
+        {
           email: formData.email,
-          role: formData.role,
-          status: formData.role === 'admin' ? 'active' : 'pending',
           full_name: formData.full_name,
-          avatar_url: null
+          role: formData.role,
+          garden_access: formData.garden_access,
+          message: formData.message
+        },
+        currentUser.id
+      )
+
+      if (result.success) {
+        toast({
+          title: "Uitnodiging verstuurd!",
+          description: `Een veilige uitnodiging is verstuurd naar ${formData.email}. De gebruiker heeft 72 uur om de uitnodiging te accepteren.`,
         })
 
-      if (directError) {
-        console.log('🔍 Step 3b: Direct insert failed, trying SQL function...')
-        // Fallback: Try via SQL function to bypass RLS
-        const { error: sqlError } = await supabase
-          .rpc('create_user_profile', {
-            p_user_id: authData.user!.id,
-            p_email: formData.email,
-            p_role: formData.role,
-            p_status: formData.role === 'admin' ? 'active' : 'pending',
-            p_full_name: formData.full_name
-          })
+        // Reset form and reload users
+        setFormData({
+          email: '',
+          full_name: '',
+          role: 'user',
+          message: '',
+          garden_access: []
+        })
+        setIsInviteDialogOpen(false)
         
-        if (sqlError) {
-          console.error('🔍 Both methods failed - RLS policy issue')
-          profileError = directError // Use original error for user feedback
-        }
-      }
-
-      if (profileError) {
-        console.error('🔍 Profile creation error:', profileError)
-        throw new Error(`Profile creation failed: ${profileError.message}`)
-      }
-
-      console.log('🔍 User profile created successfully')
-
-      // 3. Add garden access if user role and gardens selected
-      if (formData.role === 'user' && formData.garden_access.length > 0 && authData.user?.id) {
-        console.log('🔍 Step 4: Adding garden access for gardens:', formData.garden_access)
-        const gardenAccessInserts = formData.garden_access.map(gardenId => ({
-          user_id: authData.user!.id, // Safe: checked in if condition
-          garden_id: gardenId
-        }))
-
-        const { error: accessError } = await supabase
-          .from('user_garden_access')
-          .insert(gardenAccessInserts)
-
-        if (accessError) {
-          console.error('🔍 Garden access error:', accessError)
-          throw new Error(`Garden access failed: ${accessError.message}`)
-        }
-
-        console.log('🔍 Garden access added successfully')
-      }
-
-      console.log('🔍 User invite completed successfully')
-
-      toast({
-        title: "Gebruiker aangemaakt",
-        description: formData.role === 'admin' 
-          ? `Admin ${formData.full_name} is direct actief. Wachtwoord: Tuin123!`
-          : `Gebruiker ${formData.full_name} heeft status 'pending'. Activeer eerst, dan kunnen ze inloggen met Tuin123!`,
-      })
-
-      // Reset form and reload users
-      setFormData({
-        email: '',
-        full_name: '',
-        role: 'user',
-        message: '',
-        garden_access: []
-      })
-      setIsInviteDialogOpen(false)
-      
-      // Small delay to ensure database is updated
-      setTimeout(() => {
+        // Reload users to show any changes
         loadUsersAndGardens()
-      }, 500)
+      } else {
+        toast({
+          title: "Uitnodiging mislukt",
+          description: result.error || "Er is een onbekende fout opgetreden",
+          variant: "destructive"
+        })
+      }
 
     } catch (error) {
-      console.error('Error inviting user:', error)
+      console.error('Error sending invitation:', error)
       toast({
-        title: "Uitnodiging mislukt",
-        description: error instanceof Error ? error.message : "Er is een fout opgetreden",
+        title: "Onverwachte fout",
+        description: "Er is een onverwachte fout opgetreden bij het versturen van de uitnodiging",
         variant: "destructive"
       })
     } finally {
