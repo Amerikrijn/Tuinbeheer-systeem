@@ -103,15 +103,7 @@ export default function LoginPage() {
     // Don't set isSubmitting to false immediately - let redirect happen
   }
 
-  const demoCredentials = [
-    { email: 'admin@tuinbeheer.nl', role: 'Administrator', password: 'Admin123!' },
-    { email: 'gebruiker@tuinbeheer.nl', role: 'Gebruiker', password: 'User123!' },
-    { email: 'amerik.rijn@gmail.com', role: 'Test Gebruiker', password: 'SimplePass123!' }
-  ]
-
-  const fillDemoCredentials = (email: string, password: string) => {
-    setFormData({ email, password })
-  }
+  // Demo credentials removed for production security
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
@@ -208,30 +200,7 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            {/* Demo Credentials Section */}
-            <div className="mt-6">
-              <Separator className="my-4" />
-              <div className="text-center">
-                <p className="text-sm text-gray-600 mb-3">Demo Accounts (voor preview)</p>
-                <div className="space-y-2">
-                  {demoCredentials.map((cred, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => fillDemoCredentials(cred.email, cred.password)}
-                      disabled={isSubmitting}
-                    >
-                      {cred.role}: {cred.email}
-                    </Button>
-                  ))}
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Wachtwoord voor alle demo accounts: <code className="bg-gray-100 px-1 rounded">demo123</code>
-                </p>
-              </div>
-            </div>
+            {/* Demo credentials section removed for production security */}
 
             {/* Footer Links */}
             <div className="mt-6 text-center space-y-2">
