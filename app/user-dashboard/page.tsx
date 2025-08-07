@@ -40,21 +40,46 @@ interface LogbookEntry {
 }
 
 function UserDashboardContent() {
-  const { user, hasGardenAccess, getAccessibleGardens } = useAuth()
+  const { user, hasGardenAccess, getAccessibleGardens, loadGardenAccess } = useAuth()
   const { toast } = useToast()
   
   const [tasks, setTasks] = useState<Task[]>([])
   const [logbookEntries, setLogbookEntries] = useState<LogbookEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [gardenAccessLoaded, setGardenAccessLoaded] = useState(false)
+
+  // Ensure garden access is loaded for regular users
+  useEffect(() => {
+    async function ensureGardenAccess() {
+      if (!user) return
+      
+      // For users, ensure garden access is loaded
+      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
+        console.log('🔍 UserDashboard - Loading garden access for user...')
+        try {
+          await loadGardenAccess()
+          setGardenAccessLoaded(true)
+          console.log('✅ UserDashboard - Garden access loaded')
+        } catch (error) {
+          console.error('❌ UserDashboard - Failed to load garden access:', error)
+          setGardenAccessLoaded(true) // Still mark as loaded to avoid infinite loop
+        }
+      } else {
+        setGardenAccessLoaded(true)
+      }
+    }
+    
+    ensureGardenAccess()
+  }, [user?.id, loadGardenAccess])
 
   useEffect(() => {
-    if (user) {
+    if (user && gardenAccessLoaded) {
       loadUserData()
     }
-  }, [user])
+  }, [user, gardenAccessLoaded])
 
   const loadUserData = async () => {
-    if (!user) return
+    if (!user || !gardenAccessLoaded) return
     
     setLoading(true)
     try {
