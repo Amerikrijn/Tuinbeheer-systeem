@@ -77,16 +77,7 @@ export function useSupabaseAuth(): AuthContextType {
 
       if (userError || !userProfile) {
         console.log('🔍 No database profile found:', userError?.message)
-        console.log('🔍 User not found in database - access denied')
-        
-        // Only allow known admin emails to login without database record
-        const adminEmails = ['admin@tuinbeheer.nl', 'amerik.rijn@gmail.com']
-        if (!adminEmails.includes(supabaseUser.email || '')) {
-          throw new Error('Access denied: User not found in system. Contact admin to create account.')
-        }
-        
-        console.log('🔍 Admin email detected, allowing login with fallback role')
-        role = 'admin'
+        throw new Error('Access denied: User not found in system. Contact admin to create your account.')
       } else {
         console.log('🔍 Found existing user profile:', userProfile)
         role = userProfile.role || 'user'
@@ -111,24 +102,8 @@ export function useSupabaseAuth(): AuthContextType {
 
     } catch (error) {
       console.error('🔍 Error in loadUserProfile:', error)
-      
-      // Fallback user with smart role detection
-      const adminEmails = ['admin@tuinbeheer.nl', 'amerik.rijn@gmail.com']
-      const fallbackRole: 'admin' | 'user' = adminEmails.includes(supabaseUser.email || '') ? 'admin' : 'user'
-      
-      const fallbackUser: User = {
-        id: supabaseUser.id,
-        email: supabaseUser.email || '',
-        full_name: supabaseUser.email?.split('@')[0] || 'User',
-        role: fallbackRole,
-        status: 'active',
-        permissions: [],
-        garden_access: [],
-        created_at: new Date().toISOString()
-      }
-      
-      console.log('🔍 FALLBACK USER CREATED:', fallbackUser)
-      return fallbackUser
+      // Re-throw the error - no fallback, no exceptions
+      throw error
     }
   }
 
