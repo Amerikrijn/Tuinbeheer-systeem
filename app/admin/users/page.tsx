@@ -665,6 +665,15 @@ function AdminUsersPageContent() {
                           <Edit className="w-4 h-4 mr-2" />
                           Rol Bewerken
                         </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            setSelectedUser(user)
+                            setIsGardenAccessDialogOpen(true)
+                          }}
+                        >
+                          <TreePine className="w-4 h-4 mr-2" />
+                          Tuinen Beheren
+                        </DropdownMenuItem>
                         {user.status === 'active' ? (
                           <DropdownMenuItem 
                             onClick={() => updateUserStatus(user.id, 'inactive')}
