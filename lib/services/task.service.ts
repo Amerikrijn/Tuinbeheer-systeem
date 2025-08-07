@@ -164,6 +164,7 @@ export class TaskService {
               plant_beds (
                 name,
                 gardens (
+                  id,
                   name
                 )
               )
@@ -183,6 +184,7 @@ export class TaskService {
               name,
               color_code,
               gardens (
+                id,
                 name
               )
             )
@@ -287,20 +289,36 @@ export class TaskService {
 
     const filteredTasks = tasks.filter(task => {
       // For plant tasks: check via plant -> plant_bed -> garden
-      if (task.plants?.plant_beds?.gardens) {
-        const gardenId = task.plants.plant_beds.gardens.id || task.plants.plant_beds.garden_id
-        return accessibleGardens.includes(gardenId)
+      if (task.plants?.plant_beds?.gardens?.id) {
+        const gardenId = task.plants.plant_beds.gardens.id
+        const hasAccess = accessibleGardens.includes(gardenId)
+        console.log('🔍 SECURITY: Plant task garden check', {
+          taskId: task.id,
+          gardenId,
+          hasAccess,
+          userGardens: accessibleGardens
+        })
+        return hasAccess
       }
 
       // For plant bed tasks: check via plant_bed -> garden  
-      if (task.plant_beds?.gardens) {
-        const gardenId = task.plant_beds.gardens.id || task.plant_beds.garden_id
-        return accessibleGardens.includes(gardenId)
+      if (task.plant_beds?.gardens?.id) {
+        const gardenId = task.plant_beds.gardens.id
+        const hasAccess = accessibleGardens.includes(gardenId)
+        console.log('🔍 SECURITY: Plant bed task garden check', {
+          taskId: task.id,
+          gardenId,
+          hasAccess,
+          userGardens: accessibleGardens
+        })
+        return hasAccess
       }
 
       // If no garden relationship found, exclude for security
       console.warn('⚠️ SECURITY: Task has no garden relationship, excluding', { 
         taskId: task.id, 
+        taskPlants: !!task.plants,
+        taskPlantBeds: !!task.plant_beds,
         user: user.email 
       })
       return false
@@ -336,6 +354,7 @@ export class TaskService {
               plant_beds (
                 name,
                 gardens (
+                  id,
                   name
                 )
               )
@@ -356,6 +375,7 @@ export class TaskService {
               name,
               color_code,
               gardens (
+                id,
                 name
               )
             )
@@ -529,6 +549,7 @@ export class TaskService {
               plant_beds (
                 name,
                 gardens (
+                  id,
                   name
                 )
               )
@@ -546,6 +567,7 @@ export class TaskService {
               name,
               color_code,
               gardens (
+                id,
                 name
               )
             )
