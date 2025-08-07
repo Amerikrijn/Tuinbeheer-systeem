@@ -681,6 +681,7 @@ export default function HomePage() {
 // Role-based home content
 function RoleBasedHomeContent() {
   const { user, isAdmin } = useAuth()
+  const router = useRouter()
 
   if (isAdmin()) {
     return <HomePageContent />
@@ -688,10 +689,21 @@ function RoleBasedHomeContent() {
     // Users get the exact same task interface as admin /tasks page
     return (
       <div className="container mx-auto p-4 max-w-4xl">
+        {/* Header with Logbook button */}
         <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Calendar className="w-6 h-6 text-green-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Mijn Taken</h1>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-6 h-6 text-green-600" />
+              <h1 className="text-2xl font-bold text-gray-900">Mijn Taken</h1>
+            </div>
+            <Button 
+              onClick={() => router.push('/logbook')}
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <BookOpen className="w-4 h-4" />
+              Logboek
+            </Button>
           </div>
           <p className="text-gray-600">
             Bekijk en beheer je tuintaken per week. Zie welke bloemen aandacht nodig hebben.
