@@ -481,7 +481,7 @@ function LogbookPageContent() {
           {viewingUser && (
             <div className="mt-2">
               <Badge variant="outline" className="text-xs">
-                Toegang tot: {viewingUser.garden_access?.length || 0} tuin(en)
+                Bekijkt logboek van: {viewingUser.full_name || viewingUser.email}
               </Badge>
             </div>
           )}
