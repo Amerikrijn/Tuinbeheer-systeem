@@ -269,37 +269,41 @@ export class TaskService {
   }
 
   // Apply garden access filtering to tasks
-  private static async applyGardenAccessFilter(tasks: any[], user: User | null): Promise<any[]> {
+  private static async applyGardenAccessFilter(tasks: any[], user: User | null, gardenFilter?: string[]): Promise<any[]> {
     if (!user) {
       console.warn('⚠️ SECURITY: No user provided for garden access filtering')
       return []
     }
 
-    // Admin has access to all tasks
-    if (user.role === 'admin') {
-      return tasks
-    }
-
-    // Get user's garden access from user_garden_access table
     let accessibleGardens: string[] = []
-    
-    try {
-      const { data: gardenAccess, error } = await supabase
-        .from('user_garden_access')
-        .select('garden_id')
-        .eq('user_id', user.id)
-      
-      if (error) {
-        console.error('Error fetching user garden access:', error)
+
+    // If specific garden filter is provided (e.g., from tuin page), use that for both admin and users
+    if (gardenFilter && gardenFilter.length > 0) {
+      accessibleGardens = gardenFilter
+      console.log('🔍 Using provided garden filter:', accessibleGardens)
+    } else if (user.role === 'admin') {
+      // Admin has access to all tasks ONLY when no specific garden filter is applied
+      return tasks
+    } else {
+      // Get user's garden access from user_garden_access table
+      try {
+        const { data: gardenAccess, error } = await supabase
+          .from('user_garden_access')
+          .select('garden_id')
+          .eq('user_id', user.id)
+        
+        if (error) {
+          console.error('Error fetching user garden access:', error)
+          return []
+        }
+        
+        accessibleGardens = gardenAccess?.map(access => access.garden_id) || []
+        console.log('🔍 Garden access loaded for user:', user.email, 'gardens:', accessibleGardens)
+        
+      } catch (error) {
+        console.error('Exception fetching user garden access:', error)
         return []
       }
-      
-      accessibleGardens = gardenAccess?.map(access => access.garden_id) || []
-      console.log('🔍 Garden access loaded for user:', user.email, 'gardens:', accessibleGardens)
-      
-    } catch (error) {
-      console.error('Exception fetching user garden access:', error)
-      return []
     }
 
     if (accessibleGardens.length === 0) {
@@ -355,7 +359,7 @@ export class TaskService {
   }
 
   // Get weekly tasks with garden access filtering
-  static async getWeeklyTasks(weekStart?: Date, user?: User | null): Promise<{ data: WeeklyTask[]; error: string | null }> {
+  static async getWeeklyTasks(weekStart?: Date, user?: User | null, gardenFilter?: string[]): Promise<{ data: WeeklyTask[]; error: string | null }> {
     try {
       const startDate = weekStart || getWeekStartDate()
       const startDateStr = startDate.toISOString().split('T')[0]
@@ -453,7 +457,7 @@ export class TaskService {
       const allTasks: WeeklyTask[] = [...plantTasks, ...plantBedTasks]
 
       // Apply garden access filtering
-      const transformedData: WeeklyTask[] = await this.applyGardenAccessFilter(allTasks, user)
+      const transformedData: WeeklyTask[] = await this.applyGardenAccessFilter(allTasks, user, gardenFilter)
 
       // Apply consistent sorting: incomplete first (by due date + priority), then completed at bottom
       transformedData.sort((a, b) => {
@@ -482,13 +486,13 @@ export class TaskService {
   }
 
   // Get weekly calendar with garden access filtering
-  static async getWeeklyCalendar(weekStart?: Date, user?: User | null): Promise<{ data: WeeklyCalendar | null; error: string | null }> {
+  static async getWeeklyCalendar(weekStart?: Date, user?: User | null, gardenFilter?: string[]): Promise<{ data: WeeklyCalendar | null; error: string | null }> {
     try {
       const startDate = weekStart || getWeekStartDate()
       const endDate = getWeekEndDate(startDate)
       
       // Get tasks for the week with user filtering
-      const { data: tasks, error } = await this.getWeeklyTasks(startDate, user)
+      const { data: tasks, error } = await this.getWeeklyTasks(startDate, user, gardenFilter)
       if (error) throw new Error(error)
 
       // Group tasks by date
