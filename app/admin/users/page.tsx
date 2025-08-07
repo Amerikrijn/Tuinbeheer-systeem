@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen } from 'lucide-react'
+import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen, Edit } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
@@ -60,6 +60,7 @@ function AdminUsersPageContent() {
   // Dialog states
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
   const [isGardenAccessDialogOpen, setIsGardenAccessDialogOpen] = useState(false)
+  const [isRoleEditDialogOpen, setIsRoleEditDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   
   // Form state
@@ -403,6 +404,34 @@ function AdminUsersPageContent() {
     }
   }
 
+  const updateUserRole = async (userId: string, newRole: 'admin' | 'user') => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ role: newRole })
+        .eq('id', userId)
+
+      if (error) {
+        throw error
+      }
+
+      toast({
+        title: "Rol bijgewerkt",
+        description: `Gebruiker is nu ${newRole === 'admin' ? 'administrator' : 'gebruiker'}`,
+      })
+
+      loadUsersAndGardens()
+
+    } catch (error) {
+      console.error('Error updating user role:', error)
+      toast({
+        title: "Rol update mislukt",
+        description: "Kon gebruikersrol niet bijwerken",
+        variant: "destructive"
+      })
+    }
+  }
+
   const toggleGardenAccess = (gardenId: string) => {
     setFormData(prev => ({
       ...prev,
@@ -626,6 +655,16 @@ function AdminUsersPageContent() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          onClick={() => {
+                            setSelectedUser(user)
+                            setIsRoleEditDialogOpen(true)
+                          }}
+                          disabled={user.id === currentUser?.id}
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Rol Bewerken
+                        </DropdownMenuItem>
                         {user.status === 'active' ? (
                           <DropdownMenuItem 
                             onClick={() => updateUserStatus(user.id, 'inactive')}
@@ -802,6 +841,72 @@ function AdminUsersPageContent() {
                   Uitnodiging Versturen
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Role Edit Dialog */}
+      <Dialog open={isRoleEditDialogOpen} onOpenChange={setIsRoleEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rol Bewerken</DialogTitle>
+            <DialogDescription>
+              Wijzig de rol van {selectedUser?.full_name || selectedUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Huidige rol</Label>
+              <div className="p-2 bg-gray-50 rounded">
+                <Badge variant={selectedUser?.role === 'admin' ? 'default' : 'secondary'}>
+                  {selectedUser?.role === 'admin' ? 'Administrator' : 'Gebruiker'}
+                </Badge>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Nieuwe rol</Label>
+              <Select 
+                value={selectedUser?.role} 
+                onValueChange={(value: 'admin' | 'user') => {
+                  if (selectedUser) {
+                    updateUserRole(selectedUser.id, value)
+                    setIsRoleEditDialogOpen(false)
+                    setSelectedUser(null)
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Gebruiker</SelectItem>
+                  <SelectItem value="admin">Administrator</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="text-sm text-muted-foreground">
+              <p><strong>Let op:</strong></p>
+              <ul className="list-disc list-inside mt-1 space-y-1">
+                <li>Administrators hebben toegang tot alle tuinen en functies</li>
+                <li>Gebruikers hebben alleen toegang tot toegewezen tuinen</li>
+                <li>Je kunt je eigen rol niet wijzigen</li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsRoleEditDialogOpen(false)
+                setSelectedUser(null)
+              }}
+            >
+              Annuleren
             </Button>
           </DialogFooter>
         </DialogContent>
