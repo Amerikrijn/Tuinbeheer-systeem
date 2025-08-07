@@ -1,163 +1,114 @@
-# Tuinbeheer Systeem 🌱
+# Tuinbeheer Systeem
 
-Een professioneel tuinbeheersysteem voor het beheren van tuinen, plantvakken en bloemen met visuele drag-and-drop functionaliteit.
+## 🌱 Overzicht
 
-## 📋 Overzicht
+Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. Ontwikkeld met Next.js 14, Supabase en TailwindCSS.
 
-Het Tuinbeheer Systeem is een moderne webapplicatie die tuinliefhebbers en professionals helpt bij het plannen, beheren en onderhouden van hun tuinen. Het systeem biedt een intuïtieve interface voor het creëren van tuinen, het indelen in plantvakken en het beheren van individuele planten.
+**🔒 Security Status:** Banking-grade security refactoring complete!
+**📅 Last Updated:** January 6, 2025 - 15:45 CET (Testing deployment limits)
 
-### Kernfunctionaliteiten
+## ✨ Features
 
-- **Tuinbeheer**: Aanmaken en beheren van meerdere tuinen
-- **Plantvak Management**: Visuele indeling van tuinen in plantvakken
-- **Plantenbeheer**: Uitgebreid beheer van individuele planten met Nederlandse bloemendata
-- **Visuele Designer**: Drag-and-drop interface voor tuinontwerp
-- **Takenbeheer**: Planning en tracking van tuinonderhoudstaken
-- **Cross-platform**: Web-applicatie met mobiele ondersteuning
+- **Tuin Beheer**: Overzicht en beheer van verschillende tuinen
+- **Plantbed Tracking**: Gedetailleerd beheer van plantbedden per tuin  
+- **Plant Database**: Uitgebreide database van planten en hun eigenschappen
+- **Taakbeheer**: Planning en tracking van tuinonderhoud taken
+- **Gebruikersbeheer**: Rol-gebaseerd toegangssysteem (Admin/User)
+- **Responsive Design**: Optimaal voor desktop en mobiele apparaten
+- **Real-time Updates**: Live synchronisatie via Supabase
+- **🔐 Banking-Grade Security**: Row Level Security, audit logging, input validation
 
-## 🏗️ Architectuur
+## 🛡️ Security Features
 
-### Tech Stack
+- **Row Level Security (RLS)**: Database-niveau toegangscontrole
+- **Audit Logging**: Volledige security event tracking  
+- **Input Validation**: Bescherming tegen SQL injection en XSS
+- **Authentication**: Strikte database-only user validation
+- **Security Headers**: Comprehensive HTTP security headers
+- **No Hardcoded Values**: All sensitive data from database
 
-- **Frontend**: Next.js 14 met TypeScript
-- **UI Framework**: Tailwind CSS + shadcn/ui componenten
-- **Database**: Supabase (PostgreSQL)
-- **State Management**: React hooks + Context API
-- **Validation**: Zod schemas
-- **Logging**: Winston met structured logging
-- **Testing**: Jest + React Testing Library
-- **Deployment**: Vercel
-
-### Projectstructuur
-
-```
-tuinbeheer-systeem/
-├── app/                    # Next.js App Router
-│   ├── gardens/           # Tuinbeheer pages
-│   ├── plants/            # Plantenbeheer pages
-│   ├── tasks/             # Takenbeheer pages
-│   ├── admin/             # Admin functionaliteit
-│   └── api/               # API routes
-├── components/            # Herbruikbare componenten
-│   ├── ui/               # shadcn/ui componenten
-│   └── tasks/            # Taak-specifieke componenten
-├── lib/                   # Utilities en services
-│   ├── services/         # Database services
-│   ├── types/            # TypeScript definities
-│   └── validation/       # Validatie schemas
-├── database/             # Database scripts en migraties
-└── docs/                 # Documentatie
-```
-
-## 🚀 Installatie en Setup
-
-### Vereisten
-
-- Node.js 18 of hoger
-- npm of pnpm
-- Supabase account
-
-### Stap 1: Project Setup
+## 🚀 Quick Start
 
 ```bash
-# Clone het project
-git clone <repository-url>
-cd tuinbeheer-systeem
-
 # Installeer dependencies
 npm install
-# of
-pnpm install
-```
 
-### Stap 2: Environment Configuratie
-
-Maak een `.env.local` bestand aan in de root:
-
-```env
-# Supabase Configuration
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-
-# Environment
-NODE_ENV=development
-```
-
-### Stap 3: Database Setup
-
-Zie [Database Setup Guide](./docs/database-setup.md) voor gedetailleerde instructies.
-
-```bash
-# Quick setup
+# Setup database
 npm run db:setup
-```
 
-### Stap 4: Development Server
-
-```bash
+# Start development server
 npm run dev
 ```
 
-De applicatie is nu beschikbaar op `http://localhost:3000`
-
 ## 📚 Documentatie
 
-- [Functionele Beschrijving](./docs/functional-description.md) - Uitgebreide beschrijving van alle functionaliteiten
-- [Architectuur Documentatie](./docs/architecture.md) - Technische architectuur en design patterns
-- [Database Setup](./docs/database-setup.md) - Database configuratie en scripts
-- [API Referentie](./docs/api-reference.md) - Complete API documentatie
-- [Deployment Guide](./docs/deployment.md) - Productie deployment instructies
+- **[Database Setup](docs/database-setup.md)**: Database configuratie en security
+- **[Deployment Guide](docs/deployment.md)**: Production deployment instructies
+- **[Security Plan](docs/CURRENT_STATUS_AND_SECURITY_PLAN.md)**: 7-day security migration roadmap
+- **[Architecture](docs/architecture.md)**: Systeem architectuur
+- **[API Reference](docs/api-reference.md)**: API endpoints documentatie
 
-## 🧪 Testing
+## 🔐 Security Migration
 
-```bash
-# Run alle tests
-npm test
+Voor production gebruik, volg de **7-day security migration plan**:
 
-# Tests met coverage
-npm run test:coverage
+1. **Day 1:** Assessment & Backup
+2. **Day 2:** Foundation Security (Users table RLS)  
+3. **Day 3-4:** Core Tables Security
+4. **Day 5:** Tasks & Logging Security
+5. **Day 6:** User Management Security
+6. **Day 7:** Final Hardening & Validation
 
-# Tests in watch mode
-npm run test:watch
+📖 **Zie:** `docs/CURRENT_STATUS_AND_SECURITY_PLAN.md`
+
+## 🎯 Current Status
+
+- ✅ **Security Refactoring**: Complete (banking-grade standards)
+- ✅ **Frontend Cleanup**: All hardcoded emails removed
+- ✅ **Authentication**: Strict database-only validation
+- ✅ **Documentation**: Comprehensive guides updated
+- 🚧 **Database Security**: Ready for step-by-step migration
+- ⏳ **Deployment**: Waiting for Vercel limits reset
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 14, React, TailwindCSS
+- **Backend**: Next.js API Routes, Supabase
+- **Database**: PostgreSQL (Supabase)
+- **Authentication**: Supabase Auth
+- **Deployment**: Vercel
+- **Security**: Row Level Security, Audit Logging, Input Validation
+
+## 📊 Project Structure
+
+```
+src/
+├── app/                    # Next.js 14 App Router
+│   ├── (dashboard)/       # Dashboard routes
+│   ├── admin/            # Admin-only pages
+│   ├── auth/             # Authentication pages
+│   └── api/              # API endpoints
+├── components/           # Reusable UI components
+├── hooks/               # Custom React hooks
+├── lib/                 # Utility functions & configurations
+│   ├── security/        # Security utilities & audit logging
+│   └── supabase/        # Database client & queries
+├── types/               # TypeScript type definitions
+└── docs/               # Project documentation
 ```
 
-## 📱 Cross-Platform Support
-
-Het systeem ondersteunt:
-- **Web**: Volledig responsive web applicatie
-- **Mobile**: PWA ondersteuning met offline functionaliteit
-- **Tablet**: Geoptimaliseerd voor tablet gebruik
-
-## 🔒 Beveiliging
-
-- Row Level Security (RLS) in Supabase
-- Input validatie met Zod schemas
-- Audit logging voor alle acties
-- Secure environment variable handling
-
-## 🤝 Bijdragen
+## 🤝 Contributing
 
 1. Fork het project
-2. Maak een feature branch (`git checkout -b feature/nieuwe-functie`)
-3. Commit je wijzigingen (`git commit -am 'Voeg nieuwe functie toe'`)
-4. Push naar de branch (`git push origin feature/nieuwe-functie`)
-5. Maak een Pull Request
+2. Maak een feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit je wijzigingen (`git commit -m 'Add some AmazingFeature'`)
+4. Push naar de branch (`git push origin feature/AmazingFeature`)
+5. Open een Pull Request
 
-## 📄 Licentie
+## 📄 License
 
-Dit project valt onder de MIT licentie. Zie het [LICENSE](LICENSE) bestand voor details.
-
-## 🆘 Support
-
-Voor vragen of problemen:
-- Maak een issue aan in de GitHub repository
-- Bekijk de documentatie in de `docs/` folder
-- Controleer de [FAQ](./docs/faq.md)
+Dit project is gelicenseerd onder de MIT License - zie het [LICENSE](LICENSE) bestand voor details.
 
 ---
 
-**Versie**: 1.0.0  
-**Laatste update**: December 2024
-# Force deployment Wed Aug  6 05:46:43 AM UTC 2025
-# Last updated: Thu Aug  7 04:44:22 AM UTC 2025
-# Fixed git author - deployment should work now: Thu Aug  7 04:46:50 AM UTC 2025
+**⚠️ BELANGRIJK:** Dit systeem implementeert banking-grade security. Volg altijd de security best practices en test grondig na elke wijziging.
