@@ -119,6 +119,17 @@ function AdminUsersPageContent() {
 
       setUsers(usersWithAccess)
       console.log('🔍 Users with garden access loaded:', usersWithAccess.length)
+      
+      // Debug: Check admin@tuinbeheer.nl specifically
+      const adminUser = usersWithAccess.find(u => u.email === 'admin@tuinbeheer.nl')
+      if (adminUser) {
+        console.log('🔍 Admin user data:', {
+          email: adminUser.email,
+          role: adminUser.role,
+          status: adminUser.status,
+          roleType: typeof adminUser.role
+        })
+      }
 
       // Load only active gardens (exclude soft-deleted ones)
       console.log('🔍 Loading active gardens...')
