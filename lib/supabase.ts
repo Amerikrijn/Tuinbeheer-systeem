@@ -13,20 +13,21 @@ const config = getSupabaseConfig();
 const supabaseUrl = config.url;
 const supabaseAnonKey = config.anonKey;
 
-// Debug logging
-console.log('🔍 Supabase Configuration Debug:', {
-  urlExists: !!supabaseUrl,
-  urlValue: supabaseUrl,
-  keyExists: !!supabaseAnonKey,
-  keyLength: supabaseAnonKey?.length,
-  timestamp: new Date().toISOString()
-});
-
-// Create Supabase client
+// Create Supabase client with optimized settings
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+  },
+  db: {
+    schema: 'public',
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'tuinbeheer-systeem',
+    },
   },
 });
 
