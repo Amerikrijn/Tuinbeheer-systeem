@@ -23,14 +23,6 @@ function ConditionalNavigationComponent() {
     setMounted(true)
   }, [])
 
-  console.log('🔍 ConditionalNavigation:', { 
-    pathname, 
-    isAuthPage: AUTH_PAGES.includes(pathname),
-    loading, 
-    hasUser: !!user,
-    userRole: user?.role 
-  })
-
   // Don't render until mounted
   if (!mounted) {
     return null
@@ -38,24 +30,21 @@ function ConditionalNavigationComponent() {
 
   // Hide navigation on auth pages
   if (AUTH_PAGES.includes(pathname)) {
-    console.log('🔍 Hiding navigation - auth page')
     return null
   }
 
-  // Don't show navigation while loading auth
-  if (loading) {
-    console.log('🔍 Hiding navigation - loading auth')
-    return null
-  }
-
-  // Show navigation for authenticated users
+  // Show navigation immediately if user is available (from cache)
+  // Don't wait for loading to complete if we have a user
   if (user) {
-    console.log('🔍 Showing navigation - authenticated user')
     return <AuthNavigation />
   }
 
+  // Only show loading state if we're actually loading and don't have a user
+  if (loading && !user) {
+    return null // Don't show loading spinner in navigation
+  }
+
   // No navigation for unauthenticated users
-  console.log('🔍 No navigation - unauthenticated')
   return null
 }
 
