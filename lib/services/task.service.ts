@@ -269,7 +269,7 @@ export class TaskService {
   }
 
   // Apply garden access filtering to tasks
-  private static applyGardenAccessFilter(tasks: any[], user: User | null): any[] {
+  private static async applyGardenAccessFilter(tasks: any[], user: User | null): Promise<any[]> {
     if (!user) {
       console.warn('⚠️ SECURITY: No user provided for garden access filtering')
       return []
@@ -280,8 +280,28 @@ export class TaskService {
       return tasks
     }
 
-    // Filter tasks based on user's garden access
-    const accessibleGardens = user.garden_access || []
+    // Get user's garden access from user_garden_access table
+    let accessibleGardens: string[] = []
+    
+    try {
+      const { data: gardenAccess, error } = await supabase
+        .from('user_garden_access')
+        .select('garden_id')
+        .eq('user_id', user.id)
+      
+      if (error) {
+        console.error('Error fetching user garden access:', error)
+        return []
+      }
+      
+      accessibleGardens = gardenAccess?.map(access => access.garden_id) || []
+      console.log('🔍 Garden access loaded for user:', user.email, 'gardens:', accessibleGardens)
+      
+    } catch (error) {
+      console.error('Exception fetching user garden access:', error)
+      return []
+    }
+
     if (accessibleGardens.length === 0) {
       console.warn('⚠️ SECURITY: User has no garden access', { user: user.email })
       return []
@@ -433,7 +453,7 @@ export class TaskService {
       const allTasks: WeeklyTask[] = [...plantTasks, ...plantBedTasks]
 
       // Apply garden access filtering
-      const transformedData: WeeklyTask[] = this.applyGardenAccessFilter(allTasks, user)
+      const transformedData: WeeklyTask[] = await this.applyGardenAccessFilter(allTasks, user)
 
       // Apply consistent sorting: incomplete first (by due date + priority), then completed at bottom
       transformedData.sort((a, b) => {
