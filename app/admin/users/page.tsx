@@ -601,10 +601,11 @@ function AdminUsersPageContent() {
                         )}
                         <DropdownMenuItem 
                           onClick={() => handleResendInvitation(user)}
-                          disabled={user.status !== 'pending' || inviting}
+                          disabled={inviting}
                         >
                           <Mail className="w-4 h-4 mr-2" />
-                          {inviting ? 'Versturen...' : 'Uitnodiging Versturen'}
+                          {inviting ? 'Versturen...' : 
+                           user.status === 'pending' ? 'Uitnodiging Versturen' : 'Herinneringsmail Versturen'}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
