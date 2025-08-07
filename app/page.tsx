@@ -26,6 +26,7 @@ import { ProtectedRoute } from "@/components/auth/protected-route"
 import { supabase } from "@/lib/supabase"
 import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
 import { WeeklyTaskList } from "@/components/tasks/weekly-task-list"
+import { SimpleTasksView } from "@/components/user/simple-tasks-view"
 
 interface HomePageState {
   gardens: Tuin[]
@@ -684,10 +685,9 @@ function RoleBasedHomeContent() {
   if (isAdmin()) {
     return <HomePageContent />
   } else {
-    // Users get the same task interface as admin /tasks page
+    // Users get their simple task view for now - will unify UI after fixing task visibility
     return (
       <div className="container mx-auto p-4 max-w-4xl">
-        {/* Header - same as admin tasks page */}
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Calendar className="w-6 h-6 text-green-600" />
@@ -698,8 +698,7 @@ function RoleBasedHomeContent() {
           </p>
         </div>
 
-        {/* Weekly Task List - same component as admin */}
-        <WeeklyTaskList />
+        <SimpleTasksView />
       </div>
     )
   }
