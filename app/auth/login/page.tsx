@@ -69,14 +69,12 @@ export default function LoginPage() {
       // Check if user has temp password and needs to change it
       const { data: { user } } = await supabase.auth.getUser()
       if (user?.user_metadata?.temp_password) {
-        console.log('🔍 User has temp password, redirecting to change password page')
         toast({
           title: "Eerste keer inloggen",
           description: "Je moet eerst je wachtwoord wijzigen",
         })
-        setTimeout(() => {
-          router.push('/auth/change-password')
-        }, 1000)
+        // Immediate redirect for better UX
+        router.push('/auth/change-password')
         return
       }
       
@@ -85,14 +83,11 @@ export default function LoginPage() {
         description: "Welkom terug!",
       })
       
-      // Force redirect using window.location for more reliable navigation
-      setTimeout(() => {
-        console.log('🔍 Attempting redirect to homepage (role-based)')
-        window.location.href = '/'
-      }, 1000)
+      // Immediate redirect for better UX
+      router.push('/')
       
     } catch (error) {
-      console.error('🔍 Login error details:', error)
+      console.error('Login error details:', error)
       toast({
         title: "Inloggen mislukt",
         description: error instanceof Error ? error.message : 'Er is een fout opgetreden',
@@ -100,7 +95,6 @@ export default function LoginPage() {
       })
       setIsSubmitting(false)
     }
-    // Don't set isSubmitting to false immediately - let redirect happen
   }
 
   // Demo credentials removed for production security
