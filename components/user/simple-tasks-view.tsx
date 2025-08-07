@@ -127,23 +127,55 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
           return
         }
 
-        // Load all tasks for accessible gardens
-        let tasksQuery = supabase
-          .from('tasks')
-          .select(`
-            *,
-            plants!inner(
-              name,
-              plant_beds!inner(
+        // Load both plant tasks and plant bed tasks for accessible gardens
+        const [plantTasksResult, plantBedTasksResult] = await Promise.all([
+          // Plant tasks
+          supabase
+            .from('tasks')
+            .select(`
+              *,
+              plants (
+                name,
+                plant_beds (
+                  name,
+                  garden_id,
+                  gardens (id, name)
+                )
+              )
+            `)
+            .not('plant_id', 'is', null)
+            .gte('due_date', startOfWeek.toISOString().split('T')[0])
+            .lte('due_date', endOfWeek.toISOString().split('T')[0]),
+          
+          // Plant bed tasks  
+          supabase
+            .from('tasks')
+            .select(`
+              *,
+              plant_beds (
                 name,
                 garden_id,
-                gardens!inner(name)
+                gardens (id, name)
               )
-            )
-          `)
-          .in('plants.plant_beds.garden_id', accessibleGardens)
+            `)
+            .not('plant_bed_id', 'is', null)
+            .is('plant_id', null)
+            .gte('due_date', startOfWeek.toISOString().split('T')[0])
+            .lte('due_date', endOfWeek.toISOString().split('T')[0])
+        ])
 
-        const { data: allTasks } = await tasksQuery
+        // Combine and filter tasks by garden access
+        const plantTasks = (plantTasksResult.data || []).filter(task => 
+          task.plants?.plant_beds?.gardens?.id && 
+          accessibleGardens.includes(task.plants.plant_beds.gardens.id)
+        )
+        
+        const plantBedTasks = (plantBedTasksResult.data || []).filter(task =>
+          task.plant_beds?.gardens?.id &&
+          accessibleGardens.includes(task.plant_beds.gardens.id)
+        )
+
+        const allTasks = [...plantTasks, ...plantBedTasks]
 
         if (allTasks) {
           const sortedTasks = sortTasks(allTasks)
