@@ -410,7 +410,10 @@ export class TaskService {
         }
       })
 
-      const transformedData: WeeklyTask[] = [...plantTasks, ...plantBedTasks]
+      const allTasks: WeeklyTask[] = [...plantTasks, ...plantBedTasks]
+
+      // Apply garden access filtering
+      const transformedData: WeeklyTask[] = this.applyGardenAccessFilter(allTasks, user)
 
       // Apply consistent sorting: incomplete first (by due date + priority), then completed at bottom
       transformedData.sort((a, b) => {
@@ -438,14 +441,14 @@ export class TaskService {
     }
   }
 
-  // Get weekly calendar
-  static async getWeeklyCalendar(weekStart?: Date): Promise<{ data: WeeklyCalendar | null; error: string | null }> {
+  // Get weekly calendar with garden access filtering
+  static async getWeeklyCalendar(weekStart?: Date, user?: User | null): Promise<{ data: WeeklyCalendar | null; error: string | null }> {
     try {
       const startDate = weekStart || getWeekStartDate()
       const endDate = getWeekEndDate(startDate)
       
-      // Get tasks for the week
-      const { data: tasks, error } = await this.getWeeklyTasks(startDate)
+      // Get tasks for the week with user filtering
+      const { data: tasks, error } = await this.getWeeklyTasks(startDate, user)
       if (error) throw new Error(error)
 
       // Group tasks by date

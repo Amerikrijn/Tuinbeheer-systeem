@@ -25,7 +25,7 @@ import { useAuth } from "@/hooks/use-supabase-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { supabase } from "@/lib/supabase"
 import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
-import { SimpleTasksView } from "@/components/user/simple-tasks-view"
+import { WeeklyTaskList } from "@/components/tasks/weekly-task-list"
 
 interface HomePageState {
   gardens: Tuin[]
@@ -684,8 +684,21 @@ function RoleBasedHomeContent() {
   if (isAdmin()) {
     return <HomePageContent />
   } else {
-    // Users get simple weekly tasks view
-    return <SimpleTasksView />
+    // Users get the same weekly tasks view as admins
+    return (
+      <div className="container mx-auto p-4 max-w-4xl">
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="w-6 h-6 text-green-600" />
+            <h1 className="text-2xl font-bold text-gray-900">Mijn Taken</h1>
+          </div>
+          <p className="text-gray-600">
+            Bekijk en beheer je tuintaken per week. Zie welke bloemen aandacht nodig hebben.
+          </p>
+        </div>
+        <WeeklyTaskList />
+      </div>
+    )
   }
 }
 

@@ -19,6 +19,7 @@ import {
   CheckCircle
 } from "lucide-react"
 import { TaskService } from "@/lib/services/task.service"
+import { useAuth } from "@/hooks/use-supabase-auth"
 import type { 
   WeeklyCalendar, 
   WeeklyTask, 
@@ -40,6 +41,7 @@ interface WeeklyTaskListProps {
 }
 
 export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
+  const { user } = useAuth()
   const [calendar, setCalendar] = useState<WeeklyCalendar | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -66,7 +68,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     setError(null)
     
     try {
-      const { data, error } = await TaskService.getWeeklyCalendar(weekStart)
+      const { data, error } = await TaskService.getWeeklyCalendar(weekStart, user)
       
       if (error) {
         setError(error)
