@@ -445,26 +445,6 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
         </CardHeader>
       </Card>
 
-      {/* Week summary */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-blue-600">{calendar.total_tasks}</div>
-              <div className="text-sm text-gray-600">Totaal taken</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-green-600">{calendar.completed_tasks}</div>
-              <div className="text-sm text-gray-600">Afgerond</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-red-600">{calendar.overdue_tasks}</div>
-              <div className="text-sm text-gray-600">Verlopen</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Filter controls */}
       <Card>
         <CardContent className="p-4">
