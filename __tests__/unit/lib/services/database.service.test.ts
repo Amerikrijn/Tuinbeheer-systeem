@@ -129,7 +129,8 @@ describe('TuinService', () => {
         location: 'Test Location',
         description: 'A beautiful garden',
         garden_type: 'vegetable',
-        total_area: '100m²'
+        total_area: '100m²',
+        season_year: 2024
       }
 
       const createdGarden = {

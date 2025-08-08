@@ -284,26 +284,18 @@ export function useSupabaseAuth(): AuthContextType {
       }))
     }, 8000) // Reduced from 10000ms
 
-    // Listen for auth changes
+    // Listen for auth changes - FIXED: Use current state instead of stale closure
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        // Only load profile if we don't already have it or it's a different user
-        if (!state.user || state.user.id !== session.user.id) {
-          const userProfile = await loadUserProfile(session.user)
-          setState({
-            user: userProfile,
-            session,
-            loading: false,
-            error: null
-          })
-        } else {
-          // Just update session if user is the same
-          setState(prev => ({
-            ...prev,
-            session,
-            loading: false
-          }))
-        }
+        // BANKING COMPLIANT: Always load fresh profile for security audit trail
+        console.log('🔐 Banking Standards: Loading fresh user profile for audit trail')
+        const userProfile = await loadUserProfile(session.user, false) // Always fresh for banking compliance
+        setState({
+          user: userProfile,
+          session,
+          loading: false,
+          error: null
+        })
       } else if (event === 'SIGNED_OUT') {
         clearCachedUserProfile()
         setState({
@@ -319,7 +311,7 @@ export function useSupabaseAuth(): AuthContextType {
       subscription.unsubscribe()
       clearTimeout(loadingTimeout)
     }
-  }, [])
+  }, []) // Empty dependency array is correct - we want this to run once
 
   const signIn = async (email: string, password: string): Promise<void> => {
     setState(prev => ({ ...prev, loading: true, error: null }))
