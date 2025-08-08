@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { supabase } from '@/lib/supabase'
 import { Loader2 } from 'lucide-react'
@@ -20,6 +20,7 @@ function ProtectedRouteComponent({
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const [timeoutReached, setTimeoutReached] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
@@ -61,7 +62,7 @@ function ProtectedRouteComponent({
       const checkTempPassword = async () => {
         try {
           const { data: { user: freshUser } } = await supabase.auth.getUser()
-          if (freshUser?.user_metadata?.temp_password && router.pathname !== '/auth/change-password') {
+          if (freshUser?.user_metadata?.temp_password && pathname !== '/auth/change-password') {
             router.push('/auth/change-password')
             return
           }
