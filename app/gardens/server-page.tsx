@@ -13,12 +13,11 @@
 
 import { Suspense } from 'react'
 import { createClient } from '@supabase/supabase-js'
-import { getSupabaseConfig } from '@/lib/config'
+import { getSupabaseConfig } from '@/lib/config-secure'
 import { validateGardenAccess } from '@/lib/security/garden-access'
 import { logger } from '@/lib/logger'
-import { GardenCard } from '@/components/gardens/garden-card'
-import { GardenSkeleton } from '@/components/gardens/garden-skeleton'
-import { EmptyState } from '@/components/ui/empty-state'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { headers } from 'next/headers'
 
@@ -98,24 +97,56 @@ async function GardensList({ userId }: { userId: string }) {
   
   if (gardens.length === 0) {
     return (
-      <EmptyState
-        icon="🌱"
-        title="Nog geen tuinen"
-        description="Maak je eerste tuin aan om te beginnen met tuinbeheer."
-        actionLabel="Nieuwe tuin"
-        actionHref="/gardens/new"
-      />
+      <div className="text-center py-12">
+        <div className="text-6xl mb-4">🌱</div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen tuinen</h3>
+        <p className="text-gray-600 mb-6">Maak je eerste tuin aan om te beginnen met tuinbeheer.</p>
+        <a
+          href="/gardens/new"
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+        >
+          Nieuwe tuin
+        </a>
+      </div>
     )
   }
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {gardens.map((garden) => (
-        <GardenCard
-          key={garden.id}
-          garden={garden}
-          userRole={garden.user_role}
-        />
+        <Card key={garden.id} className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              🌱 {garden.name}
+            </CardTitle>
+            <CardDescription>
+              {garden.description || 'Geen beschrijving'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p className="text-sm text-gray-600">
+                📍 {garden.location}
+              </p>
+              {garden.total_area && (
+                <p className="text-sm text-gray-600">
+                  📏 {garden.total_area}
+                </p>
+              )}
+              <div className="flex justify-between items-center mt-4">
+                <span className="text-xs text-gray-500">
+                  {garden.user_role === 'admin' ? '👑 Admin' : '👤 Gebruiker'}
+                </span>
+                <a
+                  href={`/gardens/${garden.id}`}
+                  className="text-green-600 hover:text-green-700 text-sm font-medium"
+                >
+                  Bekijken →
+                </a>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   )
@@ -211,7 +242,22 @@ function GardensSkeleton() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {Array.from({ length: 6 }).map((_, i) => (
-        <GardenSkeleton key={i} />
+        <Card key={i}>
+          <CardHeader>
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/2" />
+              <div className="flex justify-between items-center mt-4">
+                <Skeleton className="h-3 w-16" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   )
