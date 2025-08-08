@@ -13,6 +13,7 @@ import { uiLogger } from "@/lib/logger"
 import type { LogbookEntryWithDetails } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/hooks/use-supabase-auth"
 import { format, parseISO } from "date-fns"
 import { nl } from "date-fns/locale"
 
@@ -26,6 +27,7 @@ interface LogbookDetailPageState {
 function LogbookDetailPageContent({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
+  const { isAdmin } = useAuth()
   
   const [state, setState] = React.useState<LogbookDetailPageState>({
     entry: null,
