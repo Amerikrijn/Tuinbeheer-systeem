@@ -48,7 +48,10 @@ export function useActivityTimeout() {
 
   const handleAutoLogout = useCallback(async () => {
     try {
-      await signOut()
+      // Banking Standard: Null safety check for signOut function
+      if (signOut) {
+        await signOut()
+      }
       toast({
         title: "Automatisch uitgelogd",
         description: "Je bent automatisch uitgelogd vanwege inactiviteit",
