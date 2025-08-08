@@ -18,7 +18,8 @@ interface SimpleTasksViewProps {
 export function SimpleTasksView({}: SimpleTasksViewProps) {
   const router = useRouter()
   const { user, getAccessibleGardens, loadGardenAccess } = useAuth()
-  const [tasks, setTasks] = useState([])
+  // Banking Standard: Explicit task type for data integrity
+  const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [gardenNames, setGardenNames] = useState<string[]>([])
