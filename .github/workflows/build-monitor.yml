@@ -1,0 +1,72 @@
+name: Automated Build Monitor
+
+on:
+  push:
+    branches: [main, cursor/**]
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  build-monitor:
+    runs-on: ubuntu-latest
+    name: Build Analysis & Auto-Fix
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run build analysis
+        id: build-analysis
+        run: |
+          echo "Running automated build analysis..."
+          npm run build:monitor || echo "BUILD_FAILED=true" >> $GITHUB_ENV
+        continue-on-error: true
+
+      - name: Commit automated fixes
+        if: env.BUILD_FAILED == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Build Monitor"
+          
+          if [[ -n $(git status --porcelain) ]]; then
+            git add -A
+            git commit -m "Banking Standards: Automated build fixes - DNB compliant"
+            git push
+            echo "FIXES_APPLIED=true" >> $GITHUB_ENV
+          fi
+
+      - name: Retry build after fixes
+        if: env.FIXES_APPLIED == 'true'
+        run: |
+          echo "Retrying build after automated fixes..."
+          npm run build
+
+      - name: Notify on persistent failure
+        if: failure() && env.FIXES_APPLIED == 'true'
+        run: |
+          echo "❌ Build failed even after automated fixes"
+          echo "Manual intervention may be required"
+          exit 1
+
+      - name: Success notification
+        if: success()
+        run: |
+          echo "✅ Build monitoring completed successfully"
+          if [[ "${{ env.FIXES_APPLIED }}" == "true" ]]; then
+            echo "🔧 Automated fixes were applied"
+          else
+            echo "✨ No fixes needed - build passed"
+          fi

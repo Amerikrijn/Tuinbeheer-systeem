@@ -45,7 +45,10 @@
     "health:check": "curl -f http://localhost:3000/api/health || exit 1",
     "precommit": "npm run format:check && npm run lint && npm run type-check && npm run test:unit",
     "prepush": "npm run test:ci && npm run build",
-    "postinstall": "husky install"
+    "postinstall": "husky install",
+    "build:monitor": "ts-node scripts/build-monitor.ts analyze",
+    "build:fix": "npm run build:monitor && npm run build",
+    "webhook:test": "curl -X GET http://localhost:3000/api/webhooks/vercel-build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

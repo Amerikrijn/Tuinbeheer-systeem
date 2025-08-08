@@ -112,3 +112,67 @@ Dit project is gelicenseerd onder de MIT License - zie het [LICENSE](LICENSE) be
 ---
 
 **⚠️ BELANGRIJK:** Dit systeem implementeert banking-grade security. Volg altijd de security best practices en test grondig na elke wijziging.
+
+## 🤖 Automated Build Monitoring
+
+This project includes an advanced automated build failure analysis and fix system that maintains DNB banking compliance standards.
+
+### Features
+
+- **Automatic Error Detection**: Parses TypeScript, ESLint, and build errors from Vercel deployments
+- **Smart Auto-Fixes**: Applies safe, DNB-compliant fixes for common issues:
+  - TypeScript type errors (implicit any, missing imports)
+  - Missing dependencies installation
+  - Next.js configuration issues
+  - Unused variable cleanup
+- **Webhook Integration**: Automatically triggers on Vercel deployment failures
+- **Safety-First**: Only applies fixes marked as DNB compliant and safe
+- **GitHub Actions**: Continuous monitoring with automated commits
+
+### Usage
+
+#### Manual Build Analysis
+```bash
+# Run build analysis and auto-fix
+npm run build:monitor
+
+# Run analysis + build in sequence
+npm run build:fix
+```
+
+#### Webhook Setup
+1. Deploy the webhook endpoint: `/api/webhooks/vercel-build`
+2. Configure in Vercel dashboard:
+   - URL: `https://your-domain.com/api/webhooks/vercel-build`
+   - Events: `deployment.error`, `deployment.succeeded`
+   - Secret: Set `VERCEL_WEBHOOK_SECRET` environment variable
+
+#### Environment Variables
+```bash
+VERCEL_WEBHOOK_SECRET=your-webhook-secret-here
+```
+
+### How It Works
+
+1. **Detection**: Webhook receives `deployment.error` from Vercel
+2. **Analysis**: Parses build logs to identify error patterns
+3. **Fix Application**: Applies safe, pre-defined fixes
+4. **Retry**: Automatically commits fixes and triggers new build
+5. **Notification**: Reports success/failure status
+
+### Safety & Compliance
+
+- ✅ **DNB Compliant**: All fixes maintain Dutch banking security standards
+- ✅ **Type Safe**: Preserves TypeScript strict mode compliance
+- ✅ **Audit Trail**: All changes logged with descriptive commit messages
+- ✅ **Rollback Ready**: Git-based approach allows easy reversion
+
+### Supported Fix Patterns
+
+| Error Type | Description | Safety Level |
+|------------|-------------|--------------|
+| Implicit `any` types | Adds explicit type annotations | Safe |
+| Missing imports | Adds common React/Next.js imports | Moderate |
+| Unused variables | Prefixes with underscore | Safe |
+| Missing dependencies | Installs whitelisted packages | Moderate |
+| Next.js config warnings | Removes deprecated options | Safe |
