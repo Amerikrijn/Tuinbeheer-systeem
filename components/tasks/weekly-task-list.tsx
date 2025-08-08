@@ -177,45 +177,33 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             </button>
             
             <div className="flex-1 min-w-0">
-              {/* Plantvak → Bloem info - always show for now */}
-              <div className="flex items-center gap-3 mb-2 text-lg text-gray-800 leading-relaxed">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3.5 h-3.5 rounded-full border"
-                    style={{ 
-                      backgroundColor: task.plant_color || '#10B981',
-                      borderColor: task.plant_color || '#10B981'
-                    }}
-                    aria-hidden="true"
-                  />
-                  <span className="font-semibold text-gray-900">{task.plant_bed_name}</span>
-                </div>
+              {/* Header: Plantvak → Bloem • Taak (one row) */}
+              <div className="flex items-center gap-2 mb-1 text-base text-gray-900 leading-snug">
+                <div className="w-3.5 h-3.5 rounded-full border"
+                  style={{ 
+                    backgroundColor: task.plant_color || '#10B981',
+                    borderColor: task.plant_color || '#10B981'
+                  }}
+                  aria-hidden="true"
+                />
+                <span className="font-medium truncate max-w-[30%]">{task.plant_bed_name}</span>
                 <span className="text-gray-500" aria-hidden>→</span>
-                <span className="text-gray-900 font-semibold">{task.plant_name}</span>
+                <span className="font-semibold truncate max-w-[30%]">{task.plant_name}</span>
+                <span className="text-gray-300" aria-hidden>•</span>
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className={`text-base ${task.completed ? 'opacity-60' : ''}`}>{taskTypeConfig?.icon || '📝'}</span>
+                  <span className={`font-semibold truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>{task.title}</span>
+                </div>
               </div>
 
-              {/* Task title with better completed styling */}
-              <div className="flex items-start gap-3 mb-2">
-                <span className={`text-2xl transition-all duration-200 ${task.completed ? 'opacity-60' : ''}`}>
-                  {taskTypeConfig?.icon || '📝'}
-                </span>
-                <div className="flex-1">
-                  <h4 className={`text-2xl font-semibold tracking-tight transition-all duration-200 ${
-                    task.completed 
-                      ? 'line-through text-gray-500' 
-                      : 'text-gray-900'
-                  }`}>
-                    {task.title}
-                  </h4>
-                  {task.description && (
-                    <p className={`text-base mt-1 leading-relaxed transition-all duration-200 ${
-                      task.completed ? 'text-gray-500' : 'text-gray-700'
-                    }`}>
-                      {task.description}
-                    </p>
-                  )}
-                </div>
-              </div>
+              {/* Smaller description below */}
+              {task.description && (
+                <p className={`text-sm mt-1 leading-relaxed ${
+                  task.completed ? 'text-gray-500' : 'text-gray-700'
+                }`}>
+                  {task.description}
+                </p>
+              )}
 
               {/* Task metadata with improved completed state styling */}
               <div className="flex items-center gap-2 flex-wrap text-xs text-gray-600">

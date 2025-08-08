@@ -2625,18 +2625,20 @@ export default function PlantBedViewPage() {
                               {/* Task Content */}
                               <div className="flex-1">
                                 <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <h4 className={`text-lg font-semibold ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                                      {task.title}
-                                    </h4>
-                                    {task.description && (
-                                      <p className={`text-base mt-1 ${task.completed ? 'text-gray-500' : 'text-gray-700'}`}>
-                                          {task.description}
-                                        </p>
-                                    )}
-                                    
-                                    {/* Task Meta Info */}
-                                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
+                                  <div className="flex-1 min-w-0">
+                                      {/* Header: Plantvak → Bloem • Taak (one row) */}
+                                      <div className="flex items-center gap-2 mb-1 text-base text-gray-900 leading-snug">
+                                        <span className="text-gray-300" aria-hidden>•</span>
+                                        <span className={`font-semibold truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>{task.title}</span>
+                                      </div>
+                                      {task.description && (
+                                        <p className={`text-sm mt-1 ${task.completed ? 'text-gray-500' : 'text-gray-700'}`}>
+                                            {task.description}
+                                          </p>
+                                      )}
+                                      
+                                      {/* Task Meta Info */}
+                                      <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                                       <div className="flex items-center gap-1">
                                         {taskTypeConfig && (
                                           <>
