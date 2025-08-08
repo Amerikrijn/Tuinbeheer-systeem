@@ -230,15 +230,16 @@ export class HttpClient {
           httpError.url = fullUrl
           httpError.response = response
 
-          // Log error
-          logger.error('HTTP Error', {
+          // Log error - create separate object to avoid TypeScript confusion
+          const errorLogData = {
             method: method,
             url: fullUrl,
             status: response.status,
             statusText: response.statusText,
             attempt,
             duration,
-          })
+          }
+          logger.error('HTTP Error', httpError, errorLogData)
 
           // Check if we should retry
           if (attempt < maxAttempts && !skipRetry && isRetryableError(httpError)) {
@@ -291,8 +292,8 @@ export class HttpClient {
           httpError.url = fullUrl
         }
 
-        // Log error
-        logger.error('HTTP Request Failed', {
+        // Log error - create separate object to avoid TypeScript confusion
+        const requestFailedLogData = {
           method: method,
           url: fullUrl,
           attempt,
@@ -301,7 +302,8 @@ export class HttpClient {
           isTimeout: httpError.isTimeout,
           isAborted: httpError.isAborted,
           status: httpError.status,
-        })
+        }
+        logger.error('HTTP Request Failed', httpError, requestFailedLogData)
 
         // Check if we should retry
         if (attempt < maxAttempts && !skipRetry && isRetryableError(httpError)) {

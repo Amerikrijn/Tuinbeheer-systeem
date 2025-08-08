@@ -528,6 +528,7 @@ export class LogbookService {
     plant_bed_id?: string
     plant_id?: string
     garden_id?: string
+    garden_ids?: string[]
     limit?: number
     offset?: number
   }): Promise<ApiResponse<LogbookEntryWithDetails[]>> {

@@ -81,42 +81,91 @@ class BuildMonitor {
         }
       },
       
-      // Missing dependencies
+             // Jest testing library types
+       {
+         pattern: /Property '(toBeInTheDocument|toHaveClass|toBeDisabled|toHaveAttribute)' does not exist on type 'JestMatchers<HTMLElement>'/,
+         description: 'Install @testing-library/jest-dom for Jest matchers',
+         safety: 'safe',
+         dnbCompliant: true,
+         fix: async (error, content) => {
+           try {
+             await execAsync('npm install --save-dev @testing-library/jest-dom');
+             console.log('✅ Installed @testing-library/jest-dom for Jest matchers');
+             return 'PACKAGE_INSTALLED'; // Signal that a fix was applied
+           } catch (installError) {
+             console.log('❌ Failed to install @testing-library/jest-dom:', installError.message);
+           }
+           return content;
+         }
+       },
+
+       // Missing dependencies
+       {
+         pattern: /Module not found: Can't resolve '(.+)'/,
+         description: 'Install missing npm packages',
+         safety: 'moderate',
+         dnbCompliant: true,
+         fix: async (error, content) => {
+           const match = error.message.match(/Module not found: Can't resolve '(.+)'/);
+           if (!match) return content;
+           
+           const missingModule = match[1];
+           
+           // Common packages that are safe to install
+           const safePackages = [
+             '@types/node',
+             '@types/react',
+             '@types/react-dom',
+             'lucide-react',
+             'clsx',
+             'tailwind-merge',
+             'date-fns',
+             'zod',
+             'bcryptjs',
+             '@types/bcryptjs',
+             'node-mocks-http',
+             '@types/node-mocks-http'
+           ];
+           
+           if (safePackages.includes(missingModule)) {
+             try {
+               await execAsync(`npm install ${missingModule}`);
+               console.log(`✅ Installed missing package: ${missingModule}`);
+               return 'PACKAGE_INSTALLED'; // Signal that a fix was applied
+             } catch (installError) {
+               console.log(`❌ Failed to install ${missingModule}:`, installError.message);
+             }
+           }
+           
+           return content;
+         }
+       },
+
+      // Object literal property errors in logger calls
       {
-        pattern: /Module not found: Can't resolve '(.+)'/,
-        description: 'Install missing npm packages',
-        safety: 'moderate',
+        pattern: /Object literal may only specify known properties, and 'method' does not exist in type 'Error'/,
+        description: 'Fix method property in logger object literals',
+        safety: 'safe',
         dnbCompliant: true,
         fix: async (error, content) => {
-          const match = error.message.match(/Module not found: Can't resolve '(.+)'/);
-          if (!match) return content;
+          const lines = content.split('\n');
           
-          const missingModule = match[1];
-          
-          // Common packages that are safe to install
-          const safePackages = [
-            '@types/node',
-            '@types/react',
-            '@types/react-dom',
-            'lucide-react',
-            'clsx',
-            'tailwind-merge',
-            'date-fns',
-            'zod',
-            'bcryptjs',
-            '@types/bcryptjs'
-          ];
-          
-          if (safePackages.includes(missingModule)) {
-            try {
-              await execAsync(`npm install ${missingModule}`);
-              console.log(`✅ Installed missing package: ${missingModule}`);
-            } catch (installError) {
-              console.log(`❌ Failed to install ${missingModule}:`, installError.message);
+          // Find logger calls with method shorthand and fix them
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes('logger.') && 
+                (lines[i + 1]?.includes('method,') || lines[i + 2]?.includes('method,'))) {
+              
+              // Look for method, in the next few lines and replace with method: method,
+              for (let j = i + 1; j < Math.min(i + 5, lines.length); j++) {
+                if (lines[j].includes('method,')) {
+                  lines[j] = lines[j].replace('method,', 'method: method,');
+                  break;
+                }
+              }
             }
           }
           
-          return content;
+          return lines.join('\n');
         }
       },
 
@@ -157,8 +206,10 @@ class BuildMonitor {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
-      // TypeScript errors
+      // TypeScript errors (both formats)
       const tsErrorMatch = line.match(/^(.+):(\d+):(\d+) - error TS(\d+): (.+)$/);
+      const tsErrorMatch2 = line.match(/^(.+)\((\d+),(\d+)\): error TS(\d+): (.+)$/);
+      
       if (tsErrorMatch) {
         errors.push({
           file: tsErrorMatch[1],
@@ -168,6 +219,19 @@ class BuildMonitor {
           type: 'typescript',
           severity: 'error',
           code: `TS${tsErrorMatch[4]}`
+        });
+        continue;
+      }
+      
+      if (tsErrorMatch2) {
+        errors.push({
+          file: tsErrorMatch2[1],
+          line: parseInt(tsErrorMatch2[2]),
+          column: parseInt(tsErrorMatch2[3]),
+          message: tsErrorMatch2[5],
+          type: 'typescript',
+          severity: 'error',
+          code: `TS${tsErrorMatch2[4]}`
         });
         continue;
       }
@@ -227,17 +291,19 @@ class BuildMonitor {
             const fileContent = await fs.readFile(filePath, 'utf8');
             const fixedContent = await pattern.fix(error, fileContent);
 
-            if (fixedContent !== fileContent) {
-              await fs.writeFile(filePath, fixedContent);
-              console.log(`✅ Applied fix: ${pattern.description}`);
-              fixesApplied++;
-            }
-          } else {
-            // Handle non-file specific errors (like missing dependencies)
-            await pattern.fix(error, '');
-            console.log(`✅ Applied fix: ${pattern.description}`);
-            fixesApplied++;
-          }
+                         if (fixedContent !== fileContent) {
+               await fs.writeFile(filePath, fixedContent);
+               console.log(`✅ Applied fix: ${pattern.description}`);
+               fixesApplied++;
+             }
+           } else {
+             // Handle non-file specific errors (like missing dependencies)
+             const result = await pattern.fix(error, '');
+             if (result === 'PACKAGE_INSTALLED' || result !== '') {
+               console.log(`✅ Applied fix: ${pattern.description}`);
+               fixesApplied++;
+             }
+           }
         } catch (fixError) {
           console.log(`❌ Failed to apply fix for ${error.message}:`, fixError.message);
         }
@@ -258,7 +324,13 @@ class BuildMonitor {
       console.log(`\n📋 Build attempt ${attempts}/${this.maxAutoFixAttempts}`);
 
       try {
-        // Run the build and capture output
+        // First run TypeScript type checking
+        const { stdout: tscStdout, stderr: tscStderr } = await execAsync('npm run type-check', { 
+          cwd: process.cwd(),
+          timeout: 300000 // 5 minutes timeout
+        });
+        
+        // Then run the build and capture output
         const { stdout, stderr } = await execAsync('npm run build', { 
           cwd: process.cwd(),
           timeout: 300000 // 5 minutes timeout
@@ -276,6 +348,7 @@ class BuildMonitor {
       } catch (buildError) {
         console.log(`❌ Build failed on attempt ${attempts}`);
         
+        // Combine TypeScript and build output for analysis
         const buildOutput = (buildError.stdout || '') + (buildError.stderr || '');
         const errors = await this.parseVercelBuildLogs(buildOutput);
         
