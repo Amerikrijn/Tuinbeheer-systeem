@@ -2,7 +2,7 @@
 
 
 import { createClient } from '@supabase/supabase-js';
-import { getSupabaseConfig } from './config';
+import { getSupabaseConfig } from './config-secure';
 
 // ===================================================================
 // SUPABASE CLIENT INITIALIZATION

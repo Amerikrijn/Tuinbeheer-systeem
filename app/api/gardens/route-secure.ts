@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/auth/server-auth'
+import { requireAuth } from '@/lib/auth/server-auth-simple'
 import { supabase } from '@/lib/supabase'
-import { validateGardenData } from '@/lib/security/validation'
+import { GardenCreateSchema, validateRequestBody } from '@/lib/security/validation'
 
 /**
  * SECURE GARDENS API - Met Authentication & RLS
@@ -103,10 +103,10 @@ export async function POST(request: NextRequest) {
     }
     
     // SECURITY: Validate input with Zod
-    const validation = validateGardenData(body)
+    const validation = await validateRequestBody(GardenCreateSchema, body)
     if (!validation.success) {
       return NextResponse.json(
-        { error: validation.error.issues[0].message, success: false },
+        { error: validation.error, success: false },
         { status: 400 }
       )
     }
