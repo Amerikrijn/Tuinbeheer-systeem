@@ -189,17 +189,18 @@ export default async function GardensServerPage() {
         <GardensHeader />
         
         <ErrorBoundary
-          fallback={
+          fallback={({ error, reset }) => (
             <div className="text-center py-12">
               <p className="text-red-600">Er is een fout opgetreden bij het laden van je tuinen.</p>
+              <p className="text-sm text-gray-500 mt-2">{error.message}</p>
               <button 
-                onClick={() => window.location.reload()}
+                onClick={reset}
                 className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
               >
                 Probeer opnieuw
               </button>
             </div>
-          }
+          )}
         >
           <Suspense fallback={<GardensSkeleton />}>
             <GardensList userId={user.id} />
