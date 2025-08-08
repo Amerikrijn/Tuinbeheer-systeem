@@ -178,7 +178,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             
             <div className="flex-1 min-w-0">
               {/* Plantvak → Bloem info - always show for now */}
-              <div className="flex items-center gap-3 mb-2 text-base text-gray-700 leading-relaxed">
+              <div className="flex items-center gap-3 mb-2 text-lg text-gray-800 leading-relaxed">
                 <div className="flex items-center gap-2">
                   <div 
                     className="w-3.5 h-3.5 rounded-full border"
@@ -200,7 +200,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                   {taskTypeConfig?.icon || '📝'}
                 </span>
                 <div className="flex-1">
-                  <h4 className={`text-xl font-semibold tracking-tight transition-all duration-200 ${
+                  <h4 className={`text-2xl font-semibold tracking-tight transition-all duration-200 ${
                     task.completed 
                       ? 'line-through text-gray-500' 
                       : 'text-gray-900'
