@@ -692,16 +692,15 @@ function RoleBasedHomeContent() {
         {/* Header with Logbook button */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-6 h-6 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Mijn Taken</h1>
+            <div className="flex items-center gap-3">
+              <Calendar className="w-7 h-7 text-green-700" />
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Mijn Taken</h1>
             </div>
             <Button 
               onClick={() => router.push('/logbook')}
               variant="outline"
-              className="flex items-center gap-2"
+              className="text-sm"
             >
-              <BookOpen className="w-4 h-4" />
               Logboek
             </Button>
           </div>

@@ -35,17 +35,17 @@ function TasksPageContent() {
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
           <Button variant="outline" size="sm" onClick={goBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-5 h-5 mr-2" />
             Terug
           </Button>
           
-          <div className="flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-green-600" />
-            <h1 className="text-2xl font-bold text-gray-900">Taken Overzicht</h1>
+          <div className="flex items-center gap-3">
+            <Calendar className="w-7 h-7 text-green-700" />
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Taken Overzicht</h1>
           </div>
         </div>
         
-        <p className="text-gray-600">
+        <p className="text-gray-700 text-lg leading-relaxed">
           Bekijk en beheer je tuintaken per week. Zie welke bloemen aandacht nodig hebben.
         </p>
       </div>
