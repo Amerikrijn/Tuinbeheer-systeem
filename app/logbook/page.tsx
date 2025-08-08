@@ -197,8 +197,18 @@ function LogbookPageContent() {
           timeoutPromise
         ]) as any
       } catch (error) {
-        console.error('🔥 Logbook query error:', error)
-        throw new Error(`Logbook query failed: ${error.message}`)
+        // DNB/NCSC Compliant Error Handling: Secure logging + type safety
+        const errorMessage = error instanceof Error ? error.message : 'Unknown database error'
+        const errorCode = error instanceof Error && 'code' in error ? (error as any).code : 'UNKNOWN'
+        
+        console.error('🔥 Logbook query error:', {
+          message: errorMessage,
+          code: errorCode,
+          timestamp: new Date().toISOString()
+        })
+        
+        // Banking Standard: Don't expose internal errors to client
+        throw new Error('Database query failed - please try again')
       }
       
       if (!response || !response.success || !response.data) {
