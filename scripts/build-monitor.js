@@ -1,40 +1,21 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env node
 
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import fs from 'fs/promises';
-import path from 'path';
+const { exec } = require('child_process');
+const { promisify } = require('util');
+const fs = require('fs').promises;
+const path = require('path');
 
 const execAsync = promisify(exec);
 
-interface BuildError {
-  file: string;
-  line: number;
-  column: number;
-  message: string;
-  type: 'typescript' | 'eslint' | 'build' | 'dependency';
-  severity: 'error' | 'warning';
-  code?: string;
-}
-
-interface FixPattern {
-  pattern: RegExp;
-  description: string;
-  fix: (error: BuildError, fileContent: string) => Promise<string>;
-  safety: 'safe' | 'moderate' | 'risky';
-  dnbCompliant: boolean;
-}
-
 class BuildMonitor {
-  private fixPatterns: FixPattern[] = [];
-  private maxAutoFixAttempts = 3;
-  private safetyLevel: 'safe' | 'moderate' | 'risky' = 'moderate';
-
   constructor() {
+    this.fixPatterns = [];
+    this.maxAutoFixAttempts = 3;
+    this.safetyLevel = 'moderate';
     this.initializeFixPatterns();
   }
 
-  private initializeFixPatterns() {
+  initializeFixPatterns() {
     this.fixPatterns = [
       // TypeScript type errors
       {
@@ -42,28 +23,18 @@ class BuildMonitor {
         description: 'Fix implicit any type in index access',
         safety: 'safe',
         dnbCompliant: true,
-        fix: async (error: BuildError, content: string) => {
+        fix: async (error, content) => {
           const lines = content.split('\n');
-          const errorLine = lines[error.line - 1];
           
-          // Look for headers[...] = ... pattern
-          if (errorLine.includes('headers[') && errorLine.includes('] =')) {
-            const beforeHeaders = errorLine.substring(0, errorLine.indexOf('headers'));
-            const afterHeaders = errorLine.substring(errorLine.indexOf('headers') + 7);
-            const replacement = `${beforeHeaders}headers: Record<string, string>${afterHeaders}`;
-            
-            // Find the headers declaration and add type annotation
-            for (let i = error.line - 10; i < error.line; i++) {
-              if (i >= 0 && lines[i].includes('const headers = {')) {
-                lines[i] = lines[i].replace('const headers = {', 'const headers: Record<string, string> = {');
-                break;
-              }
+          // Find the headers declaration and add type annotation
+          for (let i = Math.max(0, error.line - 10); i < error.line; i++) {
+            if (i < lines.length && lines[i].includes('const headers = {')) {
+              lines[i] = lines[i].replace('const headers = {', 'const headers: Record<string, string> = {');
+              break;
             }
-            
-            return lines.join('\n');
           }
           
-          return content;
+          return lines.join('\n');
         }
       },
       
@@ -73,12 +44,12 @@ class BuildMonitor {
         description: 'Add missing imports for undefined variables',
         safety: 'moderate',
         dnbCompliant: true,
-        fix: async (error: BuildError, content: string) => {
+        fix: async (error, content) => {
           const match = error.message.match(/Cannot find name '(.+)'/);
           if (!match) return content;
           
           const missingName = match[1];
-          const commonImports: Record<string, string> = {
+          const commonImports = {
             'React': "import React from 'react';",
             'useState': "import { useState } from 'react';",
             'useEffect': "import { useEffect } from 'react';",
@@ -110,37 +81,13 @@ class BuildMonitor {
         }
       },
       
-      // Unused variables
-      {
-        pattern: /'(.+)' is declared but its value is never read/,
-        description: 'Remove unused variables or mark as used',
-        safety: 'safe',
-        dnbCompliant: true,
-        fix: async (error: BuildError, content: string) => {
-          const match = error.message.match(/'(.+)' is declared but its value is never read/);
-          if (!match) return content;
-          
-          const unusedVar = match[1];
-          const lines = content.split('\n');
-          const errorLine = lines[error.line - 1];
-          
-          // If it's a destructured variable, prefix with underscore
-          if (errorLine.includes(`${unusedVar}`) && (errorLine.includes('const {') || errorLine.includes('const ['))) {
-            lines[error.line - 1] = errorLine.replace(unusedVar, `_${unusedVar}`);
-            return lines.join('\n');
-          }
-          
-          return content;
-        }
-      },
-      
       // Missing dependencies
       {
         pattern: /Module not found: Can't resolve '(.+)'/,
         description: 'Install missing npm packages',
         safety: 'moderate',
         dnbCompliant: true,
-        fix: async (error: BuildError, content: string) => {
+        fix: async (error, content) => {
           const match = error.message.match(/Module not found: Can't resolve '(.+)'/);
           if (!match) return content;
           
@@ -165,7 +112,7 @@ class BuildMonitor {
               await execAsync(`npm install ${missingModule}`);
               console.log(`✅ Installed missing package: ${missingModule}`);
             } catch (installError) {
-              console.log(`❌ Failed to install ${missingModule}:`, installError);
+              console.log(`❌ Failed to install ${missingModule}:`, installError.message);
             }
           }
           
@@ -179,7 +126,7 @@ class BuildMonitor {
         description: 'Fix Next.js configuration issues',
         safety: 'safe',
         dnbCompliant: true,
-        fix: async (error: BuildError, content: string) => {
+        fix: async (error, content) => {
           const configPath = path.join(process.cwd(), 'next.config.mjs');
           try {
             let configContent = await fs.readFile(configPath, 'utf8');
@@ -194,7 +141,7 @@ class BuildMonitor {
             await fs.writeFile(configPath, configContent);
             console.log('✅ Fixed Next.js config issues');
           } catch (configError) {
-            console.log('❌ Failed to fix Next.js config:', configError);
+            console.log('❌ Failed to fix Next.js config:', configError.message);
           }
           
           return content;
@@ -203,8 +150,8 @@ class BuildMonitor {
     ];
   }
 
-  async parseVercelBuildLogs(logContent: string): Promise<BuildError[]> {
-    const errors: BuildError[] = [];
+  async parseVercelBuildLogs(logContent) {
+    const errors = [];
     const lines = logContent.split('\n');
 
     for (let i = 0; i < lines.length; i++) {
@@ -253,27 +200,12 @@ class BuildMonitor {
           });
         }
       }
-
-      // ESLint errors
-      if (line.includes('ESLint:') || line.includes('eslint')) {
-        const eslintMatch = line.match(/(\d+):(\d+)\s+error\s+(.+)/);
-        if (eslintMatch) {
-          errors.push({
-            file: '',
-            line: parseInt(eslintMatch[1]),
-            column: parseInt(eslintMatch[2]),
-            message: eslintMatch[3],
-            type: 'eslint',
-            severity: 'error'
-          });
-        }
-      }
     }
 
     return errors;
   }
 
-  async autoFixErrors(errors: BuildError[]): Promise<boolean> {
+  async autoFixErrors(errors) {
     let fixesApplied = 0;
     const maxFixes = 10; // Prevent infinite loops
 
@@ -307,7 +239,7 @@ class BuildMonitor {
             fixesApplied++;
           }
         } catch (fixError) {
-          console.log(`❌ Failed to apply fix for ${error.message}:`, fixError);
+          console.log(`❌ Failed to apply fix for ${error.message}:`, fixError.message);
         }
       }
     }
@@ -316,7 +248,7 @@ class BuildMonitor {
     return fixesApplied > 0;
   }
 
-  async runBuildAndAnalyze(): Promise<boolean> {
+  async runBuildAndAnalyze() {
     console.log('🚀 Starting automated build analysis...');
     
     let attempts = 0;
@@ -341,10 +273,10 @@ class BuildMonitor {
         
         return true;
 
-      } catch (buildError: any) {
+      } catch (buildError) {
         console.log(`❌ Build failed on attempt ${attempts}`);
         
-        const buildOutput = buildError.stdout + buildError.stderr;
+        const buildOutput = (buildError.stdout || '') + (buildError.stderr || '');
         const errors = await this.parseVercelBuildLogs(buildOutput);
         
         if (errors.length === 0) {
@@ -369,18 +301,18 @@ class BuildMonitor {
     return false;
   }
 
-  async commitFixes(message: string) {
+  async commitFixes(message) {
     try {
       await execAsync('git add -A');
       await execAsync(`git commit -m "Banking Standards: ${message} - DNB compliant automated fixes"`);
       await execAsync('git push');
       console.log('✅ Committed and pushed automated fixes');
     } catch (commitError) {
-      console.log('❌ Failed to commit fixes:', commitError);
+      console.log('❌ Failed to commit fixes:', commitError.message);
     }
   }
 
-  async monitorFromWebhook(webhookPayload: any) {
+  async monitorFromWebhook(webhookPayload) {
     if (webhookPayload.type === 'deployment.error') {
       console.log('🚨 Deployment error detected via webhook');
       console.log('Deployment ID:', webhookPayload.payload.deployment.id);
@@ -393,15 +325,12 @@ class BuildMonitor {
         console.log('✅ Automated fix successful, build should pass now');
       } else {
         console.log('❌ Automated fix failed, manual intervention required');
-        
-        // Could send notification here (email, Slack, etc.)
         await this.sendFailureNotification(webhookPayload);
       }
     }
   }
 
-  async sendFailureNotification(webhookPayload: any) {
-    // Implementation for sending notifications
+  async sendFailureNotification(webhookPayload) {
     console.log('📧 Sending failure notification...');
     console.log('Deployment URL:', webhookPayload.payload.links.deployment);
   }
@@ -423,14 +352,12 @@ if (require.main === module) {
         process.exit(1);
       });
   } else if (command === 'webhook') {
-    // For webhook integration
     console.log('🔗 Webhook listener mode - integrate with your webhook endpoint');
   } else {
-    console.log('Usage: ts-node build-monitor.ts [analyze|webhook]');
+    console.log('Usage: node scripts/build-monitor.js [analyze|webhook]');
     console.log('  analyze - Run build analysis and auto-fix');
     console.log('  webhook - Process webhook payload (for integration)');
   }
 }
 
-export { BuildMonitor };
-export type { BuildError, FixPattern };
+module.exports = { BuildMonitor };
