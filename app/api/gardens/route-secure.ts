@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     const validation = await validateRequestBody(GardenCreateSchema, body)
     if (!validation.success) {
       return NextResponse.json(
-        { error: validation.error, success: false },
+        { error: validation.errors[0] || 'Validation failed', success: false },
         { status: 400 }
       )
     }
