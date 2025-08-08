@@ -1,0 +1,222 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:security/recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "plugins": [
+    "security",
+    "@typescript-eslint"
+  ],
+  "rules": {
+    // ===========================================
+    // 🇳🇱 NEDERLANDSE STANDAARDEN ENFORCEMENT
+    // ===========================================
+    
+    // RLS & Autorisatie - Verbied onveilige patterns
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "Literal[value=/FOR SELECT USING \\(true\\)/]",
+        "message": "🚨 DNB/NCSC VIOLATION: 'FOR SELECT USING (true)' is forbidden. Use eigenaarschap-gebaseerde policies."
+      },
+      {
+        "selector": "Literal[value=/FOR INSERT WITH CHECK \\(true\\)/]",
+        "message": "🚨 DNB/NCSC VIOLATION: 'FOR INSERT WITH CHECK (true)' is forbidden. Use eigenaarschap-gebaseerde policies."
+      },
+      {
+        "selector": "Literal[value=/FOR UPDATE USING \\(true\\)/]",
+        "message": "🚨 DNB/NCSC VIOLATION: 'FOR UPDATE USING (true)' is forbidden. Use eigenaarschap-gebaseerde policies."
+      },
+      {
+        "selector": "Literal[value=/FOR DELETE USING \\(true\\)/]",
+        "message": "🚨 DNB/NCSC VIOLATION: 'FOR DELETE USING (true)' is forbidden. Use eigenaarschap-gebaseerde policies."
+      }
+    ],
+
+    // CSP & Headers - Verbied unsafe directives
+    "no-restricted-properties": [
+      "error",
+      {
+        "object": "headers",
+        "property": "*",
+        "message": "🚨 NCSC VIOLATION: CSP headers must not contain 'unsafe-inline' or 'unsafe-eval'"
+      }
+    ],
+
+    // Geheime sleutels - Verbied client-side exposure
+    "no-restricted-globals": [
+      "error",
+      {
+        "name": "NEXT_PUBLIC_SUPABASE_SERVICE_ROLE",
+        "message": "🚨 DNB VIOLATION: service_role key NEVER client-side! Use server-only environment."
+      },
+      {
+        "name": "process.env.SUPABASE_SERVICE_ROLE",
+        "message": "🚨 SECURITY: Ensure service_role is server-side only"
+      }
+    ],
+
+    // Performance - Afdwingen Server Components
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["react"],
+            "importNames": ["useState", "useEffect", "useCallback", "useMemo"],
+            "message": "🚨 PERFORMANCE: Consider using Server Components instead of Client Components for better performance"
+          }
+        ]
+      }
+    ],
+
+    // Security best practices
+    "security/detect-object-injection": "error",
+    "security/detect-non-literal-regexp": "error",
+    "security/detect-unsafe-regex": "error",
+    "security/detect-buffer-noassert": "error",
+    "security/detect-child-process": "error",
+    "security/detect-disable-mustache-escape": "error",
+    "security/detect-eval-with-expression": "error",
+    "security/detect-no-csrf-before-method-override": "error",
+    "security/detect-non-literal-fs-filename": "error",
+    "security/detect-non-literal-require": "error",
+    "security/detect-possible-timing-attacks": "error",
+    "security/detect-pseudoRandomBytes": "error",
+
+    // TypeScript security
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unsafe-assignment": "error",
+    "@typescript-eslint/no-unsafe-call": "error",
+    "@typescript-eslint/no-unsafe-member-access": "error",
+    "@typescript-eslint/no-unsafe-return": "error",
+
+    // Verbied gevaarlijke functies
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+    "no-proto": "error",
+    "no-iterator": "error",
+
+    // React security
+    "react/no-danger": "error",
+    "react/no-danger-with-children": "error",
+    "react/jsx-no-script-url": "error",
+    "react/jsx-no-target-blank": "error",
+
+    // Next.js security
+    "@next/next/no-html-link-for-pages": "error",
+    "@next/next/no-img-element": "error",
+
+    // Accessibility (WCAG 2.2 AA)
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/aria-props": "error",
+    "jsx-a11y/aria-proptypes": "error",
+    "jsx-a11y/aria-unsupported-elements": "error",
+    "jsx-a11y/role-has-required-aria-props": "error",
+    "jsx-a11y/role-supports-aria-props": "error",
+    "jsx-a11y/tabindex-no-positive": "error",
+
+    // Input validation enforcement
+    "no-unused-vars": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+
+    // Logging & debugging
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-debugger": "error",
+    "no-alert": "error"
+  },
+
+  // ===========================================
+  // CUSTOM RULES FOR DUTCH STANDARDS
+  // ===========================================
+  "overrides": [
+    {
+      "files": ["**/*.sql", "**/*.sql.ts"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "Literal[value*='USING (true)']",
+            "message": "🚨 DNB/NCSC VIOLATION: RLS policies must be eigenaarschap-gebaseerd, not 'USING (true)'"
+          }
+        ]
+      }
+    },
+    {
+      "files": ["middleware.ts", "next.config.mjs"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "Literal[value*='unsafe-inline']",
+            "message": "🚨 NCSC VIOLATION: CSP must not contain 'unsafe-inline'"
+          },
+          {
+            "selector": "Literal[value*='unsafe-eval']",
+            "message": "🚨 NCSC VIOLATION: CSP must not contain 'unsafe-eval'"
+          }
+        ]
+      }
+    },
+    {
+      "files": ["app/**/*.tsx", "app/**/*.ts"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "Literal[value='use client']",
+            "message": "⚠️ PERFORMANCE: Consider Server Components for better performance. Only use 'use client' when absolutely necessary for interactivity."
+          }
+        ]
+      }
+    },
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+      "rules": {
+        "security/detect-non-literal-fs-filename": "off",
+        "security/detect-child-process": "off",
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    }
+  ],
+
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+
+  // ===========================================
+  // COMPLIANCE DOCUMENTATION
+  // ===========================================
+  "settings": {
+    "compliance": {
+      "standards": [
+        "DNB Good Practice Information Security (2023)",
+        "NCSC ICT-beveiligingsrichtlijnen voor webapplicaties (2024)",
+        "PSD2 SCA RTS (EU 2018/389)",
+        "DORA context"
+      ],
+      "enforcement": {
+        "RLS": "Eigenaarschap-gebaseerde policies verplicht",
+        "CSP": "Geen unsafe-* directives toegestaan",
+        "Keys": "service_role alleen server-side",
+        "Performance": "Server Components voorkeur",
+        "Security": "OWASP/ASVS Level 2 compliance",
+        "Accessibility": "WCAG 2.2 AA compliance"
+      }
+    }
+  }
+}

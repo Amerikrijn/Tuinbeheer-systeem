@@ -161,57 +161,195 @@ ALTER TABLE plant_beds ENABLE ROW LEVEL SECURITY;
 ALTER TABLE plants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE logbook_entries ENABLE ROW LEVEL SECURITY;
 
--- Gardens policies
-CREATE POLICY "Gardens are viewable by everyone" ON gardens
-    FOR SELECT USING (true);
+-- ===========================================
+-- 🚨 SECURE RLS POLICIES - DNB/NCSC COMPLIANT
+-- ===========================================
+-- DEZE POLICIES VERVANGEN DE ONVEILIGE "USING (true)" POLICIES
 
-CREATE POLICY "Gardens are insertable by authenticated users" ON gardens
-    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+-- Gardens policies - Eigenaarschap-gebaseerd
+CREATE POLICY "Gardens: Users can view gardens they have access to" ON gardens
+    FOR SELECT USING (
+        auth.uid() IS NOT NULL AND (
+            -- Garden creator can always view
+            created_by = auth.uid() OR
+            -- Users with explicit access (via user_garden_access table)
+            id IN (
+                SELECT garden_id FROM public.user_garden_access 
+                WHERE user_id = auth.uid()
+            ) OR
+            -- Admins can view all
+            EXISTS (
+                SELECT 1 FROM public.users 
+                WHERE id = auth.uid() AND role = 'admin'
+            )
+        )
+    );
 
-CREATE POLICY "Gardens are updatable by authenticated users" ON gardens
-    FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Gardens: Authenticated users can create gardens" ON gardens
+    FOR INSERT WITH CHECK (
+        auth.uid() IS NOT NULL AND
+        (created_by = auth.uid() OR created_by IS NULL)
+    );
 
-CREATE POLICY "Gardens are deletable by authenticated users" ON gardens
-    FOR DELETE USING (auth.role() = 'authenticated');
+CREATE POLICY "Gardens: Users can update gardens they have access to" ON gardens
+    FOR UPDATE USING (
+        auth.uid() IS NOT NULL AND (
+            created_by = auth.uid() OR
+            id IN (
+                SELECT garden_id FROM public.user_garden_access 
+                WHERE user_id = auth.uid()
+            ) OR
+            EXISTS (
+                SELECT 1 FROM public.users 
+                WHERE id = auth.uid() AND role = 'admin'
+            )
+        )
+    );
 
--- Plant beds policies
-CREATE POLICY "Plant beds are viewable by everyone" ON plant_beds
-    FOR SELECT USING (true);
+CREATE POLICY "Gardens: Users can delete gardens they own or admins" ON gardens
+    FOR DELETE USING (
+        auth.uid() IS NOT NULL AND (
+            created_by = auth.uid() OR
+            EXISTS (
+                SELECT 1 FROM public.users 
+                WHERE id = auth.uid() AND role = 'admin'
+            )
+        )
+    );
 
-CREATE POLICY "Plant beds are insertable by authenticated users" ON plant_beds
-    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+-- Plant beds policies - Via garden toegang
+CREATE POLICY "Plant beds: Users can view beds in accessible gardens" ON plant_beds
+    FOR SELECT USING (
+        auth.uid() IS NOT NULL AND
+        garden_id IN (
+            SELECT g.id FROM gardens g
+            WHERE g.created_by = auth.uid()
+               OR g.id IN (SELECT garden_id FROM public.user_garden_access WHERE user_id = auth.uid())
+               OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
 
-CREATE POLICY "Plant beds are updatable by authenticated users" ON plant_beds
-    FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Plant beds: Users can create beds in accessible gardens" ON plant_beds
+    FOR INSERT WITH CHECK (
+        auth.uid() IS NOT NULL AND
+        garden_id IN (
+            SELECT g.id FROM gardens g
+            WHERE g.created_by = auth.uid()
+               OR g.id IN (SELECT garden_id FROM public.user_garden_access WHERE user_id = auth.uid())
+               OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
 
-CREATE POLICY "Plant beds are deletable by authenticated users" ON plant_beds
-    FOR DELETE USING (auth.role() = 'authenticated');
+CREATE POLICY "Plant beds: Users can update beds in accessible gardens" ON plant_beds
+    FOR UPDATE USING (
+        auth.uid() IS NOT NULL AND
+        garden_id IN (
+            SELECT g.id FROM gardens g
+            WHERE g.created_by = auth.uid()
+               OR g.id IN (SELECT garden_id FROM public.user_garden_access WHERE user_id = auth.uid())
+               OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
 
--- Plants policies
-CREATE POLICY "Plants are viewable by everyone" ON plants
-    FOR SELECT USING (true);
+CREATE POLICY "Plant beds: Users can delete beds in accessible gardens" ON plant_beds
+    FOR DELETE USING (
+        auth.uid() IS NOT NULL AND
+        garden_id IN (
+            SELECT g.id FROM gardens g
+            WHERE g.created_by = auth.uid()
+               OR g.id IN (SELECT garden_id FROM public.user_garden_access WHERE user_id = auth.uid())
+               OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
 
-CREATE POLICY "Plants are insertable by authenticated users" ON plants
-    FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+-- Plants policies - Via garden toegang
+CREATE POLICY "Plants: Users can view plants in accessible gardens" ON plants
+    FOR SELECT USING (
+        auth.uid() IS NOT NULL AND
+        bed_id IN (
+            SELECT pb.id FROM plant_beds pb
+            JOIN gardens g ON pb.garden_id = g.id
+            WHERE g.created_by = auth.uid()
+               OR g.id IN (SELECT garden_id FROM public.user_garden_access WHERE user_id = auth.uid())
+               OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
 
-CREATE POLICY "Plants are updatable by authenticated users" ON plants
-    FOR UPDATE USING (auth.role() = 'authenticated');
+CREATE POLICY "Plants: Users can create plants in accessible gardens" ON plants
+    FOR INSERT WITH CHECK (
+        auth.uid() IS NOT NULL AND
+        bed_id IN (
+            SELECT pb.id FROM plant_beds pb
+            JOIN gardens g ON pb.garden_id = g.id
+            WHERE g.created_by = auth.uid()
+               OR g.id IN (SELECT garden_id FROM public.user_garden_access WHERE user_id = auth.uid())
+               OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
 
-CREATE POLICY "Plants are deletable by authenticated users" ON plants
-    FOR DELETE USING (auth.role() = 'authenticated');
+CREATE POLICY "Plants: Users can update plants in accessible gardens" ON plants
+    FOR UPDATE USING (
+        auth.uid() IS NOT NULL AND
+        bed_id IN (
+            SELECT pb.id FROM plant_beds pb
+            JOIN gardens g ON pb.garden_id = g.id
+            WHERE g.created_by = auth.uid()
+               OR g.id IN (SELECT garden_id FROM public.user_garden_access WHERE user_id = auth.uid())
+               OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
 
--- Logbook entries policies (allowing anonymous access for demo purposes)
-CREATE POLICY "Logbook entries are viewable by everyone" ON logbook_entries
-    FOR SELECT USING (true);
+CREATE POLICY "Plants: Users can delete plants in accessible gardens" ON plants
+    FOR DELETE USING (
+        auth.uid() IS NOT NULL AND
+        bed_id IN (
+            SELECT pb.id FROM plant_beds pb
+            JOIN gardens g ON pb.garden_id = g.id
+            WHERE g.created_by = auth.uid()
+               OR g.id IN (SELECT garden_id FROM public.user_garden_access WHERE user_id = auth.uid())
+               OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
 
-CREATE POLICY "Logbook entries are insertable by everyone" ON logbook_entries
-    FOR INSERT WITH CHECK (true);
+-- Logbook entries policies - Eigenaarschap-gebaseerd (GEEN ANONYMOUS ACCESS MEER!)
+CREATE POLICY "Logbook: Users can view entries in accessible gardens" ON logbook_entries
+    FOR SELECT USING (
+        auth.uid() IS NOT NULL AND (
+            garden_id IN (
+                SELECT g.id FROM gardens g
+                WHERE g.created_by = auth.uid()
+                   OR g.id IN (SELECT garden_id FROM public.user_garden_access WHERE user_id = auth.uid())
+                   OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+            )
+        )
+    );
 
-CREATE POLICY "Logbook entries are updatable by everyone" ON logbook_entries
-    FOR UPDATE USING (true);
+CREATE POLICY "Logbook: Users can create entries in accessible gardens" ON logbook_entries
+    FOR INSERT WITH CHECK (
+        auth.uid() IS NOT NULL AND
+        garden_id IN (
+            SELECT g.id FROM gardens g
+            WHERE g.created_by = auth.uid()
+               OR g.id IN (SELECT garden_id FROM public.user_garden_access WHERE user_id = auth.uid())
+               OR EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
 
-CREATE POLICY "Logbook entries are deletable by everyone" ON logbook_entries
-    FOR DELETE USING (true);
+CREATE POLICY "Logbook: Users can update their own entries or admins" ON logbook_entries
+    FOR UPDATE USING (
+        auth.uid() IS NOT NULL AND (
+            created_by = auth.uid() OR
+            EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
+
+CREATE POLICY "Logbook: Users can delete their own entries or admins" ON logbook_entries
+    FOR DELETE USING (
+        auth.uid() IS NOT NULL AND (
+            created_by = auth.uid() OR
+            EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin')
+        )
+    );
 
 -- ===========================================
 -- VIEWS (Optional - voor gemakkelijke queries)

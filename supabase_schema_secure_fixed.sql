@@ -599,7 +599,7 @@ CREATE POLICY "Audit log: Only admins can view audit logs" ON audit_log
 -- DATABASE HARDENING
 -- ===========================================
 
--- Set statement timeouts
+-- Set statement timeouts (DNB/NCSC compliant)
 ALTER DATABASE postgres SET statement_timeout = '5s';
 ALTER DATABASE postgres SET idle_in_transaction_session_timeout = '5s';
 

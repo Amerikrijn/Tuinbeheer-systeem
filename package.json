@@ -8,6 +8,8 @@
     "dev": "next dev",
     "lint": "next lint",
     "lint:security": "eslint . --ext .js,.jsx,.ts,.tsx --config .eslintrc.security.json",
+    "lint:standards": "eslint . --ext .js,.jsx,.ts,.tsx --config .eslintrc.standards-enforcement.json",
+    "compliance:check": "npm run lint:standards && npm run security:scan && npm run type-check",
     "start": "next start",
     "test": "jest",
     "test:watch": "jest --watch",
