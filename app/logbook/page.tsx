@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BookOpen, Plus, Search, Calendar, Camera, Leaf, MapPin, Filter, X, ClipboardList } from "lucide-react"
+import { BookOpen, Plus, Search, Calendar, Camera, Leaf, MapPin, Filter, X, ClipboardList, CheckCircle2 } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger } from "@/lib/logger"
@@ -659,118 +659,123 @@ function LogbookPageContent() {
         </div>
       )}
 
-      {/* Logbook entries table */}
+      {/* Logbook entries - redesigned for better emphasis */}
       {state.entries.length > 0 && (
         <div className="space-y-4">
           <p className="text-sm text-gray-600">
-            💡 Dubbelklik op een rij om de details te bekijken
+            💡 Klik op een entry om de details te bekijken
           </p>
-          <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Tuin</TableHead>
-                <TableHead>Plantvak</TableHead>
-                <TableHead>Plant</TableHead>
-                <TableHead>Datum</TableHead>
-                <TableHead>Opmerkingen</TableHead>
-                <TableHead className="text-center">Foto</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {state.entries.map((entry) => (
-                <TableRow 
-                  key={entry.id} 
-                  className={`cursor-pointer hover:bg-gray-50 ${
-                    entry.is_completed_task ? 'bg-green-50 border-l-4 border-l-green-500' : ''
-                  }`}
-                  onDoubleClick={() => entry.is_completed_task ? null : router.push(`/logbook/${entry.id}`)}
-                >
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs">
-                      {entry.garden_name}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium">{entry.plant_bed_name}</span>
+          
+          {/* Modern card-based layout instead of table */}
+          <div className="space-y-4">
+            {state.entries.map((entry) => (
+              <Card 
+                key={entry.id} 
+                className={`cursor-pointer hover:shadow-md transition-shadow ${
+                  entry.is_completed_task ? 'bg-green-50 border-l-4 border-l-green-500' : 'hover:bg-gray-50'
+                }`}
+                onClick={() => entry.is_completed_task ? null : router.push(`/logbook/${entry.id}`)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex gap-6">
+                    {/* Photo section - prominent display */}
+                    <div className="flex-shrink-0">
+                      {entry.photo_url ? (
+                        <div className="relative">
+                          <img 
+                            src={entry.photo_url} 
+                            alt="Logboek foto"
+                            className="w-32 h-32 object-cover rounded-lg border shadow-sm hover:shadow-md transition-shadow"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                            <Camera className="w-6 h-6 text-white opacity-0 hover:opacity-100 transition-opacity" />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-32 h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
+                          <div className="text-center text-gray-400">
+                            <Camera className="w-8 h-8 mx-auto mb-1" />
+                            <span className="text-xs">Geen foto</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    {entry.plant_name ? (
-                      <div className="flex items-center gap-1">
-                        <Leaf className="h-3 w-3 text-green-600" />
-                        <span>{entry.plant_name}</span>
-                        {entry.plant_variety && (
-                          <span className="text-gray-500 text-sm">({entry.plant_variety})</span>
+
+                    {/* Content section - emphasis on description */}
+                    <div className="flex-1 min-w-0">
+                      {/* Main description - large text like tasks */}
+                      <div className="mb-3">
+                        {entry.is_completed_task ? (
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-1">
+                              <CheckCircle2 className="w-5 h-5 text-green-600" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-lg font-medium text-green-800 leading-relaxed">
+                                {entry.notes}
+                              </p>
+                              <Badge variant="secondary" className="mt-2 text-xs bg-green-100 text-green-700">
+                                📋 Voltooide taak
+                              </Badge>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-1">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-lg font-medium text-gray-900 leading-relaxed">
+                                {entry.notes}
+                              </p>
+                              <Badge variant="outline" className="mt-2 text-xs">
+                                📝 Logboek entry
+                              </Badge>
+                            </div>
+                          </div>
                         )}
                       </div>
-                    ) : (
-                      <span className="text-gray-400 text-sm">Geen specifieke plant</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Calendar className="h-3 w-3 text-gray-400" />
-                      {formatDate(entry.entry_date)}
+
+                      {/* Metadata - smaller and smarter layout */}
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                        {/* Date - prominent but smaller */}
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">{formatDate(entry.entry_date)}</span>
+                        </div>
+                        
+                        {/* Location info - compact */}
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-4 h-4 text-blue-500" />
+                          <span>{entry.plant_bed_name}</span>
+                        </div>
+                        
+                        {/* Garden - as small badge */}
+                        <Badge variant="outline" className="text-xs px-2 py-0.5">
+                          {entry.garden_name}
+                        </Badge>
+                        
+                        {/* Plant info - when available */}
+                        {entry.plant_name && (
+                          <div className="flex items-center gap-1.5">
+                            <Leaf className="w-4 h-4 text-green-500" />
+                            <span className="text-sm">
+                              {entry.plant_name}
+                              {entry.plant_variety && (
+                                <span className="text-gray-500 ml-1">({entry.plant_variety})</span>
+                              )}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell className="max-w-md">
-                    {entry.is_completed_task ? (
-                      <div className="flex items-start gap-2">
-                        <div className="flex-shrink-0 mt-0.5">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-green-800 truncate">
-                            {entry.notes.length > 100 
-                              ? `${entry.notes.substring(0, 100)}...` 
-                              : entry.notes}
-                          </p>
-                          <p className="text-xs text-green-600 mt-1">
-                            📋 Taak
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="flex items-start gap-2">
-                        <div className="flex-shrink-0 mt-0.5">
-                          <div className="w-2 h-2 bg-gray-500 rounded-full"></div>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-900 truncate">
-                            {entry.notes.length > 100 
-                              ? `${entry.notes.substring(0, 100)}...` 
-                              : entry.notes}
-                          </p>
-                          <p className="text-xs text-gray-600 mt-1">
-                            📝 Logboek entry
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {entry.photo_url ? (
-                      <div className="flex justify-center">
-                        <img 
-                          src={entry.photo_url} 
-                          alt="Logboek foto"
-                          className="w-12 h-12 object-cover rounded-lg border border-gray-200"
-                        />
-                      </div>
-                    ) : (
-                      <span className="text-gray-400 text-xs">Geen foto</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-                     </Table>
-         </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-       )}
+      )}
 
       {/* Load more button */}
       {state.hasMore && (
