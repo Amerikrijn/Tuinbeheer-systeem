@@ -155,7 +155,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
         onDoubleClick={handleTaskDoubleClick}
       >
         <CardContent className={compact ? 'p-3' : 'p-4'}>
-          <div className="flex items-start gap-3">
+          <div className="flex items-start gap-4">
             {/* Simple button approach instead of Checkbox for better reliability */}
             <button
               onClick={() => handleTaskComplete(task.id, !task.completed)}
@@ -163,66 +163,56 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 updatingTasks.has(task.id) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-110'
               }`}
               disabled={updatingTasks.has(task.id)}
+              aria-label={task.completed ? 'Markeer taak als onvoltooid' : 'Markeer taak als voltooid'}
             >
               <CheckCircle
-                className={`h-5 w-5 ${
+                className={`h-6 w-6 ${
                   task.completed 
-                    ? 'text-green-600 fill-green-100' 
+                    ? 'text-green-700 fill-green-100' 
                     : updatingTasks.has(task.id) 
                       ? 'text-gray-300' 
-                      : 'text-gray-400 hover:text-green-600'
+                      : 'text-gray-600 hover:text-green-700'
                 }`}
               />
             </button>
             
             <div className="flex-1 min-w-0">
-              {/* Plantvak → Bloem info - always show for now */}
-              <div className="flex items-center gap-2 mb-2 text-sm text-gray-600">
-                <div className="flex items-center gap-1">
-                  <div 
-                    className="w-3 h-3 rounded-full border"
-                    style={{ 
-                      backgroundColor: task.plant_color || '#10B981',
-                      borderColor: task.plant_color || '#10B981'
-                    }}
-                  />
-                  <span className="font-medium">{task.plant_bed_name}</span>
+              {/* Header: Plantvak → Bloem • Taak (one row) */}
+              <div className="flex items-center gap-2 mb-1 text-base text-gray-900 leading-snug">
+                <div className="w-3.5 h-3.5 rounded-full border"
+                  style={{ 
+                    backgroundColor: task.plant_color || '#10B981',
+                    borderColor: task.plant_color || '#10B981'
+                  }}
+                  aria-hidden="true"
+                />
+                <span className="font-medium truncate max-w-[30%]">{task.plant_bed_name}</span>
+                <span className="text-gray-500" aria-hidden>→</span>
+                <span className="font-semibold truncate max-w-[30%]">{task.plant_name}</span>
+                <span className="text-gray-300" aria-hidden>•</span>
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <span className={`text-base ${task.completed ? 'opacity-60' : ''}`}>{taskTypeConfig?.icon || '📝'}</span>
+                  <span className={`font-semibold truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>{task.title}</span>
                 </div>
-                <span>→</span>
-                <span className="text-gray-800 font-medium">{task.plant_name}</span>
               </div>
 
-              {/* Task title with better completed styling */}
-              <div className="flex items-start gap-2 mb-2">
-                <span className={`text-lg transition-all duration-200 ${task.completed ? 'opacity-60' : ''}`}>
-                  {taskTypeConfig?.icon || '📝'}
-                </span>
-                <div className="flex-1">
-                  <h4 className={`font-medium transition-all duration-200 ${
-                    task.completed 
-                      ? 'line-through text-gray-500' 
-                      : 'text-gray-900'
-                  }`}>
-                    {task.title}
-                  </h4>
-                  {task.description && (
-                    <p className={`text-sm mt-1 transition-all duration-200 ${
-                      task.completed ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                      {task.description}
-                    </p>
-                  )}
-                </div>
-              </div>
+              {/* Smaller description below */}
+              {task.description && (
+                <p className={`text-sm mt-1 leading-relaxed ${
+                  task.completed ? 'text-gray-500' : 'text-gray-700'
+                }`}>
+                  {task.description}
+                </p>
+              )}
 
               {/* Task metadata with improved completed state styling */}
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap text-xs text-gray-600">
                 {/* Priority badge */}
                 <Badge 
                   variant="secondary" 
-                  className={`transition-all duration-200 ${
+                  className={`text-xs py-0.5 px-1.5 transition-all duration-200 ${
                     task.completed 
-                      ? 'opacity-60 bg-gray-200 text-gray-500' 
+                      ? 'opacity-60 bg-gray-200 text-gray-600' 
                       : priorityConfig?.badge_color || 'bg-gray-100 text-gray-800'
                   }`}
                 >
@@ -232,40 +222,40 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 {/* Task type badge */}
                 <Badge 
                   variant="outline" 
-                  className={`text-xs transition-all duration-200 ${
-                    task.completed ? 'opacity-60 border-gray-300 text-gray-400' : ''
+                  className={`text-xs py-0.5 px-1.5 transition-all duration-200 ${
+                    task.completed ? 'opacity-60 border-gray-300 text-gray-600' : 'text-gray-700'
                   }`}
                 >
                   {taskTypeConfig?.label || task.task_type}
                 </Badge>
 
                 {/* Due date */}
-                <div className={`flex items-center gap-1 text-xs transition-all duration-200 ${
-                  task.completed ? 'text-gray-400' : 'text-gray-500'
+                <div className={`flex items-center gap-1.5 text-xs transition-all duration-200 ${
+                  task.completed ? 'text-gray-500' : 'text-gray-700'
                 }`}>
-                  <Clock className="w-3 h-3" />
+                  <Clock className="w-3.5 h-3.5" />
                   {formatTaskDate(task.due_date)}
                 </div>
 
                 {/* Completed indicator */}
                 {task.completed && (
-                  <Badge className="bg-green-100 text-green-800 text-xs">
-                    <CheckCircle2 className="w-3 h-3 mr-1" />
+                  <Badge className="bg-green-100 text-green-800 text-sm">
+                    <CheckCircle2 className="w-4 h-4 mr-1" />
                     Voltooid
                   </Badge>
                 )}
 
                 {/* Status indicator - only show for non-completed tasks */}
                 {!task.completed && task.status_category === 'overdue' && (
-                  <Badge variant="destructive" className="text-xs">
-                    <AlertCircle className="w-3 h-3 mr-1" />
+                  <Badge variant="destructive" className="text-sm">
+                    <AlertCircle className="w-4 h-4 mr-1" />
                     Verlopen
                   </Badge>
                 )}
                 
                 {!task.completed && task.status_category === 'today' && (
-                  <Badge className="bg-orange-100 text-orange-800 text-xs">
-                    <Clock className="w-3 h-3 mr-1" />
+                  <Badge className="bg-orange-100 text-orange-800 text-sm">
+                    <Clock className="w-4 h-4 mr-1" />
                     Vandaag
                   </Badge>
                 )}
@@ -279,8 +269,9 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 size="sm"
                 onClick={() => onTaskEdit(task)}
                 className="shrink-0"
+                aria-label="Taak bewerken"
               >
-                <MoreVertical className="w-4 h-4" />
+                <MoreVertical className="w-5 h-5" />
               </Button>
             )}
           </div>
@@ -315,20 +306,20 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       <Card className={`mb-4 ${day.is_today ? 'ring-2 ring-blue-500' : ''}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
+            <CardTitle className="text-2xl flex items-center gap-3 text-gray-900">
+              <Calendar className="w-6 h-6" />
               {day.day_name} {new Date(day.date).getDate()}
               {day.is_today && <Badge className="ml-2">Vandaag</Badge>}
             </CardTitle>
             
             <div className="flex gap-2">
               {day.overdue_count > 0 && (
-                <Badge variant="destructive" className="text-xs">
+                <Badge variant="destructive" className="text-sm">
                   {day.overdue_count} verlopen
                 </Badge>
               )}
               {day.completed_count > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-sm">
                   {day.completed_count} klaar
                 </Badge>
               )}

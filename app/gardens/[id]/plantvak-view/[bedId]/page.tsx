@@ -2551,11 +2551,11 @@ export default function PlantBedViewPage() {
               {/* Tasks Section - Only in List View */}
               <div className="mt-8">
                 <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg mb-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-blue-600" />
-                    <span className="font-medium text-gray-900">Taken voor dit Plantvak</span>
-                    <Badge variant="secondary">{tasks.length} taken</Badge>
-                  </div>
+                  <div className="flex items-center gap-3">
+                      <Calendar className="h-6 w-6 text-blue-700" />
+                      <span className="font-semibold text-gray-900 text-xl leading-snug">Taken voor dit Plantvak</span>
+                      <Badge variant="secondary" className="text-sm">{tasks.length} taken</Badge>
+                    </div>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -2625,18 +2625,20 @@ export default function PlantBedViewPage() {
                               {/* Task Content */}
                               <div className="flex-1">
                                 <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <h4 className={`font-medium ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                                      {task.title}
-                                    </h4>
-                                    {task.description && (
-                                      <p className={`text-sm mt-1 ${task.completed ? 'text-gray-400' : 'text-gray-600'}`}>
-                                        {task.description}
-                                      </p>
-                                    )}
-                                    
-                                    {/* Task Meta Info */}
-                                    <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                  <div className="flex-1 min-w-0">
+                                      {/* Header: Plantvak → Bloem • Taak (one row) */}
+                                      <div className="flex items-center gap-2 mb-1 text-base text-gray-900 leading-snug">
+                                        <span className="text-gray-300" aria-hidden>•</span>
+                                        <span className={`font-semibold truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>{task.title}</span>
+                                      </div>
+                                      {task.description && (
+                                        <p className={`text-sm mt-1 ${task.completed ? 'text-gray-500' : 'text-gray-700'}`}>
+                                            {task.description}
+                                          </p>
+                                      )}
+                                      
+                                      {/* Task Meta Info */}
+                                      <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                                       <div className="flex items-center gap-1">
                                         {taskTypeConfig && (
                                           <>
@@ -2646,30 +2648,30 @@ export default function PlantBedViewPage() {
                                         )}
                                       </div>
                                       
-                                      <div className="flex items-center gap-1">
-                                        <Clock className="h-3 w-3" />
-                                        <span className={isOverdue ? 'text-red-600 font-medium' : isToday ? 'text-orange-600 font-medium' : ''}>
-                                          {formatTaskDate(task.due_date)}
-                                        </span>
-                                      </div>
+                                      <div className="flex items-center gap-1.5">
+                                          <Clock className="h-3.5 w-3.5" />
+                                          <span className={isOverdue ? 'text-red-700 font-semibold' : isToday ? 'text-orange-700 font-semibold' : 'text-gray-700'}>
+                                            {formatTaskDate(task.due_date)}
+                                          </span>
+                                        </div>
                                       
                                       {task.plant_id ? (
-                                        <div className="flex items-center gap-1">
-                                          <span>🌸</span>
-                                          <span>{task.plant_name}</span>
-                                        </div>
-                                      ) : (
-                                        <div className="flex items-center gap-1">
-                                          <span>🌱</span>
-                                          <span>Plantvak taak</span>
-                                        </div>
-                                      )}
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-lg">🌸</span>
+                                            <span className="font-semibold text-gray-900">{task.plant_name}</span>
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-lg">🌱</span>
+                                            <span className="font-semibold text-gray-900">Plantvak taak</span>
+                                          </div>
+                                        )}
                                     </div>
                                   </div>
                                   
                                   {/* Priority Badge */}
                                   {priorityConfig && (
-                                    <Badge className={`ml-2 ${priorityConfig.badge_color}`}>
+                                    <Badge className={`ml-2 ${priorityConfig.badge_color} text-xs py-0.5 px-1.5`}>
                                       {priorityConfig.label}
                                     </Badge>
                                   )}
