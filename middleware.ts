@@ -84,6 +84,7 @@ export async function middleware(request: NextRequest) {
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.vercel.app wss://*.vercel.app",
+      "frame-src https://vercel.live",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "object-src 'none'",
