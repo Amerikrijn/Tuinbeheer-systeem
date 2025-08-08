@@ -64,9 +64,8 @@ async function getUserGardens(userId: string) {
       .order('created_at', { ascending: false })
     
     if (error) {
-      logger.error('Failed to fetch gardens', {
+      logger.error('Failed to fetch gardens', error, {
         userId,
-        error: error.message,
         code: error.code,
       })
       throw new Error('Failed to fetch gardens')
@@ -80,9 +79,9 @@ async function getUserGardens(userId: string) {
     return gardens || []
     
   } catch (error) {
-    logger.error('Server-side garden fetch error', {
+    logger.error('Server-side garden fetch error', error instanceof Error ? error : undefined, {
       userId,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
     })
     throw error
   }
@@ -210,8 +209,8 @@ export default async function GardensServerPage() {
     )
     
   } catch (error) {
-    logger.error('Gardens page error', {
-      error: error instanceof Error ? error.message : 'Unknown error',
+    logger.error('Gardens page error', error instanceof Error ? error : undefined, {
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
     })
     
     // In production, redirect to login
