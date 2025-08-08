@@ -11,8 +11,8 @@ interface SupabaseAuthProviderProps {
 export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   const auth = useSupabaseAuth()
   
-  // Initialize activity timeout for automatic logout
-  useActivityTimeout()
+  // TEMPORARILY DISABLED: Activity timeout causing infinite loops
+  // useActivityTimeout()
 
   return (
     <SupabaseAuthContext.Provider value={auth}>
