@@ -267,18 +267,24 @@ function LogbookPageContent() {
         
         if (tasksResults) {
           // Transform completed tasks to look like logbook entries
-          // Banking Standard: Safe property access with null checks
-          completedTasksData = tasksResults.map(task => ({
-            id: `task-${task.id}`,
-            entry_date: task.updated_at,
-            notes: `✅ Taak voltooid: ${task.title}${task.description ? ` - ${task.description}` : ''}`,
-            plant_bed_name: task.plants?.plant_beds?.name || 'Onbekend plantvak',
-            plant_name: task.plants?.name || 'Onbekende plant',
-            garden_name: task.plants?.plant_beds?.gardens?.name || 'Onbekende tuin',
-            photo_url: null,
-            is_completed_task: true, // Flag to identify this as a completed task
-            original_task: task
-          }))
+                      // Banking Standard: Safe array access with proper null checks
+            completedTasksData = tasksResults.map(task => {
+              const plant = Array.isArray(task.plants) ? task.plants[0] : task.plants;
+              const plantBed = Array.isArray(plant?.plant_beds) ? plant?.plant_beds[0] : plant?.plant_beds;
+              const garden = Array.isArray(plantBed?.gardens) ? plantBed?.gardens[0] : plantBed?.gardens;
+              
+              return {
+                id: `task-${task.id}`,
+                entry_date: task.updated_at,
+                notes: `✅ Taak voltooid: ${task.title}${task.description ? ` - ${task.description}` : ''}`,
+                plant_bed_name: plantBed?.name || 'Onbekend plantvak',
+                plant_name: plant?.name || 'Onbekende plant',
+                garden_name: garden?.name || 'Onbekende tuin',
+                photo_url: null,
+                is_completed_task: true, // Flag to identify this as a completed task
+                original_task: task
+              };
+            })
         }
       } catch (error) {
         console.warn('Failed to load completed tasks for logbook:', error)
