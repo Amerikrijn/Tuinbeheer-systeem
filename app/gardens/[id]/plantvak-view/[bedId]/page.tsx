@@ -283,21 +283,18 @@ export default function PlantBedViewPage() {
       const allTasks = [...(plantBedTasks || []), ...allPlantTasks]
       
       // Filter tasks to only show tasks from this garden (for admins)
-      const gardenId = params.id as string
       const filteredTasks = allTasks.filter(task => {
-        // Check if task belongs to this garden via plant -> plant_bed -> garden
-        if (task.plants?.plant_beds?.gardens?.id) {
-          return task.plants.plant_beds.gardens.id === gardenId
+        // Check if task belongs to this garden by comparing garden names
+        // Since TaskWithPlantInfo already has garden_name populated from the nested relations
+        if (garden?.name && task.garden_name) {
+          return task.garden_name === garden.name
         }
-        // Check if task belongs to this garden via plant_bed -> garden (for plant bed tasks)
-        if (task.plant_beds?.gardens?.id) {
-          return task.plant_beds.gardens.id === gardenId
-        }
-        return false
+        // If no garden loaded yet, include all tasks (will be filtered when garden loads)
+        return true
       })
       
       console.log('🔍 Plantvak tasks filtered by garden:', {
-        gardenId,
+        gardenName: garden?.name,
         totalTasks: allTasks.length,
         filteredTasks: filteredTasks.length
       })
