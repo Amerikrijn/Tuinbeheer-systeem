@@ -91,8 +91,8 @@ async function checkDatabaseHealth(): Promise<ServiceStatus> {
     const responseTime = Date.now() - startTime
     const errorMessage = error instanceof Error ? error.message : 'Unknown database error'
     
-    logger.error('Database health check error', {
-      error: errorMessage,
+    logger.error('Database health check error', undefined, {
+      errorMessage,
       responseTime,
     })
     
@@ -142,8 +142,8 @@ async function checkAuthHealth(): Promise<ServiceStatus> {
     const responseTime = Date.now() - startTime
     const errorMessage = error instanceof Error ? error.message : 'Unknown auth error'
     
-    logger.error('Auth health check error', {
-      error: errorMessage,
+    logger.error('Auth health check error', undefined, {
+      errorMessage,
       responseTime,
     })
     
@@ -254,8 +254,8 @@ export async function GET(request: NextRequest) {
     const responseTime = Date.now() - startTime
     const errorMessage = error instanceof Error ? error.message : 'Unknown health check error'
     
-    logger.error('Health check failed', {
-      error: errorMessage,
+    logger.error('Health check failed', undefined, {
+      errorMessage,
       responseTime,
     })
     
