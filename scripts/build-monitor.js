@@ -169,33 +169,61 @@ class BuildMonitor {
         }
       },
 
-      // Next.js config warnings
-      {
-        pattern: /Invalid next\.config\.(js|mjs) options detected/,
-        description: 'Fix Next.js configuration issues',
-        safety: 'safe',
-        dnbCompliant: true,
-        fix: async (error, content) => {
-          const configPath = path.join(process.cwd(), 'next.config.mjs');
-          try {
-            let configContent = await fs.readFile(configPath, 'utf8');
-            
-            // Remove deprecated options
-            configContent = configContent.replace(/reactStrictMode:\s*true,?\s*/g, '');
-            configContent = configContent.replace(/swcMinify:\s*true,?\s*/g, '');
-            
-            // Clean up empty compiler object
-            configContent = configContent.replace(/compiler:\s*{\s*},?\s*/g, '');
-            
-            await fs.writeFile(configPath, configContent);
-            console.log('✅ Fixed Next.js config issues');
-          } catch (configError) {
-            console.log('❌ Failed to fix Next.js config:', configError.message);
-          }
-          
-          return content;
-        }
-      }
+             // CSP (Content Security Policy) errors
+       {
+         pattern: /Content Security Policy directive|script-src.*strict-dynamic/,
+         description: 'Fix CSP blocking JavaScript in production',
+         safety: 'moderate',
+         dnbCompliant: true,
+         fix: async (error, content) => {
+           const middlewarePath = path.join(process.cwd(), 'middleware.ts');
+           try {
+             let middlewareContent = await fs.readFile(middlewarePath, 'utf8');
+             
+             // Fix CSP for Next.js production compatibility
+             middlewareContent = middlewareContent.replace(
+               /script-src 'self' 'nonce-\$\{nonce\}' 'strict-dynamic'/,
+               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.vercel.app"
+             );
+             
+             await fs.writeFile(middlewarePath, middlewareContent);
+             console.log('✅ Fixed CSP for Next.js production compatibility');
+             return 'CSP_FIXED';
+           } catch (cspError) {
+             console.log('❌ Failed to fix CSP:', cspError.message);
+           }
+           
+           return content;
+         }
+       },
+
+       // Next.js config warnings
+       {
+         pattern: /Invalid next\.config\.(js|mjs) options detected/,
+         description: 'Fix Next.js configuration issues',
+         safety: 'safe',
+         dnbCompliant: true,
+         fix: async (error, content) => {
+           const configPath = path.join(process.cwd(), 'next.config.mjs');
+           try {
+             let configContent = await fs.readFile(configPath, 'utf8');
+             
+             // Remove deprecated options
+             configContent = configContent.replace(/reactStrictMode:\s*true,?\s*/g, '');
+             configContent = configContent.replace(/swcMinify:\s*true,?\s*/g, '');
+             
+             // Clean up empty compiler object
+             configContent = configContent.replace(/compiler:\s*{\s*},?\s*/g, '');
+             
+             await fs.writeFile(configPath, configContent);
+             console.log('✅ Fixed Next.js config issues');
+           } catch (configError) {
+             console.log('❌ Failed to fix Next.js config:', configError.message);
+           }
+           
+           return content;
+         }
+       }
     ];
   }
 

@@ -76,18 +76,28 @@ export async function middleware(request: NextRequest) {
 
   // Strict Security Headers (NCSC/DNB compliant)
   const securityHeaders = {
-    // Content Security Policy - Strict
-    'Content-Security-Policy': [
+    // Content Security Policy - Banking compliant with Next.js production compatibility
+    'Content-Security-Policy': process.env.NODE_ENV === 'production' ? [
       "default-src 'self'",
-      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.vercel.app https://vercel.live",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.vercel.app wss://*.vercel.app",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "object-src 'none'",
       "upgrade-insecure-requests"
+    ].join('; ') : [
+      "default-src 'self'",
+      `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' 'unsafe-inline'`,
+      "style-src 'self' 'unsafe-inline'",
+      "font-src 'self'",
+      "img-src 'self' data: blob:",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "object-src 'none'"
     ].join('; '),
     
     // Security headers
