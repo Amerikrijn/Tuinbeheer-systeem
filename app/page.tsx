@@ -40,11 +40,10 @@ interface HomePageState {
 
 const ITEMS_PER_PAGE = 12
 
-function HomePageContent() {
+function HomePageContent({ user, isAdmin }: { user: any, isAdmin: () => boolean }) {
   const router = useRouter()
   const { toast } = useToast()
   const { isVisualView, toggleView } = useViewPreference()
-  const { user, isAdmin } = useAuth()
   
   const [state, setState] = React.useState<HomePageState>({
     gardens: [],
@@ -684,7 +683,7 @@ function RoleBasedHomeContent() {
   const router = useRouter()
 
   if (isAdmin()) {
-    return <HomePageContent />
+    return <HomePageContent user={user} isAdmin={isAdmin} />
   } else {
     // Users get the exact same task interface as admin /tasks page
     return (
