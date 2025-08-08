@@ -218,7 +218,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               </div>
 
               {/* Task metadata with improved completed state styling */}
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap text-xs text-gray-600">
                 {/* Priority badge */}
                 <Badge 
                   variant="secondary" 
