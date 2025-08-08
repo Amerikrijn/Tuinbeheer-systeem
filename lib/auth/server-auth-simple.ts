@@ -19,6 +19,11 @@ export interface AuthResult {
   error: string | null
 }
 
+export interface RequiredAuthResult {
+  user: AuthenticatedUser
+  error: null
+}
+
 /**
  * Get authenticated user from request headers
  * Use in API routes for authentication
@@ -83,24 +88,27 @@ export async function getServerAuth(request: NextRequest): Promise<AuthResult> {
  * Require authentication for API route
  * Returns 401 if not authenticated
  */
-export async function requireAuth(request: NextRequest): Promise<AuthResult> {
+export async function requireAuth(request: NextRequest): Promise<RequiredAuthResult> {
   const auth = await getServerAuth(request)
   
   if (!auth.user) {
     throw new Error('Authentication required')
   }
   
-  return auth
+  return {
+    user: auth.user,
+    error: null
+  }
 }
 
 /**
  * Require admin role for API route
  * Returns 403 if not admin
  */
-export async function requireAdmin(request: NextRequest): Promise<AuthResult> {
+export async function requireAdmin(request: NextRequest): Promise<RequiredAuthResult> {
   const auth = await requireAuth(request)
   
-  if (auth.user?.role !== 'admin') {
+  if (auth.user.role !== 'admin') {
     throw new Error('Admin access required')
   }
   
