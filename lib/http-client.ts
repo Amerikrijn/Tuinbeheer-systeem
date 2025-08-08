@@ -148,7 +148,7 @@ export class HttpClient {
     const method = fetchOptions.method || 'GET'
 
     // Prepare headers
-    const headers = {
+    const headers: Record<string, string> = {
       ...this.defaultHeaders,
       ...fetchOptions.headers,
     }
