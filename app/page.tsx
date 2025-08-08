@@ -669,11 +669,12 @@ function getUserFriendlyErrorMessage(error: string): string {
 // Main page component with error boundary and auth protection
 export default function HomePage() {
   return (
-    <ProtectedRoute>
+    // TEMPORARILY DISABLED: ProtectedRoute causing infinite loops
+    // <ProtectedRoute>
       <ErrorBoundary>
         <RoleBasedHomeContent />
       </ErrorBoundary>
-    </ProtectedRoute>
+    // </ProtectedRoute>
   )
 }
 
