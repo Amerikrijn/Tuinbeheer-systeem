@@ -150,6 +150,13 @@ export function useSupabaseAuth(): AuthContextType {
           fullName = 'Amerik (Emergency Admin)'
           status = 'active'
           console.log('🚨 Emergency admin access granted for:', supabaseUser.email)
+        } 
+        // 🚨 EMERGENCY USER ACCESS - Allow known users when database is down
+        else if (userError?.message?.includes('500') || userError?.message?.includes('timeout')) {
+          role = 'user'
+          fullName = supabaseUser.email?.split('@')[0] || 'User'
+          status = 'active'
+          console.log('🚨 Emergency user access granted due to database issues for:', supabaseUser.email)
         } else {
           // Log the specific error for debugging
           console.error('Database lookup failed:', userError?.message || 'No user profile found')
