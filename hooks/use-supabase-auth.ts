@@ -122,7 +122,7 @@ export function useSupabaseAuth(): AuthContextType {
       let userError = null
       
       try {
-        const { data, error } = await Promise.race([
+        const result = await Promise.race([
           supabase
             .from('users')
             .select('id, email, full_name, role, status, created_at')
@@ -131,9 +131,10 @@ export function useSupabaseAuth(): AuthContextType {
           new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Database lookup timeout')), 2000)
           )
-        ])
-        userProfile = data
-        userError = error
+        ]) as { data: any; error: any }
+        
+        userProfile = result.data
+        userError = result.error
       } catch (timeoutError) {
         userError = timeoutError
       }

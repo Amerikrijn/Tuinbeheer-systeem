@@ -197,6 +197,43 @@ class BuildMonitor {
          }
        },
 
+       // TypeScript Promise.race type errors
+       {
+         pattern: /Property '(data|error)' does not exist on type 'unknown'/,
+         description: 'Fix Promise.race TypeScript type assertion',
+         safety: 'safe',
+         dnbCompliant: true,
+         fix: async (error, content) => {
+           const lines = content.split('\n');
+           
+           // Find Promise.race with destructuring and fix type assertion
+           for (let i = 0; i < lines.length; i++) {
+             if (lines[i].includes('const { data, error } = await Promise.race([')) {
+               lines[i] = lines[i].replace(
+                 'const { data, error } = await Promise.race([',
+                 'const result = await Promise.race(['
+               );
+               
+               // Find the closing bracket and add type assertion
+               for (let j = i + 1; j < lines.length; j++) {
+                 if (lines[j].includes('])')) {
+                   lines[j] = lines[j].replace('])', ']) as { data: any; error: any }');
+                   
+                   // Add variable assignments after
+                   lines.splice(j + 1, 0, '         ');
+                   lines.splice(j + 2, 0, '         userProfile = result.data');
+                   lines.splice(j + 3, 0, '         userError = result.error');
+                   break;
+                 }
+               }
+               break;
+             }
+           }
+           
+           return lines.join('\n');
+         }
+       },
+
        // Next.js config warnings
        {
          pattern: /Invalid next\.config\.(js|mjs) options detected/,
