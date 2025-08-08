@@ -133,8 +133,15 @@ export function useSupabaseAuth(): AuthContextType {
           )
         ]) as { data: any; error: any }
         
-        userProfile = result.data
-        userError = result.error
+        // Handle the result correctly - it's the direct response from Supabase
+        if (result && typeof result === 'object' && 'data' in result) {
+          userProfile = result.data
+          userError = result.error
+        } else {
+          // Direct data response (no error wrapper)
+          userProfile = result
+          userError = null
+        }
       } catch (timeoutError) {
         userError = timeoutError
       }
