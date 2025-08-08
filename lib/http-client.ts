@@ -187,7 +187,7 @@ export class HttpClient {
       try {
         // Log request
         logger.info('HTTP Request', {
-          method,
+          method: method,
           url: fullUrl,
           attempt,
           maxAttempts,
@@ -224,15 +224,15 @@ export class HttpClient {
         })
 
         if (!response.ok) {
-          const error: HttpError = new Error(`HTTP ${response.status}: ${response.statusText}`)
-          error.status = response.status
-          error.statusText = response.statusText
-          error.url = fullUrl
-          error.response = response
+          const httpError: HttpError = new Error(`HTTP ${response.status}: ${response.statusText}`)
+          httpError.status = response.status
+          httpError.statusText = response.statusText
+          httpError.url = fullUrl
+          httpError.response = response
 
           // Log error
           logger.error('HTTP Error', {
-            method,
+            method: method,
             url: fullUrl,
             status: response.status,
             statusText: response.statusText,
@@ -241,17 +241,17 @@ export class HttpClient {
           })
 
           // Check if we should retry
-          if (attempt < maxAttempts && !skipRetry && isRetryableError(error)) {
+          if (attempt < maxAttempts && !skipRetry && isRetryableError(httpError)) {
             if (isIdempotentMethod(method) || idempotencyKey) {
-              lastError = error
+              lastError = httpError
               const retryDelay = calculateRetryDelay(attempt)
               
               logger.warn('HTTP Retry', {
-                method,
+                method: method,
                 url: fullUrl,
                 attempt,
                 nextAttemptIn: retryDelay,
-                error: error.message,
+                error: httpError.message,
               })
 
               await sleep(retryDelay)
@@ -259,7 +259,7 @@ export class HttpClient {
             }
           }
 
-          throw error
+          throw httpError
         }
 
         return {
@@ -293,7 +293,7 @@ export class HttpClient {
 
         // Log error
         logger.error('HTTP Request Failed', {
-          method,
+          method: method,
           url: fullUrl,
           attempt,
           duration,
@@ -310,7 +310,7 @@ export class HttpClient {
             const retryDelay = calculateRetryDelay(attempt)
             
             logger.warn('HTTP Retry after Error', {
-              method,
+              method: method,
               url: fullUrl,
               attempt,
               nextAttemptIn: retryDelay,
