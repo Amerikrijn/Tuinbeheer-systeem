@@ -32,8 +32,7 @@ export default function RootLayout({
           >
             <LanguageProvider>
               <SupabaseAuthProvider>
-                {/* TEMPORARILY DISABLED: ConditionalNavigation causing infinite loops */}
-                {/* <ConditionalNavigation /> */}
+                <ConditionalNavigation />
                 {children}
                 <Toaster />
               </SupabaseAuthProvider>

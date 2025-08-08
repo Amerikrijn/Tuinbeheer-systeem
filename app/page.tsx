@@ -666,15 +666,12 @@ function getUserFriendlyErrorMessage(error: string): string {
   return error || 'Er is een onverwachte fout opgetreden.'
 }
 
-// Main page component with error boundary and auth protection
+// Main page component - SIMPLIFIED for basic functionality
 export default function HomePage() {
   return (
-    // TEMPORARILY DISABLED: ProtectedRoute causing infinite loops
-    // <ProtectedRoute>
-      <ErrorBoundary>
-        <RoleBasedHomeContent />
-      </ErrorBoundary>
-    // </ProtectedRoute>
+    <ErrorBoundary>
+      <RoleBasedHomeContent />
+    </ErrorBoundary>
   )
 }
 
