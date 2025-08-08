@@ -1,18 +1,22 @@
 'use client'
 
 import React from 'react'
-import { useSimpleAuth, SimpleAuthContext } from '@/hooks/use-simple-auth'
+import { useSupabaseAuth, SupabaseAuthContext } from '@/hooks/use-supabase-auth'
+import { useActivityTimeout } from '@/hooks/use-activity-timeout'
 
 interface SupabaseAuthProviderProps {
   children: React.ReactNode
 }
 
 export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
-  const auth = useSimpleAuth()
+  const auth = useSupabaseAuth()
+  
+  // TEMPORARILY DISABLED: Activity timeout causing infinite loops
+  // useActivityTimeout()
 
   return (
-    <SimpleAuthContext.Provider value={auth}>
+    <SupabaseAuthContext.Provider value={auth}>
       {children}
-    </SimpleAuthContext.Provider>
+    </SupabaseAuthContext.Provider>
   )
 }
