@@ -31,6 +31,17 @@ class ProductionMonitor {
         });
       }
 
+      // Rate limiting errors (429)
+      if (line.includes('status of 429') || line.includes('Rate limit exceeded')) {
+        issues.push({
+          type: 'rate_limiting',
+          severity: 'critical',
+          message: 'Supabase rate limiting active - likely from infinite recursion',
+          source: 'supabase_rate_limits',
+          recovery_time: '5-10 minutes'
+        });
+      }
+
       // User not found errors
       if (line.includes('User not found in system') || line.includes('Access denied: User not found')) {
         issues.push({
