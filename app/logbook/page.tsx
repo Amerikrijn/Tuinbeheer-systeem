@@ -217,7 +217,8 @@ function LogbookPageContent() {
       }
 
       // Also load completed tasks as logbook entries
-      let completedTasksData = []
+      // Banking Standard: Explicit typing for data integrity
+      let completedTasksData: any[] = []
       try {
         let tasksQuery = supabase
           .from('tasks')
