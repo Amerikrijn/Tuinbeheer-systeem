@@ -149,13 +149,17 @@ export function useSupabaseAuth(): AuthContextType {
           role = 'admin'
           fullName = 'Amerik (Emergency Admin)'
           status = 'active'
+          console.log('🚨 Emergency admin access granted for:', supabaseUser.email)
         } else {
+          // Log the specific error for debugging
+          console.error('Database lookup failed:', userError?.message || 'No user profile found')
           throw new Error('Access denied: User not found in system. Contact admin to create your account.')
         }
       } else {
         role = userProfile.role || 'user'
         fullName = userProfile.full_name || fullName
         status = userProfile.status || 'active'
+        console.log('✅ User profile loaded successfully for:', supabaseUser.email)
       }
 
       // Update last_login asynchronously (non-blocking)
