@@ -684,9 +684,9 @@ function LogbookPageContent() {
                 <TableRow 
                   key={entry.id} 
                   className={`cursor-pointer hover:bg-gray-50 ${
-                    entry.is_completed_task ? 'bg-green-50 border-l-4 border-l-green-500' : ''
+                    (entry as any).is_completed_task ? 'bg-green-50 border-l-4 border-l-green-500' : ''
                   }`}
-                  onDoubleClick={() => entry.is_completed_task ? null : router.push(`/logbook/${entry.id}`)}
+                  onDoubleClick={() => (entry as any).is_completed_task ? null : router.push(`/logbook/${entry.id}`)}
                 >
                   <TableCell>
                     <Badge variant="outline" className="text-xs">
@@ -719,7 +719,7 @@ function LogbookPageContent() {
                     </div>
                   </TableCell>
                   <TableCell className="max-w-md">
-                    {entry.is_completed_task ? (
+                    {(entry as any).is_completed_task ? (
                       <div className="flex items-start gap-2">
                         <div className="flex-shrink-0 mt-0.5">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
