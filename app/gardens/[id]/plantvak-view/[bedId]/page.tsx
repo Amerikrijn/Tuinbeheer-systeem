@@ -2636,7 +2636,7 @@ export default function PlantBedViewPage() {
                                     )}
                                     
                                     {/* Task Meta Info */}
-                                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
                                       <div className="flex items-center gap-1">
                                         {taskTypeConfig && (
                                           <>
@@ -2646,8 +2646,8 @@ export default function PlantBedViewPage() {
                                         )}
                                       </div>
                                       
-                                      <div className="flex items-center gap-2">
-                                          <Clock className="h-4 w-4" />
+                                      <div className="flex items-center gap-1.5">
+                                          <Clock className="h-3.5 w-3.5" />
                                           <span className={isOverdue ? 'text-red-700 font-semibold' : isToday ? 'text-orange-700 font-semibold' : 'text-gray-700'}>
                                             {formatTaskDate(task.due_date)}
                                           </span>
@@ -2669,7 +2669,7 @@ export default function PlantBedViewPage() {
                                   
                                   {/* Priority Badge */}
                                   {priorityConfig && (
-                                    <Badge className={`ml-2 ${priorityConfig.badge_color}`}>
+                                    <Badge className={`ml-2 ${priorityConfig.badge_color} text-xs py-0.5 px-1.5`}>
                                       {priorityConfig.label}
                                     </Badge>
                                   )}

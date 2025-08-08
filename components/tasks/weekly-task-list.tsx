@@ -222,7 +222,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 {/* Priority badge */}
                 <Badge 
                   variant="secondary" 
-                  className={`text-sm py-1 px-2 transition-all duration-200 ${
+                  className={`text-xs py-0.5 px-1.5 transition-all duration-200 ${
                     task.completed 
                       ? 'opacity-60 bg-gray-200 text-gray-600' 
                       : priorityConfig?.badge_color || 'bg-gray-100 text-gray-800'
@@ -234,7 +234,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 {/* Task type badge */}
                 <Badge 
                   variant="outline" 
-                  className={`text-sm py-1 px-2 transition-all duration-200 ${
+                  className={`text-xs py-0.5 px-1.5 transition-all duration-200 ${
                     task.completed ? 'opacity-60 border-gray-300 text-gray-600' : 'text-gray-700'
                   }`}
                 >
@@ -242,10 +242,10 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 </Badge>
 
                 {/* Due date */}
-                <div className={`flex items-center gap-2 text-sm transition-all duration-200 ${
+                <div className={`flex items-center gap-1.5 text-xs transition-all duration-200 ${
                   task.completed ? 'text-gray-500' : 'text-gray-700'
                 }`}>
-                  <Clock className="w-4 h-4" />
+                  <Clock className="w-3.5 h-3.5" />
                   {formatTaskDate(task.due_date)}
                 </div>
 
