@@ -1,0 +1,112 @@
+{
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:security/recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "plugins": [
+    "security",
+    "@typescript-eslint"
+  ],
+  "rules": {
+    // Security rules
+    "security/detect-object-injection": "error",
+    "security/detect-non-literal-regexp": "error",
+    "security/detect-unsafe-regex": "error",
+    "security/detect-buffer-noassert": "error",
+    "security/detect-child-process": "error",
+    "security/detect-disable-mustache-escape": "error",
+    "security/detect-eval-with-expression": "error",
+    "security/detect-no-csrf-before-method-override": "error",
+    "security/detect-non-literal-fs-filename": "error",
+    "security/detect-non-literal-require": "error",
+    "security/detect-possible-timing-attacks": "error",
+    "security/detect-pseudoRandomBytes": "error",
+    
+    // TypeScript security rules
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-unsafe-assignment": "error",
+    "@typescript-eslint/no-unsafe-call": "error",
+    "@typescript-eslint/no-unsafe-member-access": "error",
+    "@typescript-eslint/no-unsafe-return": "error",
+    
+    // General security best practices
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-new-func": "error",
+    "no-script-url": "error",
+    "no-proto": "error",
+    "no-iterator": "error",
+    "no-restricted-globals": [
+      "error",
+      "eval",
+      "execScript"
+    ],
+    "no-restricted-properties": [
+      "error",
+      {
+        "object": "document",
+        "property": "write",
+        "message": "document.write can lead to XSS vulnerabilities"
+      },
+      {
+        "object": "document",
+        "property": "writeln",
+        "message": "document.writeln can lead to XSS vulnerabilities"
+      },
+      {
+        "object": "window",
+        "property": "eval",
+        "message": "eval() is dangerous and should not be used"
+      }
+    ],
+    
+    // React security rules
+    "react/no-danger": "error",
+    "react/no-danger-with-children": "error",
+    "react/jsx-no-script-url": "error",
+    "react/jsx-no-target-blank": "error",
+    
+    // Next.js security rules
+    "@next/next/no-html-link-for-pages": "error",
+    "@next/next/no-img-element": "error",
+    
+    // Input validation
+    "no-unused-vars": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+    
+    // Prevent potential security issues
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "no-debugger": "error",
+    "no-alert": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
+      "rules": {
+        "security/detect-non-literal-fs-filename": "off",
+        "security/detect-child-process": "off",
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": ["next.config.mjs", "tailwind.config.ts"],
+      "rules": {
+        "security/detect-non-literal-require": "off"
+      }
+    }
+  ]
+}
