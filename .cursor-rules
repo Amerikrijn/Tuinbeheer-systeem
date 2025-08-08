@@ -1,0 +1,284 @@
+# Nederlandse Banking Standards - Automatische Code Regels
+# Voor Tuinbeheer Systeem - Elke wijziging moet voldoen aan banking grade security
+
+## 🏦 NEDERLANDSE BANKING STANDARDS - ALTIJD TOEPASSEN
+
+### SECURITY-FIRST DEVELOPMENT
+- Elke database wijziging MOET audit logging hebben
+- Elke user input MOET gevalideerd worden (SQL injection, XSS, path traversal)
+- Elke nieuwe functie MOET RLS-ready zijn (ook al is RLS nog uit)
+- Elke API endpoint MOET authentication checks hebben
+- Elke gevoelige operatie MOET comprehensive logging hebben
+
+### DEPLOYMENT SAFETY - ZERO-DOWNTIME PRINCIPE
+- ALTIJD backwards compatible wijzigingen maken
+- ALTIJD IF NOT EXISTS gebruiken bij CREATE statements
+- ALTIJD graceful fallbacks implementeren
+- ALTIJD rollback procedures documenteren
+- NOOIT breaking changes zonder migratie strategie
+
+### CODE KWALITEIT STANDARDS
+- Elke functie MOET error handling hebben
+- Elke SQL query MOET performance optimized zijn (indexes, EXPLAIN ANALYZE)
+- Elke nieuwe tabel MOET proper constraints en indexes hebben
+- Elke API response MOET consistent error format hebben
+- Elke security functie MOET uitgebreid getest worden
+
+## 🚀 DEPLOYMENT SUCCESS GARANTIE
+
+### PRE-DEPLOYMENT CHECKLIST (AUTOMATISCH TOEPASSEN)
+```sql
+-- Altijd deze patronen gebruiken:
+CREATE TABLE IF NOT EXISTS...
+CREATE INDEX IF NOT EXISTS...
+CREATE OR REPLACE FUNCTION...
+ALTER TABLE ... ADD COLUMN IF NOT EXISTS...
+
+-- Nooit deze patronen gebruiken:
+DROP TABLE ... (gebruik soft deletes)
+ALTER TABLE ... DROP COLUMN ... (gebruik deprecation)
+DELETE FROM ... (gebruik status updates)
+```
+
+### FOUT-RESISTENTE PATTERNS
+- Gebruik COALESCE voor NULL handling
+- Gebruik TRY-CATCH equivalenten (BEGIN/EXCEPTION/END)
+- Gebruik parameter validation in alle functies
+- Gebruik typed parameters (UUID, TIMESTAMPTZ, etc.)
+- Gebruik CHECK constraints voor data integrity
+
+### MONITORING & ALERTING (ALTIJD IMPLEMENTEREN)
+- Log alle database schema wijzigingen
+- Monitor performance impact van nieuwe queries
+- Track error rates na deployments
+- Alert bij unusual security events
+- Measure deployment success rates
+
+## 📋 AUTOMATISCHE CODE TEMPLATES
+
+### NIEUWE DATABASE FUNCTIE TEMPLATE
+```sql
+CREATE OR REPLACE FUNCTION function_name(
+    p_param1 UUID,
+    p_param2 TEXT DEFAULT NULL
+) RETURNS UUID AS $$
+DECLARE
+    result_id UUID;
+    start_time TIMESTAMPTZ;
+BEGIN
+    start_time := clock_timestamp();
+    
+    -- Input validation
+    IF p_param1 IS NULL THEN
+        PERFORM log_security_event(
+            p_action := 'FUNCTION_VALIDATION_FAILED',
+            p_severity := 'HIGH',
+            p_success := FALSE,
+            p_error_message := 'Required parameter p_param1 is NULL'
+        );
+        RAISE EXCEPTION 'Invalid input: p_param1 cannot be NULL';
+    END IF;
+    
+    -- Validate input if text
+    IF p_param2 IS NOT NULL AND NOT validate_input(p_param2, 1000, false) THEN
+        RAISE EXCEPTION 'Invalid input: p_param2 failed validation';
+    END IF;
+    
+    -- Main logic here
+    
+    -- Success logging
+    PERFORM log_security_event(
+        p_action := 'FUNCTION_NAME_SUCCESS',
+        p_severity := 'LOW',
+        p_success := TRUE,
+        p_execution_time_ms := EXTRACT(MILLISECONDS FROM clock_timestamp() - start_time)::INTEGER
+    );
+    
+    RETURN result_id;
+    
+EXCEPTION WHEN OTHERS THEN
+    -- Error logging
+    PERFORM log_security_event(
+        p_action := 'FUNCTION_NAME_ERROR',
+        p_severity := 'HIGH',
+        p_success := FALSE,
+        p_error_message := SQLERRM,
+        p_execution_time_ms := EXTRACT(MILLISECONDS FROM clock_timestamp() - start_time)::INTEGER
+    );
+    RAISE;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
+
+### NIEUWE API ENDPOINT TEMPLATE
+```typescript
+// Altijd deze structuur gebruiken voor API endpoints
+export async function POST(request: Request) {
+  const startTime = Date.now();
+  let userId: string | null = null;
+  
+  try {
+    // 1. Authentication check
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      await logSecurityEvent('API_AUTH_FAILED', 'HIGH', false, 'Unauthorized API access');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    userId = user.id;
+    
+    // 2. Input validation
+    const body = await request.json();
+    if (!validateApiInput(body)) {
+      await logSecurityEvent('API_VALIDATION_FAILED', 'HIGH', false, 'Invalid API input');
+      return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+    }
+    
+    // 3. Permission check
+    const hasPermission = await checkUserPermission(userId, 'resource', 'action');
+    if (!hasPermission) {
+      await logSecurityEvent('API_PERMISSION_DENIED', 'HIGH', false, 'Insufficient permissions');
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    
+    // 4. Main logic
+    const result = await performOperation(body);
+    
+    // 5. Success logging
+    await logSecurityEvent('API_SUCCESS', 'LOW', true, null, Date.now() - startTime);
+    
+    return NextResponse.json({ data: result, success: true });
+    
+  } catch (error) {
+    // 6. Error handling & logging
+    await logSecurityEvent('API_ERROR', 'HIGH', false, error.message, Date.now() - startTime);
+    return NextResponse.json(
+      { error: 'Internal server error', success: false }, 
+      { status: 500 }
+    );
+  }
+}
+```
+
+### NIEUWE COMPONENT TEMPLATE
+```typescript
+// Altijd security-first React components
+'use client';
+
+import { useAuth } from '@/hooks/use-supabase-auth';
+import { validateInput } from '@/lib/security';
+import { logClientEvent } from '@/lib/audit';
+
+export function SecureComponent({ requiredPermission }: { requiredPermission?: string }) {
+  const { user, hasPermission } = useAuth();
+  
+  // Authentication guard
+  if (!user) {
+    return <div>Please log in to access this feature</div>;
+  }
+  
+  // Permission guard
+  if (requiredPermission && !hasPermission(requiredPermission)) {
+    return <div>You don't have permission to access this feature</div>;
+  }
+  
+  const handleUserInput = async (input: string) => {
+    // Client-side validation
+    if (!validateInput(input)) {
+      await logClientEvent('CLIENT_VALIDATION_FAILED', 'MEDIUM', false);
+      return;
+    }
+    
+    try {
+      // API call with proper error handling
+      const response = await fetch('/api/endpoint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      await logClientEvent('CLIENT_SUCCESS', 'LOW', true);
+      
+    } catch (error) {
+      await logClientEvent('CLIENT_ERROR', 'HIGH', false, error.message);
+      // Show user-friendly error
+    }
+  };
+  
+  return (
+    // Component JSX with security considerations
+    <div>
+      {/* Secure component content */}
+    </div>
+  );
+}
+```
+
+## 🔒 SECURITY REQUIREMENTS (NIET NEGOCIEERBAAR)
+
+### ELKE DATABASE WIJZIGING MOET:
+1. Audit logging hebben via log_security_event()
+2. Input validation via validate_input()
+3. Proper error handling met try-catch
+4. Performance monitoring (execution time)
+5. Rollback procedure gedocumenteerd
+
+### ELKE API ENDPOINT MOET:
+1. Authentication check (supabase.auth.getUser())
+2. Authorization check (permission validation)
+3. Input validation (client + server side)
+4. Rate limiting considerations
+5. Comprehensive error logging
+
+### ELKE FRONTEND COMPONENT MOET:
+1. Authentication guards
+2. Permission-based rendering
+3. Input sanitization
+4. Error boundaries
+5. Security event logging
+
+## 📊 DEPLOYMENT SUCCESS METRICS
+
+### AUTOMATISCH METEN:
+- Deployment success rate (target: >99%)
+- Rollback frequency (target: <1%)
+- Security event rate (monitor for spikes)
+- Performance impact (target: <20% degradation)
+- Error rate post-deployment (target: <0.1%)
+
+### AUTOMATISCH ALERTING:
+- Failed deployments
+- Security events (HIGH/CRITICAL)
+- Performance degradation >50%
+- Error rate >1%
+- Authentication failures >10/min
+
+## 🎯 GEBRUIK INSTRUCTIES
+
+Deze regels worden AUTOMATISCH toegepast bij elke:
+- Database schema wijziging
+- API endpoint creatie/wijziging  
+- React component ontwikkeling
+- Security functie implementatie
+- Deployment procedure
+
+GEEN UITZONDERINGEN - Nederlandse banking standards zijn niet-negocieerbaar.
+
+## 🚀 QUICK DEPLOYMENT CHECKLIST
+
+Voor elke wijziging, automatisch checken:
+- [ ] Backwards compatible?
+- [ ] Audit logging geïmplementeerd?
+- [ ] Input validation toegevoegd?
+- [ ] Error handling compleet?
+- [ ] Performance impact gemeten?
+- [ ] Security review gedaan?
+- [ ] Rollback procedure klaar?
+- [ ] Tests geschreven en geslaagd?
+
+Als ALLE checkboxes ✅ zijn: DEPLOY
+Als ER EEN ❌ is: FIX FIRST, THEN DEPLOY
