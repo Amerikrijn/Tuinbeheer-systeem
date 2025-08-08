@@ -214,7 +214,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Back button */}
         <Button asChild variant="ghost" className="mb-6">
           <Link href="/logbook">
@@ -223,149 +223,113 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
           </Link>
         </Button>
 
-        {/* Header */}
+        {/* Header - more compact */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Logboek Entry
-          </h1>
-          <div className="flex items-center gap-4 text-gray-600">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-gray-900">
+              Logboek Entry
+            </h1>
+            
+            {/* Quick actions in header */}
+            <div className="flex gap-2">
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/logbook/${state.entry.id}/edit`}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Bewerken
+                </Link>
+              </Button>
+              
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={handleDelete}
+                disabled={state.deleting}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {state.deleting ? 'Verwijderen...' : 'Verwijderen'}
+              </Button>
+            </div>
+          </div>
+          
+          {/* Compact metadata header */}
+          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              {formatDate(state.entry.entry_date)}
+              <span className="font-medium">{formatDate(state.entry.entry_date)}</span>
             </div>
-            <Badge variant="outline">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-blue-500" />
+              <span>{state.entry.plant_bed_name}</span>
+            </div>
+            <Badge variant="outline" className="text-xs">
               {state.entry.garden_name}
             </Badge>
+            {state.entry.plant_name && (
+              <div className="flex items-center gap-2">
+                <Leaf className="h-4 w-4 text-green-500" />
+                <span>
+                  {state.entry.plant_name}
+                  {state.entry.plant_variety && ` (${state.entry.plant_variety})`}
+                </span>
+                {state.entry.plant_scientific_name && (
+                  <span className="italic text-xs text-gray-500 ml-1">
+                    {state.entry.plant_scientific_name}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Main content */}
-        <div className="grid gap-6 lg:grid-cols-4">
-          {/* Entry details - wider column */}
-          <div className="lg:col-span-3">
+        {/* Main content - redesigned layout */}
+        <div className="space-y-8">
+          
+          {/* Photo section - prominent if exists */}
+          {state.entry.photo_url && (
             <Card>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-xl flex items-center gap-2 mb-3">
-                      <MapPin className="h-5 w-5 text-blue-600" />
-                      {state.entry.plant_bed_name}
-                    </CardTitle>
-                    {state.entry.plant_name && (
-                      <div className="flex items-center gap-2 text-gray-600">
-                        <Leaf className="h-4 w-4 text-green-600" />
-                        <span className="font-medium">
-                          {state.entry.plant_name}
-                          {state.entry.plant_variety && ` (${state.entry.plant_variety})`}
-                        </span>
-                        {state.entry.plant_scientific_name && (
-                          <span className="italic text-sm text-gray-500 ml-2">
-                            {state.entry.plant_scientific_name}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-              
-              <CardContent>
-                {/* Photo - improved display */}
-                {state.entry.photo_url && (
-                  <div className="mb-6">
-                    <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                      <Camera className="h-4 w-4" />
-                      Foto
-                    </h3>
-                    <div className="relative group">
-                      <img 
-                        src={state.entry.photo_url} 
-                        alt="Logboek foto"
-                        className="w-full max-h-[500px] object-cover rounded-lg border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
-                        onClick={() => state.entry?.photo_url && window.open(state.entry.photo_url, '_blank')}
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded">
-                          Klik om te vergroten
-                        </div>
-                      </div>
+              <CardContent className="p-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Camera className="h-5 w-5" />
+                  Foto
+                </h2>
+                <div className="relative group max-w-4xl">
+                  <img 
+                    src={state.entry.photo_url} 
+                    alt="Logboek foto"
+                    className="w-full max-h-[600px] object-cover rounded-lg border shadow-lg cursor-pointer transition-transform hover:scale-[1.01]"
+                    onClick={() => state.entry?.photo_url && window.open(state.entry.photo_url, '_blank')}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-sm bg-black bg-opacity-50 px-4 py-2 rounded-lg">
+                      🔍 Klik om te vergroten
                     </div>
-                  </div>
-                )}
-                
-                {/* Notes */}
-                <div className="mb-6">
-                  <h3 className="font-medium text-gray-900 mb-3">Opmerkingen</h3>
-                  <div className="bg-gray-50 rounded-lg p-4 border">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                      {state.entry.notes}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Metadata */}
-                <div className="border-t pt-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
-                    <div>
-                      <span className="font-medium">Aangemaakt:</span>
-                      <br />
-                      {formatDateTime(state.entry.created_at)}
-                    </div>
-                    {state.entry.updated_at !== state.entry.created_at && (
-                      <div>
-                        <span className="font-medium">Laatst bewerkt:</span>
-                        <br />
-                        {formatDateTime(state.entry.updated_at)}
-                      </div>
-                    )}
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
+          )}
+          
+          {/* Description section - prominent display */}
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Beschrijving</h2>
+              <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-l-blue-500">
+                <p className="text-lg text-gray-900 leading-relaxed whitespace-pre-wrap font-medium">
+                  {state.entry.notes}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* Sidebar - narrower column */}
-          <div className="space-y-6">
-            {/* Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Acties</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button asChild className="w-full">
-                  <Link href={`/logbook/${state.entry.id}/edit`}>
-                    <Edit className="h-4 w-4 mr-2" />
-                    Bewerken
-                  </Link>
-                </Button>
-                
-                <Button 
-                  variant="destructive" 
-                  className="w-full"
-                  onClick={handleDelete}
-                  disabled={state.deleting}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {state.deleting ? 'Verwijderen...' : 'Verwijderen'}
-                </Button>
-              </CardContent>
-            </Card>
-
+          {/* Additional info and actions in sidebar-style layout */}
+          <div className="grid gap-6 lg:grid-cols-3">
+            
             {/* Quick actions */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Gerelateerd</CardTitle>
+                <CardTitle className="text-lg">Snelle Acties</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                                  {/* SECURITY: Only show garden link for admins */}
-                  {isAdmin() && (
-                    <Button asChild variant="outline" className="w-full text-sm">
-                      <Link href={`/gardens/${state.entry.garden_id}`}>
-                        Bekijk tuin
-                      </Link>
-                    </Button>
-                  )}
-                
                 <Button asChild variant="outline" className="w-full text-sm">
                   <Link href={`/logbook/new?plant_bed_id=${state.entry.plant_bed_id}`}>
                     Nieuwe entry voor dit plantvak
@@ -382,26 +346,78 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
               </CardContent>
             </Card>
 
-            {/* Entry Info Summary */}
+            {/* Entry details */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Entry Info</CardTitle>
+                <CardTitle className="text-lg">Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
+              <CardContent className="space-y-4 text-sm">
                 <div>
-                  <span className="font-medium text-gray-700">Tuin:</span>
-                  <p className="text-gray-600">{state.entry.garden_name}</p>
+                  <span className="font-medium text-gray-700">Locatie:</span>
+                  <div className="mt-1 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-blue-500" />
+                    <span>{state.entry.plant_bed_name}</span>
+                  </div>
+                  <div className="mt-1 text-gray-600">
+                    📍 {state.entry.garden_name}
+                  </div>
                 </div>
+                
+                {state.entry.plant_name && (
+                  <div>
+                    <span className="font-medium text-gray-700">Plant:</span>
+                    <div className="mt-1 flex items-center gap-2">
+                      <Leaf className="w-4 h-4 text-green-500" />
+                      <span>{state.entry.plant_name}</span>
+                    </div>
+                    {state.entry.plant_variety && (
+                      <div className="text-gray-600 text-xs mt-1">
+                        Variëteit: {state.entry.plant_variety}
+                      </div>
+                    )}
+                    {state.entry.plant_scientific_name && (
+                      <div className="text-gray-500 text-xs mt-1 italic">
+                        {state.entry.plant_scientific_name}
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 <div>
                   <span className="font-medium text-gray-700">Datum:</span>
-                  <p className="text-gray-600">{formatDate(state.entry.entry_date)}</p>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <span>{formatDate(state.entry.entry_date)}</span>
+                  </div>
                 </div>
                 
                 {!state.entry.photo_url && (
                   <div className="text-center py-4 text-gray-400 border border-dashed border-gray-200 rounded-lg">
                     <Camera className="h-6 w-6 mx-auto mb-2" />
-                    <p className="text-xs">Geen foto</p>
+                    <p className="text-xs">Geen foto toegevoegd</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Metadata */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Systeem Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm text-gray-600">
+                <div>
+                  <span className="font-medium">Aangemaakt:</span>
+                  <div className="text-xs mt-1">
+                    {formatDateTime(state.entry.created_at)}
+                  </div>
+                </div>
+                {state.entry.updated_at !== state.entry.created_at && (
+                  <div>
+                    <span className="font-medium">Laatst bewerkt:</span>
+                    <div className="text-xs mt-1">
+                      {formatDateTime(state.entry.updated_at)}
+                    </div>
                   </div>
                 )}
               </CardContent>
