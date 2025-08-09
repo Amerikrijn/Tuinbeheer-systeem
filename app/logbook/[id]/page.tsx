@@ -330,6 +330,16 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                 <CardTitle className="text-lg">Snelle Acties</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                {/* SECURITY: Only show garden link for admins */}
+                {/* ADMIN GARDEN LINK TEMPORARILY DISABLED
+                {isAdmin() && (
+                  <Button asChild variant="outline" className="w-full text-sm">
+                    <Link href={`/gardens/${state.entry.garden_id}`}>
+                      Bekijk tuin
+                    </Link>
+                  </Button>
+                )}
+                */}
                 <Button asChild variant="outline" className="w-full text-sm">
                   <Link href={`/logbook/new?plant_bed_id=${state.entry.plant_bed_id}`}>
                     Nieuwe entry voor dit plantvak

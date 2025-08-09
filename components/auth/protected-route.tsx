@@ -61,7 +61,7 @@ function ProtectedRouteComponent({
       const checkTempPassword = async () => {
         try {
           const { data: { user: freshUser } } = await supabase.auth.getUser()
-          if (freshUser?.user_metadata?.temp_password && router.pathname !== '/auth/change-password') {
+          if (freshUser?.user_metadata?.temp_password && window.location.pathname !== '/auth/change-password') {
             router.push('/auth/change-password')
             return
           }
