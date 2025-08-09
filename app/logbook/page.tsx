@@ -214,7 +214,7 @@ function LogbookPageContent() {
         ]) as any
       } catch (error) {
         console.error('🔥 Logbook query error:', error)
-        throw new Error(`Logbook query failed: ${error.message}`)
+        throw new Error(`Logbook query failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
       
       if (!response || !response.success || !response.data) {
