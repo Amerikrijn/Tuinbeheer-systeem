@@ -22,6 +22,7 @@ export function BankingNavigation() {
     { href: '/gardens', label: 'Tuinen', icon: <TreePine className="h-4 w-4" /> },
     { href: '/logbook', label: 'Logboek', icon: <BookOpen className="h-4 w-4" /> },
     { href: '/tasks', label: 'Taken', icon: <ClipboardList className="h-4 w-4" /> },
+    { href: '/admin/users', label: 'Gebruikersbeheer', icon: <User className="h-4 w-4" />, requiredPermission: 'admin' },
   ];
   
   // Filter items based on permissions
