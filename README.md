@@ -1,5 +1,23 @@
 # Tuinbeheer Systeem
 
+## 🚨 **BELANGRIJK: SECURITY MIGRATIE VEREIST**
+
+**⚠️ Dit systeem moet nog gemigreerd worden naar banking-grade security standards.**
+
+📋 **Start hier:** [`SECURITY_MIGRATION_PLAN.md`](SECURITY_MIGRATION_PLAN.md) - Complete 5-fase implementatie roadmap
+⚡ **Quick Start:** [`SECURITY_QUICK_START.md`](SECURITY_QUICK_START.md) - Snelle start gids voor Fase 1
+🔧 **Implementatie:** [`SECURITY_IMPLEMENTATION_GUIDE.md`](SECURITY_IMPLEMENTATION_GUIDE.md) - Stap-voor-stap uitvoering
+
+**Status:** Fase 1 (Foundation Security) - KLAAR VOOR UITVOERING
+**Prioriteit:** KRITIEK - Implementatie scripts zijn voorbereid
+
+**🚀 SNELLE START:**
+```bash
+npm run security:implement-phase1
+```
+
+---
+
 ## 🌱 Overzicht
 
 Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. Ontwikkeld met Next.js 14, Supabase en TailwindCSS.
