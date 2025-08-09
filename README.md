@@ -130,3 +130,4 @@ Dit project is gelicenseerd onder de MIT License - zie het [LICENSE](LICENSE) be
 ---
 
 **⚠️ BELANGRIJK:** Dit systeem implementeert banking-grade security. Volg altijd de security best practices en test grondig na elke wijziging.
+# Environment variable fix deployed Sat Aug  9 07:21:37 PM UTC 2025
