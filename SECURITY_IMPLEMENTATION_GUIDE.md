@@ -191,12 +191,24 @@ psql -h your-supabase-host -U postgres -d postgres < backup_before_security_YYYY
 - [x] ✅ Account lockout mechanisme getest
 - [x] ✅ Security logging voor authentication events
 
+## 📋 **CHECKLIST FASE 3 - ROW LEVEL SECURITY (IN PROGRESS)**
+
+- [x] ✅ RLS enabled op logbook_entries (laag-risico tabel)
+- [x] ✅ RLS enabled op gardens (core tabel)
+- [x] ✅ Tussentijdse test: Login & logbook werken
+- [ ] ⏳ RLS op plant_beds (volgende stap)
+- [ ] ⏳ RLS op plants (volgende stap)  
+- [ ] ⏳ RLS op tasks (volgende stap)
+- [ ] ⏳ RLS op users (admin tabel)
+- [ ] ⏳ Volledige functionaliteit test
+
 ---
 
 ## 🎯 **IMPLEMENTATIE STATUS - VOLTOOID**
 
 **FASE 1 GEÏMPLEMENTEERD OP:** 9 Augustus 2025 - TEST OMGEVING
 **FASE 2 GEÏMPLEMENTEERD OP:** 9 Augustus 2025 - TEST OMGEVING
+**FASE 3 GESTART OP:** 9 Augustus 2025 - TEST OMGEVING (2/7 stappen compleet)
 
 ### **Uitgevoerde Stappen - FASE 1:**
 1. ✅ **Environment Variables:** Service role key toegevoegd aan Vercel
@@ -226,6 +238,18 @@ psql -h your-supabase-host -U postgres -d postgres < backup_before_security_YYYY
 - ✅ Account lockout: Automatisch na 5 failed attempts
 - ✅ Login tracking: Alle authentication events gelogd
 - ✅ Frontend compatibility: Alle CRUD operaties nog werkend
+
+### **Uitgevoerde Stappen - FASE 3 (IN PROGRESS):**
+1. ✅ **RLS op logbook_entries:** Secure access via plant_bed -> garden ownership
+2. ✅ **RLS op gardens:** Core tabel beveiligd met user_garden_access
+3. ✅ **Tussentijdse test:** Login en logbook functionaliteit gevalideerd
+4. ⏳ **Volgende:** plant_beds, plants, tasks, users tabellen
+
+### **Test Resultaten - FASE 3 (TUSSENSTAND):**
+- ✅ Login functionaliteit: Nog werkend na RLS implementatie
+- ✅ Logbook access: Secure via garden ownership
+- ✅ Gardens access: Beveiligd met permission system
+- ⏳ **VOLGENDE SESSIE:** Verder met plant_beds, plants, tasks RLS
 
 ## 🎯 **VOLGENDE STAPPEN NAAR FASE 2**
 
