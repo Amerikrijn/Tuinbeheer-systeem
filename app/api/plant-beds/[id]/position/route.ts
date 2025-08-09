@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAuthenticationQuick } from '@/lib/api-auth-wrapper';
+import { logClientSecurityEvent } from '@/lib/banking-security';
 import { 
   UpdatePositionRequest, 
   PlantBedWithPosition, 
@@ -191,7 +193,13 @@ export async function GET(
     });
     
   } catch (error) {
-    console.error('GET position error:', error);
+    // Banking-grade error logging with fallback
+    try {
+      await logClientSecurityEvent('API_POSITION_GET_ERROR', 'HIGH', false, error instanceof Error ? error.message : 'Unknown error');
+    } catch (logError) {
+      // Fallback: If logging fails, still handle the error gracefully
+      console.error('Logging failed, original error:', error);
+    }
     return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
       data: null,
       error: 'Internal server error',

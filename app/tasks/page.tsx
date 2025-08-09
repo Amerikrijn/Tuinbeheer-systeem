@@ -54,7 +54,7 @@ function TasksPageContent() {
       <WeeklyTaskList 
         key={refreshKey}
         onTaskEdit={(task) => {
-          console.log('Edit task:', task)
+          // TODO: Open edit dialog - implement task editing functionality
           // TODO: Open edit dialog
         }}
         onTaskAdd={handleTaskAdd}

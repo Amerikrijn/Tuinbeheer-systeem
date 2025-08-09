@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { apiLogger } from '@/lib/logger';
 
 // Mock data for development/testing
 const mockPlantBeds = [
@@ -57,28 +58,51 @@ const mockPlantBeds = [
 ];
 
 export async function GET(request: NextRequest) {
+  const operationId = `plant-beds-get-${Date.now()}`;
+  
   try {
-    const { data: plantBeds, error } = await supabase
+    apiLogger.info('GET /api/plant-beds', { operationId });
+    
+    const { searchParams } = new URL(request.url);
+    const gardenId = searchParams.get('garden_id');
+
+    let query = supabase
       .from('plant_beds')
-      .select(`
-        *,
-        gardens (
-          id,
-          name
-        )
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Database error:', error);
-      // Return mock data as fallback
-      return NextResponse.json(mockPlantBeds);
+    if (gardenId) {
+      query = query.eq('garden_id', gardenId);
     }
+
+    const { data: plantBeds, error } = await query;
+
+    if (error) {
+      // Banking-grade error logging with fallback
+      try {
+        apiLogger.error('Database error fetching plant beds', error, { operationId, gardenId });
+      } catch (logError) {
+        // Fallback: If logging fails, still handle the error gracefully
+        console.error('Logging failed, original error:', error);
+      }
+      return NextResponse.json({ error: 'Failed to fetch plant beds' }, { status: 500 });
+    }
+
+    apiLogger.info('Plant beds fetched successfully', { 
+      operationId, 
+      count: plantBeds?.length || 0,
+      gardenId 
+    });
 
     return NextResponse.json(plantBeds);
   } catch (error) {
-    console.error('API error:', error);
-    // Return mock data as fallback
-    return NextResponse.json(mockPlantBeds);
+    // Banking-grade error logging with fallback
+    try {
+      apiLogger.error('API error in plant beds endpoint', error as Error, { operationId });
+    } catch (logError) {
+      // Fallback: If logging fails, still handle the error gracefully
+      console.error('Logging failed, original error:', error);
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

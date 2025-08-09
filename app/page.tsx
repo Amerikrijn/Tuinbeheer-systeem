@@ -79,12 +79,12 @@ function HomePageContent() {
         throw new Error('No data received from server')
       }
 
-      // Debug: Log what gardens are being loaded
-      console.log('🔍 DEBUG: Gardens loaded from TuinService:', paginatedData.data.map(g => ({
-        name: g.name,
-        is_active: g.is_active,
-        id: g.id
-      })))
+      // Banking-grade logging: Log gardens loaded with metadata only
+      uiLogger.debug('Gardens loaded from TuinService', { 
+        count: paginatedData.data.length,
+        operationId,
+        hasActiveGardens: paginatedData.data.some(g => g.is_active)
+      })
 
       uiLogger.info('Gardens loaded successfully', { 
         count: paginatedData.data.length, 
@@ -430,7 +430,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
         const beds = await getPlantBeds(garden.id)
         setPlantBeds(beds as PlantvakWithBloemen[])
       } catch (error) {
-        console.error('Error loading flowers for garden preview:', error)
+        uiLogger.error('Error loading flowers for garden preview', error as Error, { gardenId: garden.id, operationId })
         setPlantBeds([])
       } finally {
         setLoadingFlowers(false)
@@ -460,7 +460,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
           setGardenUsers(users.map(u => u.users).filter(Boolean))
         }
       } catch (error) {
-        console.error('Error loading garden users:', error)
+        uiLogger.error('Error loading garden users', error as Error, { gardenId: garden.id, operationId })
         setGardenUsers([])
       } finally {
         setLoadingUsers(false)
