@@ -256,7 +256,19 @@ psql -h your-supabase-host -U postgres -d postgres < backup_before_security_YYYY
 - ✅ Database security: Volledige row-level access control actief
 - ✅ Troubleshooting: Guide voor toekomstige implementaties
 
-## 🎯 **VOLGENDE STAPPEN NAAR FASE 2**
+## 📋 **CHECKLIST FASE 4 - ADVANCED SECURITY (IN PROGRESS)**
+
+- [ ] ⏳ Data encryption at rest (pgcrypto extension)
+- [ ] ⏳ Advanced threat detection systeem
+- [ ] ⏳ Session security management
+- [ ] ⏳ Automated monitoring en alerting
+- [ ] ⏳ IP blocking voor verdachte activiteit
+- [ ] ⏳ Performance monitoring
+- [ ] ⏳ Volledige functionaliteit test
+
+**FASE 4 GESTART OP:** 9 Augustus 2025 - TEST OMGEVING (0/7 stappen compleet)
+
+## 🎯 **VOLGENDE STAPPEN NAAR FASE 5**
 
 Na succesvolle implementatie van Fase 1:
 
