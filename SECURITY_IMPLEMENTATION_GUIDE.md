@@ -285,7 +285,18 @@ psql -h your-supabase-host -U postgres -d postgres < backup_before_security_YYYY
 
 **FASE 4 VOLTOOID OP:** 9 Augustus 2025 - TEST OMGEVING (7/7 stappen compleet)
 
-## 🎯 **VOLGENDE STAPPEN NAAR FASE 5**
+## 📋 **CHECKLIST FASE 5 - BANKING COMPLIANCE (IN PROGRESS)**
+
+- [ ] ⏳ GDPR/AVG compliance functies
+- [ ] ⏳ Nederlandse banking regelgeving (DNB)
+- [ ] ⏳ Compliance audit trails en reporting
+- [ ] ⏳ Data subject rights (recht op vergetelheid)
+- [ ] ⏳ Automated security reporting
+- [ ] ⏳ Volledige compliance test
+
+**FASE 5 GESTART OP:** 9 Augustus 2025 - TEST OMGEVING (0/6 stappen compleet)
+
+## 🎯 **VOLGENDE STAPPEN NA FASE 5**
 
 Na succesvolle implementatie van Fase 1:
 
