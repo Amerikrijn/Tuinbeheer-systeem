@@ -56,7 +56,7 @@ function HomePageContent() {
     hasMore: false,
   })
 
-  // Load gardens with proper error handling and logging
+  // Load gardens with proper error handling and logging (memoized for performance)
   const loadGardens = React.useCallback(async (page = 1, searchTerm = "", append = false) => {
     const operationId = `loadGardens-${Date.now()}`
     
