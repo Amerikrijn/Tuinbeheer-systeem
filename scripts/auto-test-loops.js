@@ -91,8 +91,9 @@ class TestLoop {
     log('blue', `Starting test loop: ${this.name}`);
     
     for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
-      try {
-        const startTime = Date.now();
+             let startTime;
+       try {
+         startTime = Date.now();
         
         log('cyan', `${this.name} - Attempt ${attempt}/${this.maxRetries}`);
         
@@ -115,8 +116,8 @@ class TestLoop {
         log('green', `${this.name} - SUCCESS (${duration}ms)`);
         return { success: true, attempts: attempt, duration, result };
         
-      } catch (error) {
-        const duration = Date.now() - startTime;
+             } catch (error) {
+         const duration = Date.now() - (startTime || Date.now());
         
         this.results.push({
           attempt,
