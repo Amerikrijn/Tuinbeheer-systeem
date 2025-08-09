@@ -1,53 +1,88 @@
 /**
- * SECURE CONFIGURATION - Only Test or Prod Supabase
- * NO environment variables - only hardcoded secure configurations
+ * BANKING-GRADE SECURE CONFIGURATION - SHARED PACKAGE
+ * NO hardcoded credentials - Environment variables ONLY
+ * Compliant with banking security standards
  */
 
-export type Environment = 'test' | 'prod'
+export type Environment = 'development' | 'preview' | 'production'
 
 export interface SupabaseConfig {
   url: string
   anonKey: string
 }
 
-// SECURE: Using same Supabase instance for both preview and prod
-const SUPABASE_CONFIGS = {
-  test: {
-    url: 'https://dwsgwqosmihsfaxuheji.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE'
-  },
-  prod: {
-    url: 'https://dwsgwqosmihsfaxuheji.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE'
-  }
-} as const;
-
+/**
+ * Get current environment based on Vercel deployment context
+ */
 export function getCurrentEnvironment(): Environment {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname.includes('test') || hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'test';
-    }
-    return 'prod';
+  // Server-side environment detection
+  if (typeof window === 'undefined') {
+    if (process.env.VERCEL_ENV === 'production') return 'production'
+    if (process.env.VERCEL_ENV === 'preview') return 'preview'
+    return 'development'
   }
-  return 'prod';
+  
+  // Client-side environment detection
+  const hostname = window.location.hostname;
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('localhost')) {
+    return 'development'
+  }
+  if (hostname.includes('vercel.app') && !hostname.includes('tuinbeheer-systeem.vercel.app')) {
+    return 'preview'
+  }
+  return 'production'
 }
 
+/**
+ * Get Supabase configuration from environment variables
+ * BANKING-GRADE: NO hardcoded credentials allowed
+ */
 export function getSupabaseConfig(): SupabaseConfig {
   const env = getCurrentEnvironment();
-  const config = SUPABASE_CONFIGS[env];
   
-  if (!config || !config.url || !config.anonKey) {
-    throw new Error(`Invalid secure configuration for environment: ${env}`);
+  // Get from environment variables ONLY
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  
+  // Banking-grade validation
+  if (!url || !anonKey) {
+    throw new Error(`SECURITY ERROR: Missing Supabase environment variables for ${env}. Required: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY`);
   }
   
-  const allowedUrls = [
-    'https://dwsgwqosmihsfaxuheji.supabase.co'
-  ];
-  
-  if (!allowedUrls.includes(config.url)) {
-    throw new Error(`Security violation: URL ${config.url} is not in allowed list`);
+  // Validate URL format for security
+  if (!url.includes('.supabase.co')) {
+    throw new Error(`SECURITY ERROR: Invalid Supabase URL format: ${url}`);
   }
   
-  return config;
+  // Validate key format for security
+  if (!anonKey.startsWith('eyJ')) {
+    throw new Error(`SECURITY ERROR: Invalid Supabase key format`);
+  }
+  
+  return {
+    url,
+    anonKey
+  };
+}
+
+/**
+ * Banking-grade security: Validate environment is properly configured
+ */
+export function validateSecurityConfiguration(): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  try {
+    const config = getSupabaseConfig();
+    const env = getCurrentEnvironment();
+    
+    // Log configuration validation (without exposing credentials)
+    console.log(`🔒 Security validation for ${env} environment`);
+    console.log(`🔗 URL configured: ${config.url.substring(0, 30)}...`);
+    console.log(`🔑 Key configured: ${config.anonKey.substring(0, 20)}...`);
+    
+    return { valid: true, errors: [] };
+  } catch (error) {
+    errors.push(error instanceof Error ? error.message : 'Unknown configuration error');
+    return { valid: false, errors };
+  }
 }
