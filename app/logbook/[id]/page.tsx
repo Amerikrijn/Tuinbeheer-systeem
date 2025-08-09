@@ -358,6 +358,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
               </CardHeader>
               <CardContent className="space-y-3">
                                   {/* SECURITY: Only show garden link for admins */}
+                  {/* ADMIN GARDEN LINK TEMPORARILY DISABLED
                   {isAdmin() && (
                     <Button asChild variant="outline" className="w-full text-sm">
                       <Link href={`/gardens/${state.entry.garden_id}`}>
@@ -365,6 +366,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                       </Link>
                     </Button>
                   )}
+                  */}
                 
                 <Button asChild variant="outline" className="w-full text-sm">
                   <Link href={`/logbook/new?plant_bed_id=${state.entry.plant_bed_id}`}>
