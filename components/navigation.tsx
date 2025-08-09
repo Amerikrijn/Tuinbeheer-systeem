@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-supabase-auth';
-import { TreePine, Home, BookOpen, Settings, ClipboardList, User } from 'lucide-react';
+import { TreePine, Home, BookOpen, ClipboardList, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NavItem {
@@ -22,7 +22,6 @@ export function BankingNavigation() {
     { href: '/gardens', label: 'Tuinen', icon: <TreePine className="h-4 w-4" /> },
     { href: '/logbook', label: 'Logboek', icon: <BookOpen className="h-4 w-4" /> },
     { href: '/tasks', label: 'Taken', icon: <ClipboardList className="h-4 w-4" /> },
-    { href: '/admin', label: 'Beheer', icon: <Settings className="h-4 w-4" />, requiredPermission: 'admin' },
   ];
   
   // Filter items based on permissions
