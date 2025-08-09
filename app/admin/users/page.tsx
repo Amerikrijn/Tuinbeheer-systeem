@@ -225,7 +225,9 @@ function AdminUsersPageContent() {
       // Get the current site URL for proper redirect
       const siteUrl = typeof window !== 'undefined' 
         ? window.location.origin 
-        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+        : process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}` 
+          : 'https://tuinbeheer-systeem.vercel.app'
       
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email.toLowerCase().trim(),

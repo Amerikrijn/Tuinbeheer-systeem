@@ -30,8 +30,9 @@ console.log('   □ Disable new user signups: SHOULD BE OFF (to allow admin invi
 
 console.log('\n   Authentication > URL Configuration:');
 console.log('   □ Redirect URLs should include:');
-console.log('     - http://localhost:3000/auth/accept-invite');
-console.log('     - https://your-domain.com/auth/accept-invite');
+console.log('     - https://tuinbeheer-systeem.vercel.app/auth/accept-invite');
+console.log('     - https://tuinbeheer-systeem-git-main-amerikrijn.vercel.app/auth/accept-invite');
+console.log('     - https://*.vercel.app/auth/accept-invite (wildcard for previews)');
 
 console.log('\n   Authentication > Email Templates:');
 console.log('   □ "Confirm signup" template should be configured');
@@ -44,22 +45,36 @@ console.log('   🚫 Spam Folder: Check recipient\'s spam/junk folder');
 console.log('   🚫 Email Provider: Some providers block Supabase emails');
 console.log('   🚫 Template Errors: Malformed templates prevent sending');
 console.log('   🚫 Wrong Redirect URL: Must match exactly in Supabase settings');
+console.log('   🚫 Vercel Preview URLs: Different URLs for each deployment');
 
 console.log('\n4. Testing Steps:');
-console.log('   1. Go to http://localhost:3000/admin/users');
+console.log('   PRODUCTION:');
+console.log('   1. Go to https://tuinbeheer-systeem.vercel.app/admin/users');
 console.log('   2. Click "Gebruiker Uitnodigen"');
 console.log('   3. Fill in a REAL email address you can check');
 console.log('   4. Submit the form');
 console.log('   5. Check email within 5 minutes');
 console.log('   6. Check spam folder if not received');
+console.log('');
+console.log('   PREVIEW/BRANCH:');
+console.log('   1. Deploy your branch to Vercel');
+console.log('   2. Go to https://tuinbeheer-systeem-git-[branch]-amerikrijn.vercel.app/admin/users');
+console.log('   3. Repeat testing steps');
 
 console.log('\n5. Debug Information:');
 console.log('   - Check browser console for errors');
 console.log('   - Check Supabase logs in dashboard');
+console.log('   - Check Vercel function logs');
 console.log('   - Verify user was created in auth.users table');
 console.log('   - Check if email_confirmed_at is null (should be)');
 
-console.log('\n6. Manual Verification:');
+console.log('\n6. Vercel Specific Checks:');
+console.log('   - Verify deployment was successful');
+console.log('   - Check environment variables are set');
+console.log('   - Confirm redirect URLs match deployment URLs');
+console.log('   - Test both preview and production deployments');
+
+console.log('\n7. Manual Verification:');
 console.log('   Run this to test with your own email:');
 console.log('   node scripts/test-email-simple.js --email your@email.com');
 
@@ -70,6 +85,9 @@ if (emailIndex !== -1 && args[emailIndex + 1]) {
   const testEmail = args[emailIndex + 1];
   console.log(`\n🧪 Would test email sending to: ${testEmail}`);
   console.log('   (Actual test requires Supabase client - use the web interface)');
+  console.log('   Test URLs:');
+  console.log('   - Production: https://tuinbeheer-systeem.vercel.app/admin/users');
+  console.log('   - Preview: https://tuinbeheer-systeem-git-[branch]-amerikrijn.vercel.app/admin/users');
 } else {
   console.log('\n💡 To specify test email:');
   console.log('   node scripts/test-email-simple.js --email your@email.com');
@@ -77,3 +95,4 @@ if (emailIndex !== -1 && args[emailIndex + 1]) {
 
 console.log('\n✅ Configuration check complete!');
 console.log('🔧 Next steps: Verify settings in Supabase dashboard');
+console.log('🚀 Remember: Use Vercel URLs, not localhost!');
