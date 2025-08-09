@@ -216,34 +216,42 @@ function AdminUsersPageContent() {
         return
       }
 
-      // Create user invite with automatic email
-      console.log('🔍 Creating user invite with email notification...')
-      
-      // Use regular signup with email confirmation to send invite email
-      console.log('🔍 Step 1: Creating user with email confirmation...')
+      // Create user invite with automatic email confirmation
+      console.log('🔍 Creating user invite with email confirmation...')
       
       // Generate a secure temporary password
       const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!'
+      
+      // Get the current site URL for proper redirect
+      const siteUrl = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
       
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email.toLowerCase().trim(),
         password: tempPassword,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/accept-invite`,
+          // Ensure email confirmation is sent
+          emailRedirectTo: `${siteUrl}/auth/accept-invite`,
           data: {
             created_by_admin: true,
             full_name: formData.full_name,
             role: formData.role,
             invited_by: currentUser?.email,
             message: formData.message || 'Welkom bij het tuinbeheer systeem!',
-            temp_password: true
+            temp_password: true,
+            invitation: true
           }
         }
       })
 
       if (authError) {
         console.error('🔍 Auth invite error:', authError)
-        if (authError.message.includes('already registered') || authError.message.includes('already exists')) {
+        
+        // Handle specific error cases
+        if (authError.message.includes('already registered') || 
+            authError.message.includes('already exists') ||
+            authError.message.includes('User already registered')) {
           toast({
             title: "Email al in gebruik",
             description: "Dit email adres is al geregistreerd in het systeem",
@@ -251,7 +259,26 @@ function AdminUsersPageContent() {
           })
           return
         }
-        throw new Error(`Gebruiker uitnodigen mislukt: ${authError.message}`)
+        
+        if (authError.message.includes('rate limit') || 
+            authError.message.includes('too many')) {
+          toast({
+            title: "Te veel verzoeken",
+            description: "Er zijn te veel emails verzonden. Probeer het over een paar minuten opnieuw.",
+            variant: "destructive"
+          })
+          return
+        }
+        
+        if (authError.message.includes('email not confirmed')) {
+          toast({
+            title: "Email bevestiging vereist",
+            description: "De gebruiker moet eerst hun email bevestigen voordat ze kunnen inloggen.",
+            variant: "default"
+          })
+        } else {
+          throw new Error(`Gebruiker uitnodigen mislukt: ${authError.message}`)
+        }
       }
 
       if (!authData.user?.id) {
@@ -259,10 +286,16 @@ function AdminUsersPageContent() {
       }
 
       console.log('🔍 Step 2: User invited successfully:', authData.user.id)
-      console.log('🔍 Invitation email sent to:', formData.email)
+      console.log('🔍 Email confirmation should be sent to:', formData.email)
 
-      // Don't sign out - keep admin session active
-      console.log('🔍 Step 2a: Keeping admin session active (skipping signout)')
+      // Check if email was actually sent
+      if (authData.user && !authData.user.email_confirmed_at) {
+        console.log('🔍 Email confirmation required - notification should be sent')
+        toast({
+          title: "Bevestigingsmail verzonden!",
+          description: `Een bevestigingsmail is verzonden naar ${formData.email}. De gebruiker moet eerst hun email bevestigen om in te loggen.`,
+        })
+      }
 
       console.log('🔍 Step 3: Creating user profile...')
       
@@ -277,7 +310,7 @@ function AdminUsersPageContent() {
           id: authData.user.id,
           email: formData.email.toLowerCase().trim(),
           role: formData.role,
-          status: formData.role === 'admin' ? 'active' : 'pending',
+          status: 'pending', // Always pending until email is confirmed
           full_name: formData.full_name.trim(),
           avatar_url: null
         })
@@ -292,7 +325,7 @@ function AdminUsersPageContent() {
             p_user_id: authData.user.id,
             p_email: formData.email.toLowerCase().trim(),
             p_role: formData.role,
-            p_status: formData.role === 'admin' ? 'active' : 'pending',
+            p_status: 'pending', // Always pending until email is confirmed
             p_full_name: formData.full_name.trim()
           })
         
@@ -342,6 +375,7 @@ function AdminUsersPageContent() {
 
       console.log('🔍 User invite completed successfully')
 
+      // Show success message with clear instructions
       toast({
         title: "Uitnodiging verstuurd!",
         description: `${formData.full_name} heeft een bevestigingsmail ontvangen op ${formData.email}. Ze moeten eerst hun email bevestigen om in te loggen.`,
