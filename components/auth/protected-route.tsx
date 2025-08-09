@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/use-supabase-auth'
 import { supabase } from '@/lib/supabase'
 import { Loader2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
+import { uiLogger } from '@/lib/logger'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -66,7 +67,8 @@ function ProtectedRouteComponent({
             return
           }
         } catch (error) {
-          console.error('Error checking temp password:', error)
+          // Banking-grade error logging without exposing sensitive data
+          uiLogger.error('Error checking temp password', error as Error, { userId: user?.id })
         }
       }
       
