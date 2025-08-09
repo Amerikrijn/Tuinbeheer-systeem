@@ -179,8 +179,8 @@ psql -h your-supabase-host -U postgres -d postgres < backup_before_security_YYYY
 - [x] ✅ Test suite uitgevoerd (alle tests slagen)
 - [x] ✅ Security dashboard operationeel
 - [x] ✅ Audit logging werkt
-- [ ] ✅ Input validation actief
-- [ ] ✅ Monitoring opgezet
+- [x] ✅ Input validation actief
+- [x] ✅ Monitoring opgezet
 
 ---
 
