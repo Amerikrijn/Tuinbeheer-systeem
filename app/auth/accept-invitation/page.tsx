@@ -37,8 +37,20 @@ function AcceptInvitationContent() {
 
   const token = searchParams.get('token')
   const email = searchParams.get('email')
+  
+  // Check for Supabase auth confirmation (different from custom invitation)
+  const isSupabaseConfirmation = searchParams.get('type') === 'signup'
+  const accessToken = searchParams.get('access_token')
+  const refreshToken = searchParams.get('refresh_token')
 
   useEffect(() => {
+    // Handle Supabase auth confirmation flow
+    if (isSupabaseConfirmation && accessToken && refreshToken) {
+      handleSupabaseConfirmation()
+      return
+    }
+    
+    // Handle custom invitation flow
     if (!token || !email) {
       setError('Ongeldige uitnodigingslink. Token of email ontbreekt.')
       setLoading(false)
@@ -46,7 +58,50 @@ function AcceptInvitationContent() {
     }
 
     verifyInvitation()
-  }, [token, email])
+  }, [token, email, isSupabaseConfirmation, accessToken, refreshToken])
+
+  const handleSupabaseConfirmation = async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Set the session with tokens from URL
+      const { data, error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken!,
+        refresh_token: refreshToken!
+      })
+
+      if (sessionError) {
+        throw sessionError
+      }
+
+      if (!data.user) {
+        throw new Error('Geen gebruiker gevonden')
+      }
+
+      // Create a mock invitation for the UI
+      const mockInvitation: InvitationRecord = {
+        id: 'supabase-confirmation',
+        email: data.user.email!,
+        full_name: data.user.user_metadata?.full_name || '',
+        role: data.user.user_metadata?.role || 'user',
+        status: 'pending',
+        token: 'supabase-token',
+        invited_by: data.user.user_metadata?.invited_by || 'admin',
+        invited_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+        garden_access: []
+      }
+
+      setInvitation(mockInvitation)
+      
+    } catch (error) {
+      console.error('Supabase confirmation error:', error)
+      setError('Er is een fout opgetreden bij het verifiëren van de uitnodiging')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const verifyInvitation = async () => {
     if (!token || !email) return
@@ -95,7 +150,7 @@ function AcceptInvitationContent() {
   const handleAcceptInvitation = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!token || !email || !invitation) {
+    if (!invitation) {
       toast({
         title: "Fout",
         description: "Ontbrekende uitnodigingsgegevens",
