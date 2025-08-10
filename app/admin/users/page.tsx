@@ -129,8 +129,9 @@ function AdminUsersPageContent() {
         roleType: typeof u.role
       })))
       
-      // Debug: Check admin@tuinbeheer.nl specifically
-      const adminUser = usersWithAccess.find(u => u.email === 'admin@tuinbeheer.nl')
+      // Debug: Check protected admin specifically
+      const protectedAdminEmail = process.env.NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL || 'admin@tuinbeheer.nl'
+      const adminUser = usersWithAccess.find(u => u.email === protectedAdminEmail)
       if (adminUser) {
         console.log('🔍 Admin user found:', adminUser)
       } else {
@@ -223,7 +224,7 @@ function AdminUsersPageContent() {
         ? window.location.origin 
         : process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL 
           ? `https://${process.env.VERCEL_URL}` 
-          : 'https://tuinbeheer-systeem.vercel.app'
+          : (process.env.NEXT_PUBLIC_SITE_URL || 'https://tuinbeheer-systeem.vercel.app')
       
       const inviteResponse = await fetch('/api/admin/invite-user', {
         method: 'POST',
@@ -827,7 +828,7 @@ function AdminUsersPageContent() {
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user)}
                           className="text-red-600 hover:text-red-700"
-                          disabled={user.id === currentUser?.id || user.email === 'admin@tuinbeheer.nl'}
+                          disabled={user.id === currentUser?.id || user.email === process.env.NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL}
                         >
                           <UserX className="w-4 h-4 mr-2" />
                           Gebruiker Verwijderen
