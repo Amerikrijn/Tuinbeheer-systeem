@@ -589,6 +589,59 @@ function AdminUsersPageContent() {
     }
   }
 
+  const handleResetUserPassword = async (user: User) => {
+    const newPassword = prompt(`Nieuw tijdelijk wachtwoord voor ${user.full_name || user.email}:\n\n(User moet dit bij eerste login wijzigen)`)
+    
+    if (!newPassword || newPassword.length < 8) {
+      toast({
+        title: "Ongeldig wachtwoord",
+        description: "Wachtwoord moet minimaal 8 karakters zijn",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!confirm(`Wachtwoord resetten voor ${user.full_name || user.email}?\n\nNieuw wachtwoord: ${newPassword}\n\n⚠️ User moet dit bij eerste login wijzigen!`)) {
+      return
+    }
+
+    try {
+      // Admin reset user password
+      const { error } = await supabase.auth.admin.updateUserById(user.id, {
+        password: newPassword
+      })
+
+      if (error) {
+        throw error
+      }
+
+      // Update user status to require password change
+      await supabase
+        .from('users')
+        .update({ 
+          status: 'active',
+          // Add flag that password needs to be changed
+          metadata: { requires_password_change: true }
+        })
+        .eq('id', user.id)
+
+      toast({
+        title: "Wachtwoord gereset",
+        description: `Tijdelijk wachtwoord ingesteld voor ${user.full_name || user.email}. User moet dit bij eerste login wijzigen.`,
+      })
+
+      loadUsersAndGardens()
+
+    } catch (error: any) {
+      console.error('Error resetting password:', error)
+      toast({
+        title: "Wachtwoord reset mislukt",
+        description: error.message || "Kon wachtwoord niet resetten",
+        variant: "destructive"
+      })
+    }
+  }
+
   const handleDeleteUser = async (user: User) => {
     if (!confirm(`Weet je zeker dat je ${user.full_name || user.email} wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`)) {
       return
@@ -776,6 +829,14 @@ function AdminUsersPageContent() {
                           <Mail className="w-4 h-4 mr-2" />
                           {inviting ? 'Versturen...' : 
                            user.status === 'pending' ? 'Uitnodiging Versturen' : 'Herinneringsmail Versturen'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleResetUserPassword(user)}
+                          className="text-orange-600 hover:text-orange-700"
+                          disabled={user.id === currentUser?.id}
+                        >
+                          <Key className="w-4 h-4 mr-2" />
+                          Wachtwoord Resetten
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user)}
