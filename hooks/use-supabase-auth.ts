@@ -17,6 +17,7 @@ export interface User {
   garden_access: string[] // Array of garden IDs this user can access
   created_at: string
   last_login?: string
+  force_password_change?: boolean // Admin-set flag requiring password change
 }
 
 export interface AuthState {
@@ -173,7 +174,8 @@ export function useSupabaseAuth(): AuthContextType {
         status: status,
         permissions: [],
         garden_access: [], // Load separately to avoid blocking login
-        created_at: userProfile?.created_at || new Date().toISOString()
+        created_at: userProfile?.created_at || new Date().toISOString(),
+        force_password_change: userProfile?.force_password_change || false
       }
       
       // Cache the user profile for faster subsequent loads

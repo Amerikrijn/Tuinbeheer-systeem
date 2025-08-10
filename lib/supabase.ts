@@ -31,6 +31,30 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
+// Create admin client with service role key for admin operations
+const getAdminClient = () => {
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!serviceRoleKey) {
+    console.error('SUPABASE_SERVICE_ROLE_KEY not found in environment variables');
+    return null;
+  }
+  
+  return createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'tuinbeheer-systeem-admin',
+      },
+    },
+  });
+};
+
+export const supabaseAdmin = getAdminClient();
+
 // ===================================================================
 // CONFIGURATION UTILITIES
 // ===================================================================
