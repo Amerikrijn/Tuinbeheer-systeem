@@ -97,39 +97,35 @@ export function ForcePasswordChange() {
         return
       }
 
-      // Update password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: formData.newPassword
+      // Banking-compliant: Call server-side API for password change
+      const response = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword
+        })
       })
 
-      if (updateError) {
-        throw updateError
-      }
+      const result = await response.json()
 
-      // Clear force_password_change flag
-      if (user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .update({ 
-            force_password_change: false,
-            password_changed_at: new Date().toISOString()
-          })
-          .eq('id', user.id)
-
-        if (profileError) {
-          console.warn('Could not update password change flag:', profileError)
-        }
+      if (!response.ok) {
+        throw new Error(result.error || 'Password change failed')
       }
 
       toast({
         title: "Wachtwoord gewijzigd",
-        description: "Je wachtwoord is succesvol gewijzigd. Je wordt nu doorgestuurd.",
+        description: "Je wachtwoord is succesvol gewijzigd. Je kunt nu verder.",
       })
 
-      // Redirect to dashboard after successful change
-      setTimeout(() => {
-        router.push('/')
-      }, 2000)
+      // Refresh user profile to clear force_password_change flag
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for database update
+      
+      // Force reload to ensure fresh user profile is loaded
+      window.location.reload()
 
     } catch (error) {
       console.error('Password change error:', error)
@@ -164,7 +160,9 @@ export function ForcePasswordChange() {
           <Alert className="mb-6 border-orange-200 bg-orange-50">
             <Shield className="h-4 w-4" />
             <AlertDescription>
-              <strong>Banking Security:</strong> Na een admin reset moet je verplicht een nieuw, sterk wachtwoord instellen.
+              <strong>🔒 Beveiligingsmelding:</strong> Een beheerder heeft je wachtwoord gereset. 
+              Om veiligheidsredenen moet je een nieuw, persoonlijk wachtwoord instellen. 
+              <strong>Je kunt niet verder zonder dit te doen.</strong>
             </AlertDescription>
           </Alert>
 
