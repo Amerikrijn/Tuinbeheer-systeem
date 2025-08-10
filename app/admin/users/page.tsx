@@ -607,29 +607,24 @@ function AdminUsersPageContent() {
     }
 
     try {
-      // Check if admin client is available
-      if (!supabaseAdmin) {
-        throw new Error('Admin client niet beschikbaar. Check SUPABASE_SERVICE_ROLE_KEY environment variable.')
-      }
-
-      // Admin reset user password using service role
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
-        password: newPassword
+      // Call server-side API route for admin password reset
+      const response = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          newPassword: newPassword,
+          adminEmail: currentUser?.email || 'unknown-admin'
+        })
       })
 
-      if (error) {
-        throw error
-      }
+      const result = await response.json()
 
-      // Update user status and force password change
-      await supabase
-        .from('users')
-        .update({ 
-          status: 'active',
-          force_password_change: true,
-          password_changed_at: null
-        })
-        .eq('id', user.id)
+      if (!response.ok) {
+        throw new Error(result.error || 'Password reset failed')
+      }
 
       toast({
         title: "Wachtwoord gereset",
