@@ -1,6 +1,13 @@
 # Nederlandse Banking Standards - Automatische Code Regels
 # Voor Tuinbeheer Systeem - Elke wijziging moet voldoen aan banking grade security 
 
+## 📋 SESSION START PROTOCOL - VERPLICHT
+**ALTIJD beginnen met backlog review:**
+1. **📋 Load Backlog** - Lees `docs/backlog/high-priority.md` 
+2. **🎯 Check Priorities** - Bepaal wat aangepakt moet worden
+3. **📝 Plan Session** - Selecteer items voor deze sessie
+4. **🏗️ Follow Standards** - Implementeer volgens onderstaande banking standards
+
 ## 🏦 NEDERLANDSE BANKING STANDARDS - ALTIJD TOEPASSEN
 
 ### SECURITY-FIRST DEVELOPMENT
