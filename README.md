@@ -73,6 +73,11 @@ curl -X POST http://localhost:3000/api/plant-beds -H "Content-Type: application/
 
 # RLS test (user A mag niets van user B zien)
 # Login als verschillende users en controleer data isolatie
+
+# Database migratie toepassen
+# 1. Ga naar Supabase SQL Editor
+# 2. Run: supabase/migrations/2025-01-10-rls-phase1.sql
+# 3. Voeg users toe aan gardens via garden_members tabel
 ```
 
 ## 🚀 Quick Start
