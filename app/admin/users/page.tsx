@@ -615,13 +615,14 @@ function AdminUsersPageContent() {
         throw error
       }
 
-      // Update user status to require password change
+      // Update user status and force password change
       await supabase
         .from('users')
         .update({ 
           status: 'active',
-          // Add flag that password needs to be changed
-          metadata: { requires_password_change: true }
+          // Force password change on next login
+          force_password_change: true,
+          password_changed_at: null // Reset password change timestamp
         })
         .eq('id', user.id)
 
