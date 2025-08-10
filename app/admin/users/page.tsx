@@ -554,11 +554,17 @@ function AdminUsersPageContent() {
     setInviting(true)
     
     try {
-      // Send password reset email which acts as invitation reminder
-      const { error } = await supabase.auth.resetPasswordForEmail(
+      // Send proper invitation email (not password reset)
+      const { error } = await supabase.auth.admin.inviteUserByEmail(
         user.email,
         {
-          redirectTo: `${window.location.origin}/auth/accept-invitation`
+          redirectTo: `${window.location.origin}/auth/accept-invitation`,
+          data: { 
+            full_name: user.full_name, 
+            role: user.role,
+            invited_by: currentUser?.email || 'admin',
+            message: 'Herinneringsmail - Je account wacht nog op activatie!'
+          }
         }
       )
 
