@@ -52,7 +52,7 @@ export function AuthNavigation() {
       <BankingNavigation />
       
       {/* User Status Bar - Banking Addition */}
-      <div className="bg-green-50 border-b border-green-200 py-2">
+      <div className="bg-green-50 dark:bg-green-950/20 border-b border-green-200 dark:border-green-800 py-2">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-3">
@@ -69,7 +69,7 @@ export function AuthNavigation() {
                   </>
                 )}
               </Badge>
-              <span className="text-gray-600">
+              <span className="text-muted-foreground">
                 Welkom, {user.full_name || user.email}
               </span>
             </div>
@@ -78,7 +78,7 @@ export function AuthNavigation() {
               onClick={handleSignOut}
               variant="outline" 
               size="sm"
-              className="flex items-center space-x-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 focus:ring-red-500"
+              className="flex items-center space-x-2 text-destructive border-destructive hover:bg-destructive/10 hover:border-destructive focus:ring-destructive"
               aria-label="Uitloggen uit het systeem"
             >
               <LogOut className="w-4 h-4" aria-hidden="true" />
