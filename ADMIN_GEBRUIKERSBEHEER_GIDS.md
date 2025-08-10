@@ -91,7 +91,7 @@ Complete gids voor beheerders om gebruikers te beheren in het Tuinbeheer Systeem
 
 **Beveiligingen:**
 - ❌ **Kan jezelf niet verwijderen**
-- ❌ **Kan admin@tuinbeheer.nl niet verwijderen**
+- ❌ **Kan protected admin niet verwijderen** (configureerbaar via NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL)
 - ⚠️ **Dubbele bevestiging** vereist
 
 ---
