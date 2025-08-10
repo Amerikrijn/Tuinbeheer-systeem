@@ -460,6 +460,50 @@ function AdminUsersPageContent() {
     }
   }
 
+  const deleteUser = async (userId: string, userEmail: string) => {
+    // Confirm deletion
+    if (!confirm(`Weet je zeker dat je gebruiker ${userEmail} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`)) {
+      return
+    }
+
+    try {
+      // Delete from users table (this will cascade to related tables due to foreign key constraints)
+      const { error: dbError } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userId)
+
+      if (dbError) {
+        throw dbError
+      }
+
+      // Also delete from Supabase auth (optional, but cleaner)
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(userId)
+        if (authError) {
+          console.warn('Could not delete from auth (user may not exist in auth):', authError.message)
+        }
+      } catch (authError) {
+        console.warn('Auth deletion failed (non-critical):', authError)
+      }
+
+      toast({
+        title: "Gebruiker verwijderd",
+        description: `${userEmail} is succesvol verwijderd`,
+      })
+
+      loadUsersAndGardens()
+
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      toast({
+        title: "Verwijderen mislukt",
+        description: "Kon gebruiker niet verwijderen. Probeer opnieuw.",
+        variant: "destructive"
+      })
+    }
+  }
+
   const toggleGardenAccess = (gardenId: string) => {
     setFormData(prev => ({
       ...prev,
