@@ -494,7 +494,7 @@ function LogbookPageContent() {
             <BookOpen className="h-12 w-12 mx-auto mb-2" />
             <h2 className="text-xl font-semibold">Fout bij laden logboek</h2>
           </div>
-          <p className="text-gray-600 mb-4">{state.error}</p>
+          <p className="text-muted-foreground mb-4">{state.error}</p>
           <Button onClick={() => loadEntries()} variant="outline">
             Opnieuw proberen
           </Button>
@@ -508,11 +508,11 @@ function LogbookPageContent() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
             <BookOpen className="h-8 w-8" />
             {viewingUser ? `Logboek van ${viewingUser.full_name || viewingUser.email}` : 'Logboek'}
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             {viewingUser 
               ? `Logboek entries van ${viewingUser.full_name || viewingUser.email}`
               : 'Overzicht van alle logboek entries voor je tuinen'
@@ -554,7 +554,7 @@ function LogbookPageContent() {
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   placeholder="Zoek in opmerkingen, plantvakken of planten..."
                   value={state.searchTerm}
@@ -641,11 +641,11 @@ function LogbookPageContent() {
       {/* Empty state */}
       {!state.loading && state.entries.length === 0 && (
         <div className="text-center py-12">
-          <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             Geen logboek entries gevonden
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             {state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString()
               ? "Probeer je filters aan te passen of maak een nieuwe entry aan."
               : "Begin met het maken van je eerste logboek entry."}
@@ -662,7 +662,7 @@ function LogbookPageContent() {
       {/* Logbook entries - redesigned for better emphasis */}
       {state.entries.length > 0 && (
         <div className="space-y-4">
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             💡 Klik op een entry om de details te bekijken
           </p>
           
@@ -672,7 +672,7 @@ function LogbookPageContent() {
               <Card 
                 key={entry.id} 
                 className={`cursor-pointer hover:shadow-md transition-shadow ${
-                  entry.is_completed_task ? 'bg-green-50 border-l-4 border-l-green-500' : 'hover:bg-gray-50'
+                  entry.is_completed_task ? 'bg-green-50 dark:bg-green-950/20 border-l-4 border-l-green-500' : 'hover:bg-muted/50'
                 }`}
                 onClick={() => entry.is_completed_task ? null : router.push(`/logbook/${entry.id}`)}
               >
@@ -692,8 +692,8 @@ function LogbookPageContent() {
                           </div>
                         </div>
                       ) : (
-                        <div className="w-32 h-32 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center">
-                          <div className="text-center text-gray-400">
+                        <div className="w-32 h-32 bg-muted border-2 border-dashed border-border rounded-lg flex items-center justify-center">
+                          <div className="text-center text-muted-foreground">
                             <Camera className="w-8 h-8 mx-auto mb-1" />
                             <span className="text-xs">Geen foto</span>
                           </div>
@@ -711,10 +711,10 @@ function LogbookPageContent() {
                               <CheckCircle2 className="w-5 h-5 text-green-600" />
                             </div>
                             <div className="flex-1">
-                              <p className="text-lg font-medium text-green-800 leading-relaxed">
+                              <p className="text-lg font-medium text-green-800 dark:text-green-400 leading-relaxed">
                                 {entry.notes}
                               </p>
-                              <Badge variant="secondary" className="mt-2 text-xs bg-green-100 text-green-700">
+                              <Badge variant="secondary" className="mt-2 text-xs bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400">
                                 📋 Voltooide taak
                               </Badge>
                             </div>
@@ -725,7 +725,7 @@ function LogbookPageContent() {
                               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                             </div>
                             <div className="flex-1">
-                              <p className="text-lg font-medium text-gray-900 leading-relaxed">
+                              <p className="text-lg font-medium text-foreground leading-relaxed">
                                 {entry.notes}
                               </p>
                               <Badge variant="outline" className="mt-2 text-xs">
@@ -737,10 +737,10 @@ function LogbookPageContent() {
                       </div>
 
                       {/* Metadata - smaller and smarter layout */}
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                         {/* Date - prominent but smaller */}
                         <div className="flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4 text-gray-400" />
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
                           <span className="font-medium">{formatDate(entry.entry_date)}</span>
                         </div>
                         

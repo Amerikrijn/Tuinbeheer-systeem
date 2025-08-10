@@ -41,12 +41,11 @@ function TasksPageContent() {
           
           <div className="flex items-center gap-3">
             <Calendar className="w-7 h-7 text-green-700" />
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Taken Overzicht</h1>
+            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Taken Overzicht</h1>
           </div>
         </div>
-        
-        <p className="text-gray-700 text-lg leading-relaxed">
-          Bekijk en beheer je tuintaken per week. Zie welke bloemen aandacht nodig hebben.
+        <p className="text-muted-foreground text-lg leading-relaxed">
+          Beheer en voltooi je tuintaken voor optimale plantenverzorging
         </p>
       </div>
 

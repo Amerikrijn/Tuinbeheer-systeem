@@ -70,11 +70,11 @@ export function BankingForm({
       aria-describedby={description ? "form-description" : undefined}
     >
       <div className="form-header">
-        <h1 id="form-title" className="text-2xl font-bold text-gray-900 mb-2">
+        <h1 id="form-title" className="text-2xl font-bold text-foreground mb-2">
           {title}
         </h1>
         {description && (
-          <p id="form-description" className="text-gray-600 mb-6">
+          <p id="form-description" className="text-muted-foreground mb-6">
             {description}
           </p>
         )}

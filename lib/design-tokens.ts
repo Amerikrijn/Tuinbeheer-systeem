@@ -71,31 +71,55 @@ export const containerSizes = {
 // ===================================================================
 
 export const colors = {
-  // Primary (Green - Banking/Finance)
-  primary: {
-    50: 'bg-green-50 text-green-900',
-    100: 'bg-green-100 text-green-800',
-    500: 'bg-green-500 text-white',
-    600: 'bg-green-600 text-white',
-    700: 'bg-green-700 text-white',
+  // Banking-compliant semantic colors that adapt to light/dark mode
+  green: {
+    50: 'bg-green-50 dark:bg-green-950/20 text-green-900 dark:text-green-100',
+    100: 'bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-200',
+    200: 'bg-green-200 dark:bg-green-950/40 text-green-800 dark:text-green-200',
+    300: 'bg-green-300 dark:bg-green-950/50 text-green-700 dark:text-green-300',
+    500: 'bg-green-500 text-white dark:text-white',
+    600: 'bg-green-600 text-white dark:text-white',
+    700: 'bg-green-700 text-white dark:text-white',
   },
   
-  // Status Colors (Banking Standards)
-  success: 'bg-green-100 text-green-800 border-green-200',
-  warning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  error: 'bg-red-100 text-red-800 border-red-200',
-  info: 'bg-blue-100 text-blue-800 border-blue-200',
-  
-  // Neutral (Professional Banking UI)
-  neutral: {
-    50: 'bg-gray-50 text-gray-900',
-    100: 'bg-gray-100 text-gray-800',
-    200: 'bg-gray-200 text-gray-800',
-    300: 'bg-gray-300 text-gray-700',
-    600: 'bg-gray-600 text-white',
-    900: 'bg-gray-900 text-white',
+  // Semantic grays that adapt to theme
+  gray: {
+    50: 'bg-muted text-foreground',
+    100: 'bg-muted text-foreground',
+    200: 'bg-muted text-foreground',
+    300: 'bg-muted text-muted-foreground',
+    600: 'bg-muted-foreground text-background',
+    900: 'bg-foreground text-background',
   }
-} as const;
+}
+
+export const buttons = {
+  // Banking-standard button variants with dark mode support
+  primary: 'bg-primary hover:bg-primary/90 text-primary-foreground focus:ring-primary',
+  secondary: 'bg-secondary hover:bg-secondary/90 text-secondary-foreground focus:ring-secondary',
+  outline: 'border border-border bg-background hover:bg-muted text-foreground focus:ring-primary',
+  ghost: 'hover:bg-muted text-foreground focus:ring-primary',
+  danger: 'bg-destructive hover:bg-destructive/90 text-destructive-foreground focus:ring-destructive',
+}
+
+export const cards = {
+  default: 'bg-card border border-border rounded-lg shadow-sm',
+  elevated: 'bg-card border border-border rounded-lg shadow-md',
+  interactive: 'bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer',
+}
+
+// Banking accessibility standards for text contrast
+export const textContrast = {
+  // WCAG AA compliant contrast ratios (4.5:1 minimum)
+  primary: 'text-foreground', // Highest contrast
+  secondary: 'text-muted-foreground', // Medium contrast
+  tertiary: 'text-muted-foreground/80', // Lower contrast but still readable
+  
+  // Legacy mappings - use semantic colors instead
+  highContrast: 'text-foreground',
+  mediumContrast: 'text-muted-foreground',
+  lowContrast: 'text-muted-foreground/80',
+}
 
 // ===================================================================
 // COMPONENT VARIANTS (Replace hardcoded component styling)
@@ -180,23 +204,29 @@ export const layout = {
 
 export const typography = {
   // Headings
-  h1: 'text-3xl font-bold text-gray-900 leading-tight',
-  h2: 'text-2xl font-semibold text-gray-900 leading-tight',
-  h3: 'text-xl font-semibold text-gray-900 leading-tight',
-  h4: 'text-lg font-medium text-gray-900 leading-tight',
+  h1: 'text-3xl font-bold text-foreground leading-tight',
+  h2: 'text-2xl font-semibold text-foreground leading-tight',
+  h3: 'text-xl font-semibold text-foreground leading-tight',
+  h4: 'text-lg font-medium text-foreground leading-tight',
   
   // Body text
-  body: 'text-base text-gray-700 leading-relaxed',
-  bodyLarge: 'text-lg text-gray-700 leading-relaxed',
-  bodySmall: 'text-sm text-gray-600 leading-relaxed',
+  body: 'text-base text-foreground leading-relaxed',
+  bodyLarge: 'text-lg text-foreground leading-relaxed',
+  bodySmall: 'text-sm text-muted-foreground leading-relaxed',
   
   // UI text
-  label: 'text-sm font-medium text-gray-700',
-  caption: 'text-xs text-gray-500',
+  label: 'text-sm font-medium text-foreground',
+  caption: 'text-xs text-muted-foreground',
   
   // Interactive text
-  link: 'text-green-600 hover:text-green-700 underline focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2',
+  link: 'text-primary hover:text-primary/80 underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
 } as const;
+
+// Loading states with semantic colors
+export const loading = {
+  skeleton: 'animate-pulse bg-muted',
+  spinner: 'animate-spin border-primary',
+}
 
 // ===================================================================
 // BANKING UI HELPER FUNCTIONS
@@ -255,6 +285,7 @@ export const designTokens = {
   accessibility,
   layout,
   typography,
+  loading,
 } as const;
 
 export default designTokens;
