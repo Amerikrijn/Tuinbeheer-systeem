@@ -21,8 +21,10 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   const needsPasswordChange = auth.user && auth.user.force_password_change === true
   const isAuthPage = pathname.startsWith('/auth/')
   
-  // If user needs to change password and is not on auth pages, show force password change
+  // 🏦 BANKING SECURITY: Force password change is MANDATORY
+  // User cannot access ANY page until password is changed
   if (needsPasswordChange && !isAuthPage) {
+    console.log('🔒 SECURITY: Force password change required for user:', auth.user?.email)
     return (
       <SupabaseAuthContext.Provider value={auth}>
         <ForcePasswordChange />
