@@ -27,12 +27,12 @@ export function BankingNavigation() {
   };
   
   const navItems: NavItem[] = [
-    { href: '/', label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
-    { href: '/gardens', label: 'Tuinen', icon: <TreePine className="h-4 w-4" /> },
+    // Core user navigation
+    { href: '/gardens', label: 'Mijn Tuinen', icon: <TreePine className="h-4 w-4" /> },
     { href: '/tasks', label: 'Taken', icon: <ClipboardList className="h-4 w-4" /> },
     { href: '/logbook', label: 'Logboek', icon: <BookOpen className="h-4 w-4" /> },
-    { href: '/admin/users', label: 'Gebruikersbeheer', icon: <User className="h-4 w-4" />, requiredPermission: 'admin' },
-    { href: '/admin/garden', label: 'Tuinbeheer', icon: <Settings className="h-4 w-4" />, requiredPermission: 'admin' },
+    // Admin-only functions
+    { href: '/admin/users', label: 'Gebruikers', icon: <User className="h-4 w-4" />, requiredPermission: 'admin' },
     { href: '/admin/trash', label: 'Prullenbak', icon: <Trash2 className="h-4 w-4" />, requiredPermission: 'admin' },
   ];
   
