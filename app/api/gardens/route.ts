@@ -4,6 +4,7 @@ import { apiLogger, AuditLogger } from '@/lib/logger'
 import { validateTuinFormData } from '@/lib/validation'
 import { supabase } from '@/lib/supabase'
 import { logClientSecurityEvent, validateApiInput } from '@/lib/banking-security'
+import { z } from 'zod'
 
 /**
  * GET /api/gardens
@@ -122,41 +123,29 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // 2. Input validation (banking-grade)
-    if (!validateApiInput(body)) {
+    // Zod schema for garden creation - whitelist approach
+    const gardenSchema = z.object({
+      name: z.string().min(1).max(100),
+      location: z.string().min(1).max(200).optional(),
+      description: z.string().max(1000).optional(),
+      is_public: z.boolean().optional(),
+    })
+
+    // Zod validation - only use whitelisted data
+    const parsed = gardenSchema.safeParse(body)
+    if (!parsed.success) {
       await logClientSecurityEvent('API_VALIDATION_FAILED', 'HIGH', false, 'Invalid API input for garden creation')
-      return NextResponse.json(
-        {
-          data: null,
-          error: 'Invalid input data',
-          success: false
-        },
-        { status: 400 }
-      )
-    }
-    
-    // Validate input
-    const validation = validateTuinFormData(body)
-    if (!validation.isValid) {
-      const firstError = validation.errors[0]
-      await logClientSecurityEvent('API_FORM_VALIDATION_FAILED', 'MEDIUM', false, firstError.message)
-      apiLogger.warn('Validation failed for garden creation', { 
+      apiLogger.warn('Garden validation failed', { 
         operationId, 
-        errors: validation.errors 
-      })
-      
-      return NextResponse.json(
-        {
-          data: null,
-          error: firstError.message,
-          success: false
-        },
-        { status: 400 }
-      )
+        errors: parsed.error.errors 
+      });
+      return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
     }
     
-    // Create garden
-    const result = await TuinService.create(body)
+    const data = parsed.data // Only use whitelisted payload
+    
+    // Create garden using only validated data
+    const result = await TuinService.create(data)
     
     if (!result.success) {
       await logClientSecurityEvent('API_GARDEN_CREATE_FAILED', 'HIGH', false, result.error || 'Garden creation failed')

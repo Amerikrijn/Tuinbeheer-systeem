@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { apiLogger } from '@/lib/logger';
+import { z } from 'zod';
 
 // Mock data for development/testing
 const mockPlantBeds = [
@@ -103,6 +104,85 @@ export async function GET(request: NextRequest) {
       // Fallback: If logging fails, still handle the error gracefully
       console.error('Logging failed, original error:', error);
     }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// Zod schema for plant bed creation
+const plantBedSchema = z.object({
+  garden_id: z.string().uuid(),
+  name: z.string().min(1).max(80),
+  width_cm: z.number().int().positive().max(2000),
+  length_cm: z.number().int().positive().max(2000),
+  location: z.string().min(1).max(100).optional(),
+  soil_type: z.string().min(1).max(50).optional(),
+  sun_exposure: z.string().min(1).max(50).optional(),
+  description: z.string().max(500).optional(),
+})
+
+/**
+ * POST /api/plant-beds
+ * Create a new plant bed with Zod validation
+ */
+export async function POST(request: NextRequest) {
+  const operationId = `plant-beds-post-${Date.now()}`;
+  
+  try {
+    apiLogger.info('POST /api/plant-beds', { operationId });
+    
+    // Parse request body
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    }
+
+    // Zod validation - whitelist approach
+    const parsed = plantBedSchema.safeParse(body)
+    if (!parsed.success) {
+      apiLogger.warn('Plant bed validation failed', { 
+        operationId, 
+        errors: parsed.error.errors 
+      });
+      return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+    }
+    
+    const data = parsed.data // Only use whitelisted data
+
+    // TODO: Add authentication check here
+    // TODO: Add garden membership check for data.garden_id
+    
+    // Insert into database using only validated data
+    const { data: plantBed, error } = await supabase
+      .from('plant_beds')
+      .insert({
+        garden_id: data.garden_id,
+        name: data.name,
+        width_cm: data.width_cm,
+        length_cm: data.length_cm,
+        location: data.location,
+        soil_type: data.soil_type,
+        sun_exposure: data.sun_exposure,
+        description: data.description,
+      })
+      .select()
+      .single()
+
+    if (error) {
+      apiLogger.error('Database error creating plant bed', error, { operationId });
+      return NextResponse.json({ error: 'Could not create plant bed' }, { status: 400 });
+    }
+
+    apiLogger.info('Plant bed created successfully', { 
+      operationId, 
+      plantBedId: plantBed.id 
+    });
+
+    return NextResponse.json(plantBed, { status: 201 });
+    
+  } catch (error) {
+    apiLogger.error('Unexpected error in POST /api/plant-beds', error as Error, { operationId });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
