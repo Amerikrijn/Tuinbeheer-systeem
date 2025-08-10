@@ -37,6 +37,100 @@ export default function TrashPage() {
     loadDeletedGardens()
   }, [])
 
+  // Selection handlers
+  const toggleSelectAll = () => {
+    if (selectedItems.size === deletedGardens.length) {
+      setSelectedItems(new Set())
+    } else {
+      setSelectedItems(new Set(deletedGardens.map(g => g.id)))
+    }
+  }
+
+  const toggleSelectItem = (id: string) => {
+    const newSelected = new Set(selectedItems)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedItems(newSelected)
+  }
+
+  // Bulk operations
+  const bulkRestore = async () => {
+    if (selectedItems.size === 0) return
+    
+    if (!confirm(`Weet je zeker dat je ${selectedItems.size} tuin(en) wilt terughalen?`)) {
+      return
+    }
+
+    setBulkLoading(true)
+    try {
+      const { error } = await supabase
+        .from('gardens')
+        .update({ 
+          is_active: true,
+          updated_at: new Date().toISOString()
+        })
+        .in('id', Array.from(selectedItems))
+
+      if (error) throw error
+
+      toast({
+        title: "Tuinen teruggehaald! ✅",
+        description: `${selectedItems.size} tuin(en) succesvol teruggehaald`,
+      })
+
+      setDeletedGardens(prev => prev.filter(g => !selectedItems.has(g.id)))
+      setSelectedItems(new Set())
+    } catch (error) {
+      console.error('Bulk restore error:', error)
+      toast({
+        title: "Fout bij terughalen",
+        description: "Kon niet alle tuinen terughalen",
+        variant: "destructive"
+      })
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
+  const bulkDelete = async () => {
+    if (selectedItems.size === 0) return
+    
+    if (!confirm(`⚠️ PERMANENT VERWIJDEREN: Weet je zeker dat je ${selectedItems.size} tuin(en) PERMANENT wilt verwijderen? Dit kan NIET ongedaan worden gemaakt!`)) {
+      return
+    }
+
+    setBulkLoading(true)
+    try {
+      const { error } = await supabase
+        .from('gardens')
+        .delete()
+        .in('id', Array.from(selectedItems))
+
+      if (error) throw error
+
+      toast({
+        title: "Permanent verwijderd ⚠️",
+        description: `${selectedItems.size} tuin(en) permanent verwijderd`,
+        variant: "destructive"
+      })
+
+      setDeletedGardens(prev => prev.filter(g => !selectedItems.has(g.id)))
+      setSelectedItems(new Set())
+    } catch (error) {
+      console.error('Bulk delete error:', error)
+      toast({
+        title: "Fout bij verwijderen",
+        description: "Kon niet alle tuinen verwijderen",
+        variant: "destructive"
+      })
+    } finally {
+      setBulkLoading(false)
+    }
+  }
+
   const loadDeletedGardens = async () => {
     try {
       setLoading(true)
@@ -129,7 +223,7 @@ export default function TrashPage() {
     }
   }
 
-  const permanentDelete = async (garden: DeletedGarden) => {
+  const permanentDeleteGarden = async (garden: DeletedGarden) => {
     const confirmText = `VERWIJDER ${garden.name.toUpperCase()}`
     const userInput = prompt(
       `⚠️ WAARSCHUWING: Dit verwijdert "${garden.name}" PERMANENT uit de database!\n\n` +
@@ -202,8 +296,8 @@ export default function TrashPage() {
     return (
       <div className="container mx-auto px-4 py-6 max-w-6xl">
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
-          <span className="ml-3 text-gray-600">Prullenbak laden...</span>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <span className="ml-3 text-muted-foreground">Prullenbak laden...</span>
         </div>
       </div>
     )
@@ -223,26 +317,52 @@ export default function TrashPage() {
             Terug
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-              <Trash2 className="w-8 h-8 text-gray-600" />
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <Trash2 className="w-8 h-8 text-muted-foreground" />
               Prullenbak
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-muted-foreground mt-1">
               Verwijderde tuinen - {deletedGardens.length} item(s)
             </p>
           </div>
         </div>
+        
+        {/* Bulk Actions */}
+        {selectedItems.size > 0 && (
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-sm">
+              {selectedItems.size} geselecteerd
+            </Badge>
+            <Button
+              onClick={bulkRestore}
+              disabled={bulkLoading}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Terughalen ({selectedItems.size})
+            </Button>
+            <Button
+              onClick={bulkDelete}
+              disabled={bulkLoading}
+              variant="destructive"
+              className="flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              Permanent verwijderen ({selectedItems.size})
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Empty State */}
       {deletedGardens.length === 0 ? (
         <Card className="text-center py-12">
           <CardContent>
-            <Trash2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <Trash2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-foreground mb-2">
               Prullenbak is leeg
             </h3>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Er zijn geen verwijderde tuinen om te herstellen
             </p>
           </CardContent>
@@ -250,80 +370,116 @@ export default function TrashPage() {
       ) : (
         <>
           {/* Warning Notice */}
-          <Card className="mb-6 border-orange-200 bg-orange-50">
+          <Card className="mb-6 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-950/20">
             <CardContent className="pt-6">
               <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 text-orange-600 dark:text-orange-400 mt-0.5" />
                 <div>
-                  <h4 className="font-semibold text-orange-900 mb-1">
-                    Let op: Soft Delete Systeem
-                  </h4>
-                  <p className="text-sm text-orange-800">
-                    Deze tuinen zijn "soft deleted" - ze staan nog in de database maar zijn verborgen. 
-                    Je kunt ze terughalen of permanent verwijderen.
+                  <h3 className="font-semibold text-orange-800 dark:text-orange-300 mb-1">
+                    ⚠️ Verwijderde Items Beheer
+                  </h3>
+                  <p className="text-orange-700 dark:text-orange-400 text-sm">
+                    Hier kun je verwijderde tuinen terughalen of permanent verwijderen. 
+                    <strong> Permanent verwijderen kan NIET ongedaan worden gemaakt!</strong>
                   </p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Deleted Gardens Grid */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {deletedGardens.map((garden) => (
-              <Card key={garden.id} className="border-red-200 bg-red-50/30">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg font-semibold text-gray-900 truncate flex items-center gap-2">
-                        <TreePine className="w-5 h-5 text-gray-600" />
-                        {garden.name}
-                      </CardTitle>
-                      <div className="flex items-center text-sm text-gray-500 mt-1">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span className="truncate">{garden.location || 'Geen locatie'}</span>
-                      </div>
-                    </div>
-                    <Badge variant="destructive" className="ml-2">
-                      Verwijderd
-                    </Badge>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="pt-0">
-                  {garden.description && (
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                      {garden.description}
-                    </p>
-                  )}
-
-                  <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span>Verwijderd: {formatDate(garden.updated_at)}</span>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => restoreGarden(garden)}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2"
-                      size="sm"
+          {/* Table with bulk selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Verwijderde Tuinen</span>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={selectedItems.size === deletedGardens.length && deletedGardens.length > 0}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Selecteer alle items"
+                  />
+                  <span className="text-sm text-muted-foreground">Alles selecteren</span>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
+                      <span className="sr-only">Selecteer</span>
+                    </TableHead>
+                    <TableHead>Naam</TableHead>
+                    <TableHead>Locatie</TableHead>
+                    <TableHead>Beschrijving</TableHead>
+                    <TableHead>Verwijderd op</TableHead>
+                    <TableHead className="text-right">Acties</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {deletedGardens.map((garden) => (
+                    <TableRow 
+                      key={garden.id}
+                      className={selectedItems.has(garden.id) ? 'bg-muted/50' : ''}
                     >
-                      <RotateCcw className="w-4 h-4" />
-                      Terughalen
-                    </Button>
-                    <Button
-                      onClick={() => permanentDelete(garden)}
-                      variant="destructive"
-                      size="sm"
-                      className="px-3"
-                      title="Permanent verwijderen (kan niet ongedaan worden gemaakt)"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedItems.has(garden.id)}
+                          onCheckedChange={() => toggleSelectItem(garden.id)}
+                          aria-label={`Selecteer ${garden.name}`}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <TreePine className="w-4 h-4 text-muted-foreground" />
+                          {garden.name}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <MapPin className="w-3 h-3" />
+                          {garden.location || '-'}
+                        </div>
+                      </TableCell>
+                      <TableCell className="max-w-xs">
+                        <p className="text-sm text-muted-foreground truncate">
+                          {garden.description || '-'}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1 text-muted-foreground text-sm">
+                          <Calendar className="w-3 h-3" />
+                          {formatDate(garden.updated_at)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center gap-2 justify-end">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => restoreGarden(garden)}
+                            className="flex items-center gap-1"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            Terughalen
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => permanentDeleteGarden(garden)}
+                            className="flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            Permanent
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </>
       )}
     </div>
