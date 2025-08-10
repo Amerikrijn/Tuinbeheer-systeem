@@ -10,7 +10,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, CheckCircle, XCircle, Eye, EyeOff, UserCheck, Shield, Clock } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { invitationService, type InvitationRecord } from '@/lib/invitation-service'
+import { supabase } from '@/lib/supabase'
+
+// Simplified invitation interface for Supabase auth flow
+interface InvitationData {
+  id: string
+  email: string
+  full_name: string
+  role: 'admin' | 'user'
+  invited_by: string
+  expires_at: string
+}
 
 interface AcceptInvitationFormData {
   password: string
@@ -27,7 +37,7 @@ function AcceptInvitationContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   
-  const [invitation, setInvitation] = useState<InvitationRecord | null>(null)
+  const [invitation, setInvitation] = useState<InvitationData | null>(null)
   const [error, setError] = useState<string | null>(null)
   
   const [formData, setFormData] = useState<AcceptInvitationFormData>({
@@ -35,40 +45,38 @@ function AcceptInvitationContent() {
     confirmPassword: ''
   })
 
-  const token = searchParams.get('token')
-  const email = searchParams.get('email')
-  
-  // Check for Supabase auth confirmation (different from custom invitation)
-  const isSupabaseConfirmation = searchParams.get('type') === 'signup'
+  // Supabase auth confirmation parameters
   const accessToken = searchParams.get('access_token')
   const refreshToken = searchParams.get('refresh_token')
+  const type = searchParams.get('type')
+  const error_param = searchParams.get('error')
+  const error_description = searchParams.get('error_description')
 
   useEffect(() => {
-    // Handle Supabase auth confirmation flow
-    if (isSupabaseConfirmation && accessToken && refreshToken) {
-      handleSupabaseConfirmation()
-      return
-    }
-    
-    // Handle custom invitation flow
-    if (!token || !email) {
-      setError('Ongeldige uitnodigingslink. Token of email ontbreekt.')
-      setLoading(false)
-      return
-    }
+    handleInvitationConfirmation()
+  }, [accessToken, refreshToken, type, error_param])
 
-    verifyInvitation()
-  }, [token, email, isSupabaseConfirmation, accessToken, refreshToken])
-
-  const handleSupabaseConfirmation = async () => {
+  const handleInvitationConfirmation = async () => {
     setLoading(true)
     setError(null)
 
     try {
+      // Handle OAuth errors first
+      if (error_param) {
+        throw new Error(error_description || `OAuth error: ${error_param}`)
+      }
+
+      // Check for valid invitation confirmation
+      if (type !== 'invite' || !accessToken || !refreshToken) {
+        setError('Ongeldige uitnodigingslink. Vraag een nieuwe uitnodiging aan.')
+        setLoading(false)
+        return
+      }
+
       // Set the session with tokens from URL
       const { data, error: sessionError } = await supabase.auth.setSession({
-        access_token: accessToken!,
-        refresh_token: refreshToken!
+        access_token: accessToken,
+        refresh_token: refreshToken
       })
 
       if (sessionError) {
@@ -76,54 +84,35 @@ function AcceptInvitationContent() {
       }
 
       if (!data.user) {
-        throw new Error('Geen gebruiker gevonden')
+        throw new Error('Geen gebruiker gevonden voor deze uitnodiging')
       }
 
-      // Create a mock invitation for the UI
-      const mockInvitation: InvitationRecord = {
-        id: 'supabase-confirmation',
+      // Create invitation data from user metadata
+      const invitationData: InvitationData = {
+        id: data.user.id,
         email: data.user.email!,
         full_name: data.user.user_metadata?.full_name || '',
         role: data.user.user_metadata?.role || 'user',
-        status: 'pending',
-        token: 'supabase-token',
         invited_by: data.user.user_metadata?.invited_by || 'admin',
-        invited_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
-        garden_access: []
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
       }
 
-      setInvitation(mockInvitation)
+      setInvitation(invitationData)
+      
+      toast({
+        title: "Uitnodiging gevalideerd",
+        description: "Je kunt nu je wachtwoord instellen",
+      })
       
     } catch (error) {
-      console.error('Supabase confirmation error:', error)
-      setError('Er is een fout opgetreden bij het verifiëren van de uitnodiging')
+      console.error('Invitation confirmation error:', error)
+      setError(error instanceof Error ? error.message : 'Er is een fout opgetreden bij het verifiëren van de uitnodiging')
     } finally {
       setLoading(false)
     }
   }
 
-  const verifyInvitation = async () => {
-    if (!token || !email) return
 
-    setLoading(true)
-    setError(null)
-
-    try {
-      const result = await invitationService.verifyInvitation(token, email)
-      
-      if (result.valid && result.invitation) {
-        setInvitation(result.invitation)
-      } else {
-        setError(result.error || 'Ongeldige uitnodiging')
-      }
-    } catch (err) {
-      setError('Er is een fout opgetreden bij het verifiëren van de uitnodiging')
-      console.error('Verification error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const validatePassword = (password: string): string[] => {
     const errors: string[] = []
@@ -183,37 +172,59 @@ function AcceptInvitationContent() {
     setAccepting(true)
 
     try {
-      const result = await invitationService.acceptInvitation(
-        token,
-        email,
-        formData.password
-      )
+      // Update user password and complete the invitation
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: formData.password,
+        data: {
+          onboarding_completed: true,
+          temp_password: false
+        }
+      })
 
-      if (result.success) {
-        toast({
-          title: "Uitnodiging geaccepteerd!",
-          description: "Je account is aangemaakt. Je wordt doorgestuurd naar het inlogscherm.",
-        })
-
-        // Redirect to login after short delay
-        setTimeout(() => {
-          router.push('/auth/login?message=account-created')
-        }, 2000)
-      } else {
-        toast({
-          title: "Fout bij accepteren uitnodiging",
-          description: result.error || "Er is een onbekende fout opgetreden",
-          variant: "destructive"
-        })
+      if (updateError) {
+        throw updateError
       }
-    } catch (err) {
+
+      // Create user profile in database
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user && invitation) {
+        const { error: profileError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email!,
+            full_name: invitation.full_name,
+            role: invitation.role,
+            status: 'active',
+            created_at: new Date().toISOString()
+          })
+
+        if (profileError && !profileError.message.includes('duplicate')) {
+          console.error('Profile creation error:', profileError)
+          // Don't fail the whole process for profile errors
+        }
+      }
+
       toast({
-        title: "Onverwachte fout",
-        description: "Er is een onverwachte fout opgetreden. Probeer het opnieuw.",
+        title: "Uitnodiging geaccepteerd!",
+        description: "Je account is aangemaakt. Je wordt doorgestuurd naar het inlogscherm.",
+      })
+
+      // Sign out to force fresh login
+      await supabase.auth.signOut()
+
+      // Redirect to login after short delay
+      setTimeout(() => {
+        router.push('/auth/login?message=account-created')
+      }, 2000)
+      
+    } catch (error) {
+      console.error('Accept invitation error:', error)
+      toast({
+        title: "Fout bij accepteren uitnodiging",
+        description: error instanceof Error ? error.message : "Er is een onbekende fout opgetreden",
         variant: "destructive"
       })
-      console.error('Accept invitation error:', err)
-    } finally {
       setAccepting(false)
     }
   }
@@ -294,9 +305,8 @@ function AcceptInvitationContent() {
     )
   }
 
-  const isExpired = new Date(invitation.expires_at) < new Date()
-  const timeUntilExpiry = new Date(invitation.expires_at).getTime() - new Date().getTime()
-  const hoursUntilExpiry = Math.floor(timeUntilExpiry / (1000 * 60 * 60))
+  const isExpired = false // Supabase handles expiry automatically
+  const hoursUntilExpiry = 24 // Standard 24 hour expiry
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">

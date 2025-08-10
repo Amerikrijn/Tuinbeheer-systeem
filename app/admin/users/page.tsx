@@ -216,11 +216,8 @@ function AdminUsersPageContent() {
         return
       }
 
-      // Create user invite with automatic email confirmation
-      console.log('🔍 Creating user invite with email confirmation...')
-      
-      // Generate a secure temporary password
-      const tempPassword = Math.random().toString(36).slice(-12) + 'Aa1!'
+      // Use Supabase's secure admin invitation system
+      console.log('🔍 Sending secure admin invitation...')
       
       // Get the current site URL for proper redirect
       const siteUrl = typeof window !== 'undefined' 
@@ -229,23 +226,18 @@ function AdminUsersPageContent() {
           ? `https://${process.env.VERCEL_URL}` 
           : 'https://tuinbeheer-systeem.vercel.app'
       
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email.toLowerCase().trim(),
-        password: tempPassword,
-        options: {
-          // Ensure email confirmation is sent
-          emailRedirectTo: `${siteUrl}/auth/accept-invitation`,
+      const { data: authData, error: authError } = await supabase.auth.admin.inviteUserByEmail(
+        formData.email.toLowerCase().trim(),
+        {
+          redirectTo: `${siteUrl}/auth/accept-invitation`,
           data: {
-            created_by_admin: true,
             full_name: formData.full_name,
             role: formData.role,
-            invited_by: currentUser?.email,
-            message: formData.message || 'Welkom bij het tuinbeheer systeem!',
-            temp_password: true,
-            invitation: true
+            invited_by: currentUser?.email || 'admin',
+            message: formData.message || 'Welkom bij het tuinbeheer systeem!'
           }
         }
-      })
+      )
 
       if (authError) {
         console.error('🔍 Auth invite error:', authError)
