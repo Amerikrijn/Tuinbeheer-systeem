@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { logClientSecurityEvent, validateApiInput } from '@/lib/banking-security'
 import { z } from 'zod'
 import { rateLimit } from '@/lib/security/rateLimit'
+import { checkIdempotency, markIdempotencyCompleted, markIdempotencyFailed } from '@/lib/http/idempotency'
 
 /**
  * GET /api/gardens
@@ -89,12 +90,22 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now()
   const operationId = `gardens-post-${Date.now()}`
   let userId: string | null = null
+  let idempotencyKey: string | undefined
   
   try {
     // Rate limiting for mutations
     await rateLimit(request, { key: 'gardens:post', limit: 15, windowSec: 60 })
     
-    apiLogger.info('POST /api/gardens', { operationId })
+    // Check idempotency
+    const idempotency = await checkIdempotency(request)
+    idempotencyKey = idempotency.key
+    
+    if (!idempotency.shouldProcess) {
+      // Return cached result
+      return NextResponse.json(idempotency.existingResult, { status: 200 })
+    }
+    
+    apiLogger.info('POST /api/gardens', { operationId, idempotencyKey })
     
     // 1. Authentication check (banking-grade)
     try {
@@ -170,7 +181,8 @@ export async function POST(request: NextRequest) {
     apiLogger.info('Garden created successfully', { 
       operationId, 
       gardenId: result.data?.id,
-      name: result.data?.name
+      name: result.data?.name,
+      idempotencyKey
     })
     
     // Log audit trail
@@ -182,14 +194,24 @@ export async function POST(request: NextRequest) {
       { name: result.data?.name }
     )
     
+    // Mark idempotency as completed
+    if (idempotencyKey) {
+      markIdempotencyCompleted(idempotencyKey, result)
+    }
+    
     return NextResponse.json(result, { status: 201 })
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
     
+    // Mark idempotency as failed
+    if (idempotencyKey) {
+      markIdempotencyFailed(idempotencyKey)
+    }
+    
     // Banking-grade error logging
     await logClientSecurityEvent('API_GARDEN_CREATE_ERROR', 'HIGH', false, errorMessage, Date.now() - startTime)
-    apiLogger.error('Unexpected error in POST /api/gardens', error as Error, { operationId })
+    apiLogger.error('Unexpected error in POST /api/gardens', error as Error, { operationId, idempotencyKey })
     
     return NextResponse.json(
       {

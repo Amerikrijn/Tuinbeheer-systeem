@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { apiLogger } from '@/lib/logger';
 import { z } from 'zod';
 import { rateLimit } from '@/lib/security/rateLimit';
+import { checkIdempotency, markIdempotencyCompleted, markIdempotencyFailed } from '@/lib/http/idempotency';
 
 // Mock data for development/testing
 const mockPlantBeds = [
@@ -127,12 +128,22 @@ const plantBedSchema = z.object({
  */
 export async function POST(request: NextRequest) {
   const operationId = `plant-beds-post-${Date.now()}`;
+  let idempotencyKey: string | undefined;
   
   try {
     // Rate limiting for mutations
     await rateLimit(request, { key: 'plant-beds:post', limit: 20, windowSec: 60 })
     
-    apiLogger.info('POST /api/plant-beds', { operationId });
+    // Check idempotency
+    const idempotency = await checkIdempotency(request)
+    idempotencyKey = idempotency.key
+    
+    if (!idempotency.shouldProcess) {
+      // Return cached result
+      return NextResponse.json(idempotency.existingResult, { status: 200 })
+    }
+    
+    apiLogger.info('POST /api/plant-beds', { operationId, idempotencyKey });
     
     // Parse request body
     let body: unknown
@@ -180,13 +191,24 @@ export async function POST(request: NextRequest) {
 
     apiLogger.info('Plant bed created successfully', { 
       operationId, 
-      plantBedId: plantBed.id 
+      plantBedId: plantBed.id,
+      idempotencyKey
     });
+
+    // Mark idempotency as completed
+    if (idempotencyKey) {
+      markIdempotencyCompleted(idempotencyKey, plantBed)
+    }
 
     return NextResponse.json(plantBed, { status: 201 });
     
   } catch (error) {
-    apiLogger.error('Unexpected error in POST /api/plant-beds', error as Error, { operationId });
+    // Mark idempotency as failed
+    if (idempotencyKey) {
+      markIdempotencyFailed(idempotencyKey)
+    }
+    
+    apiLogger.error('Unexpected error in POST /api/plant-beds', error as Error, { operationId, idempotencyKey });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
