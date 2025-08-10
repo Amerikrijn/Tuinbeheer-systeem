@@ -36,25 +36,36 @@
 
 ## **🏗️ TECHNICAL DEBT**
 
-### **6. 🧪 AUTOMATED TESTING**
+### **6. 📁 EVALUATE UNUSED CODE DIRECTORIES**
+**Issue:** `apps/mobile/` en `packages/shared/` lijken ongebruikte skeleton code  
+**Impact:** Repository bloat, onduidelijke structuur  
+**Analysis Needed:**
+- `apps/mobile/` bevat alleen Expo skeleton ("Open up App.tsx to start working...")
+- `packages/shared/` wordt alleen gebruikt door mobile app
+- Beide excluded in `tsconfig.json`
+- Package.json scripts verwijzen naar deze directories
+**Action:** Evalueer of deze kunnen worden verwijderd of gearchiveerd  
+**GitHub Issue:** `🧹 Evaluate Unused Monorepo Structure - Code Cleanup`
+
+### **7. 🧪 AUTOMATED TESTING**
 **Issue:** Geen comprehensive test suite  
 **Impact:** Regression risks, deployment confidence  
 **Implementation:** Unit tests, integration tests, E2E tests  
 **GitHub Issue:** `🧪 Comprehensive Test Suite Implementation`
 
-### **7. 📖 API DOCUMENTATION**
+### **8. 📖 API DOCUMENTATION**
 **Issue:** Geen formele API docs  
 **Impact:** Moeilijk te onderhouden, onboarding issues  
 **Implementation:** OpenAPI/Swagger, versioning, examples  
 **GitHub Issue:** `📖 API Documentation & Versioning`
 
-### **8. 📊 ERROR MONITORING**
+### **9. 📊 ERROR MONITORING**
 **Issue:** Geen structured error tracking  
 **Impact:** Production issues niet proactief gedetecteerd  
 **Implementation:** Sentry integration, error dashboards  
 **GitHub Issue:** `📊 Production Error Monitoring & Alerting`
 
-### **9. 🔄 CI/CD PIPELINE**
+### **10. 🔄 CI/CD PIPELINE**
 **Issue:** Manual deployment process  
 **Impact:** Human error risks, slow deployments  
 **Implementation:** GitHub Actions, automated testing, staging environment  
@@ -64,19 +75,19 @@
 
 ## **🌐 ACCESSIBILITY & COMPLIANCE**
 
-### **10. ♿ WCAG COMPLIANCE AUDIT**
+### **11. ♿ WCAG COMPLIANCE AUDIT**
 **Issue:** Niet volledig WCAG 2.1 AA compliant  
 **Impact:** Accessibility barriers, legal compliance  
 **Implementation:** Screen reader testing, keyboard navigation, color contrast  
 **GitHub Issue:** `♿ WCAG 2.1 AA Compliance Audit`
 
-### **11. 🌍 INTERNATIONALIZATION**
+### **12. 🌍 INTERNATIONALIZATION**
 **Issue:** Hardcoded Nederlandse teksten  
 **Impact:** Niet schaalbaar naar andere markten  
 **Implementation:** i18n framework, translation management  
 **GitHub Issue:** `🌍 Internationalization (i18n) Implementation`
 
-### **12. 📝 COMPLIANCE DOCUMENTATION**
+### **13. 📝 COMPLIANCE DOCUMENTATION**
 **Issue:** Incomplete compliance documentation  
 **Impact:** Audit failures, regulatory risks  
 **Implementation:** Complete compliance docs, evidence collection  
