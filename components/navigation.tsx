@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-supabase-auth';
-import { TreePine, Home, BookOpen, ClipboardList, User } from 'lucide-react';
+import { TreePine, Home, BookOpen, ClipboardList, User, Menu, X, Settings, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useState } from 'react';
 
 interface NavItem {
   href: string;
@@ -18,23 +20,26 @@ interface NavItem {
 export function BankingNavigation() {
   const pathname = usePathname();
   const { user, hasPermission } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  const isAdmin = () => {
+    return user?.role === 'admin';
+  };
   
   const navItems: NavItem[] = [
     { href: '/', label: 'Dashboard', icon: <Home className="h-4 w-4" /> },
     { href: '/gardens', label: 'Tuinen', icon: <TreePine className="h-4 w-4" /> },
-    { href: '/logbook', label: 'Logboek', icon: <BookOpen className="h-4 w-4" /> },
     { href: '/tasks', label: 'Taken', icon: <ClipboardList className="h-4 w-4" /> },
+    { href: '/logbook', label: 'Logboek', icon: <BookOpen className="h-4 w-4" /> },
     { href: '/admin/users', label: 'Gebruikersbeheer', icon: <User className="h-4 w-4" />, requiredPermission: 'admin' },
+    { href: '/admin/garden', label: 'Tuinbeheer', icon: <Settings className="h-4 w-4" />, requiredPermission: 'admin' },
+    { href: '/admin/trash', label: 'Prullenbak', icon: <Trash2 className="h-4 w-4" />, requiredPermission: 'admin' },
   ];
   
   // Filter items based on permissions
   const visibleItems = navItems.filter(item => 
     !item.requiredPermission || hasPermission?.(item.requiredPermission)
   );
-
-  const isAdmin = () => {
-    return user?.role === 'admin';
-  };
   
   return (
     <nav className="bg-background border-b border-border sticky top-0 z-50" role="navigation" aria-label="Hoofdnavigatie">
@@ -46,9 +51,9 @@ export function BankingNavigation() {
             <span className="font-bold text-lg">Tuinbeheer</span>
           </Link>
 
-          {/* Navigation Links */}
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-1">
-            {visibleItems.filter(item => item.href !== "/").map((item) => {
+            {visibleItems.map((item) => {
               const isActive = pathname === item.href || 
                 (item.href !== "/" && pathname.startsWith(item.href));
               
@@ -56,7 +61,7 @@ export function BankingNavigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
                     isActive
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -66,15 +71,15 @@ export function BankingNavigation() {
                   aria-label={`Ga naar ${item.label}`}
                 >
                   <span aria-hidden="true">{item.icon}</span>
-                  <span className="hidden sm:block">{item.label}</span>
+                  <span>{item.label}</span>
                 </Link>
               );
             })}
           </div>
 
-          {/* User Menu (Banking Standards) */}
-          {user && (
-            <div className="flex items-center gap-2">
+          {/* User Menu & Theme Toggle */}
+          <div className="flex items-center gap-3">
+            {user && (
               <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
                 <User className="h-4 w-4" />
                 <span>{user.full_name || user.email}</span>
@@ -84,10 +89,49 @@ export function BankingNavigation() {
                   </Badge>
                 )}
               </div>
-              <ThemeToggle />
-            </div>
-          )}
+            )}
+            <ThemeToggle />
+            
+            {/* Mobile menu button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Menu openen"
+            >
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
+          </div>
         </div>
+        
+        {/* Mobile Navigation Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-border bg-card">
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              {visibleItems.map((item) => {
+                const isActive = pathname === item.href || 
+                  (item.href !== "/" && pathname.startsWith(item.href));
+                
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`block px-3 py-2 rounded-md text-base font-medium transition-colors flex items-center gap-3 ${
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    }`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <span aria-hidden="true">{item.icon}</span>
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
