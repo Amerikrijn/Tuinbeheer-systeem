@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen, Edit } from 'lucide-react'
+import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen, Edit, Key } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
@@ -216,36 +216,39 @@ function AdminUsersPageContent() {
         return
       }
 
-      // Use Supabase's secure admin invitation system
-      console.log('🔍 Sending secure admin invitation...')
+      // Banking-compliant: Call server-side API for user invitation
+      console.log('🔍 Calling server-side invite API...')
       
-      // Get the current site URL for proper redirect
       const siteUrl = typeof window !== 'undefined' 
         ? window.location.origin 
         : process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL 
           ? `https://${process.env.VERCEL_URL}` 
           : 'https://tuinbeheer-systeem.vercel.app'
       
-      const { data: authData, error: authError } = await supabase.auth.admin.inviteUserByEmail(
-        formData.email.toLowerCase().trim(),
-        {
-          redirectTo: `${siteUrl}/auth/accept-invitation`,
-          data: {
-            full_name: formData.full_name,
-            role: formData.role,
-            invited_by: currentUser?.email || 'admin',
-            message: formData.message || 'Welkom bij het tuinbeheer systeem!'
-          }
-        }
-      )
+      const inviteResponse = await fetch('/api/admin/invite-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email.toLowerCase().trim(),
+          fullName: formData.full_name,
+          role: formData.role,
+          message: formData.message || 'Welkom bij het tuinbeheer systeem!',
+          adminEmail: currentUser?.email || 'unknown-admin',
+          siteUrl: siteUrl
+        })
+      })
 
-      if (authError) {
-        console.error('🔍 Auth invite error:', authError)
+      const authData = await inviteResponse.json()
+
+      if (!inviteResponse.ok) {
+        console.error('🔍 Invite API error:', authData.error)
         
         // Handle specific error cases
-        if (authError.message.includes('already registered') || 
-            authError.message.includes('already exists') ||
-            authError.message.includes('User already registered')) {
+        if (authData.error?.includes('already registered') || 
+            authData.error?.includes('already exists') ||
+            authData.error?.includes('User already registered')) {
           toast({
             title: "Email al in gebruik",
             description: "Dit email adres is al geregistreerd in het systeem",
@@ -254,8 +257,8 @@ function AdminUsersPageContent() {
           return
         }
         
-        if (authError.message.includes('rate limit') || 
-            authError.message.includes('too many')) {
+        if (authData.error?.includes('rate limit') || 
+            authData.error?.includes('too many')) {
           toast({
             title: "Te veel verzoeken",
             description: "Er zijn te veel emails verzonden. Probeer het over een paar minuten opnieuw.",
@@ -264,32 +267,21 @@ function AdminUsersPageContent() {
           return
         }
         
-        if (authError.message.includes('email not confirmed')) {
-          toast({
-            title: "Email bevestiging vereist",
-            description: "De gebruiker moet eerst hun email bevestigen voordat ze kunnen inloggen.",
-            variant: "default"
-          })
-        } else {
-          throw new Error(`Gebruiker uitnodigen mislukt: ${authError.message}`)
-        }
+        throw new Error(authData.error || 'Gebruiker uitnodigen mislukt')
       }
 
-      if (!authData.user?.id) {
+      if (!authData.userId) {
         throw new Error('Geen gebruiker ontvangen van uitnodiging')
       }
 
-      console.log('🔍 Step 2: User invited successfully:', authData.user.id)
+      console.log('🔍 Step 2: User invited successfully:', authData.userId)
       console.log('🔍 Email confirmation should be sent to:', formData.email)
 
-      // Check if email was actually sent
-      if (authData.user && !authData.user.email_confirmed_at) {
-        console.log('🔍 Email confirmation required - notification should be sent')
-        toast({
-          title: "Bevestigingsmail verzonden!",
-          description: `Een bevestigingsmail is verzonden naar ${formData.email}. De gebruiker moet eerst hun email bevestigen om in te loggen.`,
-        })
-      }
+      // Show success message
+      toast({
+        title: "Bevestigingsmail verzonden!",
+        description: `Een bevestigingsmail is verzonden naar ${formData.email}. De gebruiker moet eerst hun email bevestigen om in te loggen.`,
+      })
 
       console.log('🔍 Step 3: Creating user profile...')
       
@@ -301,7 +293,7 @@ function AdminUsersPageContent() {
       const { error: directError } = await supabase
         .from('users')
         .insert({
-          id: authData.user.id,
+          id: authData.userId,
           email: formData.email.toLowerCase().trim(),
           role: formData.role,
           status: 'pending', // Always pending until email is confirmed
@@ -316,7 +308,7 @@ function AdminUsersPageContent() {
         // Fallback: Try via SQL function to bypass RLS
         const { error: sqlError } = await supabase
           .rpc('create_user_profile', {
-            p_user_id: authData.user.id,
+            p_user_id: authData.userId,
             p_email: formData.email.toLowerCase().trim(),
             p_role: formData.role,
             p_status: 'pending', // Always pending until email is confirmed
@@ -345,7 +337,7 @@ function AdminUsersPageContent() {
       if (formData.role === 'user' && formData.garden_access.length > 0) {
         console.log('🔍 Step 4: Adding garden access for gardens:', formData.garden_access)
         const gardenAccessInserts = formData.garden_access.map(gardenId => ({
-          user_id: authData.user!.id,
+          user_id: authData.userId,
           garden_id: gardenId
         }))
 
@@ -406,13 +398,28 @@ function AdminUsersPageContent() {
 
   const updateUserStatus = async (userId: string, newStatus: 'active' | 'inactive') => {
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ status: newStatus })
-        .eq('id', userId)
+      // Find user email for logging
+      const user = users.find(u => u.id === userId)
+      const userEmail = user?.email || 'unknown-user'
 
-      if (error) {
-        throw error
+      // Banking-compliant: Call server-side API for status update
+      const response = await fetch('/api/admin/update-user-status', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          newStatus: newStatus,
+          userEmail: userEmail,
+          adminEmail: currentUser?.email || 'unknown-admin'
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Status update failed')
       }
 
       toast({
@@ -422,11 +429,11 @@ function AdminUsersPageContent() {
 
       loadUsersAndGardens()
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating user status:', error)
       toast({
         title: "Status update mislukt",
-        description: "Kon gebruikersstatus niet bijwerken",
+        description: error.message || "Kon gebruikersstatus niet bijwerken",
         variant: "destructive"
       })
     }
@@ -434,13 +441,28 @@ function AdminUsersPageContent() {
 
   const updateUserRole = async (userId: string, newRole: 'admin' | 'user') => {
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ role: newRole })
-        .eq('id', userId)
+      // Find user email for logging
+      const user = users.find(u => u.id === userId)
+      const userEmail = user?.email || 'unknown-user'
 
-      if (error) {
-        throw error
+      // Banking-compliant: Call server-side API for role update
+      const response = await fetch('/api/admin/update-user-role', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          newRole: newRole,
+          userEmail: userEmail,
+          adminEmail: currentUser?.email || 'unknown-admin'
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Role update failed')
       }
 
       toast({
@@ -450,15 +472,17 @@ function AdminUsersPageContent() {
 
       loadUsersAndGardens()
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating user role:', error)
       toast({
         title: "Rol update mislukt",
-        description: "Kon gebruikersrol niet bijwerken",
+        description: error.message || "Kon gebruikersrol niet bijwerken",
         variant: "destructive"
       })
     }
   }
+
+
 
   const toggleGardenAccess = (gardenId: string) => {
     setFormData(prev => ({
@@ -510,16 +534,26 @@ function AdminUsersPageContent() {
     setInviting(true)
     
     try {
-      // Send password reset email which acts as invitation reminder
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        user.email,
-        {
-          redirectTo: `${window.location.origin}/auth/accept-invitation`
-        }
-      )
+      // Banking-compliant: Call server-side API for resend invitation
+      const response = await fetch('/api/admin/invite-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: user.email,
+          fullName: user.full_name || user.email,
+          role: user.role,
+          message: 'Herinneringsmail - Je account wacht nog op activatie!',
+          adminEmail: currentUser?.email || 'unknown-admin',
+          siteUrl: window.location.origin
+        })
+      })
 
-      if (error) {
-        throw error
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Resend invitation failed')
       }
 
       toast({
@@ -539,29 +573,84 @@ function AdminUsersPageContent() {
     }
   }
 
+  const handleResetUserPassword = async (user: User) => {
+    // Banking-compliant admin password reset using service role
+    const newPassword = prompt(`Nieuw tijdelijk wachtwoord voor ${user.full_name || user.email}:\n\n(User moet dit bij eerste login wijzigen)`)
+    
+    if (!newPassword || newPassword.length < 8) {
+      toast({
+        title: "Ongeldig wachtwoord",
+        description: "Wachtwoord moet minimaal 8 karakters zijn",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!confirm(`Wachtwoord resetten voor ${user.full_name || user.email}?\n\nNieuw wachtwoord: ${newPassword}\n\n⚠️ User moet dit bij eerste login wijzigen!`)) {
+      return
+    }
+
+    try {
+      // Call server-side API route for admin password reset
+      const response = await fetch('/api/admin/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          newPassword: newPassword,
+          adminEmail: currentUser?.email || 'unknown-admin'
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Password reset failed')
+      }
+
+      toast({
+        title: "Wachtwoord gereset",
+        description: `Tijdelijk wachtwoord ingesteld voor ${user.full_name || user.email}. User moet dit bij eerste login wijzigen.`,
+      })
+
+      loadUsersAndGardens()
+
+    } catch (error: any) {
+      console.error('Error resetting password:', error)
+      toast({
+        title: "Wachtwoord reset mislukt",
+        description: error.message || "Kon wachtwoord niet resetten. Check admin rechten.",
+        variant: "destructive"
+      })
+    }
+  }
+
   const handleDeleteUser = async (user: User) => {
     if (!confirm(`Weet je zeker dat je ${user.full_name || user.email} wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`)) {
       return
     }
 
     try {
-      // First delete from public.users table
-      const { error: profileError } = await supabase
-        .from('users')
-        .delete()
-        .eq('id', user.id)
+      // Banking-compliant: Call server-side API for user deletion
+      const response = await fetch('/api/admin/delete-user', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          userEmail: user.email,
+          adminEmail: currentUser?.email || 'unknown-admin'
+        })
+      })
 
-      if (profileError) {
-        throw profileError
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'User deletion failed')
       }
-
-      // Also delete user garden access
-      const { error: accessError } = await supabase
-        .from('user_garden_access')
-        .delete()
-        .eq('user_id', user.id)
-
-      // Don't throw for access error - user might not have garden access
 
       toast({
         title: "Gebruiker verwijderd",
@@ -726,6 +815,14 @@ function AdminUsersPageContent() {
                           <Mail className="w-4 h-4 mr-2" />
                           {inviting ? 'Versturen...' : 
                            user.status === 'pending' ? 'Uitnodiging Versturen' : 'Herinneringsmail Versturen'}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => handleResetUserPassword(user)}
+                          className="text-orange-600 hover:text-orange-700"
+                          disabled={user.id === currentUser?.id}
+                        >
+                          <Key className="w-4 h-4 mr-2" />
+                          Wachtwoord Resetten
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user)}
