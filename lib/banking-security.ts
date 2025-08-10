@@ -304,13 +304,15 @@ export async function secureApiCall<T = any>(
       }
     }
     
-    // Make API call
-    const response = await fetch(endpoint, {
+    // Make API call with timeout
+    const { fetchWithTimeout } = await import('./http/fetchWithTimeout');
+    const response = await fetchWithTimeout(endpoint, {
       ...fetchOptions,
       headers: {
         'Content-Type': 'application/json',
         ...fetchOptions.headers,
       },
+      timeoutMs: 10000,
     });
     
     if (!response.ok) {
