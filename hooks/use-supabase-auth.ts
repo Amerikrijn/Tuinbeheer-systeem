@@ -307,11 +307,12 @@ export function useSupabaseAuth(): AuthContextType {
       })
 
       if (error) {
-        throw error
+        // Generic error to prevent account enumeration
+        throw new Error('Ongeldige inloggegevens')
       }
 
       if (!data.user) {
-        throw new Error('No user returned from sign in')
+        throw new Error('Ongeldige inloggegevens')
       }
       
       // Check if user needs to change password (first login)
@@ -321,12 +322,13 @@ export function useSupabaseAuth(): AuthContextType {
       
       // User profile will be loaded automatically by onAuthStateChange
     } catch (error) {
+      const genericError = 'Ongeldige inloggegevens'
       setState(prev => ({
         ...prev,
         loading: false,
-        error: error instanceof Error ? error.message : 'Sign in failed'
+        error: genericError
       }))
-      throw error
+      throw new Error(genericError)
     }
   }
 
@@ -380,11 +382,15 @@ export function useSupabaseAuth(): AuthContextType {
         redirectTo: `${window.location.origin}/auth/reset-password`
       })
       
-      if (error) {
-        throw error
+      // Always show success message to prevent account enumeration
+      // Even if email doesn't exist, we don't reveal that information
+      if (error && !error.message.includes('rate limit')) {
+        // Only show rate limit errors, hide all others
+        console.warn('Password reset error (hidden from user):', error)
       }
     } catch (error) {
-      throw error instanceof Error ? error : new Error('Password reset failed')
+      // Generic message regardless of actual error
+      console.warn('Password reset error (hidden from user):', error)
     }
   }
 
