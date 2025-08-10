@@ -590,54 +590,45 @@ function AdminUsersPageContent() {
   }
 
   const handleResetUserPassword = async (user: User) => {
-    const newPassword = prompt(`Nieuw tijdelijk wachtwoord voor ${user.full_name || user.email}:\n\n(User moet dit bij eerste login wijzigen)`)
+    // ALTERNATIVE APPROACH: Send password reset email instead of direct admin reset
+    // This works with anon key and doesn't require service role
     
-    if (!newPassword || newPassword.length < 8) {
-      toast({
-        title: "Ongeldig wachtwoord",
-        description: "Wachtwoord moet minimaal 8 karakters zijn",
-        variant: "destructive"
-      })
-      return
-    }
-
-    if (!confirm(`Wachtwoord resetten voor ${user.full_name || user.email}?\n\nNieuw wachtwoord: ${newPassword}\n\n⚠️ User moet dit bij eerste login wijzigen!`)) {
+    if (!confirm(`Password reset email versturen naar ${user.full_name || user.email}?\n\n⚠️ User krijgt email om nieuw wachtwoord in te stellen.`)) {
       return
     }
 
     try {
-      // Admin reset user password
-      const { error } = await supabase.auth.admin.updateUserById(user.id, {
-        password: newPassword
+      // Send password reset email (this works with anon key)
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/auth/reset-password`
       })
 
       if (error) {
         throw error
       }
 
-      // Update user status and force password change
+      // Mark user as needing password change
       await supabase
         .from('users')
         .update({ 
           status: 'active',
-          // Force password change on next login
           force_password_change: true,
-          password_changed_at: null // Reset password change timestamp
+          password_changed_at: null
         })
         .eq('id', user.id)
 
       toast({
-        title: "Wachtwoord gereset",
-        description: `Tijdelijk wachtwoord ingesteld voor ${user.full_name || user.email}. User moet dit bij eerste login wijzigen.`,
+        title: "Reset email verstuurd",
+        description: `${user.full_name || user.email} krijgt een email om het wachtwoord te resetten.`,
       })
 
       loadUsersAndGardens()
 
     } catch (error: any) {
-      console.error('Error resetting password:', error)
+      console.error('Error sending reset email:', error)
       toast({
-        title: "Wachtwoord reset mislukt",
-        description: error.message || "Kon wachtwoord niet resetten",
+        title: "Reset email mislukt",
+        description: error.message || "Kon reset email niet versturen",
         variant: "destructive"
       })
     }
