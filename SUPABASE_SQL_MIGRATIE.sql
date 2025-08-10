@@ -19,13 +19,15 @@ ON public.users(force_password_change)
 WHERE force_password_change = TRUE;
 
 -- Step 5: RLS Policy - Users can read their own force_password_change flag
-CREATE POLICY IF NOT EXISTS "Users can read own force_password_change"
+DROP POLICY IF EXISTS "Users can read own force_password_change" ON public.users;
+CREATE POLICY "Users can read own force_password_change"
 ON public.users FOR SELECT
 TO authenticated
 USING (auth.uid() = id);
 
 -- Step 6: RLS Policy - Service role can update force_password_change  
-CREATE POLICY IF NOT EXISTS "Service role can update force_password_change"
+DROP POLICY IF EXISTS "Service role can update force_password_change" ON public.users;
+CREATE POLICY "Service role can update force_password_change"
 ON public.users FOR UPDATE
 TO service_role
 USING (true);
