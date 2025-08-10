@@ -742,3 +742,47 @@ Voor elke wijziging, automatisch checken:
 
 Als ALLE checkboxes ✅ zijn: DEPLOY
 Als ER EEN ❌ is: FIX FIRST, THEN DEPLOY
+
+## 🔒 BANKING COMPLIANCE CONFIGURATIE
+
+### VERPLICHTE ENVIRONMENT VARIABLES
+
+#### Production Environment (Vercel)
+```bash
+# Supabase - Public (safe in browser)
+NEXT_PUBLIC_SUPABASE_URL=https://dwsgwqosmihsfaxuheji.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+
+# Supabase - Private (SERVER-SIDE ONLY!)
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Site Configuration
+NEXT_PUBLIC_SITE_URL=https://tuinbeheer-systeem.vercel.app
+NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL=admin@tuinbeheer.nl
+```
+
+#### Preview Environment (Vercel)
+```bash
+# Supabase - Same as production
+NEXT_PUBLIC_SUPABASE_URL=https://dwsgwqosmihsfaxuheji.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Site Configuration - Preview URLs
+NEXT_PUBLIC_SITE_URL=https://tuinbeheer-systeem-git-preview-amerikrijn.vercel.app
+NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL=admin@tuinbeheer.nl
+```
+
+### BANKING STANDARDS COMPLIANCE
+
+#### ✅ Server-Side API Routes
+Alle admin functies via beveiligde server routes:
+- `/api/admin/invite-user` - User invitations
+- `/api/admin/delete-user` - User deletion
+- `/api/admin/reset-password` - Password resets
+- `/api/admin/update-user-role` - Role changes  
+- `/api/admin/update-user-status` - Status changes
+
+#### ✅ Privilege Separation
+- **NEXT_PUBLIC_*** = Client-side safe (anon key, URLs)
+- **SUPABASE_SERVICE_ROLE_KEY** = Server-side only (admin privileges)
