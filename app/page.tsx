@@ -238,20 +238,17 @@ function HomePageContent() {
           <div className="p-3 bg-green-100 rounded-full">
             <TreePine className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900">Tuinbeheer Systeem</h1>
+          <h1 className="text-4xl font-bold text-foreground">Tuinbeheer Systeem</h1>
         </div>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          {isAdmin() 
-            ? 'Administrator Dashboard - Beheer alle tuinen en gebruikers' 
-            : 'Welkom bij uw persoonlijke tuinbeheer dashboard. Beheer uw tuinen, plantbedden en houd bij wat u heeft geplant.'
-          }
+        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          Beheer je tuinen, plantvakken en planten met ons gebruiksvriendelijke systeem
         </p>
       </header>
 
       {/* Search and Actions */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             type="text"
             placeholder="Zoek tuinen op naam, locatie of beschrijving..."
@@ -285,11 +282,11 @@ function HomePageContent() {
       {state.error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
           <div className="flex items-center gap-3 mb-4">
-            <AlertCircle className="h-6 w-6 text-red-600" />
-            <h3 className="text-lg font-semibold text-red-800">Er is een fout opgetreden</h3>
+            <AlertCircle className="h-6 w-6 text-destructive" />
+            <h3 className="text-lg font-semibold text-destructive">Er is een fout opgetreden</h3>
           </div>
-          <p className="text-red-700 mb-4">{state.error}</p>
-          <Button onClick={handleRetry} variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
+          <p className="text-destructive mb-4">{state.error}</p>
+          <Button onClick={handleRetry} variant="outline" className="border-destructive text-destructive hover:bg-destructive/10">
             Opnieuw proberen
           </Button>
         </div>
@@ -319,14 +316,14 @@ function HomePageContent() {
         <>
           {filteredGardens.length === 0 && !state.loading ? (
             <div className="text-center py-12">
-              <TreePine className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">
-                {state.searchTerm ? 'Geen tuinen gevonden' : 'Nog geen tuinen'}
+              <TreePine className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">
+                Geen tuinen gevonden
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-muted-foreground mb-6">
                 {state.searchTerm 
                   ? `Geen tuinen gevonden voor "${state.searchTerm}". Probeer een andere zoekterm.`
-                  : 'Begin met het maken van uw eerste tuin om uw planten te beheren.'
+                  : 'Er zijn nog geen tuinen aangemaakt. Begin met het toevoegen van je eerste tuin.'
                 }
               </p>
               {!state.searchTerm && (
@@ -506,13 +503,13 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
         <CardHeader className={isListView ? "pb-2 py-3" : "pb-3"}>
           <div className={`flex items-start justify-between ${isListView ? 'gap-4' : ''}`}>
             <div className="flex-1 min-w-0">
-              <CardTitle className={`font-semibold text-gray-900 group-hover:text-green-700 transition-colors truncate ${
-                isListView ? 'text-base' : 'text-lg'
-              }`}>
+              <CardTitle className={`font-semibold text-card-foreground group-hover:text-primary transition-colors truncate ${
+                  garden.name.length > 20 ? 'text-sm' : 'text-base'
+                }`}>
                 {garden.name}
               </CardTitle>
-              <div className="flex items-center text-sm text-gray-500 mt-1">
-                <MapPin className="h-4 w-4 mr-1 flex-shrink-0" />
+              <div className="flex items-center text-sm text-muted-foreground mt-1">
+                <MapPin className="h-3 w-3 mr-1" />
                 <span className="truncate">{garden.location}</span>
               </div>
             </div>
@@ -522,9 +519,9 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
           </div>
         </CardHeader>
         
-        <CardContent className={isListView ? "pt-0 py-2" : "pt-0"}>
-          {garden.description && !isListView && (
-            <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+        <CardContent className="pt-4">
+          {garden.description && (
+            <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
               {garden.description}
             </p>
           )}
@@ -532,8 +529,8 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
           {/* Flower Preview Section */}
           <div className={isListView ? "mb-2" : "mb-4"}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Bloemen in deze tuin:</span>
-              <span className="text-xs text-gray-500">
+              <span className="text-sm font-medium text-card-foreground">Bloemen in deze tuin:</span>
+              <span className="text-xs text-muted-foreground">
                 {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} bloemen
               </span>
             </div>
@@ -578,8 +575,8 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
           {/* Users with access section */}
           <div className={isListView ? "mb-2" : "mb-4"}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">Gebruikers met toegang:</span>
-              <span className="text-xs text-gray-500">
+              <span className="text-sm font-medium text-card-foreground">Gebruikers met toegang:</span>
+              <span className="text-xs text-muted-foreground">
                 {loadingUsers ? 'Laden...' : `${gardenUsers.length} gebruiker(s)`}
               </span>
             </div>
@@ -592,32 +589,30 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
               </div>
             ) : gardenUsers.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {gardenUsers.slice(0, 3).map((user) => (
-                  <div 
-                    key={user.id}
-                    className="flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs"
+                {gardenUsers.slice(0, 3).map((user, index) => (
+                  <span 
+                    key={user.id} 
+                    className="text-xs text-muted-foreground truncate"
+                    title={user.full_name || user.email}
                   >
-                    <User className="h-3 w-3" />
-                    <span className="max-w-20 truncate">
-                      {user.full_name || user.email?.split('@')[0]}
-                    </span>
-                  </div>
+                    {user.full_name || user.email}
+                  </span>
                 ))}
                 {gardenUsers.length > 3 && (
-                  <div className="flex items-center justify-center bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                  <div className="flex items-center justify-center bg-muted text-muted-foreground px-2 py-1 rounded-full text-xs">
                     +{gardenUsers.length - 3}
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-xs text-gray-500 italic">
-                Geen gebruikers toegewezen
+              <div className="text-xs text-muted-foreground italic">
+                {loadingUsers ? 'Laden...' : 'Geen gebruikers'}
               </div>
             )}
           </div>
           
 {!isListView && (
-            <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+            <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-1" />
                 <span>Aangemaakt {formatDate(garden.created_at)}</span>

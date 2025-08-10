@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { AlertTriangle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { AlertCircle } from 'lucide-react'
 
 interface UserRestrictedRouteProps {
   children: React.ReactNode
@@ -35,31 +37,28 @@ export function UserRestrictedRoute({ children }: UserRestrictedRouteProps) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">Toegang controleren...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Toegang controleren...</p>
         </div>
       </div>
     )
   }
 
-  // Block non-admin users
-  if (user && !isAdmin()) {
+  if (!hasAccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-red-50">
-        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-          <AlertTriangle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-red-600 mb-2">
-            Toegang Geweigerd
-          </h1>
-          <p className="text-gray-600 mb-6">
-            Je hebt geen toegang tot deze pagina. Alleen beheerders kunnen deze functionaliteit gebruiken.
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-md">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-4">Geen toegang</h2>
+          <p className="text-muted-foreground mb-6">
+            Je hebt geen toegang tot deze pagina. Neem contact op met een beheerder als je denkt dat dit een fout is.
           </p>
-          <button
+          <Button 
             onClick={() => router.push('/')}
-            className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
           >
-            Terug naar Dashboard
-          </button>
+            Terug naar dashboard
+          </Button>
         </div>
       </div>
     )

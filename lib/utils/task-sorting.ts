@@ -139,29 +139,29 @@ export function getTaskUrgencyStyles(urgency: ReturnType<typeof getTaskUrgency>)
   switch (urgency) {
     case 'overdue':
       return {
-        container: 'border-red-200 bg-red-50',
-        title: 'text-red-900',
+        container: 'border-border bg-card',
+        title: 'text-foreground',
         badge: 'bg-red-100 text-red-800 border-red-300',
         badgeText: '🚨 Verlopen'
       }
     case 'urgent':
       return {
-        container: 'border-orange-200 bg-orange-50',
-        title: 'text-orange-900',
+        container: 'border-border bg-card',
+        title: 'text-foreground',
         badge: 'bg-orange-100 text-orange-800 border-orange-300',
         badgeText: '⚡ Urgent'
       }
     case 'completed':
       return {
-        container: 'border-green-200 bg-green-50',
-        title: 'text-green-700 line-through',
+        container: 'border-border bg-card',
+        title: 'text-foreground',
         badge: 'bg-green-100 text-green-800 border-green-300',
         badgeText: '✅ Voltooid'
       }
     default:
       return {
-        container: 'border-gray-200 bg-white',
-        title: 'text-gray-900',
+        container: 'border-border bg-card',
+        title: 'text-foreground',
         badge: 'bg-blue-100 text-blue-800 border-blue-300',
         badgeText: '📋 Actief'
       }

@@ -15,7 +15,9 @@ import {
   Droplets,
   Scissors,
   Flower2,
-  Bug
+  Bug,
+  AlertCircle,
+  Zap
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -39,7 +41,7 @@ export interface EnhancedTask {
     email: string
     avatar_url?: string
   }
-  priority: 'low' | 'medium' | 'high'
+  priority: 'low' | 'medium' | 'high' | 'urgent'
   task_type: 'watering' | 'fertilizing' | 'pruning' | 'harvesting' | 'planting' | 'pest_control' | 'general'
   plant_name?: string
   plant_bed_name?: string
@@ -94,20 +96,20 @@ export function EnhancedTaskCard({
       case 'pest_control':
         return <Bug className="w-4 h-4 text-red-500" />
       default:
-        return <Circle className="w-4 h-4 text-gray-500" />
+        return <Circle className="w-4 h-4 text-muted-foreground" />
     }
   }
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
+      case 'urgent':
+        return 'bg-red-100 dark:bg-red-950/20 text-red-800 dark:text-red-400'
       case 'high':
-        return 'bg-red-100 text-red-800'
+        return 'bg-orange-100 dark:bg-orange-950/20 text-orange-800 dark:text-orange-400'
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'low':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-yellow-100 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-400'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-muted text-muted-foreground'
     }
   }
 
@@ -150,7 +152,7 @@ export function EnhancedTaskCard({
     }
 
     return {
-      color: 'text-gray-600',
+      color: 'text-muted-foreground',
       label: formatDate(task.due_date),
       icon: Calendar
     }
@@ -306,8 +308,8 @@ export function EnhancedTaskCard({
 
           {/* Notes */}
           {task.notes && !compact && (
-            <div className="text-sm text-muted-foreground bg-gray-50 rounded p-2">
-              <p className="font-medium text-gray-700 mb-1">Notities:</p>
+            <div className="text-sm text-muted-foreground bg-muted rounded p-2">
+              <p className="font-medium text-foreground mb-1">Notities:</p>
               <p>{task.notes}</p>
             </div>
           )}

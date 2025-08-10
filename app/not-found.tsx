@@ -7,7 +7,7 @@ import * as React from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { TreePine, Home, ArrowLeft, Search, AlertCircle, MapPin, Settings, Eye } from "lucide-react"
+import { TreePine, Home, ArrowLeft, Search, AlertCircle, MapPin, Settings, Eye, AlertTriangle } from "lucide-react"
 
 export default function NotFound() {
   return (
@@ -35,24 +35,35 @@ export default function NotFound() {
           </p>
           
           <div className="space-y-4">
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-              <h3 className="font-semibold mb-2 text-yellow-800">Common Pages:</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                <Link href="/" className="flex items-center gap-2 text-yellow-700 hover:text-yellow-800">
-                  <Home className="h-4 w-4" />
-                  Home Page
-                </Link>
-                <Link href="/gardens" className="flex items-center gap-2 text-yellow-700 hover:text-yellow-800">
-                  <MapPin className="h-4 w-4" />
-                  Gardens
-                </Link>
-
-                <Link href="/admin" className="flex items-center gap-2 text-yellow-700 hover:text-yellow-800">
-                  <Settings className="h-4 w-4" />
-                  Admin Panel
-                </Link>
-
-              </div>
+            <div className="bg-card p-4 rounded-lg border">
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                Debug Informatie
+              </CardTitle>
+              <CardContent className="pt-4">
+                <p className="text-destructive mb-4">
+                  Pagina niet gevonden. Controleer de URL of ga terug naar een bekende pagina.
+                </p>
+                
+                <div className="bg-muted p-3 rounded text-sm">
+                  <h3 className="font-semibold mb-2 text-primary">Common Pages:</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <Link href="/" className="flex items-center gap-2 text-primary hover:text-primary/80">
+                      <Home className="h-4 w-4" />
+                      Dashboard
+                    </Link>
+                    <Link href="/gardens" className="flex items-center gap-2 text-primary hover:text-primary/80">
+                      <TreePine className="h-4 w-4" />
+                      Tuinen
+                    </Link>
+                    {/* Only show admin link if user has admin role */}
+                    <Link href="/admin" className="flex items-center gap-2 text-primary hover:text-primary/80">
+                      <Settings className="h-4 w-4" />
+                      Admin
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
             </div>
             
             <div className="bg-white p-4 rounded-lg border">

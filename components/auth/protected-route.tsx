@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase'
 import { Loader2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { uiLogger } from '@/lib/logger'
+import { Button } from '@/components/ui/button'
+import { TreePine } from 'lucide-react'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -19,7 +21,7 @@ function ProtectedRouteComponent({
   requireAdmin = false, 
   allowedRoles 
 }: ProtectedRouteProps) {
-  const { user, loading } = useAuth()
+  const { user, loading, authLoading } = useAuth()
   const router = useRouter()
   const [timeoutReached, setTimeoutReached] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -99,23 +101,63 @@ function ProtectedRouteComponent({
   // Show loading during SSR, mounting, or auth loading (but only briefly)
   if (!mounted || (loading && !user) || !authChecked) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-          <p className="text-gray-600">Laden...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Laden...</p>
         </div>
       </div>
     )
   }
 
-  // Don't render children until all auth checks pass
-  if (!user || (requireAdmin && user.role !== 'admin') || 
-      (allowedRoles && !allowedRoles.includes(user.role as 'admin' | 'user'))) {
+  if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center space-y-4">
-          <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-          <p className="text-gray-600">Authenticatie controleren...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Authenticatie controleren...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="bg-card rounded-lg shadow-lg p-8">
+            <TreePine className="h-12 w-12 text-primary mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-4">Inloggen vereist</h2>
+            <p className="text-muted-foreground mb-6">
+              Je moet ingelogd zijn om deze pagina te bekijken.
+            </p>
+            <div className="space-y-3">
+              <Button 
+                onClick={() => router.push('/auth/login')}
+                className="w-full"
+              >
+                Inloggen
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => router.push('/')}
+                className="w-full"
+              >
+                Terug naar home
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Laden...</p>
         </div>
       </div>
     )
@@ -128,10 +170,10 @@ function ProtectedRouteComponent({
 export const ProtectedRoute = dynamic(() => Promise.resolve(ProtectedRouteComponent), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center min-h-screen">
-      <div className="flex flex-col items-center space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-        <p className="text-gray-600">Laden...</p>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Laden...</p>
       </div>
     </div>
   )
