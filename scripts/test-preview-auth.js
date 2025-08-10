@@ -1,0 +1,97 @@
+#!/usr/bin/env node
+
+/**
+ * PREVIEW ENVIRONMENT AUTH FLOW TEST
+ * Voor gebruik na preview deployment
+ */
+
+console.log('🧪 PREVIEW AUTH FLOW TEST')
+console.log('=' .repeat(40))
+console.log('')
+
+console.log('📋 MANUAL TEST CHECKLIST')
+console.log('Voer deze tests uit in de preview environment:')
+console.log('')
+
+console.log('🔑 1. PASSWORD RESET FLOW TEST:')
+console.log('   ✅ Ga naar /auth/forgot-password')
+console.log('   ✅ Voer bestaand email adres in')
+console.log('   ✅ Klik "Reset Link Versturen"')
+console.log('   ✅ Check email inbox voor reset link')
+console.log('   ✅ Klik reset link in email')
+console.log('   ✅ Controleer: redirect naar /auth/reset-password')
+console.log('   ✅ Controleer: "Reset link gevalideerd" message')
+console.log('   ✅ Voer nieuw wachtwoord in (2x)')
+console.log('   ✅ Klik "Wachtwoord wijzigen"')
+console.log('   ✅ Controleer: redirect naar /auth/login')
+console.log('   ✅ Controleer: "Wachtwoord succesvol gewijzigd" toast')
+console.log('   ✅ Login met nieuw wachtwoord')
+console.log('')
+
+console.log('👥 2. INVITATION FLOW TEST:')
+console.log('   ✅ Login als admin')
+console.log('   ✅ Ga naar /admin/users')
+console.log('   ✅ Klik "Nieuwe Gebruiker"')
+console.log('   ✅ Voer gebruiker gegevens in')
+console.log('   ✅ Klik "Gebruiker Toevoegen"')
+console.log('   ✅ Check email inbox voor invitation')
+console.log('   ✅ Klik invitation link in email')
+console.log('   ✅ Controleer: redirect naar /auth/accept-invitation')
+console.log('   ✅ Voer wachtwoord in (2x)')
+console.log('   ✅ Klik "Uitnodiging Accepteren"')
+console.log('   ✅ Controleer: redirect naar /auth/login')
+console.log('   ✅ Login met nieuwe account')
+console.log('')
+
+console.log('🚫 3. ERROR SCENARIOS TEST:')
+console.log('   ✅ Test invalid reset link (oude/expired)')
+console.log('   ✅ Test invalid invitation link')
+console.log('   ✅ Test password mismatch')
+console.log('   ✅ Test weak passwords')
+console.log('   ✅ Controleer: proper error messages')
+console.log('   ✅ Controleer: geen OAuth errors')
+console.log('')
+
+console.log('🔐 4. OAUTH/PKCE VERIFICATION:')
+console.log('   ✅ Controleer browser network tab tijdens reset')
+console.log('   ✅ Geen 404 errors op /auth/reset-password')
+console.log('   ✅ Geen OAuth configuration errors')
+console.log('   ✅ PKCE flow completes successfully')
+console.log('')
+
+console.log('🏦 5. BANKING STANDARDS CHECK:')
+console.log('   ✅ Geen hardcoded URLs in browser console')
+console.log('   ✅ Geen credentials in browser network tab')
+console.log('   ✅ Proper HTTPS redirects')
+console.log('   ✅ Secure session handling')
+console.log('')
+
+console.log('📱 6. MOBILE/RESPONSIVE TEST:')
+console.log('   ✅ Test auth flows op mobile device')
+console.log('   ✅ Touch targets minimaal 44px')
+console.log('   ✅ Readable text (16px minimum)')
+console.log('   ✅ Proper form validation')
+console.log('')
+
+console.log('🎯 EXPECTED RESULTS:')
+console.log('   ✅ Geen "OAuth niet werkt" errors meer')
+console.log('   ✅ Password reset flow werkt volledig')
+console.log('   ✅ Invitation flow werkt volledig')
+console.log('   ✅ Consistente user experience')
+console.log('   ✅ Banking-grade security maintained')
+console.log('')
+
+console.log('🚀 Als alle bovenstaande tests slagen:')
+console.log('   ✅ PREVIEW DEPLOYMENT SUCCESSFUL')
+console.log('   ✅ READY FOR PRODUCTION MERGE')
+console.log('')
+
+console.log('❌ Als er problemen zijn:')
+console.log('   📞 Contact developer met specifieke error details')
+console.log('   🔍 Check browser console voor technical errors')
+console.log('   📧 Test met verschillende email providers')
+console.log('')
+
+console.log('💡 TIP: Test met meerdere browsers (Chrome, Firefox, Safari)')
+console.log('💡 TIP: Test zowel desktop als mobile versies')
+console.log('💡 TIP: Check email spam folders')
