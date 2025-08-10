@@ -5,6 +5,11 @@ export function middleware(request: NextRequest) {
   const response = NextResponse.next()
   const { pathname } = request.nextUrl
   
+  // Basic security headers (Vercel-compatible)
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  
   // Allow caching for static assets and public pages
   const isStaticAsset = pathname.startsWith('/_next/static') || 
                        pathname.startsWith('/favicon') ||
