@@ -125,7 +125,7 @@ export function useSupabaseAuth(): AuthContextType {
       // Database lookup with timeout
       const databasePromise = supabase
         .from('users')
-        .select('id, email, full_name, role, status, created_at')
+        .select('id, email, full_name, role, status, created_at, force_password_change')
         .eq('email', supabaseUser.email)
         .single()
 

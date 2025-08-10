@@ -97,39 +97,35 @@ export function ForcePasswordChange() {
         return
       }
 
-      // Update password
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: formData.newPassword
+      // Banking-compliant: Call server-side API for password change
+      const response = await fetch('/api/user/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user?.id,
+          currentPassword: formData.currentPassword,
+          newPassword: formData.newPassword
+        })
       })
 
-      if (updateError) {
-        throw updateError
-      }
+      const result = await response.json()
 
-      // Clear force_password_change flag
-      if (user) {
-        const { error: profileError } = await supabase
-          .from('users')
-          .update({ 
-            force_password_change: false,
-            password_changed_at: new Date().toISOString()
-          })
-          .eq('id', user.id)
-
-        if (profileError) {
-          console.warn('Could not update password change flag:', profileError)
-        }
+      if (!response.ok) {
+        throw new Error(result.error || 'Password change failed')
       }
 
       toast({
         title: "Wachtwoord gewijzigd",
-        description: "Je wachtwoord is succesvol gewijzigd. Je wordt nu doorgestuurd.",
+        description: "Je wachtwoord is succesvol gewijzigd. Je kunt nu verder.",
       })
 
-      // Redirect to dashboard after successful change
-      setTimeout(() => {
-        router.push('/')
-      }, 2000)
+      // Refresh user profile to clear force_password_change flag
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for database update
+      
+      // Force reload to ensure fresh user profile is loaded
+      window.location.reload()
 
     } catch (error) {
       console.error('Password change error:', error)
@@ -155,22 +151,24 @@ export function ForcePasswordChange() {
           <div className="mx-auto mb-4 p-3 bg-orange-100 rounded-full w-fit">
             <Shield className="h-8 w-8 text-orange-600" />
           </div>
-          <CardTitle className="text-2xl">Wachtwoord Wijzigen Verplicht</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl text-gray-900">Wachtwoord Wijzigen Verplicht</CardTitle>
+          <CardDescription className="text-gray-700">
             Een beheerder heeft je wachtwoord gereset. Je moet een nieuw wachtwoord instellen voordat je verder kunt.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert className="mb-6 border-orange-200 bg-orange-50">
-            <Shield className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Banking Security:</strong> Na een admin reset moet je verplicht een nieuw, sterk wachtwoord instellen.
+          <Alert className="mb-6 border-orange-300 bg-orange-100">
+            <Shield className="h-4 w-4 text-orange-700" />
+            <AlertDescription className="text-orange-900">
+              <strong>🔒 Beveiligingsmelding:</strong> Een beheerder heeft je wachtwoord gereset. 
+              Om veiligheidsredenen moet je een nieuw, persoonlijk wachtwoord instellen. 
+              <strong>Je kunt niet verder zonder dit te doen.</strong>
             </AlertDescription>
           </Alert>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="currentPassword">Huidig Wachtwoord</Label>
+              <Label htmlFor="currentPassword" className="text-gray-900 font-medium">Huidig Wachtwoord</Label>
               <div className="relative">
                 <Input
                   id="currentPassword"
@@ -202,7 +200,7 @@ export function ForcePasswordChange() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="newPassword">Nieuw Wachtwoord</Label>
+              <Label htmlFor="newPassword" className="text-gray-900 font-medium">Nieuw Wachtwoord</Label>
               <div className="relative">
                 <Input
                   id="newPassword"
@@ -231,13 +229,13 @@ export function ForcePasswordChange() {
               {errors.newPassword && (
                 <p className="text-sm text-red-500">{errors.newPassword}</p>
               )}
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-700 font-medium">
                 Minimaal 8 karakters met hoofdletter, kleine letter, cijfer en speciaal teken
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Bevestig Nieuw Wachtwoord</Label>
+              <Label htmlFor="confirmPassword" className="text-gray-900 font-medium">Bevestig Nieuw Wachtwoord</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
