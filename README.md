@@ -45,6 +45,36 @@ Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. 
 - **Security Headers**: Comprehensive HTTP security headers
 - **No Hardcoded Values**: All sensitive data from database
 
+## 🔒 Security Hardening (Phase 1+2)
+
+Dit systeem implementeert banking-grade security standards conform Nederlandse financiële richtlijnen:
+
+### Geïmplementeerde Security Maatregelen:
+- **CSP (Content Security Policy)**: Nonce-based CSP met strikte headers
+- **Rate Limiting**: Per-IP rate limiting voor auth en muterende operaties
+- **Input Validation**: Zod-based validatie op alle API endpoints
+- **HTTP Security**: HSTS, X-Frame-Options, X-Content-Type-Options
+- **Supply Chain Security**: CodeQL, Dependabot, Gitleaks, npm audit
+- **Multi-Factor Authentication**: Verplicht voor admin operaties
+- **Idempotency**: Duplicate request protection
+- **Audit Logging**: Comprehensive security event tracking
+- **Observability**: Sentry/OpenTelemetry integratie
+
+### Test Instructies:
+```bash
+# Security headers test
+curl -I http://localhost:3000
+
+# Rate limiting test (25x binnen 60s)
+for i in {1..25}; do curl -X POST http://localhost:3000/api/test-endpoint; done
+
+# Input validatie test
+curl -X POST http://localhost:3000/api/plant-beds -H "Content-Type: application/json" -d '{"invalid": "data"}'
+
+# RLS test (user A mag niets van user B zien)
+# Login als verschillende users en controleer data isolatie
+```
+
 ## 🚀 Quick Start
 
 ```bash
