@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lokale Auth Flow Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Lokale Auth Flow Test</h1>
+    <p><strong>Server:</strong> http://localhost:3000</p>
+
+    <div class="test-section">
+        <h2>🔍 Route Accessibility Test</h2>
+        <button onclick="testRoute('/auth/login')">Test Login</button>
+        <button onclick="testRoute('/auth/forgot-password')">Test Forgot Password</button>
+        <button onclick="testRoute('/auth/reset-password')">Test Reset Password</button>
+        <button onclick="testRoute('/auth/accept-invitation')">Test Accept Invitation</button>
+        <div id="route-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 Quick Links</h2>
+        <a href="http://localhost:3000/auth/login" target="_blank">
+            <button>Open Login Page</button>
+        </a>
+        <a href="http://localhost:3000/auth/forgot-password" target="_blank">
+            <button>Open Forgot Password</button>
+        </a>
+        <a href="http://localhost:3000/admin/users" target="_blank">
+            <button>Open Admin Users</button>
+        </a>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Test Scenarios</h2>
+        <h3>1. Password Reset Flow:</h3>
+        <ol>
+            <li>Ga naar <a href="http://localhost:3000/auth/forgot-password" target="_blank">Forgot Password</a></li>
+            <li>Voer email in: <code>test@example.com</code></li>
+            <li>Klik "Reset Link Versturen"</li>
+            <li>Check console voor redirect URL</li>
+            <li>Verwacht: geen 404 errors</li>
+        </ol>
+
+        <h3>2. Invitation Flow:</h3>
+        <ol>
+            <li>Login als admin op <a href="http://localhost:3000/auth/login" target="_blank">Login</a></li>
+            <li>Ga naar <a href="http://localhost:3000/admin/users" target="_blank">Admin Users</a></li>
+            <li>Klik "Nieuwe Gebruiker"</li>
+            <li>Voer gegevens in</li>
+            <li>Check console voor invitation URL</li>
+            <li>Verwacht: redirect naar /auth/accept-invitation</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 Test Results</h2>
+        <div id="test-results">
+            <p>Klik op de test buttons hierboven om de routes te testen.</p>
+        </div>
+    </div>
+
+    <script>
+        async function testRoute(path) {
+            const resultsDiv = document.getElementById('route-results');
+            const url = `http://localhost:3000${path}`;
+            
+            try {
+                const response = await fetch(url);
+                const status = response.status;
+                const statusText = response.statusText;
+                
+                const resultClass = status === 200 ? 'success' : 'error';
+                const resultText = status === 200 ? '✅ PASS' : '❌ FAIL';
+                
+                resultsDiv.innerHTML += `
+                    <div class="result ${resultClass}">
+                        ${resultText} ${path} - Status: ${status} ${statusText}
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div class="result error">
+                        ❌ ERROR ${path} - ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        // Auto-test all routes on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testRoute('/auth/login');
+                testRoute('/auth/forgot-password');
+                testRoute('/auth/reset-password');
+                testRoute('/auth/accept-invitation');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
