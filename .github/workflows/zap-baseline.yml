@@ -1,0 +1,55 @@
+name: zap-baseline
+
+on:
+  schedule:
+    - cron: "0 2 * * *"  # Daily at 2 AM
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  zap:
+    name: OWASP ZAP Baseline Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: ${{ secrets.PREVIEW_URL || 'https://tuinbeheer-systeem.vercel.app' }}
+          cmd_options: '-a -j -l WARN -S -d'
+          
+      - name: Upload ZAP results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-baseline-report
+          path: report_html.html
+          
+      - name: Create security issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Security Alert: ZAP Baseline Scan Failed',
+              body: `
+              **ZAP Baseline Scan detected security issues**
+              
+              - **Run Date**: ${new Date().toISOString()}
+              - **Target**: ${{ secrets.PREVIEW_URL || 'https://tuinbeheer-systeem.vercel.app' }}
+              - **Workflow**: [${context.workflow}](${context.payload.repository.html_url}/actions/runs/${context.runId})
+              
+              Please review the scan results and address any security vulnerabilities.
+              
+              **Next Steps:**
+              1. Download the ZAP report from the workflow artifacts
+              2. Review identified vulnerabilities
+              3. Implement fixes
+              4. Re-run the scan to verify fixes
+              `,
+              labels: ['security', 'vulnerability', 'urgent']
+            });
