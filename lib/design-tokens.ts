@@ -134,9 +134,9 @@ export const buttonVariants = {
 } as const;
 
 export const cardVariants = {
-  default: 'bg-white border border-gray-200 rounded-lg shadow-sm',
-  elevated: 'bg-white border border-gray-200 rounded-lg shadow-md',
-  interactive: 'bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer',
+  default: 'bg-card border border-border rounded-lg shadow-sm',
+  elevated: 'bg-card border border-border rounded-lg shadow-md',
+  interactive: 'bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer',
 } as const;
 
 export const inputVariants = {

@@ -66,7 +66,7 @@ export default function NotFound() {
               </CardContent>
             </div>
             
-            <div className="bg-white p-4 rounded-lg border">
+            <div className="bg-card p-4 rounded-lg border border-border">
               <h3 className="font-semibold mb-2">Quick Actions:</h3>
               <div className="space-y-2">
                 <Button asChild className="w-full bg-green-600 hover:bg-green-700">

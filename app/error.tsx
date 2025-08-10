@@ -36,7 +36,7 @@ export default function Error({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-white p-4 rounded-lg border border-red-200">
+            <div className="bg-card p-4 rounded-lg border border-destructive/20">
               <p className="text-red-700 font-medium mb-2">Foutmelding:</p>
               <p className="text-sm text-red-600 font-mono bg-red-50 p-2 rounded">
                 {error.message || 'Er is een onverwachte fout opgetreden'}

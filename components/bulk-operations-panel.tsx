@@ -96,40 +96,40 @@ export function BulkOperationsPanel({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 bg-white"
+              className="h-auto p-4 flex flex-col items-center gap-2 bg-card"
               onClick={() => setActiveOperation("move")}
               disabled={selectedCount === 0}
             >
-              <Move className="h-6 w-6 text-blue-600" />
+              <Move className="h-6 w-6 text-primary" />
               <div className="text-center">
-                <div className="font-medium">Verplaatsen</div>
-                <div className="text-sm text-gray-600">Naar ander plantvak</div>
+                <div className="font-medium text-foreground">Verplaatsen</div>
+                <div className="text-sm text-muted-foreground">Naar ander plantvak</div>
               </div>
             </Button>
 
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 bg-white"
+              className="h-auto p-4 flex flex-col items-center gap-2 bg-card"
               onClick={() => setActiveOperation("update")}
               disabled={selectedCount === 0}
             >
-              <Edit className="h-6 w-6 text-green-600" />
+              <Edit className="h-6 w-6 text-green-600 dark:text-green-400" />
               <div className="text-center">
-                <div className="font-medium">Bijwerken</div>
-                <div className="text-sm text-gray-600">Eigenschappen wijzigen</div>
+                <div className="font-medium text-foreground">Bijwerken</div>
+                <div className="text-sm text-muted-foreground">Eigenschappen wijzigen</div>
               </div>
             </Button>
 
             <Button
               variant="outline"
-              className="h-auto p-4 flex flex-col items-center gap-2 bg-white"
+              className="h-auto p-4 flex flex-col items-center gap-2 bg-card"
               onClick={() => setActiveOperation("delete")}
               disabled={selectedCount === 0}
             >
-              <Trash2 className="h-6 w-6 text-red-600" />
+              <Trash2 className="h-6 w-6 text-destructive" />
               <div className="text-center">
-                <div className="font-medium">Verwijderen</div>
-                <div className="text-sm text-gray-600">Permanent verwijderen</div>
+                <div className="font-medium text-foreground">Verwijderen</div>
+                <div className="text-sm text-muted-foreground">Permanent verwijderen</div>
               </div>
             </Button>
           </div>

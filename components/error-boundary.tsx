@@ -73,7 +73,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                 </p>
               </div>
 
-              <div className="bg-white p-4 rounded-lg border border-red-200">
+              <div className="bg-card p-4 rounded-lg border border-destructive/20">
                 <h3 className="font-semibold mb-2 text-red-800">Possible causes:</h3>
                 <ul className="text-sm text-red-700 space-y-1">
                   <li>• Missing or invalid environment variables</li>
