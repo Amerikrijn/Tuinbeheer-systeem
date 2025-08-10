@@ -28,9 +28,11 @@ Ga naar: `https://app.supabase.com/project/dwsgwqosmihsfaxuheji/auth/url-configu
 
 **Voeg de volgende Redirect URLs toe:**
 ```
-https://tuinbeheer-systeem.vercel.app/auth/accept-invite
-https://tuinbeheer-systeem-git-main-amerikrijn.vercel.app/auth/accept-invite
-https://tuinbeheer-systeem-amerikrijn.vercel.app/auth/accept-invite
+# NIEUWE CORRECTE ROUTES (na auth fix):
+https://tuinbeheer-systeem.vercel.app/auth/reset-password
+https://tuinbeheer-systeem.vercel.app/auth/accept-invitation
+https://tuinbeheer-systeem-git-*-amerikrijn.vercel.app/auth/reset-password
+https://tuinbeheer-systeem-git-*-amerikrijn.vercel.app/auth/accept-invitation
 ```
 
 **Site URL instellen:**
@@ -40,7 +42,8 @@ https://tuinbeheer-systeem.vercel.app (production)
 
 **Wildcard pattern voor preview deployments:**
 ```
-https://*.vercel.app/auth/accept-invite
+https://*.vercel.app/auth/reset-password
+https://*.vercel.app/auth/accept-invitation
 ```
 
 ### Stap 3: Email Templates
