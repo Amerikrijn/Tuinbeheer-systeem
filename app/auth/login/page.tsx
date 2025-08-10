@@ -100,17 +100,17 @@ export default function LoginPage() {
   // Demo credentials removed for production security
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-600 rounded-full">
+            <div className="flex items-center justify-center w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full">
               <TreePine className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Tuinbeheer Systeem</h1>
-          <p className="text-gray-600 mt-2">Meld je aan om door te gaan</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Tuinbeheer Systeem</h1>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">Meld je aan om door te gaan</p>
         </div>
 
         {/* Login Form */}
@@ -200,7 +200,7 @@ export default function LoginPage() {
             <div className="mt-6 text-center space-y-2">
               <Link 
                 href="/auth/forgot-password" 
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 Wachtwoord vergeten?
               </Link>
