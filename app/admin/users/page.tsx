@@ -17,7 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen, Edit, Key } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { supabase } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { GardenAccessManager } from '@/components/admin/garden-access-manager'
 import { ProtectedRoute } from '@/components/auth/protected-route'
@@ -590,24 +590,38 @@ function AdminUsersPageContent() {
   }
 
   const handleResetUserPassword = async (user: User) => {
-    // ALTERNATIVE APPROACH: Send password reset email instead of direct admin reset
-    // This works with anon key and doesn't require service role
+    // Banking-compliant admin password reset using service role
+    const newPassword = prompt(`Nieuw tijdelijk wachtwoord voor ${user.full_name || user.email}:\n\n(User moet dit bij eerste login wijzigen)`)
     
-    if (!confirm(`Password reset email versturen naar ${user.full_name || user.email}?\n\n⚠️ User krijgt email om nieuw wachtwoord in te stellen.`)) {
+    if (!newPassword || newPassword.length < 8) {
+      toast({
+        title: "Ongeldig wachtwoord",
+        description: "Wachtwoord moet minimaal 8 karakters zijn",
+        variant: "destructive"
+      })
+      return
+    }
+
+    if (!confirm(`Wachtwoord resetten voor ${user.full_name || user.email}?\n\nNieuw wachtwoord: ${newPassword}\n\n⚠️ User moet dit bij eerste login wijzigen!`)) {
       return
     }
 
     try {
-      // Send password reset email (this works with anon key)
-      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`
+      // Check if admin client is available
+      if (!supabaseAdmin) {
+        throw new Error('Admin client niet beschikbaar. Check SUPABASE_SERVICE_ROLE_KEY environment variable.')
+      }
+
+      // Admin reset user password using service role
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+        password: newPassword
       })
 
       if (error) {
         throw error
       }
 
-      // Mark user as needing password change
+      // Update user status and force password change
       await supabase
         .from('users')
         .update({ 
@@ -618,17 +632,17 @@ function AdminUsersPageContent() {
         .eq('id', user.id)
 
       toast({
-        title: "Reset email verstuurd",
-        description: `${user.full_name || user.email} krijgt een email om het wachtwoord te resetten.`,
+        title: "Wachtwoord gereset",
+        description: `Tijdelijk wachtwoord ingesteld voor ${user.full_name || user.email}. User moet dit bij eerste login wijzigen.`,
       })
 
       loadUsersAndGardens()
 
     } catch (error: any) {
-      console.error('Error sending reset email:', error)
+      console.error('Error resetting password:', error)
       toast({
-        title: "Reset email mislukt",
-        description: error.message || "Kon reset email niet versturen",
+        title: "Wachtwoord reset mislukt",
+        description: error.message || "Kon wachtwoord niet resetten. Check admin rechten.",
         variant: "destructive"
       })
     }
