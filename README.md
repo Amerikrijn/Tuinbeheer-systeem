@@ -78,7 +78,34 @@ curl -X POST http://localhost:3000/api/plant-beds -H "Content-Type: application/
 # 1. Ga naar Supabase SQL Editor
 # 2. Run: supabase/migrations/2025-01-10-rls-phase1.sql
 # 3. Voeg users toe aan gardens via garden_members tabel
+
+# Vercel environment setup
+# 1. Kopieer .env.example naar .env.local voor development
+# 2. Stel environment variables in via Vercel dashboard voor production
+# 3. Verifieer dat SUPABASE_SERVICE_ROLE_KEY niet in client build komt
 ```
+
+## 🔧 Environment Setup
+
+### Development (.env.local)
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+### Production (Vercel Environment Variables)
+- `NEXT_PUBLIC_SUPABASE_URL`: Public Supabase URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Public anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY`: Server-only service role key
+- `RATE_LIMIT_REDIS_URL`: Redis URL for rate limiting (optional)
+- `SENTRY_DSN`: Sentry DSN for error tracking (optional)
+
+### Security Notes
+- Alleen `NEXT_PUBLIC_*` variables worden blootgesteld aan de client
+- Server-only secrets zoals `SUPABASE_SERVICE_ROLE_KEY` blijven server-side
+- Middleware headers hebben voorrang over next.config.mjs headers
+- Vercel Preview Protection wordt aanbevolen voor staging environments
 
 ## 🚀 Quick Start
 
