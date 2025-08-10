@@ -16,6 +16,11 @@ export function middleware(request: NextRequest) {
   
   const isPublicPage = pathname === '/auth/login' ||
                       pathname === '/auth/forgot-password' ||
+                      pathname === '/auth/reset-password' ||
+                      pathname === '/auth/accept-invitation' ||
+                      pathname === '/auth/accept-invite' ||
+                      pathname === '/auth/change-password' ||
+                      pathname === '/auth/pending' ||
                       pathname.startsWith('/api/auth')
   
   // Allow short-term caching for public pages and longer caching for static assets

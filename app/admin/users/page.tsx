@@ -234,7 +234,7 @@ function AdminUsersPageContent() {
         password: tempPassword,
         options: {
           // Ensure email confirmation is sent
-          emailRedirectTo: `${siteUrl}/auth/accept-invite`,
+          emailRedirectTo: `${siteUrl}/auth/accept-invitation`,
           data: {
             created_by_admin: true,
             full_name: formData.full_name,
@@ -522,7 +522,7 @@ function AdminUsersPageContent() {
       const { error } = await supabase.auth.resetPasswordForEmail(
         user.email,
         {
-          redirectTo: `${window.location.origin}/auth/accept-invite`
+          redirectTo: `${window.location.origin}/auth/accept-invitation`
         }
       )
 
