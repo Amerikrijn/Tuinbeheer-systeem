@@ -151,15 +151,15 @@ export function ForcePasswordChange() {
           <div className="mx-auto mb-4 p-3 bg-orange-100 rounded-full w-fit">
             <Shield className="h-8 w-8 text-orange-600" />
           </div>
-          <CardTitle className="text-2xl">Wachtwoord Wijzigen Verplicht</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl text-gray-900">Wachtwoord Wijzigen Verplicht</CardTitle>
+          <CardDescription className="text-gray-700">
             Een beheerder heeft je wachtwoord gereset. Je moet een nieuw wachtwoord instellen voordat je verder kunt.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert className="mb-6 border-orange-200 bg-orange-50">
-            <Shield className="h-4 w-4" />
-            <AlertDescription>
+          <Alert className="mb-6 border-orange-300 bg-orange-100">
+            <Shield className="h-4 w-4 text-orange-700" />
+            <AlertDescription className="text-orange-900">
               <strong>🔒 Beveiligingsmelding:</strong> Een beheerder heeft je wachtwoord gereset. 
               Om veiligheidsredenen moet je een nieuw, persoonlijk wachtwoord instellen. 
               <strong>Je kunt niet verder zonder dit te doen.</strong>
@@ -168,7 +168,7 @@ export function ForcePasswordChange() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="currentPassword">Huidig Wachtwoord</Label>
+              <Label htmlFor="currentPassword" className="text-gray-900 font-medium">Huidig Wachtwoord</Label>
               <div className="relative">
                 <Input
                   id="currentPassword"
@@ -200,7 +200,7 @@ export function ForcePasswordChange() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="newPassword">Nieuw Wachtwoord</Label>
+              <Label htmlFor="newPassword" className="text-gray-900 font-medium">Nieuw Wachtwoord</Label>
               <div className="relative">
                 <Input
                   id="newPassword"
@@ -229,13 +229,13 @@ export function ForcePasswordChange() {
               {errors.newPassword && (
                 <p className="text-sm text-red-500">{errors.newPassword}</p>
               )}
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-700 font-medium">
                 Minimaal 8 karakters met hoofdletter, kleine letter, cijfer en speciaal teken
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Bevestig Nieuw Wachtwoord</Label>
+              <Label htmlFor="confirmPassword" className="text-gray-900 font-medium">Bevestig Nieuw Wachtwoord</Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
