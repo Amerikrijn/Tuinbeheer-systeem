@@ -2,77 +2,31 @@
 
 ## Overzicht
 
-Deze map bevat de database configuratie voor het Tuinbeheer Systeem.
+Deze map bevat de database migratie bestanden voor het Tuinbeheer Systeem.
 
 ## Bestanden
 
-### `supabase_schema.sql`
-Het hoofdschema voor alle tabellen, functies en triggers.
+### Core Schema
+- `01-schema.sql` - Basis database schema
+- `02-seed-data.sql` - Initiële test data
 
-### `storage-setup-public.sql` 
-⚠️ **ALLEEN VOOR TESTING!**
-
-Storage bucket setup met volledige publieke toegang. Gebruik dit voor ontwikkeling en testing.
-
-### `storage-setup.sql`
-Productie-klare storage bucket setup met authenticatie policies.
+### Migraties
+- `04-force-password-change-migration.sql` - Force password change functionaliteit
 
 ## Setup Instructies
 
 ### 1. Basis Database Setup
 
 1. Ga naar je Supabase project dashboard
-2. Open de SQL Editor
-3. Kopieer en run `supabase_schema.sql`
+2. Open de SQL Editor  
+3. Run eerst `01-schema.sql`
+4. Run daarna `02-seed-data.sql`
 
-### 2. Storage Setup (Voor Testing)
+### 2. Force Password Change Migratie
 
-1. In de Supabase SQL Editor
-2. Kopieer en run `storage-setup-public.sql`
-3. Dit maakt de `plant-images` bucket aan met publieke toegang
+Voor admin password reset functionaliteit:
+1. Run `04-force-password-change-migration.sql`
 
-### 3. Storage Setup (Voor Productie)
+## Productie Migratie
 
-1. In de Supabase SQL Editor  
-2. Kopieer en run `storage-setup.sql`
-3. Dit maakt de `plant-images` bucket aan met authenticatie
-
-## Foto Upload Functionaliteit
-
-Na het uitvoeren van de storage setup kunnen gebruikers:
-
-- ✅ Foto's uploaden bij logboek entries
-- ✅ Foto's bekijken in logboek details
-- ✅ Foto's bewerken/vervangen
-- ✅ Foto's verwijderen
-- ✅ Foto's vergroten door erop te klikken
-
-## Troubleshooting
-
-### Foto uploads werken niet
-
-1. Controleer of de storage bucket bestaat:
-   - Ga naar Supabase Dashboard → Storage
-   - Controleer of `plant-images` bucket bestaat
-
-2. Controleer storage policies:
-   - Ga naar Supabase Dashboard → Storage → plant-images → Policies
-   - Zorg dat er policies zijn voor SELECT, INSERT, UPDATE, DELETE
-
-3. Voor testing: gebruik `storage-setup-public.sql`
-
-### Foto's worden niet getoond
-
-1. Controleer of de bucket publiek is
-2. Controleer de foto URL in de database
-3. Controleer browser console voor CORS errors
-
-## Bestandsformaten
-
-Ondersteunde foto formaten:
-- JPEG (.jpg, .jpeg)
-- PNG (.png)
-- WebP (.webp)
-- GIF (.gif)
-
-Maximale bestandsgrootte: **5MB**
+Zie `DATABASE_MIGRATIE_INSTRUCTIES.md` in de root voor productie migratie stappen.

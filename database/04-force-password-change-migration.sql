@@ -18,14 +18,16 @@ CREATE INDEX IF NOT EXISTS idx_users_force_password_change
 ON public.users(force_password_change) 
 WHERE force_password_change = TRUE;
 
--- Update RLS policy to allow users to read their own force_password_change flag
-CREATE POLICY IF NOT EXISTS "Users can read their own force_password_change flag"
+-- RLS Policy - Users can read their own force_password_change flag
+DROP POLICY IF EXISTS "Users can read own force_password_change" ON public.users;
+CREATE POLICY "Users can read own force_password_change"
 ON public.users FOR SELECT
 TO authenticated
 USING (auth.uid() = id);
 
--- Allow service role to update force_password_change (admin operations)
-CREATE POLICY IF NOT EXISTS "Service role can update force_password_change"
+-- RLS Policy - Service role can update force_password_change  
+DROP POLICY IF EXISTS "Service role can update force_password_change" ON public.users;
+CREATE POLICY "Service role can update force_password_change"
 ON public.users FOR UPDATE
 TO service_role
 USING (true);
