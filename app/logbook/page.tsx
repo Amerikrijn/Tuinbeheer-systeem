@@ -195,6 +195,8 @@ function LogbookPageContent() {
         if (state.selectedGarden && state.selectedGarden !== "all") {
           filters.garden_id = state.selectedGarden
         }
+        // Don't pass garden_ids for admin when they have access to all gardens
+        // This prevents the security warning in LogbookService.getAll
       }
 
       if (state.selectedPlantBed && state.selectedPlantBed !== "all") {
