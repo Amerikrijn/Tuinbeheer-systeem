@@ -26,7 +26,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <ThemeProvider 
             attribute="class" 
-            defaultTheme="light" 
+            defaultTheme="system" 
             enableSystem 
             disableTransitionOnChange
           >
