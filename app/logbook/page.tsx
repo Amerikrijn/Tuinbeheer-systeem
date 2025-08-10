@@ -219,10 +219,18 @@ function LogbookPageContent() {
         throw new Error(`Logbook query failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
       
-      if (!response || !response.success || !response.data) {
+      if (!response || !response.success) {
         console.error('🔥 Logbook response invalid:', response)
-        throw new Error(response?.error || 'Failed to load logbook entries')
+        // Handle the case where response is valid but indicates an error
+        if (response && response.error) {
+          throw new Error(response.error)
+        } else {
+          throw new Error('Failed to fetch logbook entries')
+        }
       }
+      
+      // Handle successful response with no data (empty logbook)
+      const logbookData = response.data || []
 
       // Also load completed tasks as logbook entries
       let completedTasksData = []
@@ -292,7 +300,7 @@ function LogbookPageContent() {
       }
 
       // Combine logbook entries and completed tasks with safety checks
-      const logbookEntries = Array.isArray(response.data) ? response.data : []
+      const logbookEntries = Array.isArray(logbookData) ? logbookData : []
       const completedTasks = Array.isArray(completedTasksData) ? completedTasksData : []
       const allEntries = [...logbookEntries, ...completedTasks]
 
