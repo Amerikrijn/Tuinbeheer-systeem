@@ -26,7 +26,7 @@ export default function GlobalError({
       <body>
         <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 flex items-center justify-center p-6">
           <div className="max-w-2xl w-full">
-            <div className="bg-white rounded-lg shadow-xl border border-red-200 p-8">
+            <div className="bg-card rounded-lg shadow-xl border border-destructive/20 p-8">
               <div className="text-center mb-6">
                 <TreePine className="w-16 h-16 text-red-600 mx-auto mb-4" />
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">
