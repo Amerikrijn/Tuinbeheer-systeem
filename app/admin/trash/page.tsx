@@ -8,8 +8,10 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Trash2, RotateCcw, Calendar, MapPin, TreePine, AlertTriangle } from "lucide-react"
+import { ArrowLeft, Trash2, RotateCcw, Calendar, MapPin, TreePine, AlertTriangle, CheckCircle2 } from "lucide-react"
 import { supabase } from '@/lib/supabase'
 import { TuinService } from '@/lib/services/database.service'
 
@@ -28,6 +30,8 @@ export default function TrashPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [deletedGardens, setDeletedGardens] = useState<DeletedGarden[]>([])
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
+  const [bulkLoading, setBulkLoading] = useState(false)
 
   useEffect(() => {
     loadDeletedGardens()
