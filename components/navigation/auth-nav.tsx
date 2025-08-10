@@ -25,7 +25,7 @@ export function AuthNavigation() {
   // If user is not logged in, show minimal nav
   if (!user) {
     return (
-      <nav className="border-b bg-white" role="navigation" aria-label="Unauthenticated navigation">
+      <nav className="border-b bg-background" role="navigation" aria-label="Unauthenticated navigation">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md">
