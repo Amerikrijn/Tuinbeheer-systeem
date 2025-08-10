@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { apiLogger } from '@/lib/logger';
 import { z } from 'zod';
+import { rateLimit } from '@/lib/security/rateLimit';
 
 // Mock data for development/testing
 const mockPlantBeds = [
@@ -128,6 +129,9 @@ export async function POST(request: NextRequest) {
   const operationId = `plant-beds-post-${Date.now()}`;
   
   try {
+    // Rate limiting for mutations
+    await rateLimit(request, { key: 'plant-beds:post', limit: 20, windowSec: 60 })
+    
     apiLogger.info('POST /api/plant-beds', { operationId });
     
     // Parse request body

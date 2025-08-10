@@ -5,6 +5,7 @@ import { validateTuinFormData } from '@/lib/validation'
 import { supabase } from '@/lib/supabase'
 import { logClientSecurityEvent, validateApiInput } from '@/lib/banking-security'
 import { z } from 'zod'
+import { rateLimit } from '@/lib/security/rateLimit'
 
 /**
  * GET /api/gardens
@@ -90,6 +91,9 @@ export async function POST(request: NextRequest) {
   let userId: string | null = null
   
   try {
+    // Rate limiting for mutations
+    await rateLimit(request, { key: 'gardens:post', limit: 15, windowSec: 60 })
+    
     apiLogger.info('POST /api/gardens', { operationId })
     
     // 1. Authentication check (banking-grade)
