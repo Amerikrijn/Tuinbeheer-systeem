@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-supabase-auth';
-import { TreePine, Home, BookOpen, ClipboardList, User, Menu, X, Settings, Trash2 } from 'lucide-react';
+import { TreePine, Home, BookOpen, ClipboardList, User, Menu, X, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,6 @@ export function BankingNavigation() {
     { href: '/logbook', label: 'Logboek', icon: <BookOpen className="h-4 w-4" /> },
     // Admin-only functions
     { href: '/admin/users', label: 'Gebruikers', icon: <User className="h-4 w-4" />, requiredPermission: 'admin' },
-    { href: '/admin/garden', label: 'Beheer', icon: <Settings className="h-4 w-4" />, requiredPermission: 'admin' },
     { href: '/admin/trash', label: 'Prullenbak', icon: <Trash2 className="h-4 w-4" />, requiredPermission: 'admin' },
   ];
   
