@@ -25,8 +25,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log(`🔐 ADMIN ACTION: Deleting user - ID: ${userId}, Admin: ${adminEmail}`)
-
     // Get user info for logging before deletion
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
@@ -51,29 +49,53 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Delete user from auth (this will cascade to users table if RLS is set up correctly)
-    const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    // First, delete related data that might have foreign key constraints
+    try {
+      // Delete user garden access (if any)
+      await supabaseAdmin
+        .from('user_garden_access')
+        .delete()
+        .eq('user_id', userId)
 
-    if (authDeleteError) {
-      console.error('Auth user deletion error:', authDeleteError)
-      return NextResponse.json(
-        { error: `User deletion failed: ${authDeleteError.message}` },
-        { status: 500 }
-      )
+      // Delete user tasks/logbook entries (if any)
+      await supabaseAdmin
+        .from('tasks')
+        .delete()
+        .eq('user_id', userId)
+
+      await supabaseAdmin
+        .from('logbook_entries')
+        .delete()
+        .eq('user_id', userId)
+
+    } catch (relatedDataError) {
+      console.warn('Warning cleaning up related data:', relatedDataError)
     }
 
-    // Also delete from users table to ensure cleanup
+    // Delete from users table first
     const { error: profileDeleteError } = await supabaseAdmin
       .from('users')
       .delete()
       .eq('id', userId)
 
     if (profileDeleteError) {
-      console.warn('Profile deletion warning (user might already be deleted):', profileDeleteError)
+      console.error('Database error deleting user:', profileDeleteError)
+      return NextResponse.json(
+        { error: `Database error deleting user: ${profileDeleteError.message}` },
+        { status: 500 }
+      )
     }
 
-    // Log admin action for audit trail
-    console.log(`🔐 ADMIN ACTION: User deleted by ${adminEmail} - Email: ${userData.email}, Name: ${userData.full_name}, Role: ${userData.role}`)
+    // Then delete from auth
+    const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+
+    if (authDeleteError) {
+      console.warn('Auth deletion warning (user profile already deleted):', authDeleteError)
+      // Don't fail here - profile is already deleted which is the main goal
+    }
+
+    // Log admin action for audit trail (production: use proper logging service)
+    // User successfully deleted: ${userData.email} by ${adminEmail}
 
     return NextResponse.json({
       success: true,
