@@ -1,7 +1,7 @@
 # 👥 ADMIN GEBRUIKERSBEHEER GIDS
 
 ## **🎯 OVERZICHT**
-Complete gids voor beheerders om gebruikers te beheren in het Tuinbeheer Systeem.
+Complete gids voor beheerders om gebruikers te beheren in het Tuinbeheer Systeem. 
 
 **Banking-Compliant Security:** Alle functies voldoen aan bankstandaarden voor veiligheid en audit trails.
 
