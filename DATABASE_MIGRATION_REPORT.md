@@ -2,6 +2,7 @@
 ## Nederlandse Banking-Grade Security Implementation
 
 **Datum:** 9 augustus 2025  
+**Update:** 11 augustus 2025 - RLS Policy Fixes  
 **Doel:** Complete migratie van TEST database naar PROD met banking-grade security  
 **Status:** ✅ **SUCCESVOL VOLTOOID**
 
@@ -20,6 +21,8 @@
 - ✅ **Audit logging systeem** actief
 - ✅ **Role-based access control** werkend
 - ✅ **Nederlandse banking compliance** bereikt
+- ✅ **Hardcoded emergency admin verwijderd** (11 aug 2025)
+- ✅ **RLS infinite recursion opgelost** (11 aug 2025)
 
 ---
 
@@ -66,6 +69,7 @@
 - ✅ Banking-grade security policies gekopieerd
 - ✅ Role-based access control geïmplementeerd
 - ✅ Admin/user permission systeem werkend
+- ✅ **RLS infinite recursion opgelost** (11 aug 2025)
 
 ### **FASE 6: Functies & Triggers**
 - ✅ Security functies gekopieerd:
@@ -94,6 +98,18 @@
 **Probleem:** `auth.uid()` gaf NULL in zowel TEST als PROD  
 **Analyse:** Normale situatie - RLS policies gebruiken `user_has_permission()` functie  
 **Oplossing:** Geen actie nodig - systeem werkt correct
+
+### **Issue 4: Hardcoded Emergency Admin (11 aug 2025)**
+**Probleem:** Emergency admin code in auth hook blokkeerde normale authenticatie  
+**Oorzaak:** Hardcoded `amerik.rijn@gmail.com` emergency access  
+**Impact:** Gebruikers konden niet normaal inloggen, alleen emergency mode  
+**Oplossing:** Hardcoded emergency admin code volledig verwijderd
+
+### **Issue 5: RLS Infinite Recursion (11 aug 2025)**
+**Probleem:** `infinite recursion detected in policy for relation "users"`  
+**Oorzaak:** RLS policies die elkaar refereerden in oneindige loop  
+**Impact:** Database queries faalden, authenticatie onmogelijk  
+**Oplossing:** Exacte productie RLS policies gekopieerd zonder recursie
 
 ---
 
