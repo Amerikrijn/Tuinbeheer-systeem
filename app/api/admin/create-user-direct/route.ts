@@ -80,14 +80,15 @@ export async function POST(request: NextRequest) {
     const temporaryPassword = generateTemporaryPassword()
 
     // Banking-compliant approach: Check if user already exists first
-    const { data: existingAuth, error: existingAuthError } = await supabaseAdmin.auth.admin.listUsers()
-    
-    if (existingAuth?.users?.some(u => u.email === email.toLowerCase().trim())) {
-      return NextResponse.json(
-        { error: `Gebruiker met email ${email} bestaat al. Gebruik "Wachtwoord Resetten" om toegang te herstellen.` },
-        { status: 409 }
-      )
-    }
+    // TEMPORARILY DISABLED: Auth cache issue after manual deletion
+    // const { data: existingAuth, error: existingAuthError } = await supabaseAdmin.auth.admin.listUsers()
+    // 
+    // if (existingAuth?.users?.some(u => u.email === email.toLowerCase().trim())) {
+    //   return NextResponse.json(
+    //     { error: `Gebruiker met email ${email} bestaat al. Gebruik "Wachtwoord Resetten" om toegang te herstellen.` },
+    //     { status: 409 }
+    //   )
+    // }
 
     // Create user in Supabase Auth with service role
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
