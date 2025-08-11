@@ -9,6 +9,22 @@ Features die volgens banking standards geïmplementeerd moeten worden.
 
 ## **🚨 KRITIEK (MOET EERST)**
 
+### **0. 🎨 UI/UX IMPROVEMENTS SUITE**
+**Issue:** Dark mode, mobile responsiveness, en photo upload niet volledig werkend  
+**Status:** Getest en werkend in feature branch  
+**Impact:** User experience, moderne uitstraling, core functionaliteit  
+**Action:** Implementeer alle UI/UX fixes uit `docs/backlog/ui-ux-improvements.md`  
+**Priority:** HIGH - Direct zichtbaar voor gebruikers  
+**Effort:** 4-5 dagen  
+**Files:** 15+ componenten en pages  
+**Details:** Zie `docs/backlog/ui-ux-improvements.md` voor complete lijst
+
+### **1. 🧪 TEST INFRASTRUCTURE FIXES**
+**Issue:** Force password change kolommen ontbreken in production  
+**Impact:** Admin password reset werkt NIET in production  
+**Action:** Run `SUPABASE_SQL_MIGRATIE.sql` in production database  
+**Status:** ⚠️ BLOCKING ISSUE
+
 ### **0. 🗑️ USER DELETION FIX**
 **Issue:** Database error bij het verwijderen van gebruikers  
 **Error:** "Database error deleting user" - Foreign key constraints  
@@ -16,12 +32,6 @@ Features die volgens banking standards geïmplementeerd moeten worden.
 **Action:** Onderzoek database relaties en foreign key constraints  
 **Priority:** HIGH - Admin functionaliteit werkt niet  
 **Status:** ⚠️ NEEDS INVESTIGATION
-
-### **1. 🗄️ PRODUCTION DATABASE MIGRATIE**
-**Issue:** Force password change kolommen ontbreken in production  
-**Impact:** Admin password reset werkt NIET in production  
-**Action:** Run `SUPABASE_SQL_MIGRATIE.sql` in production database  
-**Status:** ⚠️ BLOCKING ISSUE
 
 ---
 
