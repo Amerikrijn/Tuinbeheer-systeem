@@ -139,18 +139,8 @@ export function useSupabaseAuth(): AuthContextType {
       let status: 'active' | 'inactive' | 'pending' = 'active'
 
       if (userError || !userProfile) {
-        // 🚨 EMERGENCY ADMIN ACCESS 
-        if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
-          role = 'admin'
-          fullName = 'Amerik (Emergency Admin)'
-          status = 'active'
-        } else if (supabaseUser.email?.toLowerCase() === 'godelieveochtendster@ziggo.nl') {
-          role = 'admin'
-          fullName = 'Godelieve (Admin)'
-          status = 'active'
-        } else {
-          throw new Error('Access denied: User not found in system. Contact admin to create your account.')
-        }
+        throw new Error('Access denied: User not found in system. Contact admin to create your account.')
+      }
       } else {
         role = userProfile.role || 'user'
         fullName = userProfile.full_name || fullName
