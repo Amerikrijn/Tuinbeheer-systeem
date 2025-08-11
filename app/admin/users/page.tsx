@@ -91,10 +91,11 @@ function AdminUsersPageContent() {
     setLoading(true)
     try {
       // Load users with their garden access
-      // First load all users
+      // First load only active users (exclude soft-deleted ones)
       const { data: usersData, error: usersError } = await supabase
         .from('users')
         .select('*')
+        .eq('is_active', true)
         .order('created_at', { ascending: false })
 
       if (usersError) {
