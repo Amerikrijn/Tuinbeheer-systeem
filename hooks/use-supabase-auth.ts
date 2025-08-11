@@ -139,21 +139,15 @@ export function useSupabaseAuth(): AuthContextType {
       let status: 'active' | 'inactive' | 'pending' = 'active'
 
       if (userError || !userProfile) {
-        // 🔒 BANKING COMPLIANT EMERGENCY ADMIN ACCESS
+        // 🔒 BANKING COMPLIANT EMERGENCY ADMIN ACCESS - NO HARDCODED EMAILS
         const emergencyAdminEmail = process.env.NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL
         const emergencyAccessEnabled = process.env.NEXT_PUBLIC_EMERGENCY_ACCESS_ENABLED !== 'false'
         
-        // Multiple fallback emails for safety (prevent lockout)
-        const fallbackEmails = [
-          emergencyAdminEmail?.toLowerCase(),
-          'amerik.rijn@gmail.com', // Temporary fallback during transition
-          'admin@tuinbeheer.nl'
-        ].filter(Boolean)
-        
         const userEmail = supabaseUser.email?.toLowerCase()
-        const isEmergencyAdmin = fallbackEmails.includes(userEmail)
         
-        if (emergencyAccessEnabled && isEmergencyAdmin) {
+        if (emergencyAccessEnabled && 
+            emergencyAdminEmail && 
+            userEmail === emergencyAdminEmail.toLowerCase()) {
           console.warn('🚨 EMERGENCY ADMIN ACCESS USED:', {
             email: userEmail,
             timestamp: new Date().toISOString(),
