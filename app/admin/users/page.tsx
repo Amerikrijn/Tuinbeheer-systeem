@@ -751,7 +751,10 @@ function AdminUsersPageContent() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Gebruikersbeheer</h1>
-          <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
+          <div>
+            <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
+            <p className="text-sm text-blue-600 mt-1">💡 <strong>Tip:</strong> Als een gebruiker al bestaat, gebruik "Wachtwoord Resetten" in het dropdown menu</p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -764,7 +767,7 @@ function AdminUsersPageContent() {
           <Button 
             variant="outline"
             onClick={() => setIsInviteDialogOpen(true)} 
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hidden"
           >
             <Mail className="w-4 h-4" />
             Email Uitnodiging

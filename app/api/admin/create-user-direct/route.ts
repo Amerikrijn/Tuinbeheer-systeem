@@ -69,8 +69,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingUsers && existingUsers.length > 0) {
+      console.log(`🔐 ADMIN ACTION: Attempted to create duplicate user - Email: ${email} (already exists)`)
       return NextResponse.json(
-        { error: 'User with this email already exists' },
+        { error: `Gebruiker met email ${email} bestaat al. Gebruik "Wachtwoord Resetten" om toegang te herstellen.` },
         { status: 409 }
       )
     }

@@ -119,7 +119,7 @@ export function useSupabaseAuth(): AuthContextType {
     try {
       // Reduced timeout for better UX
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 2000) // Reduced from 3000ms
+        setTimeout(() => reject(new Error('Database lookup timeout')), 5000) // Increased for production stability
       })
 
       // Database lookup with timeout
