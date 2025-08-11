@@ -21,6 +21,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { GardenAccessManager } from '@/components/admin/garden-access-manager'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { ManualUserCreator } from '@/components/admin/manual-user-creator'
 
 interface User {
   id: string
@@ -693,10 +694,43 @@ function AdminUsersPageContent() {
           <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
+          <Button 
+            onClick={() => setIsInviteDialogOpen(true)} 
+            className="flex items-center gap-2"
+            disabled={true}
+            variant="outline"
+          >
             <Plus className="w-4 h-4" />
-            Gebruiker Uitnodigen
+            Gebruiker Uitnodigen (Tijdelijk Uitgeschakeld)
           </Button>
+          <ManualUserCreator 
+            gardens={gardens} 
+            onUserCreated={loadUsersAndGardens}
+          />
+        </div>
+      </div>
+
+      {/* Temporary Warning Banner */}
+      <div className="mb-6">
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-amber-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-amber-800">
+                Email uitnodigingen tijdelijk uitgeschakeld
+              </h3>
+              <p className="mt-1 text-sm text-amber-700">
+                Door configuratieproblemen zijn email uitnodigingen tijdelijk niet beschikbaar. 
+                Gebruik "Handmatig Toevoegen" om nieuwe gebruikers aan te maken met een tijdelijk wachtwoord.
+                <br />
+                <strong>Status:</strong> Environment variabelen moeten worden geconfigureerd.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -811,11 +845,10 @@ function AdminUsersPageContent() {
                         )}
                         <DropdownMenuItem 
                           onClick={() => handleResendInvitation(user)}
-                          disabled={inviting}
+                          disabled={true}
                         >
                           <Mail className="w-4 h-4 mr-2" />
-                          {inviting ? 'Versturen...' : 
-                           user.status === 'pending' ? 'Uitnodiging Versturen' : 'Herinneringsmail Versturen'}
+                          Email Versturen (Tijdelijk Uitgeschakeld)
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleResetUserPassword(user)}
