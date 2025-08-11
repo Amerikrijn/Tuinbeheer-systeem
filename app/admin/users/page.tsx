@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen, Edit, Key } from 'lucide-react'
+import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen, Edit, Key, Copy, Check } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
@@ -67,6 +67,7 @@ function AdminUsersPageContent() {
   const [isRoleEditDialogOpen, setIsRoleEditDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [createdUserInfo, setCreatedUserInfo] = useState<{email: string, temporaryPassword: string} | null>(null)
+  const [passwordCopied, setPasswordCopied] = useState(false)
   
   // Form state
   const [formData, setFormData] = useState<InviteFormData>({
@@ -704,6 +705,25 @@ function AdminUsersPageContent() {
     return result
   }
 
+  // Copy password to clipboard
+  const copyPasswordToClipboard = async (password: string) => {
+    try {
+      await navigator.clipboard.writeText(password)
+      setPasswordCopied(true)
+      toast({
+        title: "Gekopieerd!",
+        description: "Tijdelijk wachtwoord is gekopieerd naar klembord",
+      })
+      setTimeout(() => setPasswordCopied(false), 2000)
+    } catch (error) {
+      toast({
+        title: "Kopiëren mislukt",
+        description: "Kon wachtwoord niet kopiëren. Selecteer handmatig.",
+        variant: "destructive"
+      })
+    }
+  }
+
 
 
 
@@ -801,11 +821,11 @@ function AdminUsersPageContent() {
                   </TableCell>
                   <TableCell>
                     {user.force_password_change ? (
-                      <Badge variant="destructive" className="text-xs">
+                      <Badge variant="destructive" className="text-xs font-medium">
                         🔑 Moet wijzigen
                       </Badge>
                     ) : (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="outline" className="text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800">
                         ✅ OK
                       </Badge>
                     )}
@@ -999,12 +1019,12 @@ function AdminUsersPageContent() {
               </div>
             )}
             
-            <div className="bg-blue-50 p-3 rounded-md">
-              <p className="text-sm text-blue-800 font-medium">ℹ️ Tijdelijk Wachtwoord</p>
-              <p className="text-xs text-blue-600 mt-1">
-                Er wordt automatisch een tijdelijk wachtwoord gegenereerd. De gebruiker moet dit wijzigen bij eerste login.
-              </p>
-            </div>
+                         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-md">
+               <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">ℹ️ Tijdelijk Wachtwoord</p>
+               <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                 Er wordt automatisch een tijdelijk wachtwoord gegenereerd. De gebruiker moet dit wijzigen bij eerste login.
+               </p>
+             </div>
           </div>
 
           <DialogFooter>
@@ -1050,34 +1070,34 @@ function AdminUsersPageContent() {
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <div className="p-2 bg-gray-50 rounded font-mono text-sm">
-                  {createdUserInfo.email}
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Tijdelijk Wachtwoord</Label>
-                <div className="p-2 bg-yellow-50 border border-yellow-200 rounded font-mono text-sm">
-                  {createdUserInfo.temporaryPassword}
-                </div>
-                <p className="text-xs text-yellow-600">
-                  ⚠️ Bewaar dit wachtwoord veilig. Het wordt maar één keer getoond.
-                </p>
-              </div>
-              
-              <div className="bg-blue-50 p-3 rounded-md">
-                <p className="text-sm text-blue-800 font-medium">📋 Instructies voor gebruiker:</p>
-                <ol className="text-xs text-blue-600 mt-1 list-decimal list-inside space-y-1">
-                  <li>Log in met bovenstaande gegevens</li>
-                  <li>Je wordt gevraagd een nieuw wachtwoord in te stellen</li>
-                  <li>Na wachtwoord wijziging wordt je doorgestuurd naar login</li>
-                  <li>Log opnieuw in met je nieuwe wachtwoord</li>
-                </ol>
-              </div>
-            </div>
+                         <div className="space-y-4 py-4">
+               <div className="space-y-2">
+                 <Label>Email</Label>
+                 <div className="p-3 bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 rounded font-mono text-sm text-gray-900 dark:text-gray-100">
+                   {createdUserInfo.email}
+                 </div>
+               </div>
+               
+               <div className="space-y-2">
+                 <Label>Tijdelijk Wachtwoord</Label>
+                 <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded font-mono text-lg font-bold text-yellow-900 dark:text-yellow-100 tracking-wider">
+                   {createdUserInfo.temporaryPassword}
+                 </div>
+                 <p className="text-xs text-yellow-700 dark:text-yellow-300 font-medium">
+                   ⚠️ Bewaar dit wachtwoord veilig. Het wordt maar één keer getoond.
+                 </p>
+               </div>
+               
+               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-md">
+                 <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">📋 Instructies voor gebruiker:</p>
+                 <ol className="text-xs text-blue-700 dark:text-blue-300 mt-1 list-decimal list-inside space-y-1">
+                   <li>Log in met bovenstaande gegevens</li>
+                   <li>Je wordt gevraagd een nieuw wachtwoord in te stellen</li>
+                   <li>Na wachtwoord wijziging wordt je doorgestuurd naar login</li>
+                   <li>Log opnieuw in met je nieuwe wachtwoord</li>
+                 </ol>
+               </div>
+             </div>
 
             <DialogFooter>
               <Button 
@@ -1231,22 +1251,22 @@ function AdminUsersPageContent() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="bg-orange-50 p-3 rounded-md">
-              <p className="text-sm text-orange-800 font-medium">⚠️ Wachtwoord Reset</p>
-              <p className="text-xs text-orange-600 mt-1">
-                Er wordt een nieuw tijdelijk wachtwoord gegenereerd. De gebruiker moet dit wijzigen bij eerste login.
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Gebruiker</Label>
-              <div className="p-2 bg-gray-50 rounded">
-                <p className="font-medium">{selectedUser?.full_name}</p>
-                <p className="text-sm text-gray-600">{selectedUser?.email}</p>
-              </div>
-            </div>
-          </div>
+                     <div className="space-y-4 py-4">
+             <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-3 rounded-md">
+               <p className="text-sm text-orange-800 dark:text-orange-200 font-medium">⚠️ Wachtwoord Reset</p>
+               <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
+                 Er wordt een nieuw tijdelijk wachtwoord gegenereerd. De gebruiker moet dit wijzigen bij eerste login.
+               </p>
+             </div>
+             
+             <div className="space-y-2">
+               <Label>Gebruiker</Label>
+               <div className="p-3 bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 rounded">
+                 <p className="font-medium text-gray-900 dark:text-gray-100">{selectedUser?.full_name}</p>
+                 <p className="text-sm text-gray-600 dark:text-gray-400">{selectedUser?.email}</p>
+               </div>
+             </div>
+           </div>
 
           <DialogFooter>
             <Button 
