@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic'
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen, Edit, Key, Copy, Check } from 'lucide-react'
+import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen, Edit, Key, Copy, Check, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
@@ -53,6 +54,7 @@ interface InviteFormData {
 function AdminUsersPageContent() {
   const { toast } = useToast()
   const { user: currentUser } = useAuth()
+  const router = useRouter()
   
   const [users, setUsers] = useState<User[]>([])
   const [gardens, setGardens] = useState<Garden[]>([])
@@ -750,9 +752,9 @@ function AdminUsersPageContent() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gebruikersbeheer</h1>
+          <h1 className="text-3xl font-bold text-foreground">Gebruikersbeheer</h1>
           <div>
-            <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
+            <p className="text-muted-foreground mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
             <p className="text-sm text-blue-600 mt-1">💡 <strong>Tip:</strong> Als een gebruiker al bestaat, gebruik "Wachtwoord Resetten" in het dropdown menu</p>
           </div>
         </div>
@@ -763,6 +765,14 @@ function AdminUsersPageContent() {
           >
             <Plus className="w-4 h-4" />
             Gebruiker Aanmaken
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => router.push('/admin/trash')}
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            Prullenbak
           </Button>
           <Button 
             variant="outline"
