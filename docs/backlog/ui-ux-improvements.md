@@ -1,5 +1,9 @@
 # 🎨 UI/UX IMPROVEMENTS BACKLOG
 
+> **🗑️ STATUS UPDATE:** Preview branch weggegooid om productie stabiliteit te waarborgen.  
+> **📋 ALLE CHANGES:** Volledig gedocumenteerd in deze backlog voor geplande implementatie.  
+> **✅ PRODUCTION:** Stabiele main branch behouden met werkende admin features.
+
 ## 📋 **OVERZICHT**
 Deze backlog bevat alle UI/UX verbeteringen die geïdentificeerd en getest zijn, maar nog niet in productie zijn geïmplementeerd om stabiliteit te waarborgen.
 
