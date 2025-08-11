@@ -37,14 +37,17 @@ export function BankingNavigation() {
   
   // Filter items based on permissions
   const visibleItems = navItems.filter(item => {
-    const hasAccess = !item.requiredPermission || hasPermission?.(item.requiredPermission);
-    
-    // Debug logging for admin items
+    // For admin items, use direct role check as fallback
     if (item.requiredPermission === 'admin') {
-      console.log(`🔍 Navigation Debug: ${item.label} - User: ${user?.email}, Role: ${user?.role}, HasAccess: ${hasAccess}`);
+      const isAdminUser = user?.role === 'admin';
+      const hasPermissionAccess = hasPermission?.(item.requiredPermission);
+      const hasAccess = isAdminUser || hasPermissionAccess;
+      
+      console.log(`🔍 Navigation Debug: ${item.label} - User: ${user?.email}, Role: ${user?.role}, IsAdmin: ${isAdminUser}, HasPermission: ${hasPermissionAccess}, HasAccess: ${hasAccess}`);
+      return hasAccess;
     }
     
-    return hasAccess;
+    return !item.requiredPermission || hasPermission?.(item.requiredPermission);
   });
   
   return (
