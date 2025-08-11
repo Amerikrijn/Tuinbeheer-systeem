@@ -3,7 +3,7 @@
 -- WARNING: This is irreversible!
 
 -- 1. First check what exists before deletion
-SELECT 'BEFORE DELETION - AUTH USER' as check_type, id, email, created_at
+SELECT 'BEFORE DELETION - AUTH USER' as check_type, id, email, created_at::text
 FROM auth.users 
 WHERE email = 'Godelieveochtendster@ziggo.nl'
 
