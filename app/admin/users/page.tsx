@@ -185,6 +185,9 @@ function AdminUsersPageContent() {
         email: result.user.email,
         temporaryPassword: result.user.temporaryPassword
       })
+      
+      // Reset copy state
+      setPasswordCopied(false)
 
       // Set garden access if user role and gardens selected
       if (formData.role === 'user' && formData.garden_access.length > 0) {
@@ -673,6 +676,9 @@ function AdminUsersPageContent() {
         email: selectedUser.email,
         temporaryPassword: temporaryPassword
       })
+      
+      // Reset copy state
+      setPasswordCopied(false)
 
       toast({
         title: "Wachtwoord gereset",
@@ -1078,15 +1084,30 @@ function AdminUsersPageContent() {
                  </div>
                </div>
                
-               <div className="space-y-2">
-                 <Label>Tijdelijk Wachtwoord</Label>
-                 <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded font-mono text-lg font-bold text-yellow-900 dark:text-yellow-100 tracking-wider">
-                   {createdUserInfo.temporaryPassword}
-                 </div>
-                 <p className="text-xs text-yellow-700 dark:text-yellow-300 font-medium">
-                   ⚠️ Bewaar dit wachtwoord veilig. Het wordt maar één keer getoond.
-                 </p>
-               </div>
+                               <div className="space-y-2">
+                  <Label>Tijdelijk Wachtwoord</Label>
+                  <div className="relative">
+                    <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded font-mono text-lg font-bold text-yellow-900 dark:text-yellow-100 tracking-wider pr-12">
+                      {createdUserInfo.temporaryPassword}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-yellow-200 dark:hover:bg-yellow-800/30"
+                      onClick={() => copyPasswordToClipboard(createdUserInfo.temporaryPassword)}
+                    >
+                      {passwordCopied ? (
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      ) : (
+                        <Copy className="h-4 w-4 text-yellow-700 dark:text-yellow-300" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-yellow-700 dark:text-yellow-300 font-medium">
+                    ⚠️ Bewaar dit wachtwoord veilig. Het wordt maar één keer getoond. Klik op het kopieer icoon.
+                  </p>
+                </div>
                
                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-md">
                  <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">📋 Instructies voor gebruiker:</p>
