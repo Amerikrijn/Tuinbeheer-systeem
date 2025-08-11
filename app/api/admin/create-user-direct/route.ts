@@ -116,6 +116,7 @@ export async function POST(request: NextRequest) {
         full_name: fullName,
         role: role,
         status: 'active',
+        is_active: true, // Ensure new users are active
         force_password_change: true, // User must change password on first login
         password_changed_at: null,
         created_at: new Date().toISOString()
