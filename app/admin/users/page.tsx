@@ -92,14 +92,42 @@ function AdminUsersPageContent() {
     try {
       // Load users with their garden access
       // First load only active users (exclude soft-deleted ones)
-      const { data: usersData, error: usersError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
+      let usersData: any[] = []
+      let usersError: any = null
+      
+      try {
+        const result = await supabase
+          .from('users')
+          .select('*')
+          .eq('is_active', true)
+          .order('created_at', { ascending: false })
+        
+        usersData = result.data || []
+        usersError = result.error
+      } catch (error) {
+        usersError = error
+      }
 
       if (usersError) {
-        throw usersError
+        console.error('Users loading error:', usersError)
+        // If is_active column doesn't exist, try without filter
+        if (usersError.message?.includes('is_active')) {
+          console.warn('🚨 is_active column missing - loading all users as fallback')
+          const { data: fallbackUsersData, error: fallbackError } = await supabase
+            .from('users')
+            .select('*')
+            .order('created_at', { ascending: false })
+          
+          if (fallbackError) {
+            throw fallbackError
+          }
+          
+          // Use fallback data but mark as needing migration
+          console.warn('⚠️ DATABASE MIGRATION NEEDED: Run database/add-soft-delete-columns.sql')
+          usersData = fallbackUsersData || []
+        } else {
+          throw usersError
+        }
       }
 
       // Then load garden access for each user
