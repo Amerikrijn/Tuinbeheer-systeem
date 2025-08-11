@@ -56,6 +56,41 @@ if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
 **Status:** 🔄 PARTIALLY FIXED
 **Action:** Complete remaining garden/logbook sub-pages
 
+### **0.6 🔑 PASSWORD RESET FLOW TESTING & IMPROVEMENTS** 🧪 CRITICAL TEST
+**Issue:** Password reset flow moet getest en mogelijk aangepast worden
+**Current Status:** Admin kan passwords resetten, maar flow moet geverifieerd worden
+**Dependencies:** 
+- Database migratie (force_password_change kolom)
+- Force password change component flow
+- User change password API
+**Testing Required:**
+1. Admin reset user password → User krijgt force_password_change flag
+2. User login → Wordt doorgestuurd naar force password change screen  
+3. User change password → force_password_change flag wordt cleared
+4. User kan normal verder werken
+
+**Potential Issues:**
+- Database kolom mogelijk missing in production
+- Force password change flow mogelijk niet werkend
+- API graceful fallback geïmplementeerd maar moet getest
+
+**Files Involved:**
+- `app/api/admin/reset-password/route.ts` (admin reset)
+- `app/api/user/change-password/route.ts` (user change)
+- `components/auth/force-password-change.tsx` (UI flow)
+- `components/auth/supabase-auth-provider.tsx` (detection logic)
+- `database/04-force-password-change-migration.sql` (migration)
+
+**Action Plan:**
+- [ ] Test complete password reset flow in preview
+- [ ] Verify database migration status
+- [ ] Test graceful fallback if column missing
+- [ ] Fix any issues found in flow
+- [ ] Update implementation if needed
+
+**Status:** 🧪 NEEDS TESTING & POTENTIAL FIXES
+**Priority:** HIGH - Critical security flow
+
 ---
 
 ## **🎯 NEXT SPRINT FEATURES**
