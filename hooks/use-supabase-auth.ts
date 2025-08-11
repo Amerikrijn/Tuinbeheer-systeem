@@ -123,8 +123,6 @@ export function useSupabaseAuth(): AuthContextType {
       })
 
       // Database lookup with timeout - use ID lookup if available, fallback to email
-      console.log(`🔍 AUTH DEBUG: Looking for user - ID: ${supabaseUser.id}, Email: ${supabaseUser.email}`)
-      
       const databasePromise = supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change')
@@ -137,8 +135,6 @@ export function useSupabaseAuth(): AuthContextType {
         databasePromise,
         timeoutPromise
       ]) as { data: any, error: any }
-
-      console.log(`🔍 AUTH DEBUG: Query result - Profile: ${userProfile ? 'FOUND' : 'NOT FOUND'}, Error: ${userError?.message || 'none'}`)
 
       let role: 'admin' | 'user' = 'user'
       let fullName = supabaseUser.email?.split('@')[0] || 'User'
