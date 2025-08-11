@@ -1,5 +1,62 @@
 # 🔥 HIGH PRIORITY BACKLOG
 
+## **🚨 IMMEDIATE CRITICAL FIXES - DEZE WEEK**
+
+### **0.1 🗄️ PRODUCTION DATABASE MIGRATIE** ⚠️ BLOCKING
+**Issue:** Force password change kolommen ontbreken in production  
+**Impact:** Admin password reset werkt NIET in production  
+**Action:** Run database migratie in production Supabase
+**Status:** 🚨 BLOCKING DEPLOYMENT
+**SQL:**
+```sql
+ALTER TABLE users ADD COLUMN IF NOT EXISTS force_password_change BOOLEAN DEFAULT FALSE;
+```
+
+### **0.2 🧹 DEBUG LOGGING CLEANUP** 🔒 SECURITY RISK
+**Issue:** 15+ console.log statements in production code - information leakage risk  
+**Impact:** Security vulnerability + performance impact  
+**Files:** 
+- `app/admin/users/page.tsx` (12+ debug logs)
+- `components/auth/supabase-auth-provider.tsx` (security logs)
+**Status:** 🚨 SECURITY VIOLATION
+**Action:** Replace alle console.log met proper logging service
+
+### **0.3 🚨 HARDCODED EMERGENCY ADMIN** 🏦 BANKING VIOLATION
+**Issue:** `amerik.rijn@gmail.com` hardcoded in `hooks/use-supabase-auth.ts` lines 142-149
+**Code:**
+```typescript
+// 🚨 EMERGENCY ADMIN ACCESS - Allow amerik.rijn@gmail.com to login as admin
+if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
+  role = 'admin'
+  fullName = 'Amerik (Emergency Admin)'
+  status = 'active'
+}
+```
+**Impact:** 🏦 BANKING STANDARDS VIOLATION - geen hardcoded access allowed
+**Status:** 🚨 CRITICAL SECURITY ISSUE
+**Action:** Replace met environment variable `NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL`
+
+### **0.4 🛡️ MISSING PROTECTEDROUTE COVERAGE** 🔐 AUTH GAP
+**Issue:** Belangrijke pagina's missen ProtectedRoute wrapper
+**Pages zonder auth protection:**
+- `app/gardens/[id]/page.tsx` (garden details)
+- `app/gardens/new/page.tsx` (new garden)
+- `app/logbook/new/page.tsx` (new logbook entry)
+- Alle garden sub-pages (plant-beds, plants)
+**Impact:** Unauthorized access mogelijk
+**Status:** 🚨 SECURITY GAP
+**Action:** Wrap alle pages met ProtectedRoute
+
+### **0.5 ✅ INACTIVITY LOGOUT STATUS** 
+**Status:** ✅ PERFECT GEÏMPLEMENTEERD
+- 60 minuten timeout voor alle users (admin + user)
+- Globaal actief via SupabaseAuthProvider
+- Waarschuwing 10 minuten voor logout
+- Throttled activity detection (elke 30 sec)
+**No action needed** - werkt al perfect!
+
+---
+
 ## **🎯 NEXT SPRINT FEATURES**
 Features die volgens banking standards geïmplementeerd moeten worden.
 
