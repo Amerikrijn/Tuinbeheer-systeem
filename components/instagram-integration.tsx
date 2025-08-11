@@ -164,7 +164,7 @@ export function InstagramIntegration({
             <label className="text-sm font-medium">Recente Instagram Posts</label>
             <div className="space-y-2">
               {recentPosts.map((post) => (
-                <div key={post.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                <div key={post.id} className="flex items-center gap-3 p-2 bg-muted rounded">
                   <img
                     src={post.media_url || "/placeholder.svg"}
                     alt={post.caption}

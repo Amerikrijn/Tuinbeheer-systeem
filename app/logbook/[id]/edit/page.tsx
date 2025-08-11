@@ -194,7 +194,7 @@ export default function EditLogbookPage() {
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo'
       toast({
         title: "Fout bij uploaden",
-        description: `${errorMessage}. Controleer of de storage bucket correct is geconfigureerd.`,
+        description: `${errorMessage}. Controleer of de storage bucket "plant-images" bestaat en toegankelijk is in Supabase.`,
         variant: "destructive",
       })
     } finally {

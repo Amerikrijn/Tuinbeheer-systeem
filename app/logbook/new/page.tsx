@@ -216,7 +216,7 @@ function NewLogbookPageContent() {
       
       toast({
         title: "Fout bij uploaden",
-        description: `${errorMessage}. Controleer of de storage bucket correct is geconfigureerd.`,
+        description: `${errorMessage}. Controleer of de storage bucket "plant-images" bestaat en toegankelijk is in Supabase.`,
         variant: "destructive",
       })
     }
@@ -317,9 +317,9 @@ function NewLogbookPageContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
-            <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-4" />
-            <div className="h-10 w-3/4 bg-gray-200 rounded animate-pulse mb-2" />
-            <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
+            <div className="h-8 w-32 bg-muted rounded animate-pulse mb-4" />
+            <div className="h-10 w-3/4 bg-muted rounded animate-pulse mb-2" />
+                          <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
           </div>
           
           <Card>
@@ -378,10 +378,10 @@ function NewLogbookPageContent() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Nieuwe Logboek Entry
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Voeg een nieuwe entry toe aan het logboek voor je tuin.
           </p>
         </div>
@@ -493,9 +493,9 @@ function NewLogbookPageContent() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <Camera className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 mb-2">
+                  <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                    <Camera className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground mb-2">
                       Klik om een foto toe te voegen
                     </p>
                     <Input
@@ -525,16 +525,16 @@ function NewLogbookPageContent() {
                     </Button>
                   </div>
                 )}
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Ondersteunde formaten: JPG, PNG, GIF. Maximaal 5MB.
                 </p>
               </div>
 
               {/* Preview */}
               {selectedPlantBed && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="font-medium text-gray-900 mb-2">Preview</h3>
-                  <div className="text-sm text-gray-600 space-y-1">
+                <div className="bg-muted rounded-lg p-4">
+                  <h3 className="font-medium text-foreground mb-2">Preview</h3>
+                  <div className="text-sm text-muted-foreground space-y-1">
                     <p><strong>Plantvak:</strong> {selectedPlantBed.name}</p>
                     {selectedPlant && (
                       <p><strong>Plant:</strong> {selectedPlant.name}

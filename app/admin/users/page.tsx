@@ -689,8 +689,8 @@ function AdminUsersPageContent() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Gebruikersbeheer</h1>
-          <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
+          <h1 className="text-3xl font-bold text-foreground">Gebruikersbeheer</h1>
+          <p className="text-muted-foreground mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
@@ -963,7 +963,7 @@ function AdminUsersPageContent() {
             <Button 
               onClick={handleInviteUser}
               disabled={!formData.email?.trim() || !formData.full_name?.trim() || inviting}
-              className="min-w-[160px]"
+              className="min-w-0 flex-1 sm:min-w-[160px] sm:flex-initial"
             >
               {inviting ? (
                 <>
@@ -994,7 +994,7 @@ function AdminUsersPageContent() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Huidige rol</Label>
-              <div className="p-2 bg-gray-50 rounded">
+              <div className="p-2 bg-muted rounded">
                 <Badge variant={selectedUser?.role === 'admin' ? 'default' : 'secondary'}>
                   {selectedUser?.role === 'admin' ? 'Administrator' : 'Gebruiker'}
                 </Badge>

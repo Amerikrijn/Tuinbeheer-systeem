@@ -964,7 +964,7 @@ export default function GardenDetailPage() {
     switch (exposure) {
       case 'full-sun': return <Sun className="h-4 w-4 text-yellow-500" />
       case 'partial-sun': return <CloudSun className="h-4 w-4 text-orange-500" />
-      case 'shade': return <Cloud className="h-4 w-4 text-gray-500" />
+      case 'shade': return <Cloud className="h-4 w-4 text-muted-foreground" />
       default: return <Sun className="h-4 w-4 text-yellow-500" />
     }
   }
@@ -988,9 +988,9 @@ export default function GardenDetailPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
-          <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
-          <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
+          <TreePine className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
+          <p className="text-muted-foreground mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
           <Button onClick={() => navigateTo("/gardens")} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar Tuinen
@@ -1020,7 +1020,7 @@ export default function GardenDetailPage() {
               {garden.name}
             </h1>
             {(garden.total_area || (garden.length && garden.width)) && (
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-muted-foreground">
                 {garden.length}m × {garden.width}m • {garden.total_area || 
                   (garden.length && garden.width && 
                     `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
@@ -1030,25 +1030,27 @@ export default function GardenDetailPage() {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsEditingGarden(true)}
-            className="px-2"
+            className="px-2 text-xs sm:text-sm"
           >
             <Edit className="h-4 w-4 mr-1" />
-            Bewerken
+            <span className="hidden sm:inline">Bewerken</span>
+            <span className="sm:hidden">Edit</span>
           </Button>
           
           <Button
             variant={isVisualView ? "default" : "outline"}
             size="sm"
             onClick={toggleView}
-            className="px-2"
+            className="px-2 text-xs sm:text-sm"
           >
             <Grid3X3 className="h-4 w-4 mr-1" />
-            {isVisualView ? "Lijst" : "Visueel"}
+            <span className="hidden sm:inline">{isVisualView ? "Lijst" : "Visueel"}</span>
+            <span className="sm:hidden">{isVisualView ? "List" : "Grid"}</span>
           </Button>
           
           <Dialog open={isAddingPlantBed} onOpenChange={(open) => {
@@ -1066,9 +1068,10 @@ export default function GardenDetailPage() {
             setIsAddingPlantBed(open)
           }}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="px-2">
+              <Button variant="outline" size="sm" className="px-2 text-xs sm:text-sm">
                 <Plus className="h-4 w-4 mr-1" />
-                Toevoegen
+                <span className="hidden sm:inline">Toevoegen</span>
+                <span className="sm:hidden">+</span>
               </Button>
             </DialogTrigger>
             <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
@@ -1148,7 +1151,7 @@ export default function GardenDetailPage() {
                       </SelectItem>
                       <SelectItem value="shade">
                         <div className="flex items-center gap-2">
-                          <Cloud className="h-4 w-4 text-gray-500" />
+                          <Cloud className="h-4 w-4 text-muted-foreground" />
                           Schaduw
                         </div>
                       </SelectItem>
@@ -1339,7 +1342,7 @@ export default function GardenDetailPage() {
                               containerHeight={bedHeight}
                             />
                             {bed.plants.length === 0 && (
-                              <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
+                              <div className="text-muted-foreground text-sm font-medium bg-card/80 px-3 py-2 rounded-lg border border-border shadow-sm">
                                 🌱 Leeg plantvak
                               </div>
                             )}
@@ -1740,16 +1743,18 @@ export default function GardenDetailPage() {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2 mt-6">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
             <Button
               variant="outline"
               onClick={() => setIsEditingGarden(false)}
+              className="w-full sm:w-auto"
             >
               Annuleren
             </Button>
             <Button
               onClick={handleGardenUpdate}
               disabled={!gardenForm.name || !gardenForm.length || !gardenForm.width}
+              className="w-full sm:w-auto"
             >
               Opslaan
             </Button>
@@ -1864,7 +1869,7 @@ export default function GardenDetailPage() {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2 mt-6">
+          <div className="flex flex-col sm:flex-row justify-end gap-2 mt-6">
             <Button
               variant="outline"
               onClick={() => {
@@ -1878,12 +1883,14 @@ export default function GardenDetailPage() {
                   soil_type: ''
                 })
               }}
+              className="w-full sm:w-auto"
             >
               Annuleren
             </Button>
             <Button
               onClick={addPlantBed}
               disabled={!newPlantBed.name || !newPlantBed.length || !newPlantBed.width}
+              className="w-full sm:w-auto"
             >
               <Plus className="h-4 w-4 mr-2" />
               Plantvak Toevoegen

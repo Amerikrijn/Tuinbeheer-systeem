@@ -22,7 +22,7 @@ export default function Error({
       <div className="container max-w-2xl">
         <div className="text-center mb-8">
           <TreePine className="h-16 w-16 text-green-600 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Tuinbeheer Systeem
           </h1>
           <p className="text-gray-600">Garden Management System</p>

@@ -152,7 +152,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         >
           {/* Simple flower box */}
           <div
-            className="w-full h-full border-2 border-gray-400 rounded-lg bg-white/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
+            className="w-full h-full border-2 border-border rounded-lg bg-card/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
             style={{
               borderColor: `${flower.color}80`,
               backgroundColor: `${flower.color}25`,

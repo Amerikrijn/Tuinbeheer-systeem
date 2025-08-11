@@ -538,7 +538,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
             {loadingFlowers ? (
               <div className="flex gap-1">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                  <div key={i} className="w-8 h-8 bg-muted rounded animate-pulse"></div>
                 ))}
               </div>
             ) : allFlowers.length > 0 ? (
@@ -558,15 +558,15 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
                   </div>
                 ))}
                 {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-                  <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
-                    <span className="text-xs text-gray-600">
+                  <div className="flex items-center justify-center bg-muted border border-border rounded-lg px-2 py-1">
+                    <span className="text-xs text-muted-foreground">
                       +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6}
                     </span>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-xs text-gray-500 italic">
+              <div className="text-xs text-muted-foreground italic">
                 Nog geen bloemen geplant
               </div>
             )}
@@ -584,7 +584,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
             {loadingUsers ? (
               <div className="flex gap-1">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div key={i} className="w-8 h-8 bg-muted rounded-full animate-pulse"></div>
                 ))}
               </div>
             ) : gardenUsers.length > 0 ? (
@@ -689,7 +689,7 @@ function RoleBasedHomeContent() {
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <Calendar className="w-7 h-7 text-green-700" />
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Mijn Taken</h1>
+              <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Mijn Taken</h1>
             </div>
             <Button 
               onClick={() => router.push('/logbook')}
@@ -699,7 +699,7 @@ function RoleBasedHomeContent() {
               Logboek
             </Button>
           </div>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Bekijk en beheer je tuintaken per week. Zie welke bloemen aandacht nodig hebben.
           </p>
         </div>
