@@ -47,18 +47,38 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update user profile to force password change
-    const { error: profileError } = await supabaseAdmin
-      .from('users')
-      .update({ 
-        force_password_change: true,
-        password_changed_at: null,
-        status: 'active'
-      })
-      .eq('id', userId)
+    // Update user profile to force password change (graceful fallback if column missing)
+    try {
+      const { error: profileError } = await supabaseAdmin
+        .from('users')
+        .update({ 
+          force_password_change: true,
+          password_changed_at: null,
+          status: 'active'
+        })
+        .eq('id', userId)
 
-    if (profileError) {
-      console.warn('Could not update force_password_change flag:', profileError)
+      if (profileError) {
+        // Check if it's a missing column error
+        if (profileError.message?.includes('column "force_password_change" does not exist')) {
+          console.warn('⚠️ DATABASE MIGRATION NEEDED: force_password_change column missing')
+          console.warn('🔧 ACTION REQUIRED: Run database/04-force-password-change-migration.sql')
+          
+          // Fallback: Just update status to active (password reset still works)
+          const { error: fallbackError } = await supabaseAdmin
+            .from('users')
+            .update({ status: 'active' })
+            .eq('id', userId)
+            
+          if (fallbackError) {
+            console.error('Fallback profile update failed:', fallbackError)
+          }
+        } else {
+          console.warn('Profile update error:', profileError)
+        }
+      }
+    } catch (migrationError) {
+      console.warn('Migration-related error (non-critical for password reset):', migrationError)
     }
 
     // Log admin action for audit trail
