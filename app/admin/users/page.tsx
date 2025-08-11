@@ -90,44 +90,38 @@ function AdminUsersPageContent() {
   const loadUsersAndGardens = async () => {
     setLoading(true)
     try {
-      // Load users with their garden access
-      // First load only active users (exclude soft-deleted ones)
+      // Load users - try with is_active filter first, fallback to all users
       let usersData: any[] = []
-      let usersError: any = null
       
       try {
-        const result = await supabase
+        // Try loading with is_active filter
+        const { data: activeUsersData, error: activeUsersError } = await supabase
           .from('users')
           .select('*')
           .eq('is_active', true)
           .order('created_at', { ascending: false })
         
-        usersData = result.data || []
-        usersError = result.error
-      } catch (error) {
-        usersError = error
-      }
-
-      if (usersError) {
-        console.error('Users loading error:', usersError)
-        // If is_active column doesn't exist, try without filter
-        if (usersError.message?.includes('is_active')) {
-          console.warn('🚨 is_active column missing - loading all users as fallback')
-          const { data: fallbackUsersData, error: fallbackError } = await supabase
+        if (activeUsersError && activeUsersError.message?.includes('is_active')) {
+          // Column doesn't exist - load all users as fallback
+          console.warn('🚨 is_active column missing - loading all users (DATABASE MIGRATION NEEDED)')
+          const { data: allUsersData, error: allUsersError } = await supabase
             .from('users')
             .select('*')
             .order('created_at', { ascending: false })
           
-          if (fallbackError) {
-            throw fallbackError
+          if (allUsersError) {
+            throw allUsersError
           }
           
-          // Use fallback data but mark as needing migration
-          console.warn('⚠️ DATABASE MIGRATION NEEDED: Run database/add-soft-delete-columns.sql')
-          usersData = fallbackUsersData || []
+          usersData = allUsersData || []
+        } else if (activeUsersError) {
+          throw activeUsersError
         } else {
-          throw usersError
+          usersData = activeUsersData || []
         }
+      } catch (error) {
+        console.error('Failed to load users:', error)
+        throw error
       }
 
       // Then load garden access for each user
