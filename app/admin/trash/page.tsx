@@ -198,9 +198,10 @@ export default function TrashPage() {
       setSelectedItems(new Set())
     } catch (error) {
       console.error('Bulk delete error:', error)
+      const itemType = activeTab === 'users' ? 'gebruikers' : 'tuinen'
       toast({
         title: "Fout bij verwijderen",
-        description: "Kon niet alle tuinen verwijderen",
+        description: `Kon niet alle ${itemType} verwijderen`,
         variant: "destructive"
       })
     } finally {
@@ -510,7 +511,7 @@ export default function TrashPage() {
               className="flex items-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              Terughalen ({selectedItems.size})
+              {activeTab === 'users' ? 'Gebruikers' : 'Tuinen'} Terughalen ({selectedItems.size})
             </Button>
             <Button
               onClick={bulkDelete}
@@ -519,7 +520,7 @@ export default function TrashPage() {
               className="flex items-center gap-2"
             >
               <Trash2 className="w-4 h-4" />
-              Permanent verwijderen ({selectedItems.size})
+              {activeTab === 'users' ? 'Gebruikers' : 'Tuinen'} Permanent Verwijderen ({selectedItems.size})
             </Button>
           </div>
         )}
