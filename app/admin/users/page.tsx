@@ -862,7 +862,7 @@ function AdminUsersPageContent() {
                             setSelectedUser(user)
                             setIsRoleEditDialogOpen(true)
                           }}
-                          disabled={user.id === currentUser?.id || user.email === process.env.NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL}
+                          disabled={user.id === currentUser?.id || user.email === process.env.NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL}
                         >
                           <Edit className="w-4 h-4 mr-2" />
                           Rol Bewerken
@@ -912,7 +912,7 @@ function AdminUsersPageContent() {
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user)}
                           className="text-red-600 hover:text-red-700"
-                          disabled={user.id === currentUser?.id || user.email === process.env.NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL}
+                          disabled={user.id === currentUser?.id || user.email === process.env.NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL}
                         >
                           <UserX className="w-4 h-4 mr-2" />
                           Gebruiker Verwijderen
