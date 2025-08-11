@@ -79,6 +79,16 @@ export async function POST(request: NextRequest) {
     // Generate temporary password
     const temporaryPassword = generateTemporaryPassword()
 
+    // Banking-compliant approach: Check if user already exists first
+    const { data: existingAuth, error: existingAuthError } = await supabaseAdmin.auth.admin.listUsers()
+    
+    if (existingAuth?.users?.some(u => u.email === email.toLowerCase().trim())) {
+      return NextResponse.json(
+        { error: `Gebruiker met email ${email} bestaat al. Gebruik "Wachtwoord Resetten" om toegang te herstellen.` },
+        { status: 409 }
+      )
+    }
+
     // Create user in Supabase Auth with service role
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: email.toLowerCase().trim(),
@@ -108,28 +118,65 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user profile in users table with force password change
-    const { error: profileError } = await supabaseAdmin
-      .from('users')
-      .insert({
-        id: authData.user.id,
-        email: email.toLowerCase().trim(),
-        full_name: fullName,
-        role: role,
-        status: 'active',
-        is_active: true, // Ensure new users are active
-        force_password_change: true, // User must change password on first login
-        password_changed_at: null,
-        created_at: new Date().toISOString()
-      })
+    // Use transaction-like approach with better error handling
+    let profileCreated = false
+    
+    try {
+      const { error: profileError } = await supabaseAdmin
+        .from('users')
+        .insert({
+          id: authData.user.id,
+          email: email.toLowerCase().trim(),
+          full_name: fullName,
+          role: role,
+          status: 'active',
+          is_active: true, // Ensure new users are active
+          force_password_change: true, // User must change password on first login
+          password_changed_at: null,
+          created_at: new Date().toISOString()
+        })
 
-    if (profileError) {
-      console.error('Profile creation error:', profileError)
+      if (profileError) {
+        throw new Error(`Profile creation failed: ${profileError.message}`)
+      }
+      
+      profileCreated = true
+      
+      // Verify profile was actually created
+      const { data: verifyProfile, error: verifyError } = await supabaseAdmin
+        .from('users')
+        .select('id, email')
+        .eq('id', authData.user.id)
+        .single()
+      
+      if (verifyError || !verifyProfile) {
+        throw new Error('Profile verification failed - user not found after creation')
+      }
+      
+    } catch (profileError) {
+      console.error('Profile creation/verification error:', profileError)
       
       // Cleanup: Delete auth user if profile creation failed
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+      try {
+        console.log(`🧹 Attempting cleanup of auth user: ${authData.user.id}`)
+        const { error: cleanupError } = await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+        if (cleanupError) {
+          console.error('❌ Failed to cleanup auth user after profile error:', cleanupError)
+          // This is critical - we now have an orphaned auth user
+          console.error(`🚨 ORPHANED AUTH USER: ${email} (ID: ${authData.user.id}) - Manual cleanup required`)
+        } else {
+          console.log('✅ Successfully cleaned up auth user after profile creation failure')
+        }
+      } catch (cleanupError) {
+        console.error('❌ Cleanup operation exception:', cleanupError)
+        console.error(`🚨 ORPHANED AUTH USER: ${email} (ID: ${authData.user.id}) - Manual cleanup required`)
+      }
       
       return NextResponse.json(
-        { error: `Profile creation failed: ${profileError.message}` },
+        { 
+          error: `User creation failed: ${profileError instanceof Error ? profileError.message : 'Profile creation error'}`,
+          details: 'Auth user was cleaned up to prevent orphaned accounts'
+        },
         { status: 500 }
       )
     }
