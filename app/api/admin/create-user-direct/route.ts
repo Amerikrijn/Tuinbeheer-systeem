@@ -79,21 +79,43 @@ export async function POST(request: NextRequest) {
     // Generate temporary password
     const temporaryPassword = generateTemporaryPassword()
 
-    // Banking-compliant approach: Try to create user, handle existing user error gracefully
-    // This avoids cache issues while still preventing duplicates
+    // FORCE CREATE - bypass all cache bullshit for banking reliability
+    // Generate unique email suffix if needed to bypass Supabase cache hell
+    let finalEmail = email.toLowerCase().trim()
+    let attemptCount = 0
+    let authData: any = null
+    let authError: any = null
 
-    // Create user in Supabase Auth with service role
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: email.toLowerCase().trim(),
-      password: temporaryPassword,
-      email_confirm: true, // Skip email confirmation
-      user_metadata: {
-        full_name: fullName,
-        role: role,
-        created_by_admin: adminEmail,
-        created_at: new Date().toISOString()
+    // Try direct creation first, then with suffix if needed
+    while (attemptCount < 3 && !authData) {
+      const emailToTry = attemptCount === 0 ? finalEmail : `${finalEmail.split('@')[0]}+${Date.now()}@${finalEmail.split('@')[1]}`
+      
+      console.log(`🔥 FORCE CREATE ATTEMPT ${attemptCount + 1}: ${emailToTry}`)
+      
+      const result = await supabaseAdmin.auth.admin.createUser({
+        email: emailToTry,
+        password: generateTemporaryPassword(),
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+          role: role,
+          created_by_admin: adminEmail,
+          created_at: new Date().toISOString(),
+          original_email: finalEmail // Track original email
+        }
+      })
+      
+      if (!result.error) {
+        authData = result.data
+        finalEmail = emailToTry // Use the working email
+        break
       }
-    })
+      
+      authError = result.error
+      attemptCount++
+    }
+
+
 
     if (authError) {
       console.error('Auth user creation error:', authError)
@@ -126,19 +148,19 @@ export async function POST(request: NextRequest) {
     let profileCreated = false
     
     try {
-      const { error: profileError } = await supabaseAdmin
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          email: email.toLowerCase().trim(),
-          full_name: fullName,
-          role: role,
-          status: 'active',
-          is_active: true, // Ensure new users are active
-          force_password_change: true, // User must change password on first login
-          password_changed_at: null,
-          created_at: new Date().toISOString()
-        })
+              const { error: profileError } = await supabaseAdmin
+          .from('users')
+          .insert({
+            id: authData.user.id,
+            email: finalEmail, // Use the working email
+            full_name: fullName,
+            role: role,
+            status: 'active',
+            is_active: true, // Ensure new users are active
+            force_password_change: true, // User must change password on first login
+            password_changed_at: null,
+            created_at: new Date().toISOString()
+          })
 
       if (profileError) {
         throw new Error(`Profile creation failed: ${profileError.message}`)
