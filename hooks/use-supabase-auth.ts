@@ -117,19 +117,20 @@ export function useSupabaseAuth(): AuthContextType {
     }
     
     try {
-      // Banking-grade timeout for production stability
+      // Reduced timeout for better UX
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 30000) // 30 seconds - no more timeouts!
+        setTimeout(() => reject(new Error('Database lookup timeout')), 2000) // Reduced from 3000ms
       })
 
-            // SIMPLE DIRECT LOOKUP - no fancy stuff
+      // Database lookup with timeout
+      const databasePromise = supabase
+        .from('users')
+        .select('id, email, full_name, role, status, created_at, force_password_change')
+        .eq('email', supabaseUser.email)
+        .single()
+
       const { data: userProfile, error: userError } = await Promise.race([
-        supabase
-          .from('users')
-          .select('*')
-          .eq('email', supabaseUser.email)
-          .eq('is_active', true)
-          .single(),
+        databasePromise,
         timeoutPromise
       ]) as { data: any, error: any }
 
@@ -138,11 +139,14 @@ export function useSupabaseAuth(): AuthContextType {
       let status: 'active' | 'inactive' | 'pending' = 'active'
 
       if (userError || !userProfile) {
-        // 🚨 EMERGENCY ADMIN ACCESS - Environment-based emergency admin
-        const emergencyAdminEmail = process.env.NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL
-        if (emergencyAdminEmail && supabaseUser.email?.toLowerCase() === emergencyAdminEmail.toLowerCase()) {
+        // 🚨 EMERGENCY ADMIN ACCESS 
+        if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
           role = 'admin'
-          fullName = 'Emergency Admin'
+          fullName = 'Amerik (Emergency Admin)'
+          status = 'active'
+        } else if (supabaseUser.email?.toLowerCase() === 'godelieveochtendster@ziggo.nl') {
+          role = 'admin'
+          fullName = 'Godelieve (Admin)'
           status = 'active'
         } else {
           throw new Error('Access denied: User not found in system. Contact admin to create your account.')
