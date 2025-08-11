@@ -21,7 +21,7 @@ interface PasswordChangeFormData {
 export function ForcePasswordChange() {
   const router = useRouter()
   const { toast } = useToast()
-  const { user, signOut } = useAuth()
+  const { user, signOut, refreshUser } = useAuth()
   const [formData, setFormData] = useState<PasswordChangeFormData>({
     currentPassword: '',
     newPassword: '',
@@ -118,14 +118,24 @@ export function ForcePasswordChange() {
 
       toast({
         title: "Wachtwoord gewijzigd",
-        description: "Je wachtwoord is succesvol gewijzigd. Je kunt nu verder.",
+        description: "Je wachtwoord is succesvol gewijzigd. Je wordt doorgestuurd naar het dashboard.",
       })
 
-      // Refresh user profile to clear force_password_change flag
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for database update
+      // Wait for database update
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Force reload to ensure fresh user profile is loaded
-      window.location.reload()
+      // Refresh user profile to get updated force_password_change flag
+      try {
+        await refreshUser()
+        console.log('✅ User profile refreshed after password change')
+      } catch (refreshError) {
+        console.warn('Profile refresh failed, using fallback redirect:', refreshError)
+      }
+      
+      // Small delay then redirect to dashboard
+      setTimeout(() => {
+        router.push('/')
+      }, 500)
 
     } catch (error) {
       console.error('Password change error:', error)

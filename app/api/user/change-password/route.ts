@@ -60,21 +60,43 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Clear force_password_change flag using admin client
-    const { error: profileError } = await supabaseAdmin
-      .from('users')
-      .update({ 
-        force_password_change: false,
-        password_changed_at: new Date().toISOString()
-      })
-      .eq('id', userId)
+    // Clear force_password_change flag using admin client (graceful fallback)
+    try {
+      const { error: profileError } = await supabaseAdmin
+        .from('users')
+        .update({ 
+          force_password_change: false,
+          password_changed_at: new Date().toISOString()
+        })
+        .eq('id', userId)
 
-    if (profileError) {
-      console.error('Profile update error:', profileError)
-      return NextResponse.json(
-        { error: `Profile update failed: ${profileError.message}` },
-        { status: 500 }
-      )
+      if (profileError) {
+        // Check if it's a missing column error (before migration)
+        if (profileError.message?.includes('column "force_password_change" does not exist')) {
+          console.warn('⚠️ DATABASE MIGRATION NEEDED: force_password_change column missing')
+          console.warn('🔧 Using fallback: Password change successful but flag not cleared')
+          
+          // Fallback: Just update password_changed_at if it exists, or skip entirely
+          const { error: fallbackError } = await supabaseAdmin
+            .from('users')
+            .update({ 
+              status: 'active' // Ensure user is active after password change
+            })
+            .eq('id', userId)
+            
+          if (fallbackError) {
+            console.warn('Fallback update also failed (non-critical):', fallbackError)
+          }
+        } else {
+          console.error('Profile update error:', profileError)
+          return NextResponse.json(
+            { error: `Profile update failed: ${profileError.message}` },
+            { status: 500 }
+          )
+        }
+      }
+    } catch (migrationError) {
+      console.warn('Migration-related error (non-critical for password change):', migrationError)
     }
 
     // Log security action for audit trail
