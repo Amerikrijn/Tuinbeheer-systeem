@@ -139,11 +139,13 @@ export function useSupabaseAuth(): AuthContextType {
       let status: 'active' | 'inactive' | 'pending' = 'active'
 
       if (userError || !userProfile) {
-        // 🚨 EMERGENCY ADMIN ACCESS - Allow amerik.rijn@gmail.com to login as admin
-        if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
+        // 🚨 EMERGENCY ADMIN ACCESS - Environment-based emergency admin
+        const emergencyAdminEmail = process.env.NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL
+        if (emergencyAdminEmail && supabaseUser.email?.toLowerCase() === emergencyAdminEmail.toLowerCase()) {
           role = 'admin'
-          fullName = 'Amerik (Emergency Admin)'
+          fullName = 'Emergency Admin'
           status = 'active'
+          console.log('🚨 EMERGENCY ADMIN ACCESS: Environment-based admin login')
         } else {
           throw new Error('Access denied: User not found in system. Contact admin to create your account.')
         }

@@ -82,17 +82,12 @@ function AdminUsersPageContent() {
     loadUsersAndGardens()
   }, [])
 
-  // Debug gardens state changes
-  useEffect(() => {
-    console.log('🔍 Gardens state changed:', { length: gardens.length, gardens: gardens.map(g => g.name) })
-  }, [gardens])
+  // Gardens state monitoring for debugging (removed for production)
 
   const loadUsersAndGardens = async () => {
     setLoading(true)
     try {
       // Load users with their garden access
-      console.log('🔍 Loading users with garden access...')
-      
       // First load all users
       const { data: usersData, error: usersError } = await supabase
         .from('users')
@@ -112,46 +107,26 @@ function AdminUsersPageContent() {
             .eq('user_id', user.id)
           
           if (accessError) {
-            console.log('🔍 Error loading access for user:', user.email, accessError)
+            // Error loading garden access for user
             return { ...user, garden_access: [] }
           }
           
           const gardenIds = accessData?.map(row => row.garden_id) || []
-          console.log('🔍 User', user.email, 'has access to gardens:', gardenIds)
+          // User garden access loaded
           
           return { ...user, garden_access: gardenIds }
         })
       )
 
       setUsers(usersWithAccess)
-      console.log('🔍 Users with garden access loaded:', usersWithAccess.length)
       
-      // Debug: Check all users and their roles
-      console.log('🔍 All users loaded:', usersWithAccess.map(u => ({
-        email: u.email,
-        role: u.role,
-        status: u.status,
-        roleType: typeof u.role
-      })))
-      
-      // Debug: Check protected admin specifically
-      const protectedAdminEmail = process.env.NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL || 'admin@tuinbeheer.nl'
-      const adminUser = usersWithAccess.find(u => u.email === protectedAdminEmail)
-      if (adminUser) {
-        console.log('🔍 Admin user found:', adminUser)
-      } else {
-        console.log('🔍 Admin user NOT found in list!')
-      }
-
       // Load only active gardens (exclude soft-deleted ones)
-      console.log('🔍 Loading active gardens...')
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
         .select('*')
         .eq('is_active', true)
         .order('name')
 
-      console.log('🔍 Gardens query result:', { 
         data: gardensData, 
         count: gardensData?.length, 
         error: gardensError,
@@ -163,15 +138,11 @@ function AdminUsersPageContent() {
         console.error('🔍 Gardens error:', gardensError)
         // Don't throw - continue without gardens for now
         setGardens([])
-        console.log('🔍 Gardens state set to EMPTY due to error')
       } else {
-        console.log('🔍 About to set gardens state with data:', gardensData)
         setGardens(gardensData || [])
-        console.log('🔍 Gardens state set successfully. Length:', gardensData?.length)
         
         // Force re-render check
         setTimeout(() => {
-          console.log('🔍 Gardens state after timeout check:', gardens.length)
         }, 100)
       }
 
@@ -199,7 +170,6 @@ function AdminUsersPageContent() {
     }
 
     setInviting(true)
-    console.log('🔍 Creating user directly with data:', formData)
     
     try {
       const response = await fetch('/api/admin/create-user-direct', {
@@ -317,11 +287,9 @@ function AdminUsersPageContent() {
     }
 
     setInviting(true)
-    console.log('🔍 Inviting user with data:', formData)
     
     try {
       // Check if user already exists
-      console.log('🔍 Checking if user already exists...')
       const { data: existingUsers, error: checkError } = await supabase
         .from('users')
         .select('id, email')
@@ -342,7 +310,6 @@ function AdminUsersPageContent() {
       }
 
       // Banking-compliant: Call server-side API for user invitation
-      console.log('🔍 Calling server-side invite API...')
       
       const siteUrl = typeof window !== 'undefined' 
         ? window.location.origin 
@@ -399,8 +366,6 @@ function AdminUsersPageContent() {
         throw new Error('Geen gebruiker ontvangen van uitnodiging')
       }
 
-      console.log('🔍 Step 2: User invited successfully:', authData.userId)
-      console.log('🔍 Email confirmation should be sent to:', formData.email)
 
       // Show success message
       toast({
@@ -408,10 +373,8 @@ function AdminUsersPageContent() {
         description: `Een bevestigingsmail is verzonden naar ${formData.email}. De gebruiker moet eerst hun email bevestigen om in te loggen.`,
       })
 
-      console.log('🔍 Step 3: Creating user profile...')
       
       // 2. Create user profile in public.users  
-      console.log('🔍 Step 3a: Attempting direct insert...')
       let profileError = null
       
       // Try direct insert first
@@ -427,8 +390,6 @@ function AdminUsersPageContent() {
         })
 
       if (directError) {
-        console.log('🔍 Step 3b: Direct insert failed, trying SQL function...')
-        console.log('🔍 Direct insert error:', directError)
         
         // Fallback: Try via SQL function to bypass RLS
         const { error: sqlError } = await supabase
@@ -445,10 +406,8 @@ function AdminUsersPageContent() {
           console.error('🔍 Both methods failed - RLS policy issue')
           profileError = directError // Use original error for user feedback
         } else {
-          console.log('🔍 SQL function succeeded')
         }
       } else {
-        console.log('🔍 Direct insert succeeded')
       }
 
       if (profileError) {
@@ -456,11 +415,9 @@ function AdminUsersPageContent() {
         throw new Error(`Profiel aanmaken mislukt: ${profileError.message}`)
       }
 
-      console.log('🔍 User profile created successfully')
 
       // 3. Add garden access if user role and gardens selected
       if (formData.role === 'user' && formData.garden_access.length > 0) {
-        console.log('🔍 Step 4: Adding garden access for gardens:', formData.garden_access)
         const gardenAccessInserts = formData.garden_access.map(gardenId => ({
           user_id: authData.userId,
           garden_id: gardenId
@@ -480,11 +437,9 @@ function AdminUsersPageContent() {
             variant: "default"
           })
         } else {
-          console.log('🔍 Garden access added successfully')
         }
       }
 
-      console.log('🔍 User invite completed successfully')
 
       // Show success message with clear instructions
       toast({
