@@ -25,24 +25,50 @@ interface DeletedGarden {
   is_active: boolean
 }
 
+interface DeletedUser {
+  id: string
+  email: string
+  full_name: string
+  role: string
+  status: string
+  created_at: string
+  updated_at: string
+  is_active: boolean
+}
+
 export default function TrashPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [deletedGardens, setDeletedGardens] = useState<DeletedGarden[]>([])
+  const [deletedUsers, setDeletedUsers] = useState<DeletedUser[]>([])
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
   const [bulkLoading, setBulkLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState<'gardens' | 'users'>('users')
 
   useEffect(() => {
-    loadDeletedGardens()
+    loadDeletedData()
   }, [])
+
+  const loadDeletedData = async () => {
+    setLoading(true)
+    try {
+      await Promise.all([
+        loadDeletedGardens(),
+        loadDeletedUsers()
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Selection handlers
   const toggleSelectAll = () => {
-    if (selectedItems.size === deletedGardens.length) {
+    const currentItems = activeTab === 'users' ? deletedUsers : deletedGardens
+    if (selectedItems.size === currentItems.length) {
       setSelectedItems(new Set())
     } else {
-      setSelectedItems(new Set(deletedGardens.map(g => g.id)))
+      setSelectedItems(new Set(currentItems.map(item => item.id)))
     }
   }
 
@@ -60,28 +86,50 @@ export default function TrashPage() {
   const bulkRestore = async () => {
     if (selectedItems.size === 0) return
     
-    if (!confirm(`Weet je zeker dat je ${selectedItems.size} tuin(en) wilt terughalen?`)) {
+    const itemType = activeTab === 'users' ? 'gebruiker(s)' : 'tuin(en)'
+    if (!confirm(`Weet je zeker dat je ${selectedItems.size} ${itemType} wilt terughalen?`)) {
       return
     }
 
     setBulkLoading(true)
     try {
-      const { error } = await supabase
-        .from('gardens')
-        .update({ 
-          is_active: true,
-          updated_at: new Date().toISOString()
+      if (activeTab === 'users') {
+        // Restore selected users
+        const { error } = await supabase
+          .from('users')
+          .update({ 
+            is_active: true,
+            updated_at: new Date().toISOString()
+          })
+          .in('id', Array.from(selectedItems))
+
+        if (error) throw error
+
+        toast({
+          title: "Gebruikers teruggehaald! ✅",
+          description: `${selectedItems.size} gebruiker(s) succesvol teruggehaald`,
         })
-        .in('id', Array.from(selectedItems))
 
-      if (error) throw error
+        setDeletedUsers(prev => prev.filter(u => !selectedItems.has(u.id)))
+      } else {
+        // Restore selected gardens
+        const { error } = await supabase
+          .from('gardens')
+          .update({ 
+            is_active: true,
+            updated_at: new Date().toISOString()
+          })
+          .in('id', Array.from(selectedItems))
 
-      toast({
-        title: "Tuinen teruggehaald! ✅",
-        description: `${selectedItems.size} tuin(en) succesvol teruggehaald`,
-      })
+        if (error) throw error
 
-      setDeletedGardens(prev => prev.filter(g => !selectedItems.has(g.id)))
+        toast({
+          title: "Tuinen teruggehaald! ✅",
+          description: `${selectedItems.size} tuin(en) succesvol teruggehaald`,
+        })
+
+        setDeletedGardens(prev => prev.filter(g => !selectedItems.has(g.id)))
+      }
       setSelectedItems(new Set())
     } catch (error) {
       console.error('Bulk restore error:', error)
@@ -98,26 +146,55 @@ export default function TrashPage() {
   const bulkDelete = async () => {
     if (selectedItems.size === 0) return
     
-    if (!confirm(`⚠️ PERMANENT VERWIJDEREN: Weet je zeker dat je ${selectedItems.size} tuin(en) PERMANENT wilt verwijderen? Dit kan NIET ongedaan worden gemaakt!`)) {
+    const itemType = activeTab === 'users' ? 'gebruiker(s)' : 'tuin(en)'
+    if (!confirm(`⚠️ PERMANENT VERWIJDEREN: Weet je zeker dat je ${selectedItems.size} ${itemType} PERMANENT wilt verwijderen? Dit kan NIET ongedaan worden gemaakt!`)) {
       return
     }
 
     setBulkLoading(true)
     try {
-      const { error } = await supabase
-        .from('gardens')
-        .delete()
-        .in('id', Array.from(selectedItems))
+      if (activeTab === 'users') {
+        // Permanent delete selected users (delete from both auth and database)
+        for (const userId of Array.from(selectedItems)) {
+          // Delete from auth first
+          const { error: authError } = await supabase.auth.admin.deleteUser(userId)
+          if (authError) {
+            console.warn('Auth delete warning for user:', userId, authError)
+          }
+        }
 
-      if (error) throw error
+        // Delete from users table
+        const { error } = await supabase
+          .from('users')
+          .delete()
+          .in('id', Array.from(selectedItems))
 
-      toast({
-        title: "Permanent verwijderd ⚠️",
-        description: `${selectedItems.size} tuin(en) permanent verwijderd`,
-        variant: "destructive"
-      })
+        if (error) throw error
 
-      setDeletedGardens(prev => prev.filter(g => !selectedItems.has(g.id)))
+        toast({
+          title: "Permanent verwijderd ⚠️",
+          description: `${selectedItems.size} gebruiker(s) permanent verwijderd`,
+          variant: "destructive"
+        })
+
+        setDeletedUsers(prev => prev.filter(u => !selectedItems.has(u.id)))
+      } else {
+        // Permanent delete selected gardens
+        const { error } = await supabase
+          .from('gardens')
+          .delete()
+          .in('id', Array.from(selectedItems))
+
+        if (error) throw error
+
+        toast({
+          title: "Permanent verwijderd ⚠️",
+          description: `${selectedItems.size} tuin(en) permanent verwijderd`,
+          variant: "destructive"
+        })
+
+        setDeletedGardens(prev => prev.filter(g => !selectedItems.has(g.id)))
+      }
       setSelectedItems(new Set())
     } catch (error) {
       console.error('Bulk delete error:', error)
@@ -180,6 +257,38 @@ export default function TrashPage() {
     }
   }
 
+  const loadDeletedUsers = async () => {
+    try {
+      // Load soft deleted users (is_active = false)
+      const { data: deletedUsersData, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('is_active', false)
+        .order('updated_at', { ascending: false })
+
+      if (error) {
+        console.error('Error loading deleted users:', error)
+        toast({
+          title: "Fout bij laden",
+          description: "Kon verwijderde gebruikers niet laden",
+          variant: "destructive"
+        })
+        return
+      }
+
+      setDeletedUsers(deletedUsersData || [])
+      console.log('🗑️ Loaded deleted users:', deletedUsersData?.length || 0)
+      
+    } catch (error) {
+      console.error('Error in loadDeletedUsers:', error)
+      toast({
+        title: "Fout bij laden",
+        description: "Er is iets misgegaan bij het laden van verwijderde gebruikers",
+        variant: "destructive"
+      })
+    }
+  }
+
   const restoreGarden = async (garden: DeletedGarden) => {
     if (!confirm(`Weet je zeker dat je "${garden.name}" wilt terughalen uit de prullenbak?`)) {
       return
@@ -218,6 +327,48 @@ export default function TrashPage() {
       toast({
         title: "Onverwachte fout",
         description: "Er is iets misgegaan bij het terughalen",
+        variant: "destructive"
+      })
+    }
+  }
+
+  const restoreUser = async (user: DeletedUser) => {
+    if (!confirm(`Weet je zeker dat je "${user.full_name || user.email}" wilt terughalen uit de prullenbak?`)) {
+      return
+    }
+
+    try {
+      // Restore user by setting is_active back to true
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          is_active: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+
+      if (error) {
+        console.error('Error restoring user:', error)
+        toast({
+          title: "Fout bij herstellen",
+          description: `Kon ${user.full_name || user.email} niet herstellen`,
+          variant: "destructive"
+        })
+        return
+      }
+
+      toast({
+        title: "Gebruiker hersteld ✅",
+        description: `${user.full_name || user.email} is teruggezet en kan weer inloggen`,
+      })
+
+      // Reload data
+      loadDeletedData()
+    } catch (error) {
+      console.error('Error in restoreUser:', error)
+      toast({
+        title: "Fout bij herstellen",
+        description: "Er is iets misgegaan",
         variant: "destructive"
       })
     }
@@ -322,9 +473,29 @@ export default function TrashPage() {
               Prullenbak
             </h1>
             <p className="text-muted-foreground mt-1">
-              Verwijderde tuinen - {deletedGardens.length} item(s)
+              Verwijderde items beheren en herstellen
             </p>
           </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-4 mb-6">
+          <Button
+            variant={activeTab === 'users' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('users')}
+            className="flex items-center gap-2"
+          >
+            <TreePine className="w-4 h-4" />
+            Gebruikers ({deletedUsers.length})
+          </Button>
+          <Button
+            variant={activeTab === 'gardens' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('gardens')}
+            className="flex items-center gap-2"
+          >
+            <TreePine className="w-4 h-4" />
+            Tuinen ({deletedGardens.length})
+          </Button>
         </div>
         
         {/* Bulk Actions */}
@@ -354,8 +525,91 @@ export default function TrashPage() {
         )}
       </div>
 
-      {/* Empty State */}
-      {deletedGardens.length === 0 ? (
+      {/* Users Table */}
+      {activeTab === 'users' && (
+        deletedUsers.length === 0 ? (
+          <Card className="text-center py-12">
+            <CardContent>
+              <TreePine className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">Geen verwijderde gebruikers</h3>
+              <p className="text-muted-foreground">
+                Er zijn momenteel geen soft-deleted gebruikers in de prullenbak.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader>
+              <CardTitle>Verwijderde Gebruikers ({deletedUsers.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={selectedItems.size === deletedUsers.length && deletedUsers.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
+                    <TableHead>Gebruiker</TableHead>
+                    <TableHead>Rol</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Verwijderd op</TableHead>
+                    <TableHead>Acties</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {deletedUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedItems.has(user.id)}
+                          onCheckedChange={() => toggleSelectItem(user.id)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-foreground">{user.full_name || 'Onbekend'}</div>
+                          <div className="text-sm text-muted-foreground">{user.email}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                          {user.role === 'admin' ? 'Administrator' : 'Gebruiker'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="destructive">Verwijderd</Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDate(user.updated_at)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => restoreUser(user)}
+                            className="flex items-center gap-1"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                            Herstellen
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        )
+      )}
+
+      {/* Gardens Table */}
+      {activeTab === 'gardens' && (
+        deletedGardens.length === 0 ? (
         <Card className="text-center py-12">
           <CardContent>
             <Trash2 className="w-16 h-16 text-muted-foreground mx-auto mb-4" />

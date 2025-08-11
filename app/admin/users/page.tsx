@@ -252,7 +252,7 @@ function AdminUsersPageContent() {
 
       toast({
         title: "Gebruiker verwijderd",
-        description: `${user.full_name || user.email} is succesvol verwijderd`,
+        description: `${user.full_name || user.email} is verplaatst naar prullenbak en kan worden hersteld`,
         variant: "default"
       })
 
