@@ -42,6 +42,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 🏦 BANKING SECURITY: Protect emergency admin from deletion
+    const emergencyAdminEmail = process.env.NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL
+    if (emergencyAdminEmail && userData.email.toLowerCase() === emergencyAdminEmail.toLowerCase()) {
+      return NextResponse.json(
+        { error: 'Cannot delete emergency admin account' },
+        { status: 403 }
+      )
+    }
+
     // Delete user from auth (this will cascade to users table if RLS is set up correctly)
     const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
