@@ -154,22 +154,22 @@ export default function TrashPage() {
     setBulkLoading(true)
     try {
       if (activeTab === 'users') {
-        // Permanent delete selected users (delete from both auth and database)
+        // Permanent delete selected users via API route
         for (const userId of Array.from(selectedItems)) {
-          // Delete from auth first
-          const { error: authError } = await supabase.auth.admin.deleteUser(userId)
-          if (authError) {
-            console.warn('Auth delete warning for user:', userId, authError)
+          const response = await fetch('/api/admin/permanent-delete-user', {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+            },
+            body: JSON.stringify({ userId })
+          })
+
+          if (!response.ok) {
+            const errorData = await response.json()
+            throw new Error(errorData.error || 'Failed to delete user')
           }
         }
-
-        // Delete from users table
-        const { error } = await supabase
-          .from('users')
-          .delete()
-          .in('id', Array.from(selectedItems))
-
-        if (error) throw error
 
         toast({
           title: "Permanent verwijderd ⚠️",
