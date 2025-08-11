@@ -427,7 +427,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
         const beds = await getPlantBeds(garden.id)
         setPlantBeds(beds as PlantvakWithBloemen[])
       } catch (error) {
-        uiLogger.error('Error loading flowers for garden preview', error as Error, { gardenId: garden.id, operationId })
+        uiLogger.error('Error loading flowers for garden preview', error as Error, { gardenId: garden.id })
         setPlantBeds([])
       } finally {
         setLoadingFlowers(false)
@@ -457,7 +457,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
           setGardenUsers(users.map(u => u.users).filter(Boolean))
         }
       } catch (error) {
-        uiLogger.error('Error loading garden users', error as Error, { gardenId: garden.id, operationId })
+        uiLogger.error('Error loading garden users', error as Error, { gardenId: garden.id })
         setGardenUsers([])
       } finally {
         setLoadingUsers(false)
