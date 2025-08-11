@@ -862,7 +862,7 @@ function AdminUsersPageContent() {
                             setSelectedUser(user)
                             setIsRoleEditDialogOpen(true)
                           }}
-                          disabled={user.id === currentUser?.id}
+                          disabled={user.id === currentUser?.id || user.email === process.env.NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL}
                         >
                           <Edit className="w-4 h-4 mr-2" />
                           Rol Bewerken
