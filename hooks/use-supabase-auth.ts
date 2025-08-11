@@ -122,23 +122,37 @@ export function useSupabaseAuth(): AuthContextType {
         setTimeout(() => reject(new Error('Database lookup timeout')), 10000) // 10 seconds for banking environment
       })
 
-      // Database lookup with timeout - use ID lookup if available, fallback to email
-      console.log(`🔍 AUTH DEBUG: Looking for user - ID: ${supabaseUser.id}, Email: ${supabaseUser.email}`)
-      
-      const databasePromise = supabase
+      // Simple, reliable lookup by ID first, then email fallback
+      let databasePromise = supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change')
-        .or(`id.eq.${supabaseUser.id},email.eq.${supabaseUser.email}`)
+        .eq('id', supabaseUser.id)
         .eq('is_active', true)
-        .limit(1)
         .single()
-
-      const { data: userProfile, error: userError } = await Promise.race([
+      
+      // If ID lookup fails, try email lookup  
+      let { data: userProfile, error: userError } = await Promise.race([
         databasePromise,
         timeoutPromise
       ]) as { data: any, error: any }
-
-      console.log(`🔍 AUTH DEBUG: Query result - Profile:`, userProfile, 'Error:', userError)
+      
+      if (userError && supabaseUser.email) {
+        console.log('ID lookup failed, trying email lookup...')
+        databasePromise = supabase
+          .from('users')
+          .select('id, email, full_name, role, status, created_at, force_password_change')
+          .eq('email', supabaseUser.email)
+          .eq('is_active', true)
+          .single()
+          
+        const emailResult = await Promise.race([
+          databasePromise,
+          timeoutPromise
+        ]) as { data: any, error: any }
+        
+        userProfile = emailResult.data
+        userError = emailResult.error
+             }
 
       let role: 'admin' | 'user' = 'user'
       let fullName = supabaseUser.email?.split('@')[0] || 'User'
