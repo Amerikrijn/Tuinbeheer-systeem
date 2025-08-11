@@ -25,29 +25,37 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Banking-compliant: Delete from public.users table first
-    const { error: dbError } = await supabaseAdmin
-      .from('users')
-      .delete()
-      .eq('id', userId)
-
-    if (dbError) {
-      console.error('Database delete error:', dbError)
+    // Get current admin user ID for audit trail
+    const { data: { user: adminUser }, error: adminAuthError } = await supabaseAdmin.auth.getUser()
+    
+    if (adminAuthError || !adminUser) {
       return NextResponse.json(
-        { error: `Database deletion failed: ${dbError.message}` },
+        { error: 'Admin authentication failed' },
+        { status: 401 }
+      )
+    }
+
+    // Banking-compliant: Use SQL function for safe soft delete
+    const { data: deleteResult, error: deleteError } = await supabaseAdmin
+      .rpc('soft_delete_user', {
+        p_user_id: userId,
+        p_admin_id: adminUser.id
+      })
+
+    if (deleteError || !deleteResult) {
+      console.error('Soft delete function error:', deleteError)
+      return NextResponse.json(
+        { error: `User deletion failed: ${deleteError?.message || 'Unknown error'}` },
         { status: 500 }
       )
     }
 
-    // Banking-compliant: Delete from auth.users with service role
+    // Banking-compliant: Delete from auth.users (removes login ability)
     const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
     if (authError) {
-      console.error('Auth delete error:', authError)
-      return NextResponse.json(
-        { error: `Auth deletion failed: ${authError.message}` },
-        { status: 500 }
-      )
+      console.warn('Auth delete warning (non-critical):', authError)
+      // Don't fail the operation - soft delete already prevents access
     }
 
     // Log admin action for audit trail

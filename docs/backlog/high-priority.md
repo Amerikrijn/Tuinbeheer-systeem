@@ -312,3 +312,51 @@ Geen duidelijke link naar user settings
 ---
 
 **📋 Start elke sessie met review van deze high-priority items!**
+
+### **0.7 🗄️ DATABASE RLS POLICIES FIX** 🚨 CRITICAL ISSUE  
+**Issue:** Admin users kunnen niet alle users zien (Martine admin probleem)
+**Error:** RLS policies blokkeren admin toegang tot users tabel
+**Root Cause:** Ontbrekende of incorrecte RLS policies voor users tabel
+**Impact:** Admins kunnen gebruikersbeheer niet doen
+
+**Fix Required:**
+- Run `database/05-users-table-rls-fix.sql` in database
+- Adds proper admin policies voor users table visibility
+- Enables admins to see all users regardless of garden access
+
+**Status:** 🚨 BLOCKING ADMIN FUNCTIONALITY
+
+### **0.8 🗑️ USER DELETION FOREIGN KEY FIX** 🚨 CRITICAL ISSUE
+**Issue:** User deletion faalt door foreign key constraint
+**Error:** `audit_log_user_id_fkey violates foreign key constraint`
+**Root Cause:** Users hebben entries in audit_log tabel, kunnen niet hard deleted worden
+**Impact:** Admins kunnen problematische users niet verwijderen
+
+**Banking Solution:** Soft Delete Implementation
+- Users worden gemarkeerd als deleted (status = inactive, deleted_at timestamp)
+- Email wordt gewijzigd om conflicts te voorkomen  
+- Auth account wordt verwijderd (voorkomt inloggen)
+- Audit trail blijft behouden (banking compliance)
+
+**Fix Required:**
+- Run `database/05-users-table-rls-fix.sql` voor soft delete support
+- Updated API gebruikt `soft_delete_user()` functie
+- Preserves audit trail voor compliance
+
+**Status:** 🚨 BLOCKING ADMIN FUNCTIONALITY
+
+### **0.9 ⏱️ DATABASE TIMEOUT ISSUES** ⚠️ PERFORMANCE
+**Issue:** Database lookup timeout errors in console
+**Error:** `Database lookup timeout` bij user profile loading
+**Impact:** Slow loading, poor user experience
+**Cause:** Database queries te langzaam of connection issues
+
+**Investigation Needed:**
+- Check database performance
+- Optimize user profile queries  
+- Increase timeout if needed
+- Add proper error handling
+
+**Status:** ⚠️ PERFORMANCE ISSUE
+
+---
