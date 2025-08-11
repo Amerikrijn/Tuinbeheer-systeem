@@ -13,53 +13,71 @@ const supabaseAdmin = createClient(
   }
 )
 
-export async function DELETE(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const { userId, userEmail, adminEmail } = await request.json()
+    const { userId, adminEmail } = await request.json()
 
     // Validate input
-    if (!userId || !userEmail || !adminEmail) {
+    if (!userId || !adminEmail) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: userId, adminEmail' },
         { status: 400 }
       )
     }
 
-    // Banking-compliant: Delete from public.users table first
-    const { error: dbError } = await supabaseAdmin
+    console.log(`🔐 ADMIN ACTION: Deleting user - ID: ${userId}, Admin: ${adminEmail}`)
+
+    // Get user info for logging before deletion
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('email, full_name, role')
+      .eq('id', userId)
+      .single()
+
+    if (userError) {
+      console.error('Error fetching user for deletion:', userError)
+      return NextResponse.json(
+        { error: `Could not find user: ${userError.message}` },
+        { status: 404 }
+      )
+    }
+
+    // Delete user from auth (this will cascade to users table if RLS is set up correctly)
+    const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+
+    if (authDeleteError) {
+      console.error('Auth user deletion error:', authDeleteError)
+      return NextResponse.json(
+        { error: `User deletion failed: ${authDeleteError.message}` },
+        { status: 500 }
+      )
+    }
+
+    // Also delete from users table to ensure cleanup
+    const { error: profileDeleteError } = await supabaseAdmin
       .from('users')
       .delete()
       .eq('id', userId)
 
-    if (dbError) {
-      console.error('Database delete error:', dbError)
-      return NextResponse.json(
-        { error: `Database deletion failed: ${dbError.message}` },
-        { status: 500 }
-      )
-    }
-
-    // Banking-compliant: Delete from auth.users with service role
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
-
-    if (authError) {
-      console.error('Auth delete error:', authError)
-      return NextResponse.json(
-        { error: `Auth deletion failed: ${authError.message}` },
-        { status: 500 }
-      )
+    if (profileDeleteError) {
+      console.warn('Profile deletion warning (user might already be deleted):', profileDeleteError)
     }
 
     // Log admin action for audit trail
-    console.log(`🔐 ADMIN ACTION: User deleted by ${adminEmail} - User: ${userEmail} (ID: ${userId})`)
+    console.log(`🔐 ADMIN ACTION: User deleted by ${adminEmail} - Email: ${userData.email}, Name: ${userData.full_name}, Role: ${userData.role}`)
 
     return NextResponse.json({
       success: true,
-      message: 'User deleted successfully'
+      message: 'User deleted successfully',
+      deletedUser: {
+        email: userData.email,
+        fullName: userData.full_name,
+        role: userData.role
+      }
     })
 
   } catch (error) {
-    console.error('Admin delete API error:', error)
+    console.error('Delete user API error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -118,14 +118,15 @@ export function ForcePasswordChange() {
 
       toast({
         title: "Wachtwoord gewijzigd",
-        description: "Je wachtwoord is succesvol gewijzigd. Je kunt nu verder.",
+        description: "Je wachtwoord is succesvol gewijzigd. Je wordt doorgestuurd naar de login pagina.",
       })
 
-      // Refresh user profile to clear force_password_change flag
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Wait for database update
+      // Wait for database update
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-      // Force reload to ensure fresh user profile is loaded
-      window.location.reload()
+      // Sign out user and redirect to login
+      await signOut()
+      router.push('/auth/login')
 
     } catch (error) {
       console.error('Password change error:', error)
