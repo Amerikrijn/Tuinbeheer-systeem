@@ -44,19 +44,23 @@ export function getSupabaseConfig(): SupabaseConfig {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
-  // Banking-grade validation
-  if (!url || !anonKey) {
-    throw new Error(`SECURITY ERROR: Missing Supabase environment variables for ${env}. Required: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY`);
+  // Banking-grade validation with better error messages
+  if (!url) {
+    throw new Error(`SECURITY ERROR: NEXT_PUBLIC_SUPABASE_URL not found in environment variables for ${env}. Please configure this variable in your deployment platform.`);
+  }
+  
+  if (!anonKey) {
+    throw new Error(`SECURITY ERROR: NEXT_PUBLIC_SUPABASE_ANON_KEY not found in environment variables for ${env}. Please configure this variable in your deployment platform.`);
   }
   
   // Validate URL format for security
   if (!url.includes('.supabase.co')) {
-    throw new Error(`SECURITY ERROR: Invalid Supabase URL format: ${url}`);
+    throw new Error(`SECURITY ERROR: Invalid Supabase URL format: ${url}. Expected format: https://your-project.supabase.co`);
   }
   
   // Validate key format for security
   if (!anonKey.startsWith('eyJ')) {
-    throw new Error(`SECURITY ERROR: Invalid Supabase key format`);
+    throw new Error(`SECURITY ERROR: Invalid Supabase key format. Expected JWT format starting with 'eyJ'`);
   }
   
   return {
@@ -75,14 +79,29 @@ export function validateSecurityConfiguration(): { valid: boolean; errors: strin
     const config = getSupabaseConfig();
     const env = getCurrentEnvironment();
     
+    // Check service role key availability (server-side only)
+    if (typeof window === 'undefined') {
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!serviceRoleKey) {
+        errors.push('SUPABASE_SERVICE_ROLE_KEY not configured - admin operations will be disabled');
+      }
+    }
+    
     // Log configuration validation (without exposing credentials)
     console.log(`🔒 Security validation for ${env} environment`);
     console.log(`🔗 URL configured: ${config.url.substring(0, 30)}...`);
     console.log(`🔑 Key configured: ${config.anonKey.substring(0, 20)}...`);
     
+    if (errors.length > 0) {
+      console.warn('⚠️ Configuration warnings:', errors);
+      return { valid: false, errors };
+    }
+    
     return { valid: true, errors: [] };
   } catch (error) {
-    errors.push(error instanceof Error ? error.message : 'Unknown configuration error');
+    const errorMessage = error instanceof Error ? error.message : 'Unknown configuration error';
+    errors.push(errorMessage);
+    console.error('❌ Configuration validation failed:', errorMessage);
     return { valid: false, errors };
   }
 }

@@ -17,11 +17,12 @@ import { useAuth } from '@/hooks/use-supabase-auth'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase'
 import { Suspense } from 'react'
+import { AuthErrorHandler } from '@/components/auth/auth-error-handler'
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn, loading } = useAuth()
+  const { signIn, loading, error: authError } = useAuth()
   const { toast } = useToast()
   
   const [formData, setFormData] = useState({
@@ -31,6 +32,7 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [loginError, setLoginError] = useState<string | null>(null)
 
   // Show success message if redirected from password reset
   useEffect(() => {
@@ -106,9 +108,11 @@ function LoginContent() {
       
     } catch (error) {
       console.error('Login error details:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Er is een fout opgetreden'
+      setLoginError(errorMessage)
       toast({
         title: "Inloggen mislukt",
-        description: error instanceof Error ? error.message : 'Er is een fout opgetreden',
+        description: errorMessage,
         variant: "destructive",
       })
       setIsSubmitting(false)
@@ -233,6 +237,18 @@ function LoginContent() {
             Dit is een preview van het gebruikerssysteem. In productie werkt dit met echte Supabase authenticatie.
           </AlertDescription>
         </Alert>
+
+        {/* Enhanced Error Handling */}
+        <AuthErrorHandler 
+          error={loginError || authError}
+          onRetry={() => {
+            setLoginError(null)
+            if (formData.email && formData.password) {
+              handleSubmit(new Event('submit') as any)
+            }
+          }}
+          onClearError={() => setLoginError(null)}
+        />
       </div>
     </div>
   )

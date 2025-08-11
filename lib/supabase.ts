@@ -37,23 +37,42 @@ const getAdminClient = () => {
   
   if (!serviceRoleKey) {
     console.error('SUPABASE_SERVICE_ROLE_KEY not found in environment variables');
+    console.error('Admin operations will be disabled. Please configure SUPABASE_SERVICE_ROLE_KEY in your environment.');
     return null;
   }
   
-  return createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'tuinbeheer-systeem-admin',
+  try {
+    return createClient(supabaseUrl, serviceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
       },
-    },
-  });
+      global: {
+        headers: {
+          'X-Client-Info': 'tuinbeheer-systeem-admin',
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Failed to create admin client:', error);
+    return null;
+  }
 };
 
 export const supabaseAdmin = getAdminClient();
+
+// Helper function to check if admin operations are available
+export function isAdminAvailable(): boolean {
+  return supabaseAdmin !== null;
+}
+
+// Safe admin client getter with error handling
+export function getAdminClientSafe() {
+  if (!supabaseAdmin) {
+    throw new Error('Admin operations not available: SUPABASE_SERVICE_ROLE_KEY not configured');
+  }
+  return supabaseAdmin;
+}
 
 // ===================================================================
 // CONFIGURATION UTILITIES

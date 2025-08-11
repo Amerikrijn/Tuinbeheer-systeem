@@ -117,22 +117,24 @@ export function useSupabaseAuth(): AuthContextType {
     }
     
     try {
-      // Reduced timeout for better UX
+      // Increased timeout for better reliability
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 2000) // Reduced from 3000ms
+        setTimeout(() => reject(new Error('Database lookup timeout')), 8000) // Increased from 2000ms
       })
 
-      // Database lookup with timeout
+      // Database lookup with timeout and better error handling
       const databasePromise = supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change')
         .eq('email', supabaseUser.email)
         .single()
 
-      const { data: userProfile, error: userError } = await Promise.race([
+      const result = await Promise.race([
         databasePromise,
         timeoutPromise
-      ]) as { data: any, error: any }
+      ])
+
+      const { data: userProfile, error: userError } = result as { data: any, error: any }
 
       let role: 'admin' | 'user' = 'user'
       let fullName = supabaseUser.email?.split('@')[0] || 'User'
@@ -141,11 +143,15 @@ export function useSupabaseAuth(): AuthContextType {
       if (userError || !userProfile) {
         // 🚨 EMERGENCY ADMIN ACCESS - Allow amerik.rijn@gmail.com to login as admin
         if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
+          console.log('🔑 Emergency admin access granted for:', supabaseUser.email)
           role = 'admin'
           fullName = 'Amerik (Emergency Admin)'
           status = 'active'
         } else {
-          throw new Error('Access denied: User not found in system. Contact admin to create your account.')
+          // Provide more helpful error message
+          const errorMsg = userError?.message || 'User not found in system'
+          console.error('User lookup failed:', errorMsg)
+          throw new Error(`Access denied: ${errorMsg}. Contact admin to create your account.`)
         }
       } else {
         role = userProfile.role || 'user'
@@ -153,7 +159,7 @@ export function useSupabaseAuth(): AuthContextType {
         status = userProfile.status || 'active'
       }
 
-      // Update last_login asynchronously (non-blocking)
+      // Update last_login asynchronously (non-blocking) with error handling
       if (userProfile) {
         supabase
           .from('users')
@@ -163,6 +169,9 @@ export function useSupabaseAuth(): AuthContextType {
             if (error) {
               console.warn('Last login update failed (non-critical):', error.message)
             }
+          })
+          .catch((error) => {
+            console.warn('Last login update failed (non-critical):', error)
           })
       }
 
