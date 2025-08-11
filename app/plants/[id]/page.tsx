@@ -108,7 +108,7 @@ export default function PlantDetailPage() {
     switch (preference) {
       case 'full-sun': return <Sun className="w-4 h-4 text-yellow-500" />
       case 'partial-sun': return <CloudSun className="w-4 h-4 text-orange-500" />
-      case 'shade': return <Cloud className="w-4 h-4 text-gray-500" />
+      case 'shade': return <Cloud className="w-4 h-4 text-muted-foreground" />
       default: return <CloudSun className="w-4 h-4 text-gray-400" />
     }
   }
@@ -124,12 +124,12 @@ export default function PlantDetailPage() {
 
   const getStatusColor = (status?: string) => {
     switch (status) {
-      case 'gezond': return 'bg-green-100 text-green-800'
-      case 'aandacht_nodig': return 'bg-yellow-100 text-yellow-800'
-      case 'ziek': return 'bg-red-100 text-red-800'
-      case 'dood': return 'bg-gray-100 text-gray-800'
-      case 'geoogst': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'gezond': return 'bg-green-100 text-green-800 dark:bg-green-950/30 dark:text-green-200'
+      case 'aandacht_nodig': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-200'
+      case 'ziek': return 'bg-red-100 text-red-800 dark:bg-red-950/30 dark:text-red-200'
+      case 'dood': return 'bg-muted text-muted-foreground'
+      case 'geoogst': return 'bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-200'
+      default: return 'bg-muted text-muted-foreground'
     }
   }
 
@@ -364,7 +364,7 @@ export default function PlantDetailPage() {
                 {plant.care_instructions && (
                   <div>
                     <h4 className="font-medium mb-2 text-gray-700">Verzorgingsinstructies</h4>
-                    <p className="text-gray-900 bg-gray-50 p-3 rounded-md">{plant.care_instructions}</p>
+                    <p className="text-foreground bg-muted p-3 rounded-md">{plant.care_instructions}</p>
                   </div>
                 )}
                 

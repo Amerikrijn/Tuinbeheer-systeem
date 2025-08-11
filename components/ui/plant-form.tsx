@@ -143,18 +143,18 @@ export function PlantForm({
   return (
     <form onSubmit={onSubmit} onReset={onReset} className="space-y-6">
       {/* Required Fields Card */}
-      <Card className="border-2 border-green-200 bg-green-50/30">
+      <Card className="border-2 border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-950/20">
         <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-green-800">
+          <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
             <Flower className="h-5 w-5" />
             Basis Bloemgegevens
-            <span className="text-sm font-normal text-green-600">(verplicht)</span>
+            <span className="text-sm font-normal text-green-600 dark:text-green-400">(verplicht)</span>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Plant Name with suggestions */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+            <Label htmlFor="name" className="text-sm font-medium text-foreground flex items-center gap-1">
               Bloemnaam
               <span className="text-red-500">*</span>
             </Label>
@@ -166,15 +166,15 @@ export function PlantForm({
                 onChange={(e) => handleNameChange(e.target.value)}
                 onFocus={handleNameFocus}
                 onBlur={handleNameBlur}
-                className={`${errors.name ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"} text-base`}
+                className={`${errors.name ? "border-red-500 focus:border-red-500" : "border-input focus:border-green-500"} text-base h-12 sm:h-10`}
                 required
                 autoComplete="off"
               />
-              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               
               {/* Suggestions dropdown */}
               {showSuggestions && (
-                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-20 w-full mt-1 bg-popover border border-border rounded-lg shadow-lg max-h-60 overflow-auto">
                   {STANDARD_FLOWERS
                     .filter(flower => 
                       flower.name.toLowerCase().includes(data.name.toLowerCase())
@@ -183,20 +183,20 @@ export function PlantForm({
                     .map((flower) => (
                       <div
                         key={flower.name}
-                        className="px-4 py-3 cursor-pointer hover:bg-green-50 flex items-center gap-3 border-b border-gray-100 last:border-b-0"
+                        className="px-4 py-3 cursor-pointer hover:bg-muted flex items-center gap-3 border-b border-border last:border-b-0"
                         onClick={() => selectFlower(flower)}
                       >
                         <span className="text-xl">{flower.emoji}</span>
                         <div>
                           <span className="font-medium">{flower.name}</span>
-                          <div className="text-xs text-gray-500">Standaard bloem</div>
+                          <div className="text-xs text-muted-foreground">Standaard bloem</div>
                         </div>
                       </div>
                     ))}
                   {data.name && !STANDARD_FLOWERS.some(f => 
                     f.name.toLowerCase().includes(data.name.toLowerCase())
                   ) && (
-                    <div className="px-4 py-3 text-gray-500 text-sm border-b border-gray-100">
+                    <div className="px-4 py-3 text-muted-foreground text-sm border-b border-border">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{DEFAULT_FLOWER_EMOJI}</span>
                         <span>"{data.name}" als nieuwe bloem</span>
@@ -216,7 +216,7 @@ export function PlantForm({
 
           {/* Color */}
           <div className="space-y-2">
-            <Label htmlFor="color" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+            <Label htmlFor="color" className="text-sm font-medium text-foreground flex items-center gap-1">
               Kleur
               <span className="text-red-500">*</span>
             </Label>
@@ -225,7 +225,7 @@ export function PlantForm({
               placeholder="Bijv. Rood, Geel, Wit, Roze"
               value={data.color}
               onChange={(e) => handleFieldChange('color', e.target.value)}
-              className={`${errors.color ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"} text-base`}
+              className={`${errors.color ? "border-red-500 focus:border-red-500" : "border-input focus:border-green-500"} text-base h-12 sm:h-10`}
               required
               autoComplete="off"
             />
@@ -239,7 +239,7 @@ export function PlantForm({
 
           {/* Height */}
           <div className="space-y-2">
-            <Label htmlFor="height" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+            <Label htmlFor="height" className="text-sm font-medium text-foreground flex items-center gap-1">
               Hoogte (cm)
               <span className="text-red-500">*</span>
             </Label>
@@ -249,7 +249,7 @@ export function PlantForm({
               placeholder="Bijv. 30, 60, 150"
               value={data.height}
               onChange={(e) => handleFieldChange('height', e.target.value)}
-              className={`${errors.height ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-green-500"} text-base`}
+              className={`${errors.height ? "border-red-500 focus:border-red-500" : "border-input focus:border-green-500"} text-base h-12 sm:h-10`}
               required
               min="1"
               max="500"
@@ -269,29 +269,29 @@ export function PlantForm({
       {showAdvanced && (
         <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
           <CollapsibleTrigger asChild>
-            <Card className="cursor-pointer hover:shadow-md transition-shadow border-gray-200 bg-gray-50/30">
+            <Card className="cursor-pointer hover:shadow-md transition-shadow border-border bg-muted/30">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Settings className="h-5 w-5 text-gray-600" />
-                    <CardTitle className="text-gray-800">
+                    <Settings className="h-5 w-5 text-muted-foreground" />
+                    <CardTitle className="text-foreground">
                       Aanvullende Informatie
-                      <span className="text-sm font-normal text-gray-600 ml-2">(optioneel)</span>
+                      <span className="text-sm font-normal text-muted-foreground ml-2">(optioneel)</span>
                     </CardTitle>
                     {filledOptionalFields > 0 && (
-                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                      <span className="bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-200 text-xs px-2 py-1 rounded-full">
                         {filledOptionalFields} ingevuld
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       {isAdvancedOpen ? 'Inklappen' : 'Uitklappen'}
                     </span>
                     {isAdvancedOpen ? (
-                      <ChevronUp className="h-5 w-5 text-gray-600" />
+                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
                     ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-600" />
+                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
                     )}
                   </div>
                 </div>
@@ -300,17 +300,17 @@ export function PlantForm({
           </CollapsibleTrigger>
           
           <CollapsibleContent className="mt-4">
-            <Card className="border-gray-200">
+            <Card className="border-border">
               <CardContent className="pt-6 space-y-6">
                 {/* Scientific Information Section */}
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                    <Info className="h-4 w-4 text-gray-600" />
-                    <h4 className="font-medium text-gray-900">Wetenschappelijke Informatie</h4>
+                  <div className="flex items-center gap-2 pb-2 border-b border-border">
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="font-medium text-foreground">Wetenschappelijke Informatie</h4>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="scientificName" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="scientificName" className="text-sm font-medium text-foreground">
                         Wetenschappelijke naam
                       </Label>
                       <Input
@@ -324,7 +324,7 @@ export function PlantForm({
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="variety" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="variety" className="text-sm font-medium text-foreground">
                         Variëteit
                       </Label>
                       <Input
@@ -332,7 +332,7 @@ export function PlantForm({
                         placeholder="Bijv. Red Eden, Double Delight"
                         value={data.variety}
                         onChange={(e) => handleFieldChange('variety', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500"
+                        className="border-input focus:border-blue-500 h-12 sm:h-10"
                         autoComplete="off"
                       />
                     </div>
@@ -341,13 +341,13 @@ export function PlantForm({
 
                 {/* Growing Information Section */}
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                    <Flower className="h-4 w-4 text-gray-600" />
-                    <h4 className="font-medium text-gray-900">Groei Informatie</h4>
+                  <div className="flex items-center gap-2 pb-2 border-b border-border">
+                    <Flower className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="font-medium text-foreground">Groei Informatie</h4>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="plantsPerSqm" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="plantsPerSqm" className="text-sm font-medium text-foreground">
                         Planten per m²
                       </Label>
                       <Input
@@ -356,7 +356,7 @@ export function PlantForm({
                         placeholder="Bijv. 4"
                         value={data.plantsPerSqm}
                         onChange={(e) => handleFieldChange('plantsPerSqm', e.target.value)}
-                        className="border-gray-300 focus:border-blue-500"
+                        className="border-input focus:border-blue-500 h-12 sm:h-10"
                         min="1"
                         max="100"
                         autoComplete="off"
@@ -364,7 +364,7 @@ export function PlantForm({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="sunPreference" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="sunPreference" className="text-sm font-medium text-foreground">
                         Zonvoorkeur
                       </Label>
                       <Select 
@@ -373,7 +373,7 @@ export function PlantForm({
                           handleFieldChange('sunPreference', value)
                         }
                       >
-                        <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                        <SelectTrigger className="border-input focus:border-blue-500 h-12 sm:h-10">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -520,11 +520,11 @@ export function PlantForm({
       )}
 
       {/* Submit buttons */}
-      <div className="flex gap-3 pt-6 border-t border-gray-200">
+      <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-border">
         <Button 
           type="submit" 
           disabled={isSubmitting || !data.name.trim() || !data.color.trim() || !data.height.trim()}
-          className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+          className="flex-1 bg-green-600 hover:bg-green-700 text-white h-12 sm:h-11"
           size="lg"
         >
           {isSubmitting ? (
@@ -537,7 +537,7 @@ export function PlantForm({
           )}
         </Button>
         {onReset && (
-          <Button type="reset" variant="outline" size="lg">
+          <Button type="reset" variant="outline" size="lg" className="h-12 sm:h-11">
             Reset
           </Button>
         )}

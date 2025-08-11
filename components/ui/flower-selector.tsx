@@ -134,7 +134,7 @@ export function FlowerSelector({
               <div className="text-left">
                 <div className="font-medium">{selectedFlower.name}</div>
                 {selectedFlower.scientificName && (
-                  <div className="text-xs text-gray-500 italic">
+                  <div className="text-xs text-muted-foreground italic">
                     {selectedFlower.scientificName}
                   </div>
                 )}
@@ -145,18 +145,18 @@ export function FlowerSelector({
           
           {/* Flower details */}
           {showDetails && (
-            <Card className="mt-2 border-green-200">
+            <Card className="mt-2 border-green-200 dark:border-green-800">
               <CardContent className="p-3">
-                <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3 text-blue-500" />
-                    <span className="text-gray-600">Bloei:</span>
-                    <span className="font-medium">{selectedFlower.bloeiperiode}</span>
+                    <span className="text-muted-foreground">Bloei:</span>
+                    <span className="font-medium text-foreground">{selectedFlower.bloeiperiode}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Palette className="h-3 w-3 text-purple-500" />
-                    <span className="text-gray-600">Kleur:</span>
-                    <div className="flex gap-1">
+                    <span className="text-muted-foreground">Kleur:</span>
+                    <div className="flex gap-1 flex-wrap">
                       {selectedFlower.kleur.slice(0, 3).map((color) => (
                         <Badge key={color} variant="secondary" className="px-1 py-0 text-xs">
                           {color}
@@ -169,18 +169,18 @@ export function FlowerSelector({
                       )}
                     </div>
                   </div>
-                  <div className="col-span-2 text-gray-600">
+                  <div className="col-span-1 sm:col-span-2 text-muted-foreground">
                     <Badge variant="outline" className="text-xs">
                       {FLOWER_CATEGORIES[selectedFlower.category]}
                     </Badge>
                     {selectedFlower.popular && (
-                      <Badge variant="outline" className="ml-1 text-xs bg-green-50 text-green-700">
+                      <Badge variant="outline" className="ml-1 text-xs bg-green-50 text-green-700 dark:bg-green-950/50 dark:text-green-300">
                         Populair
                       </Badge>
                     )}
                   </div>
                   {selectedFlower.description && (
-                    <div className="col-span-2 text-xs text-gray-600 mt-1">
+                    <div className="col-span-1 sm:col-span-2 text-xs text-muted-foreground mt-1">
                       <Info className="h-3 w-3 inline mr-1" />
                       {selectedFlower.description}
                     </div>
@@ -193,7 +193,7 @@ export function FlowerSelector({
           <Button
             variant="ghost"
             size="sm"
-            className="mt-2 text-gray-500 hover:text-gray-700"
+            className="mt-2 text-muted-foreground hover:text-foreground w-full sm:w-auto"
             onClick={handleClearSelection}
           >
             Andere bloem kiezen
@@ -202,18 +202,18 @@ export function FlowerSelector({
       ) : (
         /* Search input */
         <div className="relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder={placeholder}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setIsOpen(true)}
-            className="pl-10"
+            className="pl-10 h-12 sm:h-10"
           />
           <Button
             variant="ghost"
             size="sm"
-            className="absolute right-1 top-1 h-8 w-8 p-0"
+            className="absolute right-1 top-1 h-10 w-10 p-0"
             onClick={() => setIsOpen(!isOpen)}
           >
             <ChevronDown className="h-4 w-4" />
@@ -227,9 +227,9 @@ export function FlowerSelector({
           <CardContent className="p-0">
             {/* Category filter */}
             {showCategories && (
-              <div className="p-3 border-b bg-gray-50">
+              <div className="p-3 border-b bg-muted/50 dark:bg-muted/30">
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="h-8">
+                  <SelectTrigger className="h-10 sm:h-8">
                     <SelectValue placeholder="Alle categorieën" />
                   </SelectTrigger>
                   <SelectContent>
@@ -246,18 +246,18 @@ export function FlowerSelector({
 
             {/* Popular flowers (when no search) */}
             {!searchQuery && showPopularFirst && (
-              <div className="p-3 border-b bg-green-50">
-                <h4 className="text-sm font-medium text-green-800 mb-2">Populaire bloemen</h4>
-                <div className="grid grid-cols-2 gap-1">
+              <div className="p-3 border-b bg-green-50 dark:bg-green-950/30">
+                <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">Populaire bloemen</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                   {popularFlowers.map((flower) => (
                     <Button
                       key={flower.name}
                       variant="ghost"
                       size="sm"
-                      className="justify-start h-8 text-xs"
+                      className="justify-start h-10 sm:h-8 text-xs"
                       onClick={() => handleFlowerSelect(flower)}
                     >
-                      <Leaf className="h-3 w-3 mr-1 text-green-600" />
+                      <Leaf className="h-3 w-3 mr-1 text-green-600 dark:text-green-400" />
                       {flower.name}
                     </Button>
                   ))}
@@ -268,7 +268,7 @@ export function FlowerSelector({
             {/* Filtered flowers list */}
             <div className="max-h-60 overflow-y-auto">
               {filteredFlowers.length === 0 ? (
-                <div className="p-4 text-center text-gray-500 text-sm">
+                <div className="p-4 text-center text-muted-foreground text-sm">
                   {searchQuery ? 'Geen bloemen gevonden' : 'Geen bloemen beschikbaar'}
                 </div>
               ) : (
@@ -276,36 +276,36 @@ export function FlowerSelector({
                   <Button
                     key={flower.name}
                     variant="ghost"
-                    className="w-full justify-start p-3 h-auto hover:bg-green-50 border-b border-gray-100"
+                    className="w-full justify-start p-3 h-auto hover:bg-muted border-b border-border"
                     onClick={() => handleFlowerSelect(flower)}
                   >
                     <div className="flex items-center gap-3 w-full">
-                      <Leaf className="h-4 w-4 text-green-600 flex-shrink-0" />
-                      <div className="text-left flex-1">
-                        <div className="font-medium flex items-center gap-2">
-                          {flower.name}
+                      <Leaf className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-medium flex items-center gap-2 flex-wrap">
+                          <span className="truncate">{flower.name}</span>
                           {flower.popular && (
-                            <Badge variant="secondary" className="px-1 py-0 text-xs bg-green-100 text-green-700">
+                            <Badge variant="secondary" className="px-1 py-0 text-xs bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-300 flex-shrink-0">
                               Populair
                             </Badge>
                           )}
                         </div>
                         {flower.scientificName && (
-                          <div className="text-xs text-gray-500 italic">
+                          <div className="text-xs text-muted-foreground italic truncate">
                             {flower.scientificName}
                           </div>
                         )}
-                        <div className="text-xs text-gray-600 mt-1">
-                          <span className="mr-3">{flower.bloeiperiode}</span>
+                        <div className="text-xs text-muted-foreground mt-1 flex flex-wrap items-center gap-1">
+                          <span className="mr-2">{flower.bloeiperiode}</span>
                           <Badge variant="outline" className="text-xs">
                             {FLOWER_CATEGORIES[flower.category]}
                           </Badge>
                         </div>
-                        <div className="flex gap-1 mt-1">
+                        <div className="flex gap-1 mt-1 flex-wrap">
                           {flower.kleur.slice(0, 4).map((color) => (
                             <div 
                               key={color} 
-                              className="w-3 h-3 rounded-full border border-gray-300"
+                              className="w-3 h-3 rounded-full border border-border"
                               style={{ 
                                 backgroundColor: getColorHex(color),
                               }}
@@ -313,7 +313,7 @@ export function FlowerSelector({
                             />
                           ))}
                           {flower.kleur.length > 4 && (
-                            <div className="text-xs text-gray-500 ml-1">
+                            <div className="text-xs text-muted-foreground ml-1">
                               +{flower.kleur.length - 4}
                             </div>
                           )}

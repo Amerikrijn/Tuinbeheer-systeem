@@ -964,7 +964,7 @@ export default function GardenDetailPage() {
     switch (exposure) {
       case 'full-sun': return <Sun className="h-4 w-4 text-yellow-500" />
       case 'partial-sun': return <CloudSun className="h-4 w-4 text-orange-500" />
-      case 'shade': return <Cloud className="h-4 w-4 text-gray-500" />
+      case 'shade': return <Cloud className="h-4 w-4 text-muted-foreground" />
       default: return <Sun className="h-4 w-4 text-yellow-500" />
     }
   }
@@ -988,9 +988,9 @@ export default function GardenDetailPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
-          <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
-          <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
+          <TreePine className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
+          <p className="text-muted-foreground mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
           <Button onClick={() => navigateTo("/gardens")} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar Tuinen
@@ -1003,24 +1003,24 @@ export default function GardenDetailPage() {
   return (
     <div className="container mx-auto p-4 space-y-4">
       {/* Compact Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button
             variant="ghost"
             size="sm"
             onClick={goBack}
-            className="flex items-center gap-1 px-2"
+            className="flex items-center gap-1 px-2 h-10 sm:h-8"
           >
             <ArrowLeft className="h-4 w-4" />
-            Terug
+            <span className="hidden sm:inline">Terug</span>
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <TreePine className="h-6 w-6 text-green-600" />
-              {garden.name}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <TreePine className="h-5 w-5 sm:h-6 sm:w-6 text-green-600 flex-shrink-0" />
+              <span className="truncate">{garden.name}</span>
             </h1>
             {(garden.total_area || (garden.length && garden.width)) && (
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-muted-foreground">
                 {garden.length}m × {garden.width}m • {garden.total_area || 
                   (garden.length && garden.width && 
                     `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
@@ -1030,14 +1030,14 @@ export default function GardenDetailPage() {
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsEditingGarden(true)}
-            className="px-2"
+            className="h-12 sm:h-8 px-4 sm:px-2"
           >
-            <Edit className="h-4 w-4 mr-1" />
+            <Edit className="h-4 w-4 mr-2 sm:mr-1" />
             Bewerken
           </Button>
           
@@ -1045,9 +1045,9 @@ export default function GardenDetailPage() {
             variant={isVisualView ? "default" : "outline"}
             size="sm"
             onClick={toggleView}
-            className="px-2"
+            className="h-12 sm:h-8 px-4 sm:px-2"
           >
-            <Grid3X3 className="h-4 w-4 mr-1" />
+            <Grid3X3 className="h-4 w-4 mr-2 sm:mr-1" />
             {isVisualView ? "Lijst" : "Visueel"}
           </Button>
           
@@ -1148,7 +1148,7 @@ export default function GardenDetailPage() {
                       </SelectItem>
                       <SelectItem value="shade">
                         <div className="flex items-center gap-2">
-                          <Cloud className="h-4 w-4 text-gray-500" />
+                          <Cloud className="h-4 w-4 text-muted-foreground" />
                           Schaduw
                         </div>
                       </SelectItem>
@@ -1199,43 +1199,47 @@ export default function GardenDetailPage() {
         /* Visual Garden Layout */
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <CardTitle className="flex items-center gap-2">
                 <Grid3X3 className="h-5 w-5 text-blue-600" />
+                <span className="text-lg">Tuinindeling</span>
               </CardTitle>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={zoomOut}>
+                <Button variant="outline" size="sm" onClick={zoomOut} className="h-10 sm:h-8 px-3 sm:px-2">
                   <ZoomOut className="h-4 w-4" />
+                  <span className="ml-1 sm:hidden">Uitzoomen</span>
                 </Button>
-                <Button variant="outline" size="sm" onClick={zoomIn}>
+                <Button variant="outline" size="sm" onClick={zoomIn} className="h-10 sm:h-8 px-3 sm:px-2">
                   <ZoomIn className="h-4 w-4" />
+                  <span className="ml-1 sm:hidden">Inzoomen</span>
                 </Button>
-                <Button variant="outline" size="sm" onClick={resetView}>
+                <Button variant="outline" size="sm" onClick={resetView} className="h-10 sm:h-8 px-3 sm:px-2">
                   <RotateCcw className="h-4 w-4" />
+                  <span className="ml-1 sm:hidden">Reset</span>
                 </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             {/* Mobile help text */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
-              <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak beheren:</h4>
-              <ul className="text-sm text-blue-800 space-y-1">
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg md:hidden">
+              <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-1">📱 Plantvak beheren:</h4>
+              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
                 <li>• <strong>Sleep:</strong> Verplaats plantvak direct</li>
                 <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
                 <li>• <strong>🟠 Rotatie handvat:</strong> Sleep om te roteren</li>
               </ul>
-              <div className="mt-2 pt-2 border-t border-blue-300">
-                <p className="text-xs text-blue-700">
+              <div className="mt-2 pt-2 border-t border-blue-300 dark:border-blue-700">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
                   🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m
                 </p>
               </div>
             </div>
             
-            <div className="relative overflow-auto rounded-lg border-2 border-dashed border-green-200" style={{ minHeight: "400px" }}>
+            <div className="relative overflow-auto rounded-lg border-2 border-dashed border-green-200 dark:border-green-800" style={{ minHeight: "400px" }}>
               <div
                 ref={canvasRef}
-                className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 cursor-crosshair"
+                className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-green-900/20 cursor-crosshair"
                 style={{
                   width: CANVAS_WIDTH,
                   height: CANVAS_HEIGHT,
@@ -1304,13 +1308,13 @@ export default function GardenDetailPage() {
                         onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                         onClick={(e) => handlePlantBedClick(e, bed.id)}
                       >
-                        <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 ${
+                        <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 dark:group-hover:bg-green-900/30 transition-colors relative border border-border ${
                           isSelected ? 'bg-blue-100 border-blue-300' : ''
                         }`}>
                           {/* Top corner elements */}
                           <div className="flex items-start justify-between">
                             {bed.sun_exposure && (
-                              <div className="bg-white/90 p-1 rounded shadow-sm">
+                              <div className="bg-card/90 dark:bg-card/95 p-1 rounded shadow-sm">
                                 {getSunExposureIcon(bed.sun_exposure)}
                               </div>
                             )}
@@ -1327,7 +1331,7 @@ export default function GardenDetailPage() {
                           </div>
 
                           {/* Main area for plants/flowers - full height for flowers */}
-                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden border-2 border-dashed border-gray-300 rounded-lg bg-gradient-to-br from-green-25 to-green-50">
+                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden border-2 border-dashed border-border rounded-lg bg-gradient-to-br from-green-50/20 to-green-100/20 dark:from-green-950/20 dark:to-green-900/20">
                             {/* Plantvak visual indicator */}
                             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent pointer-events-none"></div>
                             
@@ -1339,7 +1343,7 @@ export default function GardenDetailPage() {
                               containerHeight={bedHeight}
                             />
                             {bed.plants.length === 0 && (
-                              <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
+                              <div className="text-muted-foreground text-sm font-medium bg-card/80 dark:bg-card/90 px-3 py-2 rounded-lg border border-border shadow-sm">
                                 🌱 Leeg plantvak
                               </div>
                             )}
@@ -1420,8 +1424,8 @@ export default function GardenDetailPage() {
                         
                         {/* Plantvak info onder het vak */}
                         <div className="mt-1 text-center">
-                          <div className="text-xs text-gray-600 font-medium">{bed.name}</div>
-                          <div className="text-xs text-gray-500">
+                                                      <div className="text-xs text-muted-foreground font-medium">{bed.name}</div>
+                          <div className="text-xs text-muted-foreground">
                             {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {bed.plants.length} 🌸
                           </div>
                         </div>
@@ -1433,10 +1437,10 @@ export default function GardenDetailPage() {
                 {/* Empty State */}
                 {plantBeds.length === 0 && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center bg-white/80 p-8 rounded-lg border-2 border-dashed border-gray-300">
-                      <Leaf className="h-20 w-20 mx-auto text-gray-400 mb-4" />
-                      <h3 className="text-xl font-medium text-gray-900 mb-2">Nog geen plantvakken</h3>
-                      <p className="text-gray-600 mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
+                    <div className="text-center bg-card/80 dark:bg-card/90 p-8 rounded-lg border-2 border-dashed border-border">
+                      <Leaf className="h-20 w-20 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-xl font-medium text-foreground mb-2">Nog geen plantvakken</h3>
+                      <p className="text-muted-foreground mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
                       <Button 
                         className="bg-green-600 hover:bg-green-700"
                         onClick={() => setIsAddingPlantBed(true)}
@@ -1449,13 +1453,13 @@ export default function GardenDetailPage() {
                 )}
               </div>
             </div>
-            <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
+            <div className="mt-4 text-sm text-muted-foreground flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
               <p>💡 <strong>Tip:</strong> Selecteer plantvak → oranje handvat slepen = roteren</p>
               <div className="flex items-center gap-4">
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                 {selectedBed && (
                   <>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800 dark:bg-blue-950/30 dark:text-blue-200">
                       {plantBeds.find(b => b.id === selectedBed)?.name} geselecteerd
                       <span className="ml-2 text-xs">
                         {plantBeds.find(b => b.id === selectedBed)?.rotation || 0}°
@@ -1486,11 +1490,11 @@ export default function GardenDetailPage() {
         plantBeds.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
-              <Leaf className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-600 mb-2">
+              <Leaf className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-medium text-muted-foreground mb-2">
                 Nog geen plantvakken
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Voeg je eerste plantvak toe om bloemen te kunnen planten.
               </p>
               <Button 
@@ -1513,7 +1517,7 @@ export default function GardenDetailPage() {
                         {bed.name}
                         {bed.sun_exposure && getSunExposureIcon(bed.sun_exposure)}
                       </CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-sm text-muted-foreground mt-1">
                         {bed.size && (
                           <div className="flex items-center gap-1">
                             <Leaf className="h-4 w-4" />
@@ -1543,7 +1547,7 @@ export default function GardenDetailPage() {
                                 </span>
                                 {flower.color && (
                                   <div
-                                    className="w-2 h-2 rounded-full border border-gray-300 ml-1"
+                                    className="w-2 h-2 rounded-full border border-border ml-1"
                                     style={{ backgroundColor: flower.color }}
                                     title={flower.color}
                                   />

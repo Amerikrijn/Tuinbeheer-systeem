@@ -246,30 +246,30 @@ function HomePageContent() {
       </header>
 
       {/* Search and Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             type="text"
             placeholder="Zoek tuinen op naam, locatie of beschrijving..."
             value={state.searchTerm}
             onChange={handleSearchChange}
-            className="pl-10"
+            className="pl-10 h-12 sm:h-10"
             aria-label="Zoek tuinen"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button
             variant={isVisualView ? "default" : "outline"}
             size="sm"
             onClick={toggleView}
-            className="px-2"
+            className="px-4 h-12 sm:h-9 sm:px-2"
           >
-            <Grid3X3 className="h-4 w-4 mr-1" />
+            <Grid3X3 className="h-4 w-4 mr-2 sm:mr-1" />
             {isVisualView ? "Lijst" : "Visueel"}
           </Button>
 
-          <Button asChild className="bg-green-600 hover:bg-green-700">
+          <Button asChild className="bg-green-600 hover:bg-green-700 h-12 sm:h-9">
             <Link href="/gardens/new">
               <Plus className="h-4 w-4 mr-2" />
               Nieuwe Tuin
@@ -338,8 +338,8 @@ function HomePageContent() {
           ) : (
             <>
               <div className={isVisualView 
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
-                : "space-y-4 mb-8"
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8"
+                : "space-y-3 sm:space-y-4 mb-8"
               }>
                 {filteredGardens.map((garden) => (
                   <GardenCard 
@@ -501,19 +501,19 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
     }`}>
       <Link href={`/gardens/${garden.id}`} className="block">
         <CardHeader className={isListView ? "pb-2 py-3" : "pb-3"}>
-          <div className={`flex items-start justify-between ${isListView ? 'gap-4' : ''}`}>
+          <div className={`flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 ${isListView ? 'sm:gap-4' : ''}`}>
             <div className="flex-1 min-w-0">
-              <CardTitle className={`font-semibold text-card-foreground group-hover:text-primary transition-colors truncate ${
-                  garden.name.length > 20 ? 'text-sm' : 'text-base'
+              <CardTitle className={`font-semibold text-card-foreground group-hover:text-primary transition-colors ${
+                  garden.name.length > 20 ? 'text-sm sm:text-base' : 'text-base sm:text-lg'
                 }`}>
                 {garden.name}
               </CardTitle>
               <div className="flex items-center text-sm text-muted-foreground mt-1">
-                <MapPin className="h-3 w-3 mr-1" />
+                <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
                 <span className="truncate">{garden.location}</span>
               </div>
             </div>
-            <Badge variant="secondary" className="ml-2 flex-shrink-0">
+            <Badge variant="secondary" className="self-start sm:ml-2 flex-shrink-0">
               Actief
             </Badge>
           </div>
@@ -538,7 +538,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
             {loadingFlowers ? (
               <div className="flex gap-1">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                  <div key={i} className="w-8 h-8 bg-muted rounded animate-pulse"></div>
                 ))}
               </div>
             ) : allFlowers.length > 0 ? (
@@ -546,27 +546,27 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
                 {allFlowers.map((flower, index) => (
                   <div
                     key={`${flower.id}-${index}`}
-                    className="flex items-center gap-1 bg-green-50 border border-green-200 rounded-lg px-2 py-1"
+                    className="flex items-center gap-1 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-2 py-1"
                     title={flower.name}
                   >
                     <span className="text-sm">
                       {getPlantEmoji(flower.name, flower.emoji)}
                     </span>
-                    <span className="text-xs font-medium text-green-800 truncate max-w-16">
+                    <span className="text-xs font-medium text-green-800 dark:text-green-200 truncate max-w-16">
                       {flower.name}
                     </span>
                   </div>
                 ))}
                 {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-                  <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
-                    <span className="text-xs text-gray-600">
+                  <div className="flex items-center justify-center bg-muted border border-border rounded-lg px-2 py-1">
+                    <span className="text-xs text-muted-foreground">
                       +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6}
                     </span>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="text-xs text-gray-500 italic">
+              <div className="text-xs text-muted-foreground italic">
                 Nog geen bloemen geplant
               </div>
             )}
@@ -584,7 +584,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
             {loadingUsers ? (
               <div className="flex gap-1">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div key={i} className="w-8 h-8 bg-muted rounded-full animate-pulse"></div>
                 ))}
               </div>
             ) : gardenUsers.length > 0 ? (
