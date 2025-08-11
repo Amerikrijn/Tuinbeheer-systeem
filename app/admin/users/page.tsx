@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen, Edit, Key } from 'lucide-react'
+import { Plus, MoreHorizontal, Mail, UserCheck, UserX, TreePine, Loader2, BookOpen, Edit, Key, Copy, Check } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-supabase-auth'
@@ -32,6 +32,8 @@ interface User {
   created_at: string
   last_login?: string
   garden_access?: string[]
+  force_password_change?: boolean
+  password_changed_at?: string
 }
 
 interface Garden {
@@ -59,9 +61,13 @@ function AdminUsersPageContent() {
   
   // Dialog states
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false)
+  const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false)
+  const [isPasswordResetDialogOpen, setIsPasswordResetDialogOpen] = useState(false)
   const [isGardenAccessDialogOpen, setIsGardenAccessDialogOpen] = useState(false)
   const [isRoleEditDialogOpen, setIsRoleEditDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [createdUserInfo, setCreatedUserInfo] = useState<{email: string, temporaryPassword: string} | null>(null)
+  const [passwordCopied, setPasswordCopied] = useState(false)
   
   // Form state
   const [formData, setFormData] = useState<InviteFormData>({
@@ -77,17 +83,12 @@ function AdminUsersPageContent() {
     loadUsersAndGardens()
   }, [])
 
-  // Debug gardens state changes
-  useEffect(() => {
-    console.log('🔍 Gardens state changed:', { length: gardens.length, gardens: gardens.map(g => g.name) })
-  }, [gardens])
+  // Gardens state monitoring for debugging (removed for production)
 
   const loadUsersAndGardens = async () => {
     setLoading(true)
     try {
       // Load users with their garden access
-      console.log('🔍 Loading users with garden access...')
-      
       // First load all users
       const { data: usersData, error: usersError } = await supabase
         .from('users')
@@ -107,67 +108,31 @@ function AdminUsersPageContent() {
             .eq('user_id', user.id)
           
           if (accessError) {
-            console.log('🔍 Error loading access for user:', user.email, accessError)
+            // Error loading garden access for user
             return { ...user, garden_access: [] }
           }
           
           const gardenIds = accessData?.map(row => row.garden_id) || []
-          console.log('🔍 User', user.email, 'has access to gardens:', gardenIds)
+          // User garden access loaded
           
           return { ...user, garden_access: gardenIds }
         })
       )
 
       setUsers(usersWithAccess)
-      console.log('🔍 Users with garden access loaded:', usersWithAccess.length)
       
-      // Debug: Check all users and their roles
-      console.log('🔍 All users loaded:', usersWithAccess.map(u => ({
-        email: u.email,
-        role: u.role,
-        status: u.status,
-        roleType: typeof u.role
-      })))
-      
-      // Debug: Check protected admin specifically
-      const protectedAdminEmail = process.env.NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL || 'admin@tuinbeheer.nl'
-      const adminUser = usersWithAccess.find(u => u.email === protectedAdminEmail)
-      if (adminUser) {
-        console.log('🔍 Admin user found:', adminUser)
-      } else {
-        console.log('🔍 Admin user NOT found in list!')
-      }
-
       // Load only active gardens (exclude soft-deleted ones)
-      console.log('🔍 Loading active gardens...')
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
         .select('*')
         .eq('is_active', true)
         .order('name')
 
-      console.log('🔍 Gardens query result:', { 
-        data: gardensData, 
-        count: gardensData?.length, 
-        error: gardensError,
-        errorDetails: gardensError?.details,
-        errorMessage: gardensError?.message
-      })
-
       if (gardensError) {
-        console.error('🔍 Gardens error:', gardensError)
         // Don't throw - continue without gardens for now
         setGardens([])
-        console.log('🔍 Gardens state set to EMPTY due to error')
       } else {
-        console.log('🔍 About to set gardens state with data:', gardensData)
         setGardens(gardensData || [])
-        console.log('🔍 Gardens state set successfully. Length:', gardensData?.length)
-        
-        // Force re-render check
-        setTimeout(() => {
-          console.log('🔍 Gardens state after timeout check:', gardens.length)
-        }, 100)
       }
 
     } catch (error) {
@@ -182,6 +147,128 @@ function AdminUsersPageContent() {
     }
   }
 
+  // Direct user creation (workaround for email issues)
+  const handleCreateUserDirect = async () => {
+    if (!formData.email || !formData.full_name) {
+      toast({
+        title: "Ontbrekende gegevens",
+        description: "Email en volledige naam zijn verplicht",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setInviting(true)
+    
+    try {
+      const response = await fetch('/api/admin/create-user-direct', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email.toLowerCase().trim(),
+          fullName: formData.full_name,
+          role: formData.role,
+          adminEmail: currentUser?.email || 'unknown-admin'
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'User creation failed')
+      }
+
+      // Store the temporary password to show to admin
+      setCreatedUserInfo({
+        email: result.user.email,
+        temporaryPassword: result.user.temporaryPassword
+      })
+      
+      // Reset copy state
+      setPasswordCopied(false)
+
+      // Set garden access if user role and gardens selected
+      if (formData.role === 'user' && formData.garden_access.length > 0) {
+        // TODO: Implement garden access setting for new users
+        // For now, admin can set this manually via the Garden Access Manager
+      }
+
+      toast({
+        title: "Gebruiker aangemaakt",
+        description: `${result.user.fullName} is succesvol aangemaakt met tijdelijk wachtwoord`,
+        variant: "default"
+      })
+
+      // Reset form and close dialog
+      setFormData({
+        email: '',
+        full_name: '',
+        role: 'user',
+        message: '',
+        garden_access: []
+      })
+      setIsCreateUserDialogOpen(false)
+      
+      // Reload users
+      await loadUsersAndGardens()
+      
+    } catch (error) {
+      console.error('Direct user creation error:', error)
+      toast({
+        title: "Fout bij aanmaken gebruiker",
+        description: error instanceof Error ? error.message : 'Onbekende fout opgetreden',
+        variant: "destructive"
+      })
+    } finally {
+      setInviting(false)
+    }
+  }
+
+  // Delete user function
+  const handleDeleteUser = async (user: User) => {
+    if (!confirm(`Weet je zeker dat je ${user.full_name || user.email} wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          adminEmail: currentUser?.email || 'unknown-admin'
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'User deletion failed')
+      }
+
+      toast({
+        title: "Gebruiker verwijderd",
+        description: `${user.full_name || user.email} is succesvol verwijderd`,
+        variant: "default"
+      })
+
+      // Reload users
+      await loadUsersAndGardens()
+      
+    } catch (error) {
+      console.error('Delete user error:', error)
+      toast({
+        title: "Fout bij verwijderen gebruiker",
+        description: error instanceof Error ? error.message : 'Onbekende fout opgetreden',
+        variant: "destructive"
+      })
+    }
+  }
+
   const handleInviteUser = async () => {
     if (!formData.email || !formData.full_name) {
       toast({
@@ -193,18 +280,15 @@ function AdminUsersPageContent() {
     }
 
     setInviting(true)
-    console.log('🔍 Inviting user with data:', formData)
     
     try {
       // Check if user already exists
-      console.log('🔍 Checking if user already exists...')
       const { data: existingUsers, error: checkError } = await supabase
         .from('users')
         .select('id, email')
         .eq('email', formData.email.toLowerCase().trim())
 
       if (checkError) {
-        console.error('🔍 Error checking existing users:', checkError)
         throw new Error(`Kon niet controleren of gebruiker al bestaat: ${checkError.message}`)
       }
 
@@ -218,7 +302,6 @@ function AdminUsersPageContent() {
       }
 
       // Banking-compliant: Call server-side API for user invitation
-      console.log('🔍 Calling server-side invite API...')
       
       const siteUrl = typeof window !== 'undefined' 
         ? window.location.origin 
@@ -244,7 +327,6 @@ function AdminUsersPageContent() {
       const authData = await inviteResponse.json()
 
       if (!inviteResponse.ok) {
-        console.error('🔍 Invite API error:', authData.error)
         
         // Handle specific error cases
         if (authData.error?.includes('already registered') || 
@@ -275,8 +357,6 @@ function AdminUsersPageContent() {
         throw new Error('Geen gebruiker ontvangen van uitnodiging')
       }
 
-      console.log('🔍 Step 2: User invited successfully:', authData.userId)
-      console.log('🔍 Email confirmation should be sent to:', formData.email)
 
       // Show success message
       toast({
@@ -284,10 +364,8 @@ function AdminUsersPageContent() {
         description: `Een bevestigingsmail is verzonden naar ${formData.email}. De gebruiker moet eerst hun email bevestigen om in te loggen.`,
       })
 
-      console.log('🔍 Step 3: Creating user profile...')
       
       // 2. Create user profile in public.users  
-      console.log('🔍 Step 3a: Attempting direct insert...')
       let profileError = null
       
       // Try direct insert first
@@ -303,8 +381,6 @@ function AdminUsersPageContent() {
         })
 
       if (directError) {
-        console.log('🔍 Step 3b: Direct insert failed, trying SQL function...')
-        console.log('🔍 Direct insert error:', directError)
         
         // Fallback: Try via SQL function to bypass RLS
         const { error: sqlError } = await supabase
@@ -317,26 +393,19 @@ function AdminUsersPageContent() {
           })
         
         if (sqlError) {
-          console.error('🔍 SQL function also failed:', sqlError)
-          console.error('🔍 Both methods failed - RLS policy issue')
           profileError = directError // Use original error for user feedback
         } else {
-          console.log('🔍 SQL function succeeded')
         }
       } else {
-        console.log('🔍 Direct insert succeeded')
       }
 
       if (profileError) {
-        console.error('🔍 Profile creation error:', profileError)
         throw new Error(`Profiel aanmaken mislukt: ${profileError.message}`)
       }
 
-      console.log('🔍 User profile created successfully')
 
       // 3. Add garden access if user role and gardens selected
       if (formData.role === 'user' && formData.garden_access.length > 0) {
-        console.log('🔍 Step 4: Adding garden access for gardens:', formData.garden_access)
         const gardenAccessInserts = formData.garden_access.map(gardenId => ({
           user_id: authData.userId,
           garden_id: gardenId
@@ -347,7 +416,6 @@ function AdminUsersPageContent() {
           .insert(gardenAccessInserts)
 
         if (accessError) {
-          console.error('🔍 Garden access error:', accessError)
           // Don't fail the entire operation for garden access issues
           console.warn('🔍 Continuing despite garden access error')
           toast({
@@ -356,11 +424,9 @@ function AdminUsersPageContent() {
             variant: "default"
           })
         } else {
-          console.log('🔍 Garden access added successfully')
         }
       }
 
-      console.log('🔍 User invite completed successfully')
 
       // Show success message with clear instructions
       toast({
@@ -575,32 +641,26 @@ function AdminUsersPageContent() {
   }
 
   const handleResetUserPassword = async (user: User) => {
-    // Banking-compliant admin password reset using service role
-    const newPassword = prompt(`Nieuw tijdelijk wachtwoord voor ${user.full_name || user.email}:\n\n(User moet dit bij eerste login wijzigen)`)
-    
-    if (!newPassword || newPassword.length < 8) {
-      toast({
-        title: "Ongeldig wachtwoord",
-        description: "Wachtwoord moet minimaal 8 karakters zijn",
-        variant: "destructive"
-      })
-      return
-    }
+    setSelectedUser(user)
+    setIsPasswordResetDialogOpen(true)
+  }
 
-    if (!confirm(`Wachtwoord resetten voor ${user.full_name || user.email}?\n\nNieuw wachtwoord: ${newPassword}\n\n⚠️ User moet dit bij eerste login wijzigen!`)) {
-      return
-    }
+  const handlePasswordReset = async () => {
+    if (!selectedUser) return
 
     try {
-      // Call server-side API route for admin password reset
+      // Generate a new temporary password
+      const temporaryPassword = generateTemporaryPassword()
+
+      // Banking-compliant: Call server-side API for password reset
       const response = await fetch('/api/admin/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.id,
-          newPassword: newPassword,
+          userId: selectedUser.id,
+          newPassword: temporaryPassword,
           adminEmail: currentUser?.email || 'unknown-admin'
         })
       })
@@ -611,65 +671,66 @@ function AdminUsersPageContent() {
         throw new Error(result.error || 'Password reset failed')
       }
 
+      // Show the temporary password to admin
+      setCreatedUserInfo({
+        email: selectedUser.email,
+        temporaryPassword: temporaryPassword
+      })
+      
+      // Reset copy state
+      setPasswordCopied(false)
+
       toast({
         title: "Wachtwoord gereset",
-        description: `Tijdelijk wachtwoord ingesteld voor ${user.full_name || user.email}. User moet dit bij eerste login wijzigen.`,
+        description: `Tijdelijk wachtwoord voor ${selectedUser.full_name || selectedUser.email} is ingesteld`,
       })
 
+      setIsPasswordResetDialogOpen(false)
+      setSelectedUser(null)
+
+      // Reload users to reflect any status changes
       loadUsersAndGardens()
 
     } catch (error: any) {
       console.error('Error resetting password:', error)
       toast({
-        title: "Wachtwoord reset mislukt",
-        description: error.message || "Kon wachtwoord niet resetten. Check admin rechten.",
+        title: "Reset mislukt",
+        description: error.message || "Kon wachtwoord niet resetten",
         variant: "destructive"
       })
     }
   }
 
-  const handleDeleteUser = async (user: User) => {
-    if (!confirm(`Weet je zeker dat je ${user.full_name || user.email} wilt verwijderen? Dit kan niet ongedaan gemaakt worden.`)) {
-      return
+  // Generate temporary password function (same as in API)
+  const generateTemporaryPassword = (): string => {
+    const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+    let result = ''
+    for (let i = 0; i < 12; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length))
     }
+    return result
+  }
 
+  // Copy password to clipboard
+  const copyPasswordToClipboard = async (password: string) => {
     try {
-      // Banking-compliant: Call server-side API for user deletion
-      const response = await fetch('/api/admin/delete-user', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          userEmail: user.email,
-          adminEmail: currentUser?.email || 'unknown-admin'
-        })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'User deletion failed')
-      }
-
+      await navigator.clipboard.writeText(password)
+      setPasswordCopied(true)
       toast({
-        title: "Gebruiker verwijderd",
-        description: `${user.full_name || user.email} is succesvol verwijderd`,
+        title: "Gekopieerd!",
+        description: "Tijdelijk wachtwoord is gekopieerd naar klembord",
       })
-
-      // Reload users list
-      loadUsersAndGardens()
-
-    } catch (error: any) {
-      console.error('Error deleting user:', error)
+      setTimeout(() => setPasswordCopied(false), 2000)
+    } catch (error) {
       toast({
-        title: "Verwijderen mislukt",
-        description: error.message || "Kon gebruiker niet verwijderen",
+        title: "Kopiëren mislukt",
+        description: "Kon wachtwoord niet kopiëren. Selecteer handmatig.",
         variant: "destructive"
       })
     }
   }
+
+
 
 
 
@@ -693,9 +754,20 @@ function AdminUsersPageContent() {
           <p className="text-gray-600 mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setIsInviteDialogOpen(true)} className="flex items-center gap-2">
+          <Button 
+            onClick={() => setIsCreateUserDialogOpen(true)}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+          >
             <Plus className="w-4 h-4" />
-            Gebruiker Uitnodigen
+            Gebruiker Aanmaken
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => setIsInviteDialogOpen(true)} 
+            className="flex items-center gap-2"
+          >
+            <Mail className="w-4 h-4" />
+            Email Uitnodiging
           </Button>
         </div>
       </div>
@@ -715,6 +787,7 @@ function AdminUsersPageContent() {
                 <TableHead>Gebruiker</TableHead>
                 <TableHead>Rol</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Wachtwoord</TableHead>
                 <TableHead>Tuin Toegang</TableHead>
                 <TableHead>Laatste Login</TableHead>
                 <TableHead>Aangemaakt</TableHead>
@@ -753,6 +826,17 @@ function AdminUsersPageContent() {
                     </Badge>
                   </TableCell>
                   <TableCell>
+                    {user.force_password_change ? (
+                      <Badge variant="destructive" className="text-xs font-medium">
+                        🔑 Moet wijzigen
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800">
+                        ✅ OK
+                      </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     {user.role === 'admin' ? (
                       <Badge variant="default" className="text-xs px-1 py-0">Alle tuinen</Badge>
                     ) : (
@@ -778,7 +862,7 @@ function AdminUsersPageContent() {
                             setSelectedUser(user)
                             setIsRoleEditDialogOpen(true)
                           }}
-                          disabled={user.id === currentUser?.id}
+                          disabled={user.id === currentUser?.id || user.email === process.env.NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL}
                         >
                           <Edit className="w-4 h-4 mr-2" />
                           Rol Bewerken
@@ -828,7 +912,7 @@ function AdminUsersPageContent() {
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user)}
                           className="text-red-600 hover:text-red-700"
-                          disabled={user.id === currentUser?.id || user.email === process.env.NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL}
+                          disabled={user.id === currentUser?.id || user.email === process.env.NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL}
                         >
                           <UserX className="w-4 h-4 mr-2" />
                           Gebruiker Verwijderen
@@ -851,13 +935,210 @@ function AdminUsersPageContent() {
         </CardContent>
       </Card>
 
+      {/* Create User Direct Dialog */}
+      <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gebruiker Aanmaken</DialogTitle>
+            <DialogDescription>
+              Maak een nieuwe gebruiker aan met tijdelijk wachtwoord (geen email vereist)
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email adres *</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="gebruiker@email.com"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                className={!formData.email?.trim() && formData.email !== '' ? 'border-red-300' : ''}
+                required
+              />
+              {!formData.email?.trim() && formData.email !== '' && (
+                <p className="text-sm text-red-600">Email adres is verplicht</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="full_name">Volledige naam *</Label>
+              <Input
+                id="full_name"
+                type="text"
+                placeholder="Jan de Vries"
+                value={formData.full_name}
+                onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                className={!formData.full_name?.trim() && formData.full_name !== '' ? 'border-red-300' : ''}
+                required
+              />
+              {!formData.full_name?.trim() && formData.full_name !== '' && (
+                <p className="text-sm text-red-600">Volledige naam is verplicht</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="role">Rol</Label>
+              <Select 
+                value={formData.role} 
+                onValueChange={(value: 'admin' | 'user') => setFormData(prev => ({ ...prev, role: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Gebruiker</SelectItem>
+                  <SelectItem value="admin">Administrator</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {formData.role === 'user' && (
+              <div className="space-y-2">
+                <Label>Tuin Toegang</Label>
+                <div className="text-xs text-muted-foreground mb-1">
+                  {gardens.length} tuinen beschikbaar
+                </div>
+                <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                  {gardens.map((garden) => (
+                    <div key={garden.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`create-garden-${garden.id}`}
+                        checked={formData.garden_access.includes(garden.id)}
+                        onChange={() => toggleGardenAccess(garden.id)}
+                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                      />
+                      <label 
+                        htmlFor={`create-garden-${garden.id}`}
+                        className="text-sm cursor-pointer flex-1"
+                      >
+                        {garden.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {gardens.length === 0 && (
+                  <p className="text-sm text-muted-foreground">Nog geen tuinen beschikbaar</p>
+                )}
+              </div>
+            )}
+            
+                         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-md">
+               <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">ℹ️ Tijdelijk Wachtwoord</p>
+               <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                 Er wordt automatisch een tijdelijk wachtwoord gegenereerd. De gebruiker moet dit wijzigen bij eerste login.
+               </p>
+             </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsCreateUserDialogOpen(false)
+                setCreatedUserInfo(null)
+              }}
+              disabled={inviting}
+            >
+              Annuleren
+            </Button>
+            <Button 
+              onClick={handleCreateUserDirect}
+              disabled={!formData.email?.trim() || !formData.full_name?.trim() || inviting}
+              className="min-w-[160px] bg-green-600 hover:bg-green-700"
+            >
+              {inviting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Gebruiker aanmaken...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Gebruiker Aanmaken
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Show Temporary Password Dialog */}
+      {createdUserInfo && (
+        <Dialog open={true} onOpenChange={() => setCreatedUserInfo(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>✅ Gebruiker Aangemaakt</DialogTitle>
+              <DialogDescription>
+                Geef deze inloggegevens door aan de gebruiker
+              </DialogDescription>
+            </DialogHeader>
+            
+                         <div className="space-y-4 py-4">
+               <div className="space-y-2">
+                 <Label>Email</Label>
+                 <div className="p-3 bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 rounded font-mono text-sm text-gray-900 dark:text-gray-100">
+                   {createdUserInfo.email}
+                 </div>
+               </div>
+               
+                               <div className="space-y-2">
+                  <Label>Tijdelijk Wachtwoord</Label>
+                  <div className="relative">
+                    <div className="p-3 bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded font-mono text-lg font-bold text-yellow-900 dark:text-yellow-100 tracking-wider pr-12">
+                      {createdUserInfo.temporaryPassword}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-yellow-200 dark:hover:bg-yellow-800/30"
+                      onClick={() => copyPasswordToClipboard(createdUserInfo.temporaryPassword)}
+                    >
+                      {passwordCopied ? (
+                        <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      ) : (
+                        <Copy className="h-4 w-4 text-yellow-700 dark:text-yellow-300" />
+                      )}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-yellow-700 dark:text-yellow-300 font-medium">
+                    ⚠️ Bewaar dit wachtwoord veilig. Het wordt maar één keer getoond. Klik op het kopieer icoon.
+                  </p>
+                </div>
+               
+               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-3 rounded-md">
+                 <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">📋 Instructies voor gebruiker:</p>
+                 <ol className="text-xs text-blue-700 dark:text-blue-300 mt-1 list-decimal list-inside space-y-1">
+                   <li>Log in met bovenstaande gegevens</li>
+                   <li>Je wordt gevraagd een nieuw wachtwoord in te stellen</li>
+                   <li>Na wachtwoord wijziging wordt je doorgestuurd naar login</li>
+                   <li>Log opnieuw in met je nieuwe wachtwoord</li>
+                 </ol>
+               </div>
+             </div>
+
+            <DialogFooter>
+              <Button 
+                onClick={() => setCreatedUserInfo(null)}
+                className="w-full"
+              >
+                Begrepen
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+
       {/* Invite User Dialog */}
       <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Gebruiker Uitnodigen</DialogTitle>
+            <DialogTitle>Gebruiker Uitnodigen (Email)</DialogTitle>
             <DialogDescription>
-              Stuur een uitnodiging naar een nieuwe gebruiker
+              Stuur een email uitnodiging naar een nieuwe gebruiker
             </DialogDescription>
           </DialogHeader>
           
@@ -976,6 +1257,54 @@ function AdminUsersPageContent() {
                   Uitnodiging Versturen
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={isPasswordResetDialogOpen} onOpenChange={setIsPasswordResetDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Wachtwoord Resetten</DialogTitle>
+            <DialogDescription>
+              Reset wachtwoord voor {selectedUser?.full_name || selectedUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          
+                     <div className="space-y-4 py-4">
+             <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-3 rounded-md">
+               <p className="text-sm text-orange-800 dark:text-orange-200 font-medium">⚠️ Wachtwoord Reset</p>
+               <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
+                 Er wordt een nieuw tijdelijk wachtwoord gegenereerd. De gebruiker moet dit wijzigen bij eerste login.
+               </p>
+             </div>
+             
+             <div className="space-y-2">
+               <Label>Gebruiker</Label>
+               <div className="p-3 bg-gray-100 dark:bg-gray-800 border dark:border-gray-700 rounded">
+                 <p className="font-medium text-gray-900 dark:text-gray-100">{selectedUser?.full_name}</p>
+                 <p className="text-sm text-gray-600 dark:text-gray-400">{selectedUser?.email}</p>
+               </div>
+             </div>
+           </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsPasswordResetDialogOpen(false)
+                setSelectedUser(null)
+              }}
+            >
+              Annuleren
+            </Button>
+            <Button 
+              onClick={handlePasswordReset}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              <Key className="w-4 h-4 mr-2" />
+              Wachtwoord Resetten
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -48,7 +48,7 @@ export function useActivityTimeout() {
 
   const handleAutoLogout = useCallback(async () => {
     try {
-      await signOut()
+      await signOut?.()
       toast({
         title: "Automatisch uitgelogd",
         description: "Je bent automatisch uitgelogd vanwege inactiviteit",

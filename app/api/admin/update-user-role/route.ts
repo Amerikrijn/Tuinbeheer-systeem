@@ -26,11 +26,20 @@ export async function PUT(request: NextRequest) {
     }
 
     // Validate role
-    const validRoles = ['admin', 'user', 'viewer']
+    const validRoles = ['admin', 'user']
     if (!validRoles.includes(newRole)) {
       return NextResponse.json(
-        { error: 'Invalid role' },
+        { error: 'Invalid role. Must be admin or user' },
         { status: 400 }
+      )
+    }
+
+    // 🏦 BANKING SECURITY: Protect emergency admin from role changes
+    const emergencyAdminEmail = process.env.NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL
+    if (emergencyAdminEmail && userEmail.toLowerCase() === emergencyAdminEmail.toLowerCase()) {
+      return NextResponse.json(
+        { error: 'Cannot modify emergency admin role' },
+        { status: 403 }
       )
     }
 

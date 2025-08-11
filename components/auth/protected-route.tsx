@@ -21,7 +21,7 @@ function ProtectedRouteComponent({
   requireAdmin = false, 
   allowedRoles 
 }: ProtectedRouteProps) {
-  const { user, loading, authLoading } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
   const [timeoutReached, setTimeoutReached] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -110,7 +110,7 @@ function ProtectedRouteComponent({
     )
   }
 
-  if (authLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
