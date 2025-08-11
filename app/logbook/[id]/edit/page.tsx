@@ -224,7 +224,7 @@ export default function EditLogbookPage() {
         <div className="max-w-2xl mx-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Logboek entry laden...</p>
+            <p className="text-muted-foreground">Logboek entry laden...</p>
           </div>
         </div>
       </div>
@@ -235,10 +235,10 @@ export default function EditLogbookPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             Entry niet gevonden
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             {state.error || 'De opgevraagde logboek entry bestaat niet of is verwijderd.'}
           </p>
           <Button asChild>

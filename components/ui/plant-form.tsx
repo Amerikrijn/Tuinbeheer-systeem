@@ -174,7 +174,7 @@ export function PlantForm({
               
               {/* Suggestions dropdown */}
               {showSuggestions && (
-                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-20 w-full mt-1 bg-card border border-border rounded-lg shadow-lg max-h-60 overflow-auto">
                   {STANDARD_FLOWERS
                     .filter(flower => 
                       flower.name.toLowerCase().includes(data.name.toLowerCase())

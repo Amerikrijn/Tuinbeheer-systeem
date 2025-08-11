@@ -1313,7 +1313,7 @@ export default function GardenDetailPage() {
                           {/* Top corner elements */}
                           <div className="flex items-start justify-between">
                             {bed.sun_exposure && (
-                              <div className="bg-white/90 p-1 rounded shadow-sm">
+                              <div className="bg-card/90 p-1 rounded shadow-sm border border-border">
                                 {getSunExposureIcon(bed.sun_exposure)}
                               </div>
                             )}
@@ -1436,10 +1436,10 @@ export default function GardenDetailPage() {
                 {/* Empty State */}
                 {plantBeds.length === 0 && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center bg-white/80 p-8 rounded-lg border-2 border-dashed border-gray-300">
-                      <Leaf className="h-20 w-20 mx-auto text-gray-400 mb-4" />
-                      <h3 className="text-xl font-medium text-gray-900 mb-2">Nog geen plantvakken</h3>
-                      <p className="text-gray-600 mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
+                    <div className="text-center bg-card/80 p-8 rounded-lg border-2 border-dashed border-border">
+                                              <Leaf className="h-20 w-20 mx-auto text-muted-foreground mb-4" />
+                        <h3 className="text-xl font-medium text-foreground mb-2">Nog geen plantvakken</h3>
+                        <p className="text-muted-foreground mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
                       <Button 
                         className="bg-green-600 hover:bg-green-700"
                         onClick={() => setIsAddingPlantBed(true)}

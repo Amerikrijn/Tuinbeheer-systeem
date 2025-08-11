@@ -2431,9 +2431,9 @@ export default function PlantBedViewPage() {
               {/* Flowers List */}
               {flowerPositions.length === 0 ? (
                 <div className="text-center py-12">
-                  <Flower className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen bloemen</h3>
-                  <p className="text-gray-600 mb-4">Voeg bloemen toe aan dit plantvak.</p>
+                  <Flower className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">Nog geen bloemen</h3>
+                  <p className="text-muted-foreground mb-4">Voeg bloemen toe aan dit plantvak.</p>
                   <Button onClick={() => setIsAddingFlower(true)} className="bg-pink-600 hover:bg-pink-700">
                     <Plus className="h-4 w-4 mr-2" />
                     Eerste Bloem Toevoegen
@@ -2448,16 +2448,16 @@ export default function PlantBedViewPage() {
                           <div className="flex items-center gap-2">
                             <span className="text-2xl">{flower.emoji || '🌸'}</span>
                             <div>
-                              <h3 className="font-medium text-gray-900">{flower.name}</h3>
+                              <h3 className="font-medium text-foreground">{flower.name}</h3>
                               {flower.category && (
-                                <p className="text-sm text-gray-500">{flower.category}</p>
+                                <p className="text-sm text-muted-foreground">{flower.category}</p>
                               )}
                             </div>
                           </div>
                           <div className={`w-3 h-3 rounded-full border-2 ${getStatusColor(flower.status || 'gezond')}`}></div>
                         </div>
                         
-                        <div className="space-y-2 text-sm text-gray-600 mb-4">
+                        <div className="space-y-2 text-sm text-muted-foreground mb-4">
                           <div className="grid grid-cols-2 gap-2">
                             <div className="flex justify-between">
                               <span>Status:</span>
@@ -2495,7 +2495,7 @@ export default function PlantBedViewPage() {
                             )}
                           </div>
                           {flower.notes && (
-                            <div className="mt-2 p-2 bg-gray-50 rounded">
+                            <div className="mt-2 p-2 bg-muted rounded">
                               <span className="text-xs font-medium">Notities:</span>
                               <p className="text-xs mt-1">{flower.notes}</p>
                             </div>
@@ -2553,7 +2553,7 @@ export default function PlantBedViewPage() {
                 <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg mb-4">
                   <div className="flex items-center gap-3">
                       <Calendar className="h-6 w-6 text-blue-700" />
-                      <span className="font-semibold text-gray-900 text-xl leading-snug">Taken voor dit Plantvak</span>
+                      <span className="font-semibold text-foreground text-xl leading-snug">Taken voor dit Plantvak</span>
                       <Badge variant="secondary" className="text-sm">{tasks.length} taken</Badge>
                     </div>
                   <div className="flex gap-2">
@@ -2584,13 +2584,13 @@ export default function PlantBedViewPage() {
                 {loadingTasks ? (
                   <div className="text-center py-8">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="text-gray-600 mt-2">Taken laden...</p>
+                    <p className="text-muted-foreground mt-2">Taken laden...</p>
                   </div>
                 ) : tasks.length === 0 ? (
                   <div className="text-center py-8">
-                    <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen taken</h3>
-                    <p className="text-gray-600 mb-4">Voeg taken toe voor dit plantvak of specifieke bloemen.</p>
+                                          <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium text-foreground mb-2">Nog geen taken</h3>
+                      <p className="text-muted-foreground mb-4">Voeg taken toe voor dit plantvak of specifieke bloemen.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -2611,7 +2611,7 @@ export default function PlantBedViewPage() {
                                   checked={task.completed}
                                   onChange={(e) => handleTaskComplete(task.id, e.target.checked)}
                                   disabled={updatingTasks.has(task.id)}
-                                  className={`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 transition-opacity ${
+                                  className={`w-4 h-4 text-blue-600 bg-muted border-border rounded focus:ring-blue-500 transition-opacity ${
                                     updatingTasks.has(task.id) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                                   }`}
                                 />
@@ -2627,18 +2627,18 @@ export default function PlantBedViewPage() {
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1 min-w-0">
                                       {/* Header: Plantvak → Bloem • Taak (one row) */}
-                                      <div className="flex items-center gap-2 mb-1 text-base text-gray-900 leading-snug">
-                                        <span className="text-gray-300" aria-hidden>•</span>
-                                        <span className={`font-semibold truncate ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>{task.title}</span>
+                                      <div className="flex items-center gap-2 mb-1 text-base text-foreground leading-snug">
+                                        <span className="text-muted-foreground" aria-hidden>•</span>
+                                        <span className={`font-semibold truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</span>
                                       </div>
                                       {task.description && (
-                                        <p className={`text-sm mt-1 ${task.completed ? 'text-gray-500' : 'text-gray-700'}`}>
+                                                                                  <p className={`text-sm mt-1 ${task.completed ? 'text-muted-foreground' : 'text-foreground'}`}>
                                             {task.description}
                                           </p>
                                       )}
                                       
                                       {/* Task Meta Info */}
-                                      <div className="flex items-center gap-3 mt-2 text-xs text-gray-600">
+                                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                                       <div className="flex items-center gap-1">
                                         {taskTypeConfig && (
                                           <>
@@ -2650,7 +2650,7 @@ export default function PlantBedViewPage() {
                                       
                                       <div className="flex items-center gap-1.5">
                                           <Clock className="h-3.5 w-3.5" />
-                                          <span className={isOverdue ? 'text-red-700 font-semibold' : isToday ? 'text-orange-700 font-semibold' : 'text-gray-700'}>
+                                          <span className={isOverdue ? 'text-red-700 font-semibold' : isToday ? 'text-orange-700 font-semibold' : 'text-foreground'}>
                                             {formatTaskDate(task.due_date)}
                                           </span>
                                         </div>
@@ -2658,12 +2658,12 @@ export default function PlantBedViewPage() {
                                       {task.plant_id ? (
                                           <div className="flex items-center gap-2">
                                             <span className="text-lg">🌸</span>
-                                            <span className="font-semibold text-gray-900">{task.plant_name}</span>
+                                            <span className="font-semibold text-foreground">{task.plant_name}</span>
                                           </div>
                                         ) : (
                                           <div className="flex items-center gap-2">
                                             <span className="text-lg">🌱</span>
-                                            <span className="font-semibold text-gray-900">Plantvak taak</span>
+                                            <span className="font-semibold text-foreground">Plantvak taak</span>
                                           </div>
                                         )}
                                     </div>
@@ -2739,7 +2739,7 @@ export default function PlantBedViewPage() {
               <Minus className="h-4 w-4" />
             </Button>
             
-            <div className="text-sm text-gray-600 min-w-[60px] text-center">
+            <div className="text-sm text-muted-foreground min-w-[60px] text-center">
               {Math.min(selectedFlower.visual_width, selectedFlower.visual_height)}px
             </div>
             
@@ -2754,7 +2754,7 @@ export default function PlantBedViewPage() {
             </Button>
           </div>
           
-          <div className="text-xs text-gray-500 mt-1 text-center">
+          <div className="text-xs text-muted-foreground mt-1 text-center">
             {selectedFlower.visual_width > 100 
               ? "🌸 Bloemenveld - meer bloemen bij groter maken"
               : "Dubbelklik = grootte aanpassen"
