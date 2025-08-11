@@ -127,23 +127,11 @@ function AdminUsersPageContent() {
         .eq('is_active', true)
         .order('name')
 
-        data: gardensData, 
-        count: gardensData?.length, 
-        error: gardensError,
-        errorDetails: gardensError?.details,
-        errorMessage: gardensError?.message
-      })
-
       if (gardensError) {
-        console.error('🔍 Gardens error:', gardensError)
         // Don't throw - continue without gardens for now
         setGardens([])
       } else {
         setGardens(gardensData || [])
-        
-        // Force re-render check
-        setTimeout(() => {
-        }, 100)
       }
 
     } catch (error) {
@@ -199,7 +187,8 @@ function AdminUsersPageContent() {
 
       // Set garden access if user role and gardens selected
       if (formData.role === 'user' && formData.garden_access.length > 0) {
-        await setUserGardenAccess(result.user.id, formData.garden_access)
+        // TODO: Implement garden access setting for new users
+        // For now, admin can set this manually via the Garden Access Manager
       }
 
       toast({
@@ -296,7 +285,6 @@ function AdminUsersPageContent() {
         .eq('email', formData.email.toLowerCase().trim())
 
       if (checkError) {
-        console.error('🔍 Error checking existing users:', checkError)
         throw new Error(`Kon niet controleren of gebruiker al bestaat: ${checkError.message}`)
       }
 
@@ -335,7 +323,6 @@ function AdminUsersPageContent() {
       const authData = await inviteResponse.json()
 
       if (!inviteResponse.ok) {
-        console.error('🔍 Invite API error:', authData.error)
         
         // Handle specific error cases
         if (authData.error?.includes('already registered') || 
@@ -402,8 +389,6 @@ function AdminUsersPageContent() {
           })
         
         if (sqlError) {
-          console.error('🔍 SQL function also failed:', sqlError)
-          console.error('🔍 Both methods failed - RLS policy issue')
           profileError = directError // Use original error for user feedback
         } else {
         }
@@ -411,7 +396,6 @@ function AdminUsersPageContent() {
       }
 
       if (profileError) {
-        console.error('🔍 Profile creation error:', profileError)
         throw new Error(`Profiel aanmaken mislukt: ${profileError.message}`)
       }
 
@@ -428,7 +412,6 @@ function AdminUsersPageContent() {
           .insert(gardenAccessInserts)
 
         if (accessError) {
-          console.error('🔍 Garden access error:', accessError)
           // Don't fail the entire operation for garden access issues
           console.warn('🔍 Continuing despite garden access error')
           toast({
