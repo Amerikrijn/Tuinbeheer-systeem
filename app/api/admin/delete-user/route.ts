@@ -72,10 +72,13 @@ export async function POST(request: NextRequest) {
       console.warn('Warning cleaning up related data:', relatedDataError)
     }
 
-    // Delete from users table first
+    // Soft delete: Set is_active to false instead of hard delete
     const { error: profileDeleteError } = await supabaseAdmin
       .from('users')
-      .delete()
+      .update({ 
+        is_active: false,
+        updated_at: new Date().toISOString()
+      })
       .eq('id', userId)
 
     if (profileDeleteError) {
@@ -86,26 +89,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Then delete from auth
-    const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
-
-    if (authDeleteError) {
-      console.warn('Auth deletion warning (user profile already deleted):', authDeleteError)
-      // Don't fail here - profile is already deleted which is the main goal
-    }
+    // Note: We keep the auth user active for potential restore
+    // Auth deletion is only done for permanent delete via trash management
 
     // Log admin action for audit trail (production: use proper logging service)
     // User successfully deleted: ${userData.email} by ${adminEmail}
 
-    return NextResponse.json({
-      success: true,
-      message: 'User deleted successfully',
-      deletedUser: {
-        email: userData.email,
-        fullName: userData.full_name,
-        role: userData.role
-      }
-    })
+          return NextResponse.json({
+        success: true,
+        message: 'User soft deleted successfully (moved to trash)',
+        deletedUser: {
+          email: userData.email,
+          fullName: userData.full_name,
+          role: userData.role
+        }
+      })
 
   } catch (error) {
     console.error('Delete user API error:', error)
