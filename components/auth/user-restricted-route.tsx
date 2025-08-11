@@ -21,11 +21,7 @@ export function UserRestrictedRoute({ children }: UserRestrictedRouteProps) {
 
   useEffect(() => {
     if (!loading && user && !isAdmin()) {
-      console.error('🚨 SECURITY VIOLATION: Non-admin user attempted to access restricted page:', {
-        user: user.email,
-        role: user.role,
-        path: window.location.pathname
-      })
+      // Security violation: Non-admin user attempted to access restricted page
       
       // Redirect to dashboard
       router.push('/')
@@ -44,7 +40,7 @@ export function UserRestrictedRoute({ children }: UserRestrictedRouteProps) {
     )
   }
 
-  if (!hasAccess) {
+  if (!user || !isAdmin()) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-md">

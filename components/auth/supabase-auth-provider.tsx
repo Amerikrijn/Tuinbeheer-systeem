@@ -24,7 +24,6 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   // 🏦 BANKING SECURITY: Force password change is MANDATORY
   // User cannot access ANY page until password is changed
   if (needsPasswordChange && !isAuthPage) {
-    console.log('🔒 SECURITY: Force password change required for user:', auth.user?.email)
     return (
       <SupabaseAuthContext.Provider value={auth}>
         <ForcePasswordChange />
