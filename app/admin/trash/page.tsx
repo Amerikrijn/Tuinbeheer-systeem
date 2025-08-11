@@ -735,6 +735,7 @@ export default function TrashPage() {
             </CardContent>
           </Card>
         </>
+        )
       )}
     </div>
   )
