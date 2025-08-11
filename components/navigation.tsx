@@ -32,7 +32,6 @@ export function BankingNavigation() {
     { href: '/logbook', label: 'Logboek', icon: <BookOpen className="h-4 w-4" /> },
     // Admin-only functions
     { href: '/admin/users', label: 'Gebruikers', icon: <User className="h-4 w-4" />, requiredPermission: 'admin' },
-    { href: '/admin/trash', label: 'Prullenbak', icon: <Trash2 className="h-4 w-4" />, requiredPermission: 'admin' },
   ];
   
   // Filter items based on permissions
