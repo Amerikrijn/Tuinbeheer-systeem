@@ -167,6 +167,17 @@ export default function TrashPage() {
 
           if (!response.ok) {
             const errorData = await response.json()
+            
+            // Handle banking compliance restriction
+            if (response.status === 409) {
+              toast({
+                title: "Permanent verwijdering geblokkeerd 🏦",
+                description: `${errorData.error}`,
+                variant: "destructive"
+              })
+              return // Stop processing this user
+            }
+            
             throw new Error(errorData.error || 'Failed to delete user')
           }
         }

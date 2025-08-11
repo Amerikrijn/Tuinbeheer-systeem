@@ -47,45 +47,71 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // Clean up related data first to avoid foreign key constraints
-    try {
-      // Delete audit logs
-      await supabaseAdmin
-        .from('audit_log')
-        .delete()
-        .eq('user_id', userId)
-
-      // Delete user garden access
-      await supabaseAdmin
-        .from('user_garden_access')
-        .delete()
-        .eq('user_id', userId)
-
-      // Delete user tasks
-      await supabaseAdmin
-        .from('tasks')
-        .delete()
-        .eq('user_id', userId)
-
-      // Delete user logbook entries  
-      await supabaseAdmin
-        .from('logbook_entries')
-        .delete()
-        .eq('user_id', userId)
-
-    } catch (cleanupError) {
-      console.warn('Related data cleanup warning:', cleanupError)
-      // Continue - some tables might not exist or have different structure
+    // Banking-compliant approach: Check for dependencies first
+    const dependencies = []
+    
+    // Check audit_log references
+    const { data: auditLogs, error: auditError } = await supabaseAdmin
+      .from('audit_log')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1)
+    
+    if (auditLogs && auditLogs.length > 0) {
+      dependencies.push('audit logs')
     }
 
-    // Permanent delete: Remove from auth first
+    // Check user_garden_access references
+    const { data: gardenAccess, error: accessError } = await supabaseAdmin
+      .from('user_garden_access')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1)
+    
+    if (gardenAccess && gardenAccess.length > 0) {
+      dependencies.push('garden access')
+    }
+
+    // Check tasks references
+    const { data: tasks, error: tasksError } = await supabaseAdmin
+      .from('tasks')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1)
+    
+    if (tasks && tasks.length > 0) {
+      dependencies.push('tasks')
+    }
+
+    // Check logbook_entries references
+    const { data: logbook, error: logbookError } = await supabaseAdmin
+      .from('logbook_entries')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1)
+    
+    if (logbook && logbook.length > 0) {
+      dependencies.push('logbook entries')
+    }
+
+    // Banking compliance: Don't allow permanent delete if dependencies exist
+    if (dependencies.length > 0) {
+      return NextResponse.json(
+        { 
+          error: `Cannot permanently delete user: has ${dependencies.join(', ')}. Use soft delete instead for compliance.`,
+          dependencies: dependencies,
+          recommendation: 'Keep user soft-deleted for audit trail compliance'
+        },
+        { status: 409 } // Conflict
+      )
+    }
+
+    // Only proceed if no dependencies (rare case for new/test users)
     const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
     if (authDeleteError) {
       console.warn('Auth deletion warning:', authDeleteError)
-      // Continue anyway - auth user might not exist
     }
 
-    // Then delete from users table
     const { error: dbDeleteError } = await supabaseAdmin
       .from('users')
       .delete()
