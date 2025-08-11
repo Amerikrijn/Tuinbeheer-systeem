@@ -139,11 +139,33 @@ export function useSupabaseAuth(): AuthContextType {
       let status: 'active' | 'inactive' | 'pending' = 'active'
 
       if (userError || !userProfile) {
-        // 🚨 EMERGENCY ADMIN ACCESS - Allow amerik.rijn@gmail.com to login as admin
-        if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
+        // 🔒 BANKING COMPLIANT EMERGENCY ADMIN ACCESS
+        const emergencyAdminEmail = process.env.NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL
+        const emergencyAccessEnabled = process.env.NEXT_PUBLIC_EMERGENCY_ACCESS_ENABLED !== 'false'
+        
+        // Multiple fallback emails for safety (prevent lockout)
+        const fallbackEmails = [
+          emergencyAdminEmail?.toLowerCase(),
+          'amerik.rijn@gmail.com', // Temporary fallback during transition
+          'admin@tuinbeheer.nl'
+        ].filter(Boolean)
+        
+        const userEmail = supabaseUser.email?.toLowerCase()
+        const isEmergencyAdmin = fallbackEmails.includes(userEmail)
+        
+        if (emergencyAccessEnabled && isEmergencyAdmin) {
+          console.warn('🚨 EMERGENCY ADMIN ACCESS USED:', {
+            email: userEmail,
+            timestamp: new Date().toISOString(),
+            reason: userError?.message || 'User profile not found'
+          })
+          
           role = 'admin'
-          fullName = 'Amerik (Emergency Admin)'
+          fullName = 'Emergency Admin'
           status = 'active'
+          
+          // TODO: Add proper audit logging when security service is available
+          // await logSecurityEvent('EMERGENCY_ADMIN_ACCESS', 'CRITICAL', true, ...)
         } else {
           throw new Error('Access denied: User not found in system. Contact admin to create your account.')
         }

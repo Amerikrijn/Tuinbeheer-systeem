@@ -46,6 +46,7 @@ import {
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { FlowerVisualization } from "@/components/flower-visualization"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 interface PlantBedPosition {
   id: string
@@ -55,7 +56,7 @@ interface PlantBedPosition {
   visual_height: number
 }
 
-export default function GardenDetailPage() {
+function GardenDetailPageContent() {
   const { goBack, navigateTo } = useNavigation()
   const { isVisualView, toggleView, isInitialized } = useViewPreference()
   const params = useParams()
@@ -1892,5 +1893,14 @@ export default function GardenDetailPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+// Protected garden detail page
+export default function GardenDetailPage() {
+  return (
+    <ProtectedRoute>
+      <GardenDetailPageContent />
+    </ProtectedRoute>
   )
 }

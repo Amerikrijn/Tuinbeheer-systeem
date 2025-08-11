@@ -21,6 +21,7 @@ import type { LogbookEntryFormData, Plantvak, Bloem, PlantvakWithBloemen } from 
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 interface NewLogbookPageState {
   plantBeds: PlantvakWithBloemen[]
@@ -584,8 +585,10 @@ function NewLogbookPageContent() {
 
 export default function NewLogbookPage() {
   return (
-    <ErrorBoundary>
-      <NewLogbookPageContent />
-    </ErrorBoundary>
+    <ProtectedRoute>
+      <ErrorBoundary>
+        <NewLogbookPageContent />
+      </ErrorBoundary>
+    </ProtectedRoute>
   )
 }

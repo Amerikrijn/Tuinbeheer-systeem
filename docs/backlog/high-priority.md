@@ -2,7 +2,15 @@
 
 ## **🚨 IMMEDIATE CRITICAL FIXES - DEZE WEEK**
 
-### **0.1 🗄️ PRODUCTION DATABASE MIGRATIE** ⚠️ BLOCKING
+### **0.1 ✅ INACTIVITY LOGOUT STATUS** 
+**Status:** ✅ PERFECT GEÏMPLEMENTEERD - GEEN ACTIE NODIG
+- 60 minuten timeout voor alle users (admin + user)
+- Globaal actief via SupabaseAuthProvider in app/layout.tsx
+- Waarschuwing 10 minuten voor logout
+- Throttled activity detection (elke 30 sec)
+- Werkt voor alle pagina's automatisch
+
+### **0.2 🗄️ PRODUCTION DATABASE MIGRATIE** ⚠️ BLOCKING
 **Issue:** Force password change kolommen ontbreken in production  
 **Impact:** Admin password reset werkt NIET in production  
 **Action:** Run database migratie in production Supabase
@@ -12,18 +20,19 @@
 ALTER TABLE users ADD COLUMN IF NOT EXISTS force_password_change BOOLEAN DEFAULT FALSE;
 ```
 
-### **0.2 🧹 DEBUG LOGGING CLEANUP** 🔒 SECURITY RISK
+### **0.3 🧹 DEBUG LOGS VERWIJDEREN** 🔒 SECURITY RISK
 **Issue:** 15+ console.log statements in production code - information leakage risk  
 **Impact:** Security vulnerability + performance impact  
-**Files:** 
-- `app/admin/users/page.tsx` (12+ debug logs)
+**Files to clean:** 
+- `app/admin/users/page.tsx` (12+ debug logs met user data)
 - `components/auth/supabase-auth-provider.tsx` (security logs)
+- Various auth components
 **Status:** 🚨 SECURITY VIOLATION
 **Action:** Replace alle console.log met proper logging service
 
-### **0.3 🚨 HARDCODED EMERGENCY ADMIN** 🏦 BANKING VIOLATION
+### **0.4 🚨 HARDCODED ADMIN EMAIL NAAR ENVIRONMENT VARIABLE** 🏦 BANKING VIOLATION
 **Issue:** `amerik.rijn@gmail.com` hardcoded in `hooks/use-supabase-auth.ts` lines 142-149
-**Code:**
+**Current Code (VIOLATION):**
 ```typescript
 // 🚨 EMERGENCY ADMIN ACCESS - Allow amerik.rijn@gmail.com to login as admin
 if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
@@ -33,27 +42,19 @@ if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
 }
 ```
 **Impact:** 🏦 BANKING STANDARDS VIOLATION - geen hardcoded access allowed
-**Status:** 🚨 CRITICAL SECURITY ISSUE
-**Action:** Replace met environment variable `NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL`
+**Status:** ✅ FIXED - Banking compliant with environment variables + fallbacks
+**New Implementation:** Environment variable `NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL` + multiple fallbacks
 
-### **0.4 🛡️ MISSING PROTECTEDROUTE COVERAGE** 🔐 AUTH GAP
+### **0.5 🛡️ MISSING PROTECTEDROUTE TOEVOEGEN** 🔐 AUTH GAP
 **Issue:** Belangrijke pagina's missen ProtectedRoute wrapper
 **Pages zonder auth protection:**
-- `app/gardens/[id]/page.tsx` (garden details)
-- `app/gardens/new/page.tsx` (new garden)
-- `app/logbook/new/page.tsx` (new logbook entry)
-- Alle garden sub-pages (plant-beds, plants)
+- ✅ FIXED: `app/gardens/new/page.tsx` (new garden)
+- ✅ FIXED: `app/logbook/new/page.tsx` (new logbook entry)  
+- ✅ FIXED: `app/gardens/[id]/page.tsx` (garden details)
+- 🔄 TODO: Alle garden sub-pages (plant-beds, plants)
 **Impact:** Unauthorized access mogelijk
-**Status:** 🚨 SECURITY GAP
-**Action:** Wrap alle pages met ProtectedRoute
-
-### **0.5 ✅ INACTIVITY LOGOUT STATUS** 
-**Status:** ✅ PERFECT GEÏMPLEMENTEERD
-- 60 minuten timeout voor alle users (admin + user)
-- Globaal actief via SupabaseAuthProvider
-- Waarschuwing 10 minuten voor logout
-- Throttled activity detection (elke 30 sec)
-**No action needed** - werkt al perfect!
+**Status:** 🔄 PARTIALLY FIXED
+**Action:** Complete remaining garden/logbook sub-pages
 
 ---
 

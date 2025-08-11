@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, TreePine, Plus, AlertCircle, Calendar } from "lucide-react"
 import { createGarden } from "@/lib/database"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 interface NewGarden {
   name: string
@@ -27,7 +28,7 @@ interface NewGarden {
   notes: string
 }
 
-export default function NewGardenPage() {
+function NewGardenPageContent() {
   const router = useRouter()
   const { toast } = useToast()
 
@@ -456,5 +457,14 @@ export default function NewGardenPage() {
         </aside>
       </div>
     </div>
+  )
+}
+
+// Protected new garden page
+export default function NewGardenPage() {
+  return (
+    <ProtectedRoute>
+      <NewGardenPageContent />
+    </ProtectedRoute>
   )
 }

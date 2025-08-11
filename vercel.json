@@ -2,6 +2,8 @@
   "version": 2,
   "buildCommand": "npm run build",
   "env": {
-    "APP_ENV": "production"
+    "APP_ENV": "production",
+    "NEXT_PUBLIC_EMERGENCY_ADMIN_EMAIL": "amerik.rijn@gmail.com",
+    "NEXT_PUBLIC_EMERGENCY_ACCESS_ENABLED": "true"
   }
 }
