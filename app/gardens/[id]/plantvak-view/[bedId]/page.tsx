@@ -1505,7 +1505,7 @@ export default function PlantBedViewPage() {
       case 'partial-sun':
         return <CloudSun className="h-4 w-4 text-yellow-400" />
       default:
-        return <Cloud className="h-4 w-4 text-gray-500" />
+        return <Cloud className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -1530,8 +1530,8 @@ export default function PlantBedViewPage() {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
+          <div className="h-64 bg-muted rounded"></div>
         </div>
       </div>
     )
@@ -1541,9 +1541,9 @@ export default function PlantBedViewPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
-          <Leaf className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Plantvak niet gevonden</h3>
-          <p className="text-gray-600 mb-4">Het plantvak dat je zoekt bestaat niet.</p>
+          <Leaf className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">Plantvak niet gevonden</h3>
+          <p className="text-muted-foreground mb-4">Het plantvak dat je zoekt bestaat niet.</p>
           <Button onClick={goBack} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug
@@ -1594,7 +1594,7 @@ export default function PlantBedViewPage() {
                 Bloem Toevoegen
               </Button>
                           </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl">
+            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-card border border-border shadow-xl">
               <DialogHeader>
                 <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
                 <DialogDescription>
@@ -1641,7 +1641,7 @@ export default function PlantBedViewPage() {
               setSelectedFlower(null)
             }
           }}>
-            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-white z-50 border border-gray-200 shadow-xl">
+            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-card z-50 border border-border shadow-xl">
               <DialogHeader>
                 <DialogTitle>Bloem Bewerken</DialogTitle>
                 <DialogDescription>
@@ -1728,12 +1728,12 @@ export default function PlantBedViewPage() {
       </div>
 
       {/* Plant Bed Information - Simplified */}
-      <Card className="bg-gray-50">
+      <Card className="bg-muted">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Leaf className="h-4 w-4 text-green-600" />
-              <span className="font-medium text-gray-900">Plantvak Informatie</span>
+              <span className="font-medium text-foreground">Plantvak Informatie</span>
             </div>
             <Button
               variant="outline"
@@ -1748,17 +1748,17 @@ export default function PlantBedViewPage() {
           
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="text-gray-600">Naam:</span>
+              <span className="text-muted-foreground">Naam:</span>
               <p className="font-medium">{plantBed?.name || 'Onbekend'}</p>
             </div>
             <div>
-              <span className="text-gray-600">Afmetingen:</span>
+              <span className="text-muted-foreground">Afmetingen:</span>
               <p className="font-medium">
                 {plantBed?.size || `${(canvasWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(canvasHeight / METERS_TO_PIXELS).toFixed(1)}m`}
               </p>
             </div>
             <div>
-              <span className="text-gray-600">Bloemen:</span>
+              <span className="text-muted-foreground">Bloemen:</span>
               <p className="font-medium">{flowerPositions.length}</p>
             </div>
           </div>
@@ -1844,7 +1844,7 @@ export default function PlantBedViewPage() {
                   </SelectItem>
                   <SelectItem value="shade">
                     <div className="flex items-center gap-2">
-                      <Cloud className="h-4 w-4 text-gray-500" />
+                      <Cloud className="h-4 w-4 text-muted-foreground" />
                       <span>Schaduw</span>
                     </div>
                   </SelectItem>
@@ -2110,7 +2110,7 @@ export default function PlantBedViewPage() {
                     }}
                   >
                     {/* Plantvak name and info - always within the plantvak area */}
-                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border">
+                    <div className="absolute top-2 left-2 bg-card/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border border-border">
                       <div className="text-sm font-bold text-green-800">
                         {plantBed.name}
                       </div>
@@ -2204,7 +2204,7 @@ export default function PlantBedViewPage() {
                       
                       {/* Kleine naam label voor kleine bloemen */}
                       {flower.visual_width <= 60 && (
-                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-700 bg-white bg-opacity-90 px-2 py-1 rounded shadow-sm whitespace-nowrap">
+                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-medium text-foreground bg-card/90 px-2 py-1 rounded shadow-sm whitespace-nowrap border border-border">
                           {flower.name}
                         </div>
                       )}
@@ -2255,7 +2255,7 @@ export default function PlantBedViewPage() {
                         
                                                                         {/* 🚨 POGING 2/2 - LAATSTE KANS PERFECTE DRAG! */}
                         {/* NAAM VAN DE BLOEM - ALTIJD ZICHTBAAR */}
-                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 text-sm font-bold px-3 py-1 rounded shadow-lg border z-40">
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-card text-foreground text-sm font-bold px-3 py-1 rounded shadow-lg border border-border z-40">
                           {flower.name}
                         </div>
                         
@@ -2378,7 +2378,7 @@ export default function PlantBedViewPage() {
                         )}
                         
                         {/* Always show flower name when selected */}
-                        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 text-sm font-bold px-3 py-1 rounded shadow-lg border z-10">
+                        <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 bg-card text-foreground text-sm font-bold px-3 py-1 rounded shadow-lg border border-border z-10">
                           {flower.name}
                         </div>
                       </>
@@ -2393,9 +2393,9 @@ export default function PlantBedViewPage() {
               {flowerPositions.length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <Flower className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Nog geen bloemen</h3>
-                    <p className="text-gray-600 mb-4">Voeg bloemen toe aan dit plantvak.</p>
+                    <Flower className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">Nog geen bloemen</h3>
+                    <p className="text-muted-foreground mb-4">Voeg bloemen toe aan dit plantvak.</p>
                     <Button onClick={() => setIsAddingFlower(true)} className="bg-pink-600 hover:bg-pink-700">
                       <Plus className="h-4 w-4 mr-2" />
                       Eerste Bloem Toevoegen
@@ -2405,7 +2405,7 @@ export default function PlantBedViewPage() {
               )}
             </div>
           </div>
-              <div className="mt-4 text-sm text-gray-600 flex items-center justify-end">
+              <div className="mt-4 text-sm text-muted-foreground flex items-center justify-end">
                 <div className="flex items-center gap-4">
                   <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                   {hasChanges && (
@@ -2420,10 +2420,10 @@ export default function PlantBedViewPage() {
             /* List View */
             <div className="space-y-4">
               {/* List Header */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                 <div className="flex items-center gap-2">
-                  <List className="h-5 w-5 text-gray-600" />
-                  <span className="font-medium text-gray-900">Bloemen Lijst</span>
+                  <List className="h-5 w-5 text-muted-foreground" />
+                  <span className="font-medium text-foreground">Bloemen Lijst</span>
                   <Badge variant="secondary">{flowerPositions.length} bloemen</Badge>
                 </div>
               </div>
@@ -2707,7 +2707,7 @@ export default function PlantBedViewPage() {
       {/* Resize Interface Overlay */}
       {showResizeInterface && selectedFlower && (
         <div 
-          className="fixed z-50 bg-white rounded-lg shadow-2xl border-2 border-blue-500 p-4"
+          className="fixed z-50 bg-card rounded-lg shadow-2xl border-2 border-blue-500 p-4"
           style={{
             left: resizeInterfacePosition.x - 100,
             top: resizeInterfacePosition.y - 60,
@@ -2715,7 +2715,7 @@ export default function PlantBedViewPage() {
           }}
         >
           <div className="flex items-center gap-2 mb-2">
-            <div className="text-sm font-medium text-gray-700">
+            <div className="text-sm font-medium text-foreground">
               🌸 {selectedFlower.name}
             </div>
             <Button
