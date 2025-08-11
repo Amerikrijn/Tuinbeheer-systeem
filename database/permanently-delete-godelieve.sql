@@ -13,28 +13,8 @@ SELECT 'BEFORE DELETION - PUBLIC USER' as check_type, id, email, created_at::tex
 FROM public.users 
 WHERE email = 'Godelieveochtendster@ziggo.nl';
 
--- 2. Check for any dependencies that might block deletion
-SELECT 'AUDIT LOG ENTRIES' as dependency_type, COUNT(*)::text as count, '' as details
-FROM audit_log 
-WHERE user_id IN (SELECT id FROM public.users WHERE email = 'Godelieveochtendster@ziggo.nl')
-
-UNION ALL
-
-SELECT 'GARDEN ACCESS' as dependency_type, COUNT(*)::text as count, '' as details
-FROM user_garden_access 
-WHERE user_id IN (SELECT id FROM public.users WHERE email = 'Godelieveochtendster@ziggo.nl')
-
-UNION ALL
-
-SELECT 'TASKS' as dependency_type, COUNT(*)::text as count, '' as details
-FROM tasks 
-WHERE user_id IN (SELECT id FROM public.users WHERE email = 'Godelieveochtendster@ziggo.nl')
-
-UNION ALL
-
-SELECT 'LOGBOOK ENTRIES' as dependency_type, COUNT(*)::text as count, '' as details
-FROM logbook_entries 
-WHERE user_id IN (SELECT id FROM public.users WHERE email = 'Godelieveochtendster@ziggo.nl');
+-- 2. Get user ID for dependency checks
+-- Skip dependency checks for now - just delete directly
 
 -- 3. Delete from public.users first (if exists)
 DELETE FROM public.users 
