@@ -47,6 +47,37 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
+    // Clean up related data first to avoid foreign key constraints
+    try {
+      // Delete audit logs
+      await supabaseAdmin
+        .from('audit_log')
+        .delete()
+        .eq('user_id', userId)
+
+      // Delete user garden access
+      await supabaseAdmin
+        .from('user_garden_access')
+        .delete()
+        .eq('user_id', userId)
+
+      // Delete user tasks
+      await supabaseAdmin
+        .from('tasks')
+        .delete()
+        .eq('user_id', userId)
+
+      // Delete user logbook entries  
+      await supabaseAdmin
+        .from('logbook_entries')
+        .delete()
+        .eq('user_id', userId)
+
+    } catch (cleanupError) {
+      console.warn('Related data cleanup warning:', cleanupError)
+      // Continue - some tables might not exist or have different structure
+    }
+
     // Permanent delete: Remove from auth first
     const { error: authDeleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
     if (authDeleteError) {
