@@ -49,28 +49,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // First, delete related data that might have foreign key constraints
-    try {
-      // Delete user garden access (if any)
-      await supabaseAdmin
-        .from('user_garden_access')
-        .delete()
-        .eq('user_id', userId)
-
-      // Delete user tasks/logbook entries (if any)
-      await supabaseAdmin
-        .from('tasks')
-        .delete()
-        .eq('user_id', userId)
-
-      await supabaseAdmin
-        .from('logbook_entries')
-        .delete()
-        .eq('user_id', userId)
-
-    } catch (relatedDataError) {
-      console.warn('Warning cleaning up related data:', relatedDataError)
-    }
+    // For soft delete, we keep all related data intact
+    // Only the user is marked as inactive (is_active = false)
+    // Related data (garden access, tasks, logbook entries) remains for restore capability
 
     // Soft delete: Set is_active to false instead of hard delete
     const { error: profileDeleteError } = await supabaseAdmin

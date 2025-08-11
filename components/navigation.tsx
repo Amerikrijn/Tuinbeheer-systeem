@@ -36,9 +36,16 @@ export function BankingNavigation() {
   ];
   
   // Filter items based on permissions
-  const visibleItems = navItems.filter(item => 
-    !item.requiredPermission || hasPermission?.(item.requiredPermission)
-  );
+  const visibleItems = navItems.filter(item => {
+    const hasAccess = !item.requiredPermission || hasPermission?.(item.requiredPermission);
+    
+    // Debug logging for admin items
+    if (item.requiredPermission === 'admin') {
+      console.log(`🔍 Navigation Debug: ${item.label} - User: ${user?.email}, Role: ${user?.role}, HasAccess: ${hasAccess}`);
+    }
+    
+    return hasAccess;
+  });
   
   return (
     <nav className="bg-background border-b border-border sticky top-0 z-50" role="navigation" aria-label="Hoofdnavigatie">
