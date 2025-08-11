@@ -117,16 +117,18 @@ export function useSupabaseAuth(): AuthContextType {
     }
     
     try {
-      // Reduced timeout for better UX
+      // Banking-grade timeout for production stability
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 5000) // Increased for production stability
+        setTimeout(() => reject(new Error('Database lookup timeout')), 10000) // 10 seconds for banking environment
       })
 
-      // Database lookup with timeout
+      // Database lookup with timeout - use ID lookup if available, fallback to email
       const databasePromise = supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change')
-        .eq('email', supabaseUser.email)
+        .or(`id.eq.${supabaseUser.id},email.eq.${supabaseUser.email}`)
+        .eq('is_active', true)
+        .limit(1)
         .single()
 
       const { data: userProfile, error: userError } = await Promise.race([
