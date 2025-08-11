@@ -79,16 +79,8 @@ export async function POST(request: NextRequest) {
     // Generate temporary password
     const temporaryPassword = generateTemporaryPassword()
 
-    // Banking-compliant approach: Check if user already exists first
-    // TEMPORARILY DISABLED: Auth cache issue after manual deletion
-    // const { data: existingAuth, error: existingAuthError } = await supabaseAdmin.auth.admin.listUsers()
-    // 
-    // if (existingAuth?.users?.some(u => u.email === email.toLowerCase().trim())) {
-    //   return NextResponse.json(
-    //     { error: `Gebruiker met email ${email} bestaat al. Gebruik "Wachtwoord Resetten" om toegang te herstellen.` },
-    //     { status: 409 }
-    //   )
-    // }
+    // Banking-compliant approach: Try to create user, handle existing user error gracefully
+    // This avoids cache issues while still preventing duplicates
 
     // Create user in Supabase Auth with service role
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -105,6 +97,17 @@ export async function POST(request: NextRequest) {
 
     if (authError) {
       console.error('Auth user creation error:', authError)
+      
+      // Handle specific "user already exists" error
+      if (authError.message?.includes('already been registered') || 
+          authError.message?.includes('already exists') ||
+          authError.message?.includes('duplicate')) {
+        return NextResponse.json(
+          { error: `Gebruiker met email ${email} bestaat nog in auth systeem. Wacht 5 minuten voor cache refresh of gebruik andere email.` },
+          { status: 409 }
+        )
+      }
+      
       return NextResponse.json(
         { error: `User creation failed: ${authError.message}` },
         { status: 500 }
