@@ -9,7 +9,15 @@ Features die volgens banking standards geïmplementeerd moeten worden.
 
 ## **🚨 KRITIEK (MOET EERST)**
 
-### **0. 🗄️ PRODUCTION DATABASE MIGRATIE**
+### **0. 🗑️ USER DELETION FIX**
+**Issue:** Database error bij het verwijderen van gebruikers  
+**Error:** "Database error deleting user" - Foreign key constraints  
+**Impact:** Admins kunnen gebruikers niet verwijderen  
+**Action:** Onderzoek database relaties en foreign key constraints  
+**Priority:** HIGH - Admin functionaliteit werkt niet  
+**Status:** ⚠️ NEEDS INVESTIGATION
+
+### **1. 🗄️ PRODUCTION DATABASE MIGRATIE**
 **Issue:** Force password change kolommen ontbreken in production  
 **Impact:** Admin password reset werkt NIET in production  
 **Action:** Run `SUPABASE_SQL_MIGRATIE.sql` in production database  
@@ -17,7 +25,7 @@ Features die volgens banking standards geïmplementeerd moeten worden.
 
 ---
 
-## **1. 🔑 USER PASSWORD SELF-MANAGEMENT**
+## **2. 🔑 USER PASSWORD SELF-MANAGEMENT**
 
 ### **Issue:** 
 Gebruikers kunnen hun eigen wachtwoord niet wijzigen - banking standard violation
@@ -47,7 +55,7 @@ Users moeten eigen wachtwoord kunnen beheren zonder admin tussenkomst
 
 ---
 
-## **2. 🧹 DEBUG LOGGING CLEANUP**
+## **3. 🧹 DEBUG LOGGING CLEANUP**
 
 ### **Issue:**
 15+ console.log statements in production code - security risk
@@ -76,7 +84,7 @@ Users moeten eigen wachtwoord kunnen beheren zonder admin tussenkomst
 
 ---
 
-## **3. 🚨 HARDCODED EMERGENCY ADMIN FIX**
+## **4. 🚨 HARDCODED EMERGENCY ADMIN FIX**
 
 ### **Issue:**
 `amerik.rijn@gmail.com` hardcoded in auth hook - banking violation
@@ -101,7 +109,7 @@ if (supabaseUser.email?.toLowerCase() === 'amerik.rijn@gmail.com') {
 
 ---
 
-## **4. 👤 USER ACCOUNT MANAGEMENT DASHBOARD**
+## **5. 👤 USER ACCOUNT MANAGEMENT DASHBOARD**
 
 ### **Issue:**
 Gebruikers hebben geen overzicht van eigen account
@@ -129,7 +137,7 @@ Users moeten eigen profiel en security status kunnen bekijken
 
 ---
 
-## **5. 🔐 TWO-FACTOR AUTHENTICATION**
+## **6. 🔐 TWO-FACTOR AUTHENTICATION**
 
 ### **Issue:**
 Geen 2FA voor admin accounts - banking standard violation
@@ -152,7 +160,7 @@ Privileged accounts (admins) moeten 2FA hebben voor extra beveiliging
 
 ---
 
-## **6. 🚨 ACCOUNT LOCKOUT POLICY**
+## **7. 🚨 ACCOUNT LOCKOUT POLICY**
 
 ### **Issue:**
 Geen protection tegen brute force attacks
@@ -177,7 +185,7 @@ Geen protection tegen brute force attacks
 
 ---
 
-## **7. 🔄 NAVIGATION IMPROVEMENTS**
+## **8. 🔄 NAVIGATION IMPROVEMENTS**
 
 ### **Issue:**
 Geen duidelijke link naar user settings
