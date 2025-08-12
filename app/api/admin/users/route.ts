@@ -87,8 +87,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Role must be admin or user' }, { status: 400 })
     }
 
-    // Validate garden access for regular users
-    if (role === 'user' && gardenAccess && !Array.isArray(gardenAccess)) {
+    // Validate garden access for both users and admins
+    if (gardenAccess && !Array.isArray(gardenAccess)) {
       return NextResponse.json({ error: 'Garden access must be an array' }, { status: 400 })
     }
 
@@ -157,8 +157,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 🏦 NEW: Create garden access for regular users
-    if (role === 'user' && gardenAccess && gardenAccess.length > 0) {
+    // 🏦 NEW: Create garden access for both users and admins (if specified)
+    if (gardenAccess && gardenAccess.length > 0) {
       const gardenAccessRecords = gardenAccess.map((gardenId: string) => ({
         user_id: authData.user.id,
         garden_id: gardenId,
@@ -177,6 +177,7 @@ export async function POST(request: NextRequest) {
         auditLog('GARDEN_ACCESS_CREATION_FAILED', {
           userId: authData.user.id,
           email: email.toLowerCase().trim(),
+          role: role,
           gardenAccess: gardenAccess,
           error: accessError.message
         })
@@ -184,6 +185,7 @@ export async function POST(request: NextRequest) {
         auditLog('GARDEN_ACCESS_CREATED', {
           userId: authData.user.id,
           email: email.toLowerCase().trim(),
+          role: role,
           gardenAccess: gardenAccess,
           count: gardenAccess.length
         })
@@ -194,7 +196,11 @@ export async function POST(request: NextRequest) {
       email: email.toLowerCase().trim(), 
       role, 
       userId: authData.user.id,
-      gardenAccessCount: role === 'user' ? (gardenAccess?.length || 0) : 'admin_all_access'
+      gardenAccessType: gardenAccess && gardenAccess.length > 0 
+        ? `${role}_limited_access` 
+        : role === 'admin' 
+          ? 'super_admin_all_access' 
+          : 'user_no_access'
     })
 
     return NextResponse.json({
