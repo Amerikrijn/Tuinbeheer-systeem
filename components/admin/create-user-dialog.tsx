@@ -174,65 +174,76 @@ export function CreateUserDialog({
             </Select>
           </div>
 
-          {/* Garden Access Selection - Only for regular users */}
-          {createForm.role === 'user' && (
-            <div className="space-y-2">
-              <Label>Tuin Toegang</Label>
-              <div className="text-sm text-muted-foreground mb-2">
-                Selecteer welke tuinen deze gebruiker kan beheren
-              </div>
-              <div className="border rounded-md p-3 max-h-32 overflow-y-auto">
-                {gardens.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Geen tuinen beschikbaar</p>
-                ) : (
-                  <div className="space-y-2">
-                    {gardens.map((garden) => (
-                      <div key={garden.id} className="flex items-center space-x-2">
-                        <input
-                          type="checkbox"
-                          id={`garden-${garden.id}`}
-                          checked={createForm.gardenAccess.includes(garden.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setCreateForm(prev => ({
-                                ...prev,
-                                gardenAccess: [...prev.gardenAccess, garden.id]
-                              }))
-                            } else {
-                              setCreateForm(prev => ({
-                                ...prev,
-                                gardenAccess: prev.gardenAccess.filter(id => id !== garden.id)
-                              }))
-                            }
-                          }}
-                          className="rounded border-border"
-                        />
-                        <label 
-                          htmlFor={`garden-${garden.id}`}
-                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          {garden.name}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {createForm.role === 'user' && createForm.gardenAccess.length === 0 && (
-                <p className="text-xs text-orange-600">
-                  ⚠️ Gebruiker heeft geen tuin toegang - kan geen taken uitvoeren
-                </p>
+          {/* Garden Access Selection - For both users and admins */}
+          <div className="space-y-2">
+            <Label>Tuin Toegang</Label>
+            <div className="text-sm text-muted-foreground mb-2">
+              {createForm.role === 'admin' 
+                ? 'Selecteer welke tuinen deze administrator kan beheren (leeg = alle tuinen)'
+                : 'Selecteer welke tuinen deze gebruiker kan beheren'
+              }
+            </div>
+            <div className="border rounded-md p-3 max-h-32 overflow-y-auto">
+              {gardens.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Geen tuinen beschikbaar</p>
+              ) : (
+                <div className="space-y-2">
+                  {gardens.map((garden) => (
+                    <div key={garden.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`garden-${garden.id}`}
+                        checked={createForm.gardenAccess.includes(garden.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setCreateForm(prev => ({
+                              ...prev,
+                              gardenAccess: [...prev.gardenAccess, garden.id]
+                            }))
+                          } else {
+                            setCreateForm(prev => ({
+                              ...prev,
+                              gardenAccess: prev.gardenAccess.filter(id => id !== garden.id)
+                            }))
+                          }
+                        }}
+                        className="rounded border-border"
+                      />
+                      <label 
+                        htmlFor={`garden-${garden.id}`}
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                      >
+                        {garden.name}
+                      </label>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-          )}
-
-          {createForm.role === 'admin' && (
-            <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
-              <p className="text-sm text-blue-700 dark:text-blue-300">
-                <strong>Administrator:</strong> Heeft automatisch toegang tot alle tuinen
+            
+            {/* Role-specific warnings */}
+            {createForm.role === 'user' && createForm.gardenAccess.length === 0 && (
+              <p className="text-xs text-orange-600">
+                ⚠️ Gebruiker heeft geen tuin toegang - kan geen taken uitvoeren
               </p>
-            </div>
-          )}
+            )}
+            
+            {createForm.role === 'admin' && createForm.gardenAccess.length === 0 && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <strong>Super Administrator:</strong> Heeft automatisch toegang tot alle tuinen
+                </p>
+              </div>
+            )}
+            
+            {createForm.role === 'admin' && createForm.gardenAccess.length > 0 && (
+              <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-md">
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+                  <strong>Garden Administrator:</strong> Beperkte toegang tot {createForm.gardenAccess.length} tuin(en)
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         <DialogFooter>
