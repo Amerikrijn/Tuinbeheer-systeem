@@ -211,7 +211,11 @@ export async function POST(request: NextRequest) {
         fullName: fullName,
         role: role,
         tempPassword: tempPassword,
-        gardenAccessCount: role === 'user' ? (gardenAccess?.length || 0) : 'all'
+        gardenAccessType: gardenAccess && gardenAccess.length > 0 
+          ? `${role}_limited_access` 
+          : role === 'admin' 
+            ? 'super_admin_all_access' 
+            : 'user_no_access'
       },
       message: 'User created successfully. Share temporary password securely.'
     })
@@ -312,8 +316,8 @@ export async function PUT(request: NextRequest) {
         return NextResponse.json({ error: 'Role must be admin or user' }, { status: 400 })
       }
 
-      // Validate garden access for regular users
-      if (role === 'user' && gardenAccess && !Array.isArray(gardenAccess)) {
+      // Validate garden access for both users and admins
+      if (gardenAccess && !Array.isArray(gardenAccess)) {
         return NextResponse.json({ error: 'Garden access must be an array' }, { status: 400 })
       }
 
@@ -335,66 +339,62 @@ export async function PUT(request: NextRequest) {
         )
       }
 
-      // 🏦 BANKING-GRADE: Update garden access for users
-      if (role === 'user') {
-        // First, remove all existing garden access
-        const { error: deleteError } = await supabaseAdmin
+      // 🏦 BANKING-GRADE: Update garden access for both users and admins
+      // First, remove all existing garden access
+      const { error: deleteError } = await supabaseAdmin
+        .from('user_garden_access')
+        .delete()
+        .eq('user_id', userId)
+
+      if (deleteError) {
+        console.error('Garden access deletion failed:', deleteError)
+        // Don't fail the whole operation
+      }
+
+      // Then, add new garden access if provided (for both users and admins)
+      if (gardenAccess && gardenAccess.length > 0) {
+        const gardenAccessRecords = gardenAccess.map((gardenId: string) => ({
+          user_id: userId,
+          garden_id: gardenId,
+          granted_by: 'admin',
+          created_at: new Date().toISOString()
+        }))
+
+        const { error: insertError } = await supabaseAdmin
           .from('user_garden_access')
-          .delete()
-          .eq('user_id', userId)
+          .insert(gardenAccessRecords)
 
-        if (deleteError) {
-          console.error('Garden access deletion failed:', deleteError)
-          // Don't fail the whole operation
+        if (insertError) {
+          console.error('Garden access creation failed:', insertError)
+          // Don't fail the user update
+          auditLog('GARDEN_ACCESS_UPDATE_FAILED', {
+            userId: userId,
+            email: userData.email,
+            role: role,
+            gardenAccess: gardenAccess,
+            error: insertError.message
+          })
+        } else {
+          auditLog('GARDEN_ACCESS_UPDATED', {
+            userId: userId,
+            email: userData.email,
+            role: role,
+            gardenAccess: gardenAccess,
+            count: gardenAccess.length,
+            accessType: gardenAccess.length > 0 
+              ? `${role}_limited_access` 
+              : `${role}_no_specific_access`
+          })
         }
-
-        // Then, add new garden access if provided
-        if (gardenAccess && gardenAccess.length > 0) {
-          const gardenAccessRecords = gardenAccess.map((gardenId: string) => ({
-            user_id: userId,
-            garden_id: gardenId,
-            granted_by: 'admin',
-            created_at: new Date().toISOString()
-          }))
-
-          const { error: insertError } = await supabaseAdmin
-            .from('user_garden_access')
-            .insert(gardenAccessRecords)
-
-          if (insertError) {
-            console.error('Garden access creation failed:', insertError)
-            // Don't fail the user update
-            auditLog('GARDEN_ACCESS_UPDATE_FAILED', {
-              userId: userId,
-              email: userData.email,
-              gardenAccess: gardenAccess,
-              error: insertError.message
-            })
-          } else {
-            auditLog('GARDEN_ACCESS_UPDATED', {
-              userId: userId,
-              email: userData.email,
-              gardenAccess: gardenAccess,
-              count: gardenAccess.length
-            })
-          }
-        }
-      } else if (role === 'admin') {
-        // Remove all garden access for admins (they get all access automatically)
-        const { error: deleteError } = await supabaseAdmin
-          .from('user_garden_access')
-          .delete()
-          .eq('user_id', userId)
-
-        if (deleteError) {
-          console.error('Admin garden access cleanup failed:', deleteError)
-          // Don't fail the operation
-        }
-
-        auditLog('ADMIN_ROLE_GRANTED', {
+      } else {
+        // No specific garden access - log the access type
+        auditLog('GARDEN_ACCESS_CLEARED', {
           userId: userId,
           email: userData.email,
-          previousRole: userData.role
+          role: role,
+          accessType: role === 'admin' 
+            ? 'super_admin_all_access' 
+            : 'user_no_access'
         })
       }
 
