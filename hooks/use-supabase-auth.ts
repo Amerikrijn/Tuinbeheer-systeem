@@ -123,16 +123,48 @@ export function useSupabaseAuth(): AuthContextType {
         setTimeout(() => reject(new Error('Database lookup timeout')), 15000) // Increased for production stability
       })
 
-      // 🏦 BANKING-GRADE: Enhanced database lookup with force_password_change
-      const databasePromise = supabase
+      // 🏦 BANKING-GRADE: Enhanced database lookup with progressive fallback
+      const primaryLookup = supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
         .eq('email', supabaseUser.email)
         .eq('is_active', true) // Only active users
         .single()
+      
+      // Fallback: Try by auth ID if email lookup fails
+      const fallbackLookup = supabase
+        .from('users')
+        .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
+        .eq('id', supabaseUser.id)
+        .eq('is_active', true)
+        .single()
+      
+      let databaseResult
+      try {
+        databaseResult = await primaryLookup
+        console.log('🏦 BANKING AUDIT: Primary lookup successful', { email: supabaseUser.email })
+      } catch (primaryError) {
+        console.warn('🏦 BANKING AUDIT: Primary lookup failed, trying fallback', { 
+          error: primaryError.message,
+          email: supabaseUser.email 
+        })
+        try {
+          databaseResult = await fallbackLookup
+          console.log('🏦 BANKING AUDIT: Fallback lookup successful', { userId: supabaseUser.id })
+        } catch (fallbackError) {
+          console.error('🏦 BANKING AUDIT: Both lookups failed', { 
+            primaryError: primaryError.message,
+            fallbackError: fallbackError.message,
+            email: supabaseUser.email,
+            userId: supabaseUser.id
+          })
+          databaseResult = { data: null, error: fallbackError }
+        }
+      }
 
+      // Apply timeout to the database result
       const { data: userProfile, error: userError } = await Promise.race([
-        databasePromise,
+        Promise.resolve(databaseResult),
         timeoutPromise
       ]) as { data: any, error: any }
 
@@ -141,30 +173,46 @@ export function useSupabaseAuth(): AuthContextType {
       let status: 'active' | 'inactive' | 'pending' = 'active'
 
       if (userError || !userProfile) {
-        // 🏦 BANKING COMPLIANCE: Detailed error logging
-        console.error('User profile lookup failed:', {
-          error: userError?.message,
+        // 🏦 BANKING COMPLIANCE: Detailed error logging with audit trail
+        const auditData = {
+          timestamp: new Date().toISOString(),
+          event: 'AUTH_FAILURE_USER_NOT_FOUND',
           email: supabaseUser.email,
-          userId: supabaseUser.id
-        })
-        
-        // 🚨 PRODUCTION FALLBACK: For critical users, allow basic access
-        if (supabaseUser.email === 'Godelieveochtendster@ziggo.nl') {
-          console.warn('🔧 EMERGENCY ACCESS: Allowing Godelieve with basic profile')
-          role = 'admin'
-          fullName = 'Godelieve (Emergency Access)'
-          status = 'active'
-        } else {
-          throw new Error('Access denied: User not found in system. Contact admin to create your account.')
+          userId: supabaseUser.id,
+          error: userError?.message || 'User profile not found',
+          ip: typeof window !== 'undefined' ? 'client-side' : 'server-side',
+          userAgent: typeof window !== 'undefined' ? window.navigator?.userAgent : 'N/A'
         }
+        
+        // Log to console for immediate debugging
+        console.error('🏦 BANKING AUDIT: Authentication failed', auditData)
+        
+        // TODO: Send to secure audit logging service
+        // await auditLogger.logSecurityEvent(auditData)
+        
+        throw new Error('Access denied: User not found in system. Contact admin to create your account.')
       } else {
         role = userProfile.role || 'user'
         fullName = userProfile.full_name || fullName
         status = userProfile.status || 'active'
       }
 
-      // 🏦 BANKING AUDIT: Update last_login asynchronously (non-blocking)
+      // 🏦 BANKING AUDIT: Comprehensive login audit trail
       if (userProfile) {
+        const loginAuditData = {
+          timestamp: new Date().toISOString(),
+          event: 'AUTH_SUCCESS_LOGIN',
+          userId: supabaseUser.id,
+          email: supabaseUser.email,
+          role: role,
+          ip: typeof window !== 'undefined' ? 'client-side' : 'server-side',
+          userAgent: typeof window !== 'undefined' ? window.navigator?.userAgent : 'N/A',
+          sessionId: supabaseUser.id + '_' + Date.now()
+        }
+        
+        console.log('🏦 BANKING AUDIT: Successful authentication', loginAuditData)
+        
+        // Update last_login asynchronously (non-blocking)
         supabase
           .from('users')
           .update({ 
@@ -174,7 +222,9 @@ export function useSupabaseAuth(): AuthContextType {
           .eq('id', userProfile.id)
           .then(({ error }) => {
             if (error) {
-              console.warn('Last login update failed (non-critical):', error.message)
+              console.error('🏦 BANKING AUDIT: Failed to update last_login:', error)
+            } else {
+              console.log('🏦 BANKING AUDIT: Last login timestamp updated')
             }
           })
       }
