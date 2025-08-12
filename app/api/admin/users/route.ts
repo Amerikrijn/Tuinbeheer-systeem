@@ -1,0 +1,310 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+// Banking-grade admin client with service role
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
+
+// Secure password generator
+function generateSecurePassword(): string {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%'
+  let password = ''
+  for (let i = 0; i < 16; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return password
+}
+
+// Audit logging
+function auditLog(action: string, details: any) {
+  console.log(`🔒 ADMIN AUDIT: ${action}`, {
+    timestamp: new Date().toISOString(),
+    action,
+    details
+  })
+}
+
+// GET - List all active users
+export async function GET() {
+  try {
+    const { data: users, error } = await supabaseAdmin
+      .from('users')
+      .select('id, email, full_name, role, status, created_at, last_login, force_password_change')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('Users fetch error:', error)
+      return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
+    }
+
+    auditLog('LIST_USERS', { count: users.length })
+
+    return NextResponse.json({ users })
+  } catch (error) {
+    console.error('GET users error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// POST - Create new user
+export async function POST(request: NextRequest) {
+  try {
+    const { email, fullName, role } = await request.json()
+
+    // Validation
+    if (!email || !fullName || !role) {
+      return NextResponse.json(
+        { error: 'Email, full name, and role are required' },
+        { status: 400 }
+      )
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 })
+    }
+
+    if (!['admin', 'user'].includes(role)) {
+      return NextResponse.json({ error: 'Role must be admin or user' }, { status: 400 })
+    }
+
+    // Check if user exists
+    const { data: existingUser } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', email.toLowerCase().trim())
+      .single()
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: `User with email ${email} already exists` },
+        { status: 409 }
+      )
+    }
+
+    // Generate secure temporary password
+    const tempPassword = generateSecurePassword()
+
+    // Create auth user
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: email.toLowerCase().trim(),
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: {
+        full_name: fullName,
+        role: role,
+        temp_password: true,
+        created_by_admin: true
+      }
+    })
+
+    if (authError || !authData.user) {
+      console.error('Auth user creation failed:', authError)
+      return NextResponse.json(
+        { error: `Failed to create auth user: ${authError?.message}` },
+        { status: 500 }
+      )
+    }
+
+    // Create profile - CRITICAL: must match auth ID
+    const { error: profileError } = await supabaseAdmin
+      .from('users')
+      .insert({
+        id: authData.user.id, // EXACT match with auth ID
+        email: email.toLowerCase().trim(),
+        full_name: fullName,
+        role: role,
+        status: 'active',
+        is_active: true,
+        force_password_change: true, // Must change on first login
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+
+    if (profileError) {
+      console.error('Profile creation failed:', profileError)
+      
+      // CRITICAL: Cleanup auth user if profile fails
+      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+      
+      return NextResponse.json(
+        { error: `Profile creation failed: ${profileError.message}` },
+        { status: 500 }
+      )
+    }
+
+    auditLog('CREATE_USER', { 
+      email: email.toLowerCase().trim(), 
+      role, 
+      userId: authData.user.id 
+    })
+
+    return NextResponse.json({
+      success: true,
+      user: {
+        id: authData.user.id,
+        email: email.toLowerCase().trim(),
+        fullName: fullName,
+        role: role,
+        tempPassword: tempPassword
+      },
+      message: 'User created successfully. Share temporary password securely.'
+    })
+
+  } catch (error) {
+    console.error('POST users error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// PUT - Update user (password reset)
+export async function PUT(request: NextRequest) {
+  try {
+    const { userId, action } = await request.json()
+
+    if (!userId || !action) {
+      return NextResponse.json(
+        { error: 'User ID and action are required' },
+        { status: 400 }
+      )
+    }
+
+    // Get user details
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id, email, full_name, role')
+      .eq('id', userId)
+      .eq('is_active', true)
+      .single()
+
+    if (userError || !userData) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    if (action === 'reset_password') {
+      // Generate new secure password
+      const newPassword = generateSecurePassword()
+
+      // Update auth password
+      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+        password: newPassword,
+        user_metadata: {
+          temp_password: true,
+          password_reset_by_admin: true
+        }
+      })
+
+      if (authError) {
+        console.error('Auth password reset failed:', authError)
+        return NextResponse.json(
+          { error: `Password reset failed: ${authError.message}` },
+          { status: 500 }
+        )
+      }
+
+      // Update profile
+      const { error: profileError } = await supabaseAdmin
+        .from('users')
+        .update({
+          force_password_change: true,
+          password_changed_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+
+      if (profileError) {
+        console.error('Profile update failed:', profileError)
+        return NextResponse.json(
+          { error: `Profile update failed: ${profileError.message}` },
+          { status: 500 }
+        )
+      }
+
+      auditLog('RESET_PASSWORD', { 
+        email: userData.email, 
+        userId: userId 
+      })
+
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: userData.id,
+          email: userData.email,
+          fullName: userData.full_name,
+          newPassword: newPassword
+        },
+        message: 'Password reset successfully. Share new password securely.'
+      })
+    }
+
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+
+  } catch (error) {
+    console.error('PUT users error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+// DELETE - Soft delete user
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get('userId')
+
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
+    }
+
+    // Get user details
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id, email, full_name, role')
+      .eq('id', userId)
+      .eq('is_active', true)
+      .single()
+
+    if (userError || !userData) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+
+    // Soft delete
+    const { error: deleteError } = await supabaseAdmin
+      .from('users')
+      .update({
+        is_active: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+
+    if (deleteError) {
+      console.error('User soft delete failed:', deleteError)
+      return NextResponse.json(
+        { error: `Delete failed: ${deleteError.message}` },
+        { status: 500 }
+      )
+    }
+
+    auditLog('SOFT_DELETE_USER', { 
+      email: userData.email, 
+      userId: userId 
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'User moved to trash. Can be restored if needed.'
+    })
+
+  } catch (error) {
+    console.error('DELETE users error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
