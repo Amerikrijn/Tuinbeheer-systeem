@@ -17,20 +17,31 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   // Initialize activity timeout for automatic logout
   useActivityTimeout()
 
-  // Check if user needs to change password (banking security requirement)
-  const needsPasswordChange = auth.user && auth.user.force_password_change === true
+  // 🏦 BANKING SECURITY: Check if user needs password change
+  // More robust check to prevent infinite loops
+  const needsPasswordChange = React.useMemo(() => {
+    // Only check if we have a user and they're authenticated
+    if (!auth.user || !auth.session) return false
+    
+    // Check the force_password_change flag
+    return auth.user.force_password_change === true
+  }, [auth.user, auth.session])
+
   const isAuthPage = pathname.startsWith('/auth/')
+  const isPasswordChangePage = pathname === '/auth/force-password-change'
   
   // 🏦 BANKING SECURITY: Force password change is MANDATORY
   // User cannot access ANY page until password is changed
-  if (needsPasswordChange && !isAuthPage) {
+  // But avoid showing on auth pages or if already on password change page
+  if (needsPasswordChange && !isAuthPage && !isPasswordChangePage) {
     return (
       <SupabaseAuthContext.Provider value={auth}>
         <ForcePasswordChange 
           user={auth.user} 
           onPasswordChanged={() => {
-            // After password change, user will be redirected to login
-            // No need to do anything here since component handles redirect
+            // The password change manager will handle the complete flow
+            // including logout and redirect to login
+            // No action needed here
           }} 
         />
       </SupabaseAuthContext.Provider>
