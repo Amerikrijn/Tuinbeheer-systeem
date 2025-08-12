@@ -68,7 +68,7 @@ export async function GET() {
 // POST - Create new user
 export async function POST(request: NextRequest) {
   try {
-    const { email, fullName, role } = await request.json()
+    const { email, fullName, role, gardenAccess } = await request.json()
 
     // Validation
     if (!email || !fullName || !role) {
@@ -85,6 +85,11 @@ export async function POST(request: NextRequest) {
 
     if (!['admin', 'user'].includes(role)) {
       return NextResponse.json({ error: 'Role must be admin or user' }, { status: 400 })
+    }
+
+    // Validate garden access for regular users
+    if (role === 'user' && gardenAccess && !Array.isArray(gardenAccess)) {
+      return NextResponse.json({ error: 'Garden access must be an array' }, { status: 400 })
     }
 
     // Check if user exists
@@ -120,7 +125,7 @@ export async function POST(request: NextRequest) {
     if (authError || !authData.user) {
       console.error('Auth user creation failed:', authError)
       return NextResponse.json(
-        { error: `Failed to create auth user: ${authError?.message}` },
+        { error: `Failed to create auth user: ${authError?.message || 'Unknown error'}` },
         { status: 500 }
       )
     }
@@ -152,10 +157,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // 🏦 NEW: Create garden access for regular users
+    if (role === 'user' && gardenAccess && gardenAccess.length > 0) {
+      const gardenAccessRecords = gardenAccess.map((gardenId: string) => ({
+        user_id: authData.user.id,
+        garden_id: gardenId,
+        granted_by: 'admin', // Track who granted access
+        created_at: new Date().toISOString()
+      }))
+
+      const { error: accessError } = await supabaseAdmin
+        .from('user_garden_access')
+        .insert(gardenAccessRecords)
+
+      if (accessError) {
+        console.error('Garden access creation failed:', accessError)
+        
+        // Don't fail the user creation, just log the issue
+        auditLog('GARDEN_ACCESS_CREATION_FAILED', {
+          userId: authData.user.id,
+          email: email.toLowerCase().trim(),
+          gardenAccess: gardenAccess,
+          error: accessError.message
+        })
+      } else {
+        auditLog('GARDEN_ACCESS_CREATED', {
+          userId: authData.user.id,
+          email: email.toLowerCase().trim(),
+          gardenAccess: gardenAccess,
+          count: gardenAccess.length
+        })
+      }
+    }
+
     auditLog('CREATE_USER', { 
       email: email.toLowerCase().trim(), 
       role, 
-      userId: authData.user.id 
+      userId: authData.user.id,
+      gardenAccessCount: role === 'user' ? (gardenAccess?.length || 0) : 'admin_all_access'
     })
 
     return NextResponse.json({
@@ -165,7 +204,8 @@ export async function POST(request: NextRequest) {
         email: email.toLowerCase().trim(),
         fullName: fullName,
         role: role,
-        tempPassword: tempPassword
+        tempPassword: tempPassword,
+        gardenAccessCount: role === 'user' ? (gardenAccess?.length || 0) : 'all'
       },
       message: 'User created successfully. Share temporary password securely.'
     })
