@@ -77,14 +77,16 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
       setTimeout(async () => {
         await passwordChangeManager.completePasswordChangeFlow()
         
-        // 🏦 NEW: Force refresh the auth state instead of redirect
-        await forceRefreshUser()
-        
-        // Call the callback to let parent know password was changed
-        onPasswordChanged()
-        
-        // The auth provider should now detect that force_password_change is false
-        // and allow normal app access
+        // 🏦 BANKING COMPLIANCE: Complete logout and redirect to login
+        // This ensures fresh authentication with new password
+        try {
+          await auth.signOut()
+          router.push('/auth/login?message=password-changed')
+        } catch (error) {
+          console.error('Logout error:', error)
+          // Fallback: force redirect anyway
+          window.location.href = '/auth/login?message=password-changed'
+        }
       }, 1500)
 
     } catch (error: any) {

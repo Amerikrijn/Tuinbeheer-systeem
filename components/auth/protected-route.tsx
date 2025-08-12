@@ -60,21 +60,15 @@ function ProtectedRouteComponent({
         return
       }
 
-      // Check if user has temp password and needs to change it
-      const checkTempPassword = async () => {
-        try {
-          const { data: { user: freshUser } } = await supabase.auth.getUser()
-          if (freshUser?.user_metadata?.temp_password && window.location.pathname !== '/auth/change-password') {
-            router.push('/auth/change-password')
-            return
-          }
-        } catch (error) {
-          // Banking-grade error logging without exposing sensitive data
-          uiLogger.error('Error checking temp password', error as Error, { userId: user?.id })
-        }
+      // 🏦 BANKING SECURITY: Access control check
+      if (!hasAccess) {
+        router.push('/auth/login')
+        return
       }
-      
-      checkTempPassword()
+
+      // 🏦 NEW ARCHITECTURE: Password change is now handled by auth provider
+      // No need for temp_password checks here - the auth provider will show
+      // ForcePasswordChange component if needed based on force_password_change flag
 
       // Check user status
       if (user.status !== 'active') {
@@ -94,6 +88,7 @@ function ProtectedRouteComponent({
         return
       }
 
+      setIsValidating(false)
       setAuthChecked(true)
     }
   }, [user, loading, requireAdmin, allowedRoles, router, timeoutReached, mounted])
