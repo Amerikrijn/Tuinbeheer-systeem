@@ -137,11 +137,11 @@ export function useSupabaseAuth(): AuthContextType {
         setTimeout(() => reject(new Error('Database lookup timeout')), 15000) // Increased for production stability
       })
 
-      // 🏦 BANKING-GRADE: Simple database lookup with timeout
+      // 🏦 BANKING-GRADE: Case-insensitive email lookup with timeout
       const databasePromise = supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
-        .eq('email', supabaseUser.email)
+        .ilike('email', supabaseUser.email || '') // Case-insensitive match
         .eq('is_active', true) // Only active users
         .single()
 
