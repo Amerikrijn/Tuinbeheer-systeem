@@ -61,6 +61,8 @@ function ProtectedRouteComponent({
       }
 
       // 🏦 BANKING SECURITY: Access control check
+      const hasAccess = user && user.status === 'active'
+      
       if (!hasAccess) {
         router.push('/auth/login')
         return
@@ -69,12 +71,6 @@ function ProtectedRouteComponent({
       // 🏦 NEW ARCHITECTURE: Password change is now handled by auth provider
       // No need for temp_password checks here - the auth provider will show
       // ForcePasswordChange component if needed based on force_password_change flag
-
-      // Check user status
-      if (user.status !== 'active') {
-        router.push('/auth/login')
-        return
-      }
 
       // Check admin requirement
       if (requireAdmin && user.role !== 'admin') {
@@ -88,7 +84,6 @@ function ProtectedRouteComponent({
         return
       }
 
-      setIsValidating(false)
       setAuthChecked(true)
     }
   }, [user, loading, requireAdmin, allowedRoles, router, timeoutReached, mounted])
