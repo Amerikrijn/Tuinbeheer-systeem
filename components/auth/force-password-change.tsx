@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Lock, AlertTriangle, Shield, CheckCircle } from 'lucide-react'
 import { passwordChangeManager, type PasswordValidation } from '@/lib/auth/password-change-manager'
+import { useAuth } from '@/hooks/use-supabase-auth'
 
 interface ForcePasswordChangeProps {
   user: any
@@ -23,6 +24,7 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
   const [validation, setValidation] = useState<PasswordValidation | null>(null)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
+  const { forceRefreshUser } = useAuth()
 
   // Real-time password validation
   const handlePasswordChange = (password: string) => {
@@ -71,11 +73,18 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
       // Success! Show success state briefly
       setSuccess(true)
       
-      // Complete the flow with proper cleanup
+      // Complete the flow and refresh auth state
       setTimeout(async () => {
         await passwordChangeManager.completePasswordChangeFlow()
-        // Redirect to login for fresh authentication
-        router.push('/auth/login?message=password-changed')
+        
+        // 🏦 NEW: Force refresh the auth state instead of redirect
+        await forceRefreshUser()
+        
+        // Call the callback to let parent know password was changed
+        onPasswordChanged()
+        
+        // The auth provider should now detect that force_password_change is false
+        // and allow normal app access
       }, 1500)
 
     } catch (error: any) {

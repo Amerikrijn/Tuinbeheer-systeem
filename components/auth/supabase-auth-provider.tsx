@@ -38,10 +38,11 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
       <SupabaseAuthContext.Provider value={auth}>
         <ForcePasswordChange 
           user={auth.user} 
-          onPasswordChanged={() => {
-            // The password change manager will handle the complete flow
-            // including logout and redirect to login
-            // No action needed here
+          onPasswordChanged={async () => {
+            // 🏦 NEW: After password change, force refresh user profile
+            // This should update the auth.user object and remove force_password_change flag
+            console.log('🏦 Password change completed, refreshing auth state...')
+            await auth.forceRefreshUser()
           }} 
         />
       </SupabaseAuthContext.Provider>

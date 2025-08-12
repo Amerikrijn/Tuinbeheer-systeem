@@ -221,8 +221,8 @@ export class PasswordChangeManager {
    */
   async completePasswordChangeFlow(): Promise<void> {
     try {
-      // Banking compliance: Complete logout for fresh authentication
-      await supabase.auth.signOut()
+      // 🏦 NEW APPROACH: Instead of immediate signOut, clear cache and refresh
+      // This allows the auth provider to detect the profile change
       
       // Clear any cached data
       if (typeof window !== 'undefined') {
@@ -233,6 +233,9 @@ export class PasswordChangeManager {
       await this.auditLog('PASSWORD_CHANGE_FLOW_COMPLETED', {
         timestamp: new Date().toISOString()
       })
+
+      // Let the auth provider handle the state refresh
+      // The force_password_change flag should now be false
 
     } catch (error) {
       console.error('Password change flow completion error:', error)
