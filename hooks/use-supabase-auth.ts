@@ -140,7 +140,6 @@ export function useSupabaseAuth(): AuthContextType {
 
       if (userError || !userProfile) {
         throw new Error('Access denied: User not found in system. Contact admin to create your account.')
-      }
       } else {
         role = userProfile.role || 'user'
         fullName = userProfile.full_name || fullName
