@@ -48,15 +48,24 @@ function AdminUsersPageContent() {
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isPasswordResetDialogOpen, setIsPasswordResetDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [creating, setCreating] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [editing, setEditing] = useState(false)
   
   // Form data
   const [createForm, setCreateForm] = useState({
     email: '',
     fullName: '',
     role: 'user' as 'admin' | 'user'
+  })
+
+  // Edit form data
+  const [editForm, setEditForm] = useState({
+    fullName: '',
+    role: 'user' as 'admin' | 'user',
+    gardenAccess: [] as string[]
   })
   
   // Password display state
@@ -213,7 +222,7 @@ function AdminUsersPageContent() {
     if (!confirm(`Weet je zeker dat je ${user.full_name || user.email} wilt verwijderen naar de prullenbak?`)) {
       return
     }
-
+    
     try {
       const response = await fetch(`/api/admin/users?userId=${user.id}`, {
         method: 'DELETE'
@@ -231,7 +240,7 @@ function AdminUsersPageContent() {
       })
 
       loadData()
-
+      
     } catch (error: any) {
       console.error('Error deleting user:', error)
       toast({
@@ -239,6 +248,63 @@ function AdminUsersPageContent() {
         description: error.message || "Kon gebruiker niet verwijderen",
         variant: "destructive"
       })
+    }
+  }
+
+  const openEditDialog = (user: User) => {
+    setSelectedUser(user)
+    setEditForm({
+      fullName: user.full_name || '',
+      role: user.role,
+      gardenAccess: user.garden_access || []
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleEditUser = async () => {
+    if (!selectedUser) return
+    
+    setEditing(true)
+    
+    try {
+      const response = await fetch('/api/admin/users', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          action: 'edit_user',
+          fullName: editForm.fullName,
+          role: editForm.role,
+          gardenAccess: editForm.gardenAccess
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'User update failed')
+      }
+
+      toast({
+        title: "Gebruiker bijgewerkt",
+        description: `${editForm.fullName} is succesvol bijgewerkt`,
+      })
+
+      setIsEditDialogOpen(false)
+      setSelectedUser(null)
+      loadData()
+      
+    } catch (error: any) {
+      console.error('Error updating user:', error)
+      toast({
+        title: "Bijwerken mislukt",
+        description: error.message || "Kon gebruiker niet bijwerken",
+        variant: "destructive"
+      })
+    } finally {
+      setEditing(false)
     }
   }
 
@@ -375,6 +441,13 @@ function AdminUsersPageContent() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          onClick={() => openEditDialog(user)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Gebruiker Bewerken
+                        </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleResetPassword(user)}
                           disabled={user.id === currentUser?.id || resetting}
