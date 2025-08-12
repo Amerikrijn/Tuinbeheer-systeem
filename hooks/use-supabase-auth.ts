@@ -37,6 +37,7 @@ export interface AuthContextType extends AuthState {
   hasGardenAccess: (gardenId: string) => boolean
   getAccessibleGardens: () => string[]
   refreshUser: () => Promise<void>
+  forceRefreshUser: () => Promise<void>
   loadGardenAccess: () => Promise<void>
 }
 
@@ -309,10 +310,9 @@ export function useSupabaseAuth(): AuthContextType {
         throw new Error('No user returned from sign in')
       }
       
-      // Check if user needs to change password (first login)
-      if (data.user.user_metadata?.temp_password) {
-        return // Let the component handle the redirect
-      }
+      // 🏦 NEW ARCHITECTURE: No more temp_password checks here
+      // The auth provider will handle force password change detection
+      // based on the user profile data, not user_metadata
       
       // User profile will be loaded automatically by onAuthStateChange
     } catch (error) {
@@ -390,6 +390,17 @@ export function useSupabaseAuth(): AuthContextType {
     }
   }
 
+  // 🏦 NEW: Force refresh user profile (clears cache)
+  const forceRefreshUser = async (): Promise<void> => {
+    // Clear cache first
+    clearCachedUserProfile()
+    
+    if (state.session?.user) {
+      const userProfile = await loadUserProfile(state.session.user, false) // Force fresh load
+      setState(prev => ({ ...prev, user: userProfile }))
+    }
+  }
+
   // Load garden access separately after login
   const loadGardenAccess = async (): Promise<void> => {
     if (!state.user || state.user.role === 'admin') return
@@ -453,6 +464,7 @@ export function useSupabaseAuth(): AuthContextType {
     hasGardenAccess,
     getAccessibleGardens,
     refreshUser,
+    forceRefreshUser,
     loadGardenAccess
   }
 }
