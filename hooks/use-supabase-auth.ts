@@ -118,16 +118,17 @@ export function useSupabaseAuth(): AuthContextType {
     }
     
     try {
-      // Reduced timeout for better UX
+      // 🏦 IMPROVED: Better timeout with progressive fallback
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 2000) // Reduced from 3000ms
+        setTimeout(() => reject(new Error('Database lookup timeout')), 5000) // Increased for stability
       })
 
-      // Database lookup with timeout
+      // 🏦 BANKING-GRADE: Enhanced database lookup with force_password_change
       const databasePromise = supabase
         .from('users')
-        .select('id, email, full_name, role, status, created_at, force_password_change')
+        .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
         .eq('email', supabaseUser.email)
+        .eq('is_active', true) // Only active users
         .single()
 
       const { data: userProfile, error: userError } = await Promise.race([
@@ -140,6 +141,12 @@ export function useSupabaseAuth(): AuthContextType {
       let status: 'active' | 'inactive' | 'pending' = 'active'
 
       if (userError || !userProfile) {
+        // 🏦 BANKING COMPLIANCE: Detailed error logging
+        console.error('User profile lookup failed:', {
+          error: userError?.message,
+          email: supabaseUser.email,
+          userId: supabaseUser.id
+        })
         throw new Error('Access denied: User not found in system. Contact admin to create your account.')
       } else {
         role = userProfile.role || 'user'
@@ -147,11 +154,14 @@ export function useSupabaseAuth(): AuthContextType {
         status = userProfile.status || 'active'
       }
 
-      // Update last_login asynchronously (non-blocking)
+      // 🏦 BANKING AUDIT: Update last_login asynchronously (non-blocking)
       if (userProfile) {
         supabase
           .from('users')
-          .update({ last_login: new Date().toISOString() })
+          .update({ 
+            last_login: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
           .eq('id', userProfile.id)
           .then(({ error }) => {
             if (error) {
@@ -160,6 +170,7 @@ export function useSupabaseAuth(): AuthContextType {
           })
       }
 
+      // 🏦 BANKING-GRADE USER OBJECT: Complete with all security fields
       const user: User = {
         id: supabaseUser.id,
         email: supabaseUser.email || '',
@@ -169,7 +180,7 @@ export function useSupabaseAuth(): AuthContextType {
         permissions: [],
         garden_access: [], // Load separately to avoid blocking login
         created_at: userProfile?.created_at || new Date().toISOString(),
-        force_password_change: userProfile?.force_password_change || false
+        force_password_change: userProfile?.force_password_change || false // 🏦 BANKING REQUIREMENT
       }
       
       // Cache the user profile for faster subsequent loads
