@@ -31,6 +31,19 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  // Handle password change success message
+  useEffect(() => {
+    const message = searchParams.get('message')
+    if (message === 'password-changed') {
+      toast({
+        title: "Wachtwoord gewijzigd!",
+        description: "Je wachtwoord is succesvol gewijzigd. Log nu in met je nieuwe wachtwoord.",
+        variant: "default"
+      })
+    }
+  }, [searchParams, toast])
 
   // Show success message if redirected from password reset
   useEffect(() => {
@@ -84,24 +97,16 @@ function LoginContent() {
     try {
       await signIn(formData.email, formData.password)
       
-      // Check if user has temp password and needs to change it
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user?.user_metadata?.temp_password) {
-        toast({
-          title: "Eerste keer inloggen",
-          description: "Je moet eerst je wachtwoord wijzigen",
-        })
-        // Immediate redirect for better UX
-        router.push('/auth/change-password')
-        return
-      }
+      // 🏦 NEW ARCHITECTURE: Password change is handled by auth provider
+      // If user needs password change, the auth provider will show ForcePasswordChange
+      // No need for manual checks and redirects here
       
       toast({
-        title: "Succesvol ingelogd",
+        title: "Inloggen gelukt",
         description: "Welkom terug!",
       })
       
-      // Immediate redirect for better UX
+      // Redirect will happen automatically via router or auth provider
       router.push('/')
       
     } catch (error) {
