@@ -279,31 +279,36 @@ function AdminUsersPageContent() {
           <h1 className="text-3xl font-bold text-foreground">Gebruikersbeheer</h1>
           <p className="text-muted-foreground mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button 
             onClick={() => setIsCreateDialogOpen(true)} 
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 min-w-0 flex-1 sm:min-w-[160px] sm:flex-initial"
           >
             <Plus className="w-4 h-4" />
-            Gebruiker Aanmaken
+            <span className="hidden sm:inline">Gebruiker Aanmaken</span>
+            <span className="sm:hidden">Aanmaken</span>
           </Button>
           <Button 
             variant="outline" 
             onClick={() => window.location.href = '/admin/trash'}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 min-w-0 flex-1 sm:min-w-[140px] sm:flex-initial"
           >
             <Trash2 className="w-4 h-4" />
-            Prullenbak
+            <span className="hidden sm:inline">Prullenbak</span>
+            <span className="sm:hidden">Trash</span>
           </Button>
         </div>
       </div>
 
-      {/* Users Table */}
+             {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Gebruikers ({users.length})</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <UserCheck className="w-5 h-5" />
+            Gebruikers ({users.length})
+          </CardTitle>
           <CardDescription>
-            Overzicht van alle actieve gebruikers
+            Overzicht van alle actieve gebruikers in het systeem
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -395,11 +400,22 @@ function AdminUsersPageContent() {
           </Table>
           
           {users.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <UserCheck className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium">Nog geen gebruikers</p>
-              <p>Maak je eerste gebruiker aan om te beginnen</p>
-            </div>
+            <Card className="text-center py-12">
+              <CardContent>
+                <UserCheck className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-foreground mb-2">Nog geen gebruikers</h3>
+                <p className="text-muted-foreground mb-4">
+                  Maak je eerste gebruiker aan om te beginnen met gebruikersbeheer.
+                </p>
+                <Button 
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Eerste Gebruiker Aanmaken
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </CardContent>
       </Card>
