@@ -123,48 +123,16 @@ export function useSupabaseAuth(): AuthContextType {
         setTimeout(() => reject(new Error('Database lookup timeout')), 15000) // Increased for production stability
       })
 
-      // 🏦 BANKING-GRADE: Enhanced database lookup with progressive fallback
-      const primaryLookup = supabase
+      // 🏦 BANKING-GRADE: Simple database lookup with timeout
+      const databasePromise = supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
         .eq('email', supabaseUser.email)
         .eq('is_active', true) // Only active users
         .single()
-      
-      // Fallback: Try by auth ID if email lookup fails
-      const fallbackLookup = supabase
-        .from('users')
-        .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
-        .eq('id', supabaseUser.id)
-        .eq('is_active', true)
-        .single()
-      
-      let databaseResult
-      try {
-        databaseResult = await primaryLookup
-        console.log('🏦 BANKING AUDIT: Primary lookup successful', { email: supabaseUser.email })
-      } catch (primaryError) {
-        console.warn('🏦 BANKING AUDIT: Primary lookup failed, trying fallback', { 
-          error: primaryError.message,
-          email: supabaseUser.email 
-        })
-        try {
-          databaseResult = await fallbackLookup
-          console.log('🏦 BANKING AUDIT: Fallback lookup successful', { userId: supabaseUser.id })
-        } catch (fallbackError) {
-          console.error('🏦 BANKING AUDIT: Both lookups failed', { 
-            primaryError: primaryError.message,
-            fallbackError: fallbackError.message,
-            email: supabaseUser.email,
-            userId: supabaseUser.id
-          })
-          databaseResult = { data: null, error: fallbackError }
-        }
-      }
 
-      // Apply timeout to the database result
       const { data: userProfile, error: userError } = await Promise.race([
-        Promise.resolve(databaseResult),
+        databasePromise,
         timeoutPromise
       ]) as { data: any, error: any }
 
