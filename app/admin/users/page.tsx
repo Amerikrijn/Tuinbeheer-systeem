@@ -58,7 +58,8 @@ function AdminUsersPageContent() {
   const [createForm, setCreateForm] = useState({
     email: '',
     fullName: '',
-    role: 'user' as 'admin' | 'user'
+    role: 'user' as 'admin' | 'user',
+    gardenAccess: [] as string[]
   })
 
   // Edit form data
@@ -127,6 +128,15 @@ function AdminUsersPageContent() {
       return
     }
 
+    // Validation for regular users
+    if (createForm.role === 'user' && createForm.gardenAccess.length === 0) {
+      const confirm = window.confirm(
+        "Deze gebruiker heeft geen tuin toegang en kan geen taken uitvoeren.\n\n" +
+        "Wil je toch doorgaan?"
+      )
+      if (!confirm) return
+    }
+
     setCreating(true)
     
     try {
@@ -138,7 +148,8 @@ function AdminUsersPageContent() {
         body: JSON.stringify({
           email: createForm.email,
           fullName: createForm.fullName,
-          role: createForm.role
+          role: createForm.role,
+          gardenAccess: createForm.role === 'user' ? createForm.gardenAccess : [] // Admin gets all access automatically
         })
       })
 
@@ -154,13 +165,17 @@ function AdminUsersPageContent() {
       
       toast({
         title: "Gebruiker aangemaakt",
-        description: `${result.user.fullName} is succesvol aangemaakt`,
+        description: `${result.user.fullName} is succesvol aangemaakt${
+          createForm.role === 'user' && createForm.gardenAccess.length > 0 
+            ? ` met toegang tot ${createForm.gardenAccess.length} tuin(en)` 
+            : ''
+        }`,
       })
 
       // Reset form and reload
-      setCreateForm({ email: '', fullName: '', role: 'user' })
+      setCreateForm({ email: '', fullName: '', role: 'user', gardenAccess: [] })
       loadData()
-
+      
     } catch (error: any) {
       console.error('Error creating user:', error)
       toast({
@@ -543,6 +558,66 @@ function AdminUsersPageContent() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Garden Access Selection - Only for regular users */}
+            {createForm.role === 'user' && (
+              <div className="space-y-2">
+                <Label>Tuin Toegang</Label>
+                <div className="text-sm text-muted-foreground mb-2">
+                  Selecteer welke tuinen deze gebruiker kan beheren
+                </div>
+                <div className="border rounded-md p-3 max-h-32 overflow-y-auto">
+                  {gardens.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Geen tuinen beschikbaar</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {gardens.map((garden) => (
+                        <div key={garden.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`garden-${garden.id}`}
+                            checked={createForm.gardenAccess.includes(garden.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setCreateForm(prev => ({
+                                  ...prev,
+                                  gardenAccess: [...prev.gardenAccess, garden.id]
+                                }))
+                              } else {
+                                setCreateForm(prev => ({
+                                  ...prev,
+                                  gardenAccess: prev.gardenAccess.filter(id => id !== garden.id)
+                                }))
+                              }
+                            }}
+                            className="rounded border-border"
+                          />
+                          <label 
+                            htmlFor={`garden-${garden.id}`}
+                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            {garden.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {createForm.role === 'user' && createForm.gardenAccess.length === 0 && (
+                  <p className="text-xs text-orange-600">
+                    ⚠️ Gebruiker heeft geen tuin toegang - kan geen taken uitvoeren
+                  </p>
+                )}
+              </div>
+            )}
+
+            {createForm.role === 'admin' && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <strong>Administrator:</strong> Heeft automatisch toegang tot alle tuinen
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
