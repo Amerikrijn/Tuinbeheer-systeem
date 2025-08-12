@@ -5,9 +5,6 @@ import { useAuth } from '@/hooks/use-supabase-auth'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -16,6 +13,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useToast } from '@/hooks/use-toast'
 import { Plus, MoreHorizontal, Edit, UserCheck, UserX, TreePine, Loader2, Key, Trash2, Copy, Check } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { CreateUserDialog } from '@/components/admin/create-user-dialog'
+import { EditUserDialog } from '@/components/admin/edit-user-dialog'
 
 interface User {
   id: string
@@ -47,27 +46,10 @@ function AdminUsersPageContent() {
   
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isPasswordResetDialogOpen, setIsPasswordResetDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isPasswordResetDialogOpen, setIsPasswordResetDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [creating, setCreating] = useState(false)
   const [resetting, setResetting] = useState(false)
-  const [editing, setEditing] = useState(false)
-  
-  // Form data
-  const [createForm, setCreateForm] = useState({
-    email: '',
-    fullName: '',
-    role: 'user' as 'admin' | 'user',
-    gardenAccess: [] as string[]
-  })
-
-  // Edit form data
-  const [editForm, setEditForm] = useState({
-    fullName: '',
-    role: 'user' as 'admin' | 'user',
-    gardenAccess: [] as string[]
-  })
   
   // Password display state
   const [tempPassword, setTempPassword] = useState('')
@@ -84,7 +66,7 @@ function AdminUsersPageContent() {
     try {
       setLoading(true)
       
-      // Load users using new API
+      // Load users using API
       const usersResponse = await fetch('/api/admin/users')
       if (!usersResponse.ok) {
         throw new Error('Failed to load users')
@@ -92,7 +74,7 @@ function AdminUsersPageContent() {
       const usersData = await usersResponse.json()
       setUsers(usersData.users || [])
       
-      // Load gardens for access management
+      // Load gardens
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
         .select('id, name, description, is_active')
@@ -115,76 +97,6 @@ function AdminUsersPageContent() {
       })
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleCreateUser = async () => {
-    if (!createForm.email || !createForm.fullName) {
-      toast({
-        title: "Ontbrekende gegevens",
-        description: "Email en volledige naam zijn verplicht",
-        variant: "destructive"
-      })
-      return
-    }
-
-    // Validation for regular users
-    if (createForm.role === 'user' && createForm.gardenAccess.length === 0) {
-      const confirm = window.confirm(
-        "Deze gebruiker heeft geen tuin toegang en kan geen taken uitvoeren.\n\n" +
-        "Wil je toch doorgaan?"
-      )
-      if (!confirm) return
-    }
-
-    setCreating(true)
-    
-    try {
-      const response = await fetch('/api/admin/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: createForm.email,
-          fullName: createForm.fullName,
-          role: createForm.role,
-          gardenAccess: createForm.role === 'user' ? createForm.gardenAccess : [] // Admin gets all access automatically
-        })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'User creation failed')
-      }
-
-      // Show password to admin
-      setTempPassword(result.user.tempPassword)
-      setShowPassword(true)
-      
-      toast({
-        title: "Gebruiker aangemaakt",
-        description: `${result.user.fullName} is succesvol aangemaakt${
-          createForm.role === 'user' && createForm.gardenAccess.length > 0 
-            ? ` met toegang tot ${createForm.gardenAccess.length} tuin(en)` 
-            : ''
-        }`,
-      })
-
-      // Reset form and reload
-      setCreateForm({ email: '', fullName: '', role: 'user', gardenAccess: [] })
-      loadData()
-      
-    } catch (error: any) {
-      console.error('Error creating user:', error)
-      toast({
-        title: "Aanmaken mislukt",
-        description: error.message || "Kon gebruiker niet aanmaken",
-        variant: "destructive"
-      })
-    } finally {
-      setCreating(false)
     }
   }
 
@@ -220,7 +132,7 @@ function AdminUsersPageContent() {
       })
 
       loadData()
-
+      
     } catch (error: any) {
       console.error('Error resetting password:', error)
       toast({
@@ -263,89 +175,6 @@ function AdminUsersPageContent() {
         description: error.message || "Kon gebruiker niet verwijderen",
         variant: "destructive"
       })
-    }
-  }
-
-  const openEditDialog = async (user: User) => {
-    setSelectedUser(user)
-    setEditForm({
-      fullName: user.full_name || '',
-      role: user.role,
-      gardenAccess: [] // Will be loaded below
-    })
-    
-    // Load current garden access for the user
-    if (user.role === 'user') {
-      try {
-        const { data: accessData, error } = await supabase
-          .from('user_garden_access')
-          .select('garden_id')
-          .eq('user_id', user.id)
-        
-        if (!error && accessData) {
-          const currentGardenAccess = accessData.map(row => row.garden_id)
-          setEditForm(prev => ({
-            ...prev,
-            gardenAccess: currentGardenAccess
-          }))
-        }
-      } catch (error) {
-        console.error('Error loading user garden access:', error)
-        toast({
-          title: "Waarschuwing",
-          description: "Kon huidige tuin toegang niet laden",
-          variant: "destructive"
-        })
-      }
-    }
-    
-    setIsEditDialogOpen(true)
-  }
-
-  const handleEditUser = async () => {
-    if (!selectedUser) return
-    
-    setEditing(true)
-    
-    try {
-      const response = await fetch('/api/admin/users', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: selectedUser.id,
-          action: 'edit_user',
-          fullName: editForm.fullName,
-          role: editForm.role,
-          gardenAccess: editForm.gardenAccess
-        })
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.error || 'User update failed')
-      }
-
-      toast({
-        title: "Gebruiker bijgewerkt",
-        description: `${editForm.fullName} is succesvol bijgewerkt`,
-      })
-
-      setIsEditDialogOpen(false)
-      setSelectedUser(null)
-      loadData()
-      
-    } catch (error: any) {
-      console.error('Error updating user:', error)
-      toast({
-        title: "Bijwerken mislukt",
-        description: error.message || "Kon gebruiker niet bijwerken",
-        variant: "destructive"
-      })
-    } finally {
-      setEditing(false)
     }
   }
 
@@ -407,7 +236,7 @@ function AdminUsersPageContent() {
         </div>
       </div>
 
-             {/* Users Table */}
+      {/* Users Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -483,7 +312,7 @@ function AdminUsersPageContent() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem 
-                          onClick={() => openEditDialog(user)}
+                          onClick={() => setSelectedUser(user) || setIsEditDialogOpen(true)}
                           className="text-blue-600 hover:text-blue-700"
                         >
                           <Edit className="w-4 h-4 mr-2" />
@@ -534,146 +363,28 @@ function AdminUsersPageContent() {
         </CardContent>
       </Card>
 
-      {/* Create User Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Nieuwe Gebruiker Aanmaken</DialogTitle>
-            <DialogDescription>
-              Maak een nieuwe gebruiker aan met tijdelijk wachtwoord
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email adres *</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="gebruiker@email.com"
-                value={createForm.email}
-                onChange={(e) => setCreateForm(prev => ({ ...prev, email: e.target.value }))}
-                required
-              />
-            </div>
+      {/* Dialog Components */}
+      <CreateUserDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        gardens={gardens}
+        onUserCreated={(password) => {
+          setTempPassword(password)
+          setShowPassword(true)
+        }}
+        onReloadData={loadData}
+      />
 
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Volledige naam *</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="Jan de Vries"
-                value={createForm.fullName}
-                onChange={(e) => setCreateForm(prev => ({ ...prev, fullName: e.target.value }))}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="role">Rol</Label>
-              <Select 
-                value={createForm.role} 
-                onValueChange={(value: 'admin' | 'user') => setCreateForm(prev => ({ ...prev, role: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">Gebruiker</SelectItem>
-                  <SelectItem value="admin">Administrator</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Garden Access Selection - Only for regular users */}
-            {createForm.role === 'user' && (
-              <div className="space-y-2">
-                <Label>Tuin Toegang</Label>
-                <div className="text-sm text-muted-foreground mb-2">
-                  Selecteer welke tuinen deze gebruiker kan beheren
-                </div>
-                <div className="border rounded-md p-3 max-h-32 overflow-y-auto">
-                  {gardens.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Geen tuinen beschikbaar</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {gardens.map((garden) => (
-                        <div key={garden.id} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id={`garden-${garden.id}`}
-                            checked={createForm.gardenAccess.includes(garden.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setCreateForm(prev => ({
-                                  ...prev,
-                                  gardenAccess: [...prev.gardenAccess, garden.id]
-                                }))
-                              } else {
-                                setCreateForm(prev => ({
-                                  ...prev,
-                                  gardenAccess: prev.gardenAccess.filter(id => id !== garden.id)
-                                }))
-                              }
-                            }}
-                            className="rounded border-border"
-                          />
-                          <label 
-                            htmlFor={`garden-${garden.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {garden.name}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {createForm.role === 'user' && createForm.gardenAccess.length === 0 && (
-                  <p className="text-xs text-orange-600">
-                    ⚠️ Gebruiker heeft geen tuin toegang - kan geen taken uitvoeren
-                  </p>
-                )}
-              </div>
-            )}
-
-            {createForm.role === 'admin' && (
-              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  <strong>Administrator:</strong> Heeft automatisch toegang tot alle tuinen
-                </p>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setIsCreateDialogOpen(false)}
-              disabled={creating}
-            >
-              Annuleren
-            </Button>
-            <Button 
-              onClick={handleCreateUser}
-              disabled={!createForm.email || !createForm.fullName || creating}
-              className="min-w-[140px]"
-            >
-              {creating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Aanmaken...
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Gebruiker Aanmaken
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <EditUserDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false)
+          setSelectedUser(null)
+        }}
+        user={selectedUser}
+        gardens={gardens}
+        onUserUpdated={loadData}
+      />
 
       {/* Password Display Dialog */}
       <Dialog open={showPassword} onOpenChange={setShowPassword}>
@@ -713,7 +424,6 @@ function AdminUsersPageContent() {
           <DialogFooter>
             <Button onClick={() => {
               setShowPassword(false)
-              setIsCreateDialogOpen(false)
               setTempPassword('')
             }}>
               Begrepen
@@ -759,160 +469,6 @@ function AdminUsersPageContent() {
               setTempPassword('')
             }}>
               Begrepen
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit User Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Gebruiker Bewerken</DialogTitle>
-            <DialogDescription>
-              Bewerk gebruikersgegevens, rol en tuin toegang voor {selectedUser?.full_name || selectedUser?.email}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="editFullName">Volledige naam *</Label>
-              <Input
-                id="editFullName"
-                type="text"
-                placeholder="Jan de Vries"
-                value={editForm.fullName}
-                onChange={(e) => setEditForm(prev => ({ ...prev, fullName: e.target.value }))}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="editRole">Rol</Label>
-              <Select 
-                value={editForm.role} 
-                onValueChange={(value: 'admin' | 'user') => {
-                  setEditForm(prev => ({ 
-                    ...prev, 
-                    role: value,
-                    // Clear garden access when switching to admin
-                    gardenAccess: value === 'admin' ? [] : prev.gardenAccess
-                  }))
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">Gebruiker</SelectItem>
-                  <SelectItem value="admin">Administrator</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Garden Access Selection - Only for regular users */}
-            {editForm.role === 'user' && (
-              <div className="space-y-2">
-                <Label>Tuin Toegang</Label>
-                <div className="text-sm text-muted-foreground mb-2">
-                  Selecteer welke tuinen deze gebruiker kan beheren
-                </div>
-                <div className="border rounded-md p-3 max-h-32 overflow-y-auto">
-                  {gardens.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Geen tuinen beschikbaar</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {gardens.map((garden) => (
-                        <div key={garden.id} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id={`edit-garden-${garden.id}`}
-                            checked={editForm.gardenAccess.includes(garden.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setEditForm(prev => ({
-                                  ...prev,
-                                  gardenAccess: [...prev.gardenAccess, garden.id]
-                                }))
-                              } else {
-                                setEditForm(prev => ({
-                                  ...prev,
-                                  gardenAccess: prev.gardenAccess.filter(id => id !== garden.id)
-                                }))
-                              }
-                            }}
-                            className="rounded border-border"
-                          />
-                          <label 
-                            htmlFor={`edit-garden-${garden.id}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            {garden.name}
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                {editForm.role === 'user' && editForm.gardenAccess.length === 0 && (
-                  <p className="text-xs text-orange-600">
-                    ⚠️ Gebruiker heeft geen tuin toegang - kan geen taken uitvoeren
-                  </p>
-                )}
-              </div>
-            )}
-
-            {editForm.role === 'admin' && (
-              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  <strong>Administrator:</strong> Heeft automatisch toegang tot alle tuinen
-                </p>
-              </div>
-            )}
-
-            {/* Current Access Summary */}
-            {selectedUser && (
-              <div className="p-3 bg-muted rounded-md">
-                <p className="text-sm font-medium text-foreground mb-1">Huidige Status:</p>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>• Email: {selectedUser.email}</p>
-                  <p>• Huidige rol: {selectedUser.role === 'admin' ? 'Administrator' : 'Gebruiker'}</p>
-                  <p>• Status: {selectedUser.status === 'active' ? 'Actief' : 'Inactief'}</p>
-                  {selectedUser.force_password_change && (
-                    <p className="text-orange-600">• Moet wachtwoord wijzigen bij volgende login</p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsEditDialogOpen(false)
-                setSelectedUser(null)
-              }}
-              disabled={editing}
-            >
-              Annuleren
-            </Button>
-            <Button 
-              onClick={handleEditUser}
-              disabled={!editForm.fullName || editing}
-              className="min-w-[120px]"
-            >
-              {editing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Opslaan...
-                </>
-              ) : (
-                <>
-                  <Edit className="w-4 h-4 mr-2" />
-                  Wijzigingen Opslaan
-                </>
-              )}
             </Button>
           </DialogFooter>
         </DialogContent>
