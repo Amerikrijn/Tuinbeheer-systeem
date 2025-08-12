@@ -26,7 +26,13 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   if (needsPasswordChange && !isAuthPage) {
     return (
       <SupabaseAuthContext.Provider value={auth}>
-        <ForcePasswordChange />
+        <ForcePasswordChange 
+          user={auth.user} 
+          onPasswordChanged={() => {
+            // After password change, user will be redirected to login
+            // No need to do anything here since component handles redirect
+          }} 
+        />
       </SupabaseAuthContext.Provider>
     )
   }

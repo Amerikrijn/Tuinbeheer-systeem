@@ -40,6 +40,13 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
     setLoading(true)
 
     try {
+      // Get current user if not provided
+      const currentUser = user || (await supabase.auth.getUser()).data.user
+      
+      if (!currentUser) {
+        throw new Error('No user found. Please try logging in again.')
+      }
+
       // Update password in Supabase Auth
       const { error: authError } = await supabase.auth.updateUser({
         password: newPassword
@@ -57,7 +64,7 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
           password_changed_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         })
-        .eq('id', user.id)
+        .eq('id', currentUser.id)
 
       if (profileError) {
         console.error('Profile update error:', profileError)
