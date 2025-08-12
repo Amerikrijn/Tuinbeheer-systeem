@@ -266,13 +266,39 @@ function AdminUsersPageContent() {
     }
   }
 
-  const openEditDialog = (user: User) => {
+  const openEditDialog = async (user: User) => {
     setSelectedUser(user)
     setEditForm({
       fullName: user.full_name || '',
       role: user.role,
-      gardenAccess: user.garden_access || []
+      gardenAccess: [] // Will be loaded below
     })
+    
+    // Load current garden access for the user
+    if (user.role === 'user') {
+      try {
+        const { data: accessData, error } = await supabase
+          .from('user_garden_access')
+          .select('garden_id')
+          .eq('user_id', user.id)
+        
+        if (!error && accessData) {
+          const currentGardenAccess = accessData.map(row => row.garden_id)
+          setEditForm(prev => ({
+            ...prev,
+            gardenAccess: currentGardenAccess
+          }))
+        }
+      } catch (error) {
+        console.error('Error loading user garden access:', error)
+        toast({
+          title: "Waarschuwing",
+          description: "Kon huidige tuin toegang niet laden",
+          variant: "destructive"
+        })
+      }
+    }
+    
     setIsEditDialogOpen(true)
   }
 
@@ -738,6 +764,160 @@ function AdminUsersPageContent() {
         </DialogContent>
       </Dialog>
     </div>
+
+    {/* Edit User Dialog */}
+    <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Gebruiker Bewerken</DialogTitle>
+          <DialogDescription>
+            Bewerk gebruikersgegevens, rol en tuin toegang voor {selectedUser?.full_name || selectedUser?.email}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="editFullName">Volledige naam *</Label>
+            <Input
+              id="editFullName"
+              type="text"
+              placeholder="Jan de Vries"
+              value={editForm.fullName}
+              onChange={(e) => setEditForm(prev => ({ ...prev, fullName: e.target.value }))}
+              required
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="editRole">Rol</Label>
+            <Select 
+              value={editForm.role} 
+              onValueChange={(value: 'admin' | 'user') => {
+                setEditForm(prev => ({ 
+                  ...prev, 
+                  role: value,
+                  // Clear garden access when switching to admin
+                  gardenAccess: value === 'admin' ? [] : prev.gardenAccess
+                }))
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="user">Gebruiker</SelectItem>
+                <SelectItem value="admin">Administrator</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Garden Access Selection - Only for regular users */}
+          {editForm.role === 'user' && (
+            <div className="space-y-2">
+              <Label>Tuin Toegang</Label>
+              <div className="text-sm text-muted-foreground mb-2">
+                Selecteer welke tuinen deze gebruiker kan beheren
+              </div>
+              <div className="border rounded-md p-3 max-h-32 overflow-y-auto">
+                {gardens.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Geen tuinen beschikbaar</p>
+                ) : (
+                  <div className="space-y-2">
+                    {gardens.map((garden) => (
+                      <div key={garden.id} className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id={`edit-garden-${garden.id}`}
+                          checked={editForm.gardenAccess.includes(garden.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setEditForm(prev => ({
+                                ...prev,
+                                gardenAccess: [...prev.gardenAccess, garden.id]
+                              }))
+                            } else {
+                              setEditForm(prev => ({
+                                ...prev,
+                                gardenAccess: prev.gardenAccess.filter(id => id !== garden.id)
+                              }))
+                            }
+                          }}
+                          className="rounded border-border"
+                        />
+                        <label 
+                          htmlFor={`edit-garden-${garden.id}`}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          {garden.name}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {editForm.role === 'user' && editForm.gardenAccess.length === 0 && (
+                <p className="text-xs text-orange-600">
+                  ⚠️ Gebruiker heeft geen tuin toegang - kan geen taken uitvoeren
+                </p>
+              )}
+            </div>
+          )}
+
+          {editForm.role === 'admin' && (
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                <strong>Administrator:</strong> Heeft automatisch toegang tot alle tuinen
+              </p>
+            </div>
+          )}
+
+          {/* Current Access Summary */}
+          {selectedUser && (
+            <div className="p-3 bg-muted rounded-md">
+              <p className="text-sm font-medium text-foreground mb-1">Huidige Status:</p>
+              <div className="text-xs text-muted-foreground space-y-1">
+                <p>• Email: {selectedUser.email}</p>
+                <p>• Huidige rol: {selectedUser.role === 'admin' ? 'Administrator' : 'Gebruiker'}</p>
+                <p>• Status: {selectedUser.status === 'active' ? 'Actief' : 'Inactief'}</p>
+                {selectedUser.force_password_change && (
+                  <p className="text-orange-600">• Moet wachtwoord wijzigen bij volgende login</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              setIsEditDialogOpen(false)
+              setSelectedUser(null)
+            }}
+            disabled={editing}
+          >
+            Annuleren
+          </Button>
+          <Button 
+            onClick={handleEditUser}
+            disabled={!editForm.fullName || editing}
+            className="min-w-[120px]"
+          >
+            {editing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Opslaan...
+              </>
+            ) : (
+              <>
+                <Edit className="w-4 h-4 mr-2" />
+                Wijzigingen Opslaan
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 

@@ -216,10 +216,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - Update user (password reset)
+// PUT - Update user (password reset or edit user)
 export async function PUT(request: NextRequest) {
   try {
-    const { userId, action } = await request.json()
+    const { userId, action, fullName, role, gardenAccess } = await request.json()
 
     if (!userId || !action) {
       return NextResponse.json(
@@ -293,6 +293,125 @@ export async function PUT(request: NextRequest) {
           newPassword: newPassword
         },
         message: 'Password reset successfully. Share new password securely.'
+      })
+    }
+
+    if (action === 'edit_user') {
+      // Validation for edit user
+      if (!fullName) {
+        return NextResponse.json({ error: 'Full name is required' }, { status: 400 })
+      }
+
+      if (!['admin', 'user'].includes(role)) {
+        return NextResponse.json({ error: 'Role must be admin or user' }, { status: 400 })
+      }
+
+      // Validate garden access for regular users
+      if (role === 'user' && gardenAccess && !Array.isArray(gardenAccess)) {
+        return NextResponse.json({ error: 'Garden access must be an array' }, { status: 400 })
+      }
+
+      // Update user profile
+      const { error: profileError } = await supabaseAdmin
+        .from('users')
+        .update({
+          full_name: fullName,
+          role: role,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+
+      if (profileError) {
+        console.error('Profile update failed:', profileError)
+        return NextResponse.json(
+          { error: `Profile update failed: ${profileError.message}` },
+          { status: 500 }
+        )
+      }
+
+      // 🏦 BANKING-GRADE: Update garden access for users
+      if (role === 'user') {
+        // First, remove all existing garden access
+        const { error: deleteError } = await supabaseAdmin
+          .from('user_garden_access')
+          .delete()
+          .eq('user_id', userId)
+
+        if (deleteError) {
+          console.error('Garden access deletion failed:', deleteError)
+          // Don't fail the whole operation
+        }
+
+        // Then, add new garden access if provided
+        if (gardenAccess && gardenAccess.length > 0) {
+          const gardenAccessRecords = gardenAccess.map((gardenId: string) => ({
+            user_id: userId,
+            garden_id: gardenId,
+            granted_by: 'admin',
+            created_at: new Date().toISOString()
+          }))
+
+          const { error: insertError } = await supabaseAdmin
+            .from('user_garden_access')
+            .insert(gardenAccessRecords)
+
+          if (insertError) {
+            console.error('Garden access creation failed:', insertError)
+            // Don't fail the user update
+            auditLog('GARDEN_ACCESS_UPDATE_FAILED', {
+              userId: userId,
+              email: userData.email,
+              gardenAccess: gardenAccess,
+              error: insertError.message
+            })
+          } else {
+            auditLog('GARDEN_ACCESS_UPDATED', {
+              userId: userId,
+              email: userData.email,
+              gardenAccess: gardenAccess,
+              count: gardenAccess.length
+            })
+          }
+        }
+      } else if (role === 'admin') {
+        // Remove all garden access for admins (they get all access automatically)
+        const { error: deleteError } = await supabaseAdmin
+          .from('user_garden_access')
+          .delete()
+          .eq('user_id', userId)
+
+        if (deleteError) {
+          console.error('Admin garden access cleanup failed:', deleteError)
+          // Don't fail the operation
+        }
+
+        auditLog('ADMIN_ROLE_GRANTED', {
+          userId: userId,
+          email: userData.email,
+          previousRole: userData.role
+        })
+      }
+
+      auditLog('EDIT_USER', {
+        userId: userId,
+        email: userData.email,
+        changes: {
+          fullName: fullName !== userData.full_name ? { from: userData.full_name, to: fullName } : null,
+          role: role !== userData.role ? { from: userData.role, to: role } : null,
+          gardenAccessCount: role === 'user' ? (gardenAccess?.length || 0) : 'admin_all_access'
+        }
+      })
+
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: userData.id,
+          email: userData.email,
+          fullName: fullName,
+          role: role,
+          gardenAccessCount: role === 'user' ? (gardenAccess?.length || 0) : 'all'
+        },
+        message: 'User updated successfully.'
       })
     }
 
