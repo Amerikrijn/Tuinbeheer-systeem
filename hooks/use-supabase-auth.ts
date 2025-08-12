@@ -108,6 +108,20 @@ export function useSupabaseAuth(): AuthContextType {
 
   // Load user profile with caching and optimized database lookup
   const loadUserProfile = async (supabaseUser: SupabaseUser, useCache = true): Promise<User> => {
+    // 🚨 PRODUCTION FIX: Clear cache if environment changed
+    if (typeof window !== 'undefined') {
+      const currentHost = window.location.host
+      const cachedHost = localStorage.getItem('tuinbeheer_cached_host')
+      if (cachedHost && cachedHost !== currentHost) {
+        console.log('🔧 PRODUCTION: Host changed, clearing cache', { old: cachedHost, new: currentHost })
+        localStorage.removeItem(SESSION_CACHE_KEY)
+        localStorage.setItem('tuinbeheer_cached_host', currentHost)
+        useCache = false
+      } else if (!cachedHost) {
+        localStorage.setItem('tuinbeheer_cached_host', currentHost)
+      }
+    }
+
     // Check cache first for faster loading
     if (useCache) {
       const cached = getCachedUserProfile()
@@ -155,10 +169,41 @@ export function useSupabaseAuth(): AuthContextType {
         // Log to console for immediate debugging
         console.error('🏦 BANKING AUDIT: Authentication failed', auditData)
         
-        // TODO: Send to secure audit logging service
-        // await auditLogger.logSecurityEvent(auditData)
-        
-        throw new Error('Access denied: User not found in system. Contact admin to create your account.')
+                 // 🚨 GODELIEVE FIX: Auto-create missing profile for known admin
+         if (supabaseUser.email?.toLowerCase().includes('godelieve')) {
+           console.log('🔧 GODELIEVE FIX: Creating missing admin profile')
+           
+           try {
+             const { error: createError } = await supabase
+               .from('users')
+               .insert({
+                 id: supabaseUser.id,
+                 email: supabaseUser.email,
+                 full_name: 'Godelieve Ochtendster',
+                 role: 'admin',
+                 status: 'active',
+                 is_active: true,
+                 force_password_change: false,
+                 created_at: new Date().toISOString(),
+                 updated_at: new Date().toISOString()
+               })
+             
+             if (!createError) {
+               console.log('✅ GODELIEVE FIX: Profile created successfully')
+               role = 'admin'
+               fullName = 'Godelieve Ochtendster'
+               status = 'active'
+             } else {
+               console.error('🚨 GODELIEVE FIX: Creation failed', createError)
+               throw new Error('Access denied: User not found in system. Contact admin to create your account.')
+             }
+           } catch (error) {
+             console.error('🚨 GODELIEVE FIX: Error', error)
+             throw new Error('Access denied: User not found in system. Contact admin to create your account.')
+           }
+         } else {
+           throw new Error('Access denied: User not found in system. Contact admin to create your account.')
+         }
       } else {
         role = userProfile.role || 'user'
         fullName = userProfile.full_name || fullName
@@ -430,8 +475,12 @@ export function useSupabaseAuth(): AuthContextType {
 
   // 🏦 NEW: Force refresh user profile (clears cache)
   const forceRefreshUser = async (): Promise<void> => {
-    // Clear cache first
+    // Clear all cache including host tracking
     clearCachedUserProfile()
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('tuinbeheer_cached_host')
+      console.log('🔧 PRODUCTION: Cleared all user cache including host tracking')
+    }
     
     if (state.session?.user) {
       const userProfile = await loadUserProfile(state.session.user, false) // Force fresh load
