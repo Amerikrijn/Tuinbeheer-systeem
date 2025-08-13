@@ -1,5 +1,20 @@
 import { supabase } from './supabase'
 
+export async function ensureBucketExists(bucket: string = 'plant-images', isPublic: boolean = true): Promise<boolean> {
+  try {
+    const res = await fetch('/api/storage/ensure-bucket', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bucket, public: isPublic })
+    })
+    if (!res.ok) return false
+    const json = await res.json()
+    return Boolean(json?.exists || json?.created)
+  } catch {
+    return false
+  }
+}
+
 export interface UploadResult {
   success: boolean
   url?: string
@@ -30,6 +45,8 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
         error: 'File size must be less than 5MB'
       }
     }
+
+    await ensureBucketExists('plant-images', true)
 
     // Generate unique filename
     const timestamp = Date.now()
