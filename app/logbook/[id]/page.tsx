@@ -138,7 +138,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
 
   if (state.loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 safe-area-px">
         <div className="max-w-4xl mx-auto">
           {/* Header skeleton */}
           <div className="mb-8">
@@ -167,7 +167,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
 
   if (state.error) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 safe-area-px">
         <div className="max-w-4xl mx-auto text-center">
           <div className="text-red-600 mb-4">
             <BookOpen className="h-12 w-12 mx-auto mb-2" />
@@ -192,7 +192,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
 
   if (!state.entry) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 safe-area-px">
         <div className="max-w-4xl mx-auto text-center">
           <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-900 mb-2">
@@ -213,7 +213,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 safe-area-px">
       <div className="max-w-5xl mx-auto">
         {/* Back button */}
         <Button asChild variant="ghost" className="mb-6">
