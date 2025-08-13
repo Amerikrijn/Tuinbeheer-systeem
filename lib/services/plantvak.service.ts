@@ -62,12 +62,18 @@ export class PlantvakService {
     description?: string;
   }): Promise<PlantBed | null> {
     try {
+      console.log('🔍 PlantvakService.create called with:', plantvakData);
+      
       // Get existing letter codes for this garden
       const existingPlantvakken = await this.getByGarden(plantvakData.garden_id);
+      console.log('📊 Existing plantvakken:', existingPlantvakken);
+      
       const existingCodes = existingPlantvakken.map(p => p.letter_code).filter(Boolean);
+      console.log('🔤 Existing letter codes:', existingCodes);
       
       // Generate next available letter code
       const nextLetterCode = this.generateNextLetterCode(existingCodes);
+      console.log('✨ Next letter code:', nextLetterCode);
       
       // Create new plantvak with letter code
       const newPlantvak = {
@@ -77,6 +83,8 @@ export class PlantvakService {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
+      
+      console.log('📝 Inserting new plantvak:', newPlantvak);
 
       const { data, error } = await supabase
         .from('plant_beds')
@@ -84,12 +92,22 @@ export class PlantvakService {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw error;
+      }
       
       console.log(`✅ Plantvak created with letter code: ${nextLetterCode}`);
+      console.log('📊 Created plantvak data:', data);
       return data;
     } catch (error) {
-      console.error('Error creating plantvak:', error);
+      console.error('❌ Error creating plantvak:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       return null;
     }
   }
