@@ -5,7 +5,7 @@ import { auditLog } from '@/lib/audit-logger';
 // Force dynamic rendering since this route handles query parameters
 export const dynamic = 'force-dynamic';
 
-function auditLog(action: string, details: any) {
+function localAuditLog(action: string, details: any) {
   console.log(`🔒 ADMIN AUDIT: ${action}`, {
     timestamp: new Date().toISOString(),
     action,
@@ -27,7 +27,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch deleted users' }, { status: 500 })
     }
 
-    auditLog('LIST_DELETED_USERS', { count: deletedUsers.length })
+    localAuditLog('LIST_DELETED_USERS', { count: deletedUsers.length })
 
     return NextResponse.json({ deletedUsers })
   } catch (error) {
@@ -74,7 +74,7 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    auditLog('RESTORE_USER', { 
+    localAuditLog('RESTORE_USER', { 
       email: userData.email, 
       userId: userId 
     })
@@ -178,7 +178,7 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    auditLog('PERMANENT_DELETE_USER', { 
+    localAuditLog('PERMANENT_DELETE_USER', { 
       email: userData.email, 
       userId: userId 
     })
