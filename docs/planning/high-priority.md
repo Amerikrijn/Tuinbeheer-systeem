@@ -271,3 +271,36 @@ Identificatie van plantvakken gebruikt letters A–Z. Bij meer dan 26 plantvakke
 
 ### **Notes:**
 - Optioneel: in de toekomst alternatieve labeling (bijv. A1, B1) onderzoeken voor beter onderscheid, maar nu expliciet dubbele letters toelaten.
+
+## **10. 🌼 Bloemdetails, Takenbeheer en Logboek-toggling**
+
+### Issue
+- In bloemdetails staat "Standaard"; dit moet de plantnaam tonen.
+- Taken dropdown mist opties: onkruid wieden, ondersteuning aanbrengen, zaden oogsten.
+- Taaktypes kunnen niet door admin beheerd worden (CRUD).
+- Bij afvinken wordt een logboekitem aangemaakt; bij weer ontvinken blijft het item staan en opnieuw aanvinken maakt duplicaten.
+
+### Scope
+- UI-label fix in bloemdetails (toon plantnaam i.p.v. "Standaard").
+- Uitbreiding standaard taaktypes met genoemde opties.
+- Admin-configuratie voor taaktypes (toevoegen, wijzigen, archiveren/verwijderen).
+- Betrouwbare logboek-koppeling bij taak toggle (geen duplicaten; consistent terugdraaien).
+
+### Acceptance Criteria
+- Bloemdetails tonen altijd de correcte `plant.name`; geen hardcoded "Standaard" labels zichtbaar.
+- Taken dropdown bevat minimaal: Water geven, Bemesten, Snoeien, Oogsten, Planten, Plaagbestrijding, Algemeen, Onkruid wieden, Ondersteuning aanbrengen, Zaden oogsten.
+- Admin kan taaktypes beheren via Admin UI (CRUD) met validatie en audit logging.
+- Bij het markeren als voltooid wordt maximaal één logboekitem per taak/voltooi-actie aangemaakt.
+- Bij het terugzetten naar niet-voltooid:
+  - gekoppeld logboekitem wordt verwijderd of als "ongedaan" gemarkeerd, en er ontstaan geen duplicaten bij opnieuw aanvinken.
+- Regressietests aanwezig voor toggle-gedrag (aan/uit) zonder dubbele logboek entries.
+
+### Notities/Techniek
+- Koppel logboekentry aan `task_id` om duplicaten te voorkomen en toggling te synchroniseren.
+- Overweeg soft delete of statusveld voor logboekitems i.p.v. hard delete (audit trail).
+
+### Labels
+`high-priority`, `bug`, `ux`, `admin`, `data-integrity`
+
+### Estimate
+2–3 dagen
