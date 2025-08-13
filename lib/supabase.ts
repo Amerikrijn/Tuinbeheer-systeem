@@ -143,6 +143,7 @@ export interface PlantBed {
   id: string;
   garden_id: string;
   name: string;
+  letter_code?: string; // Unique letter code (A, B, C, etc.) for plantvak identification
   location?: string;
   size?: string;
   soil_type?: string;
