@@ -5,11 +5,12 @@ import { createClient } from '@supabase/supabase-js';
 import { getSupabaseConfig } from './config';
 import type { Database } from './types'
 
-// Safe environment check - only runs in production, not during build
+// Safe environment check - runs in production and preview, not during build
 export const checkSupabaseEnvironment = () => {
-  if (process.env.NODE_ENV === 'production') {
+  // Only check in production or preview, not during build or development
+  if (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'preview') {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-      throw new Error('SECURITY ERROR: Missing Supabase environment variables for production. Required: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY')
+      throw new Error('SECURITY ERROR: Missing Supabase environment variables. Required: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY')
     }
   }
 }
