@@ -41,6 +41,19 @@
   - [ ] Document which tables are safe to remove
   - [ ] Plan migration strategy if needed
 
+## 🔍 DATABASE ENVIRONMENT ANALYSIS (PRIORITY 2.5 - After Phase 2)
+- [ ] **Comprehensive Database Comparison**
+  - [ ] Full analysis of preview database (36 tables)
+  - [ ] Full analysis of production database (27 tables)
+  - [ ] Identify exact differences between environments
+  - [ ] Document which tables exist in each environment
+  
+- [ ] **Environment Synchronization**
+  - [ ] Determine if table differences are causing issues
+  - [ ] Plan strategy to sync environments if needed
+  - [ ] Create migration plan if environments should be identical
+  - [ ] Document which differences are acceptable vs problematic
+
 ## 🔍 PHASE 2: ANALYSIS & PLANNING (PRIORITY 2 - Next Week)
 - [ ] **Database Audit**
   - [ ] Identify all existing tables and their current state
