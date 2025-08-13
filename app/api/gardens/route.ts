@@ -32,12 +32,11 @@ export async function GET(request: NextRequest) {
     }
     
     // Parse query parameters
-    const { searchParams } = new URL(request.url)
-    const search = searchParams.get('search') || undefined
-    const page = parseInt(searchParams.get('page') || '1', 10)
-    const pageSize = parseInt(searchParams.get('pageSize') || '10', 10)
-    const sortField = searchParams.get('sort') || 'created_at'
-    const sortDirection = searchParams.get('direction') || 'desc'
+    const search = request.nextUrl.searchParams.get('search') || undefined
+    const page = parseInt(request.nextUrl.searchParams.get('page') || '1', 10)
+    const pageSize = parseInt(request.nextUrl.searchParams.get('pageSize') || '10', 10)
+    const sortField = request.nextUrl.searchParams.get('sort') || 'created_at'
+    const sortDirection = request.nextUrl.searchParams.get('direction') || 'desc'
     
     // Build filters and sort options
     const filters = search ? { query: search } : undefined
