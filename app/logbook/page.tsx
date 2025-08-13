@@ -233,7 +233,7 @@ function LogbookPageContent() {
       const logbookData = response.data || []
 
       // Also load completed tasks as logbook entries
-      let completedTasksData = []
+      let completedTasksData: any[] = []
       try {
         let tasksQuery = supabase
           .from('tasks')
@@ -282,13 +282,13 @@ function LogbookPageContent() {
         
         if (tasksResults) {
           // Transform completed tasks to look like logbook entries
-          completedTasksData = tasksResults.map(task => ({
+          completedTasksData = tasksResults.map((task: any) => ({
             id: `task-${task.id}`,
             entry_date: task.updated_at,
             notes: `✅ Taak voltooid: ${task.title}${task.description ? ` - ${task.description}` : ''}`,
-            plant_bed_name: task.plants?.plant_beds?.name || 'Onbekend plantvak',
-            plant_name: task.plants?.name || 'Onbekende plant',
-            garden_name: task.plants?.plant_beds?.gardens?.name || 'Onbekende tuin',
+            plant_bed_name: task.plants?.[0]?.plant_beds?.[0]?.name || 'Onbekend plantvak',
+            plant_name: task.plants?.[0]?.name || 'Onbekende plant',
+            garden_name: task.plants?.[0]?.plant_beds?.[0]?.gardens?.[0]?.name || 'Onbekende tuin',
             photo_url: null,
             is_completed_task: true, // Flag to identify this as a completed task
             original_task: task
