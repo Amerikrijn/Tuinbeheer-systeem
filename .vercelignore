@@ -5,6 +5,8 @@ packages/
 !README.md
 !docs/system/
 !docs/system/**
+!docs/planning/
+!docs/planning/**
 
 # Development files
 launch-*.sh
