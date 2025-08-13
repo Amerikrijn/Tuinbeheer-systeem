@@ -9,21 +9,17 @@ const createJestConfig = nextJest({
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jsdom',
-  testPathIgnorePatterns: [
-    '<rootDir>/.next/',
-    '<rootDir>/node_modules/',
-    '<rootDir>/apps/',
-    '<rootDir>/packages/',
-  ],
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
-  },
+  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   collectCoverageFrom: [
     'app/**/*.{js,jsx,ts,tsx}',
-    'lib/**/*.{js,jsx,ts,tsx}',
     'components/**/*.{js,jsx,ts,tsx}',
+    'lib/**/*.{js,jsx,ts,tsx}',
     '!**/*.d.ts',
     '!**/node_modules/**',
+    '!**/.next/**',
+    '!**/coverage/**',
+    '!**/jest.config.js',
+    '!**/jest.setup.js',
   ],
   coverageThreshold: {
     global: {
@@ -33,6 +29,17 @@ const customJestConfig = {
       statements: 80,
     },
   },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+  },
+  testMatch: [
+    '<rootDir>/__tests__/**/*.{js,jsx,ts,tsx}',
+  ],
+  // Banking-grade test settings
+  testTimeout: 30000, // 30 seconds for integration tests
+  maxWorkers: 1, // Sequential execution for stability
+  verbose: true, // Detailed output
+  forceExit: true, // Clean exit after tests
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
