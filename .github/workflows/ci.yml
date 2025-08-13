@@ -1,5 +1,6 @@
 name: CI/CD Pipeline
 
+# Trigger workflow on feature branches and other development branches
 on:
   push:
     branches: [ preview, develop, feature/*, fix/*, hotfix/* ]
