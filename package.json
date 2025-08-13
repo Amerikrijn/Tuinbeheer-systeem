@@ -21,6 +21,8 @@
     "db:setup": "node database/setup.js setup --seed",
     "db:reset": "node database/setup.js reset",
     "db:schema": "node database/setup.js setup",
+    "db:exec-sql": "node scripts/run-sql-file.js",
+    "db:fix:search-path": "node scripts/run-sql-file.js /workspace/fix-lint-0011-set-search-path.sql",
     "mobile:setup": "cd apps/mobile && npm install",
     "mobile:start": "cd apps/mobile && npm start",
     "mobile:android": "cd apps/mobile && npm run android",
