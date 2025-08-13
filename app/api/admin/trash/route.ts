@@ -101,8 +101,7 @@ export async function PUT(request: NextRequest) {
 // DELETE - Permanent delete (banking compliance: only if no dependencies)
 export async function DELETE(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    const userId = request.nextUrl.searchParams.get('userId')
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
