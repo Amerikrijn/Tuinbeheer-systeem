@@ -7,9 +7,49 @@ on:
     branches: [ main ]
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Paths filter
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            code:
+              - 'app/**'
+              - 'components/**'
+              - 'lib/**'
+              - 'database/**'
+              - 'scripts/**'
+              - 'styles/**'
+              - 'public/**'
+              - 'middleware.ts'
+              - 'next.config.*'
+              - 'tsconfig.json'
+              - 'package.json'
+              - 'package-lock.json'
+              - 'jest.config.js'
+              - 'jest.setup.js'
+              - 'tailwind.config.*'
+
+  docs_only:
+    name: Docs-only (skip quality/build)
+    needs: changes
+    if: needs.changes.outputs.code != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Docs-only change detected. Skipping quality/build/deploy."
+
   quality:
     name: Quality (Lint, Types, Tests)
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -48,6 +88,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: quality
+    if: needs.changes.outputs.code == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,7 +109,7 @@ jobs:
     name: Deploy to Vercel (Production)
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref == 'refs/heads/main' && success() && secrets.VERCEL_TOKEN != ''
+    if: needs.changes.outputs.code == 'true' && github.ref == 'refs/heads/main' && success() && secrets.VERCEL_TOKEN != ''
     steps:
       - name: Checkout
         uses: actions/checkout@v4
