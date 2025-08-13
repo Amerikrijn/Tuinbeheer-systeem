@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
-import { Calendar, Edit2, Save, X, Trash2 } from "lucide-react"
+import { Calendar, Edit2, Save, X, Trash2, Loader2 } from "lucide-react"
 import { TaskService } from "@/lib/services/task.service"
 import { useToast } from "@/hooks/use-toast"
 import type { WeeklyTask, UpdateTaskData } from "@/lib/types/tasks"
@@ -202,20 +202,21 @@ export function TaskDetailsDialog({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleToggleComplete}
                 disabled={isLoading}
+                onClick={() => setIsEditing(!isEditing)}
               >
-                {task.completed ? "Markeer als niet voltooid" : "Markeer als voltooid"}
+                <Edit2 className="w-4 h-4" />
+                {isEditing ? 'Stop bewerken' : 'Bewerken'}
               </Button>
               {!isEditing ? (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setIsEditing(true)}
                   disabled={isLoading}
+                  onClick={handleToggleComplete}
                 >
-                  <Edit2 className="h-4 w-4 mr-1" />
-                  Bewerken
+                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {task.completed ? 'Markeer als niet voltooid' : 'Markeer als voltooid'}
                 </Button>
               ) : (
                 <div className="flex gap-1">
@@ -224,8 +225,8 @@ export function TaskDetailsDialog({
                     onClick={handleSave}
                     disabled={isLoading}
                   >
-                    <Save className="h-4 w-4 mr-1" />
-                    Opslaan
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isLoading ? 'Opslaan...' : 'Opslaan'}
                   </Button>
                   <Button
                     variant="outline"
@@ -233,7 +234,8 @@ export function TaskDetailsDialog({
                     onClick={() => setIsEditing(false)}
                     disabled={isLoading}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="w-4 h-4" />
+                    Annuleren
                   </Button>
                 </div>
               )}
@@ -243,7 +245,8 @@ export function TaskDetailsDialog({
                 onClick={handleDelete}
                 disabled={isLoading}
               >
-                <Trash2 className="h-4 w-4" />
+                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                {isLoading ? 'Verwijderen...' : 'Verwijderen'}
               </Button>
             </div>
           </div>
