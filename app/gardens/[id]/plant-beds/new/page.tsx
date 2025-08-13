@@ -129,6 +129,14 @@ export default function NewPlantBedPage() {
       })
 
       if (plantBed) {
+        // Show additional success message with letter code
+        setTimeout(() => {
+          toast({
+            title: `Letter Code: ${plantBed.letter_code}`,
+            description: `Je kunt nu plantvak ${plantBed.letter_code} gebruiken om taken toe te voegen en bloemen te planten.`,
+          })
+        }, 1000)
+        
         navigateTo(`/gardens/${garden.id}/plant-beds/${plantBed.id}`)
       } else {
         navigateTo(`/gardens/${garden.id}/plant-beds`)
@@ -322,22 +330,41 @@ export default function NewPlantBedPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description">Beschrijving</Label>
-                  <Textarea
-                    id="description"
-                    rows={4}
-                    placeholder="Beschrijf het plantvak, bijzonderheden, doelstellingen..."
-                    value={newPlantBed.description}
-                    onChange={(e) =>
-                      setNewPlantBed((p) => ({
-                        ...p,
-                        description: e.target.value,
-                      }))
-                    }
-                  />
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="description">Beschrijving</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Optionele beschrijving van het plantvak..."
+                      value={newPlantBed.description}
+                      onChange={(e) =>
+                        setNewPlantBed((p) => ({
+                          ...p,
+                          description: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  {/* Letter Code Preview */}
+                  <div className="md:col-span-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 text-blue-800 text-lg font-bold rounded-full flex items-center justify-center">
+                        ?
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-blue-900">Letter Code Preview</h4>
+                        <p className="text-sm text-blue-700">
+                          Dit plantvak krijgt automatisch de volgende beschikbare letter toegewezen.
+                          {newPlantBed.name && (
+                            <span className="block mt-1">
+                              <strong>Plantvak:</strong> {newPlantBed.name}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex gap-3">
