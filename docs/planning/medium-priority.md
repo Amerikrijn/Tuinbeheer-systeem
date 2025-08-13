@@ -137,3 +137,14 @@
 - [ ] Policies aanscherpen voor `gardens`, `plant_beds`, `plants` (weg van `FOR ALL USING (true)` naar eigenaarschap)
 - [ ] `database/archive/` verder ordenen met README (doel en gebruik)
 - [ ] Review `fix-production-rls-policies.sql` en archiveren na bevestigde toepassing
+
+## Governance & Compliance
+- [ ] Branch protection regels configureren (main/preview)
+- [ ] CODEOWNERS voor kritieke paden (`app/api/admin/**`, `lib/auth/**`, `database/**`)
+- [ ] Issue & PR templates met banking-compliance checklist
+- [ ] Signed commits (optioneel)
+- [ ] Secrets scanning (GitHub Advanced Security of alternatief)
+
+## Workflow documenteren & borgen
+- [ ] `docs/system/Repository-Structuur-en-Workflow.md` nalopen en vast onderdeel maken van onboarding
+- [ ] CI check toevoegen die document aanwezig/gewijzigd afdwingt bij structurele wijzigingen
