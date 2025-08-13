@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
-import { ArrowLeft, Leaf, Plus, Sun, Palette, MapPin, Ruler, Droplets } from "lucide-react"
+import { ArrowLeft, Leaf, Plus, Sun, MapPin, Ruler, Droplets } from "lucide-react"
 import { PlantvakService } from "@/lib/services/plantvak.service"
 import { getGarden } from "@/lib/database"
 import type { Garden } from "@/lib/types"
@@ -47,6 +46,7 @@ export default function NewPlantBedPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [nextLetterCode, setNextLetterCode] = useState<string>("?")
 
   const [newPlantBed, setNewPlantBed] = useState<NewPlantBed>({
     name: "",
@@ -57,12 +57,38 @@ export default function NewPlantBedPage() {
     description: "",
   })
 
-  // Load garden data
+  // Load garden data and calculate next letter code
   useEffect(() => {
-    const loadGarden = async () => {
+    const loadGardenAndCalculateLetter = async () => {
       try {
         const gardenData = await getGarden(gardenId)
         setGarden(gardenData)
+        
+        // Calculate next letter code
+        const existingPlantvakken = await PlantvakService.getByGarden(gardenId)
+        const existingCodes = existingPlantvakken.map(p => p.letter_code).filter(Boolean)
+        
+        // Generate next letter code
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        let nextCode = 'A'
+        
+        for (const letter of alphabet) {
+          if (!existingCodes.includes(letter)) {
+            nextCode = letter
+            break
+          }
+        }
+        
+        // If all letters are used, start with A1, A2, etc.
+        if (nextCode === 'A' && existingCodes.includes('A')) {
+          let counter = 1
+          while (existingCodes.includes(`A${counter}`)) {
+            counter++
+          }
+          nextCode = `A${counter}`
+        }
+        
+        setNextLetterCode(nextCode)
       } catch (error) {
         console.error("Error loading garden:", error)
         toast({
@@ -76,7 +102,7 @@ export default function NewPlantBedPage() {
     }
 
     if (gardenId) {
-      loadGarden()
+      loadGardenAndCalculateLetter()
     }
   }, [gardenId])
 
@@ -126,7 +152,7 @@ export default function NewPlantBedPage() {
       if (plantBed) {
         toast({
           title: "Plantvak aangemaakt!",
-          description: `Plantvak "${newPlantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code || '?'}.`,
+          description: `Plantvak "${newPlantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code}.`,
         })
 
         // Show additional success message with letter code
@@ -226,6 +252,26 @@ export default function NewPlantBedPage() {
 
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Letter Code Preview - Prominent Display */}
+                <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-blue-100 text-blue-800 text-2xl font-bold rounded-full flex items-center justify-center">
+                      {nextLetterCode}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-blue-900 text-lg">Letter Code Toewijzing</h4>
+                      <p className="text-blue-700">
+                        Dit plantvak krijgt automatisch letter code <strong>{nextLetterCode}</strong> toegewezen.
+                      </p>
+                      {newPlantBed.name && (
+                        <p className="text-blue-600 mt-1">
+                          <strong>Plantvak:</strong> {newPlantBed.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="name">Naam *</Label>
@@ -359,26 +405,6 @@ export default function NewPlantBedPage() {
                         }))
                       }
                     />
-                  </div>
-
-                  {/* Letter Code Preview */}
-                  <div className="md:col-span-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-blue-100 text-blue-800 text-lg font-bold rounded-full flex items-center justify-center">
-                        ?
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-blue-900">Letter Code Preview</h4>
-                        <p className="text-sm text-blue-700">
-                          Dit plantvak krijgt automatisch de volgende beschikbare letter toegewezen.
-                          {newPlantBed.name && (
-                            <span className="block mt-1">
-                              <strong>Plantvak:</strong> {newPlantBed.name}
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
