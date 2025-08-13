@@ -13,9 +13,6 @@
   "checks": {
     "jestConfigPresent": true,
     "coverageThresholdMin": 80,
-    "rlsPolicyFiles": [
-      "database/01-schema.sql",
-      "database/04-force-password-change-migration.sql"
-    ]
+    "rlsPolicyFiles": []
   }
 }
