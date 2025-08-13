@@ -3,6 +3,9 @@ import { supabase } from '@/lib/supabase';
 import { apiLogger } from '@/lib/logger';
 import { logClientSecurityEvent } from '@/lib/banking-security';
 
+// Force dynamic rendering since this route uses Date.now()
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }

@@ -37,6 +37,17 @@ Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. 
 - Security audit via `npm run audit:security`
 - Coverage wordt in CI geüpload (Codecov)
 
+### ⚠️ Huidige Test Status
+**Coverage:** 4.2% (doel: 80% volgens banking standards)  
+**Status:** Tests falen door mock configuratie problemen  
+**Prioriteit:** Hoog - moet opgelost worden voor CI/CD pipeline
+
+**Actiepunten:**
+1. Mock configuratie repareren in test setup
+2. API route tests toevoegen voor gewijzigde endpoints
+3. Coverage verhogen naar 80% minimum
+4. CI/CD pipeline groen maken
+
 ## 🔁 CI/CD
 CI/CD is geconfigureerd via GitHub Actions (`.github/workflows/ci.yml`):
 - Elke push op `main` of `develop` en elke pull request naar `main` triggert:
@@ -83,6 +94,18 @@ cp .env.example .env.local
 npm run dev
 ```
 
+### 2. Build & Test
+```bash
+# Run tests with coverage
+npm run test:ci
+
+# Build for production
+npm run build
+
+# Full quality check
+npm run banking:full-check
+```
+
 ### 2. Database Setup
 1. Volg instructies in `DATABASE_MIGRATIE_INSTRUCTIES.md`
 2. Run database migraties uit `database/` directory
@@ -98,6 +121,23 @@ Dit project volgt **Nederlandse banking standards**:
 - ✅ **Audit logging** voor alle security events  
 - ✅ **Input validation** en error handling
 - ✅ **Force password change** na admin reset
+
+## 🔧 Recente Fixes & Verbeteringen
+
+### Vercel Build Issues Opgelost (Augustus 2025)
+- ✅ **Dynamic Server Usage Error**: Alle API routes gemarkeerd als `dynamic = 'force-dynamic'` voor Next.js 14 compatibiliteit
+- ✅ **Query Parameters**: Vervangen van `new URL(request.url)` door `request.nextUrl.searchParams.get()` voor betere static generation
+- ✅ **API Route Configuratie**: Alle routes die query parameters of dynamische content gebruiken zijn correct geconfigureerd
+- ✅ **Naming Conflicts**: Opgelost in admin routes voor betere code kwaliteit
+
+**Betrokken Routes:**
+- `/api/plant-beds` - Plant bedden endpoint
+- `/api/gardens` - Tuinen endpoint  
+- `/api/admin/users` - Gebruikersbeheer endpoint
+- `/api/admin/trash` - Prullenbak endpoint
+- `/api/gardens/[id]/plant-beds` - Tuin-specifieke plant bedden
+
+**Impact:** Vercel builds slagen nu succesvol en alle API functionaliteit blijft intact.
 - ✅ **Privilege separation** (service role vs anon key)
 - ✅ **WCAG 2.1 AA** accessibility compliance
 
