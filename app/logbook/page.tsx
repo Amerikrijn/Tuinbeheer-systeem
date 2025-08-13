@@ -286,9 +286,9 @@ function LogbookPageContent() {
             id: `task-${task.id}`,
             entry_date: task.updated_at,
             notes: `✅ Taak voltooid: ${task.title}${task.description ? ` - ${task.description}` : ''}`,
-            plant_bed_name: task.plants.plant_beds.name,
-            plant_name: task.plants.name,
-            garden_name: task.plants.plant_beds.gardens.name,
+            plant_bed_name: task.plants?.plant_beds?.name || 'Onbekend plantvak',
+            plant_name: task.plants?.name || 'Onbekende plant',
+            garden_name: task.plants?.plant_beds?.gardens?.name || 'Onbekende tuin',
             photo_url: null,
             is_completed_task: true, // Flag to identify this as a completed task
             original_task: task
