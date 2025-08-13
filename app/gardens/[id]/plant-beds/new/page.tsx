@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
-import { ArrowLeft, Leaf, Plus, Sun, MapPin, Ruler, Droplets } from "lucide-react"
+import { ArrowLeft, Leaf, Plus, Sun, MapPin, Ruler, Droplets, Hash } from "lucide-react"
 import { PlantvakService } from "@/lib/services/plantvak.service"
 import { getGarden } from "@/lib/database"
 import type { Garden } from "@/lib/types"
@@ -46,7 +46,8 @@ export default function NewPlantBedPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [nextLetterCode, setNextLetterCode] = useState<string>("?")
+  const [nextLetterCode, setNextLetterCode] = useState<string>("...")
+  const [existingPlantvakken, setExistingPlantvakken] = useState<any[]>([])
 
   const [newPlantBed, setNewPlantBed] = useState<NewPlantBed>({
     name: "",
@@ -64,11 +65,13 @@ export default function NewPlantBedPage() {
         const gardenData = await getGarden(gardenId)
         setGarden(gardenData)
         
-        // Calculate next letter code
+        // Get existing plantvakken and calculate next letter code
         const existingPlantvakken = await PlantvakService.getByGarden(gardenId)
+        setExistingPlantvakken(existingPlantvakken)
+        
         const existingCodes = existingPlantvakken.map(p => p.letter_code).filter(Boolean)
         
-        // Generate next letter code
+        // Generate next available letter code
         const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
         let nextCode = 'A'
         
@@ -89,8 +92,9 @@ export default function NewPlantBedPage() {
         }
         
         setNextLetterCode(nextCode)
+        console.log('🔤 Next letter code calculated:', nextCode)
       } catch (error) {
-        console.error("Error loading garden:", error)
+        console.error('Error loading garden:', error)
         toast({
           title: "Fout",
           description: "Kon tuin niet laden.",
@@ -266,20 +270,38 @@ export default function NewPlantBedPage() {
 
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Letter Code Preview - Prominent Display */}
-                <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                {/* Automatic Letter Code Assignment - Prominent Display */}
+                <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-100 text-blue-800 text-2xl font-bold rounded-full flex items-center justify-center">
+                    <div className="w-16 h-16 bg-blue-100 text-blue-800 text-3xl font-bold rounded-full flex items-center justify-center border-4 border-blue-300">
                       {nextLetterCode}
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-blue-900 text-lg">Letter Code Toewijzing</h4>
-                      <p className="text-blue-700">
-                        Dit plantvak krijgt automatisch letter code <strong>{nextLetterCode}</strong> toegewezen.
+                    <div className="flex-1">
+                      <h4 className="font-bold text-blue-900 text-xl mb-2">Automatische Letter Code Toewijzing</h4>
+                      <p className="text-blue-700 mb-3">
+                        Dit plantvak krijgt <strong>automatisch</strong> letter code <strong className="text-2xl">{nextLetterCode}</strong> toegewezen.
                       </p>
-                      {newPlantBed.name && (
-                        <p className="text-blue-600 mt-1">
-                          <strong>Plantvak:</strong> {newPlantBed.name}
+                      
+                      {/* Show existing plantvakken */}
+                      {existingPlantvakken.length > 0 && (
+                        <div className="mt-3">
+                          <p className="text-sm text-blue-600 mb-2">Bestaande plantvakken in deze tuin:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {existingPlantvakken.map((plantvak, index) => (
+                              <span 
+                                key={plantvak.id}
+                                className="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-800 text-sm font-bold rounded-full border-2 border-green-300"
+                              >
+                                {plantvak.letter_code || '?'}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {existingPlantvakken.length === 0 && (
+                        <p className="text-sm text-green-600 mt-2">
+                          🎉 Dit is het eerste plantvak in deze tuin!
                         </p>
                       )}
                     </div>
@@ -438,20 +460,27 @@ export default function NewPlantBedPage() {
         <aside className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Tips voor Plantvakken</CardTitle>
+              <CardTitle>Automatische Letter Codes</CardTitle>
             </CardHeader>
             <CardContent className="text-sm leading-relaxed space-y-3">
               <div>
-                <strong>Letter Code:</strong>
-                <p>Elk plantvak krijgt automatisch een unieke letter toegewezen (A, B, C, etc.) voor gemakkelijke identificatie.</p>
+                <strong>Hoe het werkt:</strong>
+                <ul className="list-disc list-inside mt-2 space-y-1 text-gray-600">
+                  <li>Eerste plantvak → <strong>A</strong></li>
+                  <li>Tweede plantvak → <strong>B</strong></li>
+                  <li>Derde plantvak → <strong>C</strong></li>
+                  <li>Enzovoort...</li>
+                  <li>Na Z → <strong>A1, A2, A3...</strong></li>
+                </ul>
               </div>
               <div>
-                <strong>Locatie:</strong>
-                <p>Beschrijf de precieze locatie binnen de tuin voor vrijwilligers.</p>
-              </div>
-              <div>
-                <strong>Zonligging:</strong>
-                <p>Belangrijk voor het kiezen van de juiste planten voor dit vak.</p>
+                <strong>Voordelen:</strong>
+                <ul className="list-disc list-inside mt-2 space-y-1 text-gray-600">
+                  <li>Geen handmatige invoer nodig</li>
+                  <li>Altijd unieke codes</li>
+                  <li>Logische volgorde</li>
+                  <li>Gemakkelijk te onthouden</li>
+                </ul>
               </div>
             </CardContent>
           </Card>
