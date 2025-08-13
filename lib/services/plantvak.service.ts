@@ -84,8 +84,13 @@ export class PlantvakService {
       const nextLetterCode = this.generateNextLetterCode(existingCodes);
       console.log('✨ Next letter code:', nextLetterCode);
       
-      // Create new plantvak with letter code
+      // Generate a unique ID for the plantvak
+      const uniqueId = `plantvak-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      console.log('🆔 Generated unique ID:', uniqueId);
+      
+      // Create new plantvak with letter code and ID
       const newPlantvak = {
+        id: uniqueId,
         ...plantvakData,
         letter_code: nextLetterCode,
         is_active: true,
