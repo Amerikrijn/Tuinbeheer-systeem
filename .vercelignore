@@ -3,6 +3,8 @@ apps/mobile/
 packages/
 *.md
 !README.md
+!docs/system/
+!docs/system/**
 
 # Development files
 launch-*.sh
@@ -21,3 +23,4 @@ packages/**/*
 !styles/
 !hooks/
 !database/
+!docs/system/
