@@ -26,7 +26,7 @@ export function AuthNavigation() {
   if (!user) {
     return (
       <nav className="border-b bg-background" role="navigation" aria-label="Unauthenticated navigation">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 safe-area-px">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md">
               <div className="flex items-center justify-center w-8 h-8 bg-green-600 rounded-full">
@@ -53,7 +53,7 @@ export function AuthNavigation() {
       
       {/* User Status Bar - Banking Addition */}
       <div className="bg-green-50 dark:bg-green-950/20 border-b border-green-200 dark:border-green-800 py-2">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 safe-area-px">
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center space-x-3">
               <Badge variant={user.role === 'admin' ? 'destructive' : 'outline'}>

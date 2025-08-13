@@ -220,7 +220,7 @@ export default function EditLogbookPage() {
 
   if (state.loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 safe-area-px">
         <div className="max-w-2xl mx-auto">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
@@ -233,7 +233,7 @@ export default function EditLogbookPage() {
 
   if (state.error || !state.entry) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 safe-area-px">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             Entry niet gevonden
@@ -253,7 +253,7 @@ export default function EditLogbookPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 safe-area-px">
       <div className="max-w-2xl mx-auto">
         {/* Back button */}
         <Button asChild variant="ghost" className="mb-6">

@@ -366,7 +366,7 @@ function NewLogbookPageContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 safe-area-px">
       <div className="max-w-2xl mx-auto">
         {/* Back button */}
         <Button asChild variant="ghost" className="mb-6">
