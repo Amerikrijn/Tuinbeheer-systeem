@@ -457,7 +457,7 @@ export class TaskService {
       const allTasks: WeeklyTask[] = [...plantTasks, ...plantBedTasks]
 
       // Apply garden access filtering
-      const transformedData: WeeklyTask[] = await this.applyGardenAccessFilter(allTasks, user, gardenFilter)
+      const transformedData: WeeklyTask[] = await this.applyGardenAccessFilter(allTasks, user || null, gardenFilter)
 
       // Apply consistent sorting: incomplete first (by due date + priority), then completed at bottom
       transformedData.sort((a, b) => {

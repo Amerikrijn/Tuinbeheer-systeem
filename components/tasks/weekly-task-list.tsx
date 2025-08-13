@@ -192,11 +192,11 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 text-base text-foreground leading-snug">
-              <span className="font-medium text-sm text-muted-foreground">{task.plant_beds?.gardens?.name}</span>
-              {task.plant_beds?.gardens?.name && task.plant_beds?.name && (
+              <span className="font-medium text-sm text-muted-foreground">{task.garden_name}</span>
+              {task.garden_name && task.plant_bed_name && (
                 <span className="text-muted-foreground" aria-hidden>→</span>
               )}
-              <span className="font-medium text-sm text-muted-foreground">{task.plant_beds?.name}</span>
+              <span className="font-medium text-sm text-muted-foreground">{task.plant_bed_name}</span>
               <span className="text-muted-foreground" aria-hidden>•</span>
               <div className="flex items-center gap-1">
                 <Leaf className="h-3 w-3 text-primary" />
@@ -238,7 +238,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               <span className={`${
                 task.completed ? 'text-muted-foreground' : 'text-muted-foreground'
               }`}>
-                {task.plants?.name}
+                {task.plant_name}
               </span>
             </div>
           </div>

@@ -13,12 +13,13 @@ import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/tas
 
 interface SimpleTasksViewProps {
   // No props needed - gets user from auth
+  // Using Record<never, never> to satisfy linting rules
 }
 
 export function SimpleTasksView({}: SimpleTasksViewProps) {
   const router = useRouter()
   const { user, getAccessibleGardens, loadGardenAccess } = useAuth()
-  const [tasks, setTasks] = useState([])
+  const [tasks, setTasks] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [gardenNames, setGardenNames] = useState<string[]>([])

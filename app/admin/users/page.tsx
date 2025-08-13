@@ -312,7 +312,10 @@ function AdminUsersPageContent() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem 
-                          onClick={() => setSelectedUser(user) || setIsEditDialogOpen(true)}
+                          onClick={() => {
+                            setSelectedUser(user)
+                            setIsEditDialogOpen(true)
+                          }}
                           className="text-blue-600 hover:text-blue-700"
                         >
                           <Edit className="w-4 h-4 mr-2" />
