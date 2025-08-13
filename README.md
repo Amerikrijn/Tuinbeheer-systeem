@@ -1,203 +1,36 @@
 # Tuinbeheer Systeem
 
-## 🧾 Projectoverzicht
-Dit project gebruikt Cursor AI om codekwaliteit, CI/CD en documentatie te verbeteren volgens banking-grade standaarden.
+Een modern tuinbeheer systeem gebouwd met Next.js, Supabase en TailwindCSS.
 
-## 🌱 Overzicht
+## Features
 
-Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. Ontwikkeld met Next.js 14, Supabase en TailwindCSS volgens **Nederlandse banking standards**.
+- **Plantvak Lettering Systeem** - Automatische letter codes (A, B, C, etc.) voor plantvakken
+- Tuinbeheer
+- Planten tracking
+- Taakbeheer
+- Logboek
+- Visual Garden Designer
 
-**🔒 Security Status:** ✅ Banking-grade security geïmplementeerd  
-**📋 Planning:** Gestructureerd backlog systeem actief  
-**🏦 Compliance:** Volledige server-side admin operaties
+## Tech Stack
 
-## ✨ Features
+- Next.js 14
+- Supabase (PostgreSQL)
+- TailwindCSS
+- TypeScript
+- React Hook Form
+- Zod Validation
 
-- **🌿 Tuin Beheer**: Overzicht en beheer van verschillende tuinen
-- **🪴 Plantbedden**: Gedetailleerd beheer van plantbedden per tuin
-- **🌸 Planten Database**: Uitgebreide plantencatalogus met eigenschappen
-- **📖 Logboek**: Activiteiten tracking met foto upload
-- **✅ Taken Systeem**: Wekelijkse taken beheer met status tracking
-- **👥 Gebruikersbeheer**: Role-based access control (Admin/User)
-- **🔐 Veilige Authenticatie**: Supabase auth met force password change
-- **📱 Responsive Design**: Mobiel-vriendelijke interface
+## Development
 
-## 🏗️ Technische Stack
-
-- **Frontend:** Next.js 14 (App Router), React, TypeScript
-- **Backend:** Supabase (PostgreSQL + Auth)
-- **Styling:** TailwindCSS + HeadlessUI
-- **Deployment:** Vercel (Preview + Production)
-- **Security:** Banking-grade server-side API routes
-
-## 🧪 Testen
-- Unit en integration tests via `npm run test` (zie ook `npm run test:unit`, `npm run test:integration`, `npm run test:ci`)
-- Linting via `npm run lint` (auto-fix: `npm run lint:fix`)
-- Type checking via `npm run type-check`
-- Security audit via `npm run audit:security`
-- Coverage wordt in CI geüpload (Codecov)
-
-### ⚠️ Huidige Test Status
-**Coverage:** 4.2% (doel: 80% volgens banking standards)  
-**Status:** Tests falen door mock configuratie problemen  
-**Prioriteit:** Hoog - moet opgelost worden voor CI/CD pipeline
-
-**Actiepunten:**
-1. Mock configuratie repareren in test setup
-2. API route tests toevoegen voor gewijzigde endpoints
-3. Coverage verhogen naar 80% minimum
-4. CI/CD pipeline groen maken
-
-## 🔁 CI/CD
-CI/CD is geconfigureerd via GitHub Actions (`.github/workflows/ci.yml`):
-- Elke push op `main` of `develop` en elke pull request naar `main` triggert:
-  - Linting
-  - Type-checking
-  - Unit & integration tests met coverage
-  - Security audit (non-blocking)
-  - Build van de applicatie
-
-## 🚀 Deployment
-- `develop` branch → preview/staging omgeving via Vercel
-- `main` branch → productieomgeving via Vercel
-
-## 📚 Documentatie
-- Zie `.cursor-rules` voor AI-gedrag, standaarden en banking compliance
-- Zie `.github/workflows/ci.yml` voor CI/CD configuratie
-- Zie `docs/` voor technische documentatie
-
-### Kern
-- `docs/system/` — centrale systeemdocumentatie (gebruikershandleiding, functioneel, architectuur, technisch, standaarden, testen, migraties, opschoonrapport)
-- `docs/planning/` — backlog en verbeteringen
-- Archiefdocumenten: `docs/archive/` (oude eenmalige analyses & rapporten)
-
-### Technisch
-- `SERVERSIDE_UITLEG.md` — server‑side security uitleg
-- `DATABASE_MIGRATIE_INSTRUCTIES.md` — migratie instructies
-- `database/README.md` — database schema en migraties
-- `docs/system/Supabase-Policies.md` — RLS/policies overzicht
-
-## 🤖 AI Governance & CI/CD Borging
-
-- **AI‑regels**: zie `.cursor-rules` (sectie “AI Governance en Configuratie”) voor gedrag, Definition of Done, teststrategie en banking‑standaarden.
-- **CI/CD**: `.github/workflows/ci.yml` draait linting, tests en build bij elke push/PR; `main` = productie, preview branches = staging.
-- **Kwaliteitsgate**: voer lokaal `npm run banking:full-check` uit (type‑check, lint‑fix, tests, compliance checks) vóór commit/PR.
-- **Documentatie‑discipline**: update `.cursor-rules`, `README.md` en relevante `docs/` bij elke significante wijziging.
-
-## 🚀 Quick Start
-
-### 1. Development Setup
 ```bash
 npm install
-cp .env.example .env.local
-# Configure environment variables
 npm run dev
 ```
 
-### 2. Build & Test
-```bash
-# Run tests with coverage
-npm run test:ci
+## Database Setup
 
-# Build for production
-npm run build
-
-# Full quality check
-npm run banking:full-check
-```
-
-### 2. Database Setup
-1. Volg instructies in `DATABASE_MIGRATIE_INSTRUCTIES.md`
-2. Run database migraties uit `database/` directory
-
-### 3. Admin Access
-1. Configureer `NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL` in environment
-2. Zie `ADMIN_GEBRUIKERSBEHEER_GIDS.md` voor gebruikershandleiding
-
-## 🏦 Banking Standards
-
-Dit project volgt **Nederlandse banking standards**:
-- ✅ **Server-side admin operaties** (geen client-side admin calls)
-- ✅ **Audit logging** voor alle security events  
-- ✅ **Input validation** en error handling
-- ✅ **Force password change** na admin reset
-
-## 🔧 Recente Fixes & Verbeteringen
-
-### Vercel Build Issues Opgelost (Augustus 2025)
-- ✅ **Dynamic Server Usage Error**: Alle API routes gemarkeerd als `dynamic = 'force-dynamic'` voor Next.js 14 compatibiliteit
-- ✅ **Query Parameters**: Vervangen van `new URL(request.url)` door `request.nextUrl.searchParams.get()` voor betere static generation
-- ✅ **API Route Configuratie**: Alle routes die query parameters of dynamische content gebruiken zijn correct geconfigureerd
-- ✅ **Naming Conflicts**: Opgelost in admin routes voor betere code kwaliteit
-
-**Betrokken Routes:**
-- `/api/plant-beds` - Plant bedden endpoint
-- `/api/gardens` - Tuinen endpoint  
-- `/api/admin/users` - Gebruikersbeheer endpoint
-- `/api/admin/trash` - Prullenbak endpoint
-- `/api/gardens/[id]/plant-beds` - Tuin-specifieke plant bedden
-
-**Impact:** Vercel builds slagen nu succesvol en alle API functionaliteit blijft intact.
-- ✅ **Privilege separation** (service role vs anon key)
-- ✅ **WCAG 2.1 AA** accessibility compliance
-
-Zie `.cursor-rules` voor volledige banking compliance configuratie.
-
-## 📋 Planning & Backlog
-
-**START ELKE SESSIE MET:** `docs/backlog/README.md`
-
-Het backlog systeem beheert alle:
-- 🔴 High priority features
-- 🟡 Medium priority improvements  
-- 📊 System analysis findings
-- 🏦 Banking compliance items
-
-## 🔧 Environment Variables
-
-Zie **Banking Compliance Configuratie** sectie in `.cursor-rules` voor complete environment setup.
-
-## 🧰 CI/CD & Deployment
-
-### CI
-- Triggers: push op `main` en `develop`, PR naar `main`.
-- Stappen: `npm ci` → `npm run lint` → `npm run type-check` → `npm run test:ci` (coverage) → optioneel `npm run audit:security` → `npm run build`.
-- Coverage: upload via Codecov (indien `CODECOV_TOKEN` is geconfigureerd).
-
-### Deployment
-- Productie: automatische Vercel‑deploy vanaf `main` als `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` secrets zijn gezet.
-- Previews: PR’s krijgen Vercel preview deployments.
-
-### Lokaal verifiëren
-```bash
-npm run lint && npm run type-check && npm run test:ci && npm run build
-```
-
-## 📞 Support
-
-Voor vragen over banking standards implementatie, raadpleeg:
-1. `.cursor-rules` — Complete standards guide
-2. `SERVERSIDE_UITLEG.md` — Security architecture  
-3. `docs/system/` — Centrale documentatie
-
-## ✅ Definition of Done
-- Code is getest
-- CI/CD draait succesvol
-- Documentatie is actueel
-- Geen TODO’s of warnings
-
-## 🤝 Contributing
-
-1. Fork het project
-2. Maak een feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit je wijzigingen (`git commit -m 'Add some AmazingFeature'`)
-4. Push naar de branch (`git push origin feature/AmazingFeature`)
-5. Open een Pull Request
-
-## 📄 License
-
-Dit project is gelicenseerd onder de MIT License - zie het [LICENSE](LICENSE) bestand voor details.
-
----
-
-**⚠️ BELANGRIJK:** Dit systeem implementeert banking-grade security. Volg altijd de security best practices en test grondig na elke wijziging.
+Het systeem gebruikt automatische letter codes voor plantvakken:
+- Eerste plantvak krijgt letter A
+- Tweede plantvak krijgt letter B
+- Enzovoort...
+- Na Z komt A1, A2, etc.
