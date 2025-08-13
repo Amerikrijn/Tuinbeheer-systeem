@@ -237,3 +237,20 @@ Geen duidelijke link naar user settings
 ---
 
 **📋 Start elke sessie met review van deze high-priority items!**
+
+## Stabiliteit en Preview Readiness
+
+- [ ] Preview-build stabiliseren zonder productie-impact
+  - Beschrijving: Verifieer dat `vercel.json` geen productie-only env erzorgt in preview en pas zo nodig aan (bijv. `APP_ENV`), zodat preview veilig draait
+  - Taken:
+    - Controle `vercel.json` en Vercel Project Settings (Preview Env Vars)
+    - Smoke tests op preview URL (auth, gardens, admin flows)
+  - Acceptatiecriteria: Preview draait zonder runtime errors en zonder PROD resources te raken
+
+- [ ] Tests herstellen die nu falen (unit/integratie)
+  - Beschrijving: Bestaande tests corrigeren (mock-data shape, timeouts) zodat ze niet flappen en coverage omhoog gaat
+  - Taken:
+    - `__tests__/unit/lib/services/database.service.test.ts` mock expectations corrigeren (result shape)
+    - Timeouts verhogen waar nodig of asynchrone mocks fixen
+    - Supabase mock uitbreiden voor `count`, `single` gedrag
+  - Acceptatiecriteria: Test suite groen, dekking >= 80%
