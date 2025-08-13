@@ -127,3 +127,13 @@
 - WCAG compliance (1 week)
 
 **Totaal: ~6-8 weken voor complete medium priority backlog**
+
+## Opschoning codebase
+- [ ] Verwijder niet-gebruikte componenten en pagina’s
+- [ ] Scripts in `package.json` nalopen en blijvend opschonen (mobile/shared)
+- [ ] Readme en docs consistent maken met `docs/system/`
+
+## Database/policies
+- [ ] Policies aanscherpen voor `gardens`, `plant_beds`, `plants` (weg van `FOR ALL USING (true)` naar eigenaarschap)
+- [ ] `database/archive/` verder ordenen met README (doel en gebruik)
+- [ ] Review `fix-production-rls-policies.sql` en archiveren na bevestigde toepassing
