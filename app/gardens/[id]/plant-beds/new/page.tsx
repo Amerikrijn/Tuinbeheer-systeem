@@ -139,7 +139,8 @@ export default function NewPlantBedPage() {
     setLoading(true)
 
     try {
-      const plantBed = await PlantvakService.create({
+      // Log the exact data being sent
+      const plantvakData = {
         garden_id: gardenId,
         name: newPlantBed.name,
         location: newPlantBed.location,
@@ -147,9 +148,16 @@ export default function NewPlantBedPage() {
         soil_type: newPlantBed.soilType,
         sun_exposure: newPlantBed.sunExposure as "full-sun" | "partial-sun" | "shade",
         description: newPlantBed.description,
-      })
+      }
+      
+      console.log('🔍 Form data being sent to PlantvakService:', JSON.stringify(plantvakData, null, 2))
+      console.log('🔍 Garden ID type:', typeof gardenId, 'Value:', gardenId)
+      console.log('🔍 Garden ID valid UUID:', /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(gardenId))
+
+      const plantBed = await PlantvakService.create(plantvakData)
 
       if (plantBed) {
+        console.log('✅ Plantvak created successfully:', plantBed)
         toast({
           title: "Plantvak aangemaakt!",
           description: `Plantvak "${newPlantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code}.`,
@@ -165,10 +173,16 @@ export default function NewPlantBedPage() {
         
         router.push(`/gardens/${gardenId}/plant-beds/${plantBed.id}`)
       } else {
-        throw new Error('Failed to create plantvak')
+        console.error('❌ PlantvakService.create returned null')
+        throw new Error('Failed to create plantvak - service returned null')
       }
     } catch (err) {
-      console.error("Error creating plant bed:", err)
+      console.error("❌ Error creating plant bed:", err)
+      console.error("❌ Error details:", {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      })
       toast({
         title: "Fout",
         description: "Er ging iets mis bij het aanmaken van het plantvak.",
