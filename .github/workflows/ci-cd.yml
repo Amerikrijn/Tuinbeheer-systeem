@@ -1,20 +1,30 @@
-name: CI/CD
+name: Banking-Grade CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, 'feature/**', 'bugfix/**', 'hotfix/**' ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+  COVERAGE_THRESHOLD: '80'
 
 jobs:
+  # 🔍 CHANGE DETECTION
   changes:
-    name: Detect changes
+    name: Detect Code Changes
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.filter.outputs.code }}
+      docs: ${{ steps.filter.outputs.docs }}
+      security: ${{ steps.filter.outputs.security }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
       - name: Paths filter
         id: filter
         uses: dorny/paths-filter@v3
@@ -36,20 +46,25 @@ jobs:
               - 'jest.config.js'
               - 'jest.setup.js'
               - 'tailwind.config.*'
+            docs:
+              - 'docs/**'
+              - 'README.md'
+              - '.cursor-rules'
+              - '*.md'
+            security:
+              - 'lib/security/**'
+              - 'lib/auth/**'
+              - 'lib/banking-security.ts'
+              - 'lib/api-auth-wrapper.ts'
+              - '.env*'
+              - 'vercel.json'
 
-  docs_only:
-    name: Docs-only (skip quality/build)
-    needs: changes
-    if: needs.changes.outputs.code != 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo "Docs-only change detected. Skipping quality/build/deploy."
-
+  # 🧪 QUALITY GATES (ALWAYS RUN)
   quality:
-    name: Quality (Lint, Types, Tests)
+    name: Quality Gates (Lint, Types, Tests)
     runs-on: ubuntu-latest
     needs: changes
-    if: needs.changes.outputs.code == 'true'
+    if: needs.changes.outputs.code == 'true' || github.event_name == 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -57,38 +72,51 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint
+      - name: 🚨 ESLint - Code Quality
         run: npm run lint
+        continue-on-error: false
 
-      - name: Type check
+      - name: 🔍 TypeScript - Type Safety
         run: npm run type-check
+        continue-on-error: false
 
-      - name: Test (CI + Coverage)
+      - name: 🧪 Jest - Unit & Integration Tests
         run: npm run test:ci
+        env:
+          CI: true
+        continue-on-error: false
 
-      - name: Security audit (non-blocking)
-        run: npm run audit:security
-        continue-on-error: true
-
-      - name: Upload coverage to Codecov
+      - name: 📊 Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
         if: success() && secrets.CODECOV_TOKEN != ''
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info
           fail_ci_if_error: false
+          coverage_command: npm run test:coverage
 
-  build:
-    name: Build
+      - name: 🚨 Coverage Threshold Check
+        run: |
+          if [ -f "coverage/lcov.info" ]; then
+            echo "Coverage report generated"
+            # Coverage thresholds are enforced in jest.config.js
+          else
+            echo "No coverage report found - tests may have failed"
+            exit 1
+          fi
+
+  # 🔒 SECURITY SCANNING
+  security:
+    name: Security & Compliance
     runs-on: ubuntu-latest
-    needs: quality
-    if: needs.changes.outputs.code == 'true'
+    needs: changes
+    if: needs.changes.outputs.security == 'true' || needs.changes.outputs.code == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -96,25 +124,136 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Build application
-        run: npm run build
+      - name: 🔒 Security Audit
+        run: npm run audit:security
+        continue-on-error: false
 
-  deploy:
-    name: Deploy to Vercel (Production)
+      - name: 🔍 Dependency Check
+        run: |
+          echo "Checking for known vulnerabilities..."
+          npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: 🚨 Banking Standards Compliance
+        run: |
+          echo "🔍 Checking Banking Standards Compliance..."
+          
+          # Check for hardcoded credentials
+          if grep -r "password.*=.*['\"].*['\"]" app/ lib/ components/ --exclude-dir=node_modules; then
+            echo "❌ ERROR: Hardcoded credentials found!"
+            exit 1
+          fi
+          
+          # Check for proper error handling
+          if grep -r "console\.log.*error" app/ lib/ components/ --exclude-dir=node_modules; then
+            echo "⚠️  WARNING: Direct console.log for errors found"
+          fi
+          
+          # Check for proper TypeScript usage
+          if grep -r ": any" app/ lib/ components/ --exclude-dir=node_modules; then
+            echo "⚠️  WARNING: 'any' types found - consider using proper types"
+          fi
+          
+          echo "✅ Banking standards compliance check completed"
+
+  # 🏗️ BUILD & VALIDATION
+  build:
+    name: Build & Validation
     runs-on: ubuntu-latest
-    needs: build
-    if: needs.changes.outputs.code == 'true' && github.ref == 'refs/heads/main' && success() && secrets.VERCEL_TOKEN != ''
+    needs: [quality, security]
+    if: needs.changes.outputs.code == 'true' || github.event_name == 'pull_request'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Vercel Deploy
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build Application
+        run: npm run build
+        continue-on-error: false
+
+      - name: 📏 Build Size Check
+        run: |
+          echo "Build completed successfully!"
+          if [ -d ".next" ]; then
+            echo "Build directory size:"
+            du -sh .next/
+          fi
+
+      - name: 🔍 Bundle Analysis (Optional)
+        run: |
+          if [ -f "package.json" ] && grep -q "bundle-analyzer" package.json; then
+            npm run analyze
+          else
+            echo "Bundle analyzer not configured - skipping"
+          fi
+
+  # 🚀 PREVIEW DEPLOYMENT
+  preview:
+    name: Deploy to Preview
+    runs-on: ubuntu-latest
+    needs: build
+    if: |
+      (needs.changes.outputs.code == 'true' || github.event_name == 'pull_request') &&
+      github.event_name == 'pull_request' &&
+      secrets.VERCEL_TOKEN != ''
+    environment: preview
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy to Vercel Preview
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: .
+          vercel-args: --target=preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🔗 Preview URL
+        run: |
+          echo "🚀 Preview deployment completed!"
+          echo "Preview URL: ${{ steps.deploy.outputs.preview-url }}"
+
+  # 🚀 PRODUCTION DEPLOYMENT
+  production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, security]
+    if: |
+      needs.changes.outputs.code == 'true' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      success() &&
+      secrets.VERCEL_TOKEN != ''
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 🚨 Final Security Check
+        run: |
+          echo "🔒 Final security validation before production deployment..."
+          npm run audit:security
+          echo "✅ Security validation passed"
+
+      - name: 🚀 Deploy to Vercel Production
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -124,3 +263,79 @@ jobs:
           vercel-args: --prod
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🔗 Production URL
+        run: |
+          echo "🚀 Production deployment completed!"
+          echo "Production URL: ${{ steps.deploy.outputs.preview-url }}"
+
+      - name: 📧 Deployment Notification
+        run: |
+          echo "✅ Production deployment successful!"
+          echo "Environment: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+
+  # 📋 DOCUMENTATION UPDATE CHECK
+  docs:
+    name: Documentation Compliance
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.docs == 'true' || needs.changes.outputs.code == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 📚 Check Documentation Updates
+        run: |
+          echo "📚 Checking documentation compliance..."
+          
+          # Check if README is updated
+          if [ -f "README.md" ]; then
+            echo "✅ README.md exists"
+          else
+            echo "❌ README.md missing"
+            exit 1
+          fi
+          
+          # Check if .cursor-rules is updated
+          if [ -f ".cursor-rules" ]; then
+            echo "✅ .cursor-rules exists"
+          else
+            echo "❌ .cursor-rules missing"
+            exit 1
+          fi
+          
+          # Check for TODO comments
+          TODO_COUNT=$(grep -r "TODO" . --exclude-dir=node_modules --exclude-dir=.git | wc -l)
+          if [ $TODO_COUNT -gt 0 ]; then
+            echo "⚠️  Found $TODO_COUNT TODO comments - consider addressing them"
+          fi
+          
+          echo "✅ Documentation compliance check completed"
+
+  # 🎯 FINAL STATUS
+  status:
+    name: Pipeline Status
+    runs-on: ubuntu-latest
+    needs: [quality, security, build, docs]
+    if: always()
+    steps:
+      - name: 📊 Pipeline Summary
+        run: |
+          echo "🎯 CI/CD Pipeline Summary"
+          echo "========================"
+          echo "Quality Gates: ${{ needs.quality.result }}"
+          echo "Security: ${{ needs.security.result }}"
+          echo "Build: ${{ needs.build.result }}"
+          echo "Documentation: ${{ needs.docs.result }}"
+          
+          if [ "${{ needs.quality.result }}" == "success" ] && \
+             [ "${{ needs.security.result }}" == "success" ] && \
+             [ "${{ needs.build.result }}" == "success" ] && \
+             [ "${{ needs.docs.result }}" == "success" ]; then
+            echo "✅ All checks passed! Ready for deployment."
+          else
+            echo "❌ Some checks failed. Please review and fix issues."
+            exit 1
+          fi

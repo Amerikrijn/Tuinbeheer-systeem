@@ -101,6 +101,8 @@ export interface LogbookEntryWithDetails extends LogbookEntry {
   plant_name?: string
   plant_scientific_name?: string
   plant_variety?: string
+  is_completed_task?: boolean // Flag to identify completed tasks as logbook entries
+  original_task?: any // Store the original task data if this is a completed task
 }
 
 // Form Data Types
