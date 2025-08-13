@@ -1,11 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase';
 import { 
   BulkUpdatePositionsRequest, 
-  PlantBedWithPosition,
+  PlantBedWithPosition, 
   ApiResponse,
   VISUAL_GARDEN_CONSTANTS 
 } from '@/lib/supabase';
+
+// Only check environment variables in production, not during build
+const checkEnvironment = () => {
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      throw new Error('SECURITY ERROR: Missing Supabase environment variables for production. Required: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    }
+  }
+}
 
 // ===================================================================
 // VALIDATION HELPERS
@@ -228,14 +237,16 @@ export async function GET(
   { params }: { params: { id: string } }
 ): Promise<NextResponse<ApiResponse<PlantBedWithPosition[]>>> {
   try {
+    // Only check environment in production
+    checkEnvironment()
+    
     const { id: gardenId } = params;
     
     if (!gardenId) {
-      return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
-        data: null,
-        error: 'Garden ID is required',
-        success: false
-      }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'Garden ID is required' },
+        { status: 400 }
+      );
     }
     
     // Get all plant beds with positions for this garden

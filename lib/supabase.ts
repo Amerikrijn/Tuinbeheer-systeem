@@ -3,6 +3,16 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { getSupabaseConfig } from './config';
+import type { Database } from './types'
+
+// Safe environment check - only runs in production, not during build
+export const checkSupabaseEnvironment = () => {
+  if (process.env.NODE_ENV === 'production') {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      throw new Error('SECURITY ERROR: Missing Supabase environment variables for production. Required: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    }
+  }
+}
 
 // ===================================================================
 // SUPABASE CLIENT INITIALIZATION
