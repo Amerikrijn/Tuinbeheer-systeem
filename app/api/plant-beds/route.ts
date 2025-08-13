@@ -57,13 +57,16 @@ const mockPlantBeds = [
   }
 ];
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export async function GET(request: NextRequest) {
   const operationId = `plant-beds-get-${Date.now()}`;
   
   try {
     apiLogger.info('GET /api/plant-beds', { operationId });
     
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl?.searchParams || new URL(request.url).searchParams;
     const gardenId = searchParams.get('garden_id');
 
     let query = supabase
