@@ -96,13 +96,18 @@ Als je op plantvak scherm bent, ontdubbel naam plantvak.
 
 **Components:**
 - **Storage Service** (`lib/storage.ts`):
-  - `ensureBucketExists()` functie
-  - Auto-creation van `plant-images` bucket
+  - `ensureBucketExists()` geïmplementeerd
+  - Auto-creating `plant-images` bucket via API-call
   - Betere error handling met specifieke messages
+- **API Route** (`app/api/storage/ensure-bucket/route.ts`):
+  - Maakt bucket aan met service role key
+  - Geen RLS in deze stap (toe te voegen in latere fase)
 - **Database Setup** (`database/setup-storage.sql`):
-  - Storage bucket configuratie
-  - RLS policies voor authenticated users
+  - Storage bucket creatie (public)
+  - RLS policies later toe te voegen
 - **Error Messages** - Specifieke guidance over bucket setup
+
+Nota: Voorbereiding voltooid zonder RLS; RLS-policies worden later toegevoegd.
 
 ### **7. 🔤 PLANTVAK LETTERING SYSTEEM**
 **Prioriteit:** Hoog  
