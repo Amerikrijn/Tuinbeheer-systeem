@@ -15,7 +15,6 @@ import { getGarden } from "@/lib/database"
 import type { Garden } from "@/lib/types"
 
 interface NewPlantBed {
-  name: string
   location: string
   size: string
   soilType: string
@@ -50,7 +49,6 @@ export default function NewPlantBedPage() {
   const [existingPlantvakken, setExistingPlantvakken] = useState<any[]>([])
 
   const [newPlantBed, setNewPlantBed] = useState<NewPlantBed>({
-    name: "",
     location: "",
     size: "",
     soilType: "",
@@ -115,9 +113,6 @@ export default function NewPlantBedPage() {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
-    if (!newPlantBed.name.trim()) {
-      newErrors.name = "Naam is verplicht"
-    }
     if (!newPlantBed.location.trim()) {
       newErrors.location = "Locatie is verplicht"
     }
@@ -146,7 +141,7 @@ export default function NewPlantBedPage() {
       // Log the exact data being sent
       const plantvakData = {
         garden_id: gardenId,
-        name: newPlantBed.name,
+        name: nextLetterCode, // Use the calculated letter code as the name
         location: newPlantBed.location,
         size: newPlantBed.size,
         soil_type: newPlantBed.soilType,
@@ -164,7 +159,7 @@ export default function NewPlantBedPage() {
         console.log('✅ Plantvak created successfully:', plantBed)
         toast({
           title: "Plantvak aangemaakt!",
-          description: `Plantvak "${newPlantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code}.`,
+          description: `Plantvak "${plantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code}.`,
         })
 
         // Show additional success message with letter code
@@ -199,7 +194,6 @@ export default function NewPlantBedPage() {
 
   const handleReset = () => {
     setNewPlantBed({
-      name: "",
       location: "",
       size: "",
       soilType: "",
@@ -277,9 +271,12 @@ export default function NewPlantBedPage() {
                       {nextLetterCode}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-blue-900 text-xl mb-2">Automatische Letter Code Toewijzing</h4>
+                      <h4 className="font-bold text-blue-900 text-xl mb-2">Automatische Plantvak Naam</h4>
                       <p className="text-blue-700 mb-3">
-                        Dit plantvak krijgt <strong>automatisch</strong> letter code <strong className="text-2xl">{nextLetterCode}</strong> toegewezen.
+                        Dit plantvak krijgt <strong>automatisch</strong> de naam <strong className="text-2xl">{nextLetterCode}</strong>.
+                      </p>
+                      <p className="text-blue-600 text-sm">
+                        De letter code wordt automatisch de naam van het plantvak.
                       </p>
                       
                       {/* Show existing plantvakken */}
@@ -309,22 +306,6 @@ export default function NewPlantBedPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Naam *</Label>
-                    <Input
-                      id="name"
-                      placeholder="Bijv. Noordwest hoek, Moestuin 1"
-                      value={newPlantBed.name}
-                      onChange={(e) =>
-                        setNewPlantBed((p) => ({ ...p, name: e.target.value }))
-                      }
-                      className={errors.name ? "border-red-500" : ""}
-                    />
-                    {errors.name && (
-                      <p className="text-sm text-red-500">{errors.name}</p>
-                    )}
-                  </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="location">Locatie *</Label>
                     <div className="relative">

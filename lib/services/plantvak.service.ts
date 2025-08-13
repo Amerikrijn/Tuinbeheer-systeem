@@ -54,7 +54,7 @@ export class PlantvakService {
    */
   static async create(plantvakData: {
     garden_id: string;
-    name: string;
+    name?: string;
     location?: string;
     size?: string;
     soil_type?: string;
@@ -67,10 +67,6 @@ export class PlantvakService {
       // Validate input data
       if (!plantvakData.garden_id) {
         throw new Error('Garden ID is required');
-      }
-      
-      if (!plantvakData.name) {
-        throw new Error('Name is required');
       }
       
       // Get existing letter codes for this garden
@@ -89,8 +85,10 @@ export class PlantvakService {
       console.log('🆔 Generated unique ID:', uniqueId);
       
       // Create new plantvak with letter code and ID
+      // Use the letter code as the name if no name is provided
       const newPlantvak = {
         id: uniqueId,
+        name: plantvakData.name || nextLetterCode, // Use provided name or letter code
         ...plantvakData,
         letter_code: nextLetterCode,
         is_active: true,
