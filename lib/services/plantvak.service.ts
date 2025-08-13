@@ -62,7 +62,16 @@ export class PlantvakService {
     description?: string;
   }): Promise<PlantBed | null> {
     try {
-      console.log('🔍 PlantvakService.create called with:', plantvakData);
+      console.log('🔍 PlantvakService.create called with:', JSON.stringify(plantvakData, null, 2));
+      
+      // Validate input data
+      if (!plantvakData.garden_id) {
+        throw new Error('Garden ID is required');
+      }
+      
+      if (!plantvakData.name) {
+        throw new Error('Name is required');
+      }
       
       // Get existing letter codes for this garden
       const existingPlantvakken = await this.getByGarden(plantvakData.garden_id);
@@ -84,7 +93,7 @@ export class PlantvakService {
         updated_at: new Date().toISOString()
       };
       
-      console.log('📝 Inserting new plantvak:', newPlantvak);
+      console.log('📝 Inserting new plantvak:', JSON.stringify(newPlantvak, null, 2));
 
       const { data, error } = await supabase
         .from('plant_beds')
@@ -94,6 +103,12 @@ export class PlantvakService {
 
       if (error) {
         console.error('❌ Supabase error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
       
@@ -102,12 +117,15 @@ export class PlantvakService {
       return data;
     } catch (error) {
       console.error('❌ Error creating plantvak:', error);
-      console.error('❌ Error details:', {
-        message: error.message,
-        code: error.code,
-        details: error.details,
-        hint: error.hint
-      });
+      if (error && typeof error === 'object') {
+        console.error('❌ Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          stack: error.stack
+        });
+      }
       return null;
     }
   }
