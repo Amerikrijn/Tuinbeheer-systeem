@@ -570,8 +570,8 @@ export class LogbookService {
       // SECURITY: Garden filtering is MANDATORY for logbook entries
       if (filters?.garden_id) {
         query = query.eq('plant_beds.garden_id', filters.garden_id)
-      } else if (filters?.garden_ids && filters.garden_ids.length > 0) {
-        query = query.in('plant_beds.garden_id', filters.garden_ids)
+      } else if (filters?.garden_id && Array.isArray(filters.garden_id) && filters.garden_id.length > 0) {
+        query = query.in('plant_beds.garden_id', filters.garden_id)
       } else {
         // SECURITY: If no garden filter is provided, this could be a security issue
         // We should log this and potentially block the request

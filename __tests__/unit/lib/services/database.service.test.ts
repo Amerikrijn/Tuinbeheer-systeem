@@ -129,7 +129,8 @@ describe('TuinService', () => {
         location: 'Test Location',
         description: 'A beautiful garden',
         garden_type: 'vegetable',
-        total_area: '100m²'
+        total_area: '100m²',
+        season_year: 2024
       }
 
       const createdGarden = {
@@ -152,7 +153,8 @@ describe('TuinService', () => {
     it('should validate required fields', async () => {
       const invalidGarden = {
         name: '', // Empty name should trigger validation error
-        location: 'Test Location'
+        location: 'Test Location',
+        season_year: 2024
       }
 
       const result = await TuinService.create(invalidGarden as any)
@@ -165,6 +167,7 @@ describe('TuinService', () => {
       const invalidGarden = {
         name: 'Test Garden',
         location: '' // Empty location should trigger validation error
+        season_year: 2024
       }
 
       const result = await TuinService.create(invalidGarden as any)
@@ -177,7 +180,8 @@ describe('TuinService', () => {
       const gardenData = {
         name: '  New Garden  ',
         location: '  Test Location  ',
-        description: '  A beautiful garden  '
+        description: '  A beautiful garden  ',
+        season_year: 2024
       }
 
       const expectedTrimmedData = {
@@ -203,7 +207,8 @@ describe('TuinService', () => {
     it('should handle database errors gracefully', async () => {
       const gardenData = {
         name: 'New Garden',
-        location: 'Test Location'
+        location: 'Test Location',
+        season_year: 2024
       }
 
       const mockError = { code: 'PGRST301', message: 'Database error' }

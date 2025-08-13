@@ -6,6 +6,7 @@ export const mockGardenData = {
   location: 'Test Location',
   garden_type: 'vegetable',
   total_area: '100m²',
+  season_year: 2024,
   is_active: true,
   created_at: '2023-01-01T00:00:00Z',
   updated_at: '2023-01-01T00:00:00Z'
@@ -20,6 +21,7 @@ export const mockGardensArray = [
     location: 'Second Location',
     garden_type: 'flower',
     total_area: '200m²',
+    season_year: 2024,
     is_active: true,
     created_at: '2023-01-02T00:00:00Z',
     updated_at: '2023-01-02T00:00:00Z'

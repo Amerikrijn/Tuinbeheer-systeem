@@ -24,7 +24,7 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
   const [validation, setValidation] = useState<PasswordValidation | null>(null)
   const [success, setSuccess] = useState(false)
   const router = useRouter()
-  const { forceRefreshUser } = useAuth()
+  const { forceRefreshUser, signOut } = useAuth()
 
   // Real-time password validation
   const handlePasswordChange = (password: string) => {
@@ -80,7 +80,7 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
         // 🏦 BANKING COMPLIANCE: Complete logout and redirect to login
         // This ensures fresh authentication with new password
         try {
-          await auth.signOut()
+          await signOut()
           router.push('/auth/login?message=password-changed')
         } catch (error) {
           console.error('Logout error:', error)
