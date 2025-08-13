@@ -1,5 +1,8 @@
 # Tuinbeheer Systeem
 
+## 🧾 Projectoverzicht
+Dit project gebruikt Cursor AI om codekwaliteit, CI/CD en documentatie te verbeteren volgens banking-grade standaarden.
+
 ## 🌱 Overzicht
 
 Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. Ontwikkeld met Next.js 14, Supabase en TailwindCSS volgens **Nederlandse banking standards**.
@@ -27,7 +30,30 @@ Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. 
 - **Deployment:** Vercel (Preview + Production)
 - **Security:** Banking-grade server-side API routes
 
-## 📋 Documentatie
+## 🧪 Testen
+- Unit en integration tests via `npm run test` (zie ook `npm run test:unit`, `npm run test:integration`, `npm run test:ci`)
+- Linting via `npm run lint` (auto-fix: `npm run lint:fix`)
+- Type checking via `npm run type-check`
+- Security audit via `npm run audit:security`
+- Coverage wordt in CI geüpload (Codecov)
+
+## 🔁 CI/CD
+CI/CD is geconfigureerd via GitHub Actions (`.github/workflows/ci.yml`):
+- Elke push op `main` of `develop` en elke pull request naar `main` triggert:
+  - Linting
+  - Type-checking
+  - Unit & integration tests met coverage
+  - Security audit (non-blocking)
+  - Build van de applicatie
+
+## 🚀 Deployment
+- `develop` branch → preview/staging omgeving via Vercel
+- `main` branch → productieomgeving via Vercel
+
+## 📚 Documentatie
+- Zie `.cursor-rules` voor AI-gedrag, standaarden en banking compliance
+- Zie `.github/workflows/ci.yml` voor CI/CD configuratie
+- Zie `docs/` voor technische documentatie
 
 ### Kern
 - `docs/system/` — centrale systeemdocumentatie (gebruikershandleiding, functioneel, architectuur, technisch, standaarden, testen, migraties, opschoonrapport)
@@ -91,6 +117,12 @@ Voor vragen over banking standards implementatie, raadpleeg:
 2. `SERVERSIDE_UITLEG.md` — Security architecture  
 3. `docs/system/` — Centrale documentatie
 
+## ✅ Definition of Done
+- Code is getest
+- CI/CD draait succesvol
+- Documentatie is actueel
+- Geen TODO’s of warnings
+
 ## 🤝 Contributing
 
 1. Fork het project
@@ -106,8 +138,3 @@ Dit project is gelicenseerd onder de MIT License - zie het [LICENSE](LICENSE) be
 ---
 
 **⚠️ BELANGRIJK:** Dit systeem implementeert banking-grade security. Volg altijd de security best practices en test grondig na elke wijziging.
-# Environment variable fix deployed Sat Aug  9 07:21:37 PM UTC 2025
-# Fixed TEST anon key for preview environment Sat Aug  9 07:37:08 PM UTC 2025
-# Fixed PROD database users table constraint Sat Aug  9 07:44:24 PM UTC 2025
-# Testing Preview deployment without hardcoded credentials Sat Aug  9 07:53:20 PM UTC 2025
->>>>>>> preview-test
