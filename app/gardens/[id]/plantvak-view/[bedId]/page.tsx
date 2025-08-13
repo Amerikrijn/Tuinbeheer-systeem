@@ -1952,7 +1952,12 @@ export default function PlantBedViewPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
                   <Palette className="h-5 w-5 text-purple-600" />
-                  Plantvak
+                  {plantBed?.letter_code && (
+                    <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 text-sm font-bold rounded-full mr-2">
+                      {plantBed.letter_code}
+                    </span>
+                  )}
+                  {plantBed?.name || 'Plantvak'}
                 </CardTitle>
             
             {/* Control buttons for selected flower */}

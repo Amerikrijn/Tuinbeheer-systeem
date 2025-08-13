@@ -16,7 +16,6 @@ import { createPlantBed, getGarden } from "@/lib/database"
 import type { Garden } from "@/lib/supabase"
 
 interface NewPlantBed {
-  id: string
   name: string
   location: string
   size: string
@@ -50,7 +49,6 @@ export default function NewPlantBedPage() {
   }, [])
 
   const [newPlantBed, setNewPlantBed] = React.useState<NewPlantBed>({
-    id: "",
     name: "",
     location: "",
     size: "",
@@ -86,14 +84,8 @@ export default function NewPlantBedPage() {
   const validateForm = () => {
     const nextErrors: Record<string, string> = {}
 
-    if (!newPlantBed.id.trim()) nextErrors.id = "Plantvak ID is verplicht"
     if (!newPlantBed.name.trim()) nextErrors.name = "Plantvak naam is verplicht"
     // Location is optional - removed validation
-
-    // Validate ID format (letters, numbers, hyphens only)
-    if (newPlantBed.id && !/^[a-zA-Z0-9-]+$/.test(newPlantBed.id)) {
-      nextErrors.id = "ID mag alleen letters, cijfers en streepjes bevatten"
-    }
 
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -122,7 +114,6 @@ export default function NewPlantBedPage() {
     setLoading(true)
     try {
       const plantBed = await createPlantBed({
-        id: newPlantBed.id,
         garden_id: garden.id,
         name: newPlantBed.name,
         location: newPlantBed.location || undefined,
@@ -134,7 +125,7 @@ export default function NewPlantBedPage() {
 
       toast({
         title: "Plantvak aangemaakt!",
-        description: `Plantvak "${newPlantBed.name}" is succesvol aangemaakt.`,
+        description: `Plantvak "${newPlantBed.name}" is succesvol aangemaakt met letter code ${plantBed?.letter_code || '?'}.`,
       })
 
       if (plantBed) {
@@ -156,7 +147,6 @@ export default function NewPlantBedPage() {
 
   const handleReset = () => {
     setNewPlantBed({
-      id: "",
       name: "",
       location: "",
       size: "",
@@ -222,30 +212,6 @@ export default function NewPlantBedPage() {
             <CardContent>
               <form onSubmit={handleSubmit} onReset={handleReset} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="id">Plantvak ID *</Label>
-                    <Input
-                      id="id"
-                      placeholder="Bijv. A1, NOORD-01, VAK-001"
-                      value={newPlantBed.id}
-                      onChange={(e) =>
-                        setNewPlantBed((p) => ({
-                          ...p,
-                          id: e.target.value.toUpperCase(),
-                        }))
-                      }
-                      className={errors.id ? "border-destructive" : ""}
-                      required
-                    />
-                    {errors.id && (
-                      <div className="flex items-center gap-1 text-destructive text-sm">
-                        <AlertCircle className="h-4 w-4" />
-                        {errors.id}
-                      </div>
-                    )}
-                    <p className="text-xs text-gray-600">Unieke identificatie voor dit plantvak</p>
-                  </div>
-
                   <div className="space-y-2">
                     <Label htmlFor="name">Plantvak Naam *</Label>
                     <Input

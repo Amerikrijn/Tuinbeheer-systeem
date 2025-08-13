@@ -143,6 +143,7 @@ export interface PlantBed {
   id: string;
   garden_id: string;
   name: string;
+  letter_code?: string; // Unique letter code (A, B, C, etc.) for plantvak identification
   location?: string;
   size?: string;
   soil_type?: string;
@@ -663,6 +664,77 @@ export const VISUAL_GARDEN_CONSTANTS = {
     BORDER: '#666666'
   }
 };
+
+// ===================================================================
+// PLANTVAK LETTERING UTILITIES
+// ===================================================================
+
+/**
+ * Generates the next available letter code for a garden
+ * @param existingCodes Array of existing letter codes in the garden
+ * @returns Next available letter code (A, B, C, etc.)
+ */
+export function generateNextLetterCode(existingCodes: string[]): string {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  
+  for (const letter of alphabet) {
+    if (!existingCodes.includes(letter)) {
+      return letter;
+    }
+  }
+  
+  // If all letters are used, start with AA, AB, etc.
+  let counter = 1;
+  while (true) {
+    const code = `A${counter}`;
+    if (!existingCodes.includes(code)) {
+      return code;
+    }
+    counter++;
+  }
+}
+
+/**
+ * Validates if a letter code is valid
+ * @param code Letter code to validate
+ * @returns True if valid, false otherwise
+ */
+export function isValidLetterCode(code: string): boolean {
+  if (!code) return false;
+  
+  // Single letter A-Z
+  if (/^[A-Z]$/.test(code)) return true;
+  
+  // Double letter format A1, A2, etc.
+  if (/^A\d+$/.test(code)) return true;
+  
+  return false;
+}
+
+/**
+ * Sorts letter codes in logical order (A, B, C, ..., Z, A1, A2, etc.)
+ * @param codes Array of letter codes to sort
+ * @returns Sorted array
+ */
+export function sortLetterCodes(codes: string[]): string[] {
+  return codes.sort((a, b) => {
+    // Single letters come first
+    const aIsSingle = /^[A-Z]$/.test(a);
+    const bIsSingle = /^[A-Z]$/.test(b);
+    
+    if (aIsSingle && !bIsSingle) return -1;
+    if (!aIsSingle && bIsSingle) return 1;
+    
+    if (aIsSingle && bIsSingle) {
+      return a.localeCompare(b);
+    }
+    
+    // For double letters, extract number and compare
+    const aNum = parseInt(a.substring(1)) || 0;
+    const bNum = parseInt(b.substring(1)) || 0;
+    return aNum - bNum;
+  });
+}
 
 // ===================================================================
 // EXPORT TYPES FOR EASY IMPORT

@@ -193,7 +193,6 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
 }
 
 export async function createPlantBed(plantBed: {
-  id: string
   garden_id: string
   name: string
   location?: string
@@ -204,73 +203,32 @@ export async function createPlantBed(plantBed: {
 }): Promise<PlantBed | null> {
   console.log("🌱 Creating plant bed:", plantBed)
   
-  // Validate garden_id is a valid UUID format (temporarily disabled for debugging)
-  // const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  // if (!uuidRegex.test(plantBed.garden_id)) {
-  //   console.error("❌ Invalid garden_id format:", plantBed.garden_id)
-  //   throw new Error(`Invalid garden_id format: ${plantBed.garden_id}`)
-  // }
-  console.log("🔍 Garden ID to be used:", { garden_id: plantBed.garden_id, type: typeof plantBed.garden_id })
+  // Use the new PlantvakService for automatic letter code assignment
+  const { PlantvakService } = await import('./services/database.service')
   
-  // Check if garden exists first
-  const { data: gardenExists, error: gardenCheckError } = await supabase
-    .from("gardens")
-    .select("id")
-    .eq("id", plantBed.garden_id)
-    .single()
-  
-  if (gardenCheckError || !gardenExists) {
-    console.error("❌ Garden does not exist:", { garden_id: plantBed.garden_id, error: gardenCheckError })
-    throw new Error(`Garden with id ${plantBed.garden_id} does not exist`)
-  }
-  
-  console.log("✅ Garden exists, proceeding with plant bed creation")
-  
-  // Insert plant bed with user-provided ID
-  const { data, error } = await supabase.from("plant_beds").insert({
-    id: plantBed.id,
-    garden_id: plantBed.garden_id,
-    name: plantBed.name,
-    location: plantBed.location || null,
-    size: plantBed.size || null,
-    soil_type: plantBed.soil_type || null,
-    sun_exposure: plantBed.sun_exposure || 'full-sun',
-    description: plantBed.description || null,
-    is_active: true
-  }).select().single()
-
-  if (error) {
-    console.error("❌ Error creating plant bed - DETAILED:", {
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-      code: error.code,
-      fullError: JSON.stringify(error, null, 2)
-    })
-    console.error("❌ Raw error object:", error)
-    console.error("❌ Error properties:", Object.keys(error))
-    console.error("❌ Plant bed data that failed:", JSON.stringify({
-      id: plantBed.id,
+  try {
+    const result = await PlantvakService.create({
       garden_id: plantBed.garden_id,
       name: plantBed.name,
-      location: plantBed.location || null,
-      size: plantBed.size || null,
-      soil_type: plantBed.soil_type || null,
-      sun_exposure: plantBed.sun_exposure || 'full-sun',
-      description: plantBed.description || null,
+      location: plantBed.location,
+      size: plantBed.size,
+      soil_type: plantBed.soil_type,
+      sun_exposure: plantBed.sun_exposure,
+      description: plantBed.description,
+      season_year: new Date().getFullYear(),
       is_active: true
-    }, null, 2))
-    if (isMissingRelation(error)) {
-      console.warn(
-        "Supabase table `plant_beds` not found yet – cannot create a plant bed until the migration is applied.",
-      )
-      throw error
+    })
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to create plantvak')
     }
+    
+    console.log("✅ Plantvak created successfully with letter code:", result.data?.letter_code)
+    return result.data as PlantBed
+  } catch (error) {
+    console.error("❌ Error creating plantvak:", error)
     throw error
   }
-
-  console.log("✅ Plant bed created successfully:", data)
-  return data
 }
 
 export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Promise<PlantBed | null> {

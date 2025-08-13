@@ -903,9 +903,304 @@ export class LogbookService {
   }
 }
 
+/**
+ * Plantvak Service - Handles plantvak operations with letter code management
+ */
+export class PlantvakService {
+  /**
+   * Get all plantvakken for a garden
+   */
+  static async getAllByGarden(gardenId: string): Promise<ApiResponse<Plantvak[]>> {
+    const operationId = `plantvak-getAll-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      await validateConnection()
+      
+      if (!gardenId) {
+        throw new ValidationError('Garden ID is required', 'garden_id')
+      }
+
+      const { data, error } = await supabase
+        .from('plant_beds')
+        .select('*')
+        .eq('garden_id', gardenId)
+        .eq('is_active', true)
+        .order('letter_code', { ascending: true })
+
+      if (error) {
+        throw new DatabaseError('Failed to fetch plantvakken', error.code, error)
+      }
+
+      AuditLogger.logDataAccess(null, 'SELECT', 'plant_beds', null, { garden_id: gardenId })
+      PerformanceLogger.endTimer(operationId, 'plantvak-getAll')
+      
+      databaseLogger.info('Plantvakken fetched successfully', { gardenId, count: data?.length || 0, operationId })
+
+      return createResponse<Plantvak[]>(data || [], null, 'get plantvakken')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'plantvak-getAll', { error: true })
+      
+      if (error instanceof ValidationError) {
+        databaseLogger.error('Plantvak fetch validation failed', error, { gardenId, operationId })
+        return createResponse<Plantvak[]>([], error.message, 'get plantvakken')
+      }
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in PlantvakService.getAllByGarden', error, { gardenId, operationId })
+        return createResponse<Plantvak[]>([], error.message, 'get plantvakken')
+      }
+      
+      databaseLogger.error('Unexpected error in PlantvakService.getAllByGarden', error as Error, { gardenId, operationId })
+      return createResponse<Plantvak[]>([], 'An unexpected error occurred', 'get plantvakken')
+    }
+  }
+
+  /**
+   * Create a new plantvak with automatic letter code assignment
+   */
+  static async create(plantvakData: Omit<Plantvak, 'id' | 'created_at' | 'updated_at' | 'letter_code'>): Promise<ApiResponse<Plantvak>> {
+    const operationId = `plantvak-create-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      await validateConnection()
+      
+      if (!plantvakData.garden_id || !plantvakData.name) {
+        throw new ValidationError('Garden ID and name are required', 'required_fields')
+      }
+
+      // Get existing letter codes for this garden
+      const existingResult = await this.getAllByGarden(plantvakData.garden_id)
+      if (!existingResult.success) {
+        throw new DatabaseError('Failed to fetch existing plantvakken for letter code generation', 'FETCH_ERROR')
+      }
+
+      const existingCodes = existingResult.data?.map(p => p.letter_code).filter(Boolean) || []
+      
+      // Import the letter code generation function
+      const { generateNextLetterCode } = await import('../supabase')
+      const nextLetterCode = generateNextLetterCode(existingCodes)
+
+      const newPlantvak = {
+        ...plantvakData,
+        letter_code: nextLetterCode,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
+      const { data, error } = await supabase
+        .from('plant_beds')
+        .insert(newPlantvak)
+        .select()
+        .single()
+
+      if (error) {
+        throw new DatabaseError('Failed to create plantvak', error.code, error)
+      }
+
+      AuditLogger.logUserAction(null, 'INSERT', 'plant_beds', data.id, { letter_code: nextLetterCode })
+      AuditLogger.logDataAccess(null, 'INSERT', 'plant_beds', data.id)
+      PerformanceLogger.endTimer(operationId, 'plantvak-create')
+      
+      databaseLogger.info('Plantvak created successfully', { id: data.id, letter_code: nextLetterCode, operationId })
+
+      return createResponse<Plantvak>(data, null, 'create plantvak')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'plantvak-create', { error: true })
+      
+      if (error instanceof ValidationError || error instanceof DatabaseError) {
+        databaseLogger.error('Plantvak creation failed', error, { plantvakData, operationId })
+        return createResponse<Plantvak>(null, error.message, 'create plantvak')
+      }
+      
+      databaseLogger.error('Unexpected error in PlantvakService.create', error as Error, { plantvakData, operationId })
+      return createResponse<Plantvak>(null, 'An unexpected error occurred', 'create plantvak')
+    }
+  }
+
+  /**
+   * Update an existing plantvak
+   */
+  static async update(id: string, updates: Partial<Omit<Plantvak, 'id' | 'garden_id' | 'created_at'>>): Promise<ApiResponse<Plantvak>> {
+    const operationId = `plantvak-update-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      await validateConnection()
+      
+      if (!id) {
+        throw new ValidationError('Plantvak ID is required', 'id')
+      }
+
+      const updateData = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      }
+
+      const { data, error } = await supabase
+        .from('plant_beds')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          throw new NotFoundError('Plantvak', id)
+        }
+        throw new DatabaseError('Failed to update plantvak', error.code, error)
+      }
+
+      AuditLogger.logUserAction(null, 'UPDATE', 'plant_beds', id, updates)
+      AuditLogger.logDataAccess(null, 'UPDATE', 'plant_beds', id)
+      PerformanceLogger.endTimer(operationId, 'plantvak-update')
+      
+      databaseLogger.info('Plantvak updated successfully', { id, operationId })
+
+      return createResponse<Plantvak>(data, null, 'update plantvak')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'plantvak-update', { error: true })
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError) {
+        databaseLogger.error('Plantvak update validation failed', error, { id, updates, operationId })
+        return createResponse<Plantvak>(null, error.message, 'update plantvak')
+      }
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in PlantvakService.update', error, { id, updates, operationId })
+        return createResponse<Plantvak>(null, error.message, 'update plantvak')
+      }
+      
+      databaseLogger.error('Unexpected error in PlantvakService.update', error as Error, { id, updates, operationId })
+      return createResponse<Plantvak>(null, 'An unexpected error occurred', 'update plantvak')
+    }
+  }
+
+  /**
+   * Delete a plantvak and reassign letter codes
+   */
+  static async delete(id: string): Promise<ApiResponse<boolean>> {
+    const operationId = `plantvak-delete-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      await validateConnection()
+      
+      if (!id) {
+        throw new ValidationError('Plantvak ID is required', 'id')
+      }
+
+      // Get the plantvak to find its garden_id and letter_code
+      const { data: existing, error: fetchError } = await supabase
+        .from('plant_beds')
+        .select('garden_id, letter_code')
+        .eq('id', id)
+        .single()
+
+      if (fetchError || !existing) {
+        throw new NotFoundError('Plantvak', id)
+      }
+
+      // Delete the plantvak
+      const { error } = await supabase
+        .from('plant_beds')
+        .delete()
+        .eq('id', id)
+
+      if (error) {
+        throw new DatabaseError('Failed to delete plantvak', error.code, error)
+      }
+
+      // Note: Letter code reassignment would happen automatically on next creation
+      // as the generateNextLetterCode function only considers existing codes
+
+      AuditLogger.logUserAction(null, 'DELETE', 'plant_beds', id)
+      AuditLogger.logDataAccess(null, 'DELETE', 'plant_beds', id)
+      PerformanceLogger.endTimer(operationId, 'plantvak-delete')
+      
+      databaseLogger.info('Plantvak deleted successfully', { id, operationId })
+
+      return createResponse<boolean>(true, null, 'delete plantvak')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'plantvak-delete', { error: true })
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError) {
+        databaseLogger.error('Plantvak deletion validation failed', error, { id, operationId })
+        return createResponse<boolean>(false, error.message, 'delete plantvak')
+      }
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in PlantvakService.delete', error, { id, operationId })
+        return createResponse<boolean>(false, error.message, 'delete plantvak')
+      }
+      
+      databaseLogger.error('Unexpected error in PlantvakService.delete', error as Error, { id, operationId })
+      return createResponse<boolean>(false, 'An unexpected error occurred', 'delete plantvak')
+    }
+  }
+
+  /**
+   * Get a single plantvak by ID
+   */
+  static async getById(id: string): Promise<ApiResponse<Plantvak>> {
+    const operationId = `plantvak-getById-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      await validateConnection()
+      
+      if (!id) {
+        throw new ValidationError('Plantvak ID is required', 'id')
+      }
+
+      const { data, error } = await supabase
+        .from('plant_beds')
+        .select('*')
+        .eq('id', id)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          throw new NotFoundError('Plantvak', id)
+        }
+        throw new DatabaseError('Failed to fetch plantvak', error.code, error)
+      }
+
+      AuditLogger.logDataAccess(null, 'SELECT', 'plant_beds', id)
+      PerformanceLogger.endTimer(operationId, 'plantvak-getById')
+      
+      databaseLogger.info('Plantvak fetched successfully', { id, operationId })
+
+      return createResponse<Plantvak>(data, null, 'get plantvak')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'plantvak-getById', { error: true })
+      
+      if (error instanceof ValidationError || error instanceof NotFoundError) {
+        databaseLogger.error('Plantvak fetch validation failed', error, { id, operationId })
+        return createResponse<Plantvak>(null, error.message, 'get plantvak')
+      }
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in PlantvakService.getById', error, { id, operationId })
+        return createResponse<Plantvak>(null, error.message, 'get plantvak')
+      }
+      
+      databaseLogger.error('Unexpected error in PlantvakService.getById', error as Error, { id, operationId })
+      return createResponse<Plantvak>(null, 'An unexpected error occurred', 'get plantvak')
+    }
+  }
+}
+
 // For backward compatibility, create a unified DatabaseService
 export const DatabaseService = {
   Tuin: TuinService,
   Logbook: LogbookService,
-  // TODO: Add PlantvakService and BloemService following the same pattern
+  Plantvak: PlantvakService,
+  // TODO: Add BloemService following the same pattern
 }

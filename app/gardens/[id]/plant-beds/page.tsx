@@ -53,6 +53,7 @@ export default function PlantBedsPage() {
   const filteredPlantBeds = plantBeds.filter(
     (bed) =>
       bed.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bed.letter_code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bed.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bed.id.toLowerCase().includes(searchTerm.toLowerCase()),
   )
@@ -159,7 +160,7 @@ export default function PlantBedsPage() {
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
         <Input
-          placeholder="Zoek plantvakken..."
+          placeholder="Zoek op naam, letter (A, B, C...) of locatie..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10"
@@ -184,7 +185,14 @@ export default function PlantBedsPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">🌱</span>
                         <div>
-                          <h3 className="font-medium text-gray-900">{bed.name}</h3>
+                          <h3 className="font-medium text-gray-900">
+                            {bed.letter_code && (
+                              <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 text-sm font-bold rounded-full mr-2">
+                                {bed.letter_code}
+                              </span>
+                            )}
+                            {bed.name}
+                          </h3>
                           {bed.location && (
                             <p className="text-sm text-gray-500">{bed.location}</p>
                           )}
@@ -241,7 +249,14 @@ export default function PlantBedsPage() {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <span className="text-xl">🌱</span>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 truncate">{bed.name}</h3>
+                        <h3 className="font-medium text-gray-900 truncate">
+                          {bed.letter_code && (
+                            <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 text-sm font-bold rounded-full mr-2">
+                              {bed.letter_code}
+                            </span>
+                          )}
+                          {bed.name}
+                        </h3>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                           <span>{bed.plants.length} bloemen</span>
                           {bed.size && <span>Grootte: {bed.size}</span>}
