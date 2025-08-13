@@ -255,3 +255,19 @@ Geen duidelijke link naar user settings
     - Timeouts verhogen waar nodig of asynchrone mocks fixen
     - Supabase mock uitbreiden voor `count`, `single` gedrag
   - Acceptatiecriteria: Test suite groen, dekking >= 80%
+
+---
+
+## **9. 🌿 Garden Editor – Plantvakletters (A–Z, hergebruik na 26)**
+
+### **Issue:**
+Identificatie van plantvakken gebruikt letters A–Z. Bij meer dan 26 plantvakken was unieke toekenning vereist; wens is dat letters na Z hergebruikt worden (dubbele letters toegestaan).
+
+### **Acceptance Criteria:**
+- [ ] Elk plantvak krijgt automatisch een letter A–Z in volgorde.
+- [ ] Bij > 26 plantvakken start de reeks opnieuw bij A; dubbele letters binnen dezelfde tuin zijn toegestaan.
+- [ ] Weergave van de letter is zichtbaar in de editor en in het detailpaneel.
+- [ ] Geen foutmelding meer bij > 26 plantvakken op basis van letter-conflict.
+
+### **Notes:**
+- Optioneel: in de toekomst alternatieve labeling (bijv. A1, B1) onderzoeken voor beter onderscheid, maar nu expliciet dubbele letters toelaten.
