@@ -1,9 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase-admin';
-import { auditLog } from '@/lib/audit-logger';
+import { createClient } from '@supabase/supabase-js';
 
 // Force dynamic rendering since this route handles query parameters
 export const dynamic = 'force-dynamic';
+
+// 🏦 BANKING-GRADE: Validate required environment variables
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_URL is required')
+}
+
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('🚨 CRITICAL: SUPABASE_SERVICE_ROLE_KEY not found in environment variables')
+  console.error('This API requires service role access for admin operations')
+}
+
+// Banking-grade admin client with service role
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
 
 function localAuditLog(action: string, details: any) {
   console.log(`🔒 ADMIN AUDIT: ${action}`, {
