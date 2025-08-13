@@ -225,14 +225,15 @@ Sommige data willen we ook visueel per maand in tuin kunnen zien.
 **Complexiteit:** 🟡 Medium - UI grid + data relaties
 
 **Beschrijving:**  
-Toevoegen aan plantvak (de foto's uit het logboek die zijn gemaakt door gebruikers en admin). Deze foto's worden gerangschikt op datum van links naar rechts.
+Toon bij elk plantvak de foto's uit relevante logboekitems (gemaakt door gebruikers en admin). Als een logboekitem nog geen koppeling naar een plantvak heeft, voeg die relationele verwijzing toe.
 
 **Acceptatiecriteria:**
-- [ ] Foto's uit logboek zijn zichtbaar in plantvak
-- [ ] Foto's zijn gesorteerd op datum (links naar rechts)
-- [ ] Foto's zijn gemaakt door gebruikers en admin
-- [ ] Aantal foto's op scherm is geoptimaliseerd
-- [ ] Rest van foto's is beschikbaar via uitklap functionaliteit
+- [ ] Logboekitems zijn gekoppeld aan plantvakken via een expliciete referentie (bijv. `plant_bed_id`); indien nog niet aanwezig: databasekolom toevoegen + migratie + backfill plan
+- [ ] Foto's uit logboek worden getoond in het bijbehorende plantvak
+- [ ] Sorteervolgorde: van oud naar nieuw (ascending op datum)
+- [ ] Maximaal 24 foto's per jaar zichtbaar; UI biedt jaarselectie of paginatie per jaar
+- [ ] Standaard toont het huidige jaar; indien minder dan 24 foto's, toon alle beschikbare
+- [ ] "Meer foto's" of uitklapfunctionaliteit voor resterende foto's buiten de eerste 24 per jaar
 - [ ] Performance blijft goed bij veel foto's
 
 **Estimate:** 1 week
