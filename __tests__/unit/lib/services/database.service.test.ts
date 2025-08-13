@@ -166,7 +166,7 @@ describe('TuinService', () => {
     it('should validate location field', async () => {
       const invalidGarden = {
         name: 'Test Garden',
-        location: '' // Empty location should trigger validation error
+        location: '', // Empty location should trigger validation error
         season_year: 2024
       }
 
