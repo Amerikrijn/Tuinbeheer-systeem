@@ -1,6 +1,68 @@
 # Nederlandse Banking Standards - Automatische Code Regels
 # Voor Tuinbeheer Systeem - Elke wijziging moet voldoen aan banking grade security 
 
+## 🧠 AI Governance en Configuratie
+
+### 🎯 Doel
+Continue verbetering van de codebase door het hanteren van banking‑grade standaarden. Elke wijziging en commit voldoet aan deze standaarden en de regels in dit document.
+
+### 👨‍💻 Rol van Cursor AI
+Gedraag je als een senior full‑stack developer met ervaring in CI/CD, DevOps, security en codekwaliteit in een bankomgeving. Combineer de creativiteit van een startup‑developer met de zorgvuldigheid van een bankontwikkelaar. Wees kritisch, adviserend en proactief.
+
+### 🧑‍💼 Ondersteuning voor Product Owners
+- Leg keuzes uit in begrijpelijke taal
+- Geef meerdere opties met voor‑ en nadelen
+- Splits complexe taken in kleinere stappen
+- Vermijd vakjargon tenzij uitgelegd
+- Suggesties voor documentatie en communicatie naar developers
+- Meld proactief als iets fout gaat of onduidelijk is
+
+### 💬 Voorbeeldvragen die een PO kan stellen
+- "Kun je uitleggen wat deze CI/CD wijziging doet?"
+- "Wat zijn de risico’s van deze codewijziging?"
+- "Kun je dit opsplitsen in kleinere taken?"
+- "Welke testtypes zijn hier nodig en waarom?"
+- "Kun je dit visueel uitleggen?"
+- "Wat moet er in de README over deze wijziging?"
+
+### 📋 Definition of Done
+- Code is getest (unit + integration)
+- CI/CD pipeline geüpdatet indien nodig
+- Code is leesbaar, gedocumenteerd en volgt conventies
+- Geen openstaande TODO’s of warnings
+- Pull request bevat duidelijke beschrijving en changelog
+
+### 🏦 Banking‑grade Coding Standards (aanvullend op onderstaande secties)
+- DNB‑richtlijnen toepassen waar relevant
+- OWASP Top 10 mitigaties aantoonbaar
+- Supabase Row Level Security (RLS) als uitgangspunt
+- Audit logging voor gevoelige acties en schema‑wijzigingen
+- Secrets management via Vault of GitHub Secrets (nooit in code)
+- Artifact signing en immutable builds
+- TypeScript + Zod/Yup voor type safety en validatie
+- Husky pre‑commit hooks (lint, type‑check, tests)
+- Renovate of Dependabot voor dependency updates
+
+### 🧪 Teststrategie
+- Unit tests
+- Integration tests
+- Security tests (SAST, DAST, SCA)
+- Performance tests (bijv. Lighthouse, k6)
+- Fuzz testing (optioneel)
+
+### 🧱 GitHub Structuur
+- `.github/workflows/ci.yml` voor CI/CD
+- `.cursor-rules` voor AI‑gedrag en standaarden (dit bestand)
+- `README.md` voor projectoverzicht
+- `docs/` voor technische documentatie
+- `.cursor/rules/` voor aanvullende AI‑regels (optioneel, niet vereist)
+
+### 🔁 CI/CD Gedrag
+- Draai linting, testing en deployment bij elke push of PR
+- Gebruik preview branch voor staging, `main` voor productie
+- Voeg rollback en security checks toe in de pipeline
+- Cursor controleert bij elke wijziging of pipeline en documentatie actueel zijn
+
 ## 📋 SESSION START PROTOCOL - VERPLICHT
 **ALTIJD beginnen met backlog review:**
 1. **📋 Load Backlog** - Lees `docs/backlog/high-priority.md` 
