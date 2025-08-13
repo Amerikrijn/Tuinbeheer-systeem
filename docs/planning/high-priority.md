@@ -9,6 +9,13 @@ Features die volgens banking standards geïmplementeerd moeten worden.
 
 ## **🚨 KRITIEK (MOET EERST)**
 
+### **TS-OPSCHONING & BUILD-ROBUSTHEID (HIGH PRIORITY)**
+- Korte omschrijving: TypeScript type-check groen krijgen en build robuuster maken (lazy Supabase init)
+- Waarom nu: CI faalt nu op TS; blokkeert veilige release flow
+- Scope: Zie `docs/planning/technical-debt.md`
+- Acceptance: type-check en build slagen lokaal en in CI, geen regressies
+- Estimate: 1–2 dagen
+
 
 ### **0. 🎨 UI/UX IMPROVEMENTS SUITE**
 **Issue:** Dark mode, mobile responsiveness, en photo upload niet volledig werkend  
