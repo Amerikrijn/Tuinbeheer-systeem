@@ -12,7 +12,8 @@ import type {
   ApiResponse,
   PaginatedResponse,
   SearchFilters,
-  SortOptions
+  SortOptions,
+  TuinCreateInput
 } from '../types/index'
 
 /**
@@ -239,7 +240,7 @@ export class TuinService {
   /**
    * Create new garden with validation and audit logging
    */
-  static async create(gardenData: Omit<Tuin, 'id' | 'created_at' | 'updated_at' | 'is_active'>): Promise<ApiResponse<Tuin>> {
+  static async create(gardenData: TuinCreateInput): Promise<ApiResponse<Tuin>> {
     const operationId = `create-${Date.now()}`
     PerformanceLogger.startTimer(operationId)
     
@@ -259,6 +260,7 @@ export class TuinService {
         ...gardenData,
         name: gardenData.name.trim(),
         location: gardenData.location.trim(),
+        season_year: gardenData.season_year ?? new Date().getFullYear(),
         is_active: true,
       }
       

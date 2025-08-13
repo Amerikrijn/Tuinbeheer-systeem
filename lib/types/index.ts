@@ -256,3 +256,17 @@ export type PlantBedFormData = PlantvakFormData
 export type PlantFormData = BloemFormData
 export type PlantBedWithPlants = PlantvakWithBloemen
 export type PlantBedPosition = PlantvakPosition
+
+export interface TuinCreateInput {
+  name: string
+  location: string
+  description?: string
+  garden_type?: string
+  total_area?: string
+  length?: string
+  width?: string
+  established_date?: string
+  notes?: string
+  season_year?: number
+  background_color?: string
+}

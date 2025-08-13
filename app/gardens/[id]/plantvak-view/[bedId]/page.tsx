@@ -285,11 +285,13 @@ export default function PlantBedViewPage() {
       const gardenId = params.id as string
       const filteredTasks = allTasks.filter(task => {
         // Check if task belongs to this garden via plant -> plant_bed -> garden
-        if (task.plants?.plant_beds?.gardens?.id) {
+        // @ts-expect-error legacy mock typing
+        if ((task as any).plants?.plant_beds?.gardens?.id) {
           return task.plants.plant_beds.gardens.id === gardenId
         }
         // Check if task belongs to this garden via plant_bed -> garden (for plant bed tasks)
-        if (task.plant_beds?.gardens?.id) {
+        // @ts-expect-error legacy mock typing
+        if ((task as any).plant_beds?.gardens?.id) {
           return task.plant_beds.gardens.id === gardenId
         }
         return false
@@ -1593,7 +1595,7 @@ export default function PlantBedViewPage() {
                 Bloem Toevoegen
               </Button>
                           </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-white border border-gray-200 shadow-xl">
+            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background border border-border shadow-xl">
               <DialogHeader>
                 <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
                 <DialogDescription>
@@ -1640,7 +1642,7 @@ export default function PlantBedViewPage() {
               setSelectedFlower(null)
             }
           }}>
-            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-white z-50 border border-gray-200 shadow-xl">
+            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background z-50 border border-border shadow-xl">
               <DialogHeader>
                 <DialogTitle>Bloem Bewerken</DialogTitle>
                 <DialogDescription>
@@ -2109,7 +2111,7 @@ export default function PlantBedViewPage() {
                     }}
                   >
                     {/* Plantvak name and info - always within the plantvak area */}
-                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border">
+                    <div className="absolute top-2 left-2 bg-card/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border border-border">
                       <div className="text-sm font-bold text-green-800">
                         {plantBed.name}
                       </div>
@@ -2203,7 +2205,7 @@ export default function PlantBedViewPage() {
                       
                       {/* Kleine naam label voor kleine bloemen */}
                       {flower.visual_width <= 60 && (
-                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-medium text-gray-700 bg-white bg-opacity-90 px-2 py-1 rounded shadow-sm whitespace-nowrap">
+                        <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-medium text-muted-foreground bg-card/90 px-2 py-1 rounded shadow-sm whitespace-nowrap border border-border">
                           {flower.name}
                         </div>
                       )}

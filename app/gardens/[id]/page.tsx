@@ -1311,7 +1311,7 @@ export default function GardenDetailPage() {
                           {/* Top corner elements */}
                           <div className="flex items-start justify-between">
                             {bed.sun_exposure && (
-                              <div className="bg-white/90 p-1 rounded shadow-sm">
+                              <div className="bg-card/90 p-1 rounded shadow-sm border border-border">
                                 {getSunExposureIcon(bed.sun_exposure)}
                               </div>
                             )}
@@ -1340,7 +1340,7 @@ export default function GardenDetailPage() {
                               containerHeight={bedHeight}
                             />
                             {bed.plants.length === 0 && (
-                              <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
+                              <div className="text-muted-foreground text-sm font-medium bg-card/80 px-3 py-2 rounded-lg border border-border shadow-sm">
                                 🌱 Leeg plantvak
                               </div>
                             )}
@@ -1434,7 +1434,7 @@ export default function GardenDetailPage() {
                 {/* Empty State */}
                 {plantBeds.length === 0 && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center bg-white/80 p-8 rounded-lg border-2 border-dashed border-gray-300">
+                    <div className="text-center bg-card/80 p-8 rounded-lg border-2 border-dashed border-border">
                       <Leaf className="h-20 w-20 mx-auto text-gray-400 mb-4" />
                       <h3 className="text-xl font-medium text-gray-900 mb-2">Nog geen plantvakken</h3>
                       <p className="text-gray-600 mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
