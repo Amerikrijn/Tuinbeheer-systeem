@@ -40,6 +40,13 @@ Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. 
 - `database/README.md` — database schema en migraties
 - `docs/system/Supabase-Policies.md` — RLS/policies overzicht
 
+## 🤖 AI Governance & CI/CD Borging
+
+- **AI‑regels**: zie `.cursor-rules` (sectie “AI Governance en Configuratie”) voor gedrag, Definition of Done, teststrategie en banking‑standaarden.
+- **CI/CD**: `.github/workflows/ci.yml` draait linting, tests en build bij elke push/PR; `main` = productie, preview branches = staging.
+- **Kwaliteitsgate**: voer lokaal `npm run banking:full-check` uit (type‑check, lint‑fix, tests, compliance checks) vóór commit/PR.
+- **Documentatie‑discipline**: update `.cursor-rules`, `README.md` en relevante `docs/` bij elke significante wijziging.
+
 ## 🚀 Quick Start
 
 ### 1. Development Setup
@@ -102,12 +109,3 @@ Voor vragen over banking standards implementatie, raadpleeg:
 ## 📄 License
 
 Dit project is gelicenseerd onder de MIT License - zie het [LICENSE](LICENSE) bestand voor details.
-
----
-
-**⚠️ BELANGRIJK:** Dit systeem implementeert banking-grade security. Volg altijd de security best practices en test grondig na elke wijziging.
-# Environment variable fix deployed Sat Aug  9 07:21:37 PM UTC 2025
-# Fixed TEST anon key for preview environment Sat Aug  9 07:37:08 PM UTC 2025
-# Fixed PROD database users table constraint Sat Aug  9 07:44:24 PM UTC 2025
-# Testing Preview deployment without hardcoded credentials Sat Aug  9 07:53:20 PM UTC 2025
->>>>>>> preview-test
