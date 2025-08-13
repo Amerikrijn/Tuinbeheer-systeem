@@ -146,12 +146,6 @@ export default function PlantBedsPage() {
             <Grid3X3 className="h-4 w-4 mr-1" />
             {isVisualView ? "Lijst" : "Visueel"}
           </Button>
-          <Link href="/plant-beds/new">
-            <Button className="bg-green-600 hover:bg-green-700">
-              <Plus className="h-4 w-4 mr-2" />
-              Plantvak Toevoegen
-            </Button>
-          </Link>
           <Link href={`/gardens/${garden.id}/plant-beds/new`}>
             <Button className="bg-green-600 hover:bg-green-700">
               <Plus className="h-4 w-4 mr-2" />
