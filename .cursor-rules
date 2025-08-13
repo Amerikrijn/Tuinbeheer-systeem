@@ -1,6 +1,61 @@
 # Nederlandse Banking Standards - Automatische Code Regels
 # Voor Tuinbeheer Systeem - Elke wijziging moet voldoen aan banking grade security 
 
+## 🚨 VERPLICHTE START CHECKLIST - ALTIJD EERST DOEN!
+**VOORDAT je begint met WELKE taak dan ook, MOET je deze checklist doorlopen:**
+
+### ✅ CHECKLIST VOOR ELKE SESSIE:
+- [ ] **Backlog gelezen**: `docs/planning/COMPLETE_BACKLOG.md` bekeken
+- [ ] **Technische schuld gecheckt**: `docs/planning/technical-debt.md` gelezen  
+- [ ] **Systeem context begrepen**: `docs/planning/system-analysis-findings.md` bekeken
+- [ ] **Planning gelezen**: `docs/planning/README.md` doorgenomen
+- [ ] **Taak geanalyseerd**: Wat wordt er precies gevraagd?
+- [ ] **Randvoorwaarden geïdentificeerd**: Security, performance, compatibility?
+- [ ] **Implementatieplan gemaakt**: Stap-voor-stap aanpak opgeschreven
+- [ ] **Risico's geëvalueerd**: Wat kan er mis gaan?
+
+**❌ NOOIT direct beginnen met coderen zonder deze checklist!**
+**✅ ALTIJD eerst alle context en randvoorwaarden begrijpen!**
+
+## 🔄 VERPLICHTE WORKFLOW VOOR ELKE TAAK
+
+### 📋 STAP 1: CONTEXT VERZAMELEN (VERPLICHT)
+```
+1. Lees docs/planning/COMPLETE_BACKLOG.md
+2. Lees docs/planning/technical-debt.md  
+3. Lees docs/planning/system-analysis-findings.md
+4. Lees docs/planning/README.md
+```
+
+### 🎯 STAP 2: TAAK ANALYSEREN (VERPLICHT)
+```
+1. Wat wordt er precies gevraagd?
+2. Welke bestanden zijn betrokken?
+3. Welke standaarden zijn van toepassing?
+4. Zijn er dependencies of conflicten?
+```
+
+### 🔍 STAP 3: RANDVOORWAARDEN CHECK (VERPLICHT)
+```
+1. Security vereisten?
+2. Performance constraints?
+3. Backwards compatibility nodig?
+4. Welke tests zijn vereist?
+5. Wat moet er gedocumenteerd worden?
+```
+
+### 📝 STAP 4: IMPLEMENTATIEPLAN (VERPLICHT)
+```
+1. Stap-voor-stap aanpak opschrijven
+2. Risico's identificeren
+3. Fallback strategie bepalen
+4. Definition of Done vaststellen
+```
+
+### 🚫 NOOIT OVERSLAAN
+**Elke stap is VERPLICHT. Geen uitzonderingen.**
+**Direct coderen = Risico op fouten, security issues, en technische schuld.**
+
 ## 🧠 AI Governance en Configuratie
 
 ### 🎯 Doel
@@ -64,8 +119,8 @@ Gedraag je als een senior full‑stack developer met ervaring in CI/CD, DevOps, 
 - Cursor controleert bij elke wijziging of pipeline en documentatie actueel zijn
 
 ## 📋 SESSION START PROTOCOL - VERPLICHT
-**ALTIJD beginnen met backlog review:**
-1. **📋 Load Backlog** - Lees `docs/backlog/high-priority.md` 
+**ALTIJD beginnen met backlog review en randvoorwaarden check:**
+1. **📋 Load Backlog** - Lees `docs/planning/COMPLETE_BACKLOG.md` 
 2. **🎯 Check Priorities** - Bepaal wat aangepakt moet worden
 3. **📝 Plan Session** - Selecteer items voor deze sessie
 4. **🏗️ Follow Standards** - Implementeer volgens onderstaande banking standards
@@ -839,12 +894,23 @@ NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL=admin@tuinbeheer.nl
 
 #### ✅ Server-Side API Routes
 Alle admin functies via beveiligde server routes:
-- `/api/admin/invite-user` - User invitations
-- `/api/admin/delete-user` - User deletion
-- `/api/admin/reset-password` - Password resets
-- `/api/admin/update-user-role` - Role changes  
-- `/api/admin/update-user-status` - Status changes
+- `/api/admin/invite-user`
 
-#### ✅ Privilege Separation
-- **NEXT_PUBLIC_*** = Client-side safe (anon key, URLs)
-- **SUPABASE_SERVICE_ROLE_KEY** = Server-side only (admin privileges)
+## 🚨 LAATSTE HERINNERING - RANDVOORWAARDEN CHECK
+
+**VOORDAT je begint met WELKE taak dan ook:**
+
+### 📋 VERPLICHTE START CHECKLIST:
+- [ ] **Backlog gelezen**: `docs/planning/COMPLETE_BACKLOG.md` bekeken
+- [ ] **Technische schuld gecheckt**: `docs/planning/technical-debt.md` gelezen  
+- [ ] **Systeem context begrepen**: `docs/planning/system-analysis-findings.md` bekeken
+- [ ] **Planning gelezen**: `docs/planning/README.md` doorgenomen
+- [ ] **Taak geanalyseerd**: Wat wordt er precies gevraagd?
+- [ ] **Randvoorwaarden geïdentificeerd**: Security, performance, compatibility?
+- [ ] **Implementatieplan gemaakt**: Stap-voor-stap aanpak opgeschreven
+- [ ] **Risico's geëvalueerd**: Wat kan er mis gaan?
+
+**❌ NOOIT direct beginnen met coderen zonder deze checklist!**
+**✅ ALTIJD eerst alle context en randvoorwaarden begrijpen!**
+
+**Deze regels zijn NIET-NEGOCIEERBAAR en gelden voor ELKE taak!**
