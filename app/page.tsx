@@ -27,6 +27,7 @@ import { supabase } from "@/lib/supabase"
 import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
 import { WeeklyTaskList } from "@/components/tasks/weekly-task-list"
 import { SimpleTasksView } from "@/components/user/simple-tasks-view"
+import { getUserFriendlyErrorMessage } from "@/lib/errors"
 
 interface HomePageState {
   gardens: Tuin[]
@@ -231,16 +232,16 @@ function HomePageContent() {
   }, [state.gardens, state.searchTerm])
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
       {/* Header */}
       <header className="text-center mb-6">
         <div className="flex items-center justify-center gap-3 mb-4">
           <div className="p-3 bg-green-100 rounded-full">
             <TreePine className="h-8 w-8 text-green-600" />
           </div>
-          <h1 className="text-4xl font-bold text-foreground">Tuinbeheer Systeem</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Tuinbeheer Systeem</h1>
         </div>
-        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto">
           Beheer je tuinen, plantvakken en planten met ons gebruiksvriendelijke systeem
         </p>
       </header>
@@ -294,7 +295,7 @@ function HomePageContent() {
 
       {/* Loading State */}
       {state.loading && state.gardens.length === 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, index) => (
             <Card key={index} className="overflow-hidden">
               <CardHeader>
@@ -338,7 +339,7 @@ function HomePageContent() {
           ) : (
             <>
               <div className={isVisualView 
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
+                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
                 : "space-y-4 mb-8"
               }>
                 {filteredGardens.map((garden) => (
@@ -641,26 +642,6 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
   )
 }
 
-// Helper function to provide user-friendly error messages
-function getUserFriendlyErrorMessage(error: string): string {
-  if (error.includes('fetch')) {
-    return 'Controleer uw internetverbinding en probeer het opnieuw.'
-  }
-  
-  if (error.includes('timeout')) {
-    return 'De server reageert langzaam. Probeer het later opnieuw.'
-  }
-  
-  if (error.includes('table') || error.includes('relation')) {
-    return 'Database configuratie probleem. Neem contact op met support.'
-  }
-  
-  if (error.includes('permission') || error.includes('unauthorized')) {
-    return 'U heeft geen toegang tot deze functie.'
-  }
-  
-  return error || 'Er is een onverwachte fout opgetreden.'
-}
 
 // Main page component with error boundary and auth protection
 export default function HomePage() {
