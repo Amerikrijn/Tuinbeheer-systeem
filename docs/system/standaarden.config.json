@@ -1,0 +1,21 @@
+{
+  "enforce": true,
+  "requiredDocuments": [
+    "docs/system/Gebruikershandleiding.md",
+    "docs/system/Architectuur.md",
+    "docs/system/Functioneel.md",
+    "docs/system/Technisch.md",
+    "docs/system/Testing-Strategie.md",
+    "docs/system/Standards.md",
+    "docs/system/Migraties-Overzicht.md",
+    "docs/system/Opschoonrapport.md"
+  ],
+  "checks": {
+    "jestConfigPresent": true,
+    "coverageThresholdMin": 80,
+    "rlsPolicyFiles": [
+      "database/01-schema.sql",
+      "database/04-force-password-change-migration.sql"
+    ]
+  }
+}

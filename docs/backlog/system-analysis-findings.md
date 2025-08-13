@@ -202,6 +202,14 @@
 
 ---
 
+## Standards-validatie vóór build
+- [ ] `build-success.js` uitbreiden met optionele test-run voor preview (niet production-blocking)
+- [ ] `docs/system/standaarden.config.json` uitbreiden met extra checks (bijv. presence van CI workflows, ESLint config)
+
+## CI aanpassingen (preview):
+- [ ] Coverage drempel tijdelijk verlagen of test scope beperken in preview tot kernpaden
+- [ ] Workflow stap toevoegen: generate docs index en koppeling in artifacts
+
 ## **📈 PRIORITIZATION MATRIX**
 
 | Priority | Count | Focus Area |

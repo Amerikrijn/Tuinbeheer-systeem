@@ -29,15 +29,16 @@ Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. 
 
 ## 📋 Documentatie
 
-### Core Documentatie
-- **`.cursor-rules`** - Banking standards en development regels
-- **`docs/backlog/`** - Gestructureerd backlog systeem
-- **`ADMIN_GEBRUIKERSBEHEER_GIDS.md`** - Admin gebruikershandleiding
+### Kern
+- `docs/system/` — centrale systeemdocumentatie (gebruikershandleiding, functioneel, architectuur, technisch, standaarden, testen, migraties, opschoonrapport)
+- `docs/backlog/` — backlog en verbeteringen
+- `ADMIN_GEBRUIKERSBEHEER_GIDS.md` — admin gids
 
-### Technische Documentatie  
-- **`DATABASE_MIGRATIE_INSTRUCTIES.md`** - Database setup instructies
-- **`SERVERSIDE_UITLEG.md`** - Server-side vs client-side security uitleg
-- **`database/README.md`** - Database schema en migraties
+### Technisch
+- `SERVERSIDE_UITLEG.md` — server‑side security uitleg
+- `DATABASE_MIGRATIE_INSTRUCTIES.md` — migratie instructies
+- `database/README.md` — database schema en migraties
+- `docs/system/Supabase-Policies.md` — RLS/policies overzicht
 
 ## 🚀 Quick Start
 
@@ -85,27 +86,10 @@ Zie **Banking Compliance Configuratie** sectie in `.cursor-rules` voor complete 
 
 ## 📞 Support
 
-<<<<<<< HEAD
 Voor vragen over banking standards implementatie, raadpleeg:
-1. `.cursor-rules` - Complete standards guide
-2. `SERVERSIDE_UITLEG.md` - Security architecture  
-3. `docs/backlog/` - Planned improvements
-=======
-```
-src/
-├── app/                    # Next.js 14 App Router
-│   ├── (dashboard)/       # Dashboard routes
-│   ├── admin/            # Admin-only pages
-│   ├── auth/             # Authentication pages
-│   └── api/              # API endpoints
-├── components/           # Reusable UI components
-├── hooks/               # Custom React hooks
-├── lib/                 # Utility functions & configurations
-│   ├── security/        # Security utilities & audit logging
-│   └── supabase/        # Database client & queries
-├── types/               # TypeScript type definitions
-└── docs/               # Project documentation
-```
+1. `.cursor-rules` — Complete standards guide
+2. `SERVERSIDE_UITLEG.md` — Security architecture  
+3. `docs/system/` — Centrale documentatie
 
 ## 🤝 Contributing
 
