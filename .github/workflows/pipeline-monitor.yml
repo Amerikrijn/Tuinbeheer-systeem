@@ -1,0 +1,405 @@
+name: Pipeline Monitor & Quality Reporting
+
+on:
+  schedule:
+    # Run daily at 9:00 AM UTC
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # 📊 Pipeline Health Check
+  health-check:
+    name: Pipeline Health Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: 🔍 Code Quality Analysis
+        run: |
+          echo "🔍 Analyzing code quality..."
+          
+          # ESLint issues count
+          ESLINT_ISSUES=$(npm run lint 2>&1 | grep -c "problems" || echo "0")
+          echo "ESLint issues: $ESLINT_ISSUES"
+          
+          # TypeScript issues count
+          TYPESCRIPT_ISSUES=$(npm run type-check 2>&1 | grep -c "error" || echo "0")
+          echo "TypeScript issues: $TYPESCRIPT_ISSUES"
+          
+          # Test coverage
+          if [ -f "coverage/lcov.info" ]; then
+            COVERAGE_FILES=$(grep -E "^SF:" coverage/lcov.info | wc -l)
+            echo "Coverage files: $COVERAGE_FILES"
+          else
+            echo "No coverage data found"
+          fi
+          
+          # Security vulnerabilities
+          SECURITY_ISSUES=$(npm audit --audit-level=moderate --json 2>/dev/null | jq '.metadata.vulnerabilities.total // 0' || echo "0")
+          echo "Security vulnerabilities: $SECURITY_ISSUES"
+          
+          # Save metrics for other jobs
+          echo "eslint_issues=$ESLINT_ISSUES" >> $GITHUB_OUTPUT
+          echo "typescript_issues=$TYPESCRIPT_ISSUES" >> $GITHUB_OUTPUT
+          echo "coverage_files=$COVERAGE_FILES" >> $GITHUB_OUTPUT
+          echo "security_issues=$SECURITY_ISSUES" >> $GITHUB_OUTPUT
+
+      - name: 📊 Generate Quality Report
+        run: |
+          echo "📊 Generating Quality Report..."
+          
+          cat > quality-report.md << EOF
+          # 📊 Code Quality Report
+          
+          Generated: $(date -u)
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          
+          ## 🔍 Quality Metrics
+          
+          - **ESLint Issues**: ${{ steps.health-check.outputs.eslint_issues }}
+          - **TypeScript Issues**: ${{ steps.health-check.outputs.typescript_issues }}
+          - **Coverage Files**: ${{ steps.health-check.outputs.coverage_files }}
+          - **Security Vulnerabilities**: ${{ steps.health-check.outputs.security_issues }}
+          
+          ## 🎯 Quality Status
+          
+          EOF
+          
+          # Determine overall quality status
+          if [ "${{ steps.health-check.outputs.eslint_issues }}" -eq 0 ] && \
+             [ "${{ steps.health-check.outputs.typescript_issues }}" -eq 0 ] && \
+             [ "${{ steps.health-check.outputs.security_issues }}" -eq 0 ]; then
+            echo "✅ **Status: EXCELLENT** - All quality gates passed!" >> quality-report.md
+          elif [ "${{ steps.health-check.outputs.eslint_issues }}" -le 5 ] && \
+               [ "${{ steps.health-check.outputs.typescript_issues }}" -le 2 ] && \
+               [ "${{ steps.health-check.outputs.security_issues }}" -eq 0 ]; then
+            echo "🟡 **Status: GOOD** - Minor issues detected" >> quality-report.md
+          else
+            echo "🔴 **Status: NEEDS ATTENTION** - Quality issues detected" >> quality-report.md
+          fi
+          
+          echo "" >> quality-report.md
+          echo "## 📋 Recommendations" >> quality-report.md
+          
+          if [ "${{ steps.health-check.outputs.eslint_issues }}" -gt 0 ]; then
+            echo "- Fix ESLint issues to improve code quality" >> quality-report.md
+          fi
+          
+          if [ "${{ steps.health-check.outputs.typescript_issues }}" -gt 0 ]; then
+            echo "- Resolve TypeScript errors for better type safety" >> quality-report.md
+          fi
+          
+          if [ "${{ steps.health-check.outputs.security_issues }}" -gt 0 ]; then
+            echo "- Address security vulnerabilities immediately" >> quality-report.md
+          fi
+          
+          echo "" >> quality-report.md
+          echo "---" >> quality-report.md
+          echo "*This report was generated automatically by the CI/CD pipeline monitor*" >> quality-report.md
+
+      - name: 📤 Upload Quality Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: quality-report.md
+          retention-days: 30
+
+  # 🚨 Pipeline Status Monitoring
+  pipeline-status:
+    name: Pipeline Status Monitor
+    runs-on: ubuntu-latest
+    needs: health-check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: 📊 Check Recent Pipeline Runs
+        run: |
+          echo "📊 Checking recent pipeline runs..."
+          
+          # Get recent workflow runs
+          WORKFLOW_RUNS=$(curl -s \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=ci-cd.yml&per_page=10" | \
+            jq '.workflow_runs[] | {id: .id, status: .status, conclusion: .conclusion, created_at: .created_at, head_branch: .head_branch}')
+          
+          echo "Recent workflow runs:"
+          echo "$WORKFLOW_RUNS" | jq -r '. | "\(.id): \(.status) - \(.conclusion) (\(.head_branch))"'
+          
+          # Count successful vs failed runs
+          SUCCESS_COUNT=$(echo "$WORKFLOW_RUNS" | jq -r '.conclusion' | grep -c "success" || echo "0")
+          FAILURE_COUNT=$(echo "$WORKFLOW_RUNS" | jq -r '.conclusion' | grep -c "failure" || echo "0")
+          TOTAL_COUNT=$(echo "$WORKFLOW_RUNS" | jq -r '.conclusion' | wc -l)
+          
+          echo "Pipeline Success Rate: $SUCCESS_COUNT/$TOTAL_COUNT ($(($SUCCESS_COUNT * 100 / $TOTAL_COUNT))%)"
+          
+          # Save metrics
+          echo "success_count=$SUCCESS_COUNT" >> $GITHUB_OUTPUT
+          echo "failure_count=$FAILURE_COUNT" >> $GITHUB_OUTPUT
+          echo "total_count=$TOTAL_COUNT" >> $GITHUB_OUTPUT
+
+      - name: 📈 Generate Pipeline Report
+        run: |
+          echo "📈 Generating Pipeline Report..."
+          
+          cat > pipeline-report.md << EOF
+          # 🚀 Pipeline Status Report
+          
+          Generated: $(date -u)
+          Branch: ${{ github.ref_name }}
+          
+          ## 📊 Pipeline Metrics
+          
+          - **Total Runs**: ${{ steps.pipeline-status.outputs.total_count }}
+          - **Successful**: ${{ steps.pipeline-status.outputs.success_count }}
+          - **Failed**: ${{ steps.pipeline-status.outputs.failure_count }}
+          - **Success Rate**: $((${{ steps.pipeline-status.outputs.success_count }} * 100 / ${{ steps.pipeline-status.outputs.total_count }}))%
+          
+          ## 🎯 Pipeline Health
+          
+          EOF
+          
+          # Determine pipeline health
+          SUCCESS_RATE=$((${{ steps.pipeline-status.outputs.success_count }} * 100 / ${{ steps.pipeline-status.outputs.total_count }}))
+          
+          if [ $SUCCESS_RATE -ge 90 ]; then
+            echo "✅ **Status: HEALTHY** - Pipeline is performing excellently!" >> pipeline-report.md
+          elif [ $SUCCESS_RATE -ge 75 ]; then
+            echo "🟡 **Status: STABLE** - Pipeline is generally reliable" >> pipeline-report.md
+          else
+            echo "🔴 **Status: UNSTABLE** - Pipeline needs attention" >> pipeline-report.md
+          fi
+          
+          echo "" >> pipeline-report.md
+          echo "## 📋 Recommendations" >> pipeline-report.md
+          
+          if [ $SUCCESS_RATE -lt 90 ]; then
+            echo "- Investigate recent pipeline failures" >> pipeline-report.md
+            echo "- Review quality gate configurations" >> pipeline-report.md
+            echo "- Consider adjusting thresholds if needed" >> pipeline-report.md
+          fi
+          
+          echo "" >> pipeline-report.md
+          echo "---" >> pipeline-report.md
+          echo "*This report was generated automatically by the pipeline monitor*" >> pipeline-report.md
+
+      - name: 📤 Upload Pipeline Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-report
+          path: pipeline-report.md
+          retention-days: 30
+
+  # 🔔 Quality Alert Notifications
+  quality-alerts:
+    name: Quality Alert Notifications
+    runs-on: ubuntu-latest
+    needs: [health-check, pipeline-status]
+    if: |
+      needs.health-check.result == 'success' &&
+      (needs.health-check.outputs.eslint_issues != '0' ||
+       needs.health-check.outputs.typescript_issues != '0' ||
+       needs.health-check.outputs.security_issues != '0')
+    steps:
+      - name: 🚨 Generate Quality Alert
+        run: |
+          echo "🚨 Generating Quality Alert..."
+          
+          cat > quality-alert.md << EOF
+          # 🚨 QUALITY ALERT
+          
+          **Branch**: ${{ github.ref_name }}
+          **Time**: $(date -u)
+          
+          ## ⚠️ Issues Detected
+          
+          EOF
+          
+          if [ "${{ needs.health-check.outputs.eslint_issues }}" != "0" ]; then
+            echo "- **ESLint Issues**: ${{ needs.health-check.outputs.eslint_issues }} code quality problems" >> quality-alert.md
+          fi
+          
+          if [ "${{ needs.health-check.outputs.typescript_issues }}" != "0" ]; then
+            echo "- **TypeScript Issues**: ${{ needs.health-check.outputs.typescript_issues }} type safety problems" >> quality-alert.md
+          fi
+          
+          if [ "${{ needs.health-check.outputs.security_issues }}" != "0" ]; then
+            echo "- **Security Issues**: ${{ needs.health-check.outputs.security_issues }} vulnerabilities detected" >> quality-alert.md
+          fi
+          
+          echo "" >> quality-alert.md
+          echo "## 🚫 Impact" >> quality-alert.md
+          echo "- Preview deployment will be BLOCKED" >> quality-alert.md
+          echo "- PR cannot be merged until issues are resolved" >> quality-alert.md
+          echo "- Quality standards are not being met" >> quality-alert.md
+          
+          echo "" >> quality-alert.md
+          echo "## 🔧 Action Required" >> quality-alert.md
+          echo "1. Fix all detected issues" >> quality-alert.md
+          echo "2. Push changes to trigger new pipeline run" >> quality-alert.md
+          echo "3. Verify all quality gates pass" >> quality-alert.md
+          
+          echo "" >> quality-alert.md
+          echo "---" >> quality-alert.md
+          echo "*This alert was generated automatically by the quality monitor*" >> pipeline-report.md
+
+      - name: 📤 Upload Quality Alert
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-alert
+          path: quality-alert.md
+          retention-days: 30
+
+      - name: 🔔 Create Issue for Quality Problems
+        if: |
+          needs.health-check.outputs.eslint_issues != '0' ||
+          needs.health-check.outputs.typescript_issues != '0' ||
+          needs.health-check.outputs.security_issues != '0'
+        run: |
+          echo "🔔 Creating issue for quality problems..."
+          
+          # Create issue body
+          ISSUE_BODY="## 🚨 Quality Issues Detected
+          
+          **Branch**: ${{ github.ref_name }}
+          **Pipeline Run**: ${{ github.run_id }}
+          
+          ### Issues Found:
+          - ESLint: ${{ needs.health-check.outputs.eslint_issues }} issues
+          - TypeScript: ${{ needs.health-check.outputs.typescript_issues }} issues  
+          - Security: ${{ needs.health-check.outputs.security_issues }} vulnerabilities
+          
+          ### Impact:
+          - Preview deployment is BLOCKED
+          - PR cannot be merged
+          - Quality standards not met
+          
+          ### Action Required:
+          - [ ] Fix ESLint issues
+          - [ ] Resolve TypeScript errors
+          - [ ] Address security vulnerabilities
+          - [ ] Verify pipeline passes
+          
+          ---
+          *Auto-generated by pipeline monitor*"
+          
+          # Create issue via GitHub API
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{\"title\":\"🚨 Quality Issues Detected in ${{ github.ref_name }}\",\"body\":\"$ISSUE_BODY\",\"labels\":[\"quality\",\"ci-cd\",\"needs-attention\"]}" \
+            "https://api.github.com/repos/${{ github.repository }}/issues"
+
+  # 📊 Final Summary Report
+  summary:
+    name: Summary Report
+    runs-on: ubuntu-latest
+    needs: [health-check, pipeline-status, quality-alerts]
+    if: always()
+    steps:
+      - name: 📊 Generate Summary Report
+        run: |
+          echo "📊 Generating Summary Report..."
+          
+          cat > summary-report.md << EOF
+          # 📊 CI/CD Pipeline Summary Report
+          
+          **Generated**: $(date -u)
+          **Branch**: ${{ github.ref_name }}
+          **Pipeline Run**: ${{ github.run_id }}
+          
+          ## 🎯 Overall Status
+          
+          EOF
+          
+          # Determine overall status
+          if [ "${{ needs.health-check.result }}" == "success" ] && \
+             [ "${{ needs.pipeline-status.result }}" == "success" ]; then
+            echo "✅ **Overall Status: HEALTHY**" >> summary-report.md
+          else
+            echo "🔴 **Overall Status: NEEDS ATTENTION**" >> summary-report.md
+          fi
+          
+          echo "" >> summary-report.md
+          echo "## 📈 Quality Metrics" >> summary-report.md
+          echo "- **ESLint Issues**: ${{ needs.health-check.outputs.eslint_issues || 'N/A' }}" >> summary-report.md
+          echo "- **TypeScript Issues**: ${{ needs.health-check.outputs.typescript_issues || 'N/A' }}" >> summary-report.md
+          echo "- **Security Issues**: ${{ needs.health-check.outputs.security_issues || 'N/A' }}" >> summary-report.md
+          echo "- **Pipeline Success Rate**: $((${{ needs.pipeline-status.outputs.success_count || 0 }} * 100 / ${{ needs.pipeline-status.outputs.total_count || 1 }}))%" >> summary-report.md
+          
+          echo "" >> summary-report.md
+          echo "## 🔒 Quality Gate Status" >> summary-report.md
+          
+          if [ "${{ needs.health-check.outputs.eslint_issues }}" == "0" ] && \
+             [ "${{ needs.health-check.outputs.typescript_issues }}" == "0" ] && \
+             [ "${{ needs.health-check.outputs.security_issues }}" == "0" ]; then
+            echo "✅ **All Quality Gates PASSED**" >> summary-report.md
+            echo "- Preview deployment is ENABLED" >> summary-report.md
+            echo "- PR can be merged (with reviews)" >> summary-report.md
+          else
+            echo "❌ **Quality Gates FAILED**" >> summary-report.md
+            echo "- Preview deployment is BLOCKED" >> summary-report.md
+            echo "- PR cannot be merged until issues are resolved" >> summary-report.md
+          fi
+          
+          echo "" >> summary-report.md
+          echo "## 📋 Next Steps" >> summary-report.md
+          
+          if [ "${{ needs.health-check.outputs.eslint_issues }}" != "0" ] || \
+             [ "${{ needs.health-check.outputs.typescript_issues }}" != "0" ] || \
+             [ "${{ needs.health-check.outputs.security_issues }}" != "0" ]; then
+            echo "1. 🔧 Fix all quality issues" >> summary-report.md
+            echo "2. 🚀 Push changes to trigger new pipeline" >> summary-report.md
+            echo "3. ✅ Verify all gates pass" >> summary-report.md
+            echo "4. 🔓 Preview deployment will be enabled" >> summary-report.md
+          else
+            echo "1. ✅ All quality gates are passing" >> summary-report.md
+            echo "2. 🚀 Preview deployment is ready" >> summary-report.md
+            echo "3. 🔍 Continue with code review process" >> summary-report.md
+          fi
+          
+          echo "" >> summary-report.md
+          echo "---" >> summary-report.md
+          echo "*This summary was generated automatically by the pipeline monitor*" >> summary-report.md
+
+      - name: 📤 Upload Summary Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: summary-report
+          path: summary-report.md
+          retention-days: 30
+
+      - name: 📊 Pipeline Status Summary
+        run: |
+          echo "📊 Pipeline Status Summary"
+          echo "=========================="
+          echo "Quality Check: ${{ needs.health-check.result }}"
+          echo "Pipeline Status: ${{ needs.pipeline-status.result }}"
+          echo "Quality Alerts: ${{ needs.quality-alerts.result }}"
+          echo ""
+          
+          if [ "${{ needs.health-check.result }}" == "success" ] && \
+             [ "${{ needs.pipeline-status.result }}" == "success" ]; then
+            echo "✅ Pipeline is healthy and all quality gates are passing!"
+          else
+            echo "⚠️  Pipeline needs attention - check the generated reports"
+          fi
