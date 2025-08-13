@@ -31,8 +31,8 @@ Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. 
 
 ### Kern
 - `docs/system/` — centrale systeemdocumentatie (gebruikershandleiding, functioneel, architectuur, technisch, standaarden, testen, migraties, opschoonrapport)
-- `docs/backlog/` — backlog en verbeteringen
-- `ADMIN_GEBRUIKERSBEHEER_GIDS.md` — admin gids
+- `docs/planning/` — backlog en verbeteringen
+- Archiefdocumenten: `docs/archive/` (oude eenmalige analyses & rapporten)
 
 ### Technisch
 - `SERVERSIDE_UITLEG.md` — server‑side security uitleg
