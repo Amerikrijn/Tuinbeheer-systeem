@@ -31,7 +31,7 @@ export default function PendingPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-md">
+    <div className="container mx-auto px-4 py-6 max-w-md safe-area-px">
       <Card className="text-center">
         <CardHeader>
           <div className="mx-auto mb-4 p-3 bg-amber-100 rounded-full w-fit">

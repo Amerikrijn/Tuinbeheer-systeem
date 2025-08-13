@@ -45,9 +45,9 @@ export function BankingNavigation() {
   });
   
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50" role="navigation" aria-label="Hoofdnavigatie">
-      <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+    <nav className="bg-background border-b border-border sticky top-0 z-50 supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)]" role="navigation" aria-label="Hoofdnavigatie">
+      <div className="container mx-auto px-4 safe-area-px">
+        <div className="flex justify-between items-center h-16 touch-pan-y">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2 text-primary hover:text-primary/80 transition-colors">
             <TreePine className="h-6 w-6" />
@@ -99,7 +99,7 @@ export function BankingNavigation() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden"
+              className="md:hidden active:scale-[0.98] transition-transform"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Menu openen"
             >
@@ -110,8 +110,8 @@ export function BankingNavigation() {
         
         {/* Mobile Navigation Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-card">
-            <div className="px-2 pt-2 pb-3 space-y-1">
+          <div className="md:hidden border-t border-border bg-card backdrop-blur supports-[backdrop-filter]:bg-card/80">
+            <div className="px-2 pt-2 pb-3 space-y-1" role="menu" aria-label="Mobiele navigatie">
               {visibleItems.map((item) => {
                 const isActive = pathname === item.href || 
                   (item.href !== "/" && pathname.startsWith(item.href));
@@ -126,6 +126,8 @@ export function BankingNavigation() {
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
+                    role="menuitem"
+                    tabIndex={0}
                   >
                     <span aria-hidden="true">{item.icon}</span>
                     <span>{item.label}</span>

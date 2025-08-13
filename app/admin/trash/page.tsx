@@ -171,7 +171,7 @@ function TrashPageContent() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
+      <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           <span className="ml-2 text-muted-foreground">Prullenbak laden...</span>
@@ -181,7 +181,7 @@ function TrashPageContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>

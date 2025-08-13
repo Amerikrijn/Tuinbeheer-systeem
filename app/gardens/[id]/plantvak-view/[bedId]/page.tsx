@@ -1947,13 +1947,13 @@ export default function PlantBedViewPage() {
       </Dialog>
 
       {/* Canvas */}
-      <Card>
+            <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-purple-600" />
-              Plantvak {plantBed?.name || ''}
-            </CardTitle>
+                  <Palette className="h-5 w-5 text-purple-600" />
+                  Plantvak
+                </CardTitle>
             
             {/* Control buttons for selected flower */}
             {selectedFlower && (
@@ -2109,11 +2109,8 @@ export default function PlantBedViewPage() {
                       height: plantvakHeight,
                     }}
                   >
-                    {/* Plantvak name and info - always within the plantvak area */}
+                    {/* Plantvak info - always within the plantvak area */}
                     <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border">
-                      <div className="text-sm font-bold text-green-800">
-                        {plantBed.name}
-                      </div>
                       <div className="text-xs text-green-600">
                         {plantBed.size} • {flowerPositions.length} bloemen
                       </div>
