@@ -64,6 +64,7 @@ import {
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { ViewPreferencesService, ViewMode } from '@/lib/services/view-preferences.service'
+import { ColorTokens, DEFAULT_FLOWER_COLORS } from '@/lib/color-tokens'
 
 const GRID_SIZE = 10
 const SCALE_MIN = 0.5
@@ -72,39 +73,37 @@ const FLOWER_SIZE = FLOWER_SIZE_MEDIUM // Default to medium size (now 45px)
 
 const STANDARD_FLOWERS = [
   // Eenjarige bloemen (Annual flowers only)
-  { name: 'Zinnia', color: '#FF6347', emoji: '🌻' },
-  { name: 'Marigold', color: '#FFA500', emoji: '🌼' },
-  { name: 'Tagetes', color: '#FFA500', emoji: '🌼' },
-  { name: 'Impatiens', color: '#FF69B4', emoji: '🌸' },
-  { name: 'Ageratum', color: '#6495ED', emoji: '🌸' },
-  { name: 'Salvia', color: '#DC143C', emoji: '🌺' },
-  { name: 'Verbena', color: '#9370DB', emoji: '🌸' },
-  { name: 'Lobelia', color: '#4169E1', emoji: '🌸' },
-  { name: 'Alyssum', color: '#FFFFFF', emoji: '🤍' },
+  { name: 'Zinnia', color: ColorTokens.tomato, emoji: '🌻' },
+  { name: 'Marigold', color: ColorTokens.orange, emoji: '🌼' },
+  { name: 'Tagetes', color: ColorTokens.orange, emoji: '🌼' },
+  { name: 'Impatiens', color: ColorTokens.pink400, emoji: '🌸' },
+  { name: 'Ageratum', color: ColorTokens.cornflowerBlue, emoji: '🌸' },
+  { name: 'Salvia', color: ColorTokens.crimson, emoji: '🌺' },
+  { name: 'Verbena', color: ColorTokens.mediumPurple, emoji: '🌸' },
+  { name: 'Lobelia', color: ColorTokens.royalBlue, emoji: '🌸' },
+  { name: 'Alyssum', color: ColorTokens.white, emoji: '🤍' },
   { name: 'Cosmos', color: '#FFB6C1', emoji: '🌸' },
-  { name: 'Petunia', color: '#FF6B6B', emoji: '🌺' },
-  { name: 'Begonia', color: '#FF8C69', emoji: '🌸' },
-  { name: 'Viooltje', color: '#9370DB', emoji: '🌸' },
-  { name: 'Stiefmoedje', color: '#9370DB', emoji: '🌸' },
-  { name: 'Snapdragon', color: '#FF69B4', emoji: '🌸' },
-  { name: 'Leeuwenbek', color: '#FF69B4', emoji: '🌸' },
-  { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
-  { name: 'Calendula', color: '#FFA500', emoji: '🌼' },
-  { name: 'Goudsbloem', color: '#FFA500', emoji: '🌼' },
-  { name: 'Nicotiana', color: '#FFFFFF', emoji: '🤍' },
-  { name: 'Siertabak', color: '#FFFFFF', emoji: '🤍' },
-  { name: 'Cleome', color: '#FF69B4', emoji: '🌸' },
-  { name: 'Spinnenbloem', color: '#FF69B4', emoji: '🌸' },
-  { name: 'Celosia', color: '#FF6347', emoji: '🌺' },
-  { name: 'Hanekam', color: '#FF6347', emoji: '🌺' },
+  { name: 'Petunia', color: ColorTokens.coral, emoji: '🌺' },
+  { name: 'Begonia', color: ColorTokens.salmon, emoji: '🌸' },
+  { name: 'Viooltje', color: ColorTokens.mediumPurple, emoji: '🌸' },
+  { name: 'Stiefmoedje', color: ColorTokens.mediumPurple, emoji: '🌸' },
+  { name: 'Snapdragon', color: ColorTokens.pink400, emoji: '🌸' },
+  { name: 'Leeuwenbek', color: ColorTokens.pink400, emoji: '🌸' },
+  { name: 'Zonnebloem', color: ColorTokens.gold, emoji: '🌻' },
+  { name: 'Calendula', color: ColorTokens.orange, emoji: '🌼' },
+  { name: 'Goudsbloem', color: ColorTokens.orange, emoji: '🌼' },
+  { name: 'Nicotiana', color: ColorTokens.white, emoji: '🤍' },
+  { name: 'Siertabak', color: ColorTokens.white, emoji: '🤍' },
+  { name: 'Cleome', color: ColorTokens.pink400, emoji: '🌸' },
+  { name: 'Spinnenbloem', color: ColorTokens.pink400, emoji: '🌸' },
+  { name: 'Celosia', color: ColorTokens.tomato, emoji: '🌺' },
+  { name: 'Hanekam', color: ColorTokens.tomato, emoji: '🌺' },
 ]
 
 const DEFAULT_FLOWER_EMOJI = '🌼'
 
-const DEFAULT_FLOWER_COLORS = [
-  '#FF69B4', '#FF4500', '#FFD700', '#9370DB', '#FF1493', 
-  '#FFA500', '#FFFF00', '#4B0082', '#FF6B6B', '#FF8C69',
-  '#32CD32', '#00CED1', '#FF6347', '#DDA0DD', '#98FB98'
+const DEFAULT_FLOWER_COLORS_LIST = [
+  ...DEFAULT_FLOWER_COLORS
 ]
 
 const FLOWER_STATUS_OPTIONS = [
@@ -127,21 +126,21 @@ const FLOWER_STATUS_OPTIONS = [
   // Helper function to get color name from hex value
   const getColorName = (hex: string): string => {
     const colorNames: { [key: string]: string } = {
-      '#FF69B4': 'Roze',
-      '#FF4500': 'Oranje-rood',
-      '#FFD700': 'Goud',
-      '#9370DB': 'Paars',
-      '#FF1493': 'Diep roze',
-      '#FFA500': 'Oranje',
-      '#FFFF00': 'Geel',
-      '#4B0082': 'Indigo',
-      '#FF6B6B': 'Koraal',
-      '#FF8C69': 'Zalm',
-      '#32CD32': 'Lime groen',
-      '#00CED1': 'Turquoise',
-      '#FF6347': 'Tomaat',
-      '#DDA0DD': 'Lila',
-      '#98FB98': 'Licht groen'
+      [ColorTokens.pink400]: 'Roze',
+      [ColorTokens.orangeRed]: 'Oranje-rood',
+      [ColorTokens.gold]: 'Goud',
+      [ColorTokens.mediumPurple]: 'Paars',
+      [ColorTokens.deepPink]: 'Diep roze',
+      [ColorTokens.orange]: 'Oranje',
+      [ColorTokens.yellow]: 'Geel',
+      [ColorTokens.indigo]: 'Indigo',
+      [ColorTokens.coral]: 'Koraal',
+      [ColorTokens.salmon]: 'Zalm',
+      [ColorTokens.limeGreen]: 'Lime groen',
+      [ColorTokens.darkTurquoise]: 'Turquoise',
+      [ColorTokens.tomato]: 'Tomaat',
+      [ColorTokens.plum]: 'Lila',
+      [ColorTokens.paleGreen]: 'Licht groen'
     };
     return colorNames[hex] || hex;
   }
@@ -550,9 +549,9 @@ export default function PlantBedViewPage() {
         try {
           const newFlower = await createVisualPlant({
             plant_bed_id: plantBed.id,
-            name: templateFlower.name,
-            color: templateFlower.color || '#FF69B4',
-            status: templateFlower.status || 'gezond',
+                       name: templateFlower.name,
+           color: templateFlower.color || ColorTokens.pink400,
+           status: templateFlower.status || 'gezond',
             position_x: positionX,
             position_y: positionY,
             visual_width: flowerSize,
@@ -2319,9 +2318,9 @@ export default function PlantBedViewPage() {
                                    try {
                                      const newFlower = await createVisualPlant({
                                        plant_bed_id: plantBed?.id || '',
-                                       name: flower.name,
-                                       color: flower.color || '#FF69B4',
-                                       status: 'gezond',
+                                                                             name: flower.name,
+                                      color: flower.color || ColorTokens.pink400,
+                                      status: 'gezond',
                                        position_x: Math.max(10, Math.min(x, canvasWidth - 50)),
                                        position_y: Math.max(10, Math.min(y, canvasHeight - 50)),
                                        visual_width: FLOWER_SIZE,

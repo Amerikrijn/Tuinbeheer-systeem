@@ -9,21 +9,22 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ChevronDown, ChevronUp, AlertCircle, Settings, Flower, Info } from "lucide-react"
+import { ColorTokens } from '@/lib/color-tokens'
 
 // Standard flower types with emojis
 const STANDARD_FLOWERS = [
-  { name: 'Roos', emoji: '🌹', color: '#FF69B4' },
-  { name: 'Tulp', emoji: '🌷', color: '#FF4500' },
-  { name: 'Zonnebloem', emoji: '🌻', color: '#FFD700' },
-  { name: 'Lavendel', emoji: '🪻', color: '#9370DB' },
-  { name: 'Dahlia', emoji: '🌺', color: '#FF1493' },
-  { name: 'Chrysant', emoji: '🌼', color: '#FFA500' },
-  { name: 'Narcis', emoji: '🌻', color: '#FFFF00' },
-  { name: 'Iris', emoji: '🌸', color: '#4B0082' },
-  { name: 'Petunia', emoji: '🌺', color: '#FF6B6B' },
-  { name: 'Begonia', emoji: '🌸', color: '#FF8C69' },
-  { name: 'Lelie', emoji: '🌺', color: '#FF69B4' },
-  { name: 'Anjer', emoji: '🌸', color: '#FF1493' },
+  { name: 'Roos', emoji: '🌹', color: ColorTokens.pink400 },
+  { name: 'Tulp', emoji: '🌷', color: ColorTokens.orangeRed },
+  { name: 'Zonnebloem', emoji: '🌻', color: ColorTokens.gold },
+  { name: 'Lavendel', emoji: '🪻', color: ColorTokens.mediumPurple },
+  { name: 'Dahlia', emoji: '🌺', color: ColorTokens.deepPink },
+  { name: 'Chrysant', emoji: '🌼', color: ColorTokens.orange },
+  { name: 'Narcis', emoji: '🌻', color: ColorTokens.yellow },
+  { name: 'Iris', emoji: '🌸', color: ColorTokens.indigo },
+  { name: 'Petunia', emoji: '🌺', color: ColorTokens.coral },
+  { name: 'Begonia', emoji: '🌸', color: ColorTokens.salmon },
+  { name: 'Lelie', emoji: '🌺', color: ColorTokens.pink400 },
+  { name: 'Anjer', emoji: '🌸', color: ColorTokens.deepPink },
 ]
 
 const DEFAULT_FLOWER_EMOJI = '🌼'

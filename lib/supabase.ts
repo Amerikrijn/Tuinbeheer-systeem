@@ -3,6 +3,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { getSupabaseConfig } from './config';
+import { ColorTokens } from '@/lib/color-tokens'
 
 // ===================================================================
 // SUPABASE CLIENT INITIALIZATION
@@ -657,10 +658,10 @@ export const VISUAL_GARDEN_CONSTANTS = {
 
   // Colors
   DEFAULT_COLORS: {
-    BACKGROUND: '#f5f5f5',
-    PLANT_BED: '#8fbc8f',
-    GRID: '#e0e0e0',
-    BORDER: '#666666'
+    BACKGROUND: ColorTokens.bgLight,
+    PLANT_BED: ColorTokens.green500,
+    GRID: ColorTokens.gridGray,
+    BORDER: ColorTokens.borderGray
   }
 };
 

@@ -15,6 +15,7 @@ import type {
   RecurringTaskConfig
 } from '@/lib/types/tasks'
 import { getWeekStartDate, getWeekEndDate } from '@/lib/types/tasks'
+import { ColorTokens } from '@/lib/color-tokens'
 
 export class TaskService {
   // Create a new task
@@ -212,7 +213,7 @@ export class TaskService {
       const plantBedTasks: TaskWithPlantInfo[] = (plantBedTasksResult.data || []).map((task: any) => ({
         ...task,
         plant_name: 'Plantvak taak',
-        plant_color: task.plant_beds?.color_code || '#10B981',
+        plant_color: task.plant_beds?.color_code || ColorTokens.green500,
         plant_bed_name: task.plant_beds?.name || '',
         garden_name: task.plant_beds?.gardens?.name || ''
       }))
@@ -443,15 +444,15 @@ export class TaskService {
         else if (task.due_date === today) status_category = 'today'
         else if (task.due_date <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]) status_category = 'upcoming'
 
-        return {
-          ...task,
-          plant_name: 'Plantvak taak',
-          plant_color: task.plant_beds?.color_code || '#10B981',
-          plant_bed_name: task.plant_beds?.name || '',
-          garden_name: task.plant_beds?.gardens?.name || '',
-          day_of_week: new Date(task.due_date).getDay(),
-          status_category
-        }
+                  return {
+            ...task,
+            plant_name: 'Plantvak taak',
+            plant_color: task.plant_beds?.color_code || ColorTokens.green500,
+            plant_bed_name: task.plant_beds?.name || '',
+            garden_name: task.plant_beds?.gardens?.name || '',
+            day_of_week: new Date(task.due_date).getDay(),
+            status_category
+          }
       })
 
       const allTasks: WeeklyTask[] = [...plantTasks, ...plantBedTasks]
@@ -616,7 +617,7 @@ export class TaskService {
       const plantBedTasks = (plantBedTasksResult.data || []).map((task: any) => ({
         ...task,
         plant_name: 'Plantvak taak',
-        plant_color: task.plant_beds?.color_code || '#10B981',
+        plant_color: task.plant_beds?.color_code || ColorTokens.green500,
         plant_bed_name: task.plant_beds?.name || '',
         garden_name: task.plant_beds?.gardens?.name || ''
       }))

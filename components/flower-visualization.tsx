@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
 import { parsePlantBedDimensions } from "@/lib/scaling-constants"
+import { DEFAULT_FLOWER_COLOR } from '@/lib/color-tokens'
 
 interface FlowerVisualizationProps {
   plantBed: PlantBedWithPlants
@@ -85,7 +86,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         instances.push({
           id: `${plant.id}-flower`,
           name: plant.name,
-          color: plant.color || '#FF69B4',
+          color: plant.color || DEFAULT_FLOWER_COLOR,
           emoji: getPlantEmoji(plant.name, plant.emoji),
           size: flowerSize,
           x: Math.max(flowerSize/2, Math.min(plant.position_x!, containerWidth - flowerSize/2)),
@@ -114,7 +115,7 @@ export function FlowerVisualization({ plantBed, plants, containerWidth, containe
         instances.push({
           id: `${plant.id}-flower-grid`,
           name: plant.name,
-          color: plant.color || '#FF69B4',
+          color: plant.color || DEFAULT_FLOWER_COLOR,
           emoji: getPlantEmoji(plant.name, plant.emoji),
           size: flowerSize,
           x,

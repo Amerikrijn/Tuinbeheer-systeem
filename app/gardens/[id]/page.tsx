@@ -46,6 +46,7 @@ import {
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { FlowerVisualization } from "@/components/flower-visualization"
+import { ColorTokens } from '@/lib/color-tokens'
 
 interface PlantBedPosition {
   id: string
@@ -501,10 +502,10 @@ export default function GardenDetailPage() {
       if (area > 15) flowerCount = 4
       
       const sampleFlowerTypes = [
-        { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
-        { name: 'Tulp', color: '#FF4500', emoji: '🌷' },
-        { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
-        { name: 'Lavendel', color: '#9370DB', emoji: '🪻' },
+        { name: 'Roos', color: ColorTokens.pink400, emoji: '🌹' },
+        { name: 'Tulp', color: ColorTokens.orangeRed, emoji: '🌷' },
+        { name: 'Zonnebloem', color: ColorTokens.gold, emoji: '🌻' },
+        { name: 'Lavendel', color: ColorTokens.mediumPurple, emoji: '🪻' },
       ]
       
       const createdFlowers: Plant[] = []

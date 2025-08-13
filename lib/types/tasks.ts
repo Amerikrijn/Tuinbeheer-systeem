@@ -1,6 +1,8 @@
 // Task Types voor Takensysteem
 // Versie: 1.0
 
+import { ColorTokens } from '@/lib/color-tokens'
+
 // Core Task Types
 export interface Task {
   id: string
@@ -233,7 +235,7 @@ export const TASK_TYPE_CONFIGS: TaskTypeConfig[] = [
     value: 'watering',
     label: 'Water geven',
     icon: '💧',
-    color: '#3B82F6',
+    color: ColorTokens.blue500,
     defaultPriority: 'high',
     defaultInterval: 2
   },
@@ -241,7 +243,7 @@ export const TASK_TYPE_CONFIGS: TaskTypeConfig[] = [
     value: 'fertilizing',
     label: 'Bemesten',
     icon: '🌱',
-    color: '#10B981',
+    color: ColorTokens.green500,
     defaultPriority: 'medium',
     defaultInterval: 14
   },
@@ -249,7 +251,7 @@ export const TASK_TYPE_CONFIGS: TaskTypeConfig[] = [
     value: 'pruning',
     label: 'Snoeien',
     icon: '✂️',
-    color: '#F59E0B',
+    color: ColorTokens.orange500,
     defaultPriority: 'medium',
     defaultInterval: 7
   },
@@ -257,28 +259,28 @@ export const TASK_TYPE_CONFIGS: TaskTypeConfig[] = [
     value: 'harvesting',
     label: 'Oogsten',
     icon: '🌸',
-    color: '#EF4444',
+    color: ColorTokens.red500,
     defaultPriority: 'high'
   },
   {
     value: 'planting',
     label: 'Planten',
     icon: '🌿',
-    color: '#8B5CF6',
+    color: ColorTokens.purple500,
     defaultPriority: 'high'
   },
   {
     value: 'pest_control',
     label: 'Plaagbestrijding',
     icon: '🐛',
-    color: '#DC2626',
+    color: ColorTokens.red500,
     defaultPriority: 'high'
   },
   {
     value: 'general',
     label: 'Algemeen',
     icon: '📝',
-    color: '#6B7280',
+    color: ColorTokens.gray500,
     defaultPriority: 'medium'
   }
 ]
@@ -295,19 +297,19 @@ export const PRIORITY_CONFIGS: PriorityConfig[] = [
   {
     value: 'low',
     label: 'Laag',
-    color: '#6B7280',
+    color: ColorTokens.gray500,
     badge_color: 'bg-gray-100 text-gray-800'
   },
   {
     value: 'medium',
     label: 'Gemiddeld',
-    color: '#F59E0B',
+    color: ColorTokens.orange500,
     badge_color: 'bg-yellow-100 text-yellow-800'
   },
   {
     value: 'high',
     label: 'Hoog',
-    color: '#EF4444',
+    color: ColorTokens.red500,
     badge_color: 'bg-red-100 text-red-800'
   }
 ]
@@ -322,10 +324,10 @@ export function getPriorityConfig(priority: string): PriorityConfig | undefined 
 }
 
 export function getTaskStatusColor(task: WeeklyTask): string {
-  if (task.completed) return '#10B981' // green
-  if (task.status_category === 'overdue') return '#EF4444' // red
-  if (task.status_category === 'today') return '#F59E0B' // orange
-  return '#6B7280' // gray
+  if (task.completed) return ColorTokens.green500
+  if (task.status_category === 'overdue') return ColorTokens.red500
+  if (task.status_category === 'today') return ColorTokens.orange500
+  return ColorTokens.gray500
 }
 
 export function formatTaskDate(dateString: string): string {

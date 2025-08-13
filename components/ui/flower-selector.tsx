@@ -16,6 +16,7 @@ import {
   FLOWER_CATEGORIES,
   FLOWER_COLORS 
 } from '@/lib/dutch-flowers';
+import { NamedFlowerColors, ColorTokens } from '@/lib/color-tokens'
 
 interface FlowerSelectorProps {
   value?: string;
@@ -333,16 +334,5 @@ export function FlowerSelector({
 
 // Helper function to get color hex values
 function getColorHex(color: string): string {
-  const colorMap: { [key: string]: string } = {
-    'Wit': '#ffffff',
-    'Geel': '#ffd700',
-    'Roze': '#ffc0cb',
-    'Rood': '#ff0000',
-    'Paars': '#8a2be2',
-    'Blauw': '#0000ff',
-    'Oranje': '#ffa500',
-    'Groen': '#00ff00'
-  };
-  
-  return colorMap[color] || '#cccccc';
+  return NamedFlowerColors[color] || ColorTokens.neutralGray;
 }
