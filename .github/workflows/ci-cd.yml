@@ -59,7 +59,7 @@ jobs:
               - '.env*'
               - 'vercel.json'
 
-  # 🧪 QUALITY GATES (ALWAYS RUN)
+  # 🧪 QUALITY GATES (ALWAYS RUN - NO OVERRIDE)
   quality:
     name: Quality Gates (Lint, Types, Tests)
     runs-on: ubuntu-latest
@@ -78,19 +78,46 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: 🚨 ESLint - Code Quality
+      - name: 🚨 ESLint - Code Quality (CRITICAL)
         run: npm run lint
         continue-on-error: false
 
-      - name: 🔍 TypeScript - Type Safety
+      - name: 🔍 TypeScript - Type Safety (CRITICAL)
         run: npm run type-check
         continue-on-error: false
 
-      - name: 🧪 Jest - Unit & Integration Tests
+      - name: 🧪 Jest - Unit & Integration Tests (CRITICAL)
         run: npm run test:ci
         env:
           CI: true
         continue-on-error: false
+
+      - name: 📊 Coverage Threshold Validation (CRITICAL)
+        run: |
+          echo "🔍 Validating test coverage thresholds..."
+          
+          if [ ! -f "coverage/lcov.info" ]; then
+            echo "❌ CRITICAL: No coverage report generated - tests failed!"
+            exit 1
+          fi
+          
+          # Parse coverage from lcov.info
+          COVERAGE=$(grep -E "^SF:" coverage/lcov.info | wc -l)
+          if [ $COVERAGE -eq 0 ]; then
+            echo "❌ CRITICAL: No test coverage data found!"
+            exit 1
+          fi
+          
+          echo "✅ Coverage report generated successfully"
+          echo "📊 Test files covered: $COVERAGE"
+          
+          # Check if all tests passed (Jest exit code 0)
+          if [ $? -ne 0 ]; then
+            echo "❌ CRITICAL: Tests failed with exit code $?"
+            exit 1
+          fi
+          
+          echo "✅ All quality gates passed successfully!"
 
       - name: 📊 Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -101,17 +128,7 @@ jobs:
           fail_ci_if_error: false
           coverage_command: npm run test:coverage
 
-      - name: 🚨 Coverage Threshold Check
-        run: |
-          if [ -f "coverage/lcov.info" ]; then
-            echo "Coverage report generated"
-            # Coverage thresholds are enforced in jest.config.js
-          else
-            echo "No coverage report found - tests may have failed"
-            exit 1
-          fi
-
-  # 🔒 SECURITY SCANNING
+  # 🔒 SECURITY SCANNING (CRITICAL - NO OVERRIDE)
   security:
     name: Security & Compliance
     runs-on: ubuntu-latest
@@ -130,7 +147,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: 🔒 Security Audit
+      - name: 🔒 Security Audit (CRITICAL)
         run: npm run audit:security
         continue-on-error: false
 
@@ -140,13 +157,13 @@ jobs:
           npm audit --audit-level=moderate
         continue-on-error: true
 
-      - name: 🚨 Banking Standards Compliance
+      - name: 🚨 Banking Standards Compliance (CRITICAL)
         run: |
           echo "🔍 Checking Banking Standards Compliance..."
           
           # Check for hardcoded credentials
           if grep -r "password.*=.*['\"].*['\"]" app/ lib/ components/ --exclude-dir=node_modules; then
-            echo "❌ ERROR: Hardcoded credentials found!"
+            echo "❌ CRITICAL: Hardcoded credentials found!"
             exit 1
           fi
           
@@ -162,7 +179,7 @@ jobs:
           
           echo "✅ Banking standards compliance check completed"
 
-  # 🏗️ BUILD & VALIDATION
+  # 🏗️ BUILD & VALIDATION (CRITICAL - NO OVERRIDE)
   build:
     name: Build & Validation
     runs-on: ubuntu-latest
@@ -181,7 +198,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: 🏗️ Build Application
+      - name: 🏗️ Build Application (CRITICAL)
         run: npm run build
         continue-on-error: false
 
@@ -201,14 +218,17 @@ jobs:
             echo "Bundle analyzer not configured - skipping"
           fi
 
-  # 🚀 PREVIEW DEPLOYMENT
+  # 🚀 PREVIEW DEPLOYMENT (ONLY IF ALL CHECKS PASS)
   preview:
     name: Deploy to Preview
     runs-on: ubuntu-latest
-    needs: build
+    needs: [quality, security, build]
     if: |
       (needs.changes.outputs.code == 'true' || github.event_name == 'pull_request') &&
       github.event_name == 'pull_request' &&
+      needs.quality.result == 'success' &&
+      needs.security.result == 'success' &&
+      needs.build.result == 'success' &&
       secrets.VERCEL_TOKEN != ''
     environment: preview
     steps:
@@ -216,6 +236,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🚀 Deploy to Vercel Preview
+        id: deploy
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -230,17 +251,25 @@ jobs:
         run: |
           echo "🚀 Preview deployment completed!"
           echo "Preview URL: ${{ steps.deploy.outputs.preview-url }}"
+          
+      - name: ✅ Preview Deployment Success
+        run: |
+          echo "✅ PREVIEW DEPLOYMENT SUCCESSFUL!"
+          echo "All quality gates, security checks, and build validation passed."
+          echo "PR is now available for review at: ${{ steps.deploy.outputs.preview-url }}"
 
-  # 🚀 PRODUCTION DEPLOYMENT
+  # 🚀 PRODUCTION DEPLOYMENT (ONLY IF ALL CHECKS PASS)
   production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [build, security]
+    needs: [quality, security, build]
     if: |
       needs.changes.outputs.code == 'true' &&
       github.ref == 'refs/heads/main' &&
       github.event_name == 'push' &&
-      success() &&
+      needs.quality.result == 'success' &&
+      needs.security.result == 'success' &&
+      needs.build.result == 'success' &&
       secrets.VERCEL_TOKEN != ''
     environment: production
     steps:
@@ -254,6 +283,7 @@ jobs:
           echo "✅ Security validation passed"
 
       - name: 🚀 Deploy to Vercel Production
+        id: deploy
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -314,9 +344,9 @@ jobs:
           
           echo "✅ Documentation compliance check completed"
 
-  # 🎯 FINAL STATUS
+  # 🎯 FINAL STATUS & QUALITY GATE ENFORCEMENT
   status:
-    name: Pipeline Status
+    name: Pipeline Status & Quality Gate Enforcement
     runs-on: ubuntu-latest
     needs: [quality, security, build, docs]
     if: always()
@@ -330,12 +360,40 @@ jobs:
           echo "Build: ${{ needs.build.result }}"
           echo "Documentation: ${{ needs.docs.result }}"
           
+          # CRITICAL: Enforce all quality gates
           if [ "${{ needs.quality.result }}" == "success" ] && \
              [ "${{ needs.security.result }}" == "success" ] && \
              [ "${{ needs.build.result }}" == "success" ] && \
              [ "${{ needs.docs.result }}" == "success" ]; then
-            echo "✅ All checks passed! Ready for deployment."
+            echo "✅ ALL QUALITY GATES PASSED - Ready for deployment!"
+            echo "🚀 Preview deployment will be triggered automatically"
           else
-            echo "❌ Some checks failed. Please review and fix issues."
+            echo "❌ QUALITY GATES FAILED - Deployment blocked!"
+            echo "🔒 Preview deployment will NOT be triggered"
+            echo "📋 Please fix the following issues:"
+            
+            if [ "${{ needs.quality.result }}" != "success" ]; then
+              echo "  - Quality Gates (Lint, Types, Tests)"
+            fi
+            if [ "${{ needs.security.result }}" != "success" ]; then
+              echo "  - Security & Compliance"
+            fi
+            if [ "${{ needs.build.result }}" != "success" ]; then
+              echo "  - Build & Validation"
+            fi
+            if [ "${{ needs.docs.result }}" != "success" ]; then
+              echo "  - Documentation Compliance"
+            fi
+            
             exit 1
           fi
+
+      - name: 🚨 Quality Gate Enforcement
+        if: needs.quality.result != 'success' || needs.security.result != 'success' || needs.build.result != 'success'
+        run: |
+          echo "🚨 QUALITY GATE ENFORCEMENT ACTIVE"
+          echo "=================================="
+          echo "❌ Deployment blocked due to failed quality gates"
+          echo "🔒 Preview deployment will NOT proceed"
+          echo "📋 Please fix all issues and push again"
+          exit 1
