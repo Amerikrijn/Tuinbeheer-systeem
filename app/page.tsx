@@ -27,6 +27,7 @@ import { supabase } from "@/lib/supabase"
 import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
 import { WeeklyTaskList } from "@/components/tasks/weekly-task-list"
 import { SimpleTasksView } from "@/components/user/simple-tasks-view"
+import { getUserFriendlyErrorMessage } from "@/lib/errors"
 
 interface HomePageState {
   gardens: Tuin[]
@@ -641,26 +642,6 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
   )
 }
 
-// Helper function to provide user-friendly error messages
-function getUserFriendlyErrorMessage(error: string): string {
-  if (error.includes('fetch')) {
-    return 'Controleer uw internetverbinding en probeer het opnieuw.'
-  }
-  
-  if (error.includes('timeout')) {
-    return 'De server reageert langzaam. Probeer het later opnieuw.'
-  }
-  
-  if (error.includes('table') || error.includes('relation')) {
-    return 'Database configuratie probleem. Neem contact op met support.'
-  }
-  
-  if (error.includes('permission') || error.includes('unauthorized')) {
-    return 'U heeft geen toegang tot deze functie.'
-  }
-  
-  return error || 'Er is een onverwachte fout opgetreden.'
-}
 
 // Main page component with error boundary and auth protection
 export default function HomePage() {
