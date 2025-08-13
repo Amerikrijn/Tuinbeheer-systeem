@@ -11,15 +11,30 @@ import { useAuth } from "@/hooks/use-supabase-auth"
 import { supabase } from "@/lib/supabase"
 import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
 
+// Define proper types instead of empty interface
 interface SimpleTasksViewProps {
-  // No props needed - gets user from auth
-  // Using Record<never, never> to satisfy linting rules
+  // Component doesn't need props, but we define a proper interface
+  className?: string
 }
 
-export function SimpleTasksView({}: SimpleTasksViewProps) {
+// Define proper task type
+interface Task {
+  id: string
+  title: string
+  description?: string
+  completed: boolean
+  completed_at?: string | null
+  due_date?: string | null
+  priority?: string
+  garden_id?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export function SimpleTasksView({ className }: SimpleTasksViewProps) {
   const router = useRouter()
   const { user, getAccessibleGardens, loadGardenAccess } = useAuth()
-  const [tasks, setTasks] = useState<any[]>([])
+  const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [gardenNames, setGardenNames] = useState<string[]>([])
@@ -127,7 +142,7 @@ export function SimpleTasksView({}: SimpleTasksViewProps) {
             .select('name')
             .in('id', accessibleGardens)
           
-          setGardenNames(gardens?.map(g => g.name) || [])
+          setGardenNames(gardens?.map((g: { name: string }) => g.name) || [])
         }
       } catch (error) {
         console.error('Error loading garden names:', error)
