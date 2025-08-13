@@ -110,6 +110,22 @@ Het backlog systeem beheert alle:
 
 Zie **Banking Compliance Configuratie** sectie in `.cursor-rules` voor complete environment setup.
 
+## 🧰 CI/CD & Deployment
+
+### CI
+- Triggers: push op `main` en `develop`, PR naar `main`.
+- Stappen: `npm ci` → `npm run lint` → `npm run type-check` → `npm run test:ci` (coverage) → optioneel `npm run audit:security` → `npm run build`.
+- Coverage: upload via Codecov (indien `CODECOV_TOKEN` is geconfigureerd).
+
+### Deployment
+- Productie: automatische Vercel‑deploy vanaf `main` als `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` secrets zijn gezet.
+- Previews: PR’s krijgen Vercel preview deployments.
+
+### Lokaal verifiëren
+```bash
+npm run lint && npm run type-check && npm run test:ci && npm run build
+```
+
 ## 📞 Support
 
 Voor vragen over banking standards implementatie, raadpleeg:
