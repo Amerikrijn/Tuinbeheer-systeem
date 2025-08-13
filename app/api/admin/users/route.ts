@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Force dynamic rendering since this route handles query parameters
+export const dynamic = 'force-dynamic';
+
 // 🏦 BANKING-GRADE: Validate required environment variables
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
   throw new Error('NEXT_PUBLIC_SUPABASE_URL is required')

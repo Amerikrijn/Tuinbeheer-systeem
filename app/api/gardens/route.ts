@@ -5,6 +5,9 @@ import { validateTuinFormData } from '@/lib/validation'
 import { supabase } from '@/lib/supabase'
 import { logClientSecurityEvent, validateApiInput } from '@/lib/banking-security'
 
+// Force dynamic rendering since this route handles query parameters
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/gardens
  * Retrieve all gardens with optional filtering, sorting, and pagination

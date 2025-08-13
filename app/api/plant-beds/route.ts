@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 import { apiLogger } from '@/lib/logger';
 
+// Force dynamic rendering since this route handles query parameters
+export const dynamic = 'force-dynamic';
+
 // Mock data for development/testing
 const mockPlantBeds = [
   {
