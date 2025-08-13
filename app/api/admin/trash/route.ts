@@ -1,16 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase-admin';
+import { auditLog } from '@/lib/audit-logger';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
+// Force dynamic rendering since this route handles query parameters
+export const dynamic = 'force-dynamic';
 
 function auditLog(action: string, details: any) {
   console.log(`🔒 ADMIN AUDIT: ${action}`, {
