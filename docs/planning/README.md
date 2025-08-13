@@ -5,11 +5,9 @@ Gestructureerde backlog voor systematische feature development volgens banking s
 
 ## **📂 FOLDER STRUCTUUR**
 ```
-docs/backlog/
+docs/planning/
 ├── README.md                 # Deze file - backlog management
-├── high-priority.md          # High priority features (next sprint)
-├── medium-priority.md        # Medium priority features  
-├── low-priority.md           # Low priority / future features
+├── COMPLETE_BACKLOG.md       # Alle backlog items in één bestand
 ├── technical-debt.md         # Technical debt items
 ├── banking-standards.md      # Banking compliance requirements
 └── github-issue-templates/   # Templates voor GitHub Issues
@@ -22,7 +20,7 @@ docs/backlog/
 ## **🔄 WORKFLOW**
 
 ### **Session Start Protocol:**
-1. **📋 Load Backlog** - Begin elke sessie met backlog review
+1. **📋 Load Backlog** - Begin elke sessie met `COMPLETE_BACKLOG.md` review
 2. **🎯 Select Priority** - Kies items based on business needs
 3. **📝 Create GitHub Issues** - Voor geselecteerde features
 4. **🏗️ Implement** - Volgens banking standards
@@ -50,4 +48,4 @@ Voor elke feature:
 - ✅ **Force Password Change** - Working (COMPLETED)
 - 🔄 **User Password Management** - In backlog (HIGH PRIORITY)
 
-**Start elke sessie met: `docs/backlog/high-priority.md` 🚀**
+**Start elke sessie met: `docs/planning/COMPLETE_BACKLOG.md` 🚀**
