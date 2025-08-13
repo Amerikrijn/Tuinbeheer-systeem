@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,8 +11,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
 import { ArrowLeft, Leaf, Plus, Sun, Palette, MapPin, Ruler, Droplets } from "lucide-react"
-import { useGarden } from "@/hooks/use-garden"
 import { PlantvakService } from "@/lib/services/plantvak.service"
+import { getGarden } from "@/lib/database"
+import type { Garden } from "@/lib/types"
 
 interface NewPlantBed {
   name: string
@@ -37,9 +38,13 @@ const soilTypeOptions = [
   { value: "gemengd", label: "Gemengd" },
 ]
 
-export default function NewPlantBedPage({ params }: { params: { id: string } }) {
+export default function NewPlantBedPage() {
   const router = useRouter()
-  const { garden, isLoading } = useGarden(params.id)
+  const params = useParams()
+  const gardenId = params.id as string
+  
+  const [garden, setGarden] = useState<Garden | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -51,6 +56,29 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
     sunExposure: "",
     description: "",
   })
+
+  // Load garden data
+  useEffect(() => {
+    const loadGarden = async () => {
+      try {
+        const gardenData = await getGarden(gardenId)
+        setGarden(gardenData)
+      } catch (error) {
+        console.error("Error loading garden:", error)
+        toast({
+          title: "Fout",
+          description: "Kon tuin niet laden.",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (gardenId) {
+      loadGarden()
+    }
+  }, [gardenId])
 
   const goBack = () => router.back()
 
@@ -86,7 +114,7 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
 
     try {
       const plantBed = await PlantvakService.create({
-        garden_id: garden!.id,
+        garden_id: gardenId,
         name: newPlantBed.name,
         location: newPlantBed.location,
         size: newPlantBed.size,
@@ -109,7 +137,7 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
           })
         }, 1000)
         
-        router.push(`/gardens/${garden!.id}/plant-beds/${plantBed.id}`)
+        router.push(`/gardens/${gardenId}/plant-beds/${plantBed.id}`)
       } else {
         throw new Error('Failed to create plantvak')
       }
