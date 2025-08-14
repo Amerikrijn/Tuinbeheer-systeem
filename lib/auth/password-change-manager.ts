@@ -153,8 +153,8 @@ export class PasswordChangeManager {
     } catch (error: unknown) {
       // Banking compliance: Log all failures
       await this.auditLog('PASSWORD_CHANGE_SYSTEM_ERROR', {
-        error: error.message,
-        stack: error.stack,
+        error: (error as any).message,
+        stack: (error as any).stack,
         timestamp: new Date().toISOString()
       })
 

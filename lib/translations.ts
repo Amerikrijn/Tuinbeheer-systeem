@@ -1290,12 +1290,12 @@ function getNestedTranslation(obj: unknown, path: string[]): TranslationKey | un
   let current = obj
   for (const key of path) {
     if (current && typeof current === "object" && key in current) {
-      current = current[key]
+      current = (current as any)[key]
     } else {
       return undefined
     }
   }
-  return current && typeof current === "object" && "en" in current && "nl" in current ? current : undefined
+  return current && typeof current === "object" && "en" in current && "nl" in current ? (current as any) : undefined
 }
 
 // Translation function

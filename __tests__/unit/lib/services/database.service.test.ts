@@ -10,7 +10,7 @@ jest.mock('@/lib/supabase', () => {
 })
 
 describe('TuinService', () => {
-  let mockSupabase: any
+  let mockSupabase: unknown
 
   beforeEach(() => {
     // Get a fresh mock instance for each test

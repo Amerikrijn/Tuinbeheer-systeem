@@ -32,7 +32,7 @@ export function BankingForm({
     formState: { errors, isValid },
     watch
   } = useForm<FormData>({
-    resolver: schema,
+    resolver: schema as any,
     mode: 'onChange' // Real-time validation
   });
   

@@ -351,7 +351,7 @@ export function TaskDetailsDialog({
                   <Select 
                     value={formData.task_type} 
                     onValueChange={(value: unknown) => 
-                      setFormData(prev => ({ ...prev, task_type: value }))
+                      setFormData(prev => ({ ...prev, task_type: value as any }))
                     }
                     disabled={isLoading}
                   >

@@ -54,7 +54,7 @@ export class TaskService {
   // Update a task
   static async updateTask(taskId: string, data: UpdateTaskData): Promise<{ data: Task | null; error: string | null }> {
     try {
-      const updateData: unknown = { ...data }
+      const updateData: Record<string, unknown> = { ...data }
       
       // If completing a task, set completed_at timestamp
       if (data.completed === true) {
@@ -200,22 +200,28 @@ export class TaskService {
       if (plantBedTasksResult.error) throw plantBedTasksResult.error
 
       // Transform plant tasks
-      const plantTasks: TaskWithPlantInfo[] = (plantTasksResult.data || []).map((task: unknown) => ({
-        ...task,
-        plant_name: task.plants?.name || '',
-        plant_color: task.plants?.color || '',
-        plant_bed_name: task.plants?.plant_beds?.name || '',
-        garden_name: task.plants?.plant_beds?.gardens?.name || ''
-      }))
+      const plantTasks: TaskWithPlantInfo[] = (plantTasksResult.data || []).map((task: unknown) => {
+        const typedTask = task as any;
+        return {
+          ...typedTask,
+          plant_name: typedTask.plants?.name || '',
+          plant_color: typedTask.plants?.color || '',
+          plant_bed_name: typedTask.plants?.plant_beds?.name || '',
+          garden_name: typedTask.plants?.plant_beds?.gardens?.name || ''
+        };
+      })
 
       // Transform plant bed tasks
-      const plantBedTasks: TaskWithPlantInfo[] = (plantBedTasksResult.data || []).map((task: unknown) => ({
-        ...task,
-        plant_name: 'Plantvak taak',
-        plant_color: task.plant_beds?.color_code || '#10B981',
-        plant_bed_name: task.plant_beds?.name || '',
-        garden_name: task.plant_beds?.gardens?.name || ''
-      }))
+      const plantBedTasks: TaskWithPlantInfo[] = (plantBedTasksResult.data || []).map((task: unknown) => {
+        const typedTask = task as any;
+        return {
+          ...typedTask,
+          plant_name: 'Plantvak taak',
+          plant_color: typedTask.plant_beds?.color_code || '#10B981',
+          plant_bed_name: typedTask.plant_beds?.name || '',
+          garden_name: typedTask.plant_beds?.gardens?.name || ''
+        };
+      })
 
       // Combine all tasks
       let transformedData: TaskWithPlantInfo[] = [...plantTasks, ...plantBedTasks]
@@ -269,7 +275,7 @@ export class TaskService {
   }
 
   // Apply garden access filtering to tasks
-  private static async applyGardenAccessFilter(tasks: unknown[], user: User | null, gardenFilter?: string[]): Promise<unknown[]> {
+  private static async applyGardenAccessFilter(tasks: any[], user: User | null, gardenFilter?: string[]): Promise<any[]> {
     if (!user) {
       console.warn('⚠️ SECURITY: No user provided for garden access filtering')
       return []
@@ -419,37 +425,39 @@ export class TaskService {
       const today = new Date().toISOString().split('T')[0]
       
       const plantTasks: WeeklyTask[] = (plantTasksResult.data || []).map((task: unknown) => {
+        const typedTask = task as any;
         let status_category: 'overdue' | 'today' | 'upcoming' | 'future' = 'future'
         
-        if (task.due_date < today) status_category = 'overdue'
-        else if (task.due_date === today) status_category = 'today'
-        else if (task.due_date <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]) status_category = 'upcoming'
+        if (typedTask.due_date < today) status_category = 'overdue'
+        else if (typedTask.due_date === today) status_category = 'today'
+        else if (typedTask.due_date <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]) status_category = 'upcoming'
 
         return {
-          ...task,
-          plant_name: task.plants?.name || '',
-          plant_color: task.plants?.color || '',
-          plant_bed_name: task.plants?.plant_beds?.name || '',
-          garden_name: task.plants?.plant_beds?.gardens?.name || '',
-          day_of_week: new Date(task.due_date).getDay(),
+          ...typedTask,
+          plant_name: typedTask.plants?.name || '',
+          plant_color: typedTask.plants?.color || '',
+          plant_bed_name: typedTask.plants?.plant_beds?.name || '',
+          garden_name: typedTask.plants?.plant_beds?.gardens?.name || '',
+          day_of_week: new Date(typedTask.due_date).getDay(),
           status_category
         }
       })
 
       const plantBedTasks: WeeklyTask[] = (plantBedTasksResult.data || []).map((task: unknown) => {
+        const typedTask = task as any;
         let status_category: 'overdue' | 'today' | 'upcoming' | 'future' = 'future'
         
-        if (task.due_date < today) status_category = 'overdue'
-        else if (task.due_date === today) status_category = 'today'
-        else if (task.due_date <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]) status_category = 'upcoming'
+        if (typedTask.due_date < today) status_category = 'overdue'
+        else if (typedTask.due_date === today) status_category = 'today'
+        else if (typedTask.due_date <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]) status_category = 'upcoming'
 
         return {
-          ...task,
+          ...typedTask,
           plant_name: 'Plantvak taak',
-          plant_color: task.plant_beds?.color_code || '#10B981',
-          plant_bed_name: task.plant_beds?.name || '',
-          garden_name: task.plant_beds?.gardens?.name || '',
-          day_of_week: new Date(task.due_date).getDay(),
+          plant_color: typedTask.plant_beds?.color_code || '#10B981',
+          plant_bed_name: typedTask.plant_beds?.name || '',
+          garden_name: typedTask.plant_beds?.gardens?.name || '',
+          day_of_week: new Date(typedTask.due_date).getDay(),
           status_category
         }
       })
@@ -457,7 +465,7 @@ export class TaskService {
       const allTasks: WeeklyTask[] = [...plantTasks, ...plantBedTasks]
 
       // Apply garden access filtering
-      const transformedData: WeeklyTask[] = await this.applyGardenAccessFilter(allTasks, user || null, gardenFilter)
+      const transformedData: WeeklyTask[] = await this.applyGardenAccessFilter(allTasks as any[], user || null, gardenFilter)
 
       // Apply consistent sorting: incomplete first (by due date + priority), then completed at bottom
       transformedData.sort((a, b) => {
@@ -726,7 +734,7 @@ export class TaskService {
   // Bulk complete tasks
   static async bulkCompleteTasks(taskIds: string[], completed: boolean = true): Promise<{ error: string | null }> {
     try {
-      const updateData: unknown = { completed }
+      const updateData: Record<string, unknown> = { completed }
       
       if (completed) {
         updateData.completed_at = new Date().toISOString()

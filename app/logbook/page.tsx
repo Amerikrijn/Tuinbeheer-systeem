@@ -168,7 +168,7 @@ function LogbookPageContent() {
         })
       }
 
-      const filters: unknown = {
+              const filters: Record<string, any> = {
         limit: ITEMS_PER_PAGE,
         offset: (page - 1) * ITEMS_PER_PAGE
       }
@@ -282,17 +282,20 @@ function LogbookPageContent() {
         
         if (tasksResults) {
           // Transform completed tasks to look like logbook entries
-          completedTasksData = tasksResults.map((task: unknown) => ({
-            id: `task-${task.id}`,
-            entry_date: task.updated_at,
-            notes: `✅ Taak voltooid: ${task.title}${task.description ? ` - ${task.description}` : ''}`,
-            plant_bed_name: task.plants?.[0]?.plant_beds?.[0]?.name || 'Onbekend plantvak',
-            plant_name: task.plants?.[0]?.name || 'Onbekende plant',
-            garden_name: task.plants?.[0]?.plant_beds?.[0]?.gardens?.[0]?.name || 'Onbekende tuin',
-            photo_url: null,
-            is_completed_task: true, // Flag to identify this as a completed task
-            original_task: task
-          }))
+                      completedTasksData = tasksResults.map((task: unknown) => {
+              const typedTask = task as any;
+              return {
+                id: `task-${typedTask.id}`,
+                entry_date: typedTask.updated_at,
+                notes: `✅ Taak voltooid: ${typedTask.title}${typedTask.description ? ` - ${typedTask.description}` : ''}`,
+                plant_bed_name: typedTask.plants?.[0]?.plant_beds?.[0]?.name || 'Onbekend plantvak',
+                plant_name: typedTask.plants?.[0]?.name || 'Onbekende plant',
+                garden_name: typedTask.plants?.[0]?.plant_beds?.[0]?.gardens?.[0]?.name || 'Onbekende tuin',
+                photo_url: null,
+                is_completed_task: true, // Flag to identify this as a completed task
+                original_task: task
+              };
+            })
         }
       } catch (error) {
         console.warn('Failed to load completed tasks for logbook:', error)
@@ -375,7 +378,7 @@ function LogbookPageContent() {
         )
       })
     }
-  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin, viewingUser, user, gardenAccessLoaded])
+  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin, viewingUser, user, gardenAccessLoaded]);
 
   // Load plant beds for filtering
   const loadPlantBeds = React.useCallback(async () => {

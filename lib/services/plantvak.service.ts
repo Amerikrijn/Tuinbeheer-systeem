@@ -1,5 +1,5 @@
 import { supabase } from '../supabase';
-import { PlantBed } from '../types';
+import { PlantBed } from '../supabase';
 
 /**
  * PlantvakService - Handles all plantvak operations with automatic letter code assignment
@@ -73,7 +73,7 @@ export class PlantvakService {
       const existingPlantvakken = await this.getByGarden(plantvakData.garden_id);
       console.log('📊 Existing plantvakken:', existingPlantvakken);
       
-      const existingCodes = existingPlantvakken.map(p => p.letter_code).filter(Boolean);
+      const existingCodes = existingPlantvakken.map(p => p.letter_code).filter((code): code is string => Boolean(code));
       console.log('🔤 Existing letter codes:', existingCodes);
       
       // Generate next available letter code
@@ -120,13 +120,13 @@ export class PlantvakService {
       return data;
     } catch (error) {
       console.error('❌ Error creating plantvak:', error);
-      if (error && typeof error === 'object') {
+      if (error && typeof error === 'object' && 'message' in error) {
         console.error('❌ Error details:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-          stack: error.stack
+          message: (error as { message?: string }).message,
+          code: (error as { code?: string }).code,
+          details: (error as { details?: string }).details,
+          hint: (error as { hint?: string }).hint,
+          stack: (error as { stack?: string }).stack
         });
       }
       return null;

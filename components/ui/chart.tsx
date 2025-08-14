@@ -185,22 +185,23 @@ const ChartTooltipContent = React.forwardRef<
       >
         {!nestLabel ? tooltipLabel : null}
         <div className="grid gap-1.5">
-          {payload.map((item: unknown, index: number) => {
-            const key = `${nameKey || item.name || item.dataKey || "value"}`
-            const itemConfig = getPayloadConfigFromPayload(config, item, key)
-            const indicatorColor = color || item.payload.fill || item.color
+                  {payload.map((item: unknown, index: number) => {
+          const typedItem = item as any;
+          const key = `${nameKey || typedItem.name || typedItem.dataKey || "value"}`
+          const itemConfig = getPayloadConfigFromPayload(config, typedItem, key)
+          const indicatorColor = color || typedItem.payload?.fill || typedItem.color
 
             return (
-              <div
-                key={item.dataKey}
-                className={cn(
-                  "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
-                  indicator === "dot" && "items-center"
-                )}
-              >
-                {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, item.payload)
-                ) : (
+                              <div
+                  key={typedItem.dataKey}
+                  className={cn(
+                    "flex w-full flex-wrap items-stretch gap-2 [&>svg]:h-2.5 [&>svg]:w-2.5 [&>svg]:text-muted-foreground",
+                    indicator === "dot" && "items-center"
+                  )}
+                >
+                  {formatter && typedItem?.value !== undefined && typedItem.name ? (
+                    formatter(typedItem.value, typedItem.name, typedItem, index, typedItem.payload)
+                  ) : (
                   <>
                     {itemConfig?.icon ? (
                       <itemConfig.icon />
@@ -235,12 +236,12 @@ const ChartTooltipContent = React.forwardRef<
                       <div className="grid gap-1.5">
                         {nestLabel ? tooltipLabel : null}
                         <span className="text-muted-foreground">
-                          {itemConfig?.label || item.name || "Unknown"}
+                          {itemConfig?.label || typedItem.name || "Unknown"}
                         </span>
                       </div>
-                      {item.value && (
+                      {typedItem.value && (
                         <span className="font-mono font-medium tabular-nums text-foreground">
-                          {item.value.toLocaleString()}
+                          {typedItem.value.toLocaleString()}
                         </span>
                       )}
                     </div>

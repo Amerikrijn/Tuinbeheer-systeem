@@ -180,7 +180,7 @@ export default function NewPlantBedPage() {
       console.error("❌ Error details:", {
         message: err.message,
         stack: err.stack,
-        name: err.name
+        name: (err as any).name
       })
       toast({
         title: "Fout",
@@ -284,14 +284,17 @@ export default function NewPlantBedPage() {
                         <div className="mt-3">
                           <p className="text-sm text-blue-600 mb-2">Bestaande plantvakken in deze tuin:</p>
                           <div className="flex flex-wrap gap-2">
-                            {existingPlantvakken.map((plantvak, index) => (
-                              <span 
-                                key={plantvak.id}
-                                className="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-800 text-sm font-bold rounded-full border-2 border-green-300"
-                              >
-                                {plantvak.letter_code || '?'}
-                              </span>
-                            ))}
+                            {existingPlantvakken.map((plantvak, index) => {
+                              const typedPlantvak = plantvak as any;
+                              return (
+                                <span 
+                                  key={typedPlantvak.id}
+                                  className="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-800 text-sm font-bold rounded-full border-2 border-green-300"
+                                >
+                                  {typedPlantvak.letter_code || '?'}
+                                </span>
+                              );
+                            })}
                           </div>
                         </div>
                       )}

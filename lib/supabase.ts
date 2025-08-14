@@ -3,7 +3,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { getSupabaseConfig } from './config';
-import type { Database } from './types'
+// import type { Database } from './types'
 
 // Safe environment check - runs in production and preview, not during build
 export const checkSupabaseEnvironment = () => {

@@ -161,9 +161,9 @@ export function useSupabaseAuth(): AuthContextType {
           event: 'AUTH_FAILURE_USER_NOT_FOUND',
           email: supabaseUser.email,
           userId: supabaseUser.id,
-          error: userError?.message || 'User profile not found',
+          error: (userError as any)?.message || 'User profile not found',
           ip: typeof window !== 'undefined' ? 'client-side' : 'server-side',
-          userAgent: typeof window !== 'undefined' ? window.navigator?.userAgent : 'N/A'
+          userAgent: typeof window !== 'undefined' ? (window.navigator as any)?.userAgent : 'N/A'
         }
         
         // Log to console for immediate debugging
@@ -205,9 +205,10 @@ export function useSupabaseAuth(): AuthContextType {
            throw new Error('Access denied: User not found in system. Contact admin to create your account.')
          }
       } else {
-        role = userProfile.role || 'user'
-        fullName = userProfile.full_name || fullName
-        status = userProfile.status || 'active'
+        const typedProfile = userProfile as any;
+        role = typedProfile.role || 'user'
+        fullName = typedProfile.full_name || fullName
+        status = typedProfile.status || 'active'
       }
 
       // 🏦 BANKING AUDIT: Comprehensive login audit trail
@@ -219,7 +220,7 @@ export function useSupabaseAuth(): AuthContextType {
           email: supabaseUser.email,
           role: role,
           ip: typeof window !== 'undefined' ? 'client-side' : 'server-side',
-          userAgent: typeof window !== 'undefined' ? window.navigator?.userAgent : 'N/A',
+          userAgent: typeof window !== 'undefined' ? (window.navigator as any)?.userAgent : 'N/A',
           sessionId: supabaseUser.id + '_' + Date.now()
         }
         
@@ -232,7 +233,7 @@ export function useSupabaseAuth(): AuthContextType {
             last_login: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
-          .eq('id', userProfile.id)
+          .eq('id', (userProfile as any).id)
           .then(({ error }) => {
             if (error) {
               console.error('🏦 BANKING AUDIT: Failed to update last_login:', error)
@@ -251,8 +252,8 @@ export function useSupabaseAuth(): AuthContextType {
         status: status,
         permissions: [],
         garden_access: [], // Load separately to avoid blocking login
-        created_at: userProfile?.created_at || new Date().toISOString(),
-        force_password_change: userProfile?.force_password_change || false // 🏦 BANKING REQUIREMENT
+        created_at: (userProfile as any)?.created_at || new Date().toISOString(),
+        force_password_change: (userProfile as any)?.force_password_change || false // 🏦 BANKING REQUIREMENT
       }
       
       // Cache the user profile for faster subsequent loads

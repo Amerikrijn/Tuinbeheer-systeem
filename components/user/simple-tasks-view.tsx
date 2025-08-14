@@ -384,11 +384,12 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
             ) : (
               <div className="space-y-3">
                 {tasks.map((task) => {
-                  const urgency = getTaskUrgency(task)
+                  const urgency = getTaskUrgency(task as any)
                   const styles = getTaskUrgencyStyles(urgency)
                   
                   // Create a display title from task_type and description
-                  const taskTitle = task.description || `${task.task_type} taak` || 'Taak'
+                  const typedTask = task as any;
+                  const taskTitle = typedTask.description || `${typedTask.task_type} taak` || 'Taak'
                   
                   return (
                     <div key={task.id} className={`p-4 border rounded-lg ${styles.container}`}>

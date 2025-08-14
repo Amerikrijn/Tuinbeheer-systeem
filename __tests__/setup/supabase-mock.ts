@@ -30,9 +30,9 @@ export const mockGardensArray = [
 
 // Mock Supabase Query Builder with Jest mocking support
 export class MockSupabaseQueryBuilder {
-  private chainedMethods: any[] = []
-  private mockData: any = null
-  private mockError: any = null
+  private chainedMethods: unknown[] = []
+  private mockData: unknown = null
+  private mockError: unknown = null
   public countValue: number = 0
 
   constructor() {
@@ -52,12 +52,12 @@ export class MockSupabaseQueryBuilder {
     return this
   }
 
-  insert(data: any) {
+  insert(data: unknown) {
     this.chainedMethods.push('insert')
     return this
   }
 
-  update(data: any) {
+  update(data: unknown) {
     this.chainedMethods.push('update')
     return this
   }
@@ -67,7 +67,7 @@ export class MockSupabaseQueryBuilder {
     return this
   }
 
-  eq(field: string, value: any) {
+  eq(field: string, value: unknown) {
     this.chainedMethods.push('eq')
     return this
   }
@@ -88,18 +88,18 @@ export class MockSupabaseQueryBuilder {
   }
 
   // Mock response methods
-  setData(data: any) {
+  setData(data: unknown) {
     this.mockData = data
     this.mockError = null
   }
 
-  setError(error: any) {
+  setError(error: unknown) {
     this.mockError = error
     this.mockData = null
   }
 
   // Mock the actual response - this is what the service will call
-  async then(resolve: (value: any) => void, reject?: (reason?: any) => void) {
+  async then(resolve: (value: unknown) => void, reject?: (reason?: unknown) => void) {
     if (this.mockError) {
       reject?.(this.mockError)
       return Promise.reject(this.mockError)
