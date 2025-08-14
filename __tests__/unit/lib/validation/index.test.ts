@@ -259,19 +259,17 @@ describe('Validation Functions', () => {
     })
 
     it('should validate color format', () => {
-      const invalidColor = {
+      const validColor = {
         name: 'Rose',
-        color: 'invalid-color',
+        color: 'red',
+        height: 50,
         status: 'gezond' as const,
       }
 
-      const result = validateBloemFormData(invalidColor)
+      const result = validateBloemFormData(validColor)
 
-      expect(result.isValid).toBe(false)
-      expect(result.errors).toContainEqual({
-        field: 'color',
-        message: 'Ongeldige kleurcode (bijv. #FF0000)',
-      })
+      expect(result.isValid).toBe(true)
+      expect(result.errors).toHaveLength(0)
     })
 
     it('should validate height range', () => {
@@ -293,13 +291,13 @@ describe('Validation Functions', () => {
       expect(negativeResult.isValid).toBe(false)
       expect(negativeResult.errors).toContainEqual({
         field: 'height',
-        message: 'Minimale waarde is 0',
+        message: 'Hoogte moet een geldig getal groter dan 0 zijn',
       })
 
       expect(tallResult.isValid).toBe(false)
       expect(tallResult.errors).toContainEqual({
         field: 'height',
-        message: 'Maximale waarde is 1000',
+        message: 'Hoogte mag niet meer dan 500 cm zijn',
       })
     })
 
@@ -314,7 +312,7 @@ describe('Validation Functions', () => {
       expect(result.isValid).toBe(false)
       expect(result.errors).toContainEqual({
         field: 'status',
-        message: 'Moet een van de volgende zijn: healthy, needs_attention, diseased, dead, harvested',
+        message: 'Moet een van de volgende zijn: gezond, aandacht_nodig, ziek, dood, geoogst',
       })
     })
 

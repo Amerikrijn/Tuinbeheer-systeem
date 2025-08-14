@@ -28,71 +28,46 @@ export const mockGardensArray = [
   }
 ]
 
-// Mock the validateConnection function
-export const mockValidateConnection = jest.fn().mockResolvedValue(undefined)
-
-// Mock Supabase Query Builder with Jest mocking support
+// Mock Supabase Query Builder
 export class MockSupabaseQueryBuilder {
-  private chainedMethods: unknown[] = []
   private mockData: unknown = null
   private mockError: unknown = null
   public countValue: number = 0
 
-  constructor() {
-    // Bind methods to maintain context
-    this.select = this.select.bind(this)
-    this.insert = this.insert.bind(this)
-    this.update = this.update.bind(this)
-    this.delete = this.delete.bind(this)
-    this.eq = this.eq.bind(this)
-    this.order = this.order.bind(this)
-    this.range = this.range.bind(this)
-    this.or = this.or.bind(this)
-    this.single = this.single.bind(this)
-  }
-
+  // Chainable methods
   select(fields?: string) {
-    this.chainedMethods.push('select')
     return this
   }
 
   insert(data: unknown) {
-    this.chainedMethods.push('insert')
     return this
   }
 
   update(data: unknown) {
-    this.chainedMethods.push('update')
     return this
   }
 
   delete() {
-    this.chainedMethods.push('delete')
     return this
   }
 
   eq(field: string, value: unknown) {
-    this.chainedMethods.push('eq')
     return this
   }
 
   order(field: string, direction?: { ascending: boolean }) {
-    this.chainedMethods.push('order')
     return this
   }
 
   range(from: number, to: number) {
-    this.chainedMethods.push('range')
     return this
   }
 
   or(condition: string) {
-    this.chainedMethods.push('or')
     return this
   }
 
   single() {
-    this.chainedMethods.push('single')
     return this
   }
 
@@ -126,19 +101,9 @@ export class MockSupabaseQueryBuilder {
 
   // Reset mock state
   reset() {
-    this.chainedMethods = []
     this.mockData = null
     this.mockError = null
     this.countValue = 0
-  }
-
-  // Get the mock data for assertions
-  getMockData() {
-    return this.mockData
-  }
-
-  getMockError() {
-    return this.mockError
   }
 }
 

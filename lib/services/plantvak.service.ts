@@ -8,7 +8,7 @@ export class PlantvakService {
   /**
    * Generate next available letter code for a garden
    */
-  private static generateNextLetterCode(existingCodes: string[]): string {
+  static generateNextLetterCode(existingCodes: string[]): string {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     
     // Try single letters first (A, B, C, etc.)
@@ -27,6 +27,59 @@ export class PlantvakService {
       }
       counter++;
     }
+  }
+
+  /**
+   * Validate if a letter code is valid
+   */
+  static isValidLetterCode(code: string): boolean {
+    if (!code || code.length === 0) return false;
+    
+    // Check if it's a single letter (A-Z)
+    if (code.length === 1) {
+      return /^[A-Z]$/.test(code);
+    }
+    
+    // Check if it's a compound code (A1, B2, etc.)
+    if (code.length >= 2) {
+      const letter = code[0];
+      const number = code.slice(1);
+      return /^[A-Z]$/.test(letter) && /^\d+$/.test(number) && parseInt(number) > 0;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Sort letter codes in logical order
+   */
+  static sortLetterCodes(codes: string[]): string[] {
+    return codes.sort((a, b) => {
+      // Single letters come before compound codes
+      if (a.length === 1 && b.length > 1) return -1;
+      if (a.length > 1 && b.length === 1) return 1;
+      
+      // If both are single letters, sort alphabetically
+      if (a.length === 1 && b.length === 1) {
+        return a.localeCompare(b);
+      }
+      
+      // If both are compound codes, sort by letter first, then by number
+      if (a.length > 1 && b.length > 1) {
+        const aLetter = a[0];
+        const bLetter = b[0];
+        
+        if (aLetter !== bLetter) {
+          return aLetter.localeCompare(bLetter);
+        }
+        
+        const aNumber = parseInt(a.slice(1));
+        const bNumber = parseInt(b.slice(1));
+        return aNumber - bNumber;
+      }
+      
+      return 0;
+    });
   }
 
   /**
