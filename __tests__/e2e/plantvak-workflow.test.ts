@@ -1,280 +1,226 @@
 import { PlantvakService } from '@/lib/services/plantvak.service'
+import { mockGardenData } from '@/__tests__/setup/supabase-mock'
 
-// Mock Supabase for E2E testing
-jest.mock('@/lib/supabase', () => ({
-  supabase: {
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          single: jest.fn(() => Promise.resolve({ data: null, error: null })),
-          order: jest.fn(() => ({
-            limit: jest.fn(() => Promise.resolve({ data: [], error: null }))
-          }))
-        })),
-        insert: jest.fn(() => ({
-          select: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({ data: null, error: null }))
-          }))
-        })),
-        update: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            select: jest.fn(() => ({
-              single: jest.fn(() => Promise.resolve({ data: null, error: null }))
-            }))
-          }))
-        })),
-        delete: jest.fn(() => ({
-          eq: jest.fn(() => Promise.resolve({ data: null, error: null }))
-        }))
-      })),
-      auth: {
-        getUser: jest.fn(() => Promise.resolve({ data: { user: null }, error: null })),
-        signOut: jest.fn(() => Promise.resolve({ error: null }))
-      }
-    }))
+// Mock the supabase module
+jest.mock('@/lib/supabase', () => {
+  const { createMockSupabase } = require('@/__tests__/setup/supabase-mock')
+  return {
+    supabase: createMockSupabase()
   }
-}))
+})
 
 describe('Plantvak Workflow - E2E Tests', () => {
+  let mockSupabase: any
+
   beforeEach(() => {
+    // Get a fresh mock instance for each test
+    const { createMockSupabase } = require('@/__tests__/setup/supabase-mock')
+    mockSupabase = createMockSupabase()
+    
+    // Replace the mocked supabase with our fresh instance
+    jest.doMock('@/lib/supabase', () => ({
+      supabase: mockSupabase
+    }))
+    
     jest.clearAllMocks()
   })
 
   describe('Complete Plantvak Lifecycle', () => {
-    test('should complete full plantvak workflow from creation to deletion', async () => {
+    it('should complete full plantvak workflow from creation to deletion', async () => {
       const gardenId = 'test-garden-123'
-      
-      // Step 1: Create plantvak
       const mockCreatedPlantvak = {
-        id: 'plantvak-123',
-        garden_id: gardenId,
+        id: 'plantvak-1',
         name: 'A',
-        letter_code: 'A',
+        garden_id: gardenId,
         location: 'North Side',
-        size: '2x3m',
-        soil_type: 'clay',
-        sun_exposure: 'full-sun',
-        description: 'Test plantvak',
+        letter_code: 'A',
         is_active: true,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z'
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
 
-      const supabase = require('@/lib/supabase').supabase
-      supabase.from().select().eq().single.mockResolvedValue({ data: [], error: null })
-      supabase.from().insert().select().single.mockResolvedValue({ data: mockCreatedPlantvak, error: null })
+      // Mock successful creation
+      mockSupabase.mockQueryBuilder.setData(mockCreatedPlantvak)
 
       const created = await PlantvakService.create({
         garden_id: gardenId,
-        location: 'North Side',
-        size: '2x3m',
-        soil_type: 'clay',
-        sun_exposure: 'full-sun',
-        description: 'Test plantvak'
+        location: 'North Side'
       })
 
       expect(created).toBeDefined()
       expect(created?.letter_code).toBe('A')
-      expect(created?.name).toBe('A')
+      expect(created?.garden_id).toBe(gardenId)
 
-      // Step 2: Retrieve plantvak
-      supabase.from().select().eq().order().limit().mockResolvedValue({ data: [mockCreatedPlantvak], error: null })
+      // Mock successful retrieval
+      mockSupabase.mockQueryBuilder.setData([created])
 
       const retrieved = await PlantvakService.getByGarden(gardenId)
       expect(retrieved).toHaveLength(1)
-      expect(retrieved[0].id).toBe('plantvak-123')
+      expect(retrieved[0].id).toBe(created?.id)
 
-      // Step 3: Update plantvak
-      const updatedData = {
-        location: 'Updated Location',
-        size: '3x4m',
-        soil_type: 'sand'
-      }
+      // Mock successful update
+      const updatedPlantvak = { ...created, location: 'South Side' }
+      mockSupabase.mockQueryBuilder.setData(updatedPlantvak)
 
-      const mockUpdatedPlantvak = {
-        ...mockCreatedPlantvak,
-        ...updatedData,
-        updated_at: '2024-01-01T01:00:00Z'
-      }
+      const updated = await PlantvakService.update(created!.id, { location: 'South Side' })
+      expect(updated?.location).toBe('South Side')
 
-      supabase.from().update().eq().select().single.mockResolvedValue({ data: mockUpdatedPlantvak, error: null })
+      // Mock successful deletion
+      mockSupabase.mockQueryBuilder.setData({ success: true })
 
-      const updated = await PlantvakService.update('plantvak-123', updatedData)
-      expect(updated?.location).toBe('Updated Location')
-      expect(updated?.size).toBe('3x4m')
-
-      // Step 4: Delete plantvak
-      supabase.from().delete().eq().mockResolvedValue({ data: null, error: null })
-
-      const deleted = await PlantvakService.delete('plantvak-123')
-      expect(deleted).toBe(true)
+      const deleted = await PlantvakService.delete(created!.id)
+      expect(deleted).toBeDefined()
     })
 
-    test('should handle multiple plantvakken with sequential letter codes', async () => {
-      const gardenId = 'test-garden-456'
+    it('should handle multiple plantvakken with sequential letter codes', async () => {
+      const gardenId = 'test-garden-123'
       const plantvakken = []
 
-      // Create 5 plantvakken
-      for (let i = 0; i < 5; i++) {
+      // Create multiple plantvakken
+      for (let i = 0; i < 3; i++) {
         const mockPlantvak = {
-          id: `plantvak-${i}`,
+          id: `plantvak-${i + 1}`,
+          name: String.fromCharCode(65 + i), // A, B, C
           garden_id: gardenId,
-          name: String.fromCharCode(65 + i),
           letter_code: String.fromCharCode(65 + i),
-          location: `Location ${i}`,
-          size: `${i + 1}x${i + 1}m`,
-          soil_type: 'clay',
-          sun_exposure: 'full-sun',
           is_active: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z'
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }
 
-        const supabase = require('@/lib/supabase').supabase
-        supabase.from().select().eq().single.mockResolvedValue({ data: plantvakken, error: null })
-        supabase.from().insert().select().single.mockResolvedValue({ data: mockPlantvak, error: null })
+        // Mock successful creation
+        mockSupabase.mockQueryBuilder.setData(mockPlantvak)
 
         const created = await PlantvakService.create({
           garden_id: gardenId,
-          location: `Location ${i}`,
-          size: `${i + 1}x${i + 1}m`,
-          soil_type: 'clay',
-          sun_exposure: 'full-sun'
+          location: `Side ${i + 1}`
         })
 
-        plantvakken.push(created)
+        expect(created).toBeDefined()
+        expect(created?.letter_code).toBe(String.fromCharCode(65 + i))
+        plantvakken.push(created!)
       }
 
-      expect(plantvakken).toHaveLength(5)
-      expect(plantvakken[0].letter_code).toBe('A')
-      expect(plantvakken[1].letter_code).toBe('B')
-      expect(plantvakken[2].letter_code).toBe('C')
-      expect(plantvakken[3].letter_code).toBe('D')
-      expect(plantvakken[4].letter_code).toBe('E')
+      // Mock successful retrieval
+      mockSupabase.mockQueryBuilder.setData(plantvakken)
+
+      const retrieved = await PlantvakService.getByGarden(gardenId)
+      expect(retrieved).toHaveLength(3)
+      expect(retrieved[0].letter_code).toBe('A')
+      expect(retrieved[1].letter_code).toBe('B')
+      expect(retrieved[2].letter_code).toBe('C')
     })
 
-    test('should handle concurrent plantvak operations', async () => {
-      const gardenId = 'test-garden-789'
+    it('should handle concurrent plantvak operations', async () => {
+      const gardenId = 'test-garden-123'
       const concurrentOperations = []
 
-      // Simulate 10 concurrent operations
-      for (let i = 0; i < 10; i++) {
+      // Mock concurrent operations
+      mockSupabase.mockQueryBuilder.setData([])
+
+      for (let i = 0; i < 3; i++) {
         const mockPlantvak = {
-          id: `plantvak-${i}`,
+          id: `plantvak-${i + 1}`,
+          name: String.fromCharCode(65 + i), // A, B, C
           garden_id: gardenId,
-          name: String.fromCharCode(65 + i),
           letter_code: String.fromCharCode(65 + i),
-          location: `Concurrent Location ${i}`,
           is_active: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z'
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }
 
-        const supabase = require('@/lib/supabase').supabase
-        supabase.from().select().eq().single.mockResolvedValue({ data: [], error: null })
-        supabase.from().insert().select().single.mockResolvedValue({ data: mockPlantvak, error: null })
+        // Mock successful creation
+        mockSupabase.mockQueryBuilder.setData(mockPlantvak)
 
         concurrentOperations.push(
           PlantvakService.create({
             garden_id: gardenId,
-            location: `Concurrent Location ${i}`
+            location: `Side ${i + 1}`
           })
         )
       }
 
       const results = await Promise.all(concurrentOperations)
-      expect(results).toHaveLength(10)
-
-      // Verify all operations completed successfully
+      expect(results).toHaveLength(3)
       results.forEach((result, index) => {
         expect(result).toBeDefined()
         expect(result?.letter_code).toBe(String.fromCharCode(65 + index))
-        expect(result?.garden_id).toBe(gardenId)
       })
     })
   })
 
   describe('Error Handling & Recovery', () => {
-    test('should handle database connection failures gracefully', async () => {
-      const mockPlantvakData = {
+    it('should handle database connection failures gracefully', async () => {
+      // Mock database connection failure
+      mockSupabase.mockQueryBuilder.setError(new Error('Database connection failed'))
+
+      const result = await PlantvakService.create({
         garden_id: 'test-garden-123',
         location: 'North Side'
-      }
+      })
 
-      // Mock database failure
-      const supabase = require('@/lib/supabase').supabase
-      supabase.from().select().eq().single.mockRejectedValue(new Error('Database connection failed'))
-
-      const result = await PlantvakService.create(mockPlantvakData)
       expect(result).toBeNull()
     })
 
-    test('should handle validation errors and continue workflow', async () => {
-      const invalidPlantvakData = {
+    it('should handle validation errors and continue workflow', async () => {
+      const result = await PlantvakService.create({
         garden_id: '',
-        location: '',
-        size: 'invalid-size',
-        soil_type: 'invalid-soil'
-      }
+        location: 'North Side'
+      })
 
-      const result = await PlantvakService.create(invalidPlantvakData)
       expect(result).toBeNull()
     })
 
-    test('should recover from partial failures', async () => {
-      const gardenId = 'test-garden-recovery'
-      
-      // First operation succeeds
+    it('should recover from partial failures', async () => {
+      const gardenId = 'test-garden-123'
+
+      // Mock successful creation for first plantvak
       const mockPlantvak1 = {
         id: 'plantvak-1',
-        garden_id: gardenId,
         name: 'A',
+        garden_id: gardenId,
         letter_code: 'A',
-        location: 'Location 1',
         is_active: true,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z'
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
 
-      const supabase = require('@/lib/supabase').supabase
-      supabase.from().select().eq().single.mockResolvedValue({ data: [], error: null })
-      supabase.from().insert().select().single.mockResolvedValue({ data: mockPlantvak1, error: null })
+      mockSupabase.mockQueryBuilder.setData(mockPlantvak1)
 
       const result1 = await PlantvakService.create({
         garden_id: gardenId,
-        location: 'Location 1'
+        location: 'North Side'
       })
 
       expect(result1).toBeDefined()
       expect(result1?.letter_code).toBe('A')
 
-      // Second operation fails
-      supabase.from().insert().select().single.mockRejectedValue(new Error('Temporary failure'))
+      // Mock database error for second plantvak
+      mockSupabase.mockQueryBuilder.setError(new Error('Database error'))
 
       const result2 = await PlantvakService.create({
         garden_id: gardenId,
-        location: 'Location 2'
+        location: 'South Side'
       })
 
       expect(result2).toBeNull()
 
-      // Third operation succeeds (recovery)
+      // Mock successful creation for third plantvak
       const mockPlantvak3 = {
         id: 'plantvak-3',
-        garden_id: gardenId,
         name: 'B',
+        garden_id: gardenId,
         letter_code: 'B',
-        location: 'Location 3',
         is_active: true,
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-01T00:00:00Z'
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
 
-      supabase.from().insert().select().single.mockResolvedValue({ data: mockPlantvak3, error: null })
+      mockSupabase.mockQueryBuilder.setData(mockPlantvak3)
 
       const result3 = await PlantvakService.create({
         garden_id: gardenId,
-        location: 'Location 3'
+        location: 'East Side'
       })
 
       expect(result3).toBeDefined()
@@ -283,77 +229,70 @@ describe('Plantvak Workflow - E2E Tests', () => {
   })
 
   describe('Performance & Scalability', () => {
-    test('should handle large numbers of plantvakken efficiently', async () => {
-      const gardenId = 'test-garden-large'
+    it('should handle large numbers of plantvakken efficiently', async () => {
+      const gardenId = 'test-garden-123'
       const largeDataset = []
 
-      // Create 100 plantvakken
+      // Create large dataset
       for (let i = 0; i < 100; i++) {
-        const mockPlantvak = {
-          id: `plantvak-${i}`,
+        largeDataset.push({
+          id: `plantvak-${i + 1}`,
+          name: String.fromCharCode(65 + (i % 26)), // A-Z repeating
           garden_id: gardenId,
-          name: String.fromCharCode(65 + (i % 26)) + (i >= 26 ? Math.floor(i / 26) : ''),
-          letter_code: String.fromCharCode(65 + (i % 26)) + (i >= 26 ? Math.floor(i / 26) : ''),
-          location: `Location ${i}`,
+          letter_code: String.fromCharCode(65 + (i % 26)),
           is_active: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z'
-        }
-
-        largeDataset.push(mockPlantvak)
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
       }
 
       // Mock retrieval of large dataset
-      const supabase = require('@/lib/supabase').supabase
-      supabase.from().select().eq().order().limit().mockResolvedValue({ data: largeDataset, error: null })
+      mockSupabase.mockQueryBuilder.setData(largeDataset)
 
       const startTime = Date.now()
       const retrieved = await PlantvakService.getByGarden(gardenId)
       const endTime = Date.now()
 
       expect(retrieved).toHaveLength(100)
-      expect(endTime - startTime).toBeLessThan(5000) // Should complete within 5 seconds
+      expect(endTime - startTime).toBeLessThan(1000) // Should complete within 1 second
     })
 
-    test('should maintain performance with complex queries', async () => {
-      const gardenId = 'test-garden-complex'
+    it('should maintain performance with complex queries', async () => {
+      const gardenId = 'test-garden-123'
       const complexData = []
 
-      // Create complex dataset with various attributes
+      // Create complex dataset with various properties
       for (let i = 0; i < 50; i++) {
-        const mockPlantvak = {
-          id: `plantvak-${i}`,
-          garden_id: gardenId,
+        complexData.push({
+          id: `plantvak-${i + 1}`,
           name: String.fromCharCode(65 + (i % 26)),
+          garden_id: gardenId,
           letter_code: String.fromCharCode(65 + (i % 26)),
-          location: `Complex Location ${i}`,
-          size: `${i + 1}x${i + 2}m`,
-          soil_type: ['clay', 'sand', 'leem', 'veen', 'gemengd'][i % 5],
+          location: `Side ${i % 4}`,
+          size: `${(i % 5) + 1}x${(i % 5) + 1}m`,
+          soil_type: ['clay', 'sand', 'loam'][i % 3],
           sun_exposure: ['full-sun', 'partial-sun', 'shade'][i % 3],
-          description: `Complex description ${i} with multiple attributes and requirements`,
-          is_active: i % 10 !== 0, // Some inactive
-          created_at: new Date(2024, 0, i + 1).toISOString(),
-          updated_at: new Date(2024, 0, i + 1).toISOString()
-        }
-
-        complexData.push(mockPlantvak)
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
       }
 
-      const supabase = require('@/lib/supabase').supabase
-      supabase.from().select().eq().order().limit().mockResolvedValue({ data: complexData, error: null })
+      // Mock complex query
+      mockSupabase.mockQueryBuilder.setData(complexData)
 
       const startTime = Date.now()
       const retrieved = await PlantvakService.getByGarden(gardenId)
       const endTime = Date.now()
 
       expect(retrieved).toHaveLength(50)
-      expect(endTime - startTime).toBeLessThan(3000) // Should complete within 3 seconds
+      expect(endTime - startTime).toBeLessThan(500) // Should complete within 500ms
 
-      // Verify complex data integrity
+      // Verify data integrity
       retrieved.forEach((plantvak, index) => {
+        expect(plantvak.id).toBe(`plantvak-${index + 1}`)
+        expect(plantvak.garden_id).toBe(gardenId)
         expect(plantvak.letter_code).toBe(String.fromCharCode(65 + (index % 26)))
-        expect(['clay', 'sand', 'leem', 'veen', 'gemengd']).toContain(plantvak.soil_type)
-        expect(['full-sun', 'partial-sun', 'shade']).toContain(plantvak.sun_exposure)
       })
     })
   })

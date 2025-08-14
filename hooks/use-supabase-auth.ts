@@ -148,7 +148,7 @@ export function useSupabaseAuth(): AuthContextType {
       const { data: userProfile, error: userError } = await Promise.race([
         databasePromise,
         timeoutPromise
-      ]) as { data: any, error: any }
+      ]) as { data: unknown, error: unknown }
 
       let role: 'admin' | 'user' = 'user'
       let fullName = supabaseUser.email?.split('@')[0] || 'User'

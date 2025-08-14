@@ -42,13 +42,13 @@ const MESSAGES = {
 }
 
 // Validation helper functions
-function isRequired(value: any): boolean {
+function isRequired(value: unknown): boolean {
   if (value === null || value === undefined) return false
   if (typeof value === 'string' && value.trim() === '') return false
   return true
 }
 
-export function validateRequired(value: any): boolean {
+export function validateRequired(value: unknown): boolean {
   return isRequired(value)
 }
 
@@ -85,7 +85,7 @@ function isValidLength(value: string, min?: number, max?: number): boolean {
 
 // Sanitization function
 export function sanitizeInput(
-  input: any, 
+  input: unknown, 
   options: {
     allowedTags?: string[]
     maxLength?: number
@@ -127,7 +127,7 @@ class Validator {
     this.errors.push({ field, message })
   }
 
-  validateRequired(field: string, value: any, message?: string): void {
+  validateRequired(field: string, value: unknown, message?: string): void {
     if (!isRequired(value)) {
       this.addError(field, message || MESSAGES.REQUIRED)
     }

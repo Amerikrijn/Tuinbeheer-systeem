@@ -11,7 +11,7 @@ import { passwordChangeManager, type PasswordValidation } from '@/lib/auth/passw
 import { useAuth } from '@/hooks/use-supabase-auth'
 
 interface ForcePasswordChangeProps {
-  user: any
+  user: unknown
   onPasswordChanged: () => void
 }
 
@@ -89,7 +89,7 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
         }
       }, 1500)
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Password change error:', error)
       setError('System error. Please try again or contact support.')
     } finally {

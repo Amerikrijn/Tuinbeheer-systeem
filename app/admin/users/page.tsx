@@ -133,11 +133,11 @@ function AdminUsersPageContent() {
 
       loadData()
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error resetting password:', error)
       toast({
         title: "Reset mislukt",
-        description: error.message || "Kon wachtwoord niet resetten",
+        description: error instanceof Error ? error.message : "Kon wachtwoord niet resetten",
         variant: "destructive"
       })
     } finally {
@@ -168,11 +168,11 @@ function AdminUsersPageContent() {
 
       loadData()
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting user:', error)
       toast({
         title: "Verwijderen mislukt",
-        description: error.message || "Kon gebruiker niet verwijderen",
+        description: error instanceof Error ? error.message : "Kon gebruiker niet verwijderen",
         variant: "destructive"
       })
     }

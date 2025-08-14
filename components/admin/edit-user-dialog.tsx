@@ -144,11 +144,11 @@ export function EditUserDialog({
       onUserUpdated()
       onClose()
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating user:', error)
       toast({
         title: "Bijwerken mislukt",
-        description: error.message || "Kon gebruiker niet bijwerken",
+        description: error instanceof Error ? error.message : "Kon gebruiker niet bijwerken",
         variant: "destructive"
       })
     } finally {

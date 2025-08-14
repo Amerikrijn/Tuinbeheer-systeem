@@ -26,7 +26,7 @@ const supabaseAdmin = createClient(
   }
 )
 
-function localAuditLog(action: string, details: any) {
+function localAuditLog(action: string, details: unknown) {
   console.log(`🔒 ADMIN AUDIT: ${action}`, {
     timestamp: new Date().toISOString(),
     action,

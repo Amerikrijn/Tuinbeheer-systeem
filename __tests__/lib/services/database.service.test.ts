@@ -47,7 +47,7 @@ describe('Database Service', () => {
 
   describe('Error Handling', () => {
     test('should handle empty data gracefully', () => {
-      const emptyArray: any[] = []
+      const emptyArray: unknown[] = []
       expect(emptyArray).toHaveLength(0)
       expect(Array.isArray(emptyArray)).toBe(true)
     })

@@ -7,7 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface FormData {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export function BankingForm({ 
@@ -18,7 +18,7 @@ export function BankingForm({
   description 
 }: {
   onSubmit: (data: FormData) => Promise<void>;
-  schema?: any;
+  schema?: unknown;
   children: React.ReactNode;
   title: string;
   description?: string;

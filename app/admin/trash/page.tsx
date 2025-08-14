@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -32,9 +32,9 @@ function TrashPageContent() {
     if (currentUser && isAdmin()) {
       loadDeletedUsers()
     }
-  }, [currentUser])
+  }, [currentUser, isAdmin, loadDeletedUsers])
 
-  const loadDeletedUsers = async () => {
+  const loadDeletedUsers = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -56,7 +56,7 @@ function TrashPageContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   const handleRestoreUser = async (user: DeletedUser) => {
     if (!confirm(`Weet je zeker dat je ${user.full_name || user.email} wilt herstellen?`)) {
@@ -89,11 +89,12 @@ function TrashPageContent() {
 
       loadDeletedUsers()
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error restoring user:', error)
+      const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet herstellen"
       toast({
         title: "Herstellen mislukt",
-        description: error.message || "Kon gebruiker niet herstellen",
+        description: errorMessage,
         variant: "destructive"
       })
     } finally {
@@ -140,11 +141,12 @@ function TrashPageContent() {
 
       loadDeletedUsers()
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error permanently deleting user:', error)
+      const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet permanent verwijderen"
       toast({
         title: "Permanent verwijderen mislukt",
-        description: error.message || "Kon gebruiker niet permanent verwijderen",
+        description: errorMessage,
         variant: "destructive"
       })
     } finally {

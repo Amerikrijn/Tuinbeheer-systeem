@@ -46,7 +46,7 @@ export default function NewPlantBedPage() {
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [nextLetterCode, setNextLetterCode] = useState<string>("...")
-  const [existingPlantvakken, setExistingPlantvakken] = useState<any[]>([])
+  const [existingPlantvakken, setExistingPlantvakken] = useState<unknown[]>([])
 
   const [newPlantBed, setNewPlantBed] = useState<NewPlantBed>({
     location: "",

@@ -13,7 +13,7 @@ import {
 // VALIDATION HELPERS
 // ===================================================================
 
-function validatePositionRequest(data: any): { isValid: boolean; errors: string[] } {
+function validatePositionRequest(data: unknown): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   // Required fields

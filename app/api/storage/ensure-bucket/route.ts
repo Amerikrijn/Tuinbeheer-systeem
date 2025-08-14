@@ -7,7 +7,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'SUPABASE_SERVICE_ROLE_KEY is not configured' }, { status: 500 })
     }
 
-    const body = await req.json().catch(() => ({} as any))
+    const body = await req.json().catch(() => ({} as Record<string, unknown>))
     const bucket: string = typeof body.bucket === 'string' && body.bucket ? body.bucket : 'plant-images'
     const isPublic: boolean = typeof body.public === 'boolean' ? body.public : true
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ created: true, public: isPublic })
-  } catch (error: any) {
+  } catch (error: unknown) {
     return NextResponse.json({ error: error?.message || 'Unexpected error' }, { status: 500 })
   }
 }

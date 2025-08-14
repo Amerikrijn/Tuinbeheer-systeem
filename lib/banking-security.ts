@@ -133,7 +133,7 @@ export function validateInput(
 /**
  * Validate API request body according to banking standards
  */
-export function validateApiInput(body: any): boolean {
+export function validateApiInput(body: unknown): boolean {
   if (!body || typeof body !== 'object') {
     return false;
   }
@@ -465,7 +465,7 @@ export class PerformanceMonitor {
 /**
  * Monitor function performance
  */
-export function withPerformanceMonitoring<T extends (...args: any[]) => any>(
+export function withPerformanceMonitoring<T extends (...args: unknown[]) => any>(
   fn: T,
   operationName: string
 ): T {

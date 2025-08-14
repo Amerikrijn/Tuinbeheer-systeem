@@ -168,7 +168,7 @@ function LogbookPageContent() {
         })
       }
 
-      const filters: any = {
+      const filters: unknown = {
         limit: ITEMS_PER_PAGE,
         offset: (page - 1) * ITEMS_PER_PAGE
       }
@@ -233,7 +233,7 @@ function LogbookPageContent() {
       const logbookData = response.data || []
 
       // Also load completed tasks as logbook entries
-      let completedTasksData: any[] = []
+      let completedTasksData: unknown[] = []
       try {
         let tasksQuery = supabase
           .from('tasks')
@@ -282,7 +282,7 @@ function LogbookPageContent() {
         
         if (tasksResults) {
           // Transform completed tasks to look like logbook entries
-          completedTasksData = tasksResults.map((task: any) => ({
+          completedTasksData = tasksResults.map((task: unknown) => ({
             id: `task-${task.id}`,
             entry_date: task.updated_at,
             notes: `✅ Taak voltooid: ${task.title}${task.description ? ` - ${task.description}` : ''}`,
