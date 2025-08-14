@@ -113,10 +113,6 @@ export class MockSupabaseQueryBuilder {
     return this
   }
 
-  and(conditions: string, values?: any[]) {
-    return this
-  }
-
   not(column: string, operator: string, value: any) {
     return this
   }
@@ -141,20 +137,27 @@ export class MockSupabaseQueryBuilder {
     return this
   }
 
-  then(resolve: (value: any) => void, reject?: (reason?: any) => void) {
+  // Mock the actual response - this is what the service will call
+  async then(resolve: (value: any) => void, reject?: (reason?: any) => void) {
     if (this.mockError) {
       reject?.(this.mockError)
-    } else {
-      resolve(this.mockData)
+      return Promise.reject(this.mockError)
     }
-    return Promise.resolve(this.mockData)
+    
+    // Return the standard Supabase response format that can be destructured
+    const response = { 
+      data: this.mockData, 
+      error: null 
+    }
+    resolve(response)
+    return Promise.resolve(response)
   }
 
   catch(reject: (reason?: any) => void) {
     if (this.mockError) {
       reject(this.mockError)
     }
-    return Promise.resolve(this.mockData)
+    return Promise.resolve({ data: this.mockData, error: null })
   }
 }
 
@@ -184,31 +187,3 @@ export function createMockSupabase() {
     mockQueryBuilder
   }
 }
-
-// Add a simple test to resolve the "Your test suite must contain at least one test" error
-describe('Supabase Mock', () => {
-  it('should create a mock supabase instance', () => {
-    const mockSupabase = createMockSupabase()
-    expect(mockSupabase).toBeDefined()
-    expect(mockSupabase.from).toBeDefined()
-    expect(mockSupabase.auth).toBeDefined()
-    expect(mockSupabase.storage).toBeDefined()
-    expect(mockSupabase.mockQueryBuilder).toBeDefined()
-  })
-
-  it('should set and retrieve mock data', () => {
-    const mockSupabase = createMockSupabase()
-    const testData = { id: 1, name: 'test' }
-    
-    mockSupabase.mockQueryBuilder.setData(testData)
-    expect(mockSupabase.mockQueryBuilder.mockData).toEqual(testData)
-  })
-
-  it('should set and retrieve mock errors', () => {
-    const mockSupabase = createMockSupabase()
-    const testError = new Error('test error')
-    
-    mockSupabase.mockQueryBuilder.setError(testError)
-    expect(mockSupabase.mockQueryBuilder.mockError).toEqual(testError)
-  })
-})

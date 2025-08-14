@@ -6,10 +6,35 @@ global.Request = class Request {
 } as any
 
 global.Response = class Response {
+  public status: number
+  public headers: Headers
+  public body: any
+
   constructor(body?: BodyInit | null, init?: ResponseInit) {
-    // Mock implementation
+    this.status = init?.status || 200
+    this.headers = new Headers(init?.headers)
+    this.body = body
+  }
+
+  json() {
+    return Promise.resolve(JSON.parse(this.body as string))
   }
 } as any
+
+// Mock NextResponse
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: jest.fn((data: any, init?: any) => {
+      return new Response(JSON.stringify(data), {
+        status: init?.status || 200,
+        headers: {
+          'Content-Type': 'application/json',
+          ...init?.headers
+        }
+      })
+    })
+  }
+}))
 
 // Mock the supabase module
 jest.mock('@/lib/supabase', () => {
@@ -18,9 +43,6 @@ jest.mock('@/lib/supabase', () => {
     supabase: createMockSupabase(),
   }
 })
-
-// Get the mocked supabase instance
-const { supabase } = require('@/lib/supabase')
 
 describe('Gardens API - Integration Tests', () => {
   let mockSupabase: any

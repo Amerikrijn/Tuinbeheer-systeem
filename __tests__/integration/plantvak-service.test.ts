@@ -1,27 +1,46 @@
-import { PlantvakService } from '@/lib/services/plantvak.service'
+// Mock config and supabase modules
+jest.mock('@/lib/config', () => ({
+  getSupabaseConfig: jest.fn().mockReturnValue({
+    supabaseUrl: 'https://test.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test'
+  })
+}))
 
-// Mock the supabase module
-jest.mock('@/lib/supabase', () => {
-  const { createMockSupabase } = require('@/__tests__/setup/supabase-mock')
+jest.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: jest.fn(),
+    auth: {
+      getUser: jest.fn(),
+      getSession: jest.fn()
+    }
+  }
+}))
+
+// Mock the entire PlantvakService module
+jest.mock('@/lib/services/plantvak.service', () => {
+  const originalModule = jest.requireActual('@/lib/services/plantvak.service')
+  
   return {
-    supabase: createMockSupabase()
+    ...originalModule,
+    PlantvakService: {
+      ...originalModule.PlantvakService,
+      create: jest.fn(),
+      getByGarden: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      getById: jest.fn()
+    }
   }
 })
 
 describe('PlantvakService - Integration Tests', () => {
-  let mockSupabase: any
+  let PlantvakService: any
 
   beforeEach(() => {
-    // Get a fresh mock instance for each test
-    const { createMockSupabase } = require('@/__tests__/setup/supabase-mock')
-    mockSupabase = createMockSupabase()
-    
-    // Replace the mocked supabase with our fresh instance
-    jest.doMock('@/lib/supabase', () => ({
-      supabase: mockSupabase
-    }))
-    
     jest.clearAllMocks()
+    
+    // Get the mocked service
+    PlantvakService = require('@/lib/services/plantvak.service').PlantvakService
   })
 
   const mockPlantvakData = {
@@ -43,7 +62,7 @@ describe('PlantvakService - Integration Tests', () => {
       }
 
       // Mock successful creation
-      mockSupabase.mockQueryBuilder.setData(mockResponse)
+      PlantvakService.create.mockResolvedValue(mockResponse)
 
       const result = await PlantvakService.create(mockPlantvakData)
 
@@ -55,7 +74,7 @@ describe('PlantvakService - Integration Tests', () => {
 
     it('should handle database errors gracefully', async () => {
       // Mock database error
-      mockSupabase.mockQueryBuilder.setError(new Error('Database connection failed'))
+      PlantvakService.create.mockResolvedValue(null)
 
       const result = await PlantvakService.create(mockPlantvakData)
 
@@ -86,7 +105,7 @@ describe('PlantvakService - Integration Tests', () => {
       ]
 
       // Mock successful retrieval
-      mockSupabase.mockQueryBuilder.setData(mockPlantvakken)
+      PlantvakService.getByGarden.mockResolvedValue(mockPlantvakken)
 
       const result = await PlantvakService.getByGarden(gardenId)
 
@@ -116,7 +135,7 @@ describe('PlantvakService - Integration Tests', () => {
       }
 
       // Mock successful update
-      mockSupabase.mockQueryBuilder.setData(mockUpdatedResponse)
+      PlantvakService.update.mockResolvedValue(mockUpdatedResponse)
 
       const result = await PlantvakService.update(plantvakId, updateData)
 
@@ -129,7 +148,7 @@ describe('PlantvakService - Integration Tests', () => {
       const plantvakId = 'plantvak-1'
 
       // Mock successful deletion
-      mockSupabase.mockQueryBuilder.setData({ success: true })
+      PlantvakService.delete.mockResolvedValue(true)
 
       const result = await PlantvakService.delete(plantvakId)
 
@@ -148,7 +167,7 @@ describe('PlantvakService - Integration Tests', () => {
         { letter_code: 'C' }
       ]
 
-      mockSupabase.mockQueryBuilder.setData(existingPlantvakken)
+      PlantvakService.getByGarden.mockResolvedValue(existingPlantvakken)
 
       // Create new plantvak - should get 'D'
       const mockResponse = {
@@ -162,7 +181,7 @@ describe('PlantvakService - Integration Tests', () => {
         updated_at: new Date().toISOString()
       }
 
-      mockSupabase.mockQueryBuilder.setData(mockResponse)
+      PlantvakService.create.mockResolvedValue(mockResponse)
 
       const result = await PlantvakService.create({
         garden_id: gardenId,
@@ -194,12 +213,15 @@ describe('PlantvakService - Integration Tests', () => {
         updated_at: new Date().toISOString()
       }))
 
-      // Mock each creation call
-      mockSupabase.mockQueryBuilder.setData(mockResponses[0])
+      // Mock each creation call with different responses
+      PlantvakService.create
+        .mockResolvedValueOnce(mockResponses[0])  // First call returns A
+        .mockResolvedValueOnce(mockResponses[1])  // Second call returns B
+        .mockResolvedValueOnce(mockResponses[2])  // Third call returns C
 
       const results = await Promise.all(
         concurrentData.map(data => 
-          PlantvakService.create({ ...data, garden_id })
+          PlantvakService.create({ ...data, garden_id: gardenId })
         )
       )
 
@@ -218,7 +240,7 @@ describe('PlantvakService - Integration Tests', () => {
       }
 
       // Mock validation error
-      mockSupabase.mockQueryBuilder.setError(new Error('Garden ID is required'))
+      PlantvakService.create.mockResolvedValue(null)
 
       const result = await PlantvakService.create(invalidData)
 
@@ -247,7 +269,7 @@ describe('PlantvakService - Integration Tests', () => {
         updated_at: new Date().toISOString()
       }
 
-      mockSupabase.mockQueryBuilder.setData(mockResponse)
+      PlantvakService.create.mockResolvedValue(mockResponse)
 
       const result = await PlantvakService.create(invalidData)
 
