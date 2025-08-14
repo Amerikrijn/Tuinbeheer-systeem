@@ -378,7 +378,7 @@ function LogbookPageContent() {
         )
       })
     }
-  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin, viewingUser, user, gardenAccessLoaded]);
+  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin, viewingUser, user, gardenAccessLoaded]);;
 
   // Load plant beds for filtering
   const loadPlantBeds = React.useCallback(async () => {
