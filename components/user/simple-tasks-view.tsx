@@ -284,12 +284,12 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
 
   if (loading || !gardenAccessLoaded) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen bg-muted p-4">
         <div className="max-w-4xl mx-auto">
           {/* Header with Logbook button - always visible */}
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Mijn Taken</h1>
+              <h1 className="text-2xl font-bold text-foreground">Mijn Taken</h1>
               <p className="text-gray-600 mt-1">Laden...</p>
             </div>
             <Button 
@@ -303,8 +303,8 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           </div>
           
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
-            <div className="h-64 bg-gray-200 rounded"></div>
+            <div className="h-8 bg-muted/80 rounded w-48 mb-4"></div>
+            <div className="h-64 bg-muted/80 rounded"></div>
           </div>
         </div>
       </div>
@@ -312,12 +312,12 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-muted p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header with Logbook button */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Mijn Taken</h1>
+            <h1 className="text-2xl font-bold text-foreground">Mijn Taken</h1>
             {gardenNames.length > 0 && (
               <p className="text-gray-600 mt-1">{gardenNames.join(', ')}</p>
             )}

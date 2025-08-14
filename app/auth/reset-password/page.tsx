@@ -254,7 +254,7 @@ function ResetPasswordContent() {
               <TreePine className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Nieuw Wachtwoord Instellen</h1>
+          <h1 className="text-2xl font-bold text-foreground">Nieuw Wachtwoord Instellen</h1>
           <p className="text-gray-600 mt-2">Kies een sterk wachtwoord voor je account</p>
         </div>
 

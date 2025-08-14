@@ -154,7 +154,7 @@ export function PlantForm({
         <CardContent className="space-y-6">
           {/* Plant Name with suggestions */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+            <Label htmlFor="name" className="text-sm font-medium text-foreground flex items-center gap-1">
               Bloemnaam
               <span className="text-red-500">*</span>
             </Label>
@@ -216,7 +216,7 @@ export function PlantForm({
 
           {/* Color */}
           <div className="space-y-2">
-            <Label htmlFor="color" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+            <Label htmlFor="color" className="text-sm font-medium text-foreground flex items-center gap-1">
               Kleur
               <span className="text-red-500">*</span>
             </Label>
@@ -239,7 +239,7 @@ export function PlantForm({
 
           {/* Height */}
           <div className="space-y-2">
-            <Label htmlFor="height" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+            <Label htmlFor="height" className="text-sm font-medium text-foreground flex items-center gap-1">
               Hoogte (cm)
               <span className="text-red-500">*</span>
             </Label>
@@ -269,7 +269,7 @@ export function PlantForm({
       {showAdvanced && (
         <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
           <CollapsibleTrigger asChild>
-            <Card className="cursor-pointer hover:shadow-md transition-shadow border-gray-200 bg-gray-50/30">
+            <Card className="cursor-pointer hover:shadow-md transition-shadow border-gray-200 bg-muted/30">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -306,7 +306,7 @@ export function PlantForm({
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                     <Info className="h-4 w-4 text-gray-600" />
-                    <h4 className="font-medium text-gray-900">Wetenschappelijke Informatie</h4>
+                    <h4 className="font-medium text-foreground">Wetenschappelijke Informatie</h4>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -343,7 +343,7 @@ export function PlantForm({
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                     <Flower className="h-4 w-4 text-gray-600" />
-                    <h4 className="font-medium text-gray-900">Groei Informatie</h4>
+                    <h4 className="font-medium text-foreground">Groei Informatie</h4>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -390,7 +390,7 @@ export function PlantForm({
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                     <span className="h-4 w-4 text-gray-600">📅</span>
-                    <h4 className="font-medium text-gray-900">Planning & Status</h4>
+                    <h4 className="font-medium text-foreground">Planning & Status</h4>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -448,7 +448,7 @@ export function PlantForm({
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
                     <span className="h-4 w-4 text-gray-600">🌿</span>
-                    <h4 className="font-medium text-gray-900">Verzorging</h4>
+                    <h4 className="font-medium text-foreground">Verzorging</h4>
                   </div>
                   <div className="space-y-4">
                     <div className="space-y-2">

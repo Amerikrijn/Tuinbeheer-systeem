@@ -258,12 +258,12 @@ export default function EditPlantPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-8 bg-muted/80 rounded w-1/4"></div>
+          <div className="h-4 bg-muted/80 rounded w-1/2"></div>
           <div className="space-y-4">
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
+            <div className="h-10 bg-muted/80 rounded"></div>
+            <div className="h-10 bg-muted/80 rounded"></div>
+            <div className="h-10 bg-muted/80 rounded"></div>
           </div>
         </div>
       </div>
@@ -274,7 +274,7 @@ export default function EditPlantPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Plant niet gevonden</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Plant niet gevonden</h2>
           <p className="text-gray-600 mb-6">De opgevraagde plant bestaat niet of is verwijderd.</p>
           <Button asChild>
             <Link href={`/gardens/${params.id}/plantvak-view/${params.bedId}`}>
@@ -299,7 +299,7 @@ export default function EditPlantPage() {
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
           <Leaf className="h-8 w-8 text-green-600" />
           Bloem Bewerken
         </h1>
@@ -370,7 +370,7 @@ export default function EditPlantPage() {
                       <div className={`w-2 h-2 rounded-full ${
                         task.completed ? 'bg-green-500' : 
                         task.priority === 'high' ? 'bg-red-500' : 
-                        task.priority === 'medium' ? 'bg-yellow-500' : 'bg-gray-500'
+                        task.priority === 'medium' ? 'bg-yellow-500' : 'bg-muted0'
                       }`} />
                       <span className={task.completed ? 'line-through text-gray-500' : ''}>
                         {task.title}

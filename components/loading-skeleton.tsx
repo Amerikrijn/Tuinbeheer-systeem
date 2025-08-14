@@ -26,7 +26,7 @@ export function BankingLoadingState({
         {Array.from({ length: config.rows }, (_, i) => (
           <div 
             key={i}
-            className={`skeleton ${config.height} animate-pulse bg-gray-200 rounded mb-2`}
+            className={`skeleton ${config.height} animate-pulse bg-muted/80 rounded mb-2`}
             style={{ width: `${Math.random() * 40 + 60}%` }}
           />
         ))}

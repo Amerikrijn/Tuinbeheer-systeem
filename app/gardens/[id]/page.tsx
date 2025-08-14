@@ -989,7 +989,7 @@ export default function GardenDetailPage() {
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
           <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
+          <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
           <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
           <Button onClick={() => navigateTo("/gardens")} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -1435,7 +1435,7 @@ export default function GardenDetailPage() {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center bg-white/80 p-8 rounded-lg border-2 border-dashed border-gray-300">
                       <Leaf className="h-20 w-20 mx-auto text-gray-400 mb-4" />
-                      <h3 className="text-xl font-medium text-gray-900 mb-2">Nog geen plantvakken</h3>
+                      <h3 className="text-xl font-medium text-foreground mb-2">Nog geen plantvakken</h3>
                       <p className="text-gray-600 mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
                       <Button 
                         className="bg-green-600 hover:bg-green-700"
@@ -1551,7 +1551,7 @@ export default function GardenDetailPage() {
                               </div>
                             ))}
                             {bed.plants.length > 4 && (
-                              <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
+                              <div className="flex items-center justify-center bg-muted/50 border border-gray-200 rounded-lg px-2 py-1">
                                 <span className="text-xs text-gray-600">
                                   +{bed.plants.length - 4}
                                 </span>

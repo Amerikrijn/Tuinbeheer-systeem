@@ -154,7 +154,7 @@ export default function ChangePasswordPage() {
               <TreePine className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Wachtwoord Wijzigen</h1>
+          <h1 className="text-2xl font-bold text-foreground">Wachtwoord Wijzigen</h1>
           <p className="text-gray-600 mt-2">Stel een nieuw wachtwoord in voor je account</p>
         </div>
 

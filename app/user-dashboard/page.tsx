@@ -234,7 +234,7 @@ function UserDashboardContent() {
       case 'harvest': return 'bg-orange-100 text-orange-800'
       case 'observation': return 'bg-purple-100 text-purple-800'
       case 'problem': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      default: return 'bg-muted/50 text-gray-800'
     }
   }
 
@@ -287,7 +287,7 @@ function UserDashboardContent() {
     <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Mijn Dashboard</h1>
+        <h1 className="text-3xl font-bold text-foreground">Mijn Dashboard</h1>
         <p className="text-gray-600 mt-1">
           Welkom {user.full_name || user.email}! Hier zijn jouw taken en logboek items.
         </p>
@@ -351,7 +351,7 @@ function UserDashboardContent() {
               ) : (
                 <div className="space-y-4">
                   {pendingTasks.map((task) => (
-                    <div key={task.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div key={task.id} className="border rounded-lg p-4 hover:bg-muted transition-colors">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">

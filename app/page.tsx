@@ -539,7 +539,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
             {loadingFlowers ? (
               <div className="flex gap-1">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                  <div key={i} className="w-8 h-8 bg-muted/80 rounded animate-pulse"></div>
                 ))}
               </div>
             ) : allFlowers.length > 0 ? (
@@ -559,7 +559,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
                   </div>
                 ))}
                 {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-                  <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
+                  <div className="flex items-center justify-center bg-muted/50 border border-gray-200 rounded-lg px-2 py-1">
                     <span className="text-xs text-gray-600">
                       +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6}
                     </span>
@@ -585,7 +585,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
             {loadingUsers ? (
               <div className="flex gap-1">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
+                  <div key={i} className="w-8 h-8 bg-muted/80 rounded-full animate-pulse"></div>
                 ))}
               </div>
             ) : gardenUsers.length > 0 ? (
@@ -670,7 +670,7 @@ function RoleBasedHomeContent() {
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
               <Calendar className="w-7 h-7 text-green-700" />
-              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Mijn Taken</h1>
+              <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Mijn Taken</h1>
             </div>
             <Button 
               onClick={() => router.push('/logbook')}

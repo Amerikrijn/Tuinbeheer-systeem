@@ -87,10 +87,10 @@ export default function PlantBedsPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-8 bg-muted/80 rounded w-1/3"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+              <div key={i} className="h-64 bg-muted/80 rounded"></div>
             ))}
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function PlantBedsPage() {
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
           <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
+                      <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
           <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
           <Link href="/gardens">
             <Button className="bg-green-600 hover:bg-green-700">
@@ -184,7 +184,7 @@ export default function PlantBedsPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">🌱</span>
                         <div>
-                          <h3 className="font-medium text-gray-900">{bed.name}</h3>
+                          <h3 className="font-medium text-foreground">{bed.name}</h3>
                           {bed.location && (
                             <p className="text-sm text-gray-500">{bed.location}</p>
                           )}
@@ -241,7 +241,7 @@ export default function PlantBedsPage() {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <span className="text-xl">🌱</span>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 truncate">{bed.name}</h3>
+                        <h3 className="font-medium text-foreground truncate">{bed.name}</h3>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                           <span>{bed.plants.length} bloemen</span>
                           {bed.size && <span>Grootte: {bed.size}</span>}
@@ -318,7 +318,7 @@ export default function PlantBedsPage() {
       ) : (
         <div className="text-center py-12">
           <Leaf className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-xl font-medium text-gray-900 mb-2">
+                      <h3 className="text-xl font-medium text-foreground mb-2">
             {searchTerm ? "Geen plantvakken gevonden" : "Nog geen plantvakken"}
           </h3>
           <p className="text-gray-600 mb-6">

@@ -317,20 +317,20 @@ function NewLogbookPageContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
-            <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-4" />
-            <div className="h-10 w-3/4 bg-gray-200 rounded animate-pulse mb-2" />
-            <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
+            <div className="h-8 w-32 bg-muted/80 rounded animate-pulse mb-4" />
+            <div className="h-10 w-3/4 bg-muted/80 rounded animate-pulse mb-2" />
+            <div className="h-4 w-1/2 bg-muted/80 rounded animate-pulse" />
           </div>
           
           <Card>
             <CardHeader>
-              <div className="h-6 w-1/3 bg-gray-200 rounded animate-pulse" />
+              <div className="h-6 w-1/3 bg-muted/80 rounded animate-pulse" />
             </CardHeader>
             <CardContent className="space-y-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i}>
-                  <div className="h-4 w-1/4 bg-gray-200 rounded animate-pulse mb-2" />
-                  <div className="h-10 w-full bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 w-1/4 bg-muted/80 rounded animate-pulse mb-2" />
+                  <div className="h-10 w-full bg-muted/80 rounded animate-pulse" />
                 </div>
               ))}
             </CardContent>
@@ -378,7 +378,7 @@ function NewLogbookPageContent() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Nieuwe Logboek Entry
           </h1>
           <p className="text-gray-600">
@@ -532,8 +532,8 @@ function NewLogbookPageContent() {
 
               {/* Preview */}
               {selectedPlantBed && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="font-medium text-gray-900 mb-2">Preview</h3>
+                <div className="bg-muted rounded-lg p-4">
+                  <h3 className="font-medium text-foreground mb-2">Preview</h3>
                   <div className="text-sm text-gray-600 space-y-1">
                     <p><strong>Plantvak:</strong> {selectedPlantBed.name}</p>
                     {selectedPlant && (

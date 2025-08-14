@@ -132,7 +132,7 @@ function LoginContent() {
               <TreePine className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Tuinbeheer Systeem</h1>
+          <h1 className="text-2xl font-bold text-foreground dark:text-gray-100">Tuinbeheer Systeem</h1>
           <p className="text-gray-600 dark:text-gray-300 mt-2">Meld je aan om door te gaan</p>
         </div>
 

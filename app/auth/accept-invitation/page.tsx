@@ -231,7 +231,7 @@ function AcceptInvitationContent() {
 
   const getPasswordStrengthColor = (password: string) => {
     const errors = validatePassword(password)
-    if (password.length === 0) return 'bg-gray-200'
+    if (password.length === 0) return 'bg-muted/80'
     if (errors.length > 3) return 'bg-red-500'
     if (errors.length > 1) return 'bg-yellow-500'
     if (errors.length === 1) return 'bg-blue-500'
@@ -399,7 +399,7 @@ function AcceptInvitationContent() {
                         {getPasswordStrengthText(formData.password)}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-muted/80 rounded-full h-2">
                       <div 
                         className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(formData.password)}`}
                         style={{ 

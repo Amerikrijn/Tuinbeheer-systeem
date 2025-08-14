@@ -227,7 +227,7 @@ export function FlowerSelector({
           <CardContent className="p-0">
             {/* Category filter */}
             {showCategories && (
-              <div className="p-3 border-b bg-gray-50">
+              <div className="p-3 border-b bg-muted">
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                   <SelectTrigger className="h-8">
                     <SelectValue placeholder="Alle categorieën" />

@@ -195,7 +195,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
       <div className="container mx-auto px-4 py-8 safe-area-px">
         <div className="max-w-4xl mx-auto text-center">
           <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Logboek entry niet gevonden
           </h2>
           <p className="text-gray-600 mb-6">
@@ -226,7 +226,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
         {/* Header - more compact */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-foreground">
               Logboek Entry
             </h1>
             
@@ -288,7 +288,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
           {state.entry.photo_url && (
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Camera className="h-5 w-5" />
                   Foto
                 </h2>
@@ -312,9 +312,9 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
           {/* Description section - prominent display */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Beschrijving</h2>
-              <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-l-blue-500">
-                <p className="text-lg text-gray-900 leading-relaxed whitespace-pre-wrap font-medium">
+              <h2 className="text-xl font-semibold text-foreground mb-4">Beschrijving</h2>
+              <div className="bg-muted rounded-lg p-6 border-l-4 border-l-blue-500">
+                <p className="text-lg text-foreground leading-relaxed whitespace-pre-wrap font-medium">
                   {state.entry.notes}
                 </p>
               </div>
