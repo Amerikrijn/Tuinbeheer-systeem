@@ -1,4 +1,32 @@
-import { mockGardenData, mockGardensArray } from '@/__tests__/setup/supabase-mock'
+// Mock data for testing
+const mockGardenData = {
+  id: '1',
+  name: 'Test Garden',
+  description: 'A beautiful test garden',
+  location: 'Test Location',
+  garden_type: 'vegetable',
+  total_area: '100m²',
+  season_year: 2024,
+  is_active: true,
+  created_at: '2023-01-01T00:00:00Z',
+  updated_at: '2023-01-01T00:00:00Z'
+}
+
+const mockGardensArray = [
+  mockGardenData,
+  {
+    id: '2',
+    name: 'Second Garden',
+    description: 'Another test garden',
+    location: 'Second Location',
+    garden_type: 'flower',
+    total_area: '200m²',
+    season_year: 2024,
+    is_active: true,
+    created_at: '2023-01-02T00:00:00Z',
+    updated_at: '2023-01-02T00:00:00Z'
+  }
+]
 
 // Mock the entire database service module
 jest.mock('@/lib/services/database.service', () => {
