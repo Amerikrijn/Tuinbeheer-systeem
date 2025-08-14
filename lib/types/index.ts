@@ -251,6 +251,54 @@ export interface DatabaseOperation {
   data?: any
 }
 
+// Task Types
+export interface Task {
+  id: string
+  plant_id?: string
+  plant_bed_id?: string
+  title: string
+  description?: string
+  due_date: string
+  completed: boolean
+  completed_at?: string
+  priority: 'low' | 'medium' | 'high'
+  task_type: 'watering' | 'fertilizing' | 'pruning' | 'harvesting' | 'planting' | 'pest_control' | 'general'
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface TaskWithPlantInfo extends Task {
+  plant_name: string
+  plant_color?: string
+  plant_bed_name: string
+  garden_name: string
+}
+
+// User Types
+export interface User {
+  id: string
+  email: string
+  full_name?: string
+  avatar_url?: string
+  role: 'admin' | 'user'
+  status: 'pending' | 'active' | 'inactive'
+  permissions: string[]
+  garden_access: string[]
+  created_at: string
+  last_login?: string
+  force_password_change?: boolean
+}
+
+// Additional Types
+export interface PlantWithPosition extends Bloem {
+  position_x: number
+  position_y: number
+  visual_width: number
+  visual_height: number
+  rotation: number
+}
+
 // Legacy type aliases for backward compatibility
 export type Garden = Tuin
 export type PlantBed = Plantvak

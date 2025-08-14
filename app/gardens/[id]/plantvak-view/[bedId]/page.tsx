@@ -433,7 +433,7 @@ export default function PlantBedViewPage() {
         setGarden(gardenData)
         
         // Find the specific plant bed
-        const specificBed = plantBedsData.find(bed => bed.id === params.bedId)
+        const specificBed = plantBedsData.find((bed: any) => bed.id === params.bedId)
         setPlantBed(specificBed || null)
         
         // Load plants from database instead of localStorage

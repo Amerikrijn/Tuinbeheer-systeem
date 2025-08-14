@@ -120,13 +120,13 @@ export class PlantvakService {
       return data;
     } catch (error) {
       console.error('❌ Error creating plantvak:', error);
-      if (error && typeof error === 'object') {
+      if (error && typeof error === 'object' && 'message' in error) {
         console.error('❌ Error details:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint,
-          stack: error.stack
+          message: (error as any).message,
+          code: (error as any).code,
+          details: (error as any).details,
+          hint: (error as any).hint,
+          stack: (error as any).stack
         });
       }
       return null;

@@ -4,26 +4,7 @@
  * Consistent sorting logic for all task displays across the application
  */
 
-export interface Task {
-  id: string
-  title: string
-  description?: string
-  due_date?: string
-  priority: 'low' | 'medium' | 'high'
-  completed: boolean
-  created_at: string
-  updated_at: string
-  plants?: {
-    name: string
-    plant_beds?: {
-      name: string
-      garden_id: string
-      gardens?: {
-        name: string
-      }
-    }
-  }
-}
+import type { Task } from '@/lib/types'
 
 /**
  * Priority weights for sorting (higher = more important)
@@ -88,8 +69,8 @@ export function sortTasks(tasks: Task[]): Task[] {
     }
     
     // Same urgency level: sort by priority
-    const aPriority = PRIORITY_WEIGHTS[a.priority] || 1
-    const bPriority = PRIORITY_WEIGHTS[b.priority] || 1
+    const aPriority = PRIORITY_WEIGHTS[a.priority as keyof typeof PRIORITY_WEIGHTS] || 1
+    const bPriority = PRIORITY_WEIGHTS[b.priority as keyof typeof PRIORITY_WEIGHTS] || 1
     if (aPriority !== bPriority) {
       return bPriority - aPriority // Higher priority first
     }
