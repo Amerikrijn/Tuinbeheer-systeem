@@ -10,25 +10,12 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-supabase-auth"
 import { supabase } from "@/lib/supabase"
 import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
+import type { Task } from "@/lib/types"
 
 // Define proper types instead of empty interface
 interface SimpleTasksViewProps {
   // Component doesn't need props, but we define a proper interface
   className?: string
-}
-
-// Define proper task type
-interface Task {
-  id: string
-  title: string
-  description?: string
-  completed: boolean
-  completed_at?: string | null
-  due_date?: string | null
-  priority?: string
-  garden_id?: string
-  created_at?: string
-  updated_at?: string
 }
 
 export function SimpleTasksView({ className }: SimpleTasksViewProps) {
@@ -401,21 +388,6 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
                         </Badge>
                       </div>
                       
-                      {/* Show plant or plant bed info */}
-                      {task.plants ? (
-                        <p className="text-sm text-gray-600 mb-2">
-                          {task.plants.name} - {task.plants.plant_beds?.name} ({task.plants.plant_beds?.gardens?.name})
-                        </p>
-                      ) : task.plant_beds ? (
-                        <p className="text-sm text-gray-600 mb-2">
-                          {task.plant_beds.name} ({task.plant_beds.gardens?.name})
-                        </p>
-                      ) : (
-                        <p className="text-sm text-gray-600 mb-2">
-                          Algemene taak
-                        </p>
-                      )}
-                      
                       {/* Show task type if no description */}
                       {!task.description && task.task_type && (
                         <p className="text-sm text-gray-700 mb-2 capitalize">
@@ -425,7 +397,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
                       
                       <div className="flex items-center justify-between text-xs text-gray-500">
                         <span>
-                          Deadline: {new Date(task.due_date).toLocaleDateString('nl-NL')}
+                          Deadline: {task.due_date ? new Date(task.due_date).toLocaleDateString('nl-NL') : 'Geen deadline'}
                         </span>
                         {task.priority && task.priority !== 'medium' && (
                           <span className="font-medium">

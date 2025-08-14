@@ -177,11 +177,13 @@ export default function NewPlantBedPage() {
       }
     } catch (err) {
       console.error("❌ Error creating plant bed:", err)
-      console.error("❌ Error details:", {
-        message: err.message,
-        stack: err.stack,
-        name: err.name
-      })
+      if (err && typeof err === 'object' && 'message' in err) {
+        console.error("❌ Error details:", {
+          message: (err as any).message,
+          stack: (err as any).stack,
+          name: (err as any).name
+        })
+      }
       toast({
         title: "Fout",
         description: "Er ging iets mis bij het aanmaken van het plantvak.",

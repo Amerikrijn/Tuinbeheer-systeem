@@ -1003,11 +1003,19 @@ export class LogbookService {
       
       if (error instanceof DatabaseError) {
         databaseLogger.error('Database error in LogbookService.getPlantPhotos', error, { plantId, year, operationId })
-        return createResponse(null, error.message, 'fetch plant photos')
+        return createResponse({
+          photos: [],
+          totalCount: 0,
+          hasMorePhotos: false
+        }, error.message, 'fetch plant photos')
       }
       
       databaseLogger.error('Unexpected error in LogbookService.getPlantPhotos', error as Error, { plantId, year, operationId })
-      return createResponse(null, 'An unexpected error occurred', 'fetch plant photos')
+      return createResponse({
+        photos: [],
+        totalCount: 0,
+        hasMorePhotos: false
+      }, 'An unexpected error occurred', 'fetch plant photos')
     }
   }
 }
