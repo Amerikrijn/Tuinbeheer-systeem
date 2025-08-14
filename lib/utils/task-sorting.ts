@@ -4,7 +4,7 @@
  * Consistent sorting logic for all task displays across the application
  */
 
-import type { Task } from '@/lib/types'
+import type { Task } from '@/lib/types/index'
 
 /**
  * Priority weights for sorting (higher = more important)
