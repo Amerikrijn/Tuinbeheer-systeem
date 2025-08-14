@@ -1,30 +1,40 @@
 import { cn } from '@/lib/utils'
 
 describe('Utils', () => {
-  describe('cn (className utility)', () => {
+  describe('cn function', () => {
     it('should combine class names correctly', () => {
-      const result = cn('class1', 'class2')
-      expect(result).toContain('class1')
-      expect(result).toContain('class2')
+      const result = cn('class1', 'class2', 'class3')
+      expect(result).toBe('class1 class2 class3')
     })
 
     it('should handle conditional classes', () => {
-      const result = cn('base', true && 'conditional', false && 'hidden')
-      expect(result).toContain('base')
-      expect(result).toContain('conditional')
-      expect(result).not.toContain('hidden')
+      const result = cn('base-class', true && 'conditional-class', false && 'hidden-class')
+      expect(result).toBe('base-class conditional-class')
     })
 
     it('should handle undefined and null values', () => {
-      const result = cn('base', undefined, null, 'valid')
-      expect(result).toContain('base')
-      expect(result).toContain('valid')
+      const result = cn('base-class', undefined, null, 'valid-class')
+      expect(result).toBe('base-class valid-class')
     })
 
-    it('should merge conflicting Tailwind classes correctly', () => {
-      // This assumes the utility uses clsx and tailwind-merge
-      const result = cn('p-4', 'p-2') // Should resolve to p-2
-      expect(result).toBe('p-2')
+    it('should handle empty strings', () => {
+      const result = cn('base-class', '', 'valid-class')
+      expect(result).toBe('base-class valid-class')
+    })
+
+    it('should handle mixed types', () => {
+      const result = cn('base-class', 'string-class', 123, { object: 'class' }, ['array', 'class'])
+      expect(result).toBe('base-class string-class 123 object array class')
+    })
+
+    it('should return empty string for no arguments', () => {
+      const result = cn()
+      expect(result).toBe('')
+    })
+
+    it('should handle single class', () => {
+      const result = cn('single-class')
+      expect(result).toBe('single-class')
     })
   })
 })

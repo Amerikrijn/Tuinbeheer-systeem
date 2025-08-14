@@ -6,10 +6,21 @@ export const mockGardenData = {
   location: 'Test Location',
   garden_type: 'vegetable',
   total_area: '100m²',
+  length: '10m',
+  width: '10m',
+  established_date: '2023-01-01',
   season_year: 2024,
+  notes: 'Test garden notes',
   is_active: true,
   created_at: '2023-01-01T00:00:00Z',
-  updated_at: '2023-01-01T00:00:00Z'
+  updated_at: '2023-01-01T00:00:00Z',
+  canvas_width: 800,
+  canvas_height: 600,
+  grid_size: 20,
+  default_zoom: 1,
+  show_grid: true,
+  snap_to_grid: true,
+  background_color: '#f0f0f0'
 }
 
 export const mockGardensArray = [
@@ -21,10 +32,21 @@ export const mockGardensArray = [
     location: 'Second Location',
     garden_type: 'flower',
     total_area: '200m²',
+    length: '20m',
+    width: '10m',
+    established_date: '2023-01-02',
     season_year: 2024,
+    notes: 'Second garden notes',
     is_active: true,
     created_at: '2023-01-02T00:00:00Z',
-    updated_at: '2023-01-02T00:00:00Z'
+    updated_at: '2023-01-02T00:00:00Z',
+    canvas_width: 1000,
+    canvas_height: 800,
+    grid_size: 25,
+    default_zoom: 1,
+    show_grid: true,
+    snap_to_grid: false,
+    background_color: '#e0e0e0'
   }
 ]
 
@@ -72,6 +94,7 @@ export class MockSupabaseQueryBuilder {
         this.returnData = mockGardensArray
       }
     } else {
+      // For regular select queries, return the data directly
       if (!this.returnData) {
         this.returnData = mockGardensArray
       }
@@ -109,78 +132,113 @@ export class MockSupabaseQueryBuilder {
   update(data: any) {
     this.chainedMethods.push('update')
     this.queryData.updateData = data
-    
-    if (!this.shouldError && !this.returnData) {
-      this.returnData = { ...mockGardenData, ...data }
-    }
-    
     return this
   }
 
   delete() {
     this.chainedMethods.push('delete')
-    
-    if (!this.shouldError && !this.returnData) {
-      this.returnData = mockGardenData
-    }
-    
     return this
   }
 
-  eq(column: string, value: any) {
+  eq(field: string, value: any) {
     this.chainedMethods.push('eq')
-    this.queryData.eq = { column, value }
+    this.queryData.filters = this.queryData.filters || {}
+    this.queryData.filters[field] = value
     return this
   }
 
-  or(conditions: string) {
+  neq(field: string, value: any) {
+    this.chainedMethods.push('neq')
+    this.queryData.filters = this.queryData.filters || {}
+    this.queryData.filters[`${field}_neq`] = value
+    return this
+  }
+
+  gt(field: string, value: any) {
+    this.chainedMethods.push('gt')
+    this.queryData.filters = this.queryData.filters || {}
+    this.queryData.filters[`${field}_gt`] = value
+    return this
+  }
+
+  gte(field: string, value: any) {
+    this.chainedMethods.push('gte')
+    this.queryData.filters = this.queryData.filters || {}
+    this.queryData.filters[`${field}_gte`] = value
+    return this
+  }
+
+  lt(field: string, value: any) {
+    this.chainedMethods.push('lt')
+    this.queryData.filters = this.queryData.filters || {}
+    this.queryData.filters[`${field}_lt`] = value
+    return this
+  }
+
+  lte(field: string, value: any) {
+    this.chainedMethods.push('lte')
+    this.queryData.filters = this.queryData.filters || {}
+    this.queryData.filters[`${field}_lte`] = value
+    return this
+  }
+
+  like(field: string, value: any) {
+    this.chainedMethods.push('like')
+    this.queryData.filters = this.queryData.filters || {}
+    this.queryData.filters[`${field}_like`] = value
+    return this
+  }
+
+  ilike(field: string, value: any) {
+    this.chainedMethods.push('ilike')
+    this.queryData.filters = this.queryData.filters || {}
+    this.queryData.filters[`${field}_ilike`] = value
+    return this
+  }
+
+  in(field: string, values: any[]) {
+    this.chainedMethods.push('in')
+    this.queryData.filters = this.queryData.filters || {}
+    this.queryData.filters[`${field}_in`] = values
+    return this
+  }
+
+  or(condition: string) {
     this.chainedMethods.push('or')
-    this.queryData.or = conditions
+    this.queryData.orCondition = condition
     return this
   }
 
-  order(column: string, options?: any) {
+  and(condition: string) {
+    this.chainedMethods.push('and')
+    this.queryData.andCondition = condition
+    return this
+  }
+
+  order(field: string, options?: { ascending?: boolean }) {
     this.chainedMethods.push('order')
-    this.queryData.order = { column, options }
-    return this
-  }
-
-  range(from: number, to: number) {
-    this.chainedMethods.push('range')
-    this.queryData.range = { from, to }
-    
-    // Apply range to return data if it's an array
-    if (Array.isArray(this.returnData)) {
-      this.returnData = this.returnData.slice(from, to + 1)
-    }
-    
+    this.queryData.orderBy = { field, ascending: options?.ascending ?? false }
     return this
   }
 
   limit(count: number) {
     this.chainedMethods.push('limit')
     this.queryData.limit = count
-    
-    // Handle connection validation case: select('count').limit(1)
-    if (this.queryData.columns === 'count' && count === 1) {
-      // Return immediately for connection validation
-      return Promise.resolve({ 
-        data: null, 
-        error: this.shouldError ? this.errorData : null,
-        count: this.shouldError ? null : 1
-      })
-    }
-    
+    return this
+  }
+
+  range(from: number, to: number) {
+    this.chainedMethods.push('range')
+    this.queryData.range = { from, to }
     return this
   }
 
   single() {
     this.chainedMethods.push('single')
-    
-    return Promise.resolve({
-      data: this.shouldError ? null : (Array.isArray(this.returnData) ? this.returnData[0] : this.returnData),
-      error: this.shouldError ? this.errorData : null
-    })
+    if (Array.isArray(this.returnData)) {
+      this.returnData = this.returnData[0] || null
+    }
+    return this
   }
 
   then(onResolve?: (value: any) => any, onReject?: (reason: any) => any) {
@@ -191,11 +249,7 @@ export class MockSupabaseQueryBuilder {
           error: this.errorData,
           count: null
         }
-        if (onReject) {
-          resolve(onReject(result))
-        } else {
-          resolve(result)
-        }
+        resolve(result)
       } else {
         let result: any = {
           data: this.returnData,
@@ -203,7 +257,7 @@ export class MockSupabaseQueryBuilder {
         }
 
         // Add count for select operations with count option
-        if (this.chainedMethods.includes('select') && this.queryData.selectOptions?.count === 'exact') {
+        if (this.queryData.selectOptions?.count === 'exact') {
           result.count = this.countValue !== null ? this.countValue : (Array.isArray(this.returnData) ? this.returnData.length : 1)
         }
 
@@ -216,11 +270,12 @@ export class MockSupabaseQueryBuilder {
           }
         }
 
-        if (onResolve) {
-          resolve(onResolve(result))
-        } else {
-          resolve(result)
+        // Handle the specific case for TuinService.getAll
+        if (this.queryData.columns === '*' && this.queryData.selectOptions?.count === 'exact') {
+          result.count = this.countValue !== null ? this.countValue : (Array.isArray(this.returnData) ? this.returnData.length : 0)
         }
+
+        resolve(result)
       }
     })
   }
@@ -260,9 +315,24 @@ export function createMockSupabase() {
   
   return {
     from: jest.fn().mockReturnValue(mockQueryBuilder),
+    auth: {
+      getUser: jest.fn().mockResolvedValue({
+        data: { user: { id: 'test-user-id', email: 'test@example.com' } },
+        error: null
+      })
+    },
+    rpc: jest.fn().mockResolvedValue({ error: null }),
     mockQueryBuilder
   }
 }
+
+// Mock the supabase module
+jest.mock('@/lib/supabase', () => {
+  const { createMockSupabase } = require('@/__tests__/setup/supabase-mock')
+  return {
+    supabase: createMockSupabase(),
+  }
+})
 
 // Helper functions for common test setups
 export function setupMockSuccess(mockSupabase: any, data?: any) {

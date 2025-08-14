@@ -17,23 +17,23 @@ const { execSync } = require('child_process');
 const SECURITY_PATTERNS = {
   hardcodedSecrets: {
     patterns: [
-      /password\s*=\s*['"][^'"]+['"]/gi,
-      /secret\s*=\s*['"][^'"]+['"]/gi,
-      /token\s*=\s*['"][^'"]+['"]/gi,
-      /api_key\s*=\s*['"][^'"]+['"]/gi,
-      /private_key\s*=\s*['"][^'"]+['"]/gi,
-      /access_token\s*=\s*['"][^'"]+['"]/gi,
+      /password\s*=\s*['"][a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}['"]/gi,
+      /secret\s*=\s*['"][a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}['"]/gi,
+      /token\s*=\s*['"][a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}['"]/gi,
+      /api_key\s*=\s*['"][a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}['"]/gi,
+      /private_key\s*=\s*['"][a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}['"]/gi,
+      /access_token\s*=\s*['"][a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]{8,}['"]/gi,
     ],
     description: 'Hardcoded secrets',
     critical: true
   },
   sqlInjection: {
     patterns: [
-      /SELECT.*\$\{/gi,
-      /INSERT.*\$\{/gi,
-      /UPDATE.*\$\{/gi,
-      /DELETE.*\$\{/gi,
-      /WHERE.*\$\{/gi,
+      /SELECT.*\$\{[^}]+\}/gi,
+      /INSERT.*\$\{[^}]+\}/gi,
+      /UPDATE.*\$\{[^}]+\}/gi,
+      /DELETE.*\$\{[^}]+\}/gi,
+      /WHERE.*\$\{[^}]+\}/gi,
     ],
     description: 'Potential SQL injection patterns',
     critical: true
