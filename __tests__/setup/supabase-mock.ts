@@ -28,6 +28,9 @@ export const mockGardensArray = [
   }
 ]
 
+// Mock the validateConnection function
+export const mockValidateConnection = jest.fn().mockResolvedValue(undefined)
+
 // Mock Supabase Query Builder with Jest mocking support
 export class MockSupabaseQueryBuilder {
   private chainedMethods: unknown[] = []
