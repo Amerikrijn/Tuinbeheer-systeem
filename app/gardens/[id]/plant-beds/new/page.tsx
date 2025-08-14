@@ -12,7 +12,10 @@ import { toast } from "@/components/ui/use-toast"
 import { ArrowLeft, Leaf, Plus, Sun, MapPin, Ruler, Droplets, Hash } from "lucide-react"
 import { PlantvakService } from "@/lib/services/plantvak.service"
 import { getGarden } from "@/lib/database"
-import type { Tuin as Garden } from "@/lib/types/index"
+import type { Tuin } from "@/lib/types/index"
+
+// Type alias for backward compatibility
+type Garden = Tuin
 
 interface NewPlantBed {
   location: string

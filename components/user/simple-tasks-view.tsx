@@ -49,7 +49,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
       setTasks(prevTasks => 
         prevTasks.map(task => 
           task.id === taskId 
-            ? { ...task, completed, completed_at: completed ? new Date().toISOString() : null }
+            ? { ...task, completed, completed_at: completed ? new Date().toISOString() : undefined }
             : task
         )
       )
