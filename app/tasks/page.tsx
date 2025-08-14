@@ -7,6 +7,7 @@ import React, { useState } from 'react'
 import { useNavigation } from '@/hooks/use-navigation'
 import { WeeklyTaskList } from '@/components/tasks/weekly-task-list'
 import { AddTaskForm } from '@/components/tasks/add-task-form'
+import { TaskDetailsDialog } from '@/components/tasks/task-details-dialog'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar, Plus, ArrowLeft } from "lucide-react"
@@ -19,6 +20,8 @@ function TasksPageContent() {
   const [showAddTask, setShowAddTask] = useState(false)
   const [selectedPlantId, setSelectedPlantId] = useState<string | undefined>()
   const [refreshKey, setRefreshKey] = useState(0)
+  const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [showTaskDialog, setShowTaskDialog] = useState(false)
 
   const handleTaskAdd = (plantId?: string) => {
     setSelectedPlantId(plantId)
@@ -53,10 +56,27 @@ function TasksPageContent() {
       <WeeklyTaskList 
         key={refreshKey}
         onTaskEdit={(task) => {
-          // TODO: Open edit dialog - implement task editing functionality
-          // TODO: Open edit dialog
+          // Open task details dialog for editing
+          setSelectedTask(task)
+          setShowTaskDialog(true)
         }}
         onTaskAdd={handleTaskAdd}
+      />
+
+      {/* Task Details Dialog */}
+      <TaskDetailsDialog
+        task={selectedTask}
+        isOpen={showTaskDialog}
+        onClose={() => {
+          setShowTaskDialog(false)
+          setSelectedTask(null)
+        }}
+        onTaskUpdated={() => {
+          setRefreshKey(prev => prev + 1)
+        }}
+        onTaskDeleted={() => {
+          setRefreshKey(prev => prev + 1)
+        }}
       />
 
       {/* Add Task Dialog */}

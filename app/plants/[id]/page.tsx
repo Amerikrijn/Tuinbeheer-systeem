@@ -12,6 +12,7 @@ import { TaskService } from '@/lib/services/task.service'
 import { supabase } from '@/lib/supabase'
 import type { TaskWithPlantInfo } from '@/lib/types/tasks'
 import type { Bloem } from '@/lib/types/index'
+import { PlantPhotoGallery } from '@/components/plant-photo-gallery'
 
 interface PlantWithBeds extends Bloem {
   plant_beds?: {
@@ -403,6 +404,12 @@ export default function PlantDetailPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Plant Photo Gallery */}
+          <PlantPhotoGallery 
+            plantId={plant.id}
+            plantName={plant.name}
+          />
         </div>
 
         {/* Tasks Sidebar */}
