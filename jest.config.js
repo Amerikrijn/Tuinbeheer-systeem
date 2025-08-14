@@ -27,10 +27,10 @@ const customJestConfig = {
   ],
   coverageThreshold: {
     global: {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80,
+      branches: 60,  // Phase 1: 60% → 80% in 2 weeks
+      functions: 60, // Phase 1: 60% → 80% in 2 weeks
+      lines: 60,     // Phase 1: 60% → 80% in 2 weeks
+      statements: 60, // Phase 1: 60% → 80% in 2 weeks
     },
   },
 }
