@@ -13,6 +13,11 @@
     "test:ci": "jest --ci --coverage --watchAll=false",
     "test:integration": "jest --testPathPattern=integration",
     "test:unit": "jest --testPathPattern=unit",
+    "test:regression": "npm run test:ci && npm run test:integration",
+    "test:security": "npm run audit:security && npm run test:security:patterns",
+    "test:security:patterns": "node scripts/security-pattern-check.js",
+    "test:e2e": "npm run build && npm run test:ci",
+    "test:all": "npm run test:ci && npm run test:regression && npm run test:security",
     "clean": "rm -rf .next && rm -rf node_modules/.cache && rm -rf coverage",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
@@ -36,7 +41,12 @@
     "security:implement-phase1": "node implement-security-phase1.js",
     "security:implement-phase1-force": "node implement-security-phase1.js --force",
     "banking:compliance": "npm run deploy:check && npm run deploy:test",
-    "banking:full-check": "npm run type-check && npm run lint:fix && npm run test:ci && npm run banking:compliance"
+    "banking:full-check": "npm run type-check && npm run lint:fix && npm run test:ci && npm run banking:compliance",
+    "ci:quality": "npm run lint && npm run type-check && npm run test:ci",
+    "ci:security": "npm run audit:security && npm run test:security:patterns",
+    "ci:regression": "npm run test:regression",
+    "ci:build": "npm run build",
+    "ci:all": "npm run ci:quality && npm run ci:security && npm run ci:regression && npm run ci:build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
