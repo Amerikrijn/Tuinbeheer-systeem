@@ -901,6 +901,115 @@ export class LogbookService {
       return createResponse<LogbookEntry>(null, 'An unexpected error occurred', 'update logbook entry photo')
     }
   }
+
+  /**
+   * Get logbook entries with photos for a specific plant, ordered by date (newest first)
+   * Returns maximum 12 photos per year, with "more photos" indicator
+   */
+  static async getPlantPhotos(plantId: string, year?: number): Promise<ApiResponse<{
+    photos: LogbookEntryWithDetails[]
+    totalCount: number
+    hasMorePhotos: boolean
+  }>> {
+    const operationId = `logbook-getPlantPhotos-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      await validateConnection()
+      
+      // Get current year if not specified
+      const targetYear = year || new Date().getFullYear()
+      const yearStart = `${targetYear}-01-01`
+      const yearEnd = `${targetYear}-12-31`
+      
+      // First, get total count of photos for this plant in the year
+      const { count: totalCount, error: countError } = await supabase
+        .from('logbook_entries')
+        .select('*', { count: 'exact', head: true })
+        .eq('plant_id', plantId)
+        .not('photo_url', 'is', null)
+        .gte('entry_date', yearStart)
+        .lte('entry_date', yearEnd)
+
+      if (countError) {
+        throw new DatabaseError('Failed to count plant photos', countError.code, countError)
+      }
+
+      // Get the 12 most recent photos for the year
+      const { data, error } = await supabase
+        .from('logbook_entries')
+        .select(`
+          *,
+          plant_beds!inner(
+            id,
+            name,
+            garden_id,
+            gardens!inner(
+              id,
+              name
+            )
+          ),
+          plants(
+            id,
+            name,
+            scientific_name,
+            variety
+          )
+        `)
+        .eq('plant_id', plantId)
+        .not('photo_url', 'is', null)
+        .gte('entry_date', yearStart)
+        .lte('entry_date', yearEnd)
+        .order('entry_date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(12)
+
+      if (error) {
+        throw new DatabaseError('Failed to fetch plant photos', error.code, error)
+      }
+
+      // Transform nested data to flat structure
+      const transformedData = data?.map(entry => ({
+        ...entry,
+        plant_bed_name: entry.plant_beds?.name || '',
+        garden_id: entry.plant_beds?.garden_id || '',
+        garden_name: entry.plant_beds?.gardens?.name || '',
+        plant_name: entry.plants?.name || null,
+        plant_scientific_name: entry.plants?.scientific_name || null,
+        plant_variety: entry.plants?.variety || null,
+      })) || []
+
+      const hasMorePhotos = (totalCount || 0) > 12
+
+      PerformanceLogger.endTimer(operationId, 'logbook-getPlantPhotos')
+      
+      databaseLogger.debug('Plant photos fetched successfully', { 
+        plantId,
+        year: targetYear,
+        photoCount: transformedData.length,
+        totalCount,
+        hasMorePhotos,
+        operationId 
+      })
+
+      return createResponse({
+        photos: transformedData,
+        totalCount: totalCount || 0,
+        hasMorePhotos
+      }, null, 'fetch plant photos')
+
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'logbook-getPlantPhotos', { error: true })
+      
+      if (error instanceof DatabaseError) {
+        databaseLogger.error('Database error in LogbookService.getPlantPhotos', error, { plantId, year, operationId })
+        return createResponse(null, error.message, 'fetch plant photos')
+      }
+      
+      databaseLogger.error('Unexpected error in LogbookService.getPlantPhotos', error as Error, { plantId, year, operationId })
+      return createResponse(null, 'An unexpected error occurred', 'fetch plant photos')
+    }
+  }
 }
 
 // For backward compatibility, create a unified DatabaseService
