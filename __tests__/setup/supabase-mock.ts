@@ -43,7 +43,8 @@ export class MockSupabaseQueryBuilder {
     this.delete = this.delete.bind(this)
     this.eq = this.eq.bind(this)
     this.order = this.order.bind(this)
-    this.limit = this.limit.bind(this)
+    this.range = this.range.bind(this)
+    this.or = this.or.bind(this)
     this.single = this.single.bind(this)
   }
 
@@ -72,13 +73,18 @@ export class MockSupabaseQueryBuilder {
     return this
   }
 
-  order(field: string, direction?: string) {
+  order(field: string, direction?: { ascending: boolean }) {
     this.chainedMethods.push('order')
     return this
   }
 
-  limit(count: number) {
-    this.chainedMethods.push('limit')
+  range(from: number, to: number) {
+    this.chainedMethods.push('range')
+    return this
+  }
+
+  or(condition: string) {
+    this.chainedMethods.push('or')
     return this
   }
 
@@ -105,8 +111,12 @@ export class MockSupabaseQueryBuilder {
       return Promise.reject(this.mockError)
     }
     
-    // Return the standard Supabase response format
-    const response = { data: this.mockData, error: null }
+    // Return the standard Supabase response format with count
+    const response = { 
+      data: this.mockData, 
+      error: null, 
+      count: this.countValue 
+    }
     resolve(response)
     return Promise.resolve(response)
   }

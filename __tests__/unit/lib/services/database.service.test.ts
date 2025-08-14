@@ -9,20 +9,41 @@ jest.mock('@/lib/supabase', () => {
   }
 })
 
+// Mock the logger module to avoid console output during tests
+jest.mock('@/lib/logger', () => ({
+  databaseLogger: {
+    debug: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn()
+  },
+  AuditLogger: {
+    logDataAccess: jest.fn(),
+    logUserAction: jest.fn()
+  },
+  PerformanceLogger: {
+    startTimer: jest.fn(),
+    endTimer: jest.fn()
+  }
+}))
+
 describe('TuinService', () => {
-  let mockSupabase: unknown
+  let mockSupabase: any
 
   beforeEach(() => {
     // Get a fresh mock instance for each test
     const { createMockSupabase } = require('@/__tests__/setup/supabase-mock')
-    mockSupabase = createMockSupabase() as any;
+    mockSupabase = createMockSupabase()
     
     // Replace the mocked supabase with our fresh instance
     jest.doMock('@/lib/supabase', () => ({
       supabase: mockSupabase
     }))
     
+    // Clear all mocks
     jest.clearAllMocks()
+    
+    // Reset the mock query builder
+    mockSupabase.mockQueryBuilder.reset()
   })
 
   describe('getAll', () => {
@@ -105,7 +126,8 @@ describe('TuinService', () => {
 
     it('should handle garden not found', async () => {
       const gardenId = 'non-existent'
-      mockSupabase.mockQueryBuilder.setError({ code: 'PGRST116', message: 'Not found' })
+      const mockError = { code: 'PGRST116', message: 'Not found' }
+      mockSupabase.mockQueryBuilder.setError(mockError)
 
       const result = await TuinService.getById(gardenId)
 
@@ -127,29 +149,22 @@ describe('TuinService', () => {
       const result = await TuinService.getById('')
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('Invalid garden ID')
+      expect(result.error).toContain('Garden ID is required and must be a non-empty string')
     })
   })
 
   describe('create', () => {
+    const gardenData = {
+      name: 'New Garden',
+      description: 'A beautiful garden',
+      location: 'Test Location',
+      garden_type: 'vegetable',
+      total_area: '100m²',
+      season_year: 2024
+    }
+
     it('should successfully create a garden', async () => {
-      const gardenData = {
-        name: 'New Garden',
-        location: 'Test Location',
-        description: 'A beautiful garden',
-        garden_type: 'vegetable' as const,
-        total_area: '100m²',
-        season_year: 2024
-      }
-
-      const createdGarden = {
-        ...gardenData,
-        id: 'new-1',
-        is_active: true,
-        created_at: expect.any(String),
-        updated_at: expect.any(String)
-      }
-
+      const createdGarden = { ...gardenData, id: '1', created_at: '2023-01-01T00:00:00Z', updated_at: '2023-01-01T00:00:00Z', is_active: true }
       mockSupabase.mockQueryBuilder.setData(createdGarden)
 
       const result = await TuinService.create(gardenData)
@@ -160,53 +175,36 @@ describe('TuinService', () => {
     })
 
     it('should validate required fields', async () => {
-      const invalidData = {
-        name: '',
-        location: 'Test Location'
-      }
+      const invalidData = { ...gardenData, name: '' }
 
-      const result = await TuinService.create(invalidData as any)
+      const result = await TuinService.create(invalidData)
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('Name is required')
+      expect(result.error).toContain('Garden name is required')
     })
 
     it('should validate location field', async () => {
-      const invalidData = {
-        name: 'Test Garden',
-        location: ''
-      }
+      const invalidData = { ...gardenData, location: '' }
 
-      const result = await TuinService.create(invalidData as any)
+      const result = await TuinService.create(invalidData)
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('Location is required')
+      expect(result.error).toContain('Garden location is required')
     })
 
     it('should trim whitespace from input fields', async () => {
-      const gardenData = {
+      const dataWithWhitespace = {
         name: '  New Garden  ',
-        location: '  Test Location  ',
         description: '  A beautiful garden  ',
-        garden_type: 'vegetable' as const,
+        location: '  Test Location  ',
+        garden_type: 'vegetable',
         total_area: '100m²',
         season_year: 2024
       }
+      const createdGarden = { ...dataWithWhitespace, id: '1', created_at: '2023-01-01T00:00:00Z', updated_at: '2023-01-01T00:00:00Z', is_active: true }
+      mockSupabase.mockQueryBuilder.setData(createdGarden)
 
-      const expectedTrimmedData = {
-        ...gardenData,
-        name: 'New Garden',
-        location: 'Test Location',
-        description: 'A beautiful garden',
-        id: 'new-1',
-        is_active: true,
-        created_at: expect.any(String),
-        updated_at: expect.any(String)
-      }
-
-      mockSupabase.mockQueryBuilder.setData(expectedTrimmedData)
-
-      const result = await TuinService.create(gardenData as any)
+      const result = await TuinService.create(dataWithWhitespace as any)
 
       expect(result.success).toBe(true)
       expect(result.data?.name).toBe('New Garden')
@@ -215,18 +213,10 @@ describe('TuinService', () => {
     })
 
     it('should handle database errors gracefully', async () => {
-      const gardenData = {
-        name: 'New Garden',
-        location: 'Test Location',
-        garden_type: 'vegetable' as const,
-        total_area: '100m²',
-        season_year: 2024
-      }
-
       const mockError = { code: 'PGRST301', message: 'Database error' }
       mockSupabase.mockQueryBuilder.setError(mockError)
 
-      const result = await TuinService.create(gardenData as any)
+      const result = await TuinService.create(gardenData)
 
       expect(result.success).toBe(false)
       expect(result.error).toContain('Database error')
@@ -235,17 +225,8 @@ describe('TuinService', () => {
 
   describe('update', () => {
     it('should successfully update a garden', async () => {
-      const updateData = {
-        name: 'Updated Garden',
-        description: 'Updated description'
-      }
-
-      const updatedGarden = {
-        ...mockGardenData,
-        ...updateData,
-        updated_at: expect.any(String)
-      }
-
+      const updateData = { name: 'Updated Garden', description: 'Updated description' }
+      const updatedGarden = { ...mockGardenData, ...updateData, updated_at: '2023-01-02T00:00:00Z' }
       mockSupabase.mockQueryBuilder.setData(updatedGarden)
 
       const result = await TuinService.update('1', updateData)
@@ -256,7 +237,8 @@ describe('TuinService', () => {
     })
 
     it('should handle garden not found during update', async () => {
-      mockSupabase.mockQueryBuilder.setError({ code: 'PGRST116', message: 'Not found' })
+      const mockError = { code: 'PGRST116', message: 'Not found' }
+      mockSupabase.mockQueryBuilder.setError(mockError)
 
       const result = await TuinService.update('non-existent', { name: 'Updated' })
 
@@ -267,17 +249,18 @@ describe('TuinService', () => {
 
   describe('delete', () => {
     it('should successfully soft delete a garden', async () => {
-      // Mock the getById call first (used internally by delete)
-      mockSupabase.mockQueryBuilder.setData(mockGardenData)
+      const deletedGarden = { ...mockGardenData, is_active: false, updated_at: '2023-01-02T00:00:00Z' }
+      mockSupabase.mockQueryBuilder.setData(deletedGarden)
 
       const result = await TuinService.delete('1')
 
       expect(result.success).toBe(true)
-      expect(result.data).toBeDefined()
+      expect(result.data).toEqual(deletedGarden)
     })
 
     it('should handle garden not found during delete', async () => {
-      mockSupabase.mockQueryBuilder.setError({ code: 'PGRST116', message: 'Not found' })
+      const mockError = { code: 'PGRST116', message: 'Not found' }
+      mockSupabase.mockQueryBuilder.setError(mockError)
 
       const result = await TuinService.delete('non-existent')
 
