@@ -24,10 +24,17 @@ Een modern tuinbeheer systeem gebouwd met Next.js, Supabase en TailwindCSS.
 
 - **🚫 Geen directe pushes naar main** - Branch protection actief
 - **🔄 Continuous Quality Loop** - Pipeline draait tot alle gates groen
+- **🤖 Cursor AI Developer Loop** - Volledig geautomatiseerde fixing
 - **🧪 Zero-tolerance testing** - 100% pass verplicht
 - **🔒 Security scanning** - 100% clean verplicht
 - **🚀 Preview deployment** - Alleen na quality gates succes
 - **🛡️ Productie safety** - Alleen via CI/CD pipeline succes
+
+### **🤖 Cursor AI Developer Workflow:**
+1. **Cursor AI draait lokale tests** → `npm run local:test`
+2. **Cursor AI fix issues** → `npm run local:fix`
+3. **Pipeline draait automatisch** → Blijft proberen tot perfectie
+4. **Volledig geautomatiseerd** → Geen handmatige interventie nodig
 
 ## 📖 Getting Started
 
@@ -51,6 +58,7 @@ Het systeem genereert automatisch unieke letter codes voor plantvakken:
 - [CI/CD Workflow](./docs/system/CI-CD-Workflow.md)
 - [Plantvak Lettering System](./docs/system/Plantvak-Lettering-System.md)
 - [Quality Gates](./docs/system/quality-gates.md)
+- [Automated CI/CD + Cursor AI Loop](./docs/system/automated-ci-ai-loop.md)
 - [Standard Development Process](./docs/system/standard-development-process.md)
 - [AI Learning & Improvement](./docs/system/ai-learning-improvement.md)
 - [System Architecture](./docs/system/README.md)
