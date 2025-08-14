@@ -22,7 +22,6 @@
     "lint:fix": "next lint --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepare": "husky install",
     "local:test": "npm run quality:check && npm run test:coverage && npm run build && npm run security:scan",
     "local:fix": "npm run lint:fix && npm run test:fix && npm run build:fix",
     "quality:gate": "npm run local:test && echo '✅ Quality gates passed - ready for pipeline'",
