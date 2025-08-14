@@ -1,6 +1,21 @@
 import { DatabaseService } from "./services/database.service"
 import { supabase } from "./supabase"
-import type { Plantvak as PlantBed, Tuin as Garden, LogbookEntry, Bloem as Plant, Task, User, PlantvakWithBloemen as PlantBedWithPlants, PlantWithPosition } from "./types/index"
+import type { Plantvak, Tuin, LogbookEntry, Bloem, Task, User, PlantvakWithBloemen, PlantWithPosition } from "./types/index"
+
+// Type aliases for backward compatibility
+type PlantBed = Plantvak
+type Garden = Tuin
+type Plant = Bloem
+type PlantBedWithPlants = PlantvakWithBloemen & {
+  position_x: number
+  position_y: number
+  visual_width: number
+  visual_height: number
+  rotation: number
+  z_index: number
+  color_code: string
+  visual_updated_at: string
+}
 import { PlantvakService } from "./services/plantvak.service"
 
 function isMissingRelation(err: { code?: string } | null): boolean {

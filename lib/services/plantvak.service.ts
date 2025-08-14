@@ -1,5 +1,8 @@
 import { supabase } from '../supabase';
-import type { Plantvak as PlantBed } from '../types/index';
+import type { Plantvak } from '../types/index';
+
+// Type alias for backward compatibility
+type PlantBed = Plantvak
 
 /**
  * PlantvakService - Handles all plantvak operations with automatic letter code assignment
@@ -77,7 +80,7 @@ export class PlantvakService {
       console.log('🔤 Existing letter codes:', existingCodes);
       
       // Generate next available letter code
-      const nextLetterCode = this.generateNextLetterCode(existingCodes);
+      const nextLetterCode = this.generateNextLetterCode(existingCodes.filter(Boolean) as string[]);
       console.log('✨ Next letter code:', nextLetterCode);
       
       // Generate a unique ID for the plantvak
