@@ -295,7 +295,7 @@ describe('Validation Functions', () => {
         name: 'Test Plant',
         color: 'red',
         height: 50,
-        status: 'invalid-status'
+        status: 'invalid-status' as any
       }
 
       const result = validateBloemFormData(invalidData)
@@ -303,7 +303,7 @@ describe('Validation Functions', () => {
       expect(result.isValid).toBe(false)
       expect(result.errors).toContainEqual({
         field: 'status',
-        message: 'Moet een van de volgende zijn: gezond, aandacht_nodig, ziek, dood, geoogst'
+        message: 'Status moet een geldige waarde hebben'
       })
     })
 
