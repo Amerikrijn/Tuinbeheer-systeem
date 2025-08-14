@@ -2,9 +2,33 @@ name: Banking-Grade CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, 'feature/**', 'bugfix/**', 'hotfix/**' ]
+    branches: [ 
+      preview, 
+      develop, 
+      'feature/**', 
+      'bugfix/**', 
+      'hotfix/**', 
+      'release/**', 
+      'staging/**', 
+      'test/**', 
+      'cursor/**',
+      'v*',
+      'version/*'
+    ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ 
+      preview, 
+      develop, 
+      'feature/**', 
+      'bugfix/**', 
+      'hotfix/**', 
+      'release/**', 
+      'staging/**', 
+      'test/**', 
+      'cursor/**',
+      'v*',
+      'version/*'
+    ]
 
 env:
   NODE_VERSION: '18'

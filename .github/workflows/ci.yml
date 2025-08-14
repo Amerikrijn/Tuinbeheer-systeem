@@ -1,12 +1,35 @@
-name: CI/CD Pipeline
+name: Continuous Integration
 
 # Trigger workflow on feature branches and other development branches
 on:
   push:
-    branches: [ preview, develop, feature/*, fix/*, hotfix/* ]
-    tags: [ 'v*' ]
+    branches: [ 
+      preview, 
+      develop, 
+      'feature/**', 
+      'bugfix/**', 
+      'hotfix/**', 
+      'release/**', 
+      'staging/**', 
+      'test/**', 
+      'cursor/**',
+      'v*',
+      'version/*'
+    ]
   pull_request:
-    branches: [ main, preview, develop ]
+    branches: [ 
+      preview, 
+      develop, 
+      'feature/**', 
+      'bugfix/**', 
+      'hotfix/**', 
+      'release/**', 
+      'staging/**', 
+      'test/**', 
+      'cursor/**',
+      'v*',
+      'version/*'
+    ]
   workflow_dispatch:
     inputs:
       environment:

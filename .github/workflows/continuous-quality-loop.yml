@@ -2,9 +2,33 @@ name: Continuous Quality Loop - AI Developer Collaboration
 
 on:
   push:
-    branches: [ main, preview, develop, feature/* ]
+    branches: [ 
+      preview, 
+      develop, 
+      feature/*, 
+      bugfix/*, 
+      hotfix/*, 
+      release/*, 
+      staging/*, 
+      test/*, 
+      cursor/*,
+      'v*',
+      'version/*'
+    ]
   pull_request:
-    branches: [ main, preview, develop ]
+    branches: [ 
+      preview, 
+      develop, 
+      feature/*, 
+      bugfix/*, 
+      hotfix/*, 
+      release/*, 
+      staging/*, 
+      test/*, 
+      cursor/*,
+      'v*',
+      'version/*'
+    ]
   workflow_dispatch:
 
 env:
