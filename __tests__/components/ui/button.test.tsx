@@ -69,8 +69,8 @@ describe('Button Component', () => {
   it('applies icon size classes', () => {
     render(<Button size="icon">Icon</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('h-10')
-    expect(button).toHaveClass('w-10')
+    expect(button).toHaveClass('h-9', 'w-9')
+    expect(button).toHaveClass('md:h-10', 'md:w-10')
   })
 
   it('handles click events', () => {
