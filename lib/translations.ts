@@ -1342,13 +1342,13 @@ export function getAllTranslations(lang: Language): Record<string, string> {
   const result: Record<string, string> = {}
 
   function flatten(obj: unknown, prefix = ""): void {
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
+    for (const key in (obj as any)) {
+      if ((obj as any).hasOwnProperty(key)) {
         const newKey = prefix ? `${prefix}.${key}` : key
-        if (obj[key] && typeof obj[key] === "object" && "en" in obj[key] && "nl" in obj[key]) {
-          result[newKey] = obj[key][lang]
-        } else if (obj[key] && typeof obj[key] === "object") {
-          flatten(obj[key], newKey)
+        if ((obj as any)[key] && typeof (obj as any)[key] === "object" && "en" in (obj as any)[key] && "nl" in (obj as any)[key]) {
+          result[newKey] = (obj as any)[key][lang]
+        } else if ((obj as any)[key] && typeof (obj as any)[key] === "object") {
+          flatten((obj as any)[key], newKey)
         }
       }
     }

@@ -614,19 +614,19 @@ export class TaskService {
 
       // Transform data
       const plantTasks = (plantTasksResult.data || []).map((task: unknown) => ({
-        ...task,
-        plant_name: task.plants?.name || '',
-        plant_color: task.plants?.color || '',
-        plant_bed_name: task.plants?.plant_beds?.name || '',
-        garden_name: task.plants?.plant_beds?.gardens?.name || ''
+        ...(task as any),
+        plant_name: (task as any).plants?.name || '',
+        plant_color: (task as any).plants?.color || '',
+        plant_bed_name: (task as any).plants?.plant_beds?.name || '',
+        garden_name: (task as any).plants?.plant_beds?.gardens?.name || ''
       }))
 
       const plantBedTasks = (plantBedTasksResult.data || []).map((task: unknown) => ({
-        ...task,
+        ...(task as any),
         plant_name: 'Plantvak taak',
-        plant_color: task.plant_beds?.color_code || '#10B981',
-        plant_bed_name: task.plant_beds?.name || '',
-        garden_name: task.plant_beds?.gardens?.name || ''
+        plant_color: (task as any).plant_beds?.color_code || '#10B981',
+        plant_bed_name: (task as any).plant_beds?.name || '',
+        garden_name: (task as any).plant_beds?.gardens?.name || ''
       }))
 
       const tasks = [...plantTasks, ...plantBedTasks]
@@ -804,12 +804,12 @@ export class TaskService {
 
       // Transform data
       const transformedData: WeeklyTask[] = (data || []).map((task: unknown) => ({
-        ...task,
-        plant_name: task.plants?.name || '',
-        plant_color: task.plants?.color || '',
-        plant_bed_name: task.plants?.plant_beds?.name || '',
-        garden_name: task.plants?.plant_beds?.gardens?.name || '',
-        day_of_week: new Date(task.due_date).getDay(),
+        ...(task as any),
+        plant_name: (task as any).plants?.name || '',
+        plant_color: (task as any).plants?.color || '',
+        plant_bed_name: (task as any).plants?.plant_beds?.name || '',
+        garden_name: (task as any).plants?.plant_beds?.gardens?.name || '',
+        day_of_week: new Date((task as any).due_date).getDay(),
         status_category: 'today' as const
       }))
 
@@ -849,12 +849,12 @@ export class TaskService {
 
       // Transform data
       const transformedData: WeeklyTask[] = (data || []).map((task: unknown) => ({
-        ...task,
-        plant_name: task.plants?.name || '',
-        plant_color: task.plants?.color || '',
-        plant_bed_name: task.plants?.plant_beds?.name || '',
-        garden_name: task.plants?.plant_beds?.gardens?.name || '',
-        day_of_week: new Date(task.due_date).getDay(),
+        ...(task as any),
+        plant_name: (task as any).plants?.name || '',
+        plant_color: (task as any).plants?.color || '',
+        plant_bed_name: (task as any).plants?.plant_beds?.name || '',
+        garden_name: (task as any).plants?.plant_beds?.gardens?.name || '',
+        day_of_week: new Date((task as any).due_date).getDay(),
         status_category: 'overdue' as const
       }))
 
@@ -887,11 +887,11 @@ export class TaskService {
 
       // Transform the data to match TaskWithPlantInfo interface
       const transformedData: TaskWithPlantInfo[] = (data || []).map(task => ({
-        ...task,
+        ...(task as any),
         plant_name: 'Plantvak taak',
-        plant_color: task.plant_beds?.color_code || undefined,
-        plant_bed_name: task.plant_beds?.name || '',
-        garden_name: task.plant_beds?.gardens?.name || ''
+        plant_color: (task as any).plant_beds?.color_code || undefined,
+        plant_bed_name: (task as any).plant_beds?.name || '',
+        garden_name: (task as any).plant_beds?.gardens?.name || ''
       }))
 
       return { data: transformedData, error: null }

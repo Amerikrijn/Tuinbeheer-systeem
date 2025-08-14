@@ -1,6 +1,6 @@
 import { DatabaseService } from "./services/database.service"
 import { supabase, type Garden, type PlantBed, type Plant, type PlantBedWithPlants, type PlantWithPosition } from "./supabase"
-import { LogbookEntry, Task, User } from "./types/index"
+import { LogbookEntry, Task, User } from "./types"
 import { PlantvakService } from "./services/plantvak.service"
 
 function isMissingRelation(err: { code?: string } | null): boolean {

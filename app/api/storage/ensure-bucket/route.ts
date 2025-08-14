@@ -23,6 +23,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ created: true, public: isPublic })
   } catch (error: unknown) {
-    return NextResponse.json({ error: error?.message || 'Unexpected error' }, { status: 500 })
+    return NextResponse.json({ error: (error as any)?.message || 'Unexpected error' }, { status: 500 })
   }
 }

@@ -231,13 +231,103 @@ export async function PUT(
     const body = await request.json();
     
     // Validate request data
-    const validation = validatePositionRequest(body);
-    if (!validation.isValid) {
-      return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
-        data: null,
-        error: `Validation error: ${validation.errors.join(', ')}`,
-        success: false
-      }, { status: 400 });
+    if (!body || typeof body !== 'object') {
+      return NextResponse.json(
+        { success: false, error: 'Invalid request data', data: null },
+        { status: 400 }
+      )
+    }
+
+    const typedBody = body as any;
+
+    if (typeof typedBody.position_x !== 'number') {
+      return NextResponse.json(
+        { success: false, error: 'position_x must be a number', data: null },
+        { status: 400 }
+      )
+    }
+
+    if (typeof typedBody.position_y !== 'number') {
+      return NextResponse.json(
+        { success: false, error: 'position_y must be a number', data: null },
+        { status: 400 }
+      )
+    }
+
+    // Validate position coordinates
+    if (typedBody.position_x < 0) {
+      return NextResponse.json(
+        { success: false, error: 'position_x cannot be negative', data: null },
+        { status: 400 }
+      )
+    }
+
+    if (typedBody.position_y < 0) {
+      return NextResponse.json(
+        { success: false, error: 'position_y cannot be negative', data: null },
+        { status: 400 }
+      )
+    }
+
+    // Validate visual dimensions if provided
+    if (typedBody.visual_width !== undefined) {
+      if (typeof typedBody.visual_width !== 'number' || typedBody.visual_width <= 0) {
+        return NextResponse.json(
+          { success: false, error: 'visual_width must be a positive number', data: null },
+          { status: 400 }
+        )
+      }
+      if (typedBody.visual_width > VISUAL_GARDEN_CONSTANTS.MAX_PLANT_BED_SIZE) {
+        return NextResponse.json(
+          { success: false, error: 'visual_width exceeds maximum size', data: null },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (typedBody.visual_height !== undefined) {
+      if (typeof typedBody.visual_height !== 'number' || typedBody.visual_height <= 0) {
+        return NextResponse.json(
+          { success: false, error: 'visual_height must be a positive number', data: null },
+          { status: 400 }
+        )
+      }
+      if (typedBody.visual_height > VISUAL_GARDEN_CONSTANTS.MAX_PLANT_BED_SIZE) {
+        return NextResponse.json(
+          { success: false, error: 'visual_height exceeds maximum size', data: null },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate rotation if provided
+    if (typedBody.rotation !== undefined) {
+      if (typeof typedBody.rotation !== 'number' || typedBody.rotation < -180 || typedBody.rotation > 180) {
+        return NextResponse.json(
+          { success: false, error: 'rotation must be between -180 and 180 degrees', data: null },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate z_index if provided
+    if (typedBody.z_index !== undefined) {
+      if (typeof typedBody.z_index !== 'number' || typedBody.z_index < 0) {
+        return NextResponse.json(
+          { success: false, error: 'z_index must be a non-negative number', data: null },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate color_code if provided
+    if (typedBody.color_code !== undefined) {
+      if (typeof typedBody.color_code !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(typedBody.color_code)) {
+        return NextResponse.json(
+          { success: false, error: 'color_code must be a valid hex color', data: null },
+          { status: 400 }
+        )
+      }
     }
     
     // Get current plant bed data
@@ -257,13 +347,13 @@ export async function PUT(
     
     // Prepare update data with current values as defaults
     const updateData: UpdatePositionRequest = {
-      position_x: body.position_x,
-      position_y: body.position_y,
-      visual_width: body.visual_width ?? currentPlantBed.visual_width ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE,
-      visual_height: body.visual_height ?? currentPlantBed.visual_height ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE,
-      rotation: body.rotation ?? currentPlantBed.rotation ?? 0,
-      z_index: body.z_index ?? currentPlantBed.z_index ?? 0,
-      color_code: body.color_code ?? currentPlantBed.color_code ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_COLORS.PLANT_BED
+      position_x: typedBody.position_x,
+      position_y: typedBody.position_y,
+      visual_width: typedBody.visual_width ?? currentPlantBed.visual_width ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE,
+      visual_height: typedBody.visual_height ?? currentPlantBed.visual_height ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE,
+      rotation: typedBody.rotation ?? currentPlantBed.rotation ?? 0,
+      z_index: typedBody.z_index ?? currentPlantBed.z_index ?? 0,
+      color_code: typedBody.color_code ?? currentPlantBed.color_code ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_COLORS.PLANT_BED
     };
     
     // Check canvas boundaries

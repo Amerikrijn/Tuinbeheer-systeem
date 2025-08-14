@@ -15,7 +15,7 @@ describe('TuinService', () => {
   beforeEach(() => {
     // Get a fresh mock instance for each test
     const { createMockSupabase } = require('@/__tests__/setup/supabase-mock')
-    mockSupabase = createMockSupabase()
+    mockSupabase = createMockSupabase() as any;
     
     // Replace the mocked supabase with our fresh instance
     jest.doMock('@/lib/supabase', () => ({

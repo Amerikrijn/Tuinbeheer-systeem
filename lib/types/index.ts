@@ -84,6 +84,8 @@ export interface Bloem {
   updated_at: string
 }
 
+
+
 export interface LogbookEntry {
   id: string
   plant_bed_id: string
@@ -175,6 +177,36 @@ export interface Position {
 export interface Size {
   width: number
   height: number
+}
+
+export interface Task {
+  id: string
+  title: string
+  description?: string
+  due_date: string
+  priority: 'high' | 'medium' | 'low'
+  task_type: 'general' | 'watering' | 'fertilizing' | 'pruning' | 'harvesting' | 'planting' | 'pest_control'
+  notes?: string
+  completed?: boolean
+  completed_at?: string
+  plant_id?: string
+  plant_bed_id?: string
+  created_at: string
+  updated_at: string
+}
+
+
+
+export interface User {
+  id: string
+  email: string
+  full_name: string
+  role: 'admin' | 'user'
+  status: 'active' | 'inactive' | 'pending'
+  permissions: string[]
+  garden_access: string[]
+  created_at: string
+  force_password_change?: boolean
 }
 
 export interface Bounds {

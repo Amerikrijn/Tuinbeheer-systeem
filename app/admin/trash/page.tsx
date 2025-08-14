@@ -32,7 +32,7 @@ function TrashPageContent() {
     if (currentUser && isAdmin()) {
       loadDeletedUsers()
     }
-  }, [currentUser, isAdmin, loadDeletedUsers])
+  }, [currentUser, isAdmin])
 
   const loadDeletedUsers = useCallback(async () => {
     try {

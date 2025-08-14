@@ -304,18 +304,97 @@ export async function PUT(
     // Parse request body
     const body = await request.json();
     
-    // Validate request data
-    const validation = validateBulkPositionRequest(body);
-    if (!validation.isValid) {
-      return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
-        data: null,
-        error: `Validation error: ${validation.errors.join(', ')}`,
-        success: false
-      }, { status: 400 });
+    // Validate request body
+    if (!body || !body.positions || !Array.isArray(body.positions)) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid request body. Expected positions array.', data: null },
+        { status: 400 }
+      )
     }
+
+    const typedBody = body as any;
+
+    if (typedBody.positions.length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Positions array cannot be empty.', data: null },
+        { status: 400 }
+      )
+    }
+
+    if (typedBody.positions.length > 100) {
+      return NextResponse.json(
+        { success: false, error: 'Too many positions. Maximum 100 allowed.', data: null },
+        { status: 400 }
+      )
+    }
+
+    // Validate each position
+    typedBody.positions.forEach((position: unknown, index: number) => {
+      if (!position || typeof position !== 'object') {
+        throw new Error(`Invalid position at index ${index}: must be an object`)
+      }
+
+      const pos = position as any;
+      
+      if (!pos.id || typeof pos.id !== 'string') {
+        throw new Error(`Invalid position at index ${index}: id must be a string`)
+      }
+
+      if (typeof pos.position_x !== 'number') {
+        throw new Error(`Invalid position at index ${index}: position_x must be a number`)
+      }
+
+      if (typeof pos.position_y !== 'number') {
+        throw new Error(`Invalid position at index ${index}: position_y must be a number`)
+      }
+
+      if (pos.position_x < 0) {
+        throw new Error(`Invalid position at index ${index}: position_x cannot be negative`)
+      }
+
+      if (pos.position_y < 0) {
+        throw new Error(`Invalid position at index ${index}: position_y cannot be negative`)
+      }
+
+      if (pos.visual_width !== undefined) {
+        if (typeof pos.visual_width !== 'number' || pos.visual_width <= 0) {
+          throw new Error(`Invalid position at index ${index}: visual_width must be a positive number`)
+        }
+        if (pos.visual_width > VISUAL_GARDEN_CONSTANTS.MAX_PLANT_BED_SIZE) {
+          throw new Error(`Invalid position at index ${index}: visual_width exceeds maximum size`)
+        }
+      }
+
+      if (pos.visual_height !== undefined) {
+        if (typeof pos.visual_height !== 'number' || pos.visual_height <= 0) {
+          throw new Error(`Invalid position at index ${index}: visual_height must be a positive number`)
+        }
+        if (pos.visual_height > VISUAL_GARDEN_CONSTANTS.MAX_PLANT_BED_SIZE) {
+          throw new Error(`Invalid position at index ${index}: visual_height exceeds maximum size`)
+        }
+      }
+
+      if (pos.rotation !== undefined) {
+        if (typeof pos.rotation !== 'number' || pos.rotation < -180 || pos.rotation > 180) {
+          throw new Error(`Invalid position at index ${index}: rotation must be between -180 and 180 degrees`)
+        }
+      }
+
+      if (pos.z_index !== undefined) {
+        if (typeof pos.z_index !== 'number' || pos.z_index < 0) {
+          throw new Error(`Invalid position at index ${index}: z_index must be a non-negative number`)
+        }
+      }
+
+      if (pos.color_code !== undefined) {
+        if (typeof pos.color_code !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(pos.color_code)) {
+          throw new Error(`Invalid position at index ${index}: color_code must be a valid hex color`)
+        }
+      }
+    })
     
     // Verify all plant beds belong to this garden
-    const plantBedIds = body.positions.map((pos: unknown) => pos.id);
+    const plantBedIds = body.positions.map((pos: unknown) => (pos as any).id);
     const { data: existingPlantBeds, error: fetchError } = await supabase
       .from('plant_beds')
       .select('id, garden_id')
@@ -460,7 +539,7 @@ export async function PATCH(
     }
     
     // Get current plant bed data
-    const plantBedIds = body.positions.map((pos: unknown) => pos.id);
+    const plantBedIds = body.positions.map((pos: unknown) => (pos as any).id);
     const { data: currentPlantBeds, error: fetchError } = await supabase
       .from('plant_beds')
       .select('*')
@@ -494,16 +573,17 @@ export async function PATCH(
     
     // Build complete position data for validation
     const completePositions = body.positions.map((pos: unknown) => {
-      const current = currentDataMap.get(pos.id);
+      const typedPos = pos as any;
+      const current = currentDataMap.get(typedPos.id);
       return {
-        id: pos.id,
-        position_x: pos.position_x,
-        position_y: pos.position_y,
-        visual_width: pos.visual_width ?? current?.visual_width ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE,
-        visual_height: pos.visual_height ?? current?.visual_height ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE,
-        rotation: pos.rotation ?? current?.rotation ?? 0,
-        z_index: pos.z_index ?? current?.z_index ?? 0,
-        color_code: pos.color_code ?? current?.color_code ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_COLORS.PLANT_BED
+        id: typedPos.id,
+        position_x: typedPos.position_x,
+        position_y: typedPos.position_y,
+        visual_width: typedPos.visual_width ?? current?.visual_width ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE,
+        visual_height: typedPos.visual_height ?? current?.visual_height ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE,
+        rotation: typedPos.rotation ?? current?.rotation ?? 0,
+        z_index: typedPos.z_index ?? current?.z_index ?? 0,
+        color_code: typedPos.color_code ?? current?.color_code ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_COLORS.PLANT_BED
       };
     });
     
@@ -531,29 +611,30 @@ export async function PATCH(
     const updatedPlantBeds: PlantBedWithPosition[] = [];
     
     for (const position of body.positions) {
-      const updateData: unknown = {};
+      const typedPosition = position as any;
+      const updateData: Record<string, unknown> = {};
       
       // Only include fields that are provided
-      if (position.position_x !== undefined) updateData.position_x = position.position_x;
-      if (position.position_y !== undefined) updateData.position_y = position.position_y;
-      if (position.visual_width !== undefined) updateData.visual_width = position.visual_width;
-      if (position.visual_height !== undefined) updateData.visual_height = position.visual_height;
-      if (position.rotation !== undefined) updateData.rotation = position.rotation;
-      if (position.z_index !== undefined) updateData.z_index = position.z_index;
-      if (position.color_code !== undefined) updateData.color_code = position.color_code;
+      if (typedPosition.position_x !== undefined) updateData.position_x = typedPosition.position_x;
+      if (typedPosition.position_y !== undefined) updateData.position_y = typedPosition.position_y;
+      if (typedPosition.visual_width !== undefined) updateData.visual_width = typedPosition.visual_width;
+      if (typedPosition.visual_height !== undefined) updateData.visual_height = typedPosition.visual_height;
+      if (typedPosition.rotation !== undefined) updateData.rotation = typedPosition.rotation;
+      if (typedPosition.z_index !== undefined) updateData.z_index = typedPosition.z_index;
+      if (typedPosition.color_code !== undefined) updateData.color_code = typedPosition.color_code;
       
       const { data: updated, error: updateError } = await supabase
         .from('plant_beds')
         .update(updateData)
-        .eq('id', position.id)
+        .eq('id', typedPosition.id)
         .select('*')
         .single();
       
       if (updateError) {
-        console.error(`Update error for plant bed ${position.id}:`, updateError);
+        console.error(`Update error for plant bed ${typedPosition.id}:`, updateError);
         return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
           data: null,
-          error: `Failed to update plant bed ${position.id}`,
+          error: `Failed to update plant bed ${typedPosition.id}`,
           success: false
         }, { status: 500 });
       }

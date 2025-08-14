@@ -878,7 +878,7 @@ export default function GardenDetailPage() {
       const plantBedId = `${Date.now().toString(36).slice(-4)}${Math.random().toString(36).substr(2, 4)}`
       
       const plantBed = await createPlantBed({
-        id: plantBedId,
+        // id: plantBedId, // Remove this line as it's not needed
         garden_id: garden.id,
         name: newPlantBed.name,
         size: sizeString,

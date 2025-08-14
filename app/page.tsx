@@ -590,15 +590,18 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
               </div>
             ) : gardenUsers.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {gardenUsers.slice(0, 3).map((user, index) => (
-                  <span 
-                    key={user.id} 
-                    className="text-xs text-muted-foreground truncate"
-                    title={user.full_name || user.email}
-                  >
-                    {user.full_name || user.email}
-                  </span>
-                ))}
+                {gardenUsers.slice(0, 3).map((user, index) => {
+                  const typedUser = user as any;
+                  return (
+                    <span 
+                      key={typedUser.id} 
+                      className="text-xs text-muted-foreground truncate"
+                      title={typedUser.full_name || typedUser.email}
+                    >
+                      {typedUser.full_name || typedUser.email}
+                    </span>
+                  );
+                })}
                 {gardenUsers.length > 3 && (
                   <div className="flex items-center justify-center bg-muted text-muted-foreground px-2 py-1 rounded-full text-xs">
                     +{gardenUsers.length - 3}
