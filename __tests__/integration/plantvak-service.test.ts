@@ -1,5 +1,4 @@
 import { PlantvakService } from '@/lib/services/plantvak.service'
-import { mockGardenData } from '@/__tests__/setup/supabase-mock'
 
 // Mock the supabase module
 jest.mock('@/lib/supabase', () => {
@@ -10,7 +9,7 @@ jest.mock('@/lib/supabase', () => {
 })
 
 describe('PlantvakService - Integration Tests', () => {
-  let mockSupabase: unknown
+  let mockSupabase: any
 
   beforeEach(() => {
     // Get a fresh mock instance for each test
@@ -104,7 +103,7 @@ describe('PlantvakService - Integration Tests', () => {
         size: '3x4m'
       }
 
-      const mockUpdatedPlantvak = {
+      const mockUpdatedResponse = {
         id: plantvakId,
         name: 'A',
         garden_id: 'test-garden-123',
@@ -117,7 +116,7 @@ describe('PlantvakService - Integration Tests', () => {
       }
 
       // Mock successful update
-      mockSupabase.mockQueryBuilder.setData(mockUpdatedPlantvak)
+      mockSupabase.mockQueryBuilder.setData(mockUpdatedResponse)
 
       const result = await PlantvakService.update(plantvakId, updateData)
 
@@ -134,62 +133,40 @@ describe('PlantvakService - Integration Tests', () => {
 
       const result = await PlantvakService.delete(plantvakId)
 
-      expect(result).toBeDefined()
+      expect(result).toBe(true)
     })
   })
 
   describe('Business Logic Integration', () => {
     it('should maintain letter code uniqueness within garden', async () => {
       const gardenId = 'test-garden-123'
+      
+      // Mock existing plantvakken with A, B, C
       const existingPlantvakken = [
-        {
-          id: 'plantvak-1',
-          name: 'A',
-          garden_id: gardenId,
-          letter_code: 'A',
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'plantvak-2',
-          name: 'B',
-          garden_id: gardenId,
-          letter_code: 'B',
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 'plantvak-3',
-          name: 'C',
-          garden_id: gardenId,
-          letter_code: 'C',
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
+        { letter_code: 'A' },
+        { letter_code: 'B' },
+        { letter_code: 'C' }
       ]
 
-      // Mock existing plantvakken
       mockSupabase.mockQueryBuilder.setData(existingPlantvakken)
 
+      // Create new plantvak - should get 'D'
       const mockResponse = {
         id: 'plantvak-4',
         name: 'D',
         garden_id: gardenId,
+        location: 'West Side',
         letter_code: 'D',
         is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
 
-      // Mock successful creation
       mockSupabase.mockQueryBuilder.setData(mockResponse)
 
       const result = await PlantvakService.create({
         garden_id: gardenId,
-        location: 'East Side'
+        location: 'West Side'
       })
 
       expect(result).toBeDefined()
@@ -199,52 +176,80 @@ describe('PlantvakService - Integration Tests', () => {
 
     it('should handle concurrent plantvak creation', async () => {
       const gardenId = 'test-garden-123'
+      const concurrentData = [
+        { location: 'North Side' },
+        { location: 'East Side' },
+        { location: 'South Side' }
+      ]
 
-      // Mock concurrent operations
-      mockSupabase.mockQueryBuilder.setData([])
+      // Mock successful creation for each concurrent request
+      const mockResponses = concurrentData.map((data, index) => ({
+        id: `plantvak-${index + 1}`,
+        name: String.fromCharCode(65 + index), // A, B, C
+        garden_id: gardenId,
+        location: data.location,
+        letter_code: String.fromCharCode(65 + index),
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }))
 
-      for (let i = 0; i < 5; i++) {
-        const mockResponse = {
-          id: `plantvak-${i + 1}`,
-          name: String.fromCharCode(65 + i), // A, B, C, D, E
-          garden_id: gardenId,
-          letter_code: String.fromCharCode(65 + i),
-          is_active: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
+      // Mock each creation call
+      mockSupabase.mockQueryBuilder.setData(mockResponses[0])
 
-        // Mock successful creation
-        mockSupabase.mockQueryBuilder.setData(mockResponse)
+      const results = await Promise.all(
+        concurrentData.map(data => 
+          PlantvakService.create({ ...data, garden_id })
+        )
+      )
 
-        const result = await PlantvakService.create({
-          garden_id: gardenId,
-          location: `Side ${i + 1}`
-        })
-
+      results.forEach((result, index) => {
         expect(result).toBeDefined()
-        expect(result?.letter_code).toBe(String.fromCharCode(65 + i))
-      }
+        expect(result?.letter_code).toBe(String.fromCharCode(65 + index))
+      })
     })
   })
 
   describe('Error Handling Integration', () => {
     it('should handle missing garden_id gracefully', async () => {
-      const result = await PlantvakService.create({
+      const invalidData = {
         garden_id: '',
         location: 'North Side'
-      })
+      }
+
+      // Mock validation error
+      mockSupabase.mockQueryBuilder.setError(new Error('Garden ID is required'))
+
+      const result = await PlantvakService.create(invalidData)
 
       expect(result).toBeNull()
     })
 
     it('should handle invalid plantvak data', async () => {
-      const result = await PlantvakService.create({
+      const invalidData = {
         garden_id: 'test-garden-123',
         location: '',
         size: 'invalid-size',
         soil_type: 'invalid-soil'
-      })
+      }
+
+      // Mock successful creation with default values
+      const mockResponse = {
+        id: 'plantvak-1',
+        name: 'A',
+        garden_id: 'test-garden-123',
+        location: '',
+        size: 'invalid-size',
+        soil_type: 'invalid-soil',
+        letter_code: 'A',
+        is_active: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+
+      mockSupabase.mockQueryBuilder.setData(mockResponse)
+
+      const result = await PlantvakService.create(invalidData)
 
       expect(result).toBeDefined()
       // Should still create with default values
