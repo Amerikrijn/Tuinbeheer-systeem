@@ -1,5 +1,5 @@
 import { supabase } from '../supabase';
-import { PlantBed } from '../types';
+import type { Plantvak as PlantBed } from '../types/index';
 
 /**
  * PlantvakService - Handles all plantvak operations with automatic letter code assignment

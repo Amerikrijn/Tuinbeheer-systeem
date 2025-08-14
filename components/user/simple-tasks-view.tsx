@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-supabase-auth"
 import { supabase } from "@/lib/supabase"
 import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
-import type { Task } from "@/lib/types"
+import type { Task } from "@/lib/types/index"
 
 // Define proper types instead of empty interface
 interface SimpleTasksViewProps {
