@@ -2,9 +2,19 @@ name: Banking-Grade CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, 'feature/**', 'bugfix/**', 'hotfix/**' ]
+    branches: [ 'feature/**', 'bugfix/**', 'hotfix/**', 'preview/**' ]
   pull_request:
     branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+        - preview
+        - staging
 
 env:
   NODE_VERSION: '18'
