@@ -242,7 +242,7 @@ function HomePageContent() {
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Tuinbeheer Systeem</h1>
         </div>
         <p className="text-base sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-          Beheer je tuinen, plantvakken en planten met ons gebruiksvriendelijke systeem
+          🌱 Professioneel tuinbeheer met banking-grade kwaliteit en security
         </p>
       </header>
 
