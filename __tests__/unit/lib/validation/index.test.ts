@@ -303,7 +303,7 @@ describe('Validation Functions', () => {
       expect(result.isValid).toBe(false)
       expect(result.errors).toContainEqual({
         field: 'status',
-        message: 'Status moet een geldige waarde hebben'
+        message: 'Moet een van de volgende zijn: gezond, aandacht_nodig, ziek, dood, geoogst'
       })
     })
 
