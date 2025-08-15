@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, Suspense } from 'react'
+import React, { useState, useEffect, Suspense, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -54,9 +54,9 @@ function AcceptInvitationContent() {
 
   useEffect(() => {
     handleInvitationConfirmation()
-  }, [accessToken, refreshToken, type, error_param])
+  }, [accessToken, refreshToken, type, error_param, handleInvitationConfirmation])
 
-  const handleInvitationConfirmation = async () => {
+  const handleInvitationConfirmation = useCallback(async () => {
     setLoading(true)
     setError(null)
 
@@ -110,7 +110,7 @@ function AcceptInvitationContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [accessToken, refreshToken, type, error_param, error_description, toast])
 
 
 

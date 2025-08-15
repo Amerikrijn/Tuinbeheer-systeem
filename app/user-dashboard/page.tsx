@@ -3,7 +3,7 @@
 // Force dynamic rendering to prevent SSR issues with auth
 export const dynamic = 'force-dynamic'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -76,9 +76,9 @@ function UserDashboardContent() {
     if (user && gardenAccessLoaded) {
       loadUserData()
     }
-  }, [user, gardenAccessLoaded])
+  }, [user, gardenAccessLoaded, loadUserData])
 
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     if (!user || !gardenAccessLoaded) return
     
     setLoading(true)
@@ -160,7 +160,7 @@ function UserDashboardContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, gardenAccessLoaded, getAccessibleGardens, toast])
 
   const getEntryTypeFromNotes = (notes: string): LogbookEntry['entry_type'] => {
     const lowerNotes = notes.toLowerCase()
