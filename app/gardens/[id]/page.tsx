@@ -143,8 +143,7 @@ export default function GardenDetailPage() {
     soil_type: ''
   })
 
-  useEffect(() => {
-    const loadData = async () => {
+  const loadData = useCallback(async () => {
       try {
         console.log("🔍 Loading garden data:", { paramsId: params.id, type: typeof params.id })
         setLoading(true)
@@ -221,12 +220,12 @@ export default function GardenDetailPage() {
       } finally {
         setLoading(false)
       }
-    }
+    }, [])
 
     if (params.id) {
       loadData()
     }
-  }, [params.id])
+  }, [params.id, loadData])
 
   // Check if plant beds fit in new garden dimensions
   const validatePlantBedsInGarden = (newLength: string, newWidth: string) => {

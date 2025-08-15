@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
@@ -60,9 +60,9 @@ function AdminUsersPageContent() {
     if (currentUser && isAdmin()) {
       loadData()
     }
-  }, [currentUser])
+  }, [currentUser, isAdmin, loadData])
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -98,7 +98,7 @@ function AdminUsersPageContent() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
 
   const handleResetPassword = async (user: User) => {
     setSelectedUser(user)
@@ -133,11 +133,12 @@ function AdminUsersPageContent() {
 
       loadData()
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error resetting password:', error)
+      const errorMessage = error instanceof Error ? error.message : "Kon wachtwoord niet resetten"
       toast({
         title: "Reset mislukt",
-        description: error.message || "Kon wachtwoord niet resetten",
+        description: errorMessage,
         variant: "destructive"
       })
     } finally {
@@ -168,11 +169,12 @@ function AdminUsersPageContent() {
 
       loadData()
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error deleting user:', error)
+      const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet verwijderen"
       toast({
         title: "Verwijderen mislukt",
-        description: error.message || "Kon gebruiker niet verwijderen",
+        description: errorMessage,
         variant: "destructive"
       })
     }
