@@ -13,21 +13,24 @@ import { supabase } from './supabase';
  * Logt alle security-gerelateerde events voor audit trail
  */
 export async function logClientSecurityEvent(
-  event: string,
-  details: Record<string, any>,
-  userId?: string
+  action: string,
+  severity: string,
+  success: boolean,
+  userId?: string,
+  errorMessage?: string,
+  executionTimeMs?: number,
+  newValues?: any
 ): Promise<void> {
   try {
-    const { error } = await supabase
-      .from('security_events')
-      .insert({
-        event_type: event,
-        event_details: details,
-        user_id: userId,
-        timestamp: new Date().toISOString(),
-        ip_address: 'client-side', // In echte implementatie zou dit uit request komen
-        user_agent: 'client-side'
-      });
+    const { error } = await supabase.rpc('log_security_event', {
+      p_user_id: userId,
+      p_action: action,
+      p_severity: severity,
+      p_success: success,
+      p_error_message: errorMessage,
+      p_execution_time_ms: executionTimeMs,
+      p_new_values: newValues
+    });
 
     if (error) {
       console.error('Security event logging failed:', error);
@@ -41,6 +44,48 @@ export async function logClientSecurityEvent(
  * Input Validation & Sanitization
  * Valideert en sanitized alle user input volgens banking standards
  */
+export function validateInput(input: any, maxLength: number = 1000, allowHtml: boolean = false): boolean {
+  // Handle null and undefined
+  if (input === null || input === undefined) {
+    return true;
+  }
+
+  // Must be string
+  if (typeof input !== 'string') {
+    return false;
+  }
+
+  // Check length
+  if (input.length > maxLength) {
+    return false;
+  }
+
+  // Check for SQL injection patterns
+  const sqlPatterns = [
+    /union\s+select/i,
+    /drop\s+table/i,
+    /delete\s+from/i,
+    /insert\s+into/i,
+    /update\s+set/i,
+    /exec\s*\(/i,
+    /eval\s*\(/i,
+    /<script/i
+  ];
+
+  for (const pattern of sqlPatterns) {
+    if (pattern.test(input)) {
+      return false;
+    }
+  }
+
+  // Check for HTML if not allowed
+  if (!allowHtml && /<[^>]*>/.test(input)) {
+    return false;
+  }
+
+  return true;
+}
+
 export function validateApiInput(data: any, schema: Record<string, any>): {
   isValid: boolean;
   errors: string[];
