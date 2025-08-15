@@ -23,7 +23,7 @@ describe('Banking Security Module', () => {
 
   describe('logClientSecurityEvent', () => {
     it('should log client security events', async () => {
-      await logClientSecurityEvent('LOGIN_ATTEMPT', 'HIGH', true)
+      await logClientSecurityEvent('LOGIN_ATTEMPT', 'HIGH', true, 'test-user-id')
 
       const { supabase } = require('@/lib/supabase')
       expect(supabase.rpc).toHaveBeenCalledWith('log_security_event', {
@@ -33,7 +33,7 @@ describe('Banking Security Module', () => {
         p_success: true,
         p_error_message: undefined,
         p_execution_time_ms: undefined,
-        p_new_values: null
+        p_new_values: undefined
       })
     })
 
@@ -42,7 +42,7 @@ describe('Banking Security Module', () => {
       supabase.rpc.mockResolvedValue({ error: 'Database error' })
 
       // Should not throw error
-      await expect(logClientSecurityEvent('LOGIN_ATTEMPT')).resolves.not.toThrow()
+      await expect(logClientSecurityEvent('LOGIN_ATTEMPT', 'HIGH', true, 'test-user-id')).resolves.not.toThrow()
     })
   })
 
