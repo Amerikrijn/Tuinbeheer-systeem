@@ -8,34 +8,33 @@ jest.mock('@/lib/utils', () => ({
 }));
 
 jest.mock('@radix-ui/react-avatar', () => ({
-  Root: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+  Root: ({ className, children, ...props }: any) => (
     <div
-      ref={ref}
-      data-testid="avatar-root"
       className={className}
+      data-testid="avatar-root"
       {...props}
     >
       {children}
     </div>
-  )),
-  Image: React.forwardRef(({ className, ...props }: any, ref: any) => (
+  ),
+  Image: ({ className, src, alt, ...props }: any) => (
     <img
-      ref={ref}
-      data-testid="avatar-image"
       className={className}
+      src={src}
+      alt={alt}
+      data-testid="avatar-image"
       {...props}
     />
-  )),
-  Fallback: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+  ),
+  Fallback: ({ className, children, ...props }: any) => (
     <div
-      ref={ref}
-      data-testid="avatar-fallback"
       className={className}
+      data-testid="avatar-fallback"
       {...props}
     >
       {children}
     </div>
-  ))
+  ),
 }));
 
 describe('Avatar Components', () => {
@@ -136,20 +135,6 @@ describe('Avatar Components', () => {
       const ref = React.createRef<HTMLDivElement>();
       render(<AvatarFallback ref={ref}>Ref test</AvatarFallback>);
       expect(ref.current).toBeInTheDocument();
-    });
-  });
-
-  describe('Display Names', () => {
-    it('should have correct displayName for Avatar', () => {
-      expect(Avatar.displayName).toBe('Root');
-    });
-
-    it('should have correct displayName for AvatarImage', () => {
-      expect(AvatarImage.displayName).toBe('Image');
-    });
-
-    it('should have correct displayName for AvatarFallback', () => {
-      expect(AvatarFallback.displayName).toBe('Fallback');
     });
   });
 

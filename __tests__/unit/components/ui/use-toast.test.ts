@@ -189,6 +189,14 @@ describe('use-toast', () => {
   });
 
   describe('useToast hook', () => {
+    beforeEach(() => {
+      // Clear any existing toasts
+      act(() => {
+        const { result } = renderHook(() => useToast());
+        result.current.dismiss();
+      });
+    });
+
     it('should return initial state', () => {
       const { result } = renderHook(() => useToast());
       

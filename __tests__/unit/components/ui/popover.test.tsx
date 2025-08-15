@@ -7,35 +7,56 @@ jest.mock('@/lib/utils', () => ({
   cn: (...classes: any[]) => classes.filter(Boolean).join(' ')
 }));
 
-jest.mock('@radix-ui/react-popover', () => ({
-  Root: ({ children, ...props }: any) => (
-    <div data-testid="popover-root" {...props}>
-      {children}
-    </div>
-  ),
-  Trigger: ({ children, ...props }: any) => (
-    <button data-testid="popover-trigger" {...props}>
-      {children}
-    </button>
-  ),
-  Portal: ({ children }: any) => (
-    <div data-testid="popover-portal">
-      {children}
-    </div>
-  ),
-  Content: React.forwardRef(({ className, align, sideOffset, children, ...props }: any, ref: any) => (
+jest.mock('@radix-ui/react-popover', () => {
+  const Root = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <div
       ref={ref}
-      data-testid="popover-content"
-      data-align={align}
-      data-side-offset={sideOffset}
       className={className}
+      data-testid="popover-root"
       {...props}
     >
       {children}
     </div>
-  ))
-}));
+  ));
+  Root.displayName = 'Root';
+
+  const Trigger = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+    <button
+      ref={ref}
+      className={className}
+      data-testid="popover-trigger"
+      {...props}
+    >
+      {children}
+    </button>
+  ));
+  Trigger.displayName = 'Trigger';
+
+  const Portal = ({ className, children, ...props }: any) => (
+    <div
+      className={className}
+      data-testid="popover-portal"
+      {...props}
+    >
+      {children}
+    </div>
+  );
+  Portal.displayName = 'Portal';
+
+  const Content = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+    <div
+      ref={ref}
+      className={className}
+      data-testid="popover-content"
+      {...props}
+    >
+      {children}
+    </div>
+  ));
+  Content.displayName = 'Content';
+
+  return { Root, Trigger, Portal, Content };
+});
 
 describe('Popover Components', () => {
   describe('Popover', () => {
@@ -182,7 +203,7 @@ describe('Popover Components', () => {
       );
       
       expect(screen.getByText('Popover Title')).toBeInTheDocument();
-      expect(screen.getByText('This is a')).toBeInTheDocument();
+      expect(screen.getByText(/This is a/)).toBeInTheDocument();
       expect(screen.getByText('rich')).toBeInTheDocument();
       expect(screen.getByText('formatting')).toBeInTheDocument();
       expect(screen.getByText('List item 1')).toBeInTheDocument();

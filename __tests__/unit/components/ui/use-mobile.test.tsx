@@ -45,10 +45,19 @@ describe('useIsMobile Hook', () => {
   });
 
   it('should return true for mobile', () => {
-    mockMatchMedia.mockReturnValue({
-      matches: true,
-      addEventListener: mockAddEventListener,
-      removeEventListener: mockRemoveEventListener,
+    // Mock matchMedia to return mobile width
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: jest.fn().mockImplementation(query => ({
+        matches: query.includes('(max-width: 768px)'),
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      })),
     });
 
     const { result } = renderHook(() => useIsMobile());
@@ -77,26 +86,42 @@ describe('useIsMobile Hook', () => {
   it('should handle rapid width changes', () => {
     const { result } = renderHook(() => useIsMobile());
 
-    // Simulate rapid changes
+    // Change to mobile
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: jest.fn().mockImplementation(query => ({
+        matches: query.includes('(max-width: 768px)'),
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      })),
+    });
+
+    // Trigger resize event
     act(() => {
-      mockMatchMedia.mockReturnValue({
-        matches: true,
-        addEventListener: mockAddEventListener,
-        removeEventListener: mockRemoveEventListener,
-      });
-      // Trigger change event
-      const changeHandler = mockAddEventListener.mock.calls[0][1];
-      changeHandler({ matches: true });
+      window.dispatchEvent(new Event('resize'));
     });
 
     expect(result.current).toBe(true);
   });
 
   it('should handle edge case widths', () => {
-    mockMatchMedia.mockReturnValue({
-      matches: true,
-      addEventListener: mockAddEventListener,
-      removeEventListener: mockRemoveEventListener,
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: jest.fn().mockImplementation(query => ({
+        matches: query.includes('(max-width: 768px)'),
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: jest.fn(),
+        removeEventListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+      })),
     });
 
     const { result } = renderHook(() => useIsMobile());
