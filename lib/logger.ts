@@ -224,10 +224,7 @@ export const securityLogger = new Logger();
 export const databaseLogger = new Logger();
 export const uiLogger = new Logger(); // For UI components
 
-// Legacy logger names for compatibility
-export const AppLogger = logger;
-export const PerformanceLogger = logger;
-export const AuditLogger = securityLogger;
+// Legacy logger names for compatibility (removed to avoid conflicts)
 
 // Specialized logging functions
 export const logSecurityEvent = (event: string, details: Record<string, any>): void => {
