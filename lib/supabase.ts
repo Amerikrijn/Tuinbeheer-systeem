@@ -300,17 +300,4 @@ export function getSupabaseAnonKey(): string {
 // EXPORT ALL TYPES
 // ===================================================================
 
-export type {
-  Garden,
-  PlantBed,
-  Plant,
-  PlantBedWithPlants,
-  PlantWithPosition,
-  User,
-  GardenAccess,
-  Task,
-  LogbookEntry,
-  Plantvak,
-  PlantvakWithPlants,
-  Database
-};
+// Types are already exported above, no need to re-export
