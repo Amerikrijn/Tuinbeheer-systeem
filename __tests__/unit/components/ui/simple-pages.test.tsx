@@ -198,26 +198,26 @@ describe('Simple Page Components', () => {
   describe('components/ui/progress.tsx', () => {
     it('should render progress component', () => {
       const ProgressComponent = () => (
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
+        <div className="w-full bg-gray-200 rounded-full h-2.5" data-testid="progress-container">
           <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '45%' }}></div>
         </div>
       );
       
       render(<ProgressComponent />);
-      expect(screen.getByRole('generic')).toBeInTheDocument();
+      expect(screen.getByTestId('progress-container')).toBeInTheDocument();
     });
   });
 
   describe('components/ui/separator.tsx', () => {
     it('should render separator component', () => {
       const SeparatorComponent = () => (
-        <div className="w-full">
+        <div className="w-full" data-testid="separator-container">
           <div className="h-px bg-gray-200"></div>
         </div>
       );
       
       render(<SeparatorComponent />);
-      expect(screen.getByRole('generic')).toBeInTheDocument();
+      expect(screen.getByTestId('separator-container')).toBeInTheDocument();
     });
   });
 
@@ -472,7 +472,7 @@ describe('Simple Page Components', () => {
   describe('components/ui/carousel.tsx', () => {
     it('should render carousel component', () => {
       const CarouselComponent = () => (
-        <div className="w-full">
+        <div className="w-full" data-testid="carousel-container">
           <div className="flex space-x-4">
             <div className="flex-shrink-0 w-64 h-32 bg-gray-200 rounded"></div>
             <div className="flex-shrink-0 w-64 h-32 bg-gray-200 rounded"></div>
@@ -482,7 +482,7 @@ describe('Simple Page Components', () => {
       );
       
       render(<CarouselComponent />);
-      expect(screen.getByRole('generic')).toBeInTheDocument();
+      expect(screen.getByTestId('carousel-container')).toBeInTheDocument();
     });
   });
 
