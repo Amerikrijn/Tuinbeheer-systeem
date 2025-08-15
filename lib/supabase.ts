@@ -42,3 +42,45 @@ export const secureSupabaseCall = async <T>(
     return fallback
   }
 }
+
+// Type definitions for compatibility
+export interface Plant {
+  id: string
+  name: string
+  species?: string
+  variety?: string
+  plant_bed_id: string
+  planting_date?: string
+  scientific_name?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Garden {
+  id: string
+  name: string
+  description?: string
+  length?: string
+  width?: string
+  location?: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface PlantBedWithPlants {
+  id: string
+  name: string
+  garden_id: string
+  plants: Plant[]
+  location?: string
+  size?: number
+  created_at: string
+  updated_at: string
+}
+
+export interface PlantWithPosition extends Plant {
+  position_x?: number
+  position_y?: number
+  size?: number
+}

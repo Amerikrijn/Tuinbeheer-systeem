@@ -62,7 +62,7 @@ function NewLogbookPageContent() {
       setState(prev => ({ ...prev, loading: true, error: null }))
       
       // Load plant beds
-      const plantBeds = await getPlantBeds()
+      const plantBeds = await getPlantBeds(gardenId)
 
       // Load plants if a plant bed is selected
       let plants: Bloem[] = []

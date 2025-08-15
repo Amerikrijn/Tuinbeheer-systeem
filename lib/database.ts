@@ -41,6 +41,7 @@ export const createGarden = async (gardenData: {
   description?: string
   length?: string
   width?: string
+  location?: string
 }) => {
   try {
     const { data, error } = await supabase
@@ -139,7 +140,19 @@ export const createPlant = async (plantData: {
   plant_bed_id: string
   species?: string
   variety?: string
+  scientific_name?: string
+  color?: string
+  height?: number
+  plants_per_sqm?: number
+  sun_preference?: string
   planting_date?: string
+  expected_harvest_date?: string
+  status?: string
+  notes?: string
+  care_instructions?: string
+  watering_frequency?: number
+  fertilizer_schedule?: string
+  emoji?: string
 }) => {
   try {
     const { data, error } = await supabase
