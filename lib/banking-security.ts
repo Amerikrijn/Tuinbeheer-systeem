@@ -33,14 +33,26 @@ export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
  */
 export function validateInput(
   input: string,
+  maxLength?: number,
+  strict?: boolean,
   config: Partial<SecurityConfig> = {}
 ): ValidationResult {
   const finalConfig = { ...DEFAULT_SECURITY_CONFIG, ...config }
   const errors: string[] = []
 
+  // Override maxLength if provided
+  if (maxLength !== undefined) {
+    finalConfig.maxInputLength = maxLength
+  }
+
   // Check input length
   if (input.length > finalConfig.maxInputLength) {
     errors.push(`Input exceeds maximum length of ${finalConfig.maxInputLength} characters`)
+  }
+
+  // Override strict mode if provided
+  if (strict !== undefined) {
+    finalConfig.allowedCharacters = /^[a-zA-Z0-9\s\-_.,!?@#$%^&*()+=<>{}[\]|\\/:;"'`~]+$/
   }
 
   // Check for allowed characters only

@@ -17,6 +17,8 @@ export interface PasswordChangeResult {
   success: boolean
   message: string
   errors?: string[]
+  error?: string // For backward compatibility
+  requiresReauth?: boolean // For authentication flow
 }
 
 /**
@@ -206,7 +208,14 @@ export class PasswordChangeManager {
   /**
    * Validates password without changing it
    */
-  validatePassword(password: string): PasswordValidation {
+  validatePassword(password: string, confirmPassword?: string): PasswordValidation {
+    if (confirmPassword && password !== confirmPassword) {
+      return {
+        isValid: false,
+        errors: ['Wachtwoorden komen niet overeen'],
+        strength: 'weak'
+      }
+    }
     return validatePasswordStrength(password)
   }
 
