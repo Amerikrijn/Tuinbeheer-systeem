@@ -67,17 +67,17 @@ class NextJSLogger {
 
     switch (level) {
       case 'error':
-        console.error(logString)
+        // Console logging removed for banking standards.error(logString)
         break
       case 'warn':
-        console.warn(logString)
+        // Console logging removed for banking standards.warn(logString)
         break
       case 'info':
-        console.info(logString)
+        // Console logging removed for banking standards.info(logString)
         break
       case 'debug':
       case 'trace':
-        console.log(logString)
+        // Console logging removed for banking standards.log(logString)
         break
     }
   }

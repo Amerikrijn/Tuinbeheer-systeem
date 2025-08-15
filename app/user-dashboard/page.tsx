@@ -55,13 +55,19 @@ function UserDashboardContent() {
       
       // For users, ensure garden access is loaded
       if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
-        console.log('🔍 UserDashboard - Loading garden access for user...')
+        // Log only in development for security
+    if (process.env.NODE_ENV === 'development') {
+      // Console logging removed for banking standards.log('🔍 UserDashboard - Loading garden access for user...')
+    }
         try {
           await loadGardenAccess()
           setGardenAccessLoaded(true)
-          console.log('✅ UserDashboard - Garden access loaded')
+          // Log only in development for security
+        if (process.env.NODE_ENV === 'development') {
+          // Console logging removed for banking standards.log('✅ UserDashboard - Garden access loaded')
+        }
         } catch (error) {
-          console.error('❌ UserDashboard - Failed to load garden access:', error)
+          // Console logging removed for banking standards.error('❌ UserDashboard - Failed to load garden access:', error)
           setGardenAccessLoaded(true) // Still mark as loaded to avoid infinite loop
         }
       } else {
@@ -151,7 +157,7 @@ function UserDashboardContent() {
       setLogbookEntries(transformedLogbook)
 
     } catch (error) {
-      console.error('Error loading user data:', error)
+      // Console logging removed for banking standards.error('Error loading user data:', error)
       toast({
         title: "Fout bij laden",
         description: "Kon taken en logboek niet laden",
@@ -200,7 +206,7 @@ function UserDashboardContent() {
       loadUserData()
 
     } catch (error) {
-      console.error('Error completing task:', error)
+      // Console logging removed for banking standards.error('Error completing task:', error)
       toast({
         title: "Fout bij voltooien",
         description: "Kon taak niet markeren als voltooid",

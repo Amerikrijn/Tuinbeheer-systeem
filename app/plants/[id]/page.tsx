@@ -79,7 +79,7 @@ export default function PlantDetailPage() {
       if (error) throw error
       setPlant(data)
     } catch (error) {
-      console.error('Error loading plant:', error)
+      // Console logging removed for banking standards.error('Error loading plant:', error)
     } finally {
       setLoading(false)
     }
@@ -91,7 +91,7 @@ export default function PlantDetailPage() {
       if (error) throw new Error(error)
       setTasks(data)
     } catch (error) {
-      console.error('Error loading plant tasks:', error)
+      // Console logging removed for banking standards.error('Error loading plant tasks:', error)
     }
   }
 
@@ -101,7 +101,7 @@ export default function PlantDetailPage() {
       if (error) throw new Error(error)
       setRefreshKey(prev => prev + 1)
     } catch (error) {
-      console.error('Error updating task:', error)
+      // Console logging removed for banking standards.error('Error updating task:', error)
     }
   }
 

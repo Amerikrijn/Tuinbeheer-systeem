@@ -47,7 +47,7 @@ export class PlantvakService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error fetching plantvakken:', error);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       return [];
     }
   }
@@ -65,7 +65,7 @@ export class PlantvakService {
     description?: string;
   }): Promise<PlantBed | null> {
     try {
-      console.log('🔍 PlantvakService.create called with:', JSON.stringify(plantvakData, null, 2));
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       
       // Validate input data
       if (!plantvakData.garden_id) {
@@ -74,18 +74,18 @@ export class PlantvakService {
       
       // Get existing letter codes for this garden
       const existingPlantvakken = await this.getByGarden(plantvakData.garden_id);
-      console.log('📊 Existing plantvakken:', existingPlantvakken);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       
       const existingCodes = existingPlantvakken.map(p => p.letter_code).filter(Boolean);
-      console.log('🔤 Existing letter codes:', existingCodes);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       
       // Generate next available letter code
       const nextLetterCode = this.generateNextLetterCode(existingCodes.filter(Boolean) as string[]);
-      console.log('✨ Next letter code:', nextLetterCode);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       
       // Generate a unique ID for the plantvak
       const uniqueId = `plantvak-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      console.log('🆔 Generated unique ID:', uniqueId);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       
       // Create new plantvak with letter code and ID
       // Use the letter code as the name if no name is provided
@@ -99,7 +99,7 @@ export class PlantvakService {
         updated_at: new Date().toISOString()
       };
       
-      console.log('📝 Inserting new plantvak:', JSON.stringify(newPlantvak, null, 2));
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
 
       const { data, error } = await supabase
         .from('plant_beds')
@@ -108,8 +108,8 @@ export class PlantvakService {
         .single();
 
       if (error) {
-        console.error('❌ Supabase error:', error);
-        console.error('❌ Error details:', {
+        if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
+        // Console logging removed for banking standards.error('❌ Error details:', {
           message: error.message,
           code: error.code,
           details: error.details,
@@ -118,14 +118,14 @@ export class PlantvakService {
         throw error;
       }
       
-      console.log(`✅ Plantvak created with letter code: ${nextLetterCode}`);
-      console.log('📊 Created plantvak data:', data);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       return data;
     } catch (error) {
-      console.error('❌ Error creating plantvak:', error);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       if (error && typeof error === 'object' && 'message' in error) {
         const errorObj = error as { message?: string; code?: string; details?: string; hint?: string; stack?: string }
-        console.error('❌ Error details:', {
+        // Console logging removed for banking standards.error('❌ Error details:', {
           message: errorObj.message,
           code: errorObj.code,
           details: errorObj.details,
@@ -155,7 +155,7 @@ export class PlantvakService {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error updating plantvak:', error);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       return null;
     }
   }
@@ -173,7 +173,7 @@ export class PlantvakService {
       if (error) throw error;
       return true;
     } catch (error) {
-      console.error('Error deleting plantvak:', error);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       return false;
     }
   }
@@ -192,7 +192,7 @@ export class PlantvakService {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error fetching plantvak:', error);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       return null;
     }
   }

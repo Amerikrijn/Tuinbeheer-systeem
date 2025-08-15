@@ -129,7 +129,7 @@ export default function ChangePasswordPage() {
       await signOut()
       router.push('/auth/login')
     } catch (error) {
-      console.error('Logout error:', error)
+      // Console logging removed for banking standards
     }
   }
 

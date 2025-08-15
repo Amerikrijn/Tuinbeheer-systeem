@@ -105,7 +105,9 @@ function AcceptInvitationContent() {
       })
       
     } catch (error) {
-      console.error('Invitation confirmation error:', error)
+      // Log error only in development for security
+      if (process.env.NODE_ENV === 'development') {
+        // Console logging removed for banking standards
       setError(error instanceof Error ? error.message : 'Er is een fout opgetreden bij het verifiëren van de uitnodiging')
     } finally {
       setLoading(false)
@@ -200,7 +202,7 @@ function AcceptInvitationContent() {
           })
 
         if (profileError && !profileError.message.includes('duplicate')) {
-          console.error('Profile creation error:', profileError)
+          // Console logging removed for banking standards
           // Don't fail the whole process for profile errors
         }
       }
@@ -219,7 +221,10 @@ function AcceptInvitationContent() {
       }, 2000)
       
     } catch (error) {
-      console.error('Accept invitation error:', error)
+      // Log error only in development for security
+      if (process.env.NODE_ENV === 'development') {
+        // Console logging removed for banking standards.error('Accept invitation error:', error)
+      }
       toast({
         title: "Fout bij accepteren uitnodiging",
         description: error instanceof Error ? error.message : "Er is een onbekende fout opgetreden",

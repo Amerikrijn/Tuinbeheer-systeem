@@ -34,7 +34,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo)
+    // Console logging removed for banking standards.error('Error caught by boundary:', error, errorInfo)
     this.setState({
       error,
       errorInfo

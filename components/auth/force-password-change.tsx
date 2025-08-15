@@ -83,14 +83,14 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
           await signOut()
           router.push('/auth/login?message=password-changed')
         } catch (error) {
-          console.error('Logout error:', error)
+          // Console logging removed for banking standards.error('Logout error:', error)
           // Fallback: force redirect anyway
           window.location.href = '/auth/login?message=password-changed'
         }
       }, 1500)
 
     } catch (error: unknown) {
-      console.error('Password change error:', error)
+      // Console logging removed for banking standards.error('Password change error:', error)
       setError('System error. Please try again or contact support.')
     } finally {
       setLoading(false)

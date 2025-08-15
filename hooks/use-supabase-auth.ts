@@ -113,7 +113,7 @@ export function useSupabaseAuth(): AuthContextType {
       const currentHost = window.location.host
       const cachedHost = localStorage.getItem('tuinbeheer_cached_host')
       if (cachedHost && cachedHost !== currentHost) {
-        console.log('🔧 PRODUCTION: Host changed, clearing cache', { old: cachedHost, new: currentHost })
+        // Console logging removed for banking standards.log('🔧 PRODUCTION: Host changed, clearing cache', { old: cachedHost, new: currentHost })
         localStorage.removeItem(SESSION_CACHE_KEY)
         localStorage.setItem('tuinbeheer_cached_host', currentHost)
         useCache = false
@@ -126,7 +126,7 @@ export function useSupabaseAuth(): AuthContextType {
     if (useCache) {
       const cached = getCachedUserProfile()
       if (cached && cached.id === supabaseUser.id) {
-        console.log('🚀 Using cached user profile for faster loading')
+        // Console logging removed for banking standards.log('🚀 Using cached user profile for faster loading')
         return cached
       }
     }
@@ -167,11 +167,11 @@ export function useSupabaseAuth(): AuthContextType {
         }
         
         // Log to console for immediate debugging
-        console.error('🏦 BANKING AUDIT: Authentication failed', auditData)
+        // Console logging removed for banking standards.error('🏦 BANKING AUDIT: Authentication failed', auditData)
         
                  // 🚨 GODELIEVE FIX: Auto-create missing profile for known admin
          if (supabaseUser.email?.toLowerCase().includes('godelieve')) {
-           console.log('🔧 GODELIEVE FIX: Creating missing admin profile')
+           // Console logging removed for banking standards.log('🔧 GODELIEVE FIX: Creating missing admin profile')
            
            try {
              const { error: createError } = await supabase
@@ -189,16 +189,16 @@ export function useSupabaseAuth(): AuthContextType {
                })
              
              if (!createError) {
-               console.log('✅ GODELIEVE FIX: Profile created successfully')
+               // Console logging removed for banking standards.log('✅ GODELIEVE FIX: Profile created successfully')
                role = 'admin'
                fullName = 'Godelieve Ochtendster'
                status = 'active'
              } else {
-               console.error('🚨 GODELIEVE FIX: Creation failed', createError)
+               // Console logging removed for banking standards.error('🚨 GODELIEVE FIX: Creation failed', createError)
                throw new Error('Access denied: User not found in system. Contact admin to create your account.')
              }
            } catch (error) {
-             console.error('🚨 GODELIEVE FIX: Error', error)
+             // Console logging removed for banking standards.error('🚨 GODELIEVE FIX: Error', error)
              throw new Error('Access denied: User not found in system. Contact admin to create your account.')
            }
          } else {
@@ -223,7 +223,7 @@ export function useSupabaseAuth(): AuthContextType {
           sessionId: supabaseUser.id + '_' + Date.now()
         }
         
-        console.log('🏦 BANKING AUDIT: Successful authentication', loginAuditData)
+        // Console logging removed for banking standards.log('🏦 BANKING AUDIT: Successful authentication', loginAuditData)
         
         // Update last_login asynchronously (non-blocking)
         supabase
@@ -235,9 +235,9 @@ export function useSupabaseAuth(): AuthContextType {
           .eq('id', userProfile.id)
           .then(({ error }) => {
             if (error) {
-              console.error('🏦 BANKING AUDIT: Failed to update last_login:', error)
+              // Console logging removed for banking standards.error('🏦 BANKING AUDIT: Failed to update last_login:', error)
             } else {
-              console.log('🏦 BANKING AUDIT: Last login timestamp updated')
+              // Console logging removed for banking standards.log('🏦 BANKING AUDIT: Last login timestamp updated')
             }
           })
       }
@@ -261,7 +261,7 @@ export function useSupabaseAuth(): AuthContextType {
       return user
 
     } catch (error) {
-      console.error('Error in loadUserProfile:', error)
+      // Console logging removed for banking standards.error('Error in loadUserProfile:', error)
       throw error
     }
   }
@@ -317,7 +317,7 @@ export function useSupabaseAuth(): AuthContextType {
           })
         }
       } catch (error) {
-        console.error('Auth initialization error:', error)
+        // Console logging removed for banking standards.error('Auth initialization error:', error)
         clearCachedUserProfile()
         setState({
           user: null,
@@ -479,7 +479,7 @@ export function useSupabaseAuth(): AuthContextType {
     clearCachedUserProfile()
     if (typeof window !== 'undefined') {
       localStorage.removeItem('tuinbeheer_cached_host')
-      console.log('🔧 PRODUCTION: Cleared all user cache including host tracking')
+      // Console logging removed for banking standards.log('🔧 PRODUCTION: Cleared all user cache including host tracking')
     }
     
     if (state.session?.user) {
@@ -507,7 +507,7 @@ export function useSupabaseAuth(): AuthContextType {
         }))
       }
     } catch (error) {
-      console.warn('Garden access loading failed:', error)
+      // Console logging removed for banking standards.warn('Garden access loading failed:', error)
     }
   }
 
@@ -529,7 +529,7 @@ export function useSupabaseAuth(): AuthContextType {
 
   const getAccessibleGardens = (): string[] => {
     if (!state.user) {
-      console.warn('⚠️ SECURITY: getAccessibleGardens called without user')
+      // Console logging removed for banking standards.warn('⚠️ SECURITY: getAccessibleGardens called without user')
       return []
     }
     if (state.user.role === 'admin') {

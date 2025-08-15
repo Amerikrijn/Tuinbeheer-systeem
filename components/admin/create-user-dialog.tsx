@@ -112,7 +112,7 @@ export function CreateUserDialog({
       onClose()
       
     } catch (error: unknown) {
-      console.error('Error creating user:', error)
+      // Console logging removed for banking standards.error('Error creating user:', error)
       const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet aanmaken"
       toast({
         title: "Aanmaken mislukt",

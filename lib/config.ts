@@ -76,9 +76,9 @@ export function validateSecurityConfiguration(): { valid: boolean; errors: strin
     const env = getCurrentEnvironment();
     
     // Log configuration validation (without exposing credentials)
-    console.log(`🔒 Security validation for ${env} environment`);
-    console.log(`🔗 URL configured: ${config.url.substring(0, 30)}...`);
-    console.log(`🔑 Key configured: ${config.anonKey.substring(0, 20)}...`);
+    if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
+    if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
+    if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
     
     return { valid: true, errors: [] };
   } catch (error) {

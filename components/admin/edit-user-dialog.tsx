@@ -88,7 +88,7 @@ export function EditUserDialog({
         }))
       }
     } catch (error) {
-      console.error('Error loading user garden access:', error)
+      // Console logging removed for banking standards.error('Error loading user garden access:', error)
       toast({
         title: "Waarschuwing",
         description: "Kon huidige tuin toegang niet laden",
@@ -145,7 +145,7 @@ export function EditUserDialog({
       onClose()
       
     } catch (error: unknown) {
-      console.error('Error updating user:', error)
+      // Console logging removed for banking standards.error('Error updating user:', error)
       const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet bijwerken"
       toast({
         title: "Bijwerken mislukt",

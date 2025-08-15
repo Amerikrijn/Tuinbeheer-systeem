@@ -41,7 +41,11 @@ function TrashPageContent() {
       setDeletedUsers(data.deletedUsers || [])
       
     } catch (error) {
-      console.error('Error loading deleted users:', error)
+      // Log error only in development for security
+      // Log error only in development for security
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error loading deleted users:', error)
+      }
       toast({
         title: "Fout bij laden",
         description: "Kon verwijderde gebruikers niet laden",
@@ -90,7 +94,10 @@ function TrashPageContent() {
       loadDeletedUsers()
 
     } catch (error: unknown) {
-      console.error('Error restoring user:', error)
+      // Log error only in development for security
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error restoring user:', error)
+      }
       const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet herstellen"
       toast({
         title: "Herstellen mislukt",
@@ -142,7 +149,10 @@ function TrashPageContent() {
       loadDeletedUsers()
 
     } catch (error: unknown) {
-      console.error('Error permanently deleting user:', error)
+      // Log error only in development for security
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Error permanently deleting user:', error)
+      }
       const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet permanent verwijderen"
       toast({
         title: "Permanent verwijderen mislukt",

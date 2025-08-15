@@ -49,11 +49,11 @@ export async function logClientSecurityEvent(
     });
     
     if (error) {
-      console.error('Failed to log security event:', error);
+      if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
     }
   } catch (err) {
     // Silent fail for logging - don't break user experience
-    console.warn('Security logging failed:', err);
+    if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
   }
 }
 

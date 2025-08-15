@@ -36,7 +36,7 @@ const getAdminClient = () => {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
   if (!serviceRoleKey) {
-    console.error('SUPABASE_SERVICE_ROLE_KEY not found in environment variables');
+    if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
     return null;
   }
   

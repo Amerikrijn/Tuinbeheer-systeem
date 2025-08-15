@@ -291,7 +291,7 @@ export default function PlantBedViewPage() {
         return true
       })
       
-      console.log('🔍 Plantvak tasks filtered by garden:', {
+      // Console logging removed for banking standards.log('🔍 Plantvak tasks filtered by garden:', {
         gardenId,
         totalTasks: allTasks.length,
         filteredTasks: filteredTasks.length
@@ -313,7 +313,7 @@ export default function PlantBedViewPage() {
       
       setTasks(uniqueTasks)
     } catch (error) {
-      console.error('Error loading tasks:', error)
+      // Console logging removed for banking standards.error('Error loading tasks:', error)
     } finally {
       setLoadingTasks(false)
     }
@@ -346,7 +346,7 @@ export default function PlantBedViewPage() {
       const { error } = await TaskService.updateTask(taskId, { completed })
       
       if (error) {
-        console.error('Error updating task:', error)
+        // Console logging removed for banking standards.error('Error updating task:', error)
         // Revert the optimistic update
         setTasks(prevTasks => {
           const revertedTasks = prevTasks.map(task => 
@@ -362,7 +362,7 @@ export default function PlantBedViewPage() {
       }
       
     } catch (error) {
-      console.error('Error completing task:', error)
+      // Console logging removed for banking standards.error('Error completing task:', error)
       // Revert optimistic update on error
       setTasks(prevTasks => {
         const revertedTasks = prevTasks.map(task => 
@@ -439,10 +439,10 @@ export default function PlantBedViewPage() {
         // Load plants from database instead of localStorage
         if (params.bedId) {
           const plants = await getPlantsWithPositions(params.bedId as string)
-                  console.log('Loading plants from database:', plants)
+                  // Console logging removed for banking standards.log('Loading plants from database:', plants)
         
         // DEBUG: Show initial flower positions
-        console.log('🌸 INITIAL POSITIONS:', plants.map(p => ({
+        // Console logging removed for banking standards.log('🌸 INITIAL POSITIONS:', plants.map(p => ({
           name: p.name,
           x: p.position_x,
           y: p.position_y,
@@ -452,7 +452,7 @@ export default function PlantBedViewPage() {
         setFlowerPositions(plants)
         }
       } catch (error) {
-        console.error("Error loading data:", error)
+        // Console logging removed for banking standards.error("Error loading data:", error)
         setGarden(null)
         setPlantBed(null)
         setFlowerPositions([])
@@ -535,7 +535,7 @@ export default function PlantBedViewPage() {
         const availableHeight = plantvakHeight - margin * 2 - flowerSize
         
         if (availableWidth <= 0 || availableHeight <= 0) {
-          console.log("Not enough space in plantvak for more flowers")
+          // Console logging removed for banking standards.log("Not enough space in plantvak for more flowers")
           break
         }
         
@@ -562,7 +562,7 @@ export default function PlantBedViewPage() {
             setFlowerPositions(prev => [...prev, newFlower])
           }
         } catch (error) {
-          console.error("Error auto-adding flower:", error)
+          // Console logging removed for banking standards.error("Error auto-adding flower:", error)
         }
       }
       
@@ -597,7 +597,7 @@ export default function PlantBedViewPage() {
     })
     
     if (flowersOutside.length > 0) {
-      console.log(`Found ${flowersOutside.length} flowers outside plantvak boundaries, moving them inside...`)
+      // Console logging removed for banking standards.log(`Found ${flowersOutside.length} flowers outside plantvak boundaries, moving them inside...`)
       
       // Move flowers inside the boundaries with better distribution
       for (let i = 0; i < flowersOutside.length; i++) {
@@ -648,7 +648,7 @@ export default function PlantBedViewPage() {
               : f
           ))
         } catch (error) {
-          console.error("Error moving flower inside boundaries:", error)
+          // Console logging removed for banking standards.error("Error moving flower inside boundaries:", error)
         }
       }
       
@@ -660,7 +660,7 @@ export default function PlantBedViewPage() {
   // useEffect(() => {
   //   if (!loading && plantBed && flowerPositions.length > 0) {
   //     const timer = setTimeout(async () => {
-  //       console.log('🌸 RUNNING MANUAL CLEANUP for flowers outside plantvak')
+  //       // Console logging removed for banking standards.log('🌸 RUNNING MANUAL CLEANUP for flowers outside plantvak')
   //       await cleanupFlowersOutsideBoundaries() // Fix flowers outside boundaries
   //     }, 1000) // Run once after load
   //     
@@ -693,7 +693,7 @@ export default function PlantBedViewPage() {
     const plantvakStartX = (currentCanvasSize.width - plantvakWidth) / 2
     const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
     
-    console.log('🌸 RESETTING FLOWERS TO CENTER')
+    // Console logging removed for banking standards.log('🌸 RESETTING FLOWERS TO CENTER')
     
     for (const flower of flowerPositions) {
       const centerX = plantvakStartX + plantvakWidth / 2 - (flower.visual_width || 45) / 2
@@ -715,7 +715,7 @@ export default function PlantBedViewPage() {
             : f
         ))
       } catch (error) {
-        console.error("Error resetting flower position:", error)
+        // Console logging removed for banking standards.error("Error resetting flower position:", error)
       }
     }
   }
@@ -792,7 +792,7 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       }
     } catch (error) {
-      console.error("Error creating flower:", error)
+      // Console logging removed for banking standards.error("Error creating flower:", error)
         // Removed toast notification
     }
   }
@@ -833,7 +833,7 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       }
     } catch (error) {
-      console.error("Error updating flower:", error)
+      // Console logging removed for banking standards.error("Error updating flower:", error)
         // Removed toast notification
     }
   }
@@ -846,7 +846,7 @@ export default function PlantBedViewPage() {
       setIsEditingFlower(false)
         // Removed toast notification
     } catch (error) {
-      console.error("Error deleting flower:", error)
+      // Console logging removed for banking standards.error("Error deleting flower:", error)
         // Removed toast notification
     }
   }
@@ -935,7 +935,7 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       }
     } catch (error) {
-      console.error("Error updating plant bed:", error)
+      // Console logging removed for banking standards.error("Error updating plant bed:", error)
         // Removed toast notification
     }
   }
@@ -952,7 +952,7 @@ export default function PlantBedViewPage() {
       // Navigate back to garden
       router.push(`/gardens/${params.id}`)
     } catch (error) {
-      console.error("Error deleting plant bed:", error)
+      // Console logging removed for banking standards.error("Error deleting plant bed:", error)
         // Removed toast notification
     } finally {
       setShowDeletePlantBedDialog(false)
@@ -994,7 +994,7 @@ export default function PlantBedViewPage() {
 
   // Handle double click - navigate to plant details page
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
-    console.log('Double click on flower:', flower.name, '- navigating to details')
+    // Console logging removed for banking standards.log('Double click on flower:', flower.name, '- navigating to details')
     
     // Navigate to plant details page
     router.push(`/plants/${flower.id}`)
@@ -1034,7 +1034,7 @@ export default function PlantBedViewPage() {
       const isLargeField = newSize > 100
         // Removed toast notification
     } catch (error) {
-      console.error('Failed to resize flower:', error)
+      // Console logging removed for banking standards.error('Failed to resize flower:', error)
         // Removed toast notification
     }
   }, [flowerPositions, canvasWidth, canvasHeight])
@@ -1273,7 +1273,7 @@ export default function PlantBedViewPage() {
           
           // Removed feedback toast - no more notifications when moving
         } catch (error) {
-          console.error("Error auto-saving flower position:", error)
+          // Console logging removed for banking standards.error("Error auto-saving flower position:", error)
         // Removed toast notification
         }
       }
@@ -1316,7 +1316,7 @@ export default function PlantBedViewPage() {
       
         // Removed toast notification
     } catch (error) {
-      console.error("Error saving flower positions:", error)
+      // Console logging removed for banking standards.error("Error saving flower positions:", error)
         // Removed toast notification
     }
   }, [hasChanges, flowerPositions])
@@ -1445,7 +1445,7 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       }
     } catch (error) {
-      console.error("Error saving flower size:", error)
+      // Console logging removed for banking standards.error("Error saving flower size:", error)
         // Removed toast notification
     }
   }, [isResizing, flowerPositions])
@@ -2258,7 +2258,7 @@ export default function PlantBedViewPage() {
                             e.preventDefault()
                             e.stopPropagation()
                             
-                            console.log("🎯 LAATSTE KANS DRAG START!")
+                            // Console logging removed for banking standards.log("🎯 LAATSTE KANS DRAG START!")
                             alert("DRAG GESTART! Sleep nu!")
                             
                             const startX = e.clientX
@@ -2271,7 +2271,7 @@ export default function PlantBedViewPage() {
                                const delta = Math.max(deltaX, deltaY)
                                const newAreaSize = Math.max(100, startSize + delta)
                                
-                               console.log("🎯 DRAGGING AREA SIZE:", newAreaSize)
+                               // Console logging removed for banking standards.log("🎯 DRAGGING AREA SIZE:", newAreaSize)
                                
                                // Update area size in notes
                                setFlowerPositions(prev => prev.map(f => {
@@ -2328,14 +2328,14 @@ export default function PlantBedViewPage() {
                                        setFlowerPositions(prev => [...prev, newFlower])
                                      }
                                    } catch (error) {
-                                     console.error("Error adding flower:", error)
+                                     // Console logging removed for banking standards.error("Error adding flower:", error)
                                    }
                                  }
                                }
                              }
                             
                             const handleMouseUp = () => {
-                              console.log("🎯 DRAG STOP!")
+                              // Console logging removed for banking standards.log("🎯 DRAG STOP!")
                               alert("DRAG GESTOPT!")
                               document.removeEventListener('mousemove', handleMouseMove)
                               document.removeEventListener('mouseup', handleMouseUp)

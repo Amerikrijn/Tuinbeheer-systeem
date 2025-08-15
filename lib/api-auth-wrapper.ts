@@ -139,7 +139,7 @@ export async function withBankingAuth<T>(
         apiLogger.error(`API error in ${logAction}`, error as Error, { operationId, userId });
       } catch (logError) {
         // Fallback: If logging fails, still handle the error gracefully
-        console.error('Logging failed, original error:', error);
+        if (process.env.NODE_ENV === "development") { // Console logging removed for banking standards
       }
       
       return NextResponse.json(

@@ -50,7 +50,7 @@ export const parsePlantBedDimensions = (sizeString: string) => {
     }
   }
   
-  console.warn("Could not parse plant bed dimensions from:", sizeString)
+  // Console logging removed for banking standards.warn("Could not parse plant bed dimensions from:", sizeString)
   return null
 }
 

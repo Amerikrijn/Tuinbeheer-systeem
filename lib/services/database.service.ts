@@ -575,7 +575,7 @@ export class LogbookService {
       } else {
         // SECURITY: If no garden filter is provided, this could be a security issue
         // We should log this and potentially block the request
-        console.warn('⚠️ SECURITY WARNING: LogbookService.getAll called without garden filtering')
+        // Console logging removed for banking standards.warn('⚠️ SECURITY WARNING: LogbookService.getAll called without garden filtering')
         // For now, we'll allow it for admin users, but this should be reviewed
       }
       if (filters?.limit) {
