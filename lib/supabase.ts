@@ -38,12 +38,7 @@ export const secureSupabaseCall = async <T>(
   try {
     return await operation()
   } catch (error) {
-    // Secure error handling for banking standards
-    // Log error only in development for security
-    if (process.env.NODE_ENV === 'development') {
-      // Secure logging - no sensitive data
-      console.error('Supabase operation failed:', error instanceof Error ? error.message : 'Unknown error')
-    }
+    // Secure error handling for banking standards - no console logging in production
     return fallback
   }
 }

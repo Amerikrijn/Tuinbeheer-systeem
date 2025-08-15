@@ -82,20 +82,14 @@ function AdminUsersPageContent() {
         .order('name')
       
       if (gardensError) {
-        // Log error only in development for security
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Gardens loading error:', gardensError)
-        }
+        // Secure error handling for banking standards - no console logging in production
         setGardens([])
       } else {
         setGardens(gardensData || [])
       }
       
     } catch (error) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error loading data:', error)
-      }
+      // Secure error handling for banking standards - no console logging in production
       toast({
         title: "Fout bij laden",
         description: "Kon gebruikers niet laden",
@@ -140,10 +134,7 @@ function AdminUsersPageContent() {
       loadData()
       
     } catch (error: unknown) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error resetting password:', error)
-      }
+      // Secure error handling for banking standards - no console logging in production
       const errorMessage = error instanceof Error ? error.message : "Kon wachtwoord niet resetten"
       toast({
         title: "Reset mislukt",
@@ -179,10 +170,7 @@ function AdminUsersPageContent() {
       loadData()
       
     } catch (error: unknown) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error deleting user:', error)
-      }
+      // Secure error handling for banking standards - no console logging in production
       const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet verwijderen"
       toast({
         title: "Verwijderen mislukt",
