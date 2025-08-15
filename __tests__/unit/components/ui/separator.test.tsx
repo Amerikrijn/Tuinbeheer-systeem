@@ -18,7 +18,7 @@ jest.mock('@radix-ui/react-separator', () => {
         'data-orientation': orientation,
         'data-decorative': decorative,
         ...props,
-        'data-testid': 'separator'
+        'data-testid': props['data-testid'] || 'separator'
       });
     })
   };
