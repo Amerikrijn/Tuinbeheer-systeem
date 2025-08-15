@@ -8,33 +8,36 @@ jest.mock('@/lib/utils', () => ({
 }));
 
 jest.mock('@radix-ui/react-avatar', () => ({
-  Root: ({ className, children, ...props }: any) => (
+  Root: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <div
+      ref={ref}
       className={className}
       data-testid="avatar-root"
       {...props}
     >
       {children}
     </div>
-  ),
-  Image: ({ className, src, alt, ...props }: any) => (
+  )),
+  Image: React.forwardRef(({ className, src, alt, ...props }: any, ref: any) => (
     <img
+      ref={ref}
       className={className}
       src={src}
       alt={alt}
       data-testid="avatar-image"
       {...props}
     />
-  ),
-  Fallback: ({ className, children, ...props }: any) => (
+  )),
+  Fallback: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <div
+      ref={ref}
       className={className}
       data-testid="avatar-fallback"
       {...props}
     >
       {children}
     </div>
-  ),
+  )),
 }));
 
 describe('Avatar Components', () => {

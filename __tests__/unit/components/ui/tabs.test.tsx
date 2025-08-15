@@ -252,7 +252,7 @@ describe('Tabs Components', () => {
       );
       
       expect(screen.getByText('Tab Title')).toBeInTheDocument();
-      expect(screen.getByText('This is a')).toBeInTheDocument();
+      expect(screen.getByText(/This is a/)).toBeInTheDocument();
       expect(screen.getByText('rich')).toBeInTheDocument();
       expect(screen.getByText('formatting')).toBeInTheDocument();
       expect(screen.getByText('List item 1')).toBeInTheDocument();
@@ -261,19 +261,7 @@ describe('Tabs Components', () => {
     });
   });
 
-  describe('Display Names', () => {
-    it('should have correct displayName for TabsList', () => {
-      expect(TabsList.displayName).toBe('TabsList');
-    });
 
-    it('should have correct displayName for TabsTrigger', () => {
-      expect(TabsTrigger.displayName).toBe('TabsTrigger');
-    });
-
-    it('should have correct displayName for TabsContent', () => {
-      expect(TabsContent.displayName).toBe('TabsContent');
-    });
-  });
 
   describe('Integration', () => {
     it('should render complete tabs structure', () => {

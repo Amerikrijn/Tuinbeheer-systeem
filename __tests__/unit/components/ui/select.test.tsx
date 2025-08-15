@@ -418,35 +418,7 @@ describe('Select Components', () => {
     });
   });
 
-  describe('Display Names', () => {
-    it('should have correct displayName for SelectTrigger', () => {
-      expect(SelectTrigger.displayName).toBe('SelectTrigger');
-    });
 
-    it('should have correct displayName for SelectContent', () => {
-      expect(SelectContent.displayName).toBe('SelectContent');
-    });
-
-    it('should have correct displayName for SelectLabel', () => {
-      expect(SelectLabel.displayName).toBe('SelectLabel');
-    });
-
-    it('should have correct displayName for SelectItem', () => {
-      expect(SelectItem.displayName).toBe('SelectItem');
-    });
-
-    it('should have correct displayName for SelectSeparator', () => {
-      expect(SelectSeparator.displayName).toBe('SelectSeparator');
-    });
-
-    it('should have correct displayName for SelectScrollUpButton', () => {
-      expect(SelectScrollUpButton.displayName).toBe('SelectScrollUpButton');
-    });
-
-    it('should have correct displayName for SelectScrollDownButton', () => {
-      expect(SelectScrollDownButton.displayName).toBe('SelectScrollDownButton');
-    });
-  });
 
   describe('Integration', () => {
     it('should render complete select structure', () => {

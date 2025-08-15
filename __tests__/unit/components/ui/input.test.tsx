@@ -170,8 +170,8 @@ describe('Input Component', () => {
     });
 
     it('should handle color input type', () => {
-      render(<Input type="color" />);
-      const input = screen.getByDisplayValue('');
+      render(<Input type="color" data-testid="color-input" />);
+      const input = screen.getByTestId('color-input');
       expect(input).toHaveAttribute('type', 'color');
     });
 

@@ -487,8 +487,9 @@ describe('Table Components', () => {
       );
 
       const table = screen.getByRole('table');
-      const thead = screen.getByRole('rowgroup');
-      const tbody = screen.getByRole('rowgroup');
+      const rowgroups = screen.getAllByRole('rowgroup');
+      const thead = rowgroups[0]; // First rowgroup is thead
+      const tbody = rowgroups[1]; // Second rowgroup is tbody
       const header = screen.getByRole('columnheader');
       const cell = screen.getByRole('cell');
 
