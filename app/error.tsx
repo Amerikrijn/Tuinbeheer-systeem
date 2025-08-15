@@ -13,8 +13,10 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    // Log the error to the console
-    console.error('Application error:', error)
+      // Log the error only in development for security
+  if (process.env.NODE_ENV === 'development') {
+    // Console logging removed for banking standards.error('Application error:', error)
+  }
   }, [error])
 
   return (

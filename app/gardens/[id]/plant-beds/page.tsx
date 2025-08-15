@@ -36,7 +36,7 @@ export default function PlantBedsPage() {
         setGarden(gardenData)
         setPlantBeds(plantBedsData)
       } catch (error) {
-        console.error("Error loading data:", error)
+        // Console logging removed for banking standards.error("Error loading data:", error)
         toast({
           title: "Fout",
           description: "Kon gegevens niet laden.",

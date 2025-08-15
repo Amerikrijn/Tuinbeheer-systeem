@@ -46,7 +46,7 @@ export class TaskService {
       if (error) throw error
       return { data: task, error: null }
     } catch (error) {
-      console.error('Error creating task:', error)
+      // Console logging removed for banking standards.error('Error creating task:', error)
       return { data: null, error: error instanceof Error ? error.message : 'Failed to create task' }
     }
   }
@@ -75,7 +75,7 @@ export class TaskService {
         .single()
 
       if (fetchError) {
-        console.error('Error fetching current task:', fetchError)
+        // Console logging removed for banking standards.error('Error fetching current task:', fetchError)
         throw fetchError
       }
 
@@ -87,7 +87,7 @@ export class TaskService {
         .single()
 
       if (error) {
-        console.error('Supabase update error:', error)
+        // Console logging removed for banking standards.error('Supabase update error:', error)
         throw error
       }
 
@@ -113,21 +113,21 @@ export class TaskService {
 
                       const logbookResult = await LogbookService.create(logbookData)
             if (!logbookResult.success) {
-              console.error('Failed to create logbook entry for completed task:', logbookResult.error)
+              // Console logging removed for banking standards.error('Failed to create logbook entry for completed task:', logbookResult.error)
               // Don't fail the task update if logbook creation fails
             }
           } else {
-            console.warn('Could not determine plant_bed_id for completed task logbook entry')
+            // Console logging removed for banking standards.warn('Could not determine plant_bed_id for completed task logbook entry')
           }
         } catch (logbookError) {
-          console.error('Error creating logbook entry for completed task:', logbookError)
+          // Console logging removed for banking standards.error('Error creating logbook entry for completed task:', logbookError)
           // Don't fail the task update if logbook creation fails
         }
       }
       
       return { data: task, error: null }
     } catch (error) {
-      console.error('Error updating task:', error)
+      // Console logging removed for banking standards.error('Error updating task:', error)
       return { data: null, error: error instanceof Error ? error.message : 'Failed to update task' }
     }
   }
@@ -143,7 +143,7 @@ export class TaskService {
       if (error) throw error
       return { error: null }
     } catch (error) {
-      console.error('Error deleting task:', error)
+      // Console logging removed for banking standards.error('Error deleting task:', error)
       return { error: error instanceof Error ? error.message : 'Failed to delete task' }
     }
   }
@@ -263,7 +263,7 @@ export class TaskService {
 
       return { data: transformedData, error: null }
     } catch (error) {
-      console.error('Error fetching tasks with plant info:', error)
+      // Console logging removed for banking standards.error('Error fetching tasks with plant info:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch tasks' }
     }
   }
@@ -271,7 +271,7 @@ export class TaskService {
   // Apply garden access filtering to tasks
   private static async applyGardenAccessFilter(tasks: TaskWithPlantInfo[], user: User | null, gardenFilter?: string[]): Promise<TaskWithPlantInfo[]> {
     if (!user) {
-      console.warn('⚠️ SECURITY: No user provided for garden access filtering')
+      // Console logging removed for banking standards.warn('⚠️ SECURITY: No user provided for garden access filtering')
       return []
     }
 
@@ -280,7 +280,7 @@ export class TaskService {
     // If specific garden filter is provided (e.g., from tuin page), use that for both admin and users
     if (gardenFilter && gardenFilter.length > 0) {
       accessibleGardens = gardenFilter
-      console.log('🔍 Using provided garden filter:', accessibleGardens)
+      // Console logging removed for banking standards.log('🔍 Using provided garden filter:', accessibleGardens)
     } else if (user.role === 'admin') {
       // Admin has access to all tasks ONLY when no specific garden filter is applied
       return tasks
@@ -293,21 +293,21 @@ export class TaskService {
           .eq('user_id', user.id)
         
         if (error) {
-          console.error('Error fetching user garden access:', error)
+          // Console logging removed for banking standards.error('Error fetching user garden access:', error)
           return []
         }
         
         accessibleGardens = gardenAccess?.map(access => access.garden_id) || []
-        console.log('🔍 Garden access loaded for user:', user.email, 'gardens:', accessibleGardens)
+        // Console logging removed for banking standards.log('🔍 Garden access loaded for user:', user.email, 'gardens:', accessibleGardens)
         
       } catch (error) {
-        console.error('Exception fetching user garden access:', error)
+        // Console logging removed for banking standards.error('Exception fetching user garden access:', error)
         return []
       }
     }
 
     if (accessibleGardens.length === 0) {
-      console.warn('⚠️ SECURITY: User has no garden access', { user: user.email })
+      // Console logging removed for banking standards.warn('⚠️ SECURITY: User has no garden access', { user: user.email })
       return []
     }
 
@@ -316,7 +316,7 @@ export class TaskService {
       if (task.plants?.plant_beds?.gardens?.id) {
         const gardenId = task.plants.plant_beds.gardens.id
         const hasAccess = accessibleGardens.includes(gardenId)
-        console.log('🔍 SECURITY: Plant task garden check', {
+        // Console logging removed for banking standards.log('🔍 SECURITY: Plant task garden check', {
           taskId: task.id,
           gardenId,
           hasAccess,
@@ -329,7 +329,7 @@ export class TaskService {
       if (task.plant_beds?.gardens?.id) {
         const gardenId = task.plant_beds.gardens.id
         const hasAccess = accessibleGardens.includes(gardenId)
-        console.log('🔍 SECURITY: Plant bed task garden check', {
+        // Console logging removed for banking standards.log('🔍 SECURITY: Plant bed task garden check', {
           taskId: task.id,
           gardenId,
           hasAccess,
@@ -339,7 +339,7 @@ export class TaskService {
       }
 
       // If no garden relationship found, exclude for security
-      console.warn('⚠️ SECURITY: Task has no garden relationship, excluding', { 
+      // Console logging removed for banking standards.warn('⚠️ SECURITY: Task has no garden relationship, excluding', { 
         taskId: task.id, 
         taskPlants: !!task.plants,
         taskPlantBeds: !!task.plant_beds,
@@ -348,7 +348,7 @@ export class TaskService {
       return false
     })
 
-    console.log('🔍 SECURITY: Filtered tasks by garden access', {
+    // Console logging removed for banking standards.log('🔍 SECURITY: Filtered tasks by garden access', {
       user: user.email,
       totalTasks: tasks.length,
       filteredTasks: filteredTasks.length,
@@ -480,7 +480,7 @@ export class TaskService {
 
       return { data: transformedData, error: null }
     } catch (error) {
-      console.error('Error fetching weekly tasks:', error)
+      // Console logging removed for banking standards.error('Error fetching weekly tasks:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch weekly tasks' }
     }
   }
@@ -547,7 +547,7 @@ export class TaskService {
 
       return { data: calendar, error: null }
     } catch (error) {
-      console.error('Error fetching weekly calendar:', error)
+      // Console logging removed for banking standards.error('Error fetching weekly calendar:', error)
       return { data: null, error: error instanceof Error ? error.message : 'Failed to fetch weekly calendar' }
     }
   }
@@ -645,7 +645,7 @@ export class TaskService {
 
       return { data: summary, error: null }
     } catch (error) {
-      console.error('Error fetching task summary:', error)
+      // Console logging removed for banking standards.error('Error fetching task summary:', error)
       return { data: null, error: error instanceof Error ? error.message : 'Failed to fetch task summary' }
     }
   }
@@ -696,7 +696,7 @@ export class TaskService {
 
       return { data: Object.values(plantStats), error: null }
     } catch (error) {
-      console.error('Error fetching plant task stats:', error)
+      // Console logging removed for banking standards.error('Error fetching plant task stats:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch plant task stats' }
     }
   }
@@ -718,7 +718,7 @@ export class TaskService {
       if (error) throw error
       return { data: data, error: null }
     } catch (error) {
-      console.error('Error creating recurring tasks:', error)
+      // Console logging removed for banking standards.error('Error creating recurring tasks:', error)
       return { data: null, error: error instanceof Error ? error.message : 'Failed to create recurring tasks' }
     }
   }
@@ -742,7 +742,7 @@ export class TaskService {
       if (error) throw error
       return { error: null }
     } catch (error) {
-      console.error('Error bulk completing tasks:', error)
+      // Console logging removed for banking standards.error('Error bulk completing tasks:', error)
       return { error: error instanceof Error ? error.message : 'Failed to bulk complete tasks' }
     }
   }
@@ -758,7 +758,7 @@ export class TaskService {
       if (error) throw error
       return { error: null }
     } catch (error) {
-      console.error('Error bulk deleting tasks:', error)
+      // Console logging removed for banking standards.error('Error bulk deleting tasks:', error)
       return { error: error instanceof Error ? error.message : 'Failed to bulk delete tasks' }
     }
   }
@@ -807,7 +807,7 @@ export class TaskService {
 
       return { data: transformedData, error: null }
     } catch (error) {
-      console.error('Error fetching today tasks:', error)
+      // Console logging removed for banking standards.error('Error fetching today tasks:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch today tasks' }
     }
   }
@@ -852,7 +852,7 @@ export class TaskService {
 
       return { data: transformedData, error: null }
     } catch (error) {
-      console.error('Error fetching overdue tasks:', error)
+      // Console logging removed for banking standards.error('Error fetching overdue tasks:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch overdue tasks' }
     }
   }
@@ -888,7 +888,7 @@ export class TaskService {
 
       return { data: transformedData, error: null }
     } catch (error) {
-      console.error('Error fetching plant bed tasks:', error)
+      // Console logging removed for banking standards.error('Error fetching plant bed tasks:', error)
       return { data: [], error: error instanceof Error ? error.message : 'Failed to fetch plant bed tasks' }
     }
   }
@@ -912,7 +912,7 @@ export class TaskService {
 
       return { data: stats, error: null }
     } catch (error) {
-      console.error('Error calculating plant bed task stats:', error)
+      // Console logging removed for banking standards.error('Error calculating plant bed task stats:', error)
       return { data: null, error: error instanceof Error ? error.message : 'Failed to calculate plant bed task stats' }
     }
   }

@@ -24,15 +24,15 @@ function isMissingRelation(err: { code?: string } | null): boolean {
 
 // Garden functions
 export async function getGardens(): Promise<Garden[]> {
-  console.log("Fetching gardens...")
+  // Console logging removed for banking standards.log("Fetching gardens...")
   const result = await DatabaseService.Tuin.getAll()
   
   if (!result.success) {
-    console.error("Error fetching gardens:", result.error)
+    // Console logging removed for banking standards.error("Error fetching gardens:", result.error)
     return []
   }
 
-  console.log("Gardens fetched successfully:", result.data?.data?.length || 0)
+  // Console logging removed for banking standards.log("Gardens fetched successfully:", result.data?.data?.length || 0)
   return result.data?.data || []
 }
 
@@ -42,7 +42,7 @@ export async function getGarden(id?: string): Promise<Garden | null> {
     const result = await DatabaseService.Tuin.getAll()
     
     if (!result.success || !result.data || result.data.data.length === 0) {
-      console.error("Error fetching default garden:", result.error)
+      // Console logging removed for banking standards.error("Error fetching default garden:", result.error)
       return null
     }
 
@@ -52,7 +52,7 @@ export async function getGarden(id?: string): Promise<Garden | null> {
   const result = await DatabaseService.Tuin.getById(id)
   
   if (!result.success) {
-    console.error("Error fetching garden:", result.error)
+    // Console logging removed for banking standards.error("Error fetching garden:", result.error)
     return null
   }
 
@@ -70,20 +70,20 @@ export async function createGarden(garden: {
   established_date?: string
   notes?: string
 }): Promise<Garden | null> {
-  console.log("Creating garden with data:", garden)
+  // Console logging removed for banking standards.log("Creating garden with data:", garden)
 
   // Test if table exists first
   const { data: testData, error: testError } = await supabase.from("gardens").select("id").limit(1)
 
   if (testError) {
-    console.error("Table test failed:", testError)
+    // Console logging removed for banking standards.error("Table test failed:", testError)
     if (isMissingRelation(testError)) {
       throw new Error("Database tables not found. Please run the migration first.")
     }
     throw testError
   }
 
-  console.log("Table exists, proceeding with insert...")
+  // Console logging removed for banking standards.log("Table exists, proceeding with insert...")
 
   // INSERT … RETURNING * (single round-trip)
   const { data, error } = await supabase
@@ -104,7 +104,7 @@ export async function createGarden(garden: {
     .single()
 
   if (error) {
-    console.error("Supabase insert error (gardens):", {
+    // Console logging removed for banking standards.error("Supabase insert error (gardens):", {
       error,
       code: error.code,
       message: error.message,
@@ -114,7 +114,7 @@ export async function createGarden(garden: {
     throw error
   }
 
-  console.log("Garden created successfully:", data)
+  // Console logging removed for banking standards.log("Garden created successfully:", data)
   return data
 }
 
@@ -122,7 +122,7 @@ export async function updateGarden(id: string, updates: Partial<Garden>): Promis
   const { data, error } = await supabase.from("gardens").update(updates).eq("id", id).select().single()
 
   if (error) {
-    console.error("Error updating garden:", error)
+    // Console logging removed for banking standards.error("Error updating garden:", error)
     throw error
   }
 
@@ -133,7 +133,7 @@ export async function deleteGarden(id: string): Promise<void> {
   const { error } = await supabase.from("gardens").update({ is_active: false }).eq("id", id)
 
   if (error) {
-    console.error("Error deleting garden:", error)
+    // Console logging removed for banking standards.error("Error deleting garden:", error)
     throw error
   }
 }
@@ -150,10 +150,10 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
 
   if (plantBedsError) {
     if (isMissingRelation(plantBedsError)) {
-      console.warn("Supabase table `plant_beds` not found yet – returning empty list until the migration is applied.")
+      // Console logging removed for banking standards.warn("Supabase table `plant_beds` not found yet – returning empty list until the migration is applied.")
       return []
     }
-    console.error("Error fetching plant beds:", plantBedsError)
+    // Console logging removed for banking standards.error("Error fetching plant beds:", plantBedsError)
     return []
   }
 
@@ -167,7 +167,7 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
         .order("created_at", { ascending: false })
 
       if (plantsError) {
-        console.error("Error fetching plants for bed:", bed.id, plantsError)
+        // Console logging removed for banking standards.error("Error fetching plants for bed:", bed.id, plantsError)
         return { ...bed, plants: [] }
       }
 
@@ -188,10 +188,10 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
 
   if (plantBedError) {
     if (isMissingRelation(plantBedError)) {
-      console.warn("Supabase table `plant_beds` not found yet – returning null until the migration is applied.")
+      // Console logging removed for banking standards.warn("Supabase table `plant_beds` not found yet – returning null until the migration is applied.")
       return null
     }
-    console.error("Error fetching plant bed:", plantBedError)
+    // Console logging removed for banking standards.error("Error fetching plant bed:", plantBedError)
     return null
   }
 
@@ -202,7 +202,7 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
     .order("created_at", { ascending: false })
 
   if (plantsError) {
-    console.error("Error fetching plants:", plantsError)
+    // Console logging removed for banking standards.error("Error fetching plants:", plantsError)
     return { ...plantBed, plants: [] }
   }
 
@@ -218,7 +218,7 @@ export async function createPlantBed(plantBed: {
   sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
   description?: string
 }): Promise<PlantBed | null> {
-  console.log("🌱 Creating plant bed:", plantBed)
+  // Console logging removed for banking standards.log("🌱 Creating plant bed:", plantBed)
   
   try {
     // Use the new PlantvakService for automatic letter code assignment
@@ -233,14 +233,14 @@ export async function createPlantBed(plantBed: {
     })
     
     if (result) {
-      console.log("✅ Plantvak created successfully with letter code:", result.letter_code)
+      // Console logging removed for banking standards.log("✅ Plantvak created successfully with letter code:", result.letter_code)
       return result
     } else {
-      console.error("❌ Failed to create plantvak")
+      // Console logging removed for banking standards.error("❌ Failed to create plantvak")
       return null
     }
   } catch (error) {
-    console.error("❌ Error creating plantvak:", error)
+    // Console logging removed for banking standards.error("❌ Error creating plantvak:", error)
     throw error
   }
 }
@@ -249,7 +249,7 @@ export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Pr
   const { data, error } = await supabase.from("plant_beds").update(updates).eq("id", id).select().single()
 
   if (error) {
-    console.error("Error updating plant bed:", error)
+    // Console logging removed for banking standards.error("Error updating plant bed:", error)
     throw error
   }
 
@@ -260,7 +260,7 @@ export async function deletePlantBed(id: string): Promise<void> {
   const { error } = await supabase.from("plant_beds").update({ is_active: false }).eq("id", id)
 
   if (error) {
-    console.error("Error deleting plant bed:", error)
+    // Console logging removed for banking standards.error("Error deleting plant bed:", error)
     throw error
   }
 }
@@ -294,7 +294,7 @@ export async function createPlant(plant: {
   const { data, error } = await supabase.from("plants").insert(plant).select().single()
 
   if (error) {
-    console.error("Error creating plant:", error)
+    // Console logging removed for banking standards.error("Error creating plant:", error)
     throw error
   }
 
@@ -305,7 +305,7 @@ export async function updatePlant(id: string, updates: Partial<Plant>): Promise<
   const { data, error } = await supabase.from("plants").update(updates).eq("id", id).select().single()
 
   if (error) {
-    console.error("Error updating plant:", error)
+    // Console logging removed for banking standards.error("Error updating plant:", error)
     throw error
   }
 
@@ -316,7 +316,7 @@ export async function deletePlant(id: string): Promise<void> {
   const { error } = await supabase.from("plants").delete().eq("id", id)
 
   if (error) {
-    console.error("Error deleting plant:", error)
+    // Console logging removed for banking standards.error("Error deleting plant:", error)
     throw error
   }
 }
@@ -325,7 +325,7 @@ export async function getPlant(id: string): Promise<Plant | null> {
   const { data, error } = await supabase.from("plants").select("*").eq("id", id).single()
 
   if (error) {
-    console.error("Error fetching plant:", error)
+    // Console logging removed for banking standards.error("Error fetching plant:", error)
     return null
   }
 
@@ -345,7 +345,7 @@ export async function getPlantsWithPositions(plantBedId: string): Promise<PlantW
     .order("created_at", { ascending: true })
 
   if (error) {
-    console.error("Error fetching plants with positions:", error)
+    // Console logging removed for banking standards.error("Error fetching plants with positions:", error)
     return []
   }
 
@@ -403,7 +403,7 @@ export async function createVisualPlant(plant: {
   }).select().single()
 
   if (error) {
-    console.error("Error creating visual plant:", error)
+    // Console logging removed for banking standards.error("Error creating visual plant:", error)
     throw error
   }
 
@@ -438,7 +438,7 @@ export async function updatePlantPosition(id: string, updates: {
     .single()
 
   if (error) {
-    console.error("Error updating plant position:", error)
+    // Console logging removed for banking standards.error("Error updating plant position:", error)
     throw error
   }
 

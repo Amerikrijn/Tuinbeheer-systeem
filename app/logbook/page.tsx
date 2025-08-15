@@ -65,13 +65,22 @@ function LogbookPageContent() {
       
       // For users, ensure garden access is loaded
       if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
-        console.log('🔍 Logbook - Loading garden access for user...')
+        // Log only in development for security
+    if (process.env.NODE_ENV === 'development') {
+      // Console logging removed for banking standards.log('🔍 Logbook - Loading garden access for user...')
+    }
         try {
           await loadGardenAccess()
           setGardenAccessLoaded(true)
-          console.log('✅ Logbook - Garden access loaded')
+          // Log only in development for security
+        if (process.env.NODE_ENV === 'development') {
+          // Console logging removed for banking standards.log('✅ Logbook - Garden access loaded')
+        }
         } catch (error) {
-          console.error('❌ Logbook - Failed to load garden access:', error)
+          // Log error only in development for security
+        if (process.env.NODE_ENV === 'development') {
+          // Console logging removed for banking standards.error('❌ Logbook - Failed to load garden access:', error)
+        }
           setGardenAccessLoaded(true) // Still mark as loaded to avoid infinite loop
         }
       } else {
@@ -109,7 +118,7 @@ function LogbookPageContent() {
       if (error) throw error
       setViewingUser(userData)
     } catch (error) {
-      console.error('Error loading user:', error)
+      // Console logging removed for banking standards.error('Error loading user:', error)
       toast({
         title: "Fout bij laden gebruiker",
         description: "Kon gebruikersgegevens niet laden",
@@ -127,7 +136,7 @@ function LogbookPageContent() {
       
       // Wait for garden access to be loaded for regular users
       if (user?.role === 'user' && !gardenAccessLoaded) {
-        console.log('🔍 Logbook - Waiting for garden access to be loaded...')
+        // Console logging removed for banking standards.log('🔍 Logbook - Waiting for garden access to be loaded...')
         return
       }
       
@@ -144,23 +153,23 @@ function LogbookPageContent() {
             .eq('user_id', viewingUser.id)
           
           if (error) {
-            console.error('Error fetching user garden access:', error)
+            // Console logging removed for banking standards.error('Error fetching user garden access:', error)
             accessibleGardens = []
           } else {
             accessibleGardens = gardenAccess?.map(access => access.garden_id) || []
           }
         } catch (error) {
-          console.error('Exception fetching user garden access:', error)
+          // Console logging removed for banking standards.error('Exception fetching user garden access:', error)
           accessibleGardens = []
         }
         
         hasGardenRestriction = accessibleGardens.length > 0
-        console.log('🔍 Admin viewing user logbook:', { user: viewingUser.email, gardens: accessibleGardens })
+        // Console logging removed for banking standards.log('🔍 Admin viewing user logbook:', { user: viewingUser.email, gardens: accessibleGardens })
       } else {
         // Regular user or admin viewing own logbook
         accessibleGardens = getAccessibleGardens()
         hasGardenRestriction = !isAdmin() && accessibleGardens.length > 0
-        console.log('🔍 Logbook viewing own:', { 
+        // Console logging removed for banking standards.log('🔍 Logbook viewing own:', { 
           isAdmin: isAdmin(), 
           gardens: accessibleGardens, 
           restricted: hasGardenRestriction,
@@ -221,12 +230,12 @@ function LogbookPageContent() {
           timeoutPromise
         ]) as { success: boolean; data?: unknown[]; error?: string }
       } catch (error) {
-        console.error('🔥 Logbook query error:', error)
+        // Console logging removed for banking standards.error('🔥 Logbook query error:', error)
         throw new Error(`Logbook query failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
       
       if (!response || !response.success) {
-        console.error('🔥 Logbook response invalid:', response)
+        // Console logging removed for banking standards.error('🔥 Logbook response invalid:', response)
         // Handle the case where response is valid but indicates an error
         if (response && response.error) {
           throw new Error(response.error)
@@ -276,7 +285,7 @@ function LogbookPageContent() {
         // Apply same garden filtering as logbook entries
         if (!isAdmin()) {
           if (accessibleGardens.length === 0) {
-            console.log('🔍 Logbook - No garden access, skipping tasks query')
+            // Console logging removed for banking standards.log('🔍 Logbook - No garden access, skipping tasks query')
             completedTasksData = []
           } else {
             if (filters.garden_id) {
@@ -323,7 +332,7 @@ function LogbookPageContent() {
           }))
         }
       } catch (error) {
-        console.warn('Failed to load completed tasks for logbook:', error)
+        // Console logging removed for banking standards.warn('Failed to load completed tasks for logbook:', error)
         completedTasksData = []
       }
 
@@ -332,7 +341,7 @@ function LogbookPageContent() {
       const completedTasks = Array.isArray(completedTasksData) ? completedTasksData : []
       const allEntries = [...logbookEntries, ...completedTasks]
 
-      console.log('🔍 Logbook - Combined entries:', {
+      // Console logging removed for banking standards.log('🔍 Logbook - Combined entries:', {
         logbookCount: logbookEntries.length,
         tasksCount: completedTasks.length,
         totalCount: allEntries.length

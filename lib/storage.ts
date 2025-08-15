@@ -64,7 +64,7 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
       })
 
     if (error) {
-      console.error('Storage upload error:', error)
+      // Console logging removed for banking standards.error('Storage upload error:', error)
       return {
         success: false,
         error: error.message
@@ -81,7 +81,7 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
       url: publicUrl
     }
   } catch (error) {
-    console.error('Upload error:', error)
+    // Console logging removed for banking standards.error('Upload error:', error)
     return {
       success: false,
       error: 'Failed to upload image'
@@ -109,13 +109,13 @@ export async function deleteImage(url: string): Promise<boolean> {
       .remove([filePath])
 
     if (error) {
-      console.error('Storage delete error:', error)
+      // Console logging removed for banking standards.error('Storage delete error:', error)
       return false
     }
 
     return true
   } catch (error) {
-    console.error('Delete error:', error)
+    // Console logging removed for banking standards.error('Delete error:', error)
     return false
   }
 }

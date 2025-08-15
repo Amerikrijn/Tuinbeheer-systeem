@@ -210,7 +210,10 @@ function NewLogbookPageContent() {
       })
 
     } catch (error) {
-      console.error('Photo upload error:', error)
+      // Log error only in development for security
+      if (process.env.NODE_ENV === 'development') {
+        // Console logging removed for banking standards.error('Photo upload error:', error)
+      }
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo'
       setState(prev => ({ ...prev, uploadingPhoto: false }))
       

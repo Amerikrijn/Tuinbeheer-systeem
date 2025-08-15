@@ -115,7 +115,9 @@ export default function GardenDetailPage() {
     const widthPixels = metersToPixels(lengthMeters)
     const heightPixels = metersToPixels(widthMeters)
     
-    console.log("🏡 Tuin schaal debug:", {
+    // Log only in development for security
+    if (process.env.NODE_ENV === 'development') {
+      // Console logging removed for banking standards.log("🏡 Tuin schaal debug:", {
       lengthMeters,
       widthMeters,
       widthPixels,
@@ -147,13 +149,16 @@ export default function GardenDetailPage() {
     if (!params.id) return
     
     try {
-      console.log("🔍 Loading garden data:", { paramsId: params.id, type: typeof params.id })
+      // Log only in development for security
+      if (process.env.NODE_ENV === 'development') {
+        // Console logging removed for banking standards.log("🔍 Loading garden data:", { paramsId: params.id, type: typeof params.id })
+      }
       setLoading(true)
       const [gardenData, plantBedsData] = await Promise.all([
         getGarden(params.id as string),
         getPlantBeds(params.id as string),
       ])
-      console.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
+      // Console logging removed for banking standards.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
       setGarden(gardenData)
       
       // Initialize garden form
@@ -191,7 +196,7 @@ export default function GardenDetailPage() {
           
           // Update the database with recalculated dimensions if they're different
           if (bed.visual_width !== visualWidth || bed.visual_height !== visualHeight) {
-            console.log(`🔧 Updating plantvak ${bed.name} dimensions:`, {
+            // Console logging removed for banking standards.log(`🔧 Updating plantvak ${bed.name} dimensions:`, {
               oldWidth: bed.visual_width,
               oldHeight: bed.visual_height,
               newWidth: visualWidth,
@@ -203,9 +208,9 @@ export default function GardenDetailPage() {
                 visual_width: visualWidth,
                 visual_height: visualHeight
               })
-              console.log(`✅ Successfully updated plantvak ${bed.name} dimensions`)
+              // Console logging removed for banking standards.log(`✅ Successfully updated plantvak ${bed.name} dimensions`)
             } catch (error) {
-              console.error(`❌ Failed to update plantvak ${bed.name} dimensions:`, error)
+              // Console logging removed for banking standards.error(`❌ Failed to update plantvak ${bed.name} dimensions:`, error)
             }
           }
         } else if (!visualWidth || !visualHeight) {
@@ -228,7 +233,7 @@ export default function GardenDetailPage() {
       
       setPlantBeds(processedBeds)
     } catch (error) {
-      console.error("Error loading data:", error)
+      // Console logging removed for banking standards.error("Error loading data:", error)
       setGarden(null)
       setPlantBeds([])
     } finally {
@@ -334,7 +339,7 @@ export default function GardenDetailPage() {
       
         // Removed toast notification
     } catch (error) {
-      console.error('Failed to update garden:', error)
+      // Console logging removed for banking standards.error('Failed to update garden:', error)
         // Removed toast notification
     }
   }
@@ -368,7 +373,7 @@ export default function GardenDetailPage() {
   const getDimensionsFromSize = (size: string) => {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
-      console.log(`✅ Plantvak dimensies: ${size} -> ${dimensions.lengthPixels}px × ${dimensions.widthPixels}px`)
+      // Console logging removed for banking standards.log(`✅ Plantvak dimensies: ${size} -> ${dimensions.lengthPixels}px × ${dimensions.widthPixels}px`)
       // Fix: In size strings like "4x3 meter", the first number (lengthMeters) is the visual width,
       // and the second number (widthMeters) is the visual height
       return {
@@ -376,7 +381,7 @@ export default function GardenDetailPage() {
         height: dimensions.widthPixels   // Second number = visual height (vertical)
       }
     }
-    console.log("❌ Plantvak dimensies niet geparsed, gebruik standaard 2x2m:", size)
+    // Console logging removed for banking standards.log("❌ Plantvak dimensies niet geparsed, gebruik standaard 2x2m:", size)
     // Default to 2x2 meters instead of minimum size
     return {
       width: metersToPixels(2),
@@ -551,7 +556,7 @@ export default function GardenDetailPage() {
       
       return createdFlowers
     } catch (error) {
-      console.error("Error creating sample flowers:", error)
+      // Console logging removed for banking standards.error("Error creating sample flowers:", error)
       return []
     }
   }, [])
@@ -560,13 +565,13 @@ export default function GardenDetailPage() {
   const checkAndAddMoreFlowers = useCallback(async (bed: PlantBedWithPlants) => {
     try {
       if (!bed.size) {
-        console.log(`⚠️ Bed ${bed.name} has no size, skipping flower check`)
+        // Console logging removed for banking standards.log(`⚠️ Bed ${bed.name} has no size, skipping flower check`)
         return
       }
       
       const dimensions = parsePlantBedDimensions(bed.size)
       if (!dimensions) {
-        console.log(`⚠️ Could not parse dimensions for bed ${bed.name}: ${bed.size}`)
+        // Console logging removed for banking standards.log(`⚠️ Could not parse dimensions for bed ${bed.name}: ${bed.size}`)
         return
       }
       
@@ -579,7 +584,7 @@ export default function GardenDetailPage() {
       if (area > 6) desiredFlowerCount = Math.max(3, Math.floor(area / 1.2))
       if (area > 12) desiredFlowerCount = Math.max(4, Math.floor(area))
       
-      console.log(`🌸 Bed ${bed.name}: ${area.toFixed(1)}m² → wants ${desiredFlowerCount} flowers, has ${currentFlowerCount}`)
+      // Console logging removed for banking standards.log(`🌸 Bed ${bed.name}: ${area.toFixed(1)}m² → wants ${desiredFlowerCount} flowers, has ${currentFlowerCount}`)
       
       // Add more flowers if needed
       if (desiredFlowerCount > currentFlowerCount) {
@@ -605,13 +610,13 @@ export default function GardenDetailPage() {
             return plantBed
           }))
           
-          console.log(`✅ Added ${additionalFlowers.length} flowers to ${bed.name}`)
+          // Console logging removed for banking standards.log(`✅ Added ${additionalFlowers.length} flowers to ${bed.name}`)
           
         // Removed toast notification
         }
       }
     } catch (error) {
-      console.error("Error adding more flowers:", error)
+      // Console logging removed for banking standards.error("Error adding more flowers:", error)
     }
   }, [createSampleFlowers])
 
@@ -641,7 +646,7 @@ export default function GardenDetailPage() {
           //   sessionStorage.setItem('gardenSaveShown', 'true')
           // }
         } catch (error) {
-          console.error("Error auto-saving plant bed position:", error)
+          // Console logging removed for banking standards.error("Error auto-saving plant bed position:", error)
         // Removed toast notification
         }
         
@@ -767,7 +772,7 @@ export default function GardenDetailPage() {
     const checkAllBedsForFlowers = async () => {
       for (const bed of plantBeds) {
         if (bed.plants.length === 0 && bed.size) {
-          console.log(`🌱 Auto-checking empty bed: ${bed.name}`)
+          // Console logging removed for banking standards.log(`🌱 Auto-checking empty bed: ${bed.name}`)
           await checkAndAddMoreFlowers(bed)
         }
       }
@@ -797,17 +802,17 @@ export default function GardenDetailPage() {
         // Removed toast notification
       }
     } catch (error) {
-      console.error("Error updating rotation:", error)
+      // Console logging removed for banking standards.error("Error updating rotation:", error)
         // Removed toast notification
     }
   }
 
   // Add new plant bed
   const addPlantBed = async () => {
-    console.log("🔍 Adding plant bed:", { garden: garden?.id, newPlantBed })
+    // Console logging removed for banking standards.log("🔍 Adding plant bed:", { garden: garden?.id, newPlantBed })
     
     if (!garden || !newPlantBed.name || !newPlantBed.length || !newPlantBed.width) {
-      console.log("❌ Validation failed:", { 
+      // Console logging removed for banking standards.log("❌ Validation failed:", { 
         garden: !!garden, 
         gardenId: garden?.id,
         name: newPlantBed.name, 
@@ -831,7 +836,7 @@ export default function GardenDetailPage() {
       const visualWidth = metersToPixels(length)
       const visualHeight = metersToPixels(width)
       
-      console.log("📐 Plantvak afmetingen:", {
+      // Console logging removed for banking standards.log("📐 Plantvak afmetingen:", {
         length: `${length}m`,
         width: `${width}m`, 
         visualWidth: `${visualWidth}px (horizontaal)`,
@@ -879,7 +884,7 @@ export default function GardenDetailPage() {
 
       const sizeString = `${length}m x ${width}m`
       
-      console.log("📝 Creating plant bed with data:", {
+      // Console logging removed for banking standards.log("📝 Creating plant bed with data:", {
         garden_id: garden.id,
         name: newPlantBed.name,
         size: sizeString,
@@ -937,7 +942,7 @@ export default function GardenDetailPage() {
         }
       }
     } catch (error) {
-      console.error("Error creating plant bed:", error)
+      // Console logging removed for banking standards.error("Error creating plant bed:", error)
         // Removed toast notification
     }
   }
@@ -961,7 +966,7 @@ export default function GardenDetailPage() {
       
         // Removed toast notification
     } catch (error) {
-      console.error("Error deleting plant bed:", error)
+      // Console logging removed for banking standards.error("Error deleting plant bed:", error)
         // Removed toast notification
     } finally {
       setDeletingBedId(null)

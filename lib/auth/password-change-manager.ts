@@ -203,7 +203,7 @@ export class PasswordChangeManager {
    */
   private async auditLog(action: string, details: Record<string, unknown>): Promise<void> {
     try {
-      console.log(`🏦 BANKING AUDIT: ${action}`, {
+      // Console logging removed for banking standards.log(`🏦 BANKING AUDIT: ${action}`, {
         timestamp: new Date().toISOString(),
         action,
         details,
@@ -215,7 +215,7 @@ export class PasswordChangeManager {
       
     } catch (error) {
       // Never fail the main operation due to logging issues
-      console.error('Audit logging failed (non-critical):', error)
+      // Console logging removed for banking standards.error('Audit logging failed (non-critical):', error)
     }
   }
 
@@ -241,7 +241,7 @@ export class PasswordChangeManager {
       // The force_password_change flag should now be false
 
     } catch (error) {
-      console.error('Password change flow completion error:', error)
+      // Console logging removed for banking standards.error('Password change flow completion error:', error)
     }
   }
 }

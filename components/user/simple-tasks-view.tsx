@@ -41,7 +41,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
         .eq('id', taskId)
       
       if (error) {
-        console.error('Error updating task:', error)
+        // Console logging removed for banking standards.error('Error updating task:', error)
         return
       }
       
@@ -55,7 +55,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
       )
       
     } catch (error) {
-      console.error('Error completing task:', error)
+      // Console logging removed for banking standards.error('Error completing task:', error)
     } finally {
       setCompletingTasks(prev => {
         const newSet = new Set(prev)
@@ -90,7 +90,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
     async function ensureGardenAccess() {
       if (!user) return
       
-      console.log('🔍 SimpleTasksView - Initial user state:', {
+      // Console logging removed for banking standards.log('🔍 SimpleTasksView - Initial user state:', {
         email: user.email,
         role: user.role,
         garden_access: user.garden_access,
@@ -99,13 +99,13 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
       
       // For users, ensure garden access is loaded
       if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
-        console.log('🔍 SimpleTasksView - Loading garden access for user...')
+        // Console logging removed for banking standards.log('🔍 SimpleTasksView - Loading garden access for user...')
         try {
           await loadGardenAccess()
           setGardenAccessLoaded(true)
-          console.log('✅ SimpleTasksView - Garden access loaded')
+          // Console logging removed for banking standards.log('✅ SimpleTasksView - Garden access loaded')
         } catch (error) {
-          console.error('❌ SimpleTasksView - Failed to load garden access:', error)
+          // Console logging removed for banking standards.error('❌ SimpleTasksView - Failed to load garden access:', error)
           setGardenAccessLoaded(true) // Still mark as loaded to avoid infinite loop
         }
       } else {
@@ -132,7 +132,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           setGardenNames(gardens?.map((g: { name: string }) => g.name) || [])
         }
       } catch (error) {
-        console.error('Error loading garden names:', error)
+        // Console logging removed for banking standards.error('Error loading garden names:', error)
       }
     }
     
@@ -148,7 +148,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
       try {
         // Check if user garden access is loaded
         if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
-          console.log('🔍 SimpleTasksView - User has no garden access loaded')
+          // Console logging removed for banking standards.log('🔍 SimpleTasksView - User has no garden access loaded')
           setTasks([])
           setLoading(false)
           return
@@ -157,13 +157,13 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
         const accessibleGardens = getAccessibleGardens()
         const { startOfWeek, endOfWeek } = getWeekDates(currentWeek)
         
-        console.log('🔍 SimpleTasksView - User:', user?.email)
-        console.log('🔍 SimpleTasksView - Garden access:', user?.garden_access)
-        console.log('🔍 SimpleTasksView - Accessible gardens:', accessibleGardens)
-        console.log('🔍 SimpleTasksView - Week range:', { startOfWeek: startOfWeek.toISOString(), endOfWeek: endOfWeek.toISOString() })
+        // Console logging removed for banking standards.log('🔍 SimpleTasksView - User:', user?.email)
+        // Console logging removed for banking standards.log('🔍 SimpleTasksView - Garden access:', user?.garden_access)
+        // Console logging removed for banking standards.log('🔍 SimpleTasksView - Accessible gardens:', accessibleGardens)
+        // Console logging removed for banking standards.log('🔍 SimpleTasksView - Week range:', { startOfWeek: startOfWeek.toISOString(), endOfWeek: endOfWeek.toISOString() })
         
         if (accessibleGardens.length === 0) {
-          console.log('⚠️ SimpleTasksView - No accessible gardens, showing empty state')
+          // Console logging removed for banking standards.log('⚠️ SimpleTasksView - No accessible gardens, showing empty state')
           setTasks([])
           setLoading(false)
           return
@@ -219,7 +219,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
 
         const allTasks = [...plantTasks, ...plantBedTasks]
 
-        console.log('🔍 SimpleTasksView - Raw tasks loaded:', {
+        // Console logging removed for banking standards.log('🔍 SimpleTasksView - Raw tasks loaded:', {
           plantTasks: plantTasks.length,
           plantBedTasks: plantBedTasks.length,
           total: allTasks.length,
@@ -246,13 +246,13 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           })
           
           setTasks(weeklyTasks)
-          console.log('🔍 SimpleTasksView - Final tasks set:', {
+          // Console logging removed for banking standards.log('🔍 SimpleTasksView - Final tasks set:', {
             weeklyTasks: weeklyTasks.length,
             sampleTask: weeklyTasks[0]
           })
         }
       } catch (error) {
-        console.error('Error loading weekly tasks:', error)
+        // Console logging removed for banking standards.error('Error loading weekly tasks:', error)
       } finally {
         setLoading(false)
       }

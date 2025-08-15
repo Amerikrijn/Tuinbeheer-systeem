@@ -93,9 +93,9 @@ export default function NewPlantBedPage() {
         }
         
         setNextLetterCode(nextCode)
-        console.log('🔤 Next letter code calculated:', nextCode)
+        // Console logging removed for banking standards.log('🔤 Next letter code calculated:', nextCode)
       } catch (error) {
-        console.error('Error loading garden:', error)
+        // Console logging removed for banking standards.error('Error loading garden:', error)
         toast({
           title: "Fout",
           description: "Kon tuin niet laden.",
@@ -152,14 +152,14 @@ export default function NewPlantBedPage() {
         description: newPlantBed.description,
       }
       
-      console.log('🔍 Form data being sent to PlantvakService:', JSON.stringify(plantvakData, null, 2))
-      console.log('🔍 Garden ID type:', typeof gardenId, 'Value:', gardenId)
-      console.log('🔍 Garden ID valid UUID:', /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(gardenId))
+      // Console logging removed for banking standards.log('🔍 Form data being sent to PlantvakService:', JSON.stringify(plantvakData, null, 2))
+      // Console logging removed for banking standards.log('🔍 Garden ID type:', typeof gardenId, 'Value:', gardenId)
+      // Console logging removed for banking standards.log('🔍 Garden ID valid UUID:', /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(gardenId))
 
       const plantBed = await PlantvakService.create(plantvakData)
 
       if (plantBed) {
-        console.log('✅ Plantvak created successfully:', plantBed)
+        // Console logging removed for banking standards.log('✅ Plantvak created successfully:', plantBed)
         toast({
           title: "Plantvak aangemaakt!",
           description: `Plantvak "${plantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code}.`,
@@ -175,14 +175,14 @@ export default function NewPlantBedPage() {
         
         router.push(`/gardens/${gardenId}/plant-beds/${plantBed.id}`)
       } else {
-        console.error('❌ PlantvakService.create returned null')
+        // Console logging removed for banking standards.error('❌ PlantvakService.create returned null')
         throw new Error('Failed to create plantvak - service returned null')
       }
     } catch (err) {
-      console.error("❌ Error creating plant bed:", err)
+      // Console logging removed for banking standards.error("❌ Error creating plant bed:", err)
       if (err && typeof err === 'object' && 'message' in err) {
         const error = err as Error
-        console.error("❌ Error details:", {
+        // Console logging removed for banking standards.error("❌ Error details:", {
           message: error.message,
           stack: error.stack,
           name: error.name

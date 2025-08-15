@@ -11,8 +11,10 @@ export default function GlobalError({
   reset: () => void
 }) {
   useEffect(() => {
-    // Log the error to console for debugging
-    console.error('Global error:', error)
+      // Log the error only in development for security
+  if (process.env.NODE_ENV === 'development') {
+    // Console logging removed for banking standards.error('Global error:', error)
+  }
     
     // In production, you might want to send this to an error reporting service
     if (process.env.NODE_ENV === 'production') {

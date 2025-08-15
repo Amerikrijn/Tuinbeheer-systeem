@@ -18,13 +18,13 @@ export interface User {
  */
 export function validateGardenAccess(user: User | null, gardenId: string): boolean {
   if (!user) {
-    console.error('🚨 SECURITY VIOLATION: validateGardenAccess called without user')
+    // Console logging removed for banking standards.error('🚨 SECURITY VIOLATION: validateGardenAccess called without user')
     return false
   }
 
   // Admin has access to all gardens
   if (user.role === 'admin') {
-    console.log('✅ SECURITY: Admin access granted for garden:', gardenId)
+    // Console logging removed for banking standards.log('✅ SECURITY: Admin access granted for garden:', gardenId)
     return true
   }
 
@@ -32,13 +32,13 @@ export function validateGardenAccess(user: User | null, gardenId: string): boole
   const hasAccess = user.garden_access?.includes(gardenId) || false
   
   if (!hasAccess) {
-    console.error('🚨 SECURITY VIOLATION: User attempted to access unauthorized garden:', {
+    // Console logging removed for banking standards.error('🚨 SECURITY VIOLATION: User attempted to access unauthorized garden:', {
       user: user.email,
       requestedGarden: gardenId,
       allowedGardens: user.garden_access
     })
   } else {
-    console.log('✅ SECURITY: User access granted for garden:', { user: user.email, garden: gardenId })
+    // Console logging removed for banking standards.log('✅ SECURITY: User access granted for garden:', { user: user.email, garden: gardenId })
   }
 
   return hasAccess
@@ -50,7 +50,7 @@ export function validateGardenAccess(user: User | null, gardenId: string): boole
  */
 export function validateMultipleGardenAccess(user: User | null, gardenIds: string[]): boolean {
   if (!user) {
-    console.error('🚨 SECURITY VIOLATION: validateMultipleGardenAccess called without user')
+    // Console logging removed for banking standards.error('🚨 SECURITY VIOLATION: validateMultipleGardenAccess called without user')
     return false
   }
 
@@ -75,7 +75,7 @@ export function validateMultipleGardenAccess(user: User | null, gardenIds: strin
  */
 export function filterAccessibleGardens(user: User | null, gardenIds: string[]): string[] {
   if (!user) {
-    console.error('🚨 SECURITY VIOLATION: filterAccessibleGardens called without user')
+    // Console logging removed for banking standards.error('🚨 SECURITY VIOLATION: filterAccessibleGardens called without user')
     return []
   }
 
@@ -89,7 +89,7 @@ export function filterAccessibleGardens(user: User | null, gardenIds: string[]):
     user.garden_access?.includes(gardenId) || false
   )
 
-  console.log('🔍 SECURITY: Filtered gardens for user:', {
+  // Console logging removed for banking standards.log('🔍 SECURITY: Filtered gardens for user:', {
     user: user.email,
     requested: gardenIds,
     accessible: accessibleGardens,
@@ -105,7 +105,7 @@ export function filterAccessibleGardens(user: User | null, gardenIds: string[]):
  */
 export function getUserAccessibleGardens(user: User | null): string[] {
   if (!user) {
-    console.warn('⚠️ SECURITY: getUserAccessibleGardens called without user')
+    // Console logging removed for banking standards.warn('⚠️ SECURITY: getUserAccessibleGardens called without user')
     return []
   }
 

@@ -85,7 +85,10 @@ function ResetPasswordContent() {
         })
 
       } catch (error) {
-        console.error('Token validation error:', error)
+        // Log error only in development for security
+      if (process.env.NODE_ENV === 'development') {
+        // Console logging removed for banking standards.error('Token validation error:', error)
+      }
         setTokenError(error instanceof Error ? error.message : 'Onbekende fout bij validatie')
         setIsValidToken(false)
       } finally {
@@ -173,7 +176,10 @@ function ResetPasswordContent() {
       }, 1500)
       
     } catch (error) {
-      console.error('Password reset error:', error)
+      // Log error only in development for security
+      if (process.env.NODE_ENV === 'development') {
+        // Console logging removed for banking standards.error('Password reset error:', error)
+      }
       toast({
         title: "Wachtwoord wijzigen mislukt",
         description: error instanceof Error ? error.message : 'Er is een fout opgetreden',
