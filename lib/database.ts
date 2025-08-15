@@ -12,10 +12,7 @@ export const getGarden = async (id: string) => {
     if (error) throw error
     return data
   } catch (error) {
-    // Secure error handling for banking standards
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error fetching garden:', error instanceof Error ? error.message : 'Unknown error')
-    }
+    // Secure error handling for banking standards - no console logging in production
     return null
   }
 }
@@ -34,10 +31,7 @@ export const getPlantBeds = async (gardenId: string) => {
     if (error) throw error
     return data || []
   } catch (error) {
-    // Secure error handling for banking standards
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Error fetching plant beds:', error instanceof Error ? error.message : 'Unknown error')
-    }
+    // Secure error handling for banking standards - no console logging in production
     return []
   }
 }
@@ -60,7 +54,6 @@ export const createGarden = async (gardenData: {
   } catch (error) {
     // Secure error handling for banking standards
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error creating garden:', error instanceof Error ? error.message : 'Unknown error')
     }
     return null
   }
@@ -79,7 +72,6 @@ export const getPlant = async (id: string) => {
   } catch (error) {
     // Secure error handling for banking standards
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error fetching plant:', error instanceof Error ? error.message : 'Unknown error')
     }
     return null
   }
@@ -99,7 +91,6 @@ export const updatePlant = async (id: string, updateData: Record<string, unknown
   } catch (error) {
     // Secure error handling for banking standards
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error updating plant:', error instanceof Error ? error.message : 'Unknown error')
     }
     return null
   }
@@ -117,7 +108,6 @@ export const deletePlant = async (id: string) => {
   } catch (error) {
     // Secure error handling for banking standards
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error deleting plant:', error instanceof Error ? error.message : 'Unknown error')
     }
     return false
   }
@@ -139,7 +129,6 @@ export const getPlantBed = async (id: string) => {
   } catch (error) {
     // Secure error handling for banking standards
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error fetching plant bed:', error instanceof Error ? error.message : 'Unknown error')
     }
     return null
   }
@@ -164,7 +153,6 @@ export const createPlant = async (plantData: {
   } catch (error) {
     // Secure error handling for banking standards
     if (process.env.NODE_ENV === 'development') {
-      console.error('Error creating plant:', error instanceof Error ? error.message : 'Unknown error')
     }
     return null
   }
