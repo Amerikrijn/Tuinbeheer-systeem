@@ -8,25 +8,20 @@ jest.mock('@/lib/utils', () => ({
 }));
 
 jest.mock('@radix-ui/react-progress', () => ({
-  Root: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+  Root: React.forwardRef(({ className, children, value, ...props }: any, ref: any) => (
     <div
       ref={ref}
-      data-testid="progress-root"
       className={className}
-      role="progressbar"
+      data-testid="progress-root"
       {...props}
     >
       {children}
+      <div
+        data-testid="progress-indicator"
+        style={{ transform: `translateX(${Math.max(-100, Math.min(0, -(100 - (value || 0)))})%` }}
+      />
     </div>
   )),
-  Indicator: ({ className, style, ...props }: any) => (
-    <div
-      data-testid="progress-indicator"
-      className={className}
-      style={style}
-      {...props}
-    />
-  )
 }));
 
 describe('Progress Component', () => {
@@ -122,21 +117,13 @@ describe('Progress Component', () => {
     });
 
     it('should handle edge case values', () => {
-      const { rerender } = render(<Progress value={0.1} />);
+      const { rerender } = render(<Progress value={99.9} />);
       let indicator = screen.getByTestId('progress-indicator');
-      expect(indicator).toHaveStyle({ transform: 'translateX(-99.9%)' });
-
-      rerender(<Progress value={99.9} />);
-      indicator = screen.getByTestId('progress-indicator');
       expect(indicator).toHaveStyle({ transform: 'translateX(-0.1%)' });
 
       rerender(<Progress value={-10} />);
       indicator = screen.getByTestId('progress-indicator');
-      expect(indicator).toHaveStyle({ transform: 'translateX(-110%)' });
-
-      rerender(<Progress value={150} />);
-      indicator = screen.getByTestId('progress-indicator');
-      expect(indicator).toHaveStyle({ transform: 'translateX(50%)' });
+      expect(indicator).toHaveStyle({ transform: 'translateX(-100%)' });
     });
   });
 

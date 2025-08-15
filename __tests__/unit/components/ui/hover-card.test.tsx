@@ -7,30 +7,45 @@ jest.mock('@/lib/utils', () => ({
   cn: (...classes: any[]) => classes.filter(Boolean).join(' ')
 }));
 
-jest.mock('@radix-ui/react-hover-card', () => ({
-  Root: ({ children, ...props }: any) => (
-    <div data-testid="hover-card-root" {...props}>
-      {children}
-    </div>
-  ),
-  Trigger: ({ children, ...props }: any) => (
-    <button data-testid="hover-card-trigger" {...props}>
-      {children}
-    </button>
-  ),
-  Content: React.forwardRef(({ className, align, sideOffset, children, ...props }: any, ref: any) => (
+jest.mock('@radix-ui/react-hover-card', () => {
+  const Root = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <div
       ref={ref}
-      data-testid="hover-card-content"
-      data-align={align}
-      data-side-offset={sideOffset}
       className={className}
+      data-testid="hover-card-root"
       {...props}
     >
       {children}
     </div>
-  ))
-}));
+  ));
+  Root.displayName = 'Root';
+
+  const Trigger = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+    <div
+      ref={ref}
+      className={className}
+      data-testid="hover-card-trigger"
+      {...props}
+    >
+      {children}
+    </div>
+  ));
+  Trigger.displayName = 'Trigger';
+
+  const Content = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+    <div
+      ref={ref}
+      className={className}
+      data-testid="hover-card-content"
+      {...props}
+    >
+      {children}
+    </div>
+  ));
+  Content.displayName = 'Content';
+
+  return { Root, Trigger, Content };
+});
 
 describe('HoverCard Components', () => {
   describe('HoverCard', () => {

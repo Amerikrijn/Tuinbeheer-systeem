@@ -18,71 +18,124 @@ jest.mock('@/lib/utils', () => ({
   cn: (...classes: any[]) => classes.filter(Boolean).join(' ')
 }));
 
-jest.mock('@radix-ui/react-dialog', () => ({
-  Root: ({ children, ...props }: any) => (
-    <div data-testid="dialog-root" {...props}>
-      {children}
-    </div>
-  ),
-  Trigger: ({ children, ...props }: any) => (
-    <button data-testid="dialog-trigger" {...props}>
-      {children}
-    </button>
-  ),
-  Portal: ({ children }: any) => (
-    <div data-testid="dialog-portal">
-      {children}
-    </div>
-  ),
-  Overlay: React.forwardRef(({ className, ...props }: any, ref: any) => (
+jest.mock('@radix-ui/react-dialog', () => {
+  const Root = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <div
       ref={ref}
-      data-testid="dialog-overlay"
       className={className}
-      {...props}
-    />
-  )),
-  Content: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
-    <div
-      ref={ref}
-      data-testid="dialog-content"
-      className={className}
+      data-testid="dialog-root"
       {...props}
     >
       {children}
     </div>
-  )),
-  Close: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+  ));
+  Root.displayName = 'Root';
+
+  const Trigger = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <button
       ref={ref}
-      data-testid="dialog-close"
       className={className}
+      data-testid="dialog-trigger"
       {...props}
     >
       {children}
     </button>
-  )),
-  Title: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+  ));
+  Trigger.displayName = 'Trigger';
+
+  const Portal = ({ className, children, ...props }: any) => (
+    <div
+      className={className}
+      data-testid="dialog-portal"
+      {...props}
+    >
+      {children}
+    </div>
+  );
+  Portal.displayName = 'Portal';
+
+  const Overlay = React.forwardRef(({ className, ...props }: any, ref: any) => (
+    <div
+      ref={ref}
+      className={className}
+      data-testid="dialog-overlay"
+      {...props}
+    />
+  ));
+  Overlay.displayName = 'Overlay';
+
+  const Content = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+    <div
+      ref={ref}
+      className={className}
+      data-testid="dialog-content"
+      {...props}
+    >
+      {children}
+    </div>
+  ));
+  Content.displayName = 'Content';
+
+  const Close = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+    <button
+      ref={ref}
+      className={className}
+      data-testid="dialog-close"
+      {...props}
+    >
+      {children}
+    </button>
+  ));
+  Close.displayName = 'Close';
+
+  const Header = ({ className, children, ...props }: any) => (
+    <div
+      className={className}
+      data-testid="dialog-header"
+      {...props}
+    >
+      {children}
+    </div>
+  );
+  Header.displayName = 'Header';
+
+  const Footer = ({ className, children, ...props }: any) => (
+    <div
+      className={className}
+      data-testid="dialog-footer"
+      {...props}
+    >
+      {children}
+    </div>
+  );
+  Footer.displayName = 'Footer';
+
+  const Title = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <h2
       ref={ref}
-      data-testid="dialog-title"
       className={className}
+      data-testid="dialog-title"
       {...props}
     >
       {children}
     </h2>
-  )),
-  Description: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+  ));
+  Title.displayName = 'Title';
+
+  const Description = React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <p
       ref={ref}
-      data-testid="dialog-description"
       className={className}
+      data-testid="dialog-description"
       {...props}
     >
       {children}
     </p>
-  )),
-}));
+  ));
+  Description.displayName = 'Description';
+
+  return { Root, Trigger, Portal, Overlay, Content, Close, Header, Footer, Title, Description };
+});
 
 jest.mock('lucide-react', () => ({
   X: ({ ...props }: any) => (

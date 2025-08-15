@@ -7,27 +7,31 @@ jest.mock('@/lib/utils', () => ({
   cn: (...classes: any[]) => classes.filter(Boolean).join(' ')
 }));
 
-jest.mock('@radix-ui/react-checkbox', () => ({
-  Root: React.forwardRef(({ className, children, checked, disabled, ...props }: any, ref: any) => (
+jest.mock('@radix-ui/react-checkbox', () => {
+  const Root = React.forwardRef(({ className, children, checked, disabled, ...props }: any, ref: any) => (
     <div
       ref={ref}
-      data-testid="checkbox-root"
       className={className}
+      data-testid="checkbox-root"
       data-state={checked ? 'checked' : 'unchecked'}
-      data-disabled={disabled}
       {...props}
     >
       {children}
     </div>
-  )),
-  Indicator: ({ className, ...props }: any) => (
+  ));
+  Root.displayName = 'Root';
+
+  const Indicator = ({ className, ...props }: any) => (
     <div
-      data-testid="checkbox-indicator"
       className={className}
+      data-testid="checkbox-indicator"
       {...props}
     />
-  )
-}));
+  );
+  Indicator.displayName = 'Indicator';
+
+  return { Root, Indicator };
+});
 
 jest.mock('lucide-react', () => ({
   Check: ({ ...props }: any) => (
@@ -91,10 +95,10 @@ describe('Checkbox Component', () => {
     it('should handle children', () => {
       render(
         <Checkbox>
-          <span>Custom content</span>
+          <span data-testid="custom-content">Custom content</span>
         </Checkbox>
       );
-      expect(screen.getByText('Custom content')).toBeInTheDocument();
+      expect(screen.getByTestId('custom-content')).toBeInTheDocument();
     });
 
     it('should handle multiple checkboxes', () => {

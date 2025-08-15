@@ -11,29 +11,28 @@ jest.mock('@/components/ui/toggle', () => ({
   toggleVariants: jest.fn(() => 'mock-toggle-classes')
 }));
 
-jest.mock('radix-ui/react-toggle-group', () => ({
+jest.mock('@radix-ui/react-toggle-group', () => ({
   Root: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <div
       ref={ref}
-      data-testid="toggle-group-root"
       className={className}
-      role="group"
+      data-testid="toggle-group-root"
       {...props}
     >
       {children}
     </div>
   )),
-  Item: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
+  Item: React.forwardRef(({ className, children, value, ...props }: any, ref: any) => (
     <button
       ref={ref}
-      data-testid="toggle-group-item"
       className={className}
-      type="button"
+      data-testid="toggle-group-item"
+      data-value={value}
       {...props}
     >
       {children}
     </button>
-  ))
+  )),
 }));
 
 jest.mock('class-variance-authority', () => ({

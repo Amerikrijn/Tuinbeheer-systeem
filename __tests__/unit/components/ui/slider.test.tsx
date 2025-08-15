@@ -11,18 +11,8 @@ jest.mock('@radix-ui/react-slider', () => ({
   Root: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <div
       ref={ref}
+      className={className}
       data-testid="slider-root"
-      className={className}
-      role="slider"
-      {...props}
-    >
-      {children}
-    </div>
-  )),
-  Track: ({ className, children, ...props }: any) => (
-    <div
-      data-testid="slider-track"
-      className={className}
       {...props}
     >
       {children}
@@ -30,18 +20,25 @@ jest.mock('@radix-ui/react-slider', () => ({
   )),
   Range: ({ className, ...props }: any) => (
     <div
-      data-testid="slider-range"
       className={className}
+      data-testid="slider-range"
       {...props}
     />
   ),
   Thumb: ({ className, ...props }: any) => (
     <div
-      data-testid="slider-thumb"
       className={className}
+      data-testid="slider-thumb"
       {...props}
     />
-  )
+  ),
+  Track: ({ className, ...props }: any) => (
+    <div
+      className={className}
+      data-testid="slider-track"
+      {...props}
+    />
+  ),
 }));
 
 describe('Slider Component', () => {

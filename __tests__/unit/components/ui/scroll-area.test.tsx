@@ -11,17 +11,8 @@ jest.mock('@radix-ui/react-scroll-area', () => ({
   Root: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <div
       ref={ref}
+      className={className}
       data-testid="scroll-area-root"
-      className={className}
-      {...props}
-    >
-      {children}
-    </div>
-  )),
-  Viewport: ({ className, children, ...props }: any) => (
-    <div
-      data-testid="scroll-area-viewport"
-      className={className}
       {...props}
     >
       {children}
@@ -30,24 +21,31 @@ jest.mock('@radix-ui/react-scroll-area', () => ({
   Corner: ({ ...props }: any) => (
     <div data-testid="scroll-area-corner" {...props} />
   ),
-  ScrollAreaScrollbar: React.forwardRef(({ className, orientation, children, ...props }: any, ref: any) => (
+  Scrollbar: ({ className, children, ...props }: any) => (
     <div
-      ref={ref}
-      data-testid="scroll-bar"
-      data-orientation={orientation}
       className={className}
+      data-testid="scroll-area-scrollbar"
       {...props}
     >
       {children}
     </div>
-  )),
-  ScrollAreaThumb: ({ className, ...props }: any) => (
+  ),
+  Thumb: ({ className, ...props }: any) => (
     <div
-      data-testid="scroll-area-thumb"
       className={className}
+      data-testid="scroll-area-thumb"
       {...props}
     />
-  )
+  ),
+  Viewport: ({ className, children, ...props }: any) => (
+    <div
+      className={className}
+      data-testid="scroll-area-viewport"
+      {...props}
+    >
+      {children}
+    </div>
+  ),
 }));
 
 describe('ScrollArea Components', () => {

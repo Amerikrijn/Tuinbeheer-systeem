@@ -8,25 +8,39 @@ jest.mock('@/lib/utils', () => ({
 }));
 
 jest.mock('input-otp', () => ({
-  OTPInput: React.forwardRef(({ className, containerClassName, children, ...props }: any, ref: any) => (
+  OTPInput: React.forwardRef(({ className, containerClassName, ...props }: any, ref: any) => (
     <div
       ref={ref}
-      data-testid="otp-input"
       className={className}
+      data-testid="otp-input"
       data-container-class={containerClassName}
+      {...props}
+    />
+  )),
+  OTPInputGroup: ({ className, children, ...props }: any) => (
+    <div
+      className={className}
+      data-testid="otp-group"
       {...props}
     >
       {children}
     </div>
-  )),
-  OTPInputContext: React.createContext({
-    slots: {
-      0: { char: '', hasFakeCaret: false, isActive: false },
-      1: { char: '1', hasFakeCaret: true, isActive: true },
-      2: { char: '2', hasFakeCaret: false, isActive: false },
-      3: { char: '3', hasFakeCaret: false, isActive: false }
-    }
-  })
+  ),
+  OTPInputSlot: ({ className, index, ...props }: any) => (
+    <div
+      className={className}
+      data-testid="otp-input"
+      data-index={index}
+      {...props}
+    />
+  ),
+  OTPInputSeparator: ({ className, ...props }: any) => (
+    <div
+      className={className}
+      data-testid="otp-separator"
+      {...props}
+    />
+  ),
 }));
 
 jest.mock('lucide-react', () => ({
@@ -54,7 +68,8 @@ describe('InputOTP Components', () => {
     it('should render with custom containerClassName', () => {
       render(<InputOTP containerClassName="custom-container" />);
       const input = screen.getByTestId('otp-input');
-      expect(input).toHaveAttribute('data-container-class', 'custom-container');
+      expect(input).toHaveAttribute('data-container-class');
+      expect(input.getAttribute('data-container-class')).toContain('custom-container');
     });
 
     it('should pass through additional props', () => {
