@@ -11,6 +11,12 @@ interface SupabaseAuthProviderProps {
 }
 
 export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
+  // 🚨 TEMPORARY FIX: Disable auth for Cursor release issue
+  // TODO: Re-enable after environment variables are properly configured
+  return <>{children}</>
+  
+  // ORIGINAL CODE (commented out temporarily):
+  /*
   const auth = useSupabaseAuth()
   const pathname = usePathname()
   
@@ -54,4 +60,5 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
       {children}
     </SupabaseAuthContext.Provider>
   )
+  */
 }

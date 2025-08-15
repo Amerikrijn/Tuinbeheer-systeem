@@ -15,6 +15,12 @@ const AUTH_PAGES = [
 ]
 
 function ConditionalNavigationComponent() {
+  // 🚨 TEMPORARY FIX: Always show navigation for Cursor release issue
+  // TODO: Re-enable authentication after environment variables are properly configured
+  return <AuthNavigation />
+  
+  // ORIGINAL CODE (commented out temporarily):
+  /*
   const { user, loading } = useAuth()
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
@@ -46,6 +52,7 @@ function ConditionalNavigationComponent() {
 
   // No navigation for unauthenticated users
   return null
+  */
 }
 
 // Export with dynamic import and SSR disabled

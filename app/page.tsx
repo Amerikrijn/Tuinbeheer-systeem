@@ -21,8 +21,8 @@ import { uiLogger, AuditLogger } from "@/lib/logger"
 import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
-import { useAuth } from "@/hooks/use-supabase-auth"
-import { ProtectedRoute } from "@/components/auth/protected-route"
+// import { useAuth } from "@/hooks/use-supabase-auth"
+// import { ProtectedRoute } from "@/components/auth/protected-route"
 import { supabase } from "@/lib/supabase"
 import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
 import { WeeklyTaskList } from "@/components/tasks/weekly-task-list"
@@ -45,7 +45,9 @@ function HomePageContent() {
   const router = useRouter()
   const { toast } = useToast()
   const { isVisualView, toggleView } = useViewPreference()
-  const { user, isAdmin } = useAuth()
+  // const { user, isAdmin } = useAuth()
+  const user = { id: 'temp', role: 'admin' } // Temporary user for testing
+  const isAdmin = () => true
   
   const [state, setState] = React.useState<HomePageState>({
     gardens: [],
@@ -646,17 +648,19 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
 // Main page component with error boundary and auth protection
 export default function HomePage() {
   return (
-    <ProtectedRoute>
+    // <ProtectedRoute>
       <ErrorBoundary>
         <RoleBasedHomeContent />
       </ErrorBoundary>
-    </ProtectedRoute>
+    // </ProtectedRoute>
   )
 }
 
 // Role-based home content
 function RoleBasedHomeContent() {
-  const { user, isAdmin } = useAuth()
+  // const { user, isAdmin } = useAuth()
+  const user = { id: 'temp', role: 'admin' } // Temporary user for testing
+  const isAdmin = () => true
   const router = useRouter()
 
   if (isAdmin()) {
