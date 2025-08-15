@@ -8,7 +8,11 @@ jest.mock('@/lib/version', () => ({
 
 describe('/api/version', () => {
   beforeEach(() => {
-    process.env.NODE_ENV = 'test';
+    // Mock NODE_ENV for testing
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: 'test',
+      writable: true
+    });
   });
 
   afterEach(() => {
@@ -39,7 +43,11 @@ describe('/api/version', () => {
     });
 
     it('should handle missing NODE_ENV', async () => {
-      delete process.env.NODE_ENV;
+      // Mock NODE_ENV as undefined for testing
+      Object.defineProperty(process.env, 'NODE_ENV', {
+        value: undefined,
+        writable: true
+      });
       
       const response = await GET();
       const data = await response.json();
