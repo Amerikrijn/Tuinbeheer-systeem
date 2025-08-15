@@ -26,12 +26,15 @@ const supabaseAdmin = createClient(
   }
 )
 
-function localAuditLog(action: string, details: any) {
-  console.log(`🔒 ADMIN AUDIT: ${action}`, {
-    timestamp: new Date().toISOString(),
-    action,
-    details
-  })
+function localAuditLog(action: string, details: Record<string, unknown>) {
+  // Use structured logging instead of console.log for production
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🔒 ADMIN AUDIT: ${action}`, {
+      timestamp: new Date().toISOString(),
+      action,
+      details
+    })
+  }
 }
 
 // GET - List deleted users
@@ -44,7 +47,10 @@ export async function GET() {
       .order('updated_at', { ascending: false })
 
     if (error) {
-      console.error('Deleted users fetch error:', error)
+      // Log error for debugging but don't expose details to client
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Deleted users fetch error:', error)
+      }
       return NextResponse.json({ error: 'Failed to fetch deleted users' }, { status: 500 })
     }
 
@@ -52,7 +58,10 @@ export async function GET() {
 
     return NextResponse.json({ deletedUsers })
   } catch (error) {
-    console.error('GET trash error:', error)
+    // Log error for debugging but don't expose details to client
+    if (process.env.NODE_ENV === 'development') {
+      console.error('GET trash error:', error)
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -88,9 +97,12 @@ export async function PUT(request: NextRequest) {
       .eq('id', userId)
 
     if (restoreError) {
-      console.error('User restore failed:', restoreError)
+      // Log error for debugging but don't expose details to client
+      if (process.env.NODE_ENV === 'development') {
+        console.error('User restore failed:', restoreError)
+      }
       return NextResponse.json(
-        { error: `Restore failed: ${restoreError.message}` },
+        { error: 'Restore failed' },
         { status: 500 }
       )
     }
@@ -107,7 +119,10 @@ export async function PUT(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('PUT trash error:', error)
+    // Log error for debugging but don't expose details to client
+    if (process.env.NODE_ENV === 'development') {
+      console.error('PUT trash error:', error)
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -192,9 +207,12 @@ export async function DELETE(request: NextRequest) {
       .eq('id', userId)
 
     if (dbError) {
-      console.error('Database deletion failed:', dbError)
+      // Log error for debugging but don't expose details to client
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Database deletion failed:', dbError)
+      }
       return NextResponse.json(
-        { error: `Database deletion failed: ${dbError.message}` },
+        { error: 'Database deletion failed' },
         { status: 500 }
       )
     }
@@ -210,7 +228,10 @@ export async function DELETE(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('DELETE trash error:', error)
+    // Log error for debugging but don't expose details to client
+    if (process.env.NODE_ENV === 'development') {
+      console.error('DELETE trash error:', error)
+    }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
