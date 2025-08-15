@@ -29,21 +29,14 @@ const localStorageMock = {
   }),
 };
 
-// Mock Object.keys for localStorage
+// Mock Object.keys for localStorage - simplified to avoid recursion
 jest.spyOn(Object, 'keys').mockImplementation((obj) => {
   if (obj === localStorageMock) {
-    const keys: string[] = [];
-    for (const key in localStorageMock.store) {
-      keys.push(key);
-    }
-    return keys;
+    // Direct access to avoid recursion
+    return Object.getOwnPropertyNames(localStorageMock.store);
   }
-  // For other objects, use a simple approach
-  const keys: string[] = [];
-  for (const key in obj) {
-    keys.push(key);
-  }
-  return keys;
+  // For other objects, use standard approach
+  return Object.getOwnPropertyNames(obj);
 });
 
 Object.defineProperty(window, 'localStorage', {
@@ -142,7 +135,7 @@ describe('Version Utilities', () => {
       expect(localStorageMock.setItem).toHaveBeenCalledWith('app_version', APP_VERSION);
       
       // Check that console.log was called
-      expect(console.log).toHaveBeenCalledWith('Cache cleared due to version change');
+      expect(console.log).toHaveBeenCalledWith('🧹 Cleared stale cache due to version update:', APP_VERSION);
     });
 
     it('should not clear cache when version is the same', () => {
@@ -190,7 +183,7 @@ describe('Version Utilities', () => {
       expect(localStorageMock.setItem).toHaveBeenCalledWith('app_version', APP_VERSION);
       
       // Check that console.log was called
-      expect(console.log).toHaveBeenCalledWith('Cache cleared due to version change');
+      expect(console.log).toHaveBeenCalledWith('🧹 Cleared stale cache due to version update:', APP_VERSION);
     });
 
     it('should handle case when no tuinbeheer cache exists', () => {
@@ -240,7 +233,7 @@ describe('Version Utilities', () => {
       expect(localStorageMock.setItem).toHaveBeenCalledWith('app_version', APP_VERSION);
       
       // Check that console.log was called
-      expect(console.log).toHaveBeenCalledWith('Cache cleared due to version change');
+      expect(console.log).toHaveBeenCalledWith('🧹 Cleared stale cache due to version update:', APP_VERSION);
     });
   });
 });
