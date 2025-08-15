@@ -167,7 +167,19 @@ export default function GardenDetailPage() {
       }
       
       // Process plant beds to ensure they have correct visual dimensions
-      const processedBeds = await Promise.all(plantBedsData.map(async (bed: any) => {
+      const processedBeds = await Promise.all(plantBedsData.map(async (bed: {
+        id: string;
+        name: string;
+        size?: string;
+        visual_width?: number;
+        visual_height?: number;
+        position_x?: number;
+        position_y?: number;
+        rotation?: number;
+        z_index?: number;
+        color_code?: string;
+        visual_updated_at?: string;
+      }) => {
         let visualWidth = bed.visual_width
         let visualHeight = bed.visual_height
         
