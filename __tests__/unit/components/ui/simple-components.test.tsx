@@ -48,13 +48,13 @@ describe('Simple UI Components', () => {
   describe('components/ui/avatar.tsx', () => {
     it('should render avatar component', () => {
       const AvatarComponent = () => (
-        <div className="relative h-10 w-10 rounded-full">
+        <div className="relative h-10 w-10 rounded-full" data-testid="avatar-container">
           <div className="h-full w-full rounded-full bg-gray-200"></div>
         </div>
       );
       
       render(<AvatarComponent />);
-      expect(screen.getByRole('generic')).toBeInTheDocument();
+      expect(screen.getByTestId('avatar-container')).toBeInTheDocument();
     });
   });
 
@@ -151,13 +151,13 @@ describe('Simple UI Components', () => {
   describe('components/ui/skeleton.tsx', () => {
     it('should render skeleton component', () => {
       const SkeletonComponent = () => (
-        <div className="animate-pulse">
+        <div className="animate-pulse" data-testid="skeleton-container">
           <div className="h-4 w-full rounded bg-gray-200"></div>
         </div>
       );
       
       render(<SkeletonComponent />);
-      expect(screen.getByRole('generic')).toBeInTheDocument();
+      expect(screen.getByTestId('skeleton-container')).toBeInTheDocument();
     });
   });
 
