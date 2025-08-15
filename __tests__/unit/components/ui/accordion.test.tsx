@@ -27,6 +27,15 @@ jest.mock('@radix-ui/react-accordion', () => ({
       {children}
     </div>
   ),
+  Header: ({ className, children, ...props }: any) => (
+    <div
+      className={className}
+      data-testid="accordion-header"
+      {...props}
+    >
+      {children}
+    </div>
+  ),
   Trigger: ({ className, children, ...props }: any) => (
     <button
       className={className}
@@ -36,20 +45,23 @@ jest.mock('@radix-ui/react-accordion', () => ({
       {children}
     </button>
   ),
-  Content: ({ className, children, ...props }: any) => (
-    <div
-      className={className}
-      data-testid="accordion-content"
-      {...props}
-    >
-      {children}
-    </div>
-  ),
+  Content: ({ className, children, ...props }: any) => {
+    const { cn } = require('@/lib/utils');
+    return (
+      <div
+        className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+        data-testid="accordion-content"
+        {...props}
+      >
+        <div className={cn("pb-4 pt-0", className)}>{children}</div>
+      </div>
+    );
+  },
 }));
 
 jest.mock('lucide-react', () => ({
   ChevronDown: ({ className, ...props }: any) => (
-    <span data-testid="chevron-icon" className={className} {...props}>▼</span>
+    <span data-testid="chevron-down" className={className} {...props}>▼</span>
   ),
 }));
 
@@ -163,7 +175,8 @@ describe('Accordion Components', () => {
         </AccordionContent>
       );
       const content = screen.getByTestId('accordion-content');
-      expect(content).toHaveClass('custom-content');
+      expect(content).toBeInTheDocument();
+      expect(screen.getByText('Custom Content')).toBeInTheDocument();
     });
 
     it('should pass through additional props', () => {

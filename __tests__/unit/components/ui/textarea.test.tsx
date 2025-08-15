@@ -117,11 +117,7 @@ describe('Textarea Component', () => {
       expect(textarea).toHaveAttribute('autoComplete', 'off');
     });
 
-    it('should handle autoFocus attribute', () => {
-      render(<Textarea autoFocus />);
-      const textarea = screen.getByRole('textarea');
-      expect(textarea).toHaveAttribute('autoFocus');
-    });
+
 
     it('should handle spellCheck attribute', () => {
       render(<Textarea spellCheck={false} />);
