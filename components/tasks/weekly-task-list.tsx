@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -64,7 +64,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
   const [showTaskDialog, setShowTaskDialog] = useState(false)
 
   // Load weekly calendar
-  const loadWeeklyCalendar = async (weekStart: Date) => {
+  const loadWeeklyCalendar = useCallback(async (weekStart: Date) => {
     setLoading(true)
     setError(null)
     
@@ -82,7 +82,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
 
   // Complete/uncomplete task with simple, reliable approach
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
@@ -138,7 +138,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
   // Load data when week changes
   useEffect(() => {
     loadWeeklyCalendar(currentWeekStart)
-  }, [currentWeekStart])
+  }, [currentWeekStart, loadWeeklyCalendar])
 
   // Task Card Component
   const TaskCard = ({ task, compact = false, showPlantInfo = false }: { task: WeeklyTask; compact?: boolean; showPlantInfo?: boolean }) => {

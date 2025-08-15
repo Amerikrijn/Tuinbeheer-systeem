@@ -119,7 +119,7 @@ function NewLogbookPageContent() {
   // Initial load
   React.useEffect(() => {
     loadData()
-  }, [])
+  }, [loadData])
 
   // Load plants when plant bed ID changes
   React.useEffect(() => {

@@ -260,7 +260,7 @@ export default function PlantBedViewPage() {
   // Use consistent navigation hook for back navigation
 
   // Load tasks for this plant bed and its plants
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     if (!params.bedId) return
     
     setLoadingTasks(true)
@@ -317,7 +317,7 @@ export default function PlantBedViewPage() {
     } finally {
       setLoadingTasks(false)
     }
-  }
+  }, [params.bedId, flowerPositions, params.id])
 
   // Consistent task completion handler with automatic reordering
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
@@ -398,7 +398,7 @@ export default function PlantBedViewPage() {
   }
 
   // Calculate canvas size based on plant bed size using consistent scaling
-  const getCanvasSize = () => {
+  const getCanvasSize = useCallback(() => {
     if (!plantBed?.size) return { width: 600, height: 450 }
     
     const dimensions = parsePlantBedDimensions(plantBed.size)
@@ -416,7 +416,7 @@ export default function PlantBedViewPage() {
     }
     
     return calculatePlantBedCanvasSize(plantBed.size)
-  }
+  }, [plantBed?.size])
 
   const { width: canvasWidth, height: canvasHeight } = getCanvasSize()
 
@@ -471,7 +471,7 @@ export default function PlantBedViewPage() {
     if (plantBed && flowerPositions.length >= 0) {
       loadTasks()
     }
-  }, [plantBed, flowerPositions])
+  }, [plantBed, flowerPositions, loadTasks])
 
   // Smart auto-fill for flower beds based on size
   const autoFillFlowerBed = useCallback(async () => {
@@ -1214,7 +1214,7 @@ export default function PlantBedViewPage() {
     })
     
     setHasChanges(true)
-  }, [draggedFlower, dragOffset, scale, plantBed])
+  }, [draggedFlower, dragOffset, scale, plantBed, getCanvasSize])
 
   // Mouse move handler
   const onMouseMove = useCallback((e: React.MouseEvent) => {

@@ -70,7 +70,7 @@ function UserDashboardContent() {
     }
     
     ensureGardenAccess()
-  }, [user?.id, loadGardenAccess])
+  }, [user?.id, loadGardenAccess, user])
 
   useEffect(() => {
     if (user && gardenAccessLoaded) {

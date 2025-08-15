@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -34,9 +34,9 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
   // Load photos for the plant
   useEffect(() => {
     loadPlantPhotos()
-  }, [plantId, currentYear])
+  }, [plantId, currentYear, loadPlantPhotos])
 
-  const loadPlantPhotos = async () => {
+  const loadPlantPhotos = useCallback(async () => {
     setLoading(true)
     setError(null)
     
@@ -54,7 +54,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
     } finally {
       setLoading(false)
     }
-  }
+  }, [plantId, currentYear])
 
   const handlePhotoClick = (photo: LogbookEntryWithDetails) => {
     setSelectedPhoto(photo)
