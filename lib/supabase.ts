@@ -36,8 +36,20 @@ if (!config.url || !config.anonKey) {
 
 export const supabase = createClient(config.url, config.anonKey);
 
+// Admin client for server-side operations
+export const supabaseAdmin = createClient(
+  config.url,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || config.anonKey,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+);
+
 // ===================================================================
-// EXISTING TYPES (Extended for Visual Garden Designer)
+// CORE TYPES
 // ===================================================================
 
 export interface Garden {
@@ -83,6 +95,9 @@ export interface PlantBed {
   border_style?: string;
   border_color?: string;
   fill_pattern?: string;
+  size?: string;
+  sun_exposure?: string;
+  soil_type?: string;
   status: 'active' | 'archived' | 'deleted';
   archived_at?: string;
   deleted_at?: string;
@@ -101,20 +116,19 @@ export interface Plant {
   position_y: number;
   size: number;
   color?: string;
-  bloom_season?: string;
   height?: number;
-  spread?: number;
-  sun_requirements?: string;
-  water_requirements?: string;
-  soil_requirements?: string;
-  maintenance_level?: string;
-  special_features?: string;
-  notes?: string;
+  variety?: string;
+  plants_per_sqm?: number;
+  sun_preference?: 'full-sun' | 'partial-sun' | 'shade';
+  planting_date?: string;
+  expected_harvest_date?: string;
+  status: 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst';
+  care_instructions?: string;
+  watering_frequency?: string;
+  fertilizer_schedule?: string;
+  emoji?: string;
   image_url?: string;
-  status: 'active' | 'archived' | 'deleted';
-  archived_at?: string;
-  deleted_at?: string;
-  soft_delete: boolean;
+  notes?: string;
 }
 
 export interface PlantBedWithPlants extends PlantBed {
@@ -160,68 +174,54 @@ export interface Task {
   created_at: string;
   updated_at: string;
   due_date?: string;
+  priority?: 'low' | 'medium' | 'high';
+  task_type?: 'watering' | 'fertilizing' | 'pruning' | 'harvesting' | 'planting' | 'pest_control' | 'general';
+  status?: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   completed_at?: string;
-  priority: 'low' | 'medium' | 'high' | 'urgent';
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  task_type: 'watering' | 'fertilizing' | 'pruning' | 'planting' | 'harvesting' | 'maintenance' | 'other';
-  recurring: boolean;
-  recurrence_pattern?: string;
-  estimated_duration?: number;
-  actual_duration?: number;
   notes?: string;
-  soft_delete: boolean;
-}
-
-export interface LogbookEntry {
-  id: string;
-  title: string;
-  content: string;
-  garden_id: string;
-  plant_bed_id?: string;
-  plant_id?: string;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  entry_date: string;
-  weather_conditions?: string;
-  temperature?: number;
-  humidity?: number;
-  rainfall?: number;
-  notes?: string;
-  images?: string[];
-  tags?: string[];
-  status: 'draft' | 'published' | 'archived';
-  soft_delete: boolean;
-}
-
-export interface Plantvak {
-  id: string;
-  name: string;
-  letter_code: string;
-  plant_bed_id: string;
-  created_at: string;
-  updated_at: string;
-  position_x: number;
-  position_y: number;
-  width: number;
-  height: number;
-  shape: 'rectangle' | 'circle' | 'oval' | 'freeform';
-  color?: string;
-  border_style?: string;
-  border_color?: string;
-  fill_pattern?: string;
-  status: 'active' | 'archived' | 'deleted';
-  archived_at?: string;
-  deleted_at?: string;
-  soft_delete: boolean;
-}
-
-export interface PlantvakWithPlants extends Plantvak {
-  plants: Plant[];
 }
 
 // ===================================================================
-// DATABASE SCHEMA TYPES
+// API TYPES
+// ===================================================================
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  message?: string;
+}
+
+export interface BulkUpdatePositionsRequest {
+  positions: Array<{
+    id: string;
+    position_x: number;
+    position_y: number;
+  }>;
+}
+
+export interface UpdatePositionRequest {
+  position_x: number;
+  position_y: number;
+}
+
+// ===================================================================
+// VISUAL GARDEN CONSTANTS
+// ===================================================================
+
+export const VISUAL_GARDEN_CONSTANTS = {
+  GRID_SIZE: 20,
+  MIN_PLANT_SIZE: 1,
+  MAX_PLANT_SIZE: 5,
+  DEFAULT_PLANT_SIZE: 2,
+  CANVAS_PADDING: 20,
+  PLANT_SPACING: 2,
+  BED_MIN_SIZE: 3,
+  BED_MAX_SIZE: 10
+} as const;
+
+// ===================================================================
+// DATABASE TYPES
 // ===================================================================
 
 export interface Database {
@@ -242,6 +242,11 @@ export interface Database {
         Insert: Omit<Plant, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<Plant, 'id' | 'created_at' | 'updated_at'>>;
       };
+      tasks: {
+        Row: Task;
+        Insert: Omit<Task, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Task, 'id' | 'created_at' | 'updated_at'>>;
+      };
       users: {
         Row: User;
         Insert: Omit<User, 'id' | 'created_at' | 'updated_at'>;
@@ -251,21 +256,6 @@ export interface Database {
         Row: GardenAccess;
         Insert: Omit<GardenAccess, 'id' | 'created_at' | 'updated_at'>;
         Update: Partial<Omit<GardenAccess, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      tasks: {
-        Row: Task;
-        Insert: Omit<Task, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Task, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      logbook_entries: {
-        Row: LogbookEntry;
-        Insert: Omit<LogbookEntry, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<LogbookEntry, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      plantvaks: {
-        Row: Plantvak;
-        Insert: Omit<Plantvak, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Plantvak, 'id' | 'created_at' | 'updated_at'>>;
       };
     };
     Views: {
@@ -281,23 +271,16 @@ export interface Database {
 }
 
 // ===================================================================
-// UTILITY FUNCTIONS
+// LEGACY TYPES (for backward compatibility)
 // ===================================================================
 
-export function isTestEnvironment(): boolean {
-  return getCurrentEnvironment() === 'test';
-}
-
-export function getSupabaseUrl(): string {
-  return config.url;
-}
-
-export function getSupabaseAnonKey(): string {
-  return config.anonKey;
-}
+// Type aliases for backward compatibility
+export type Plantvak = PlantBed;
+export type PlantvakWithBloemen = PlantBedWithPlants;
+export type Bloem = Plant;
 
 // ===================================================================
 // EXPORT ALL TYPES
 // ===================================================================
 
-// Types are already exported above, no need to re-export
+// All types are already exported above, no need to re-export
