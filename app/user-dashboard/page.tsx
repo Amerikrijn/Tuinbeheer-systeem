@@ -78,12 +78,6 @@ function UserDashboardContent() {
     ensureGardenAccess()
   }, [user?.id, loadGardenAccess, user])
 
-  useEffect(() => {
-    if (user && gardenAccessLoaded) {
-      loadUserData()
-    }
-  }, [user, gardenAccessLoaded, loadUserData])
-
   const loadUserData = useCallback(async () => {
     if (!user || !gardenAccessLoaded) return
     
@@ -167,6 +161,12 @@ function UserDashboardContent() {
       setLoading(false)
     }
   }, [user, gardenAccessLoaded, getAccessibleGardens, toast])
+
+  useEffect(() => {
+    if (user && gardenAccessLoaded) {
+      loadUserData()
+    }
+  }, [user, gardenAccessLoaded, loadUserData])
 
   const getEntryTypeFromNotes = (notes: string): LogbookEntry['entry_type'] => {
     const lowerNotes = notes.toLowerCase()

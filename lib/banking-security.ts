@@ -168,3 +168,51 @@ export function generateSecureToken(length: number = 32): string {
   }
   return result
 }
+
+/**
+ * Client security event logging for compatibility
+ */
+export function logClientSecurityEvent(
+  event: string, 
+  severity?: string, 
+  success?: boolean, 
+  details?: string, 
+  timestamp?: number
+): void {
+  const logDetails: Record<string, unknown> = {}
+  
+  if (severity) logDetails.severity = severity
+  if (success !== undefined) logDetails.success = success
+  if (details) logDetails.details = details
+  if (timestamp) logDetails.timestamp = timestamp
+  
+  logSecurityEvent(event, logDetails)
+}
+
+/**
+ * API input validation for compatibility
+ */
+export function validateApiInput(
+  input: string, 
+  maxLength?: number, 
+  strict?: boolean,
+  additionalChecks?: boolean,
+  customPattern?: RegExp
+): ValidationResult {
+  const config: Partial<SecurityConfig> = {}
+  
+  if (maxLength !== undefined) {
+    config.maxInputLength = maxLength
+  }
+  
+  if (strict !== undefined) {
+    // Apply stricter validation if needed
+    config.allowedCharacters = /^[a-zA-Z0-9\s\-_.,!?@#$%^&*()+=<>{}[\]|\\/:;"'`~]+$/
+  }
+  
+  if (customPattern) {
+    config.allowedCharacters = customPattern
+  }
+  
+  return validateInput(input, config)
+}
