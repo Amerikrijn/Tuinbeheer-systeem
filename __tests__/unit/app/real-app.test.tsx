@@ -20,10 +20,34 @@ jest.mock('@/lib/supabase', () => ({
     },
     from: jest.fn(() => ({
       select: jest.fn(() => ({
-        eq: jest.fn(() => Promise.resolve({ data: [], error: null })),
+        eq: jest.fn(() => ({
+          not: jest.fn(() => Promise.resolve({ data: [], error: null })),
+        })),
+        limit: jest.fn(() => Promise.resolve({ data: [], error: null })),
+        count: jest.fn(() => Promise.resolve({ data: [], error: null })),
       })),
+      insert: jest.fn(() => Promise.resolve({ data: [], error: null })),
+      update: jest.fn(() => Promise.resolve({ data: [], error: null })),
+      delete: jest.fn(() => Promise.resolve({ data: [], error: null })),
     })),
   })),
+  supabase: {
+    auth: {
+      getUser: jest.fn(() => Promise.resolve({ data: { user: null }, error: null })),
+    },
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          not: jest.fn(() => Promise.resolve({ data: [], error: null })),
+        })),
+        limit: jest.fn(() => Promise.resolve({ data: [], error: null })),
+        count: jest.fn(() => Promise.resolve({ data: [], error: null })),
+      })),
+      insert: jest.fn(() => Promise.resolve({ data: [], error: null })),
+      update: jest.fn(() => Promise.resolve({ data: [], error: null })),
+      delete: jest.fn(() => Promise.resolve({ data: [], error: null })),
+    })),
+  },
 }));
 
 // Mock next/image
@@ -35,14 +59,41 @@ jest.mock('next/image', () => ({
   },
 }));
 
-// Mock auth context
+// Mock auth hook
 jest.mock('@/hooks/use-supabase-auth', () => ({
   useAuth: () => ({
     user: null,
+    session: null,
     loading: false,
+    error: null,
     signIn: jest.fn(),
     signOut: jest.fn(),
-    hasPermission: () => true,
+    signUp: jest.fn(),
+    resetPassword: jest.fn(),
+    hasPermission: jest.fn(() => false),
+    isAdmin: jest.fn(() => false),
+    hasGardenAccess: jest.fn(() => false),
+    getAccessibleGardens: jest.fn(() => []),
+    refreshUser: jest.fn(),
+    forceRefreshUser: jest.fn(),
+    loadGardenAccess: jest.fn(),
+  }),
+  useSupabaseAuth: () => ({
+    user: null,
+    session: null,
+    loading: false,
+    error: null,
+    signIn: jest.fn(),
+    signOut: jest.fn(),
+    signUp: jest.fn(),
+    resetPassword: jest.fn(),
+    hasPermission: jest.fn(() => false),
+    isAdmin: jest.fn(() => false),
+    hasGardenAccess: jest.fn(() => false),
+    getAccessibleGardens: jest.fn(() => []),
+    refreshUser: jest.fn(),
+    forceRefreshUser: jest.fn(),
+    loadGardenAccess: jest.fn(),
   }),
 }));
 
