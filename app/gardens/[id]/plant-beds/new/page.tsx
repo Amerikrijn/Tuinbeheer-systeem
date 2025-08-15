@@ -12,7 +12,7 @@ import { toast } from "@/components/ui/use-toast"
 import { ArrowLeft, Leaf, Plus, Sun, MapPin, Ruler, Droplets, Hash } from "lucide-react"
 import { PlantvakService } from "@/lib/services/plantvak.service"
 import { getGarden } from "@/lib/database"
-import type { Tuin } from "@/lib/types/index"
+import type { Tuin, PlantBed } from "@/lib/types/index"
 
 // Type alias for backward compatibility
 type Garden = Tuin
@@ -49,7 +49,7 @@ export default function NewPlantBedPage() {
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [nextLetterCode, setNextLetterCode] = useState<string>("...")
-  const [existingPlantvakken, setExistingPlantvakken] = useState<any[]>([])
+  const [existingPlantvakken, setExistingPlantvakken] = useState<PlantBed[]>([])
 
   const [newPlantBed, setNewPlantBed] = useState<NewPlantBed>({
     location: "",
@@ -181,10 +181,11 @@ export default function NewPlantBedPage() {
     } catch (err) {
       console.error("❌ Error creating plant bed:", err)
       if (err && typeof err === 'object' && 'message' in err) {
+        const error = err as Error
         console.error("❌ Error details:", {
-          message: (err as any).message,
-          stack: (err as any).stack,
-          name: (err as any).name
+          message: error.message,
+          stack: error.stack,
+          name: error.name
         })
       }
       toast({

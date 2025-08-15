@@ -1286,7 +1286,7 @@ const translations: Translations = {
 let currentLanguage: Language = "en"
 
 // Helper function to get nested translation
-function getNestedTranslation(obj: any, path: string[]): TranslationKey | undefined {
+function getNestedTranslation(obj: Record<string, unknown>, path: string[]): TranslationKey | undefined {
   let current = obj
   for (const key of path) {
     if (current && typeof current === "object" && key in current) {
@@ -1341,7 +1341,7 @@ export async function loadTranslations(lang?: Language): Promise<void> {
 export function getAllTranslations(lang: Language): Record<string, string> {
   const result: Record<string, string> = {}
 
-  function flatten(obj: any, prefix = ""): void {
+  function flatten(obj: Record<string, unknown>, prefix = ""): void {
     for (const key in obj) {
       if (obj.hasOwnProperty(key)) {
         const newKey = prefix ? `${prefix}.${key}` : key

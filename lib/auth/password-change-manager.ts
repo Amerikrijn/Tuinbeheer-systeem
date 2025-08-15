@@ -150,11 +150,13 @@ export class PasswordChangeManager {
         success: true
       }
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // Banking compliance: Log all failures
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorStack = error instanceof Error ? error.stack : 'No stack trace'
       await this.auditLog('PASSWORD_CHANGE_SYSTEM_ERROR', {
-        error: error.message,
-        stack: error.stack,
+        error: errorMessage,
+        stack: errorStack,
         timestamp: new Date().toISOString()
       })
 
@@ -187,10 +189,11 @@ export class PasswordChangeManager {
       }
 
       return { success: true }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       return {
         success: false,
-        error: error.message
+        error: errorMessage
       }
     }
   }
@@ -198,7 +201,7 @@ export class PasswordChangeManager {
   /**
    * Banking-grade audit logging
    */
-  private async auditLog(action: string, details: any): Promise<void> {
+  private async auditLog(action: string, details: Record<string, unknown>): Promise<void> {
     try {
       console.log(`🏦 BANKING AUDIT: ${action}`, {
         timestamp: new Date().toISOString(),

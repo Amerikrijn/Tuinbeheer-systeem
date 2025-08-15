@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Resolver } from 'react-hook-form';
 import { validateInput } from '@/lib/banking-security';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface FormData {
-  [key: string]: any;
+  [key: string]: string | number | boolean | undefined;
 }
 
 export function BankingForm({ 
@@ -18,7 +18,7 @@ export function BankingForm({
   description 
 }: {
   onSubmit: (data: FormData) => Promise<void>;
-  schema?: any;
+  schema?: Resolver<FormData>;
   children: React.ReactNode;
   title: string;
   description?: string;

@@ -111,11 +111,12 @@ export function CreateUserDialog({
       onUserCreated(result.user.tempPassword)
       onClose()
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating user:', error)
+      const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet aanmaken"
       toast({
         title: "Aanmaken mislukt",
-        description: error.message || "Kon gebruiker niet aanmaken",
+        description: errorMessage,
         variant: "destructive"
       })
     } finally {

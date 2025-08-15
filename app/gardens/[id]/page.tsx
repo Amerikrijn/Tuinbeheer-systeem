@@ -144,84 +144,87 @@ export default function GardenDetailPage() {
   })
 
   const loadData = useCallback(async () => {
-      try {
-        console.log("🔍 Loading garden data:", { paramsId: params.id, type: typeof params.id })
-        setLoading(true)
-        const [gardenData, plantBedsData] = await Promise.all([
-          getGarden(params.id as string),
-          getPlantBeds(params.id as string),
-        ])
-        console.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
-        setGarden(gardenData)
+    if (!params.id) return
+    
+    try {
+      console.log("🔍 Loading garden data:", { paramsId: params.id, type: typeof params.id })
+      setLoading(true)
+      const [gardenData, plantBedsData] = await Promise.all([
+        getGarden(params.id as string),
+        getPlantBeds(params.id as string),
+      ])
+      console.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
+      setGarden(gardenData)
+      
+      // Initialize garden form
+      if (gardenData) {
+        setGardenForm({
+          name: gardenData.name || '',
+          length: gardenData.length || '',
+          width: gardenData.width || '',
+          description: gardenData.description || ''
+        })
+      }
+      
+      // Process plant beds to ensure they have correct visual dimensions
+      const processedBeds = await Promise.all(plantBedsData.map(async (bed: any) => {
+        let visualWidth = bed.visual_width
+        let visualHeight = bed.visual_height
         
-        // Initialize garden form
-        if (gardenData) {
-          setGardenForm({
-            name: gardenData.name || '',
-            length: gardenData.length || '',
-            width: gardenData.width || '',
-            description: gardenData.description || ''
-          })
+        // Always recalculate from size to ensure correct scaling
+        if (bed.size) {
+          const dims = getDimensionsFromSize(bed.size)
+          visualWidth = dims.width
+          visualHeight = dims.height
+          
+          // Update the database with recalculated dimensions if they're different
+          if (bed.visual_width !== visualWidth || bed.visual_height !== visualHeight) {
+            console.log(`🔧 Updating plantvak ${bed.name} dimensions:`, {
+              oldWidth: bed.visual_width,
+              oldHeight: bed.visual_height,
+              newWidth: visualWidth,
+              newHeight: visualHeight,
+              size: bed.size
+            })
+            try {
+              await updatePlantBed(bed.id, {
+                visual_width: visualWidth,
+                visual_height: visualHeight
+              })
+              console.log(`✅ Successfully updated plantvak ${bed.name} dimensions`)
+            } catch (error) {
+              console.error(`❌ Failed to update plantvak ${bed.name} dimensions:`, error)
+            }
+          }
+        } else if (!visualWidth || !visualHeight) {
+          visualWidth = PLANTVAK_MIN_WIDTH
+          visualHeight = PLANTVAK_MIN_HEIGHT
         }
         
-        // Process plant beds to ensure they have correct visual dimensions
-        const processedBeds = await Promise.all(plantBedsData.map(async (bed: any) => {
-          let visualWidth = bed.visual_width
-          let visualHeight = bed.visual_height
-          
-          // Always recalculate from size to ensure correct scaling
-          if (bed.size) {
-            const dims = getDimensionsFromSize(bed.size)
-            visualWidth = dims.width
-            visualHeight = dims.height
-            
-            // Update the database with recalculated dimensions if they're different
-            if (bed.visual_width !== visualWidth || bed.visual_height !== visualHeight) {
-              console.log(`🔧 Updating plantvak ${bed.name} dimensions:`, {
-                oldWidth: bed.visual_width,
-                oldHeight: bed.visual_height,
-                newWidth: visualWidth,
-                newHeight: visualHeight,
-                size: bed.size
-              })
-              try {
-                await updatePlantBed(bed.id, {
-                  visual_width: visualWidth,
-                  visual_height: visualHeight
-                })
-                console.log(`✅ Successfully updated plantvak ${bed.name} dimensions`)
-              } catch (error) {
-                console.error(`❌ Failed to update plantvak ${bed.name} dimensions:`, error)
-              }
-            }
-          } else if (!visualWidth || !visualHeight) {
-            visualWidth = PLANTVAK_MIN_WIDTH
-            visualHeight = PLANTVAK_MIN_HEIGHT
-          }
-          
-          return {
-            ...bed,
-            visual_width: visualWidth,
-            visual_height: visualHeight,
-            position_x: bed.position_x ?? 100,
-            position_y: bed.position_y ?? 100,
-            rotation: bed.rotation ?? 0,
-            z_index: bed.z_index ?? 0,
-            color_code: bed.color_code ?? '',
-            visual_updated_at: bed.visual_updated_at ?? new Date().toISOString(),
-          }
-        }))
-        
-        setPlantBeds(processedBeds)
-      } catch (error) {
-        console.error("Error loading data:", error)
-        setGarden(null)
-        setPlantBeds([])
-      } finally {
-        setLoading(false)
-      }
-    }, [])
+        return {
+          ...bed,
+          visual_width: visualWidth,
+          visual_height: visualHeight,
+          position_x: bed.position_x ?? 100,
+          position_y: bed.position_y ?? 100,
+          rotation: bed.rotation ?? 0,
+          z_index: bed.z_index ?? 0,
+          color_code: bed.color_code ?? '',
+          visual_updated_at: bed.visual_updated_at ?? new Date().toISOString(),
+        }
+      }))
+      
+      setPlantBeds(processedBeds)
+    } catch (error) {
+      console.error("Error loading data:", error)
+      setGarden(null)
+      setPlantBeds([])
+    } finally {
+      setLoading(false)
+    }
+  }, [params.id])
 
+  useEffect(() => {
     if (params.id) {
       loadData()
     }

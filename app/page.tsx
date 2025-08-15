@@ -383,7 +383,7 @@ interface GardenCardProps {
 function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
   const [plantBeds, setPlantBeds] = React.useState<PlantvakWithBloemen[]>([])
   const [loadingFlowers, setLoadingFlowers] = React.useState(true)
-  const [gardenUsers, setGardenUsers] = React.useState<any[]>([])
+  const [gardenUsers, setGardenUsers] = React.useState<Array<{ id: string; email: string; full_name?: string }>>([])
   const [loadingUsers, setLoadingUsers] = React.useState(true)
 
   // Helper function to get emoji based on plant name

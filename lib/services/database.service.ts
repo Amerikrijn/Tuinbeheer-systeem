@@ -26,7 +26,7 @@ export class DatabaseError extends Error {
   constructor(
     message: string,
     public code?: string,
-    public details?: any,
+    public details?: unknown,
     public originalError?: Error
   ) {
     super(message)
@@ -38,7 +38,7 @@ export class ValidationError extends Error {
   constructor(
     message: string,
     public field?: string,
-    public value?: any
+    public value?: unknown
   ) {
     super(message)
     this.name = 'ValidationError'
@@ -82,7 +82,7 @@ function createResponse<T>(
   data: T | null, 
   error: string | null = null,
   operation?: string,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): ApiResponse<T> {
   const response = {
     data,
@@ -729,7 +729,7 @@ export class LogbookService {
         throw new NotFoundError('Logbook entry', id)
       }
 
-      const updateData: Record<string, any> = {}
+      const updateData: Record<string, unknown> = {}
       
       if (formData.notes !== undefined) {
         if (!formData.notes.trim()) {

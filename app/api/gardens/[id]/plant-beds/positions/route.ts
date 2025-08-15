@@ -11,7 +11,20 @@ import {
 // VALIDATION HELPERS
 // ===================================================================
 
-function validateBulkPositionRequest(data: any): { isValid: boolean; errors: string[] } {
+interface BulkPositionData {
+  positions: Array<{
+    id: string;
+    position_x: number;
+    position_y: number;
+    visual_width?: number;
+    visual_height?: number;
+    rotation?: number;
+    z_index?: number;
+    color_code?: string;
+  }>;
+}
+
+function validateBulkPositionRequest(data: BulkPositionData): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   // Check if positions array exists
@@ -33,7 +46,7 @@ function validateBulkPositionRequest(data: any): { isValid: boolean; errors: str
   }
   
   // Validate each position
-  data.positions.forEach((position: any, index: number) => {
+  data.positions.forEach((position, index: number) => {
     const prefix = `positions[${index}]`;
     
     // Required fields
@@ -304,7 +317,7 @@ export async function PUT(
     }
     
     // Verify all plant beds belong to this garden
-    const plantBedIds = body.positions.map((pos: any) => pos.id);
+    const plantBedIds = body.positions.map((pos) => pos.id);
     const { data: existingPlantBeds, error: fetchError } = await supabase
       .from('plant_beds')
       .select('id, garden_id')
@@ -449,7 +462,7 @@ export async function PATCH(
     }
     
     // Get current plant bed data
-    const plantBedIds = body.positions.map((pos: any) => pos.id);
+    const plantBedIds = body.positions.map((pos) => pos.id);
     const { data: currentPlantBeds, error: fetchError } = await supabase
       .from('plant_beds')
       .select('*')
@@ -482,7 +495,7 @@ export async function PATCH(
     }
     
     // Build complete position data for validation
-    const completePositions = body.positions.map((pos: any) => {
+    const completePositions = body.positions.map((pos) => {
       const current = currentDataMap.get(pos.id);
       return {
         id: pos.id,
@@ -520,7 +533,7 @@ export async function PATCH(
     const updatedPlantBeds: PlantBedWithPosition[] = [];
     
     for (const position of body.positions) {
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       
       // Only include fields that are provided
       if (position.position_x !== undefined) updateData.position_x = position.position_x;

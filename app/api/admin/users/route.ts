@@ -37,7 +37,7 @@ function generateSecurePassword(): string {
 }
 
 // Audit logging
-function auditLog(action: string, details: any) {
+function auditLog(action: string, details: Record<string, unknown>) {
   console.log(`🔒 ADMIN AUDIT: ${action}`, {
     timestamp: new Date().toISOString(),
     action,

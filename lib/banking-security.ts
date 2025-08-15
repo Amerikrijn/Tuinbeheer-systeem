@@ -18,7 +18,7 @@ export interface SecurityEvent {
   success: boolean;
   errorMessage?: string;
   executionTimeMs?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -31,7 +31,7 @@ export async function logClientSecurityEvent(
   success: boolean = true,
   errorMessage?: string,
   executionTimeMs?: number,
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
 ): Promise<void> {
   try {
     // Get current user for audit trail
@@ -133,7 +133,7 @@ export function validateInput(
 /**
  * Validate API request body according to banking standards
  */
-export function validateApiInput(body: any): boolean {
+export function validateApiInput(body: unknown): boolean {
   if (!body || typeof body !== 'object') {
     return false;
   }
@@ -168,7 +168,7 @@ export function validateApiInput(body: any): boolean {
  * Banking-grade authentication check
  * Returns user or throws secure error
  */
-export async function requireAuthentication(): Promise<any> {
+export async function requireAuthentication(): Promise<{ id: string; email?: string; user_metadata?: Record<string, unknown> }> {
   const startTime = Date.now();
   
   try {
@@ -269,7 +269,7 @@ export async function requirePermission(
  * Banking-grade API call wrapper
  * Automatically handles auth, validation, and error logging
  */
-export async function secureApiCall<T = any>(
+export async function secureApiCall<T = unknown>(
   endpoint: string,
   options: RequestInit & {
     requireAuth?: boolean;
@@ -465,7 +465,7 @@ export class PerformanceMonitor {
 /**
  * Monitor function performance
  */
-export function withPerformanceMonitoring<T extends (...args: any[]) => any>(
+export function withPerformanceMonitoring<T extends (...args: unknown[]) => unknown>(
   fn: T,
   operationName: string
 ): T {

@@ -54,7 +54,7 @@ export class TaskService {
   // Update a task
   static async updateTask(taskId: string, data: UpdateTaskData): Promise<{ data: Task | null; error: string | null }> {
     try {
-      const updateData: any = { ...data }
+      const updateData: Record<string, unknown> = { ...data }
       
       // If completing a task, set completed_at timestamp
       if (data.completed === true) {
@@ -200,7 +200,7 @@ export class TaskService {
       if (plantBedTasksResult.error) throw plantBedTasksResult.error
 
       // Transform plant tasks
-      const plantTasks: TaskWithPlantInfo[] = (plantTasksResult.data || []).map((task: any) => ({
+      const plantTasks: TaskWithPlantInfo[] = (plantTasksResult.data || []).map((task) => ({
         ...task,
         plant_name: task.plants?.name || '',
         plant_color: task.plants?.color || '',
@@ -209,7 +209,7 @@ export class TaskService {
       }))
 
       // Transform plant bed tasks
-      const plantBedTasks: TaskWithPlantInfo[] = (plantBedTasksResult.data || []).map((task: any) => ({
+      const plantBedTasks: TaskWithPlantInfo[] = (plantBedTasksResult.data || []).map((task) => ({
         ...task,
         plant_name: 'Plantvak taak',
         plant_color: task.plant_beds?.color_code || '#10B981',
@@ -269,7 +269,7 @@ export class TaskService {
   }
 
   // Apply garden access filtering to tasks
-  private static async applyGardenAccessFilter(tasks: any[], user: User | null, gardenFilter?: string[]): Promise<any[]> {
+  private static async applyGardenAccessFilter(tasks: TaskWithPlantInfo[], user: User | null, gardenFilter?: string[]): Promise<TaskWithPlantInfo[]> {
     if (!user) {
       console.warn('⚠️ SECURITY: No user provided for garden access filtering')
       return []
@@ -418,7 +418,7 @@ export class TaskService {
       // Transform and add status category
       const today = new Date().toISOString().split('T')[0]
       
-      const plantTasks: WeeklyTask[] = (plantTasksResult.data || []).map((task: any) => {
+              const plantTasks: WeeklyTask[] = (plantTasksResult.data || []).map((task) => {
         let status_category: 'overdue' | 'today' | 'upcoming' | 'future' = 'future'
         
         if (task.due_date < today) status_category = 'overdue'
@@ -436,7 +436,7 @@ export class TaskService {
         }
       })
 
-      const plantBedTasks: WeeklyTask[] = (plantBedTasksResult.data || []).map((task: any) => {
+              const plantBedTasks: WeeklyTask[] = (plantBedTasksResult.data || []).map((task) => {
         let status_category: 'overdue' | 'today' | 'upcoming' | 'future' = 'future'
         
         if (task.due_date < today) status_category = 'overdue'
@@ -605,7 +605,7 @@ export class TaskService {
       if (plantBedTasksResult.error) throw plantBedTasksResult.error
 
       // Transform data
-      const plantTasks = (plantTasksResult.data || []).map((task: any) => ({
+              const plantTasks = (plantTasksResult.data || []).map((task) => ({
         ...task,
         plant_name: task.plants?.name || '',
         plant_color: task.plants?.color || '',
@@ -613,7 +613,7 @@ export class TaskService {
         garden_name: task.plants?.plant_beds?.gardens?.name || ''
       }))
 
-      const plantBedTasks = (plantBedTasksResult.data || []).map((task: any) => ({
+              const plantBedTasks = (plantBedTasksResult.data || []).map((task) => ({
         ...task,
         plant_name: 'Plantvak taak',
         plant_color: task.plant_beds?.color_code || '#10B981',
@@ -726,7 +726,7 @@ export class TaskService {
   // Bulk complete tasks
   static async bulkCompleteTasks(taskIds: string[], completed: boolean = true): Promise<{ error: string | null }> {
     try {
-      const updateData: any = { completed }
+      const updateData: Record<string, unknown> = { completed }
       
       if (completed) {
         updateData.completed_at = new Date().toISOString()
@@ -795,7 +795,7 @@ export class TaskService {
       if (error) throw error
 
       // Transform data
-      const transformedData: WeeklyTask[] = (data || []).map((task: any) => ({
+      const transformedData: WeeklyTask[] = (data || []).map((task) => ({
         ...task,
         plant_name: task.plants?.name || '',
         plant_color: task.plants?.color || '',
@@ -840,7 +840,7 @@ export class TaskService {
       if (error) throw error
 
       // Transform data
-      const transformedData: WeeklyTask[] = (data || []).map((task: any) => ({
+      const transformedData: WeeklyTask[] = (data || []).map((task) => ({
         ...task,
         plant_name: task.plants?.name || '',
         plant_color: task.plants?.color || '',

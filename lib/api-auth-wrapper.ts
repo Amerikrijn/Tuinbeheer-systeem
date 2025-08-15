@@ -27,10 +27,10 @@ export interface AuthOptions {
  * Handles authentication, authorization, validation, and logging with fallbacks
  */
 export async function withBankingAuth<T>(
-  handler: (request: NextRequest, params: any, user: AuthenticatedUser | null) => Promise<NextResponse<T>>,
+  handler: (request: NextRequest, params: Record<string, string>, user: AuthenticatedUser | null) => Promise<NextResponse<T>>,
   options: AuthOptions = {}
 ) {
-  return async (request: NextRequest, params?: any): Promise<NextResponse<T>> => {
+  return async (request: NextRequest, params?: Record<string, string>): Promise<NextResponse<T>> => {
     const startTime = Date.now();
     const operationId = `api-${Date.now()}`;
     let userId: string | null = null;

@@ -350,7 +350,7 @@ export function TaskDetailsDialog({
                   <Label htmlFor="task_type">Type Taak</Label>
                   <Select 
                     value={formData.task_type} 
-                    onValueChange={(value: any) => 
+                    onValueChange={(value: 'watering' | 'fertilizing' | 'pruning' | 'harvesting' | 'planting' | 'pest_control' | 'general') => 
                       setFormData(prev => ({ ...prev, task_type: value }))
                     }
                     disabled={isLoading}
