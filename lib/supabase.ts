@@ -33,10 +33,15 @@ export const supabase = {
     getUser: async () => ({ error: null, data: { user: null } })
   },
   from: () => ({
-    select: () => ({ eq: () => ({ single: async () => ({ error: null, data: null }) }) }),
-    insert: () => ({ select: () => ({ single: async () => ({ error: null, data: null }) }) }),
-    update: () => ({ eq: () => ({ select: () => ({ single: async () => ({ error: null, data: null }) }) }) }),
-    delete: () => ({ eq: async () => ({ error: null }) })
+    select: () => ({ 
+      eq: () => ({ 
+        single: async () => ({ error: null, data: null }),
+        order: () => ({ eq: () => ({ single: async () => ({ error: null, data: null }) }) })
+      }),
+      insert: () => ({ select: () => ({ single: async () => ({ error: null, data: null }) }) }),
+      update: () => ({ eq: () => ({ select: () => ({ single: async () => ({ error: null, data: null }) }) }) }),
+      delete: () => ({ eq: async () => ({ error: null }) })
+    })
   }),
   storage: {
     getBucket: async () => ({ error: null, data: null }),

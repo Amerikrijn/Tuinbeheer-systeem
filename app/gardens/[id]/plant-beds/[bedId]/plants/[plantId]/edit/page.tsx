@@ -12,7 +12,7 @@ import { getPlant, updatePlant, deletePlant } from "@/lib/database"
 import type { Plant } from "@/lib/supabase"
 import { AddTaskForm } from '@/components/tasks/add-task-form'
 import { TaskService } from '@/lib/services/task.service'
-import type { TaskWithPlantInfo } from '@/lib/types/tasks'
+import type { TaskWithPlantInfo } from '@/lib/services/task.service'
 
 export default function EditPlantPage() {
   const router = useRouter()

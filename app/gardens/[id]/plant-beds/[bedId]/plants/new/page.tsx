@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { PlantForm, PlantFormData, PlantFormErrors, createInitialPlantFormData } from "@/components/ui/plant-form"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Leaf } from "lucide-react"
-import { getGarden, getPlantBed, createPlant } from "@/lib/database"
+import { getGarden, getPlantBedWithPlants, createPlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { AddTaskForm } from '@/components/tasks/add-task-form'
 import { TaskService } from '@/lib/services/task.service'
@@ -47,7 +47,7 @@ export default function NewPlantPage() {
       try {
         const [gardenData, plantBedData] = await Promise.all([
           getGarden(params.id as string),
-          getPlantBed(params.bedId as string),
+          getPlantBedWithPlants(params.bedId as string),
         ])
         
         setGarden(gardenData)

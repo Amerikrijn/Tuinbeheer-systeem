@@ -211,6 +211,38 @@ export async function getPlantBed(id: string): Promise<PlantBed | null> {
   return data
 }
 
+export async function getPlantBedWithPlants(id: string): Promise<PlantBedWithPlants | null> {
+  console.log("Fetching plant bed with plants:", id)
+
+  const { data, error } = await supabase
+    .from("plant_beds")
+    .select("*")
+    .eq("id", id)
+    .eq("is_active", true)
+    .single()
+
+  if (error) {
+    if (isMissingRelation(error)) {
+      console.warn("Supabase table `plant_beds` not found yet – returning null until the migration is applied.")
+      return null
+    }
+    console.error("Error fetching plant bed:", error)
+    return null
+  }
+
+  if (!data) {
+    return null
+  }
+
+  // Get plants for this plant bed
+  const plants = await getPlants(id)
+
+  return {
+    ...data,
+    plants
+  }
+}
+
 // Helper function to get next available letter code for a garden
 async function getNextAvailableLetterCode(gardenId: string): Promise<string> {
   console.log("Getting next available letter code for garden:", gardenId)
@@ -230,8 +262,8 @@ async function getNextAvailableLetterCode(gardenId: string): Promise<string> {
 
   // Extract existing letter codes and sort them
   const existingCodes = existingBeds
-    .map(bed => bed.letter_code)
-    .filter(code => code && /^[A-Z]$/.test(code))
+    .map((bed: { letter_code?: string }) => bed.letter_code)
+    .filter((code: string | undefined): code is string => Boolean(code) && /^[A-Z]$/.test(code))
     .sort()
 
   console.log("Existing letter codes:", existingCodes)
@@ -405,20 +437,30 @@ export async function createPlant(plant: {
   scientific_name?: string
   common_name?: string
   plant_bed_id: string
-  position_x: number
-  position_y: number
-  size: number
+  position_x?: number
+  position_y?: number
+  size?: number
   color?: string
   bloom_season?: string
   height?: number
   spread?: number
-  sun_requirements?: string
+  sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
   water_requirements?: string
   soil_requirements?: string
   maintenance_level?: string
   special_features?: string
   notes?: string
   image_url?: string
+  variety?: string
+  plants_per_sqm?: number
+  planting_date?: string
+  expected_harvest_date?: string
+  status?: 'gezond' | 'aandacht_nodig' | 'ziek' | 'dood' | 'geoogst'
+  care_instructions?: string
+  watering_frequency?: number
+  fertilizer_schedule?: string
+  emoji?: string
+  is_custom?: boolean
 }): Promise<Plant | null> {
   console.log("Creating plant with data:", plant)
 

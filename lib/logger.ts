@@ -45,7 +45,7 @@ class Logger {
     return messageLevel >= currentLevel;
   }
 
-  private formatMessage(level: string, message: string, context?: Record<string, any>): string {
+  protected formatMessage(level: string, message: string, context?: Record<string, any>): string {
     const logEntry: LogEntry = {
       timestamp: new Date().toISOString(),
       level: level.toUpperCase(),

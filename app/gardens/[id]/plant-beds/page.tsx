@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, TreePine, Plus, Search, Eye, Leaf, Sun, MapPin, Grid3X3, BookOpen } from "lucide-react"
-import { getGarden, getPlantBeds } from "@/lib/database"
+import { getGarden, getPlantBedsWithPlants } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 
@@ -31,7 +31,7 @@ export default function PlantBedsPage() {
         setLoading(true)
         const [gardenData, plantBedsData] = await Promise.all([
           getGarden(params.id as string),
-          getPlantBeds(params.id as string),
+          getPlantBedsWithPlants(params.id as string),
         ])
         setGarden(gardenData)
         setPlantBeds(plantBedsData)

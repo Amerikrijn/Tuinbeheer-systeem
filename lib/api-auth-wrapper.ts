@@ -5,9 +5,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
-import { apiLogger } from '@/lib/logger';
-import { logClientSecurityEvent, validateApiInput } from '@/lib/banking-security';
+import { supabase } from './supabase';
+import { apiLogger } from './logger';
+import { logClientSecurityEvent, validateApiInput } from './banking-security';
 
 export interface AuthenticatedUser {
   id: string;
@@ -42,7 +42,7 @@ export async function requireAuthentication(
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
-      await logClientSecurityEvent('auth_failed', { 
+      await logClientSecurityEvent('auth_failed', 'HIGH', false, undefined, 'Invalid token', undefined, { 
         reason: 'invalid_token',
         ip: request.ip || 'unknown'
       });
@@ -64,9 +64,8 @@ export async function requireAuthentication(
       .single();
 
     if (userError || !userData) {
-      await logClientSecurityEvent('auth_failed', { 
+      await logClientSecurityEvent('auth_failed', 'HIGH', false, user.id, 'User not found', undefined, { 
         reason: 'user_not_found',
-        userId: user.id,
         ip: request.ip || 'unknown'
       });
       
@@ -87,8 +86,7 @@ export async function requireAuthentication(
     };
 
     // Log successful authentication
-    await logClientSecurityEvent('auth_success', {
-      userId: authenticatedUser.id,
+    await logClientSecurityEvent('auth_success', 'LOW', true, authenticatedUser.id, undefined, undefined, {
       role: authenticatedUser.role,
       ip: request.ip || 'unknown'
     });
@@ -96,10 +94,9 @@ export async function requireAuthentication(
     return { user: authenticatedUser };
 
   } catch (error) {
-    apiLogger.error('Authentication error:', error);
+    apiLogger.error('Authentication error:', error instanceof Error ? { message: error.message } : { error: String(error) });
     
-    await logClientSecurityEvent('auth_error', {
-      error: error.message,
+    await logClientSecurityEvent('auth_error', 'HIGH', false, undefined, error instanceof Error ? error.message : 'Unknown error', undefined, {
       ip: request.ip || 'unknown'
     });
 
@@ -147,7 +144,7 @@ export async function requireAuthenticationQuick(
     return { userId: user.id };
 
   } catch (error) {
-    apiLogger.error('Quick authentication error:', error);
+          apiLogger.error('Quick authentication error:', error instanceof Error ? { message: error.message } : { error: String(error) });
     return {
       userId: '',
       response: NextResponse.json(
@@ -171,8 +168,7 @@ export async function requireAdmin(
   }
 
   if (authResult.user.role !== 'admin') {
-    await logClientSecurityEvent('access_denied', {
-      userId: authResult.user.id,
+    await logClientSecurityEvent('access_denied', 'HIGH', false, authResult.user.id, 'Insufficient permissions', undefined, {
       reason: 'insufficient_permissions',
       requiredRole: 'admin',
       userRole: authResult.user.role,
@@ -211,8 +207,7 @@ export async function requireGardenAccess(
 
   // Controleer garden access
   if (!authResult.user.garden_access.includes(gardenId)) {
-    await logClientSecurityEvent('access_denied', {
-      userId: authResult.user.id,
+    await logClientSecurityEvent('access_denied', 'HIGH', false, authResult.user.id, 'Garden access denied', undefined, {
       reason: 'garden_access_denied',
       gardenId,
       userGardenAccess: authResult.user.garden_access,
@@ -253,8 +248,7 @@ export function withInputValidation<T>(
       const validation = validateApiInput(body, schema);
       
       if (!validation.isValid) {
-        await logClientSecurityEvent('input_validation_failed', {
-          userId: user.id,
+        await logClientSecurityEvent('input_validation_failed', 'MEDIUM', false, user.id, 'Input validation failed', undefined, {
           errors: validation.errors,
           ip: request.ip || 'unknown'
         });
@@ -272,11 +266,9 @@ export function withInputValidation<T>(
       return await handler(request, user, validation.sanitizedData as T);
 
     } catch (error) {
-      apiLogger.error('Input validation error:', error);
+      apiLogger.error('Input validation error:', error instanceof Error ? { message: error.message } : { error: String(error) });
       
-      await logClientSecurityEvent('input_validation_error', {
-        userId: user.id,
-        error: error.message,
+      await logClientSecurityEvent('input_validation_error', 'HIGH', false, user.id, error instanceof Error ? error.message : 'Unknown error', undefined, {
         ip: request.ip || 'unknown'
       });
 
@@ -300,13 +292,12 @@ export function withRateLimiting(
   return async (request: NextRequest, user: AuthenticatedUser) => {
     try {
       // Import rate limiting function
-      const { checkRateLimit } = await import('@/lib/banking-security');
+      const { checkRateLimit } = await import('./banking-security');
       
       const isAllowed = await checkRateLimit(user.id, action, maxRequests, timeWindow);
       
       if (!isAllowed) {
-        await logClientSecurityEvent('rate_limit_exceeded', {
-          userId: user.id,
+        await logClientSecurityEvent('rate_limit_exceeded', 'HIGH', false, user.id, 'Rate limit exceeded', undefined, {
           action,
           ip: request.ip || 'unknown'
         });
@@ -321,7 +312,7 @@ export function withRateLimiting(
       return await handler(request, user);
 
     } catch (error) {
-      apiLogger.error('Rate limiting error:', error);
+      apiLogger.error('Rate limiting error:', error instanceof Error ? { message: error.message } : { error: String(error) });
       return await handler(request, user); // Fallback naar handler
     }
   };
