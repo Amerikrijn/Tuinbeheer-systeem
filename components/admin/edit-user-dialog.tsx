@@ -57,22 +57,6 @@ export function EditUserDialog({
     gardenAccess: [] as string[]
   })
 
-  // Load user data when dialog opens
-  useEffect(() => {
-    if (user && isOpen) {
-      setEditForm({
-        fullName: user.full_name || '',
-        role: user.role,
-        gardenAccess: []
-      })
-      
-      // Load current garden access for users
-      if (user.role === 'user') {
-        loadUserGardenAccess(user.id)
-      }
-    }
-  }, [user, isOpen, loadUserGardenAccess])
-
   const loadUserGardenAccess = useCallback(async (userId: string) => {
     try {
       const { data: accessData, error } = await supabase
@@ -96,6 +80,22 @@ export function EditUserDialog({
       })
     }
   }, [toast])
+
+  // Load user data when dialog opens
+  useEffect(() => {
+    if (user && isOpen) {
+      setEditForm({
+        fullName: user.full_name || '',
+        role: user.role,
+        gardenAccess: []
+      })
+      
+      // Load current garden access for users
+      if (user.role === 'user') {
+        loadUserGardenAccess(user.id)
+      }
+    }
+  }, [user, isOpen, loadUserGardenAccess])
 
   const handleClose = () => {
     if (!editing) {

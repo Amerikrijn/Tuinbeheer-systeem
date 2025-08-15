@@ -338,4 +338,83 @@ export class TaskService {
     const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000
     return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7)
   }
+
+  // Additional methods for task management
+  static async createTask(taskData: Record<string, unknown>): Promise<{ data: Task | null; error: string | null }> {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .insert(taskData)
+        .select()
+        .single()
+
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      // Secure error handling for banking standards - no console logging in production
+      return { data: null, error: 'Failed to create task' }
+    }
+  }
+
+  static async updateTask(taskId: string, updateData: Record<string, unknown>): Promise<{ data: Task | null; error: string | null }> {
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .update(updateData)
+        .eq('id', taskId)
+        .select()
+        .single()
+
+      if (error) throw error
+      return { data, error: null }
+    } catch (error) {
+      // Secure error handling for banking standards - no console logging in production
+      return { data: null, error: 'Failed to update task' }
+    }
+  }
+
+  static async deleteTask(taskId: string): Promise<{ error: string | null }> {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', taskId)
+
+      if (error) throw error
+      return { error: null }
+    } catch (error) {
+      // Secure error handling for banking standards - no console logging in production
+      return { error: 'Failed to delete task' }
+    }
+  }
+
+  static async getWeeklyCalendar(weekStart: Date, user?: Record<string, unknown>): Promise<{ data: WeeklyTask[]; error: string | null }> {
+    try {
+      const weekEnd = new Date(weekStart)
+      weekEnd.setDate(weekEnd.getDate() + 6)
+
+      const { data, error } = await supabase
+        .from('tasks')
+        .select(`
+          *,
+          plant:plants(id, name, species),
+          plant_bed:plant_beds(id, name)
+        `)
+        .gte('due_date', weekStart.toISOString().split('T')[0])
+        .lte('due_date', weekEnd.toISOString().split('T')[0])
+        .order('due_date', { ascending: true })
+
+      if (error) throw error
+
+      const transformedData: WeeklyTask[] = (data || []).map((task) => ({
+        ...task,
+        week_number: this.getWeekNumber(new Date(task.due_date))
+      }))
+
+      return { data: transformedData, error: null }
+    } catch (error) {
+      // Secure error handling for banking standards - no console logging in production
+      return { data: [], error: 'Failed to fetch weekly calendar' }
+    }
+  }
 }

@@ -36,12 +36,6 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
   const [saving, setSaving] = useState(false)
 
   // Load available gardens and user's current access
-  useEffect(() => {
-    if (isOpen && user) {
-      loadGardensAndAccess()
-    }
-  }, [isOpen, user, loadGardensAndAccess])
-
   const loadGardensAndAccess = useCallback(async () => {
     if (!user) return
     
@@ -84,6 +78,13 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
       setLoading(false)
     }
   }, [user, toast])
+
+  // Load available gardens and user's current access
+  useEffect(() => {
+    if (isOpen && user) {
+      loadGardensAndAccess()
+    }
+  }, [isOpen, user, loadGardensAndAccess])
 
   const toggleGardenAccess = (gardenId: string) => {
     setUserGardenAccess(prev => 

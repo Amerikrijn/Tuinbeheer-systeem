@@ -56,12 +56,6 @@ function AdminUsersPageContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [passwordCopied, setPasswordCopied] = useState(false)
 
-  useEffect(() => {
-    if (currentUser && isAdmin()) {
-      loadData()
-    }
-  }, [currentUser, isAdmin, loadData])
-
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
@@ -99,6 +93,12 @@ function AdminUsersPageContent() {
       setLoading(false)
     }
   }, [toast])
+
+  useEffect(() => {
+    if (currentUser && isAdmin()) {
+      loadData()
+    }
+  }, [currentUser, isAdmin, loadData])
 
   const handleResetPassword = async (user: User) => {
     setSelectedUser(user)

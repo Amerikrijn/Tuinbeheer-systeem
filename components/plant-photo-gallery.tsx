@@ -32,10 +32,6 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
 
   // Load photos for the plant
-  useEffect(() => {
-    loadPlantPhotos()
-  }, [plantId, currentYear, loadPlantPhotos])
-
   const loadPlantPhotos = useCallback(async () => {
     setLoading(true)
     setError(null)
@@ -55,6 +51,11 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
       setLoading(false)
     }
   }, [plantId, currentYear])
+
+  // Load photos for the plant
+  useEffect(() => {
+    loadPlantPhotos()
+  }, [plantId, currentYear, loadPlantPhotos])
 
   const handlePhotoClick = (photo: LogbookEntryWithDetails) => {
     setSelectedPhoto(photo)
