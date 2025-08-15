@@ -103,7 +103,7 @@ export interface LogbookEntryWithDetails extends LogbookEntry {
   plant_scientific_name?: string
   plant_variety?: string
   is_completed_task?: boolean // Flag to identify completed tasks as logbook entries
-  original_task?: any // Store the original task data if this is a completed task
+  original_task?: Record<string, unknown> // Store the original task data if this is a completed task
 }
 
 // Form Data Types
@@ -248,7 +248,7 @@ export interface DatabaseOperation {
   type: 'create' | 'update' | 'delete'
   table: 'gardens' | 'plant_beds' | 'plants' | 'logbook_entries'
   id?: string
-  data?: any
+  data?: Record<string, unknown>
 }
 
 // Task Types
