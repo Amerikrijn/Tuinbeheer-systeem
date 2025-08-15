@@ -56,7 +56,7 @@ function LogbookPageContent() {
   
   // Check if we're viewing a specific user's logbook (admin only)
   const viewingUserId = searchParams.get('user_id')
-  const [viewingUser, setViewingUser] = React.useState<any>(null)
+  const [viewingUser, setViewingUser] = React.useState<{ id: string; email: string; full_name: string } | null>(null)
 
   // Ensure garden access is loaded for regular users
   React.useEffect(() => {
@@ -168,7 +168,13 @@ function LogbookPageContent() {
         })
       }
 
-      const filters: any = {
+      const filters: {
+        limit: number;
+        offset: number;
+        garden_id?: string;
+        garden_ids?: string[];
+        plant_bed_id?: string;
+      } = {
         limit: ITEMS_PER_PAGE,
         offset: (page - 1) * ITEMS_PER_PAGE
       }
@@ -208,12 +214,12 @@ function LogbookPageContent() {
         setTimeout(() => reject(new Error('Query timeout - verbinding te traag')), 30000) // 30 second timeout
       })
       
-      let response
+      let response: { success: boolean; data?: unknown[]; error?: string } | undefined
       try {
         response = await Promise.race([
           LogbookService.getAll(filters),
           timeoutPromise
-        ]) as any
+        ]) as { success: boolean; data?: unknown[]; error?: string }
       } catch (error) {
         console.error('🔥 Logbook query error:', error)
         throw new Error(`Logbook query failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
@@ -233,7 +239,17 @@ function LogbookPageContent() {
       const logbookData = response.data || []
 
       // Also load completed tasks as logbook entries
-      let completedTasksData: any[] = []
+      let completedTasksData: Array<{
+        id: string;
+        entry_date: string;
+        notes: string;
+        plant_bed_name: string;
+        plant_name: string;
+        garden_name: string;
+        photo_url: string | null;
+        is_completed_task: boolean;
+        original_task: unknown;
+      }> = []
       try {
         let tasksQuery = supabase
           .from('tasks')
@@ -282,7 +298,19 @@ function LogbookPageContent() {
         
         if (tasksResults) {
           // Transform completed tasks to look like logbook entries
-          completedTasksData = tasksResults.map((task: any) => ({
+          completedTasksData = tasksResults.map((task: {
+            id: string;
+            title: string;
+            description?: string;
+            updated_at: string;
+            plants?: Array<{
+              name?: string;
+              plant_beds?: Array<{
+                name?: string;
+                gardens?: Array<{ name?: string }>;
+              }>;
+            }>;
+          }) => ({
             id: `task-${task.id}`,
             entry_date: task.updated_at,
             notes: `✅ Taak voltooid: ${task.title}${task.description ? ` - ${task.description}` : ''}`,

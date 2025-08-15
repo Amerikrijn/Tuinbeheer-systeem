@@ -13,7 +13,17 @@ import {
 // VALIDATION HELPERS
 // ===================================================================
 
-function validatePositionRequest(data: any): { isValid: boolean; errors: string[] } {
+interface PositionRequestData {
+  position_x: number;
+  position_y: number;
+  visual_width?: number;
+  visual_height?: number;
+  rotation?: number;
+  z_index?: number;
+  color_code?: string;
+}
+
+function validatePositionRequest(data: PositionRequestData): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   // Required fields

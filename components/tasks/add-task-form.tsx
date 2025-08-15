@@ -91,7 +91,16 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
         .order('name')
 
       if (error) throw error
-      setPlants((data as any[])?.map(plant => ({
+      setPlants((data as Array<{
+        id: string;
+        name: string;
+        plant_beds?: {
+          name?: string;
+          gardens?: {
+            name?: string;
+          };
+        };
+      }>)?.map(plant => ({
         id: plant.id,
         name: plant.name,
         plant_beds: {
@@ -120,7 +129,13 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
         .order('name')
 
       if (error) throw error
-      setPlantBeds((data as any[])?.map(bed => ({
+      setPlantBeds((data as Array<{
+        id: string;
+        name: string;
+        gardens?: {
+          name?: string;
+        };
+      }>)?.map(bed => ({
         id: bed.id,
         name: bed.name,
         gardens: {

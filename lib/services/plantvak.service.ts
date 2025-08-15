@@ -124,12 +124,13 @@ export class PlantvakService {
     } catch (error) {
       console.error('❌ Error creating plantvak:', error);
       if (error && typeof error === 'object' && 'message' in error) {
+        const errorObj = error as { message?: string; code?: string; details?: string; hint?: string; stack?: string }
         console.error('❌ Error details:', {
-          message: (error as any).message,
-          code: (error as any).code,
-          details: (error as any).details,
-          hint: (error as any).hint,
-          stack: (error as any).stack
+          message: errorObj.message,
+          code: errorObj.code,
+          details: errorObj.details,
+          hint: errorObj.hint,
+          stack: errorObj.stack
         });
       }
       return null;

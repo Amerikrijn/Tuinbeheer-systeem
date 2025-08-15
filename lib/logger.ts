@@ -19,7 +19,7 @@ type LogEntry = {
   message: string
   context?: string
   correlationId?: string
-  metadata?: Record<string, any>
+  metadata?: Record<string, unknown>
   error?: {
     name: string
     message: string
@@ -50,7 +50,7 @@ class NextJSLogger {
     return undefined
   }
 
-  private formatLogEntry(level: LogLevel, message: string, metadata?: Record<string, any>): LogEntry {
+  private formatLogEntry(level: LogLevel, message: string, metadata?: Record<string, unknown>): LogEntry {
     return {
       timestamp: new Date().toISOString(),
       level: level.toUpperCase(),
@@ -82,7 +82,7 @@ class NextJSLogger {
     }
   }
 
-  log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
+  log(level: LogLevel, message: string, metadata?: Record<string, unknown>): void {
     const entry = this.formatLogEntry(level, message, {
       service: this.service,
       version: this.version,
@@ -91,7 +91,7 @@ class NextJSLogger {
     this.output(level, entry)
   }
 
-  error(message: string, error?: Error, metadata?: Record<string, any>): void {
+  error(message: string, error?: Error, metadata?: Record<string, unknown>): void {
     this.log('error', message, {
       error: error ? {
         name: error.name,
@@ -102,19 +102,19 @@ class NextJSLogger {
     })
   }
 
-  warn(message: string, metadata?: Record<string, any>): void {
+  warn(message: string, metadata?: Record<string, unknown>): void {
     this.log('warn', message, metadata)
   }
 
-  info(message: string, metadata?: Record<string, any>): void {
+  info(message: string, metadata?: Record<string, unknown>): void {
     this.log('info', message, metadata)
   }
 
-  debug(message: string, metadata?: Record<string, any>): void {
+  debug(message: string, metadata?: Record<string, unknown>): void {
     this.log('debug', message, metadata)
   }
 
-  trace(message: string, metadata?: Record<string, any>): void {
+  trace(message: string, metadata?: Record<string, unknown>): void {
     this.log('trace', message, metadata)
   }
 }
@@ -133,7 +133,7 @@ export class AuditLogger {
     action: string,
     resource: string,
     resourceId?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ): void {
     logger.info('User action', {
       category: 'AUDIT',
@@ -149,7 +149,7 @@ export class AuditLogger {
   static logSecurityEvent(
     event: string,
     severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
-    details: Record<string, any>
+    details: Record<string, unknown>
   ): void {
     logger.warn('Security event', {
       category: 'SECURITY',
@@ -165,7 +165,7 @@ export class AuditLogger {
     operation: 'READ' | 'CREATE' | 'UPDATE' | 'DELETE',
     table: string,
     recordId?: string,
-    conditions?: Record<string, any>
+    conditions?: Record<string, unknown>
   ): void {
     logger.info('Data access', {
       category: 'DATA_ACCESS',
@@ -187,33 +187,33 @@ export class AppLogger {
     this.context = context
   }
 
-  private log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
+  private log(level: LogLevel, message: string, metadata?: Record<string, unknown>): void {
     logger.log(level, message, {
       context: this.context,
       ...metadata,
     })
   }
 
-  error(message: string, error?: Error, metadata?: Record<string, any>): void {
+  error(message: string, error?: Error, metadata?: Record<string, unknown>): void {
     logger.error(message, error, {
       context: this.context,
       ...metadata,
     })
   }
 
-  warn(message: string, metadata?: Record<string, any>): void {
+  warn(message: string, metadata?: Record<string, unknown>): void {
     this.log('warn', message, metadata)
   }
 
-  info(message: string, metadata?: Record<string, any>): void {
+  info(message: string, metadata?: Record<string, unknown>): void {
     this.log('info', message, metadata)
   }
 
-  debug(message: string, metadata?: Record<string, any>): void {
+  debug(message: string, metadata?: Record<string, unknown>): void {
     this.log('debug', message, metadata)
   }
 
-  trace(message: string, metadata?: Record<string, any>): void {
+  trace(message: string, metadata?: Record<string, unknown>): void {
     this.log('trace', message, metadata)
   }
 }
@@ -226,7 +226,7 @@ export class PerformanceLogger {
     this.timers.set(operationId, Date.now())
   }
 
-  static endTimer(operationId: string, operation: string, metadata?: Record<string, any>): void {
+  static endTimer(operationId: string, operation: string, metadata?: Record<string, unknown>): void {
     const startTime = this.timers.get(operationId)
     if (startTime) {
       const duration = Date.now() - startTime
