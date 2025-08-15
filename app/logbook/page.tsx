@@ -6,50 +6,59 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Plus, Calendar, AlertCircle, CheckCircle, Loader2, RefreshCw } from "lucide-react"
+import { Plus, BookOpen, Calendar, MapPin, Leaf, AlertCircle, RefreshCw } from "lucide-react"
 import { useAuth } from "@/hooks/use-supabase-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/lib/supabase"
-import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
 import { getUserFriendlyErrorMessage } from "@/lib/errors"
 
-interface Task {
+interface LogbookEntry {
   id: string
   title: string
-  description: string
-  due_date: string
-  priority: 'low' | 'medium' | 'high'
-  status: 'pending' | 'in_progress' | 'completed'
+  content: string
+  entry_date: string
   garden_id: string
   plant_bed_id?: string
   plant_id?: string
   created_at: string
   updated_at: string
+  gardens?: {
+    id: string
+    name: string
+  }
+  plant_beds?: {
+    id: string
+    name: string
+  }
+  plants?: {
+    id: string
+    name: string
+  }
 }
 
-interface TasksPageState {
-  tasks: Task[]
+interface LogbookPageState {
+  entries: LogbookEntry[]
   loading: boolean
   error: string | null
 }
 
-function TasksPageContent() {
+function LogbookPageContent() {
   const { user } = useAuth()
   const { toast } = useToast()
   
-  const [state, setState] = React.useState<TasksPageState>({
-    tasks: [],
+  const [state, setState] = React.useState<LogbookPageState>({
+    entries: [],
     loading: true,
     error: null,
   })
 
-  const loadTasks = React.useCallback(async () => {
+  const loadEntries = React.useCallback(async () => {
     try {
       setState(prev => ({ ...prev, loading: true, error: null }))
       
-      const { data: tasks, error } = await supabase
-        .from('tasks')
+      const { data: entries, error } = await supabase
+        .from('logbook_entries')
         .select(`
           *,
           gardens:garden_id(id, name),
@@ -57,13 +66,13 @@ function TasksPageContent() {
           plants:plant_id(id, name)
         `)
         .eq('user_id', user?.id)
-        .order('due_date', { ascending: true })
+        .order('entry_date', { ascending: false })
       
       if (error) throw error
 
       setState(prev => ({
         ...prev,
-        tasks: tasks || [],
+        entries: entries || [],
         loading: false
       }))
     } catch (error) {
@@ -74,7 +83,7 @@ function TasksPageContent() {
         loading: false
       }))
       toast({
-        title: "Fout bij laden taken",
+        title: "Fout bij laden logboek",
         description: errorMessage,
         variant: "destructive"
       })
@@ -83,34 +92,21 @@ function TasksPageContent() {
 
   React.useEffect(() => {
     if (user) {
-      loadTasks()
+      loadEntries()
     }
-  }, [user, loadTasks])
+  }, [user, loadEntries])
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge variant="default" className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Voltooid</Badge>
-      case 'in_progress':
-        return <Badge variant="secondary">Bezig</Badge>
-      case 'pending':
-        return <Badge variant="outline">Wachtend</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('nl-NL', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
   }
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return <Badge variant="destructive">Hoog</Badge>
-      case 'medium':
-        return <Badge variant="secondary">Gemiddeld</Badge>
-      case 'low':
-        return <Badge variant="outline">Laag</Badge>
-      default:
-        return <Badge variant="outline">{priority}</Badge>
-    }
+  const truncateContent = (content: string, maxLength: number = 150) => {
+    if (content.length <= maxLength) return content
+    return content.substring(0, maxLength) + '...'
   }
 
   if (state.loading) {
@@ -118,8 +114,8 @@ function TasksPageContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold">Taken</h1>
-            <p className="text-muted-foreground">Beheer al je tuintaken</p>
+            <h1 className="text-3xl font-bold">Logboek</h1>
+            <p className="text-muted-foreground">Bekijk je tuinnotities en observaties</p>
           </div>
           <Skeleton className="h-10 w-32" />
         </div>
@@ -146,9 +142,9 @@ function TasksPageContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h1 className="text-2xl font-bold mb-2">Fout bij laden taken</h1>
+          <h1 className="text-2xl font-bold mb-2">Fout bij laden logboek</h1>
           <p className="text-muted-foreground mb-4">{state.error}</p>
-          <Button onClick={loadTasks} className="flex items-center gap-2">
+          <Button onClick={loadEntries} className="flex items-center gap-2">
             <RefreshCw className="h-4 w-4" />
             Opnieuw proberen
           </Button>
@@ -161,74 +157,81 @@ function TasksPageContent() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Taken</h1>
-          <p className="text-muted-foreground">Beheer al je tuintaken</p>
+          <h1 className="text-3xl font-bold">Logboek</h1>
+          <p className="text-muted-foreground">Bekijk je tuinnotities en observaties</p>
         </div>
         <Button asChild>
-          <Link href="/tasks/new">
+          <Link href="/logbook/new">
             <Plus className="h-4 w-4 mr-2" />
-            Nieuwe taak
+            Nieuwe entry
           </Link>
         </Button>
       </div>
 
-      {state.tasks.length === 0 ? (
+      {state.entries.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
-            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Geen taken gevonden</h3>
+            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Geen logboek entries gevonden</h3>
             <p className="text-muted-foreground mb-4">
-              Je hebt nog geen taken aangemaakt. Maak je eerste taak aan om te beginnen.
+              Je hebt nog geen logboek entries aangemaakt. Begin met het bijhouden van je tuinobservaties.
             </p>
             <Button asChild>
-              <Link href="/tasks/new">
+              <Link href="/logbook/new">
                 <Plus className="h-4 w-4 mr-2" />
-                Eerste taak aanmaken
+                Eerste entry aanmaken
               </Link>
             </Button>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {state.tasks.map((task) => (
-            <Card key={task.id} className="hover:shadow-md transition-shadow">
+          {state.entries.map((entry) => (
+            <Card key={entry.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg">{task.title}</CardTitle>
-                  {getStatusBadge(task.status)}
+                  <CardTitle className="text-lg line-clamp-2">{entry.title}</CardTitle>
                 </div>
-                <CardDescription className="line-clamp-2">
-                  {task.description}
+                <CardDescription className="line-clamp-3">
+                  {truncateContent(entry.content)}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Prioriteit:</span>
-                    {getPriorityBadge(task.priority)}
-                  </div>
-                  
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    <span>
-                      {task.due_date ? new Date(task.due_date).toLocaleDateString('nl-NL') : 'Geen deadline'}
-                    </span>
+                    <span>{formatDate(entry.entry_date)}</span>
                   </div>
 
-                  {task.gardens && (
-                    <div className="text-sm text-muted-foreground">
-                      <span className="font-medium">Tuin:</span> {task.gardens.name}
+                  {entry.gardens && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      <span>{entry.gardens.name}</span>
+                    </div>
+                  )}
+
+                  {entry.plant_beds && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Leaf className="h-4 w-4" />
+                      <span>Plantvak: {entry.plant_beds.name}</span>
+                    </div>
+                  )}
+
+                  {entry.plants && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Leaf className="h-4 w-4" />
+                      <span>Plant: {entry.plants.name}</span>
                     </div>
                   )}
 
                   <div className="flex gap-2 pt-2">
                     <Button variant="outline" size="sm" asChild className="flex-1">
-                      <Link href={`/tasks/${task.id}`}>
+                      <Link href={`/logbook/${entry.id}`}>
                         Bekijken
                       </Link>
                     </Button>
                     <Button variant="outline" size="sm" asChild className="flex-1">
-                      <Link href={`/tasks/${task.id}/edit`}>
+                      <Link href={`/logbook/${entry.id}/edit`}>
                         Bewerken
                       </Link>
                     </Button>
@@ -243,10 +246,10 @@ function TasksPageContent() {
   )
 }
 
-export default function TasksPage() {
+export default function LogbookPage() {
   return (
     <ProtectedRoute>
-      <TasksPageContent />
+      <LogbookPageContent />
     </ProtectedRoute>
   )
 }
