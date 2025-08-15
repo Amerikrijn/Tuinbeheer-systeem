@@ -7,21 +7,21 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { BookOpen, ChevronLeft, ChevronRight, Calendar, CheckCircle2 } from "lucide-react"
 import { TaskService } from '@/lib/services/task.service'
-import type { Task } from '@/lib/supabase'
+import { Task } from '@/lib/supabase'
 
 interface SimpleTasksViewProps {
   userId: string
   gardenId?: string
 }
 
-export function SimpleTasksView({ userId, gardenId }: SimpleTasksViewProps) {
-  const [currentWeek, setCurrentWeek] = useState<Date>(new Date())
+export default function SimpleTasksView({ userId, gardenId }: SimpleTasksViewProps) {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentWeek, setCurrentWeek] = useState(new Date())
   const [error, setError] = useState<string | null>(null)
 
   // Get start of week (Monday)
-  const getWeekStart = (date: Date): Date => {
+  const getWeekStart = (date: Date) => {
     const d = new Date(date)
     const day = d.getDay()
     const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
@@ -29,68 +29,47 @@ export function SimpleTasksView({ userId, gardenId }: SimpleTasksViewProps) {
   }
 
   // Get end of week (Sunday)
-  const getWeekEnd = (date: Date): Date => {
+  const getWeekEnd = (date: Date) => {
     const d = new Date(date)
     const day = d.getDay()
-    const diff = d.getDate() - day + 7
+    const diff = d.getDate() - day + (day === 0 ? 0 : 7) // Adjust when day is Sunday
     return new Date(d.setDate(diff))
   }
 
   // Format date for display
-  const formatDate = (date: Date): string => {
-    return date.toLocaleDateString('nl-NL', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('nl-NL', { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
     })
   }
 
-  // Get week range string
-  const getWeekRange = (): string => {
-    const start = getWeekStart(currentWeek)
-    const end = getWeekEnd(currentWeek)
-    return `${formatDate(start)} - ${formatDate(end)}`
-  }
-
-  // Navigate to previous week
-  const goToPreviousWeek = () => {
-    const newDate = new Date(currentWeek)
-    newDate.setDate(newDate.getDate() - 7)
-    setCurrentWeek(newDate)
-  }
-
-  // Navigate to next week
-  const goToNextWeek = () => {
-    const newDate = new Date(currentWeek)
-    newDate.setDate(newDate.getDate() + 7)
-    setCurrentWeek(newDate)
-  }
-
-  // Load tasks for current week
-  const loadTasks = async () => {
+  // Get tasks for current week
+  const fetchWeekTasks = async () => {
     try {
       setLoading(true)
       setError(null)
-
-      const startDate = getWeekStart(currentWeek).toISOString().split('T')[0]
-      const endDate = getWeekEnd(currentWeek).toISOString().split('T')[0]
-
-      const { data, error } = await TaskService.getWeeklyCalendar({
+      
+      const weekStart = getWeekStart(currentWeek)
+      const weekEnd = getWeekEnd(currentWeek)
+      
+      const result = await TaskService.getWeeklyCalendar(
         userId,
-        gardenId,
-        startDate,
-        endDate
-      })
-
-      if (error) {
-        setError(error)
-        return
+        weekStart.toISOString(),
+        weekEnd.toISOString(),
+        gardenId
+      )
+      
+      if (result.error) {
+        setError(result.error)
+        setTasks([])
+      } else {
+        setTasks(result.data || [])
       }
-
-      setTasks(data || [])
     } catch (err) {
-      setError('Fout bij het laden van taken')
-      console.error('Error loading tasks:', err)
+      setError('Fout bij ophalen taken')
+      setTasks([])
     } finally {
       setLoading(false)
     }
@@ -99,26 +78,39 @@ export function SimpleTasksView({ userId, gardenId }: SimpleTasksViewProps) {
   // Mark task as completed
   const completeTask = async (taskId: string) => {
     try {
-      const { error } = await TaskService.updateTask(taskId, {
+      const result = await TaskService.updateTask(taskId, { 
+        status: 'completed',
         completed_at: new Date().toISOString()
       })
-
-      if (error) {
-        setError(error)
-        return
+      
+      if (result.error) {
+        setError(result.error)
+      } else {
+        // Refresh tasks
+        fetchWeekTasks()
       }
-
-      // Reload tasks
-      await loadTasks()
     } catch (err) {
-      setError('Fout bij het voltooien van taak')
-      console.error('Error completing task:', err)
+      setError('Fout bij voltooien taak')
     }
+  }
+
+  // Navigate to previous week
+  const previousWeek = () => {
+    const newDate = new Date(currentWeek)
+    newDate.setDate(newDate.getDate() - 7)
+    setCurrentWeek(newDate)
+  }
+
+  // Navigate to next week
+  const nextWeek = () => {
+    const newDate = new Date(currentWeek)
+    newDate.setDate(newDate.getDate() + 7)
+    setCurrentWeek(newDate)
   }
 
   // Group tasks by day
   const groupTasksByDay = () => {
-    const grouped: Record<string, Task[]> = {}
+    const grouped: { [key: string]: Task[] } = {}
     
     for (let i = 0; i < 7; i++) {
       const date = new Date(getWeekStart(currentWeek))
@@ -126,7 +118,7 @@ export function SimpleTasksView({ userId, gardenId }: SimpleTasksViewProps) {
       const dateKey = date.toISOString().split('T')[0]
       grouped[dateKey] = []
     }
-
+    
     tasks.forEach(task => {
       if (task.due_date) {
         const dateKey = task.due_date.split('T')[0]
@@ -135,50 +127,17 @@ export function SimpleTasksView({ userId, gardenId }: SimpleTasksViewProps) {
         }
       }
     })
-
+    
     return grouped
   }
 
-  // Get priority color
-  const getPriorityColor = (priority: string): string => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800'
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'low':
-        return 'bg-green-100 text-green-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  // Get task type icon
-  const getTaskTypeIcon = (taskType: string): string => {
-    switch (taskType) {
-      case 'watering':
-        return '💧'
-      case 'fertilizing':
-        return '🌱'
-      case 'pruning':
-        return '✂️'
-      case 'harvesting':
-        return '🌾'
-      case 'planting':
-        return '🌱'
-      case 'pest_control':
-        return '🐛'
-      case 'general':
-        return '🔧'
-      default:
-        return '📝'
-    }
-  }
-
-  // Load tasks when week changes
   useEffect(() => {
-    loadTasks()
-  }, [currentWeek, userId, gardenId])
+    fetchWeekTasks()
+  }, [currentWeek, gardenId])
+
+  const groupedTasks = groupTasksByDay()
+  const weekStart = getWeekStart(currentWeek)
+  const weekEnd = getWeekEnd(currentWeek)
 
   if (loading) {
     return (
@@ -186,69 +145,45 @@ export function SimpleTasksView({ userId, gardenId }: SimpleTasksViewProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Wekelijks Overzicht
+            Taken deze week
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-2 text-gray-600">Taken laden...</p>
-          </div>
+          <div className="text-center py-8">Laden...</div>
         </CardContent>
       </Card>
     )
   }
-
-  if (error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Wekelijks Overzicht
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8">
-            <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={loadTasks} variant="outline">
-              Opnieuw proberen
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  const groupedTasks = groupTasksByDay()
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5" />
-          Wekelijks Overzicht
+          Taken deze week
         </CardTitle>
         
-        {/* Week Navigation */}
+        {/* Week navigation */}
         <div className="flex items-center justify-between">
           <Button
             variant="outline"
             size="sm"
-            onClick={goToPreviousWeek}
+            onClick={previousWeek}
+            className="flex items-center gap-1"
           >
             <ChevronLeft className="h-4 w-4" />
             Vorige week
           </Button>
           
-          <span className="text-sm font-medium text-gray-600">
-            {getWeekRange()}
+          <span className="text-sm text-muted-foreground">
+            {formatDate(weekStart)} - {formatDate(weekEnd)}
           </span>
           
           <Button
             variant="outline"
             size="sm"
-            onClick={goToNextWeek}
+            onClick={nextWeek}
+            className="flex items-center gap-1"
           >
             Volgende week
             <ChevronRight className="h-4 w-4" />
@@ -257,93 +192,88 @@ export function SimpleTasksView({ userId, gardenId }: SimpleTasksViewProps) {
       </CardHeader>
       
       <CardContent>
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+            {error}
+          </div>
+        )}
+        
         {tasks.length === 0 ? (
-          <div className="text-center py-8">
-            <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">Geen taken voor deze week</p>
-            <p className="text-sm text-gray-500 mt-1">
-              Alle taken zijn voltooid of er zijn geen taken gepland
-            </p>
+          <div className="text-center py-8 text-muted-foreground">
+            <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>Geen taken deze week</p>
+            <p className="text-sm">Geniet van je vrije tijd in de tuin!</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {Object.entries(groupedTasks).map(([dateKey, dayTasks]) => (
-              <div key={dateKey} className="border rounded-lg p-4">
-                <h3 className="font-medium text-gray-900 mb-3">
-                  {formatDate(new Date(dateKey))}
-                </h3>
-                
-                {dayTasks.length === 0 ? (
-                  <p className="text-sm text-gray-500 italic">Geen taken</p>
-                ) : (
-                  <div className="space-y-2">
-                    {dayTasks.map((task) => (
-                      <div
-                        key={task.id}
-                        className={`flex items-center justify-between p-3 rounded-lg border ${
-                          task.completed_at ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg">
-                            {getTaskTypeIcon(task.task_type || 'general')}
-                          </span>
-                          
-                          <div>
-                            <p className={`font-medium ${
-                              task.completed_at ? 'line-through text-gray-500' : 'text-gray-900'
-                            }`}>
-                              {task.title}
-                            </p>
-                            
+            {Object.entries(groupedTasks).map(([dateKey, dayTasks]) => {
+              const date = new Date(dateKey)
+              const isToday = date.toDateString() === new Date().toDateString()
+              
+              return (
+                <div key={dateKey} className="border rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className={`font-medium ${isToday ? 'text-blue-600' : ''}`}>
+                      {formatDate(date)}
+                      {isToday && <Badge variant="secondary" className="ml-2">Vandaag</Badge>}
+                    </h4>
+                    <span className="text-sm text-muted-foreground">
+                      {dayTasks.length} taak{dayTasks.length !== 1 ? 'en' : ''}
+                    </span>
+                  </div>
+                  
+                  {dayTasks.length > 0 ? (
+                    <div className="space-y-2">
+                      {dayTasks.map((task) => (
+                        <div
+                          key={task.id}
+                          className={`flex items-center justify-between p-2 rounded border ${
+                            task.status === 'completed' 
+                              ? 'bg-green-50 border-green-200' 
+                              : 'bg-gray-50 border-gray-200'
+                          }`}
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              {task.status === 'completed' && (
+                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              )}
+                              <span className={task.status === 'completed' ? 'line-through text-muted-foreground' : ''}>
+                                {task.title}
+                              </span>
+                            </div>
                             {task.description && (
-                              <p className={`text-sm ${
-                                task.completed_at ? 'text-gray-400' : 'text-gray-600'
-                              }`}>
+                              <p className="text-sm text-muted-foreground mt-1">
                                 {task.description}
                               </p>
                             )}
-                            
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge
-                                variant="secondary"
-                                className={getPriorityColor(task.priority || 'medium')}
-                              >
-                                {task.priority || 'medium'}
+                            {task.task_type && (
+                              <Badge variant="outline" className="mt-1">
+                                {task.task_type}
                               </Badge>
-                              
-                              {task.task_type && (
-                                <Badge variant="outline">
-                                  {task.task_type}
-                                </Badge>
-                              )}
-                            </div>
+                            )}
                           </div>
+                          
+                          {task.status !== 'completed' && (
+                            <Button
+                              size="sm"
+                              onClick={() => completeTask(task.id)}
+                              className="ml-2"
+                            >
+                              Voltooid
+                            </Button>
+                          )}
                         </div>
-                        
-                        {!task.completed_at && (
-                          <Button
-                            size="sm"
-                            onClick={() => completeTask(task.id)}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle2 className="h-4 w-4 mr-1" />
-                            Voltooid
-                          </Button>
-                        )}
-                        
-                        {task.completed_at && (
-                          <div className="flex items-center gap-2 text-green-600">
-                            <CheckCircle2 className="h-5 w-5" />
-                            <span className="text-sm font-medium">Voltooid</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-2">
+                      Geen taken gepland
+                    </p>
+                  )}
+                </div>
+              )
+            })}
           </div>
         )}
       </CardContent>
