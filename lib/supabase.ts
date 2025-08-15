@@ -87,3 +87,45 @@ export interface PlantWithPosition extends Plant {
   position_y?: number
   size?: number
 }
+
+// Additional types for API compatibility
+export interface BulkUpdatePositionsRequest {
+  positions: Array<{
+    plant_id: string
+    position_x: number
+    position_y: number
+    size?: number
+  }>
+}
+
+export interface PlantBedWithPosition {
+  id: string
+  name: string
+  garden_id: string
+  position_x?: number
+  position_y?: number
+  size?: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
+}
+
+export const VISUAL_GARDEN_CONSTANTS = {
+  GRID_SIZE: 50,
+  MIN_PLANT_SIZE: 20,
+  MAX_PLANT_SIZE: 100,
+  GRID_COLUMNS: 20,
+  GRID_ROWS: 20,
+  DEFAULT_CANVAS_WIDTH: 1000,
+  DEFAULT_CANVAS_HEIGHT: 800,
+  DEFAULT_PLANT_BED_SIZE: 100,
+  DEFAULT_COLORS: {
+    PLANT_BED: '#8B4513'
+  }
+} as const

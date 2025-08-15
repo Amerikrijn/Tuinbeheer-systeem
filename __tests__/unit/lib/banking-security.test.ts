@@ -1,6 +1,6 @@
 import {
   logClientSecurityEvent,
-  validateInput
+  validateApiInput
 } from '@/lib/banking-security'
 
 // Mock supabase
@@ -46,44 +46,44 @@ describe('Banking Security Module', () => {
     })
   })
 
-  describe('validateInput', () => {
+  describe('validateApiInput', () => {
     it('should validate valid input', () => {
-      const result = validateInput('valid input')
-      expect(result).toBe(true)
+      const result = validateApiInput('valid input')
+      expect(result.isValid).toBe(true)
     })
 
     it('should handle null and undefined input', () => {
-      const result1 = validateInput(null)
-      const result2 = validateInput(undefined)
+      const result1 = validateApiInput(null as any)
+      const result2 = validateApiInput(undefined as any)
       
-      expect(result1).toBe(true)
-      expect(result2).toBe(true)
+      expect(result1.isValid).toBe(false)
+      expect(result2.isValid).toBe(false)
     })
 
     it('should reject non-string input', () => {
-      const result = validateInput(123 as any)
-      expect(result).toBe(false)
+      const result = validateApiInput(123 as any)
+      expect(result.isValid).toBe(false)
     })
 
     it('should validate input length', () => {
       const longInput = 'a'.repeat(1001)
-      const result = validateInput(longInput)
+      const result = validateApiInput(longInput)
       
-      expect(result).toBe(false)
+      expect(result.isValid).toBe(false)
     })
 
     it('should detect SQL injection patterns', () => {
       const maliciousInput = "union select * from users"
-      const result = validateInput(maliciousInput)
+      const result = validateApiInput(maliciousInput)
       
-      expect(result).toBe(false)
+      expect(result.isValid).toBe(false)
     })
 
     it('should allow HTML when specified', () => {
       const htmlInput = '<b>bold text</b>'
-      const result = validateInput(htmlInput, 1000, true)
+      const result = validateApiInput(htmlInput, 1000, true)
       
-      expect(result).toBe(true)
+      expect(result.isValid).toBe(true)
     })
   })
 })

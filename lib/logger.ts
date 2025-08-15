@@ -93,6 +93,11 @@ export const apiLogger = new Logger();
 export const securityLogger = new Logger();
 export const databaseLogger = new Logger();
 
+// Legacy logger names for compatibility
+export const AppLogger = logger;
+export const PerformanceLogger = logger;
+export const AuditLogger = securityLogger;
+
 // Specialized logging functions
 export const logSecurityEvent = (event: string, details: Record<string, any>): void => {
   securityLogger.info(`SECURITY: ${event}`, details);
