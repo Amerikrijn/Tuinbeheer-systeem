@@ -174,7 +174,7 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBed[]> {
     query = query.eq("garden_id", gardenId)
   }
 
-  const { data, error } = await query.order("created_at", { ascending: false })
+  const { data, error } = await query.order("letter_code", { ascending: true })
 
   if (error) {
     console.error("Error fetching plant beds:", error)
@@ -211,29 +211,89 @@ export async function getPlantBed(id: string): Promise<PlantBed | null> {
   return data
 }
 
+// Helper function to get next available letter code for a garden
+async function getNextAvailableLetterCode(gardenId: string): Promise<string> {
+  console.log("Getting next available letter code for garden:", gardenId)
+  
+  // Get all existing letter codes for this garden
+  const { data: existingBeds, error } = await supabase
+    .from("plant_beds")
+    .select("letter_code")
+    .eq("garden_id", gardenId)
+    .eq("is_active", true)
+    .not("letter_code", "is", null)
+
+  if (error) {
+    console.error("Error fetching existing letter codes:", error)
+    throw error
+  }
+
+  // Extract existing letter codes and sort them
+  const existingCodes = existingBeds
+    .map(bed => bed.letter_code)
+    .filter(code => code && /^[A-Z]$/.test(code))
+    .sort()
+
+  console.log("Existing letter codes:", existingCodes)
+
+  // If no existing codes, start with 'A'
+  if (existingCodes.length === 0) {
+    return "A"
+  }
+
+  // Find the first missing letter in the sequence
+  for (let i = 0; i < existingCodes.length; i++) {
+    const expectedCode = String.fromCharCode(65 + i) // 65 is ASCII for 'A'
+    if (existingCodes[i] !== expectedCode) {
+      return expectedCode
+    }
+  }
+
+  // If all letters up to the last one are used, return the next one
+  const lastCode = existingCodes[existingCodes.length - 1]
+  const nextCode = String.fromCharCode(lastCode.charCodeAt(0) + 1)
+  
+  // Safety check: don't go beyond 'Z'
+  if (nextCode > 'Z') {
+    throw new Error("Maximum number of plant beds (26) reached for this garden")
+  }
+
+  return nextCode
+}
+
 export async function createPlantBed(plantBed: {
   name: string
   description?: string
   garden_id: string
-  position_x: number
-  position_y: number
-  width: number
-  height: number
-  shape: 'rectangle' | 'circle' | 'oval' | 'freeform'
-  color?: string
-  border_style?: string
-  border_color?: string
-  fill_pattern?: string
+  location?: string
+  size?: string
+  soil_type?: string
+  sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
+  season_year: number
+  position_x?: number
+  position_y?: number
+  visual_width?: number
+  visual_height?: number
+  rotation?: number
+  z_index?: number
+  color_code?: string
 }): Promise<PlantBed | null> {
   console.log("Creating plant bed with data:", plantBed)
+
+  // Get the next available letter code for this garden
+  const letterCode = await getNextAvailableLetterCode(plantBed.garden_id)
+  console.log("Assigned letter code:", letterCode)
 
   const { data, error } = await supabase
     .from("plant_beds")
     .insert({
       ...plantBed,
+      letter_code: letterCode,
+      season_year: plantBed.season_year || new Date().getFullYear(),
       is_active: true,
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      updated_at: new Date().toISOString(),
+      visual_updated_at: new Date().toISOString()
     })
     .select()
     .single()
@@ -243,7 +303,7 @@ export async function createPlantBed(plantBed: {
     throw error
   }
 
-  console.log("Plant bed created successfully:", data.id)
+  console.log("Plant bed created successfully:", data.id, "with letter code:", letterCode)
   return data
 }
 

@@ -54,7 +54,8 @@ export default function PlantBedsPage() {
     (bed) =>
       bed.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bed.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bed.id.toLowerCase().includes(searchTerm.toLowerCase()),
+      bed.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bed.letter_code?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   const getSunExposureIcon = (exposure: string) => {
@@ -155,15 +156,26 @@ export default function PlantBedsPage() {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input
-          placeholder="Zoek plantvakken..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search and Info */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Zoek op naam, locatie, letter code..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        {plantBeds.length > 0 && (
+          <div className="text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg border border-blue-200">
+            <span className="font-medium">Letter Code Systeem:</span> Plantvakken worden automatisch genummerd van A tot Z ({plantBeds.length} van 26 mogelijke)
+            <span className="ml-2 text-blue-600 font-mono">
+              Huidige range: {plantBeds[0]?.letter_code} - {plantBeds[plantBeds.length - 1]?.letter_code}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Plant Beds Grid */}
@@ -184,7 +196,14 @@ export default function PlantBedsPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">🌱</span>
                         <div>
-                          <h3 className="font-medium text-gray-900">{bed.name}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-gray-900">{bed.name}</h3>
+                            {bed.letter_code && (
+                              <Badge variant="outline" className="text-xs font-mono bg-blue-50 text-blue-700 border-blue-200">
+                                {bed.letter_code}
+                              </Badge>
+                            )}
+                          </div>
                           {bed.location && (
                             <p className="text-sm text-gray-500">{bed.location}</p>
                           )}
@@ -241,7 +260,14 @@ export default function PlantBedsPage() {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <span className="text-xl">🌱</span>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 truncate">{bed.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-gray-900 truncate">{bed.name}</h3>
+                          {bed.letter_code && (
+                            <Badge variant="outline" className="text-xs font-mono bg-blue-50 text-blue-700 border-blue-200">
+                              {bed.letter_code}
+                            </Badge>
+                          )}
+                        </div>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                           <span>{bed.plants.length} bloemen</span>
                           {bed.size && <span>Grootte: {bed.size}</span>}
@@ -328,12 +354,6 @@ export default function PlantBedsPage() {
           </p>
           {!searchTerm && (
             <div className="flex gap-2 justify-center">
-              <Link href="/plant-beds/new">
-                <Button className="bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Plantvak Toevoegen
-                </Button>
-              </Link>
               <Link href={`/gardens/${garden.id}/plant-beds/new`}>
                 <Button className="bg-green-600 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
@@ -356,24 +376,36 @@ export default function PlantBedsPage() {
               <div>
                 <div className="text-2xl font-bold text-green-600">{plantBeds.length}</div>
                 <div className="text-sm text-gray-600">Totaal Plantvakken</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {plantBeds.length > 0 && plantBeds.length <= 26 ? `A t/m ${String.fromCharCode(64 + plantBeds.length)}` : ''}
+                </div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-blue-600">
                   {plantBeds.reduce((sum, bed) => sum + Math.max(1, bed.plants.length), 0)}
                 </div>
                 <div className="text-sm text-gray-600">Totaal Bloemen</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {plantBeds.filter(bed => bed.plants.length > 0).length} van {plantBeds.length} vakken bezet
+                </div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-purple-600">
-                  {plantBeds.length}
+                  {plantBeds.length > 0 ? `${plantBeds[0]?.letter_code || 'A'} - ${plantBeds[plantBeds.length - 1]?.letter_code || 'A'}` : '-'}
                 </div>
-                <div className="text-sm text-gray-600">Actieve Vakken</div>
+                <div className="text-sm text-gray-600">Letter Code Bereik</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {plantBeds.length > 0 && plantBeds.length <= 26 ? `${plantBeds.length} van 26 mogelijke` : ''}
+                </div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-orange-600">
-                  100%
+                  {plantBeds.length > 0 ? Math.round((plantBeds.filter(bed => bed.plants.length > 0).length / plantBeds.length) * 100) : 0}%
                 </div>
                 <div className="text-sm text-gray-600">Bezettingsgraad</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {plantBeds.filter(bed => bed.plants.length > 0).length} van {plantBeds.length} vakken actief
+                </div>
               </div>
             </div>
           </CardContent>
