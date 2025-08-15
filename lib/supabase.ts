@@ -52,6 +52,7 @@ export interface Plant {
   plant_bed_id: string
   planting_date?: string
   scientific_name?: string
+  emoji?: string
   created_at: string
   updated_at: string
 }
@@ -75,6 +76,8 @@ export interface PlantBedWithPlants {
   plants: Plant[]
   location?: string
   size?: number
+  soil_type?: string
+  sun_exposure?: string
   created_at: string
   updated_at: string
 }

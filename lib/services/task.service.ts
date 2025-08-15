@@ -22,6 +22,12 @@ export interface TaskWithPlantInfo extends Task {
     id: string
     name: string
   }
+  // Additional properties for compatibility
+  plant_name?: string
+  plant_bed_name?: string
+  garden_name?: string
+  priority?: 'low' | 'medium' | 'high'
+  task_type?: 'watering' | 'fertilizing' | 'pruning' | 'harvesting' | 'planting' | 'pest_control' | 'general'
 }
 
 export interface WeeklyTask extends TaskWithPlantInfo {
@@ -47,6 +53,17 @@ export interface TaskSummary {
   plants_with_tasks: number
   total_active_tasks: number
   completed_this_week: number
+}
+
+export interface WeeklyCalendar {
+  week_start: string
+  week_end: string
+  week_number: number
+  year: number
+  total_tasks: number
+  overdue_tasks: number
+  today_tasks: number
+  upcoming_tasks: number
 }
 
 export class TaskService {
@@ -388,7 +405,7 @@ export class TaskService {
     }
   }
 
-  static async getWeeklyCalendar(weekStart: Date, user?: Record<string, unknown>): Promise<{ data: WeeklyTask[]; error: string | null }> {
+  static async getWeeklyCalendar(weekStart: Date, user?: Record<string, unknown>): Promise<{ data: WeeklyCalendar; error: string | null }> {
     try {
       const weekEnd = new Date(weekStart)
       weekEnd.setDate(weekEnd.getDate() + 6)
@@ -411,10 +428,21 @@ export class TaskService {
         week_number: this.getWeekNumber(new Date(task.due_date))
       }))
 
-      return { data: transformedData, error: null }
+      const calendarData: WeeklyCalendar = {
+        week_start: weekStart.toISOString().split('T')[0],
+        week_end: weekEnd.toISOString().split('T')[0],
+        week_number: this.getWeekNumber(weekStart),
+        year: weekStart.getFullYear(),
+        total_tasks: transformedData.length,
+        overdue_tasks: transformedData.filter(t => new Date(t.due_date) < new Date() && !t.completed).length,
+        today_tasks: transformedData.filter(t => t.due_date === new Date().toISOString().split('T')[0] && !t.completed).length,
+        upcoming_tasks: transformedData.filter(t => new Date(t.due_date) > new Date() && !t.completed).length
+      }
+
+      return { data: calendarData, error: null }
     } catch (error) {
       // Secure error handling for banking standards - no console logging in production
-      return { data: [], error: 'Failed to fetch weekly calendar' }
+      return { data: null, error: 'Failed to fetch weekly calendar' }
     }
   }
 }

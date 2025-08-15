@@ -56,7 +56,8 @@ export default function AcceptInvitationPage() {
         // Verify the invitation with Supabase
         const { data: invitationData, error } = await supabase.auth.verifyOtp({
           token: accessToken,
-          type: 'invite'
+          type: 'invite',
+          email: invitation?.email || ''
         })
 
         if (error) {
