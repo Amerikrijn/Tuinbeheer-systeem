@@ -86,7 +86,7 @@ async function checkBulkCollisions(
     });
     
     // Update positions with new values
-    positions.forEach(pos => {
+    positions.forEach((pos: { id: string; position_x: number; position_y: number; visual_width?: number; visual_height?: number }) => {
       const currentPos = currentPositions.get(pos.id);
       if (currentPos) {
         currentPositions.set(pos.id, {
@@ -157,7 +157,7 @@ async function checkBulkCanvasBoundaries(
     const canvasHeight = garden.canvas_height ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_CANVAS_HEIGHT;
     
     // Check each position
-    positions.forEach(pos => {
+    positions.forEach((pos: { id: string; position_x: number; position_y: number; visual_width?: number; visual_height?: number }) => {
       const width = pos.visual_width ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE;
       const height = pos.visual_height ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE;
       
@@ -328,7 +328,16 @@ export async function PUT(
     for (let i = 0; i < body.positions.length; i += batchSize) {
       const batch = body.positions.slice(i, i + batchSize);
       
-      for (const position of batch) {
+      for (const position of batch as Array<{
+        id: string;
+        position_x: number;
+        position_y: number;
+        visual_width?: number;
+        visual_height?: number;
+        rotation?: number;
+        z_index?: number;
+        color_code?: string;
+      }>) {
         const updateData = {
           position_x: position.position_x,
           position_y: position.position_y,
@@ -459,7 +468,16 @@ export async function PATCH(
     }
     
     // Build complete position data for validation
-    const completePositions = body.positions.map((pos) => {
+    const completePositions = body.positions.map((pos: {
+      id: string;
+      position_x: number;
+      position_y: number;
+      visual_width?: number;
+      visual_height?: number;
+      rotation?: number;
+      z_index?: number;
+      color_code?: string;
+    }) => {
       const current = currentDataMap.get(pos.id);
       return {
         id: pos.id,
@@ -496,7 +514,16 @@ export async function PATCH(
     // Perform partial bulk update
     const updatedPlantBeds: PlantBedWithPosition[] = [];
     
-    for (const position of body.positions) {
+    for (const position of body.positions as Array<{
+      id: string;
+      position_x?: number;
+      position_y?: number;
+      visual_width?: number;
+      visual_height?: number;
+      rotation?: number;
+      z_index?: number;
+      color_code?: string;
+    }>) {
       const updateData: Record<string, unknown> = {};
       
       // Only include fields that are provided
