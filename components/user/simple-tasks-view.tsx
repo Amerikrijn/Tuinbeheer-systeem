@@ -1,202 +1,282 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { CheckCircle, Clock, AlertTriangle, Loader2 } from 'lucide-react'
-import { TaskService, type WeeklyTask } from '@/lib/services/task.service'
+// Simple weekly tasks view for users - Updated for preview deployment
+import React, { useState, useEffect } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { BookOpen, ChevronLeft, ChevronRight, Calendar, CheckCircle2 } from "lucide-react"
+import { TaskService } from '@/lib/services/task.service'
+import { Task } from '@/lib/supabase'
 
 interface SimpleTasksViewProps {
-  userId?: string
+  userId: string
   gardenId?: string
 }
 
-export function SimpleTasksView({ userId, gardenId }: SimpleTasksViewProps) {
-  const [todayTasks, setTodayTasks] = useState<WeeklyTask[]>([])
-  const [overdueTasks, setOverdueTasks] = useState<WeeklyTask[]>([])
+export default function SimpleTasksView({ userId, gardenId }: SimpleTasksViewProps) {
+  const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentWeek, setCurrentWeek] = useState(new Date())
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadTasks()
-  }, [userId, gardenId])
+  // Get start of week (Monday)
+  const getWeekStart = (date: Date) => {
+    const d = new Date(date)
+    const day = d.getDay()
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is Sunday
+    return new Date(d.setDate(diff))
+  }
 
-  const loadTasks = async () => {
+  // Get end of week (Sunday)
+  const getWeekEnd = (date: Date) => {
+    const d = new Date(date)
+    const day = d.getDay()
+    const diff = d.getDate() - day + (day === 0 ? 0 : 7) // Adjust when day is Sunday
+    return new Date(d.setDate(diff))
+  }
+
+  // Format date for display
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('nl-NL', { 
+      weekday: 'short', 
+      month: 'short', 
+      day: 'numeric' 
+    })
+  }
+
+  // Get tasks for current week
+  const fetchWeekTasks = async () => {
     try {
       setLoading(true)
+      setError(null)
       
-      const [todayResult, overdueResult] = await Promise.all([
-        TaskService.getTodayTasks(),
-        TaskService.getOverdueTasks()
-      ])
-
-      if (todayResult.data) setTodayTasks(todayResult.data)
-      if (overdueResult.data) setOverdueTasks(overdueResult.data)
+      const weekStart = getWeekStart(currentWeek)
+      const weekEnd = getWeekEnd(currentWeek)
       
-    } catch (error) {
-      // Secure error handling for banking standards - no console logging in production
+      const result = await TaskService.getWeeklyCalendar(
+        userId,
+        weekStart.toISOString(),
+        weekEnd.toISOString(),
+        gardenId
+      )
+      
+      if (result.error) {
+        setError(result.error)
+        setTasks([])
+      } else {
+        setTasks(result.data || [])
+      }
+    } catch (err) {
+      setError('Fout bij ophalen taken')
+      setTasks([])
     } finally {
       setLoading(false)
     }
   }
 
-  const handleTaskToggle = async (taskId: string, completed: boolean) => {
+  // Mark task as completed
+  const completeTask = async (taskId: string) => {
     try {
-      const result = await TaskService.bulkCompleteTasks([taskId], completed)
-      if (!result.error) {
-        loadTasks() // Reload tasks after update
+      const result = await TaskService.updateTask(taskId, { 
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
+      
+      if (result.error) {
+        setError(result.error)
+      } else {
+        // Refresh tasks
+        fetchWeekTasks()
       }
-    } catch (error) {
-      // Secure error handling for banking standards - no console logging in production
+    } catch (err) {
+      setError('Fout bij voltooien taak')
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-        <span className="ml-2 text-muted-foreground">Taken laden...</span>
-      </div>
-    )
+  // Navigate to previous week
+  const previousWeek = () => {
+    const newDate = new Date(currentWeek)
+    newDate.setDate(newDate.getDate() - 7)
+    setCurrentWeek(newDate)
   }
 
-  const totalTasks = todayTasks.length + overdueTasks.length
+  // Navigate to next week
+  const nextWeek = () => {
+    const newDate = new Date(currentWeek)
+    newDate.setDate(newDate.getDate() + 7)
+    setCurrentWeek(newDate)
+  }
 
-  if (totalTasks === 0) {
+  // Group tasks by day
+  const groupTasksByDay = () => {
+    const grouped: { [key: string]: Task[] } = {}
+    
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(getWeekStart(currentWeek))
+      date.setDate(date.getDate() + i)
+      const dateKey = date.toISOString().split('T')[0]
+      grouped[dateKey] = []
+    }
+    
+    tasks.forEach(task => {
+      if (task.due_date) {
+        const dateKey = task.due_date.split('T')[0]
+        if (grouped[dateKey]) {
+          grouped[dateKey].push(task)
+        }
+      }
+    })
+    
+    return grouped
+  }
+
+  useEffect(() => {
+    fetchWeekTasks()
+  }, [currentWeek, gardenId])
+
+  const groupedTasks = groupTasksByDay()
+  const weekStart = getWeekStart(currentWeek)
+  const weekEnd = getWeekEnd(currentWeek)
+
+  if (loading) {
     return (
-      <Card className="text-center py-8">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Taken deze week
+          </CardTitle>
+        </CardHeader>
         <CardContent>
-          <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">Geen taken vandaag</h3>
-          <p className="text-muted-foreground">
-            Je hebt geen taken die vandaag moeten worden uitgevoerd.
-          </p>
+          <div className="text-center py-8">Laden...</div>
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <div className="space-y-6">
-      {/* Overdue Tasks */}
-      {overdueTasks.length > 0 && (
-        <Card className="border-red-200 bg-red-50 dark:bg-red-950/20">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700 dark:text-red-400">
-              <AlertTriangle className="w-5 h-5" />
-              Achterstallige Taken ({overdueTasks.length})
-            </CardTitle>
-            <CardDescription className="text-red-600 dark:text-red-300">
-              Deze taken zijn over tijd en moeten zo snel mogelijk worden afgerond
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {overdueTasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-800">
-                <div className="flex-1">
-                  <h4 className="font-medium text-foreground">{task.title}</h4>
-                  {task.description && (
-                    <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
-                  )}
-                  <div className="flex items-center gap-2 mt-2">
-                    {task.plant && (
-                      <Badge variant="outline" className="text-xs">
-                        {task.plant.name}
-                      </Badge>
-                    )}
-                    <Badge variant="destructive" className="text-xs">
-                      Over tijd
-                    </Badge>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => handleTaskToggle(task.id, !task.completed)}
-                  variant={task.completed ? "outline" : "default"}
-                  className="ml-4"
-                >
-                  {task.completed ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Afgerond
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="w-4 h-4 mr-2" />
-                      Afronden
-                    </>
-                  )}
-                </Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Today's Tasks */}
-      {todayTasks.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5" />
-              Taken voor Vandaag ({todayTasks.length})
-            </CardTitle>
-            <CardDescription>
-              Taken die vandaag moeten worden uitgevoerd
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {todayTasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border">
-                <div className="flex-1">
-                  <h4 className="font-medium text-foreground">{task.title}</h4>
-                  {task.description && (
-                    <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
-                  )}
-                  <div className="flex items-center gap-2 mt-2">
-                    {task.plant && (
-                      <Badge variant="outline" className="text-xs">
-                        {task.plant.name}
-                      </Badge>
-                    )}
-                    <Badge variant="secondary" className="text-xs">
-                      Vandaag
-                    </Badge>
-                  </div>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => handleTaskToggle(task.id, !task.completed)}
-                  variant={task.completed ? "outline" : "default"}
-                  className="ml-4"
-                >
-                  {task.completed ? (
-                    <>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Afgerond
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="w-4 h-4 mr-2" />
-                      Afronden
-                    </>
-                  )}
-                </Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Summary */}
-      <div className="text-center text-sm text-muted-foreground">
-        {totalTasks > 0 && (
-          <p>
-            Je hebt {totalTasks} ta{totalTasks === 1 ? 'ak' : 'ken'} voor vandaag
-            {overdueTasks.length > 0 && ` (${overdueTasks.length} achterstallig)`}
-          </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Calendar className="h-5 w-5" />
+          Taken deze week
+        </CardTitle>
+        
+        {/* Week navigation */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={previousWeek}
+            className="flex items-center gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Vorige week
+          </Button>
+          
+          <span className="text-sm text-muted-foreground">
+            {formatDate(weekStart)} - {formatDate(weekEnd)}
+          </span>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={nextWeek}
+            className="flex items-center gap-1"
+          >
+            Volgende week
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      
+      <CardContent>
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+            {error}
+          </div>
         )}
-      </div>
-    </div>
+        
+        {tasks.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>Geen taken deze week</p>
+            <p className="text-sm">Geniet van je vrije tijd in de tuin!</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {Object.entries(groupedTasks).map(([dateKey, dayTasks]) => {
+              const date = new Date(dateKey)
+              const isToday = date.toDateString() === new Date().toDateString()
+              
+              return (
+                <div key={dateKey} className="border rounded-lg p-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className={`font-medium ${isToday ? 'text-blue-600' : ''}`}>
+                      {formatDate(date)}
+                      {isToday && <Badge variant="secondary" className="ml-2">Vandaag</Badge>}
+                    </h4>
+                    <span className="text-sm text-muted-foreground">
+                      {dayTasks.length} taak{dayTasks.length !== 1 ? 'en' : ''}
+                    </span>
+                  </div>
+                  
+                  {dayTasks.length > 0 ? (
+                    <div className="space-y-2">
+                      {dayTasks.map((task) => (
+                        <div
+                          key={task.id}
+                          className={`flex items-center justify-between p-2 rounded border ${
+                            task.status === 'completed' 
+                              ? 'bg-green-50 border-green-200' 
+                              : 'bg-gray-50 border-gray-200'
+                          }`}
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              {task.status === 'completed' && (
+                                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              )}
+                              <span className={task.status === 'completed' ? 'line-through text-muted-foreground' : ''}>
+                                {task.title}
+                              </span>
+                            </div>
+                            {task.description && (
+                              <p className="text-sm text-muted-foreground mt-1">
+                                {task.description}
+                              </p>
+                            )}
+                            {task.task_type && (
+                              <Badge variant="outline" className="mt-1">
+                                {task.task_type}
+                              </Badge>
+                            )}
+                          </div>
+                          
+                          {task.status !== 'completed' && (
+                            <Button
+                              size="sm"
+                              onClick={() => completeTask(task.id)}
+                              className="ml-2"
+                            >
+                              Voltooid
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-2">
+                      Geen taken gepland
+                    </p>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
