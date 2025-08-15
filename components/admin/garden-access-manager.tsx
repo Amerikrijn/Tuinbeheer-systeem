@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -40,9 +40,9 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
     if (isOpen && user) {
       loadGardensAndAccess()
     }
-  }, [isOpen, user])
+  }, [isOpen, user, loadGardensAndAccess])
 
-  const loadGardensAndAccess = async () => {
+  const loadGardensAndAccess = useCallback(async () => {
     if (!user) return
     
     setLoading(true)
@@ -83,7 +83,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, toast])
 
   const toggleGardenAccess = (gardenId: string) => {
     setUserGardenAccess(prev => 

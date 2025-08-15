@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -71,9 +71,9 @@ export function EditUserDialog({
         loadUserGardenAccess(user.id)
       }
     }
-  }, [user, isOpen])
+  }, [user, isOpen, loadUserGardenAccess])
 
-  const loadUserGardenAccess = async (userId: string) => {
+  const loadUserGardenAccess = useCallback(async (userId: string) => {
     try {
       const { data: accessData, error } = await supabase
         .from('user_garden_access')
@@ -95,7 +95,7 @@ export function EditUserDialog({
         variant: "destructive"
       })
     }
-  }
+  }, [toast])
 
   const handleClose = () => {
     if (!editing) {

@@ -80,7 +80,7 @@ function LogbookPageContent() {
     }
     
     ensureGardenAccess()
-  }, [user?.id, loadGardenAccess])
+  }, [user?.id, loadGardenAccess, user])
   
   const [state, setState] = React.useState<LogbookPageState>({
     entries: [],

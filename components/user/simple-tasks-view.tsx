@@ -114,7 +114,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
     }
     
     ensureGardenAccess()
-  }, [user?.id, loadGardenAccess])
+  }, [user?.id, loadGardenAccess, user])
 
   // Load garden names
   useEffect(() => {
