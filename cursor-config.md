@@ -46,3 +46,9 @@
 - [ ] Security‑impact beoordeeld (secrets, policies, fouten)
 - [ ] Documentatie bijgewerkt
 - [ ] CI/CD status gecontroleerd en deployment‑impact beschreven
+
+## 🔁 Geautomatiseerde Testherstel
+- CI slaat testuitvoer op in `test-log.txt`.
+- Bij falende tests roept de pipeline `scripts/agent-fix-tests.sh` aan.
+- Het script verstuurt de log naar een generieke agent-API (`AGENT_API_URL`) en past de ontvangen patch toe.
+- De pipeline herhaalt de tests tot ze slagen of de maximale pogingen zijn bereikt.
