@@ -18,6 +18,7 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
+  // Keep our broader coverage collection for comprehensive testing
   collectCoverageFrom: [
     'components/**/*.{ts,tsx}',
     'lib/**/*.{ts,tsx}',
@@ -25,10 +26,10 @@ const customJestConfig = {
   ],
   coverageThreshold: {
     global: {
-      branches: 14,
-      functions: 14,
-      lines: 14,
-      statements: 14,
+      branches: 30,
+      functions: 30,
+      lines: 30,
+      statements: 30,
     },
   },
 }
