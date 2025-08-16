@@ -3,8 +3,8 @@ import { databaseLogger, AuditLogger, PerformanceLogger } from '../logger'
 import type { 
   Tuin, 
   Plantvak, 
-  Bloem, 
-  PlantvakWithBloemen, 
+  Plant, 
+  PlantvakWithPlants, 
   TuinWithPlantvakken,
   LogbookEntry,
   LogbookEntryWithDetails,
@@ -1024,5 +1024,5 @@ export class LogbookService {
 export const DatabaseService = {
   Tuin: TuinService,
   Logbook: LogbookService,
-  // TODO: Add PlantvakService and BloemService following the same pattern
+  // TODO: Add PlantvakService and PlantService following the same pattern
 }
