@@ -105,7 +105,7 @@ export class AppLogger extends Logger {
   }
 
   // Override the formatMessage method to include app context
-  protected formatMessage(level: string, message: string, context?: Record<string, any>): string {
+  protected formatMessage(level: LogLevel, message: string, context?: Record<string, unknown>): string {
     const logEntry: LogEntry & { appName?: string } = {
       timestamp: new Date().toISOString(),
       level: level.toUpperCase(),
