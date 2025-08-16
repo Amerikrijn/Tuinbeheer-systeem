@@ -17,12 +17,23 @@ const createMockClient = (): SupabaseClient => {
     }
   })
   
-  // Override methods to return mock responses
+  // Override methods to return mock responses that match the expected types
   mockClient.auth.getSession = async () => ({ data: { session: null }, error: null })
-  mockClient.auth.onAuthStateChange = () => ({ data: { subscription: { unsubscribe: () => {} } } })
-  mockClient.auth.signInWithPassword = async () => ({ data: null, error: new Error('Mock client - set environment variables') })
-  mockClient.auth.signOut = async () => ({ error: null })
-  mockClient.auth.resetPasswordForEmail = async () => ({ error: null })
+  mockClient.auth.onAuthStateChange = () => ({ 
+    data: { 
+      subscription: { 
+        id: 'mock-subscription',
+        callback: () => {},
+        unsubscribe: () => {} 
+      } 
+    } 
+  })
+  mockClient.auth.signInWithPassword = async () => ({ 
+    data: { user: null, session: null }, 
+    error: new Error('Mock client - set environment variables') 
+  })
+  mockClient.auth.signOut = async () => ({ data: {}, error: null })
+  mockClient.auth.resetPasswordForEmail = async () => ({ data: {}, error: null })
   
   return mockClient
 }
