@@ -80,7 +80,7 @@ Ons systeem gebruikt een **preview-first** aanpak:
 - ✅ **Feature branches** voor alle wijzigingen
 - ✅ **Automatische testing** op elke push
 - ✅ **Quality gates** voor deployment
-- ✅ **Security scanning** geïntegreerd
+- ✅ **Security scanning** geïntegreerd (GitHub CodeQL)
 - ✅ **Coverage monitoring** (minimum 60%)
 
 ### Pipeline Stappen:
