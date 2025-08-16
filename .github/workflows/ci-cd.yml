@@ -502,6 +502,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: 📝 Ensure documentation updated
+        run: ./scripts/ensure-docs-updated.sh
+
       - name: 📚 Check Documentation Updates
         run: |
           echo "📚 Checking documentation compliance..."

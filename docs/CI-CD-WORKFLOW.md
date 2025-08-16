@@ -60,6 +60,10 @@ git push origin feature/nieuwe-functie
 - Main → Production deployment
 - Geen uitzonderingen mogelijk
 
+### **📝 Documentatie bijwerken**
+- Bij elke codewijziging moet `README.md` of een bestand in `docs/` worden geüpdatet
+- De pipeline controleert dit en faalt bij ontbrekende documentatie
+
 ### **🔒 Banking-Grade Security**
 - 60% minimum code coverage (→ 80% in 2 weken)
 - Alle security checks moeten slagen

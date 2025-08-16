@@ -160,6 +160,8 @@ Gebruik deze tools alleen wanneer nodig en voer altijd de verplichte tests uit n
 - [`docs/CI-CD-WORKFLOW.md`](docs/CI-CD-WORKFLOW.md) - CI/CD details
 - [`docs/SECURITY.md`](docs/SECURITY.md) - Security guidelines
 
+> 📝 **Let op:** Bij elke codewijziging moet `README.md` of een bestand in `docs/` worden bijgewerkt. De CI/CD pipeline faalt als er geen documentatie-update is.
+
 ## Deployment
 
 Gebruik `scripts/auto-test-loop.js` om `npm run test:ci` automatisch te herhalen tot de tests slagen of het maximale aantal pogingen is bereikt. Bij falen wordt de fout naar `test-log.txt` geschreven en wordt `scripts/agent-fix-tests.sh` uitgevoerd voordat een nieuwe poging start.
@@ -177,6 +179,7 @@ Gebruik `scripts/auto-test-loop.js` om `npm run test:ci` automatisch te herhalen
 - CI/CD pipeline na elke wijziging
 - Continue loop tot succes
 - Feature branch gebruiken
+- Documentatie bijwerken wanneer code verandert (README.md of `docs/`)
 
 ## 🤝 Bijdragen
 
