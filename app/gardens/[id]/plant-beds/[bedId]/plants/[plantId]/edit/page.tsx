@@ -94,9 +94,9 @@ export default function EditPlantPage() {
 
     // Required fields
     if (!data.name.trim()) {
-      newErrors.name = "Bloemnaam is verplicht"
+              newErrors.name = "Plantnaam is verplicht"
     } else if (data.name.length > 100) {
-      newErrors.name = "Bloemnaam mag maximaal 100 karakters bevatten"
+              newErrors.name = "Plantnaam mag maximaal 100 karakters bevatten"
     }
 
     if (!data.color.trim()) {
@@ -301,7 +301,7 @@ export default function EditPlantPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
           <Leaf className="h-8 w-8 text-green-600" />
-          Bloem Bewerken
+          Plant Bewerken
         </h1>
         <div className="text-gray-600">
           <p>{plant.name}</p>
@@ -313,7 +313,7 @@ export default function EditPlantPage() {
         <div className="lg:col-span-2">
                       <Card>
               <CardHeader>
-                <CardTitle>Bloem Details</CardTitle>
+                <CardTitle>Plant Details</CardTitle>
               </CardHeader>
             <CardContent>
               <PlantForm

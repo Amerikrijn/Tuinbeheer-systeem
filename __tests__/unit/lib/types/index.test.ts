@@ -1,11 +1,11 @@
 import {
   Tuin,
   Plantvak,
-  Bloem,
+  Plant,
   LogbookEntry,
   TuinFormData,
   PlantvakFormData,
-  BloemFormData,
+  PlantFormData,
   Position,
   Size,
   Bounds,
@@ -85,8 +85,8 @@ describe('Types Index', () => {
       expect(mockPlantvak.sun_exposure).toBe('full-sun');
     });
 
-    it('should have correct Bloem interface structure', () => {
-      const mockBloem: Bloem = {
+    it('should have correct Plant interface structure', () => {
+      const mockPlant: Plant = {
         id: 'plant-1',
         plant_bed_id: 'bed-1',
         name: 'Test Plant',
@@ -120,10 +120,10 @@ describe('Types Index', () => {
         updated_at: '2024-01-01T00:00:00Z'
       };
 
-      expect(mockBloem.id).toBe('plant-1');
-      expect(mockBloem.plant_bed_id).toBe('bed-1');
-      expect(mockBloem.status).toBe('gezond');
-      expect(mockBloem.sun_preference).toBe('full-sun');
+      expect(mockPlant.id).toBe('plant-1');
+      expect(mockPlant.plant_bed_id).toBe('bed-1');
+      expect(mockPlant.status).toBe('gezond');
+      expect(mockPlant.sun_preference).toBe('full-sun');
     });
   });
 
@@ -164,8 +164,8 @@ describe('Types Index', () => {
       expect(mockPlantvakFormData.description).toBe('A new plant bed for vegetables');
     });
 
-    it('should have correct BloemFormData interface structure', () => {
-      const mockBloemFormData: BloemFormData = {
+    it('should have correct PlantFormData interface structure', () => {
+      const mockPlantFormData: PlantFormData = {
         name: 'New Plant',
         latin_name: 'Novus plantus',
         scientific_name: 'Novus plantus',
@@ -185,9 +185,9 @@ describe('Types Index', () => {
         fertilizer_schedule: 'Bi-weekly'
       };
 
-      expect(mockBloemFormData.name).toBe('New Plant');
-      expect(mockBloemFormData.status).toBe('aandacht_nodig');
-      expect(mockBloemFormData.sun_preference).toBe('shade');
+      expect(mockPlantFormData.name).toBe('New Plant');
+      expect(mockPlantFormData.status).toBe('aandacht_nodig');
+      expect(mockPlantFormData.sun_preference).toBe('shade');
     });
   });
 

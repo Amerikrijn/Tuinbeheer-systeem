@@ -1,7 +1,7 @@
 import {
   validateTuinFormData,
   validatePlantvakFormData,
-  validateBloemFormData,
+  validatePlantFormData,
   validateEmail,
   validatePhoneNumber,
   validateDate,
@@ -200,7 +200,7 @@ describe('Validation Functions', () => {
     })
   })
 
-  describe('validateBloemFormData', () => {
+  describe('validatePlantFormData', () => {
     it('should validate valid plant data', () => {
       const validData = {
         name: 'Rose',
@@ -217,7 +217,7 @@ describe('Validation Functions', () => {
         fertilizer_schedule: 'Monthly',
       }
 
-      const result = validateBloemFormData(validData)
+      const result = validatePlantFormData(validData)
 
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
@@ -229,7 +229,7 @@ describe('Validation Functions', () => {
         status: 'gezond' as const,
       }
 
-      const result = validateBloemFormData(invalidData)
+      const result = validatePlantFormData(invalidData)
 
       expect(result.isValid).toBe(false)
       expect(result.errors).toContainEqual({
@@ -245,7 +245,7 @@ describe('Validation Functions', () => {
         height: 50
       }
 
-      const result = validateBloemFormData(invalidData)
+      const result = validatePlantFormData(invalidData)
 
       expect(result.isValid).toBe(false)
       expect(result.errors).toContainEqual({
@@ -261,7 +261,7 @@ describe('Validation Functions', () => {
         height: -10
       }
 
-      const negativeResult = validateBloemFormData(negativeData)
+      const negativeResult = validatePlantFormData(negativeData)
 
       expect(negativeResult.isValid).toBe(false)
       expect(negativeResult.errors).toContainEqual({
@@ -278,7 +278,7 @@ describe('Validation Functions', () => {
         status: 'invalid-status' as any
       }
 
-      const result = validateBloemFormData(invalidData)
+      const result = validatePlantFormData(invalidData)
 
       expect(result.isValid).toBe(false)
       expect(result.errors).toContainEqual({
@@ -295,7 +295,7 @@ describe('Validation Functions', () => {
         status: 'gezond' as const,
       }
 
-      const result = validateBloemFormData(invalidDates)
+      const result = validatePlantFormData(invalidDates)
 
       expect(result.isValid).toBe(false)
       expect(result.errors.some(e => e.field === 'planting_date')).toBe(true)
