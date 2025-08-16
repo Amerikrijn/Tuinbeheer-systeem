@@ -70,7 +70,7 @@ async function validateConnection(retries = 3): Promise<void> {
       await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
     } catch (error) {
       if (attempt === retries) {
-        databaseLogger.error('Unable to connect to database', error as Error, { attempts: retries })
+        databaseLogger.error('Unable to connect to database', error as Error)
         throw new DatabaseError('Unable to connect to database', 'CONNECTION_ERROR', error)
       }
     }
@@ -92,7 +92,7 @@ function createResponse<T>(
   
   if (operation) {
     if (error) {
-      databaseLogger.error(`Operation failed: ${operation}`, undefined, { error, metadata })
+      databaseLogger.error(`Operation failed: ${operation}`)
     } else {
       databaseLogger.debug(`Operation successful: ${operation}`, { metadata })
     }
@@ -1002,7 +1002,7 @@ export class LogbookService {
       PerformanceLogger.endTimer(operationId, 'logbook-getPlantPhotos', { error: true })
       
       if (error instanceof DatabaseError) {
-        databaseLogger.error('Database error in LogbookService.getPlantPhotos', error, { plantId, year, operationId })
+        databaseLogger.error('Database error in LogbookService.getPlantPhotos')
         return createResponse({
           photos: [],
           totalCount: 0,
@@ -1010,7 +1010,7 @@ export class LogbookService {
         }, error.message, 'fetch plant photos')
       }
       
-      databaseLogger.error('Unexpected error in LogbookService.getPlantPhotos', error as Error, { plantId, year, operationId })
+      databaseLogger.error('Unexpected error in LogbookService.getPlantPhotos')
       return createResponse({
         photos: [],
         totalCount: 0,

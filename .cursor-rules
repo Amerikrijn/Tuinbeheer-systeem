@@ -851,3 +851,62 @@ Alle admin functies via beveiligde server routes:
 #### ✅ Privilege Separation
 - **NEXT_PUBLIC_*** = Client-side safe (anon key, URLs)
 - **SUPABASE_SERVICE_ROLE_KEY** = Server-side only (admin privileges)
+
+# STANDARD TEST SUMMARY TEMPLATE
+Na elke test automatisch deze samenvatting tonen:
+
+## 🧪 **TEST SAMENVATTING:**
+
+### **Test Status:**
+- **Lint:** [✅/❌] [Details]
+- **Type Check:** [✅/❌] [Aantal fouten]
+- **Build:** [✅/❌] [Details]
+- **Tests:** [✅/❌] [Passed/Failed/Skipped]
+- **Code Coverage:** [Percentage] (Target: 60%)
+
+### **CI/CD Status:**
+- **Pipeline:** [Groen/Geel/Rood]
+- **Deployment:** [✅/❌] [Details]
+
+### **Volgende Stap:**
+[Beschrijving van wat er nu moet gebeuren volgens je workflow]
+
+---
+
+# STANDARD WORKFLOW PROCEDURE
+## 🔄 **VERPLICHTE WORKFLOW VOOR ELKE CODE CHANGE:**
+
+### **Stap 1: Code Wijziging**
+- [ ] Code wijziging gemaakt
+- [ ] Lokaal getest
+- [ ] TypeScript fouten opgelost
+
+### **Stap 2: Lokaal Testen**
+- [ ] `npm run lint` ✅
+- [ ] `npm run type-check` ✅ (max 50 fouten toegestaan)
+- [ ] `npm run build` ✅
+- [ ] `npm run test:coverage` ✅
+
+### **Stap 3: CI/CD Pipeline**
+- [ ] Pipeline groen gekregen
+- [ ] Alle checks geslaagd
+- [ ] Code coverage voldoende
+
+### **Stap 4: Deployment Vraag**
+- [ ] **VRAAG AAN USER:** "Wil je deze change naar preview pushen?"
+- [ ] **NOOIT automatisch naar main pushen**
+- [ ] **Alleen naar preview na expliciete goedkeuring**
+
+### **Stap 5: Documentatie**
+- [ ] Change gedocumenteerd
+- [ ] Rollback procedure beschreven
+- [ ] Performance impact gemeten
+
+---
+
+# NOOIT UITZONDERINGEN
+🚨 **GEEN UITZONDERINGEN - Nederlandse banking standards zijn niet-negocieerbaar.**
+- **NOOIT** direct naar main pushen
+- **NOOIT** pushen zonder groene pipeline
+- **NOOIT** pushen zonder lokale tests
+- **ALTIJD** user goedkeuring vragen voor preview deployment
