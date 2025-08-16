@@ -7,7 +7,6 @@ import { LanguageProvider } from "@/hooks/use-language"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { ConditionalNavigation } from "@/components/navigation/conditional-navigation" 
 import { SupabaseAuthProvider } from "@/components/auth/supabase-auth-provider"
-import { SupabaseStatus } from "@/components/debug/supabase-status"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -44,7 +43,6 @@ export default function RootLayout({
                 <ConditionalNavigation />
                 {children}
                 <Toaster />
-                <SupabaseStatus />
               </SupabaseAuthProvider>
             </LanguageProvider>
           </ThemeProvider>

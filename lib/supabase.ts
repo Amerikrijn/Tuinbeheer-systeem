@@ -1,60 +1,15 @@
 import { createClient, type SupabaseClient, AuthError } from '@supabase/supabase-js'
 
 // ========================================
-// ENVIRONMENT VARIABLES SETUP:
+// SUPABASE CREDENTIALS (Preview Environment)
 // ========================================
-// ✅ PRODUCTION (Vercel): Uses environment variables set in Vercel dashboard
-// ✅ PREVIEW (Vercel): Uses environment variables set in Vercel dashboard  
-// ❌ LOCAL DEVELOPMENT: Requires .env.local file with same credentials
+// These are the actual credentials for your preview environment
+// Connected to: https://dwsgwqosmihsfaxuheji.supabase.co
 // ========================================
-// For local development, copy your Vercel Preview environment variables
-// to a .env.local file in your project root.
-// ========================================
-
-// Environment variable access - works with Vercel deployment
-const getEnvVar = (key: string): string | undefined => {
-  // In Vercel, these will be the actual values
-  // In local development, they might be undefined or placeholder values
-  return process.env[key]
-}
 
 // Singleton pattern to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
 let supabaseAdminInstance: SupabaseClient | null = null
-
-// Create mock client for development when env vars are missing
-const createMockClient = (): SupabaseClient => {
-  console.warn('⚠️ Using mock Supabase client - environment variables not set')
-  
-  // Create a minimal mock client that satisfies the SupabaseClient interface
-  const mockClient = createClient('https://mock.supabase.co', 'mock-key', {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false
-    }
-  })
-  
-  // Override methods to return mock responses that match the expected types
-  mockClient.auth.getSession = async () => ({ data: { session: null }, error: null })
-  mockClient.auth.onAuthStateChange = () => ({ 
-    data: { 
-      subscription: { 
-        id: 'mock-subscription',
-        callback: () => {},
-        unsubscribe: () => {} 
-      } 
-    } 
-  })
-  mockClient.auth.signInWithPassword = async () => ({ 
-    data: { user: null, session: null }, 
-    error: new AuthError('Mock client - set environment variables', { status: 400, name: 'AuthError' })
-  })
-  mockClient.auth.signOut = async () => ({ data: {}, error: null })
-  mockClient.auth.resetPasswordForEmail = async () => ({ data: {}, error: null })
-  
-  return mockClient
-}
 
 // Get or create Supabase client instance
 const getSupabaseClient = (): SupabaseClient => {
@@ -62,41 +17,9 @@ const getSupabaseClient = (): SupabaseClient => {
     return supabaseInstance
   }
 
-  const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL')
-  const supabaseAnonKey = getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY')
-
-  // Check if we're using placeholder values
-  if (supabaseUrl === 'https://YOUR-PROJECT.supabase.co' || supabaseAnonKey === 'YOUR-ANON-KEY') {
-    console.error('❌ Supabase environment variables are set to placeholder values!')
-    console.error('Please set your actual Supabase credentials in Vercel or create a .env.local file for local development.')
-    
-    // In development, use mock client
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('🚨 Development mode: Using mock Supabase client')
-      supabaseInstance = createMockClient()
-      return supabaseInstance
-    }
-    
-    throw new Error('Supabase environment variables are required in production')
-  }
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('❌ Supabase environment variables are missing!')
-    console.error('Please set the following in your Vercel environment variables:')
-    console.error('NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co')
-    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key')
-    console.error('')
-    console.error('For local development, create a .env.local file with these values.')
-    
-    // In development, use mock client
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('🚨 Development mode: Using mock Supabase client')
-      supabaseInstance = createMockClient()
-      return supabaseInstance
-    }
-    
-    throw new Error('Supabase environment variables are required in production')
-  }
+  // Use actual Supabase credentials
+  const supabaseUrl = 'https://dwsgwqosmihsfaxuheji.supabase.co'
+  const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE'
   
   console.log('🔧 Creating Supabase client with URL:', supabaseUrl)
   console.log('🔑 Anon key present:', !!supabaseAnonKey)
@@ -124,27 +47,8 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     return supabaseAdminInstance
   }
 
-  const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL')
-  const serviceRoleKey = getEnvVar('SUPABASE_SERVICE_ROLE_KEY')
-
-  // Check if we're using placeholder values
-  if (supabaseUrl === 'https://YOUR-PROJECT.supabase.co' || serviceRoleKey === 'YOUR-SERVICE-ROLE-KEY') {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('🚨 Development mode: Using mock admin client')
-      supabaseAdminInstance = createMockClient()
-      return supabaseAdminInstance
-    }
-    throw new Error('Supabase admin environment variables are required in production')
-  }
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('🚨 Development mode: Using mock admin client')
-      supabaseAdminInstance = createMockClient()
-      return supabaseAdminInstance
-    }
-    throw new Error('Supabase admin environment variables are required in production')
-  }
+  const supabaseUrl = 'https://dwsgwqosmihsfaxuheji.supabase.co'
+  const serviceRoleKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjUxMjc1MCwiZXhwIjoyMDY4MDg4NzUwfQ.Bc26dsmPHzjetITmfjcvvIl9gDYkBfmSbSETQWv4AQY'
   
   supabaseAdminInstance = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
