@@ -133,27 +133,23 @@ jobs:
             exit 1
           fi
           
-          # Parse coverage from lcov.info
-          COVERAGE=$(grep -E "^SF:" coverage/lcov.info | wc -l)
-          if [ $COVERAGE -eq 0 ]; then
-            echo "❌ CRITICAL: No test coverage data found!"
+          # Parse line coverage percentage from lcov.info
+          COVERAGE=$(grep -Po 'lines\.*: \K[0-9.]+%' coverage/lcov.info | tr -d '%' | tail -1)
+          if [ -z "$COVERAGE" ]; then
+            echo "❌ CRITICAL: No line coverage data found!"
             exit 1
           fi
-          
+
           echo "✅ Coverage report generated successfully"
-          echo "📊 Test files covered: $COVERAGE"
-          
-          # Check if all tests passed (Jest exit code 0)
-          if [ $? -ne 0 ]; then
-            echo "❌ CRITICAL: Tests failed with exit code $?"
+          echo "📊 Lines coverage: ${COVERAGE}%"
+
+          # Validate coverage threshold
+          if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
+            echo "❌ CRITICAL: Coverage ${COVERAGE}% is below threshold ${COVERAGE_THRESHOLD}%"
             exit 1
           fi
-          
-          # Validate coverage threshold
-          echo "🔍 Checking coverage threshold..."
-          npm run test:coverage
-          
-          echo "✅ All quality gates passed successfully!"
+
+          echo "✅ Coverage threshold met"
 
       - name: 📊 Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
