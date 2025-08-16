@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient, AuthError } from '@supabase/supabase-js'
+import { ENV } from '@/lib/env'
 
 // Singleton pattern to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
@@ -44,8 +45,8 @@ const getSupabaseClient = (): SupabaseClient => {
     return supabaseInstance
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseUrl = ENV.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error('❌ Supabase environment variables are missing!')
@@ -89,7 +90,7 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     return supabaseAdminInstance
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseUrl = ENV.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl || !serviceRoleKey) {
