@@ -27,7 +27,6 @@ Alle backlog items gecombineerd in één overzichtelijk bestand, geordend op imp
 - `app/admin/users/page.tsx`: Admin interface dark mode
 - `components/error-boundary.tsx`: Background colors
 - `components/flower-visualization.tsx`: Border en background
-- `components/instagram-integration.tsx`: Background colors
 - `components/ui/plant-form.tsx`: Dropdown styling
 
 ### **2. 📱 MOBILE RESPONSIVENESS FIXES**
