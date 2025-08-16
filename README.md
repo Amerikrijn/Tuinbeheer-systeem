@@ -57,6 +57,21 @@ npm run ci:quality       # CI/CD pipeline
 - Herhaal tot coverage ≥60% is
 - Herhaal tot pipeline groen is
 
+## 🪝 Git hook voor push
+
+Deze repository gebruikt Husky om vóór elke `git push` automatisch `npm run test:ci` uit te voeren.
+Als deze tests falen, wordt de push afgebroken (`exit 1`).
+
+### Tijdelijk omzeilen
+
+In noodgevallen kan de hook éénmalig worden overgeslagen met:
+
+```bash
+git push --no-verify
+# of
+HUSKY=0 git push
+```
+
 ## 🔧 Beschikbare Scripts
 
 ```bash
