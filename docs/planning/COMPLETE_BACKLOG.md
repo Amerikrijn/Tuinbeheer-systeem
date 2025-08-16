@@ -219,9 +219,9 @@ Sommige data willen we ook visueel per maand in tuin kunnen zien.
 
 ### **12. 📸 FOTO'S TOEVOEGEN AAN PLANTVAK**
 **Prioriteit:** Medium  
-**Story Points:** 6  
+**Story Points:** 5  
 **Type:** Feature  
-**Complexiteit:** 🟡 Medium - UI grid + data relaties
+**Complexiteit:** 🟡 Medium - UI + database + file handling
 
 **Beschrijving:**  
 Toon bij elk plantvak de foto's uit relevante logboekitems (gemaakt door gebruikers en admin). Als een logboekitem nog geen koppeling naar een plantvak heeft, voeg die relationele verwijzing toe.
@@ -229,15 +229,38 @@ Toon bij elk plantvak de foto's uit relevante logboekitems (gemaakt door gebruik
 **Acceptatiecriteria:**
 - [ ] Logboekitems zijn gekoppeld aan plantvakken via een expliciete referentie (bijv. `plant_bed_id`); indien nog niet aanwezig: databasekolom toevoegen + migratie + backfill plan
 - [ ] Foto's uit logboek worden getoond in het bijbehorende plantvak
-- [ ] Sorteervolgorde: van oud naar nieuw (ascending op datum)
-- [ ] Maximaal 24 foto's per jaar zichtbaar; UI biedt jaarselectie of paginatie per jaar
-- [ ] Standaard toont het huidige jaar; indien minder dan 24 foto's, toon alle beschikbare
-- [ ] "Meer foto's" of uitklapfunctionaliteit voor resterende foto's buiten de eerste 24 per jaar
+- [ ] Foto's kunnen worden toegevoegd aan logboekitems
+- [ ] Foto's worden opgeslagen in Supabase Storage
+- [ ] Foto's zijn zichtbaar in plantvak overzicht
 - [ ] Performance blijft goed bij veel foto's
 
-**Estimate:** 1 week
+**Database Changes:**
+- Relatie tussen logboekitems en plantvakken optimaliseren
+- Storage bucket voor foto's configureren
 
-### **13. 💾 OPSLAAN FUNCTIONALITEIT FIX**
+**Estimate:** 1-2 weken
+
+### **13. 🔒 SECURITY: Hardcoded Credentials Cleanup**
+**Prioriteit:** Hoog  
+**Story Points:** 2  
+**Type:** Security  
+**Complexiteit:** 🟡 Medium - Code review + refactoring
+
+**Beschrijving:**  
+Alle hardcoded credentials, API keys, en secrets moeten worden vervangen door environment variables.
+
+**Acceptatiecriteria:**
+- [ ] Geen hardcoded credentials meer in de codebase
+- [ ] Alle secrets gebruiken environment variables
+- [ ] Fallback values alleen voor development
+- [ ] Code review door security team
+- [ ] Documentatie van alle environment variables
+
+**Database Changes:** Geen
+
+**Estimate:** 1-2 dagen
+
+### **14. 💾 OPSLAAN FUNCTIONALITEIT FIX**
 **Prioriteit:** Kritiek  
 **Story Points:** 4  
 **Type:** Bug Fix  

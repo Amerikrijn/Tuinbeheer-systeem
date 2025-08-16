@@ -149,17 +149,19 @@ describe('Types Index', () => {
     it('should have correct PlantvakFormData interface structure', () => {
       const mockPlantvakFormData: PlantvakFormData = {
         id: 'new-bed',
-        name: 'New Bed',
-        location: 'South corner',
-        size: '3m x 3m',
+        // name field removed - will be auto-generated based on letter_code
+        location: 'North side',
+        size: '2x3m',
         soilType: 'sandy',
         sunExposure: 'partial-sun',
-        description: 'A new plant bed'
-      };
+        description: 'A new plant bed for vegetables'
+      }
 
       expect(mockPlantvakFormData.id).toBe('new-bed');
+      expect(mockPlantvakFormData.location).toBe('North side');
       expect(mockPlantvakFormData.soilType).toBe('sandy');
       expect(mockPlantvakFormData.sunExposure).toBe('partial-sun');
+      expect(mockPlantvakFormData.description).toBe('A new plant bed for vegetables');
     });
 
     it('should have correct BloemFormData interface structure', () => {
