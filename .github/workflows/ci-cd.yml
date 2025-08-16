@@ -18,7 +18,7 @@ on:
 
 env:
   NODE_VERSION: '18'
-  COVERAGE_THRESHOLD: '60'  # Start with 60%, increase to 80% in 2 weeks
+  COVERAGE_THRESHOLD: '80'  # Minimum required coverage
 
 jobs:
   # 🔍 CHANGE DETECTION
@@ -126,28 +126,28 @@ jobs:
           CI: true
         continue-on-error: false
 
-        - name: 📊 Coverage Threshold Validation (CRITICAL - 60% MINIMUM)
-          run: |
-            echo "🔍 Validating test coverage thresholds..."
-            echo "🎯 Target: ${{ env.COVERAGE_THRESHOLD }}% minimum coverage"
+      - name: 📊 Coverage Threshold Validation (CRITICAL - 80% MINIMUM)
+        run: |
+          echo "🔍 Validating test coverage thresholds..."
+          echo "🎯 Target: ${{ env.COVERAGE_THRESHOLD }}% minimum coverage"
 
-            if [ ! -f "coverage/lcov.info" ]; then
-              echo "❌ CRITICAL: No coverage report generated - tests failed!"
-              exit 1
-            fi
+          if [ ! -f "coverage/lcov.info" ]; then
+            echo "❌ CRITICAL: No coverage report generated - tests failed!"
+            exit 1
+          fi
 
-            # Calculate line coverage percentage from lcov.info
-            COVERAGE=$(awk -F: '/^LH:/ {lh+=$2} /^LF:/ {lf+=$2} END {if (lf>0) printf "%.2f", (lh/lf)*100}' coverage/lcov.info)
-            echo "📈 Line coverage: ${COVERAGE}%"
+          # Calculate line coverage percentage from lcov.info
+          COVERAGE=$(awk -F: '/^LH:/ {lh+=$2} /^LF:/ {lf+=$2} END {if (lf>0) printf "%.2f", (lh/lf)*100}' coverage/lcov.info)
+          echo "📈 Line coverage: ${COVERAGE}%"
 
-            # Compare against threshold using bc for precision
-            if [ "$(echo "$COVERAGE < ${COVERAGE_THRESHOLD}" | bc -l)" -eq 1 ]; then
-              echo "❌ Coverage ${COVERAGE}% is below required ${COVERAGE_THRESHOLD}%"
-              exit 1
-            fi
+          # Compare against threshold using bc for precision
+          if [ "$(echo "$COVERAGE < ${COVERAGE_THRESHOLD}" | bc -l)" -eq 1 ]; then
+            echo "❌ Coverage ${COVERAGE}% is below required ${COVERAGE_THRESHOLD}%"
+            exit 1
+          fi
 
-            echo "✅ Coverage threshold met."
-            echo "✅ All quality gates passed successfully!"
+          echo "✅ Coverage threshold met."
+          echo "✅ All quality gates passed successfully!"
 
       - name: 📊 Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -590,14 +590,14 @@ jobs:
              [ "${{ needs.docs.result }}" == "success" ]; then
             echo "✅ ALL QUALITY GATES PASSED - Ready for deployment!"
             echo "🚀 Preview deployment will be triggered automatically"
-            echo "📊 Coverage target: ${{ env.COVERAGE_THRESHOLD }}% (Phase 1: 60% → 80% in 2 weeks)"
+            echo "📊 Coverage target: ${{ env.COVERAGE_THRESHOLD }}%"
           else
             echo "❌ QUALITY GATES FAILED - Deployment blocked!"
             echo "🔒 Preview deployment will NOT be triggered"
             echo "📋 Please fix the following issues:"
             
             if [ "${{ needs.quality.result }}" != "success" ]; then
-              echo "  - Quality Gates (Lint, Types, Tests, 60% Coverage)"
+              echo "  - Quality Gates (Lint, Types, Tests, 80% Coverage)"
             fi
             if [ "${{ needs.security.result }}" != "success" ]; then
               echo "  - Security & Compliance (SAST, Secrets Detection)"
@@ -628,7 +628,7 @@ jobs:
           echo "📋 Please fix all issues and push again"
           echo ""
           echo "🎯 Current Requirements:"
-          echo "  - 60% minimum code coverage"
+          echo "  - 80% minimum code coverage"
           echo "  - All security checks (SAST & DAST) must pass"
           echo "  - All regression tests must pass"
           echo "  - Build must succeed"
