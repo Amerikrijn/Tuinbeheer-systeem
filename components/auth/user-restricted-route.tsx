@@ -3,7 +3,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-supabase-auth'
-import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AlertCircle } from 'lucide-react'
 

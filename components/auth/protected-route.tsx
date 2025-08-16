@@ -3,10 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-supabase-auth'
-import { supabase } from '@/lib/supabase'
-import { Loader2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
-import { uiLogger } from '@/lib/logger'
 import { Button } from '@/components/ui/button'
 import { TreePine } from 'lucide-react'
 

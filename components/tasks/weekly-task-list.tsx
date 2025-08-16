@@ -5,17 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TaskDetailsDialog } from "./task-details-dialog"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { 
   Calendar, 
   ChevronLeft, 
   ChevronRight, 
   CheckCircle2, 
   AlertCircle, 
-  Clock, 
   Plus,
-  Filter,
-  MoreVertical,
   CheckCircle,
   Leaf
 } from "lucide-react"
@@ -31,9 +27,7 @@ import {
   getTaskTypeConfig, 
   getPriorityConfig, 
   formatTaskDate, 
-  getWeekStartDate,
-  TASK_TYPE_CONFIGS,
-  PRIORITY_CONFIGS
+  getWeekStartDate
 } from "@/lib/types/tasks"
 
 interface WeeklyTaskListProps {

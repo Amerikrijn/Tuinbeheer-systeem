@@ -11,8 +11,6 @@ import { ArrowLeft, Leaf } from "lucide-react"
 import { getGarden, getPlantBed, createPlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { AddTaskForm } from '@/components/tasks/add-task-form'
-import { TaskService } from '@/lib/services/task.service'
-import type { TaskWithPlantInfo } from '@/lib/types/tasks'
 
 export default function NewPlantPage() {
   const router = useRouter()

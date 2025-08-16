@@ -3,8 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-supabase-auth';
-import { TreePine, Home, BookOpen, ClipboardList, User, Menu, X, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { TreePine, BookOpen, ClipboardList, User, Menu, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';

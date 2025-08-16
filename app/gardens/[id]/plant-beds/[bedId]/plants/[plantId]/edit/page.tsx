@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PlantForm, PlantFormData, PlantFormErrors, createInitialPlantFormData } from "@/components/ui/plant-form"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Leaf, Save, Trash2 } from "lucide-react"
+import { ArrowLeft, Leaf, Trash2 } from "lucide-react"
 import { getPlant, updatePlant, deletePlant } from "@/lib/database"
 import type { Plant } from "@/lib/supabase"
 import { AddTaskForm } from '@/components/tasks/add-task-form'

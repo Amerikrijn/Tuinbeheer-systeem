@@ -7,7 +7,7 @@ import * as React from "react"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { TreePine, Home, ArrowLeft, Search, AlertCircle, MapPin, Settings, Eye, AlertTriangle } from "lucide-react"
+import { TreePine, Home, AlertCircle, MapPin, Settings, AlertTriangle } from "lucide-react"
 
 export default function NotFound() {
   return (

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireAuthenticationQuick } from '@/lib/api-auth-wrapper';
 import { logClientSecurityEvent } from '@/lib/banking-security';
 import { 
   UpdatePositionRequest, 
