@@ -97,19 +97,28 @@ jobs:
         continue-on-error: false
 
       - name: 🧪 Jest - Unit & Integration Tests (CRITICAL)
+        id: unit-tests
+        run: npm run test:ci 2>&1 | tee test-log.txt
+        env:
+          CI: true
+        continue-on-error: true
+
+      - name: 🤖 Agent-assisted Test Retries
+        if: steps.unit-tests.outcome == 'failure'
         run: |
           set -e
           attempts=0
           max_attempts=3
-          until npm run test:ci 2>&1 | tee test-log.txt; do
-            attempts=$((attempts+1))
-            if [ $attempts -ge $max_attempts ]; then
-              echo "Tests failed after $attempts attempts"
-              exit 1
-            fi
+          while [ $attempts -lt $max_attempts ]; do
             echo "📨 Sending logs to agent for patch..."
             bash scripts/agent-fix-tests.sh || true
+            if npm run test:ci 2>&1 | tee test-log.txt; then
+              exit 0
+            fi
+            attempts=$((attempts+1))
           done
+          echo "Tests failed after $max_attempts attempts"
+          exit 1
         env:
           CI: true
         continue-on-error: false
