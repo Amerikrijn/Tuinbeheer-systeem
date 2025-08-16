@@ -141,6 +141,10 @@ Gebruik deze tools alleen wanneer nodig en voer altijd de verplichte tests uit n
 - [`docs/CI-CD-WORKFLOW.md`](docs/CI-CD-WORKFLOW.md) - CI/CD details
 - [`docs/SECURITY.md`](docs/SECURITY.md) - Security guidelines
 
+## Deployment
+
+Gebruik `scripts/auto-test-loops.js` om `npm run test:ci` automatisch te herhalen tot de tests slagen of het maximale aantal pogingen is bereikt. Bij falen wordt de fout naar `test-log.txt` geschreven en wordt `scripts/agent-fix-tests.sh` uitgevoerd voordat een nieuwe poging start.
+
 ## ⚠️ Belangrijke Regels
 
 ### ❌ NOOIT DOEN:
