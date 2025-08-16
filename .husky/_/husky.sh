@@ -1,10 +1,9 @@
-#!/usr/bin/env sh
-# husky shell helper
-if [ "${HUSKY_SKIP_INIT:-}" = "1" ]; then
-  exit 0
-fi
+echo "husky - DEPRECATED
 
-# load nvm or other shell environments if available
-if [ -f "$HOME/.nvm/nvm.sh" ]; then
-  . "$HOME/.nvm/nvm.sh"
-fi
+Please remove the following two lines from $0:
+
+#!/usr/bin/env sh
+. \"\$(dirname -- \"\$0\")/_/husky.sh\"
+
+They WILL FAIL in v10.0.0
+"
