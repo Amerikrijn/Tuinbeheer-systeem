@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
+    "allowJs": false,
     "target": "ES6",
     "skipLibCheck": true,
     "strict": true,
@@ -28,6 +28,10 @@
     "node_modules",
     "apps/mobile/**/*",
     "packages/**/*",
-    "*.config.js"
+    "*.config.js",
+    "build-success.js",
+    "jest.config.js",
+    "jest.setup.js",
+    "scripts/**/*.js"
   ]
 }
