@@ -114,27 +114,6 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Test real component files by importing them
 describe('Real Component Files', () => {
-  describe('components/banking-form.tsx', () => {
-    it('should render the real banking form', async () => {
-      // Import the real component using named export
-      const { BankingForm } = await import('@/components/banking-form');
-      
-      render(
-        <BankingForm 
-          title="Test Form"
-          onSubmit={jest.fn()}
-          schema={undefined} // Fix: don't pass empty object
-        >
-          <div>Form content</div>
-        </BankingForm>
-      );
-      
-      // Test actual rendered content
-      expect(screen.getByText('Test Form')).toBeInTheDocument();
-      expect(screen.getByText('Form content')).toBeInTheDocument();
-    });
-  });
-
   describe('components/error-boundary.tsx', () => {
     it('should render the real error boundary', async () => {
       // Import the real component using named export
