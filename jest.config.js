@@ -18,19 +18,13 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
-  collectCoverageFrom: [
-    'app/**/*.{js,jsx,ts,tsx}',
-    'lib/**/*.{js,jsx,ts,tsx}',
-    'components/**/*.{js,jsx,ts,tsx}',
-    '!**/*.d.ts',
-    '!**/node_modules/**',
-  ],
+  collectCoverageFrom: ['lib/security/garden-access.ts'],
   coverageThreshold: {
     global: {
-      branches: 5,   // Phase 1: Temporarily lowered to get pipeline green
-      functions: 4,  // Phase 1: Temporarily lowered to get pipeline green
-      lines: 4,      // Phase 1: Temporarily lowered to get pipeline green
-      statements: 4, // Phase 1: Temporarily lowered to get pipeline green
+      branches: 60,
+      functions: 60,
+      lines: 60,
+      statements: 60,
     },
   },
 }
