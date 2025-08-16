@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
 export default defineConfig({
   test: {
@@ -6,6 +7,11 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
     include: ['{app,components,lib}/**/*.{test,spec}.{ts,tsx}'],
+    resolve: {
+      alias: [
+        { find: '@', replacement: resolve(__dirname, '.') }
+      ]
+    },
     coverage: {
       provider: 'v8',
       reportsDirectory: './coverage',

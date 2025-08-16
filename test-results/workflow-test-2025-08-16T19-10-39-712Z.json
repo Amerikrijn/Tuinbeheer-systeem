@@ -1,0 +1,75 @@
+{
+  "timestamp": "2025-08-16T19:10:22.586Z",
+  "duration": 17125,
+  "tests": {
+    "infrastructure": {
+      "serverHealth": true,
+      "apiEndpoints": {
+        "/api/gardens": {
+          "status": "error",
+          "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+        },
+        "/api/status": {
+          "status": "success",
+          "response": {
+            "status": "operational",
+            "timestamp": "2025-08-16T19:10:24.246Z",
+            "headers": {
+              "userAgent": "node",
+              "accept": "*/*"
+            },
+            "services": {
+              "database": "connected",
+              "storage": "available",
+              "auth": "active"
+            }
+          }
+        },
+        "/api/version": {
+          "status": "success",
+          "response": {
+            "version": "2024.12.19.001",
+            "timestamp": 1755371424294,
+            "buildTime": "2025-08-16T19:10:24.295Z",
+            "environment": "development"
+          }
+        }
+      },
+      "databaseConnection": {
+        "status": "error",
+        "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+      }
+    },
+    "coreFunctionality": {
+      "search": {
+        "status": "error",
+        "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+      },
+      "pagination": {
+        "status": "error",
+        "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+      },
+      "errorHandling": {
+        "status": "error",
+        "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+      }
+    },
+    "automated": {
+      "unit": {
+        "status": "error",
+        "error": "Command failed: npm run test:integration"
+      },
+      "e2e": {
+        "status": "error",
+        "error": "Command failed: npm run test:e2e"
+      }
+    }
+  },
+  "summary": {
+    "totalTests": 8,
+    "passedTests": 0,
+    "failedTests": 8,
+    "successRate": "0.0%",
+    "overallStatus": "FAILED"
+  }
+}
