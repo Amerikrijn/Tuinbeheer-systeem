@@ -1,67 +1,13 @@
 import { createClient, type SupabaseClient, AuthError } from '@supabase/supabase-js'
-import { env } from '@/lib/env'
 
 // Singleton pattern to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
 let supabaseAdminInstance: SupabaseClient | null = null
 
-// Create mock client for development when env vars are missing
-const createMockClient = (): SupabaseClient => {
-  console.warn('⚠️ Using mock Supabase client - environment variables not set')
-  
-  // Create a minimal mock client that satisfies the SupabaseClient interface
-  const mockClient = createClient('https://mock.supabase.co', 'mock-key', {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false
-    }
-  })
-  
-  // Override methods to return mock responses that match the expected types
-  mockClient.auth.getSession = async () => ({ data: { session: null }, error: null })
-  mockClient.auth.onAuthStateChange = () => ({ 
-    data: { 
-      subscription: { 
-        id: 'mock-subscription',
-        callback: () => {},
-        unsubscribe: () => {} 
-      } 
-    } 
-  })
-  mockClient.auth.signInWithPassword = async () => ({ 
-    data: { user: null, session: null }, 
-    error: new AuthError('Mock client - set environment variables', { status: 400, name: 'AuthError' })
-  })
-  mockClient.auth.signOut = async () => ({ data: {}, error: null })
-  mockClient.auth.resetPasswordForEmail = async () => ({ data: {}, error: null })
-  
-  return mockClient
-}
-
 // Get or create Supabase client instance
 const getSupabaseClient = (): SupabaseClient => {
   if (supabaseInstance) {
     return supabaseInstance
-  }
-
-  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('❌ Supabase environment variables are missing!')
-    console.error('Please set the following in your Vercel environment:')
-    console.error('NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co')
-    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key')
-    
-    // In development, use mock client
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('🚨 Development mode: Using mock Supabase client')
-      supabaseInstance = createMockClient()
-      return supabaseInstance
-    }
-    
-    throw new Error('Supabase environment variables are required in production')
   }
   
   // Don't log sensitive information in production
@@ -92,19 +38,7 @@ const getSupabaseAdminClient = (): SupabaseClient => {
   if (supabaseAdminInstance) {
     return supabaseAdminInstance
   }
-
-  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('🚨 Development mode: Using mock admin client')
-      supabaseAdminInstance = createMockClient()
-      return supabaseAdminInstance
-    }
-    throw new Error('Supabase admin environment variables are required in production')
-  }
-  
+ 
   supabaseAdminInstance = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,

@@ -1,5 +1,5 @@
--- Fix Plantvak Letter Code System
--- This script will completely set up the letter code system
+-- Implement Missing Parts of Plantvak Letter System
+-- This script only adds what's missing, based on current database status
 
 -- Step 1: Add letter_code column if it doesn't exist
 DO $$ 
@@ -15,7 +15,7 @@ BEGIN
     END IF;
 END $$;
 
--- Step 2: Create function to automatically assign letter codes
+-- Step 2: Create assign_plantvak_letter_code function if it doesn't exist
 CREATE OR REPLACE FUNCTION assign_plantvak_letter_code(garden_id_param UUID)
 RETURNS VARCHAR(10) AS $$
 DECLARE
@@ -45,7 +45,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Step 3: Create trigger to automatically assign letter codes on insert
+-- Step 3: Create trigger function if it doesn't exist
 CREATE OR REPLACE FUNCTION trigger_assign_plantvak_letter_code()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -61,16 +61,24 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Drop trigger if it exists
-DROP TRIGGER IF EXISTS trigger_plantvak_letter_code ON plant_beds;
+-- Step 4: Create trigger if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.triggers 
+        WHERE trigger_name = 'trigger_assign_plantvak_letter_code'
+    ) THEN
+        CREATE TRIGGER trigger_assign_plantvak_letter_code
+            BEFORE INSERT ON plant_beds
+            FOR EACH ROW
+            EXECUTE FUNCTION trigger_assign_plantvak_letter_code();
+        RAISE NOTICE 'Created letter assignment trigger';
+    ELSE
+        RAISE NOTICE 'Letter assignment trigger already exists';
+    END IF;
+END $$;
 
--- Create trigger
-CREATE TRIGGER trigger_plantvak_letter_code
-    BEFORE INSERT ON plant_beds
-    FOR EACH ROW
-    EXECUTE FUNCTION trigger_assign_plantvak_letter_code();
-
--- Step 4: Add unique constraint for garden_id + letter_code
+-- Step 5: Add unique constraint if it doesn't exist
 DO $$
 BEGIN
     IF NOT EXISTS (
@@ -84,14 +92,10 @@ BEGIN
     END IF;
 END $$;
 
--- Step 5: Create index for performance
+-- Step 6: Create index for performance if it doesn't exist
 CREATE INDEX IF NOT EXISTS idx_plant_beds_garden_letter_code ON plant_beds (garden_id, letter_code);
 
--- Step 6: Add comment
-COMMENT ON COLUMN plant_beds.letter_code IS 'Unique letter code (A, B, C, etc.) for plantvak identification within a garden';
-COMMENT ON COLUMN plant_beds.name IS 'Auto-generated name based on letter code (e.g., Plantvak A)';
-
--- Step 7: Create deleted_plantvakken table for admin logging
+-- Step 7: Create deleted_plantvakken table if it doesn't exist
 CREATE TABLE IF NOT EXISTS deleted_plantvakken (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     original_id VARCHAR NOT NULL,
@@ -116,14 +120,11 @@ CREATE TABLE IF NOT EXISTS deleted_plantvakken (
     FOREIGN KEY (garden_id) REFERENCES gardens(id) ON DELETE CASCADE
 );
 
--- Step 8: Create index for deleted_plantvakken
+-- Step 8: Create indexes for deleted_plantvakken if they don't exist
 CREATE INDEX IF NOT EXISTS idx_deleted_plantvakken_garden_id ON deleted_plantvakken (garden_id);
 CREATE INDEX IF NOT EXISTS idx_deleted_plantvakken_deleted_at ON deleted_plantvakken (deleted_at);
 
--- Step 9: Add comment for deleted_plantvakken table
-COMMENT ON TABLE deleted_plantvakken IS 'Log of deleted plantvakken for admin review';
-
--- Step 10: Create function to log deleted plantvakken
+-- Step 9: Create log_deleted_plantvak function if it doesn't exist
 CREATE OR REPLACE FUNCTION log_deleted_plantvak(plantvak_id VARCHAR, deleted_by_user UUID DEFAULT NULL, reason TEXT DEFAULT NULL)
 RETURNS VOID AS $$
 BEGIN
@@ -171,7 +172,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Step 11: Create trigger to automatically log deleted plantvakken
+-- Step 10: Create trigger function for logging if it doesn't exist
 CREATE OR REPLACE FUNCTION trigger_log_deleted_plantvak()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -184,18 +185,60 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Drop trigger if it exists
-DROP TRIGGER IF EXISTS trigger_log_deleted_plantvak ON plant_beds;
+-- Step 11: Create logging trigger if it doesn't exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.triggers 
+        WHERE trigger_name = 'trigger_log_deleted_plantvak'
+    ) THEN
+        CREATE TRIGGER trigger_log_deleted_plantvak
+            BEFORE UPDATE ON plant_beds
+            FOR EACH ROW
+            EXECUTE FUNCTION trigger_log_deleted_plantvak();
+        RAISE NOTICE 'Created deletion logging trigger';
+    ELSE
+        RAISE NOTICE 'Deletion logging trigger already exists';
+    END IF;
+END $$;
 
--- Create trigger
-CREATE TRIGGER trigger_log_deleted_plantvak
-    BEFORE UPDATE ON plant_beds
-    FOR EACH ROW
-    EXECUTE FUNCTION trigger_log_deleted_plantvak();
+-- Step 12: Add comments if they don't exist
+COMMENT ON COLUMN plant_beds.letter_code IS 'Unique letter code (A, B, C, etc.) for plantvak identification within a garden';
+COMMENT ON COLUMN plant_beds.name IS 'Auto-generated name based on letter code (e.g., Plantvak A)';
+COMMENT ON TABLE deleted_plantvakken IS 'Log of deleted plantvakken for admin review';
 
--- Step 12: Verify the setup
+-- Step 13: Update existing plant_beds with letter codes if they don't have them
+DO $$
+DECLARE
+    bed RECORD;
+    next_letter VARCHAR(10);
+BEGIN
+    FOR bed IN 
+        SELECT id, garden_id 
+        FROM plant_beds 
+        WHERE letter_code IS NULL OR letter_code = ''
+        AND is_active = true
+    LOOP
+        next_letter := assign_plantvak_letter_code(bed.garden_id);
+        IF next_letter IS NOT NULL THEN
+            UPDATE plant_beds 
+            SET 
+                letter_code = next_letter,
+                name = 'Plantvak ' || next_letter,
+                updated_at = NOW()
+            WHERE id = bed.id;
+            RAISE NOTICE 'Updated plant_bed % with letter code %', bed.id, next_letter;
+        ELSE
+            RAISE NOTICE 'Could not assign letter code to plant_bed % - no letters available', bed.id;
+        END IF;
+    END LOOP;
+END $$;
+
+-- Step 14: Verify the setup
 SELECT 
-    'Database setup complete' as status,
+    'Implementation complete' as status,
     COUNT(*) as plant_beds_count,
+    COUNT(CASE WHEN letter_code IS NOT NULL THEN 1 END) as plant_beds_with_letters,
     'Ready for letter code system' as message
-FROM plant_beds;
+FROM plant_beds 
+WHERE is_active = true;
