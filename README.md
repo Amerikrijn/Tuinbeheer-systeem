@@ -8,14 +8,14 @@ Een professioneel tuinbeheer systeem gebouwd met Next.js, Supabase en TailwindCS
 
 1. **LOCALE TESTING** vóór elke wijziging: `npm run test:ci`
 2. **CI/CD PIPELINE** na elke wijziging: `npm run ci:quality`
-3. **CONTINUE LOOP** tot alle tests slagen en coverage ≥60% is
+3. **CONTINUE LOOP** tot alle tests slagen en coverage ≥80% is
 4. **ALLEEN DAN** naar feature branch pushen
 
 📖 **Lees de volledige workflow**: [`docs/STANDARD-WORKFLOW.md`](docs/STANDARD-WORKFLOW.md)
 
 ## 🎯 Huidige Status
 
-- **Test Coverage**: 3.38% (doel: 60%)
+- **Test Coverage**: 3.38% (doel: 80%)
 - **Tests**: 154 passed, 31 skipped
 - **CI/CD Pipeline**: In ontwikkeling
 - **Kwaliteit**: Banking-grade standaard
@@ -54,7 +54,7 @@ npm run ci:quality       # CI/CD pipeline
 
 ### Continue loop tot succes:
 - Herhaal tot alle tests slagen
-- Herhaal tot coverage ≥60% is
+- Herhaal tot coverage ≥80% is
 - Herhaal tot pipeline groen is
 
 ## 🪝 Git hook voor push
@@ -107,7 +107,7 @@ Ons systeem gebruikt een **preview-first** aanpak:
 - ✅ **Automatische testing** op elke push
 - ✅ **Quality gates** voor deployment
 - ✅ **Security scanning** geïntegreerd (GitHub CodeQL)
-- ✅ **Coverage monitoring** (minimum 60%)
+- ✅ **Coverage monitoring** (minimum 80%)
 
 ### Pipeline Stappen:
 1. **Quality Check**: Lint, TypeScript, Tests
@@ -145,8 +145,7 @@ Gebruik deze tools alleen wanneer nodig en voer altijd de verplichte tests uit n
 
 ### Coverage Doelen:
 - **Huidig**: 3.38%
-- **Week 1**: 60% (minimum)
-- **Week 2**: 80% (doel)
+- **Minimum**: 80%
 
 ### Test Types:
 - **Unit Tests**: Individuele functies
@@ -210,7 +209,7 @@ Gebruik `scripts/auto-test-loop.js` om `npm run test:ci` automatisch te herhalen
 
 **EINDOEL**: Volledig groene CI/CD pipeline met:
 - ✅ 100% test success rate
-- ✅ ≥60% code coverage
+- ✅ ≥80% code coverage
 - ✅ Banking-grade kwaliteit
 - ✅ Automatische security scanning
 
