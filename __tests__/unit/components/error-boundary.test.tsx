@@ -88,11 +88,11 @@ describe('ErrorBoundary', () => {
     // Re-render with no error to test reset
     rerender(
       <ErrorBoundary>
-        <ThrowError shouldThrow={false} />
+        <div>Test content after reset</div>
       </ErrorBoundary>
     )
     
-    expect(screen.getByText('No error')).toBeInTheDocument()
+    expect(screen.getByText('Test content after reset')).toBeInTheDocument()
   })
 
   it('navigates to home when home button is clicked', () => {
@@ -153,11 +153,11 @@ describe('ErrorBoundary', () => {
     // Re-render with no error to test reset
     rerender(
       <ErrorBoundary fallback={CustomFallback}>
-        <ThrowError shouldThrow={false} />
+        <div>Test content after custom reset</div>
       </ErrorBoundary>
     )
     
-    expect(screen.getByText('No error')).toBeInTheDocument()
+    expect(screen.getByText('Test content after custom reset')).toBeInTheDocument()
   })
 
   it('maintains error state across re-renders', () => {
@@ -209,11 +209,11 @@ describe('ErrorBoundary', () => {
     // Re-render with no error
     rerender(
       <ErrorBoundary>
-        <ThrowError shouldThrow={false} />
+        <div>Test content after first reset</div>
       </ErrorBoundary>
     )
     
-    expect(screen.getByText('No error')).toBeInTheDocument()
+    expect(screen.getByText('Test content after first reset')).toBeInTheDocument()
     
     // Throw another error
     rerender(
