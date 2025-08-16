@@ -35,13 +35,3 @@
     "scripts/**/*.js"
   ]
 }
-{
-  "compilerOptions": {
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitAny": true,
-    "exactOptionalPropertyTypes": true,
-    "strictNullChecks": true
-  }
-}
