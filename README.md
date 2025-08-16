@@ -102,6 +102,19 @@ Ons systeem gebruikt een **preview-first** aanpak:
 └── scripts/              # Build & deployment scripts
 ```
 
+## 🧰 Hulpscripts
+
+De map `scripts/` bevat diverse hulpscripts voor onderhoudstaken. Deze scripts draaien niet automatisch in de pipeline maar kunnen handmatig worden gebruikt:
+
+- `fix-all-syntax-final.sh` – corrigeert resterende syntaxfouten en verwijdert console-statements.
+- `fix-closing-braces.sh` – controleert op ontbrekende sluitaccolades bij conditionele console-statements.
+- `fix-console-logging.sh` – maakt console-logregels conditioneel op `NODE_ENV`.
+- `fix-double-conditionals.sh` – verwijdert dubbele `NODE_ENV`-controles.
+- `remove-console.sh` – verwijdert console-statements uit `lib/database.ts`.
+- `remove-all-console.sh` – verwijdert alle console-statements uit de codebase.
+
+Gebruik deze tools alleen wanneer nodig en voer altijd de verplichte tests uit na elke wijziging.
+
 ## 🧪 Testing Strategie
 
 ### Coverage Doelen:
