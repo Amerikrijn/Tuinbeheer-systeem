@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams } from "next/navigation"
 import { useNavigation } from "@/hooks/use-navigation"
 import { useViewPreference } from "@/hooks/use-view-preference"
@@ -18,45 +18,34 @@ import {
   TreePine,
   Plus,
   Leaf,
-  MapPin,
   Grid3X3,
   ZoomIn,
   ZoomOut,
   RotateCcw,
-  Save,
   Edit,
   Sun,
   CloudSun,
   Cloud,
   Trash2,
-  Move,
 } from "lucide-react"
 import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
-import type { Garden, PlantBedWithPlants, PlantWithPosition, Plant } from "@/lib/supabase"
+import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS, 
   GARDEN_CANVAS_WIDTH as DEFAULT_CANVAS_WIDTH,
   GARDEN_CANVAS_HEIGHT as DEFAULT_CANVAS_HEIGHT,
-  GARDEN_GRID_SIZE as GRID_SIZE,
   PLANTVAK_MIN_WIDTH,
   PLANTVAK_MIN_HEIGHT,
   metersToPixels,
-  pixelsToMeters,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { FlowerVisualization } from "@/components/flower-visualization"
 
-interface PlantBedPosition {
-  id: string
-  position_x: number
-  position_y: number
-  visual_width: number
-  visual_height: number
-}
+// PlantBedPosition interface removed - not used in simplified version
 
 export default function GardenDetailPage() {
   const { goBack, navigateTo } = useNavigation()
-  const { isVisualView, toggleView, isInitialized } = useViewPreference()
+  const { isVisualView, toggleView } = useViewPreference()
   const params = useParams()
   const [garden, setGarden] = useState<Garden | null>(null)
   const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])
@@ -64,16 +53,9 @@ export default function GardenDetailPage() {
   const [scale, setScale] = useState(1)
   const [selectedBed, setSelectedBed] = useState<string | null>(null)
   
-  // Enhanced drag state for better plant bed editing
-  const [draggedBed, setDraggedBed] = useState<string | null>(null)
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
-  const [rotatingBed, setRotatingBed] = useState<string | null>(null)
-  const [rotationStartAngle, setRotationStartAngle] = useState(0)
-  const [isDragMode, setIsDragMode] = useState(false)
-  const [isRotateMode, setIsRotateMode] = useState(false)
-  const [touchStartTime, setTouchStartTime] = useState(0)
+  // Drag and rotate state removed - simplified for basic functionality
   
-  const [hasChanges, setHasChanges] = useState(false)
+  // hasChanges removed - not used in simplified version
   const [isAddingPlantBed, setIsAddingPlantBed] = useState(false)
   const [deletingBedId, setDeletingBedId] = useState<string | null>(null)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
