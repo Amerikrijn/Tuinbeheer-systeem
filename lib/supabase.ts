@@ -38,6 +38,18 @@ const getSupabaseAdminClient = (): SupabaseClient => {
   if (supabaseAdminInstance) {
     return supabaseAdminInstance
   }
+
+  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('🚨 Development mode: Using mock admin client')
+      supabaseAdminInstance = createMockClient()
+      return supabaseAdminInstance
+    }
+    throw new Error('Supabase admin environment variables are required in production')
+  }
  
   supabaseAdminInstance = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
