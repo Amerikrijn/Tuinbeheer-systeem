@@ -13,6 +13,11 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "exactOptionalPropertyTypes": true,
+    "strictNullChecks": true,
     "plugins": [
       {
         "name": "next"
@@ -34,14 +39,4 @@
     "jest.setup.js",
     "scripts/**/*.js"
   ]
-}
-{
-  "compilerOptions": {
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noImplicitAny": true,
-    "exactOptionalPropertyTypes": true,
-    "strictNullChecks": true
-  }
 }
