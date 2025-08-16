@@ -90,7 +90,7 @@ export class TaskService {
 
       if (error) throw error
       return { data: data || [], error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: [], error: 'Failed to fetch tasks' }
     }
@@ -139,7 +139,7 @@ export class TaskService {
       }
 
       return { data: summary, error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: null, error: 'Failed to fetch task stats' }
     }
@@ -184,7 +184,7 @@ export class TaskService {
       })
 
       return { data: Object.values(plantStats), error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: [], error: 'Failed to fetch plant task stats' }
     }
@@ -204,7 +204,7 @@ export class TaskService {
 
       if (error) throw error
       return { data: data, error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: null, error: 'Failed to create recurring tasks' }
     }
@@ -220,7 +220,7 @@ export class TaskService {
 
       if (error) throw error
       return { error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { error: 'Failed to bulk complete tasks' }
     }
@@ -235,7 +235,7 @@ export class TaskService {
 
       if (error) throw error
       return { error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { error: 'Failed to bulk delete tasks' }
     }
@@ -266,7 +266,7 @@ export class TaskService {
       }))
 
       return { data: transformedData, error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: [], error: 'Failed to fetch today tasks' }
     }
@@ -294,7 +294,7 @@ export class TaskService {
       }))
 
       return { data: transformedData, error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: [], error: 'Failed to fetch overdue tasks' }
     }
@@ -321,7 +321,7 @@ export class TaskService {
       }))
 
       return { data: transformedData, error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: [], error: 'Failed to fetch plant bed tasks' }
     }
@@ -344,7 +344,7 @@ export class TaskService {
       }
 
       return { data: stats, error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: null, error: 'Failed to fetch plant bed task stats' }
     }
@@ -367,7 +367,7 @@ export class TaskService {
 
       if (error) throw error
       return { data, error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: null, error: 'Failed to create task' }
     }
@@ -384,7 +384,7 @@ export class TaskService {
 
       if (error) throw error
       return { data, error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: null, error: 'Failed to update task' }
     }
@@ -399,13 +399,13 @@ export class TaskService {
 
       if (error) throw error
       return { error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { error: 'Failed to delete task' }
     }
   }
 
-  static async getWeeklyCalendar(weekStart: Date, user?: Record<string, unknown>): Promise<{ data: WeeklyCalendar; error: string | null }> {
+  static async getWeeklyCalendar(weekStart: Date): Promise<{ data: WeeklyCalendar; error: string | null }> {
     try {
       const weekEnd = new Date(weekStart)
       weekEnd.setDate(weekEnd.getDate() + 6)
@@ -440,7 +440,7 @@ export class TaskService {
       }
 
       return { data: calendarData, error: null }
-    } catch (error) {
+    } catch {
       // Secure error handling for banking standards - no console logging in production
       return { data: null, error: 'Failed to fetch weekly calendar' }
     }
