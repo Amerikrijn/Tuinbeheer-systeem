@@ -10,6 +10,7 @@ import { LogbookService } from "@/lib/services/database.service"
 import type { LogbookEntryWithDetails } from "@/lib/types/index"
 import { format, parseISO } from "date-fns"
 import { nl } from "date-fns/locale"
+import { logger } from "@/lib/utils/logger"
 
 interface PlantPhotoGalleryProps {
   plantId: string
@@ -47,6 +48,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
       setPhotoData(result.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Er ging iets mis')
+      logger.error('Operation failed: fetch plant photos')
     } finally {
       setLoading(false)
     }

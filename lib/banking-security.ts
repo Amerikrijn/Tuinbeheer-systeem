@@ -33,7 +33,7 @@ export async function logClientSecurityEvent(
     });
 
     if (error) {
-      console.error('Security event logging failed:', error);
+      logger.error('Security event logging failed: Database error')
     }
   } catch (err) {
     console.error('Security event logging error:', err);
