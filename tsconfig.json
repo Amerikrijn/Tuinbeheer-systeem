@@ -23,7 +23,12 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/lib/*": ["./lib/*"],
+      "@/components/*": ["./components/*"],
+      "@/app/*": ["./app/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/__tests__/*": ["./__tests__/*"]
     },
     "types": ["vitest/globals", "@testing-library/jest-dom"]
   },

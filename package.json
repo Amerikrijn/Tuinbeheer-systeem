@@ -5,6 +5,8 @@
   "scripts": {
     "build": "node build-success.js",
     "dev": "next dev",
+    "dev:stable": "node scripts/dev-server.js",
+    "dev:clean": "rm -rf .next && rm -rf node_modules/.cache && npm run dev",
     "lint": "eslint .",
     "start": "next start",
     "test": "vitest",
