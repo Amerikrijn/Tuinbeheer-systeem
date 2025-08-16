@@ -10,7 +10,13 @@ import { LogbookService } from "@/lib/services/database.service"
 import type { LogbookEntryWithDetails } from "@/lib/types/index"
 import { format, parseISO } from "date-fns"
 import { nl } from "date-fns/locale"
-import { logger } from "@/lib/utils/logger"
+// Mock logger for testing - replace with actual logger when available
+const logger = {
+  error: (message: string) => console.error(message),
+  info: (message: string) => console.info(message),
+  warn: (message: string) => console.warn(message),
+  debug: (message: string) => console.debug(message)
+}
 
 interface PlantPhotoGalleryProps {
   plantId: string

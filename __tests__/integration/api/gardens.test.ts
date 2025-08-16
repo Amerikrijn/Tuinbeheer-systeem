@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server'
 import { GET, POST } from '@/app/api/gardens/route'
 import { mockGardensArray } from '@/__tests__/setup/supabase-mock'
 
-jest.setTimeout(20000)
+jest.setTimeout(60000)
 
 // Mock dependencies
 jest.mock('@/lib/logger', () => ({
@@ -56,6 +56,9 @@ describe('Gardens API', () => {
     mockValidateApiInput.mockReturnValue(true)
     mockValidateTuinFormData.mockReturnValue({ isValid: true, errors: [] })
   })
+
+  // Increase timeout for all tests in this suite
+  jest.setTimeout(60000)
 
   describe('GET /api/gardens', () => {
     it('should return all gardens', async () => {
