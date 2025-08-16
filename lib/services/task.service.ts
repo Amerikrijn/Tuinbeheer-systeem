@@ -60,10 +60,22 @@ export interface WeeklyCalendar {
   week_end: string
   week_number: number
   year: number
+  days: TaskCalendarDay[]
   total_tasks: number
+  completed_tasks: number
   overdue_tasks: number
-  today_tasks: number
-  upcoming_tasks: number
+}
+
+export interface TaskCalendarDay {
+  date: string
+  day_of_week: number
+  day_name: string
+  is_today: boolean
+  is_weekend: boolean
+  tasks: WeeklyTask[]
+  task_count: number
+  overdue_count: number
+  completed_count: number
 }
 
 export class TaskService {
@@ -428,15 +440,39 @@ export class TaskService {
         week_number: this.getWeekNumber(new Date(task.due_date))
       }))
 
+      // Create days array for the week
+      const days: TaskCalendarDay[] = []
+      for (let i = 0; i < 7; i++) {
+        const currentDate = new Date(weekStart)
+        currentDate.setDate(currentDate.getDate() + i)
+        const dateString = currentDate.toISOString().split('T')[0]
+        const dayOfWeek = currentDate.getDay()
+        const dayNames = ['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag']
+        
+        const dayTasks = transformedData.filter(task => task.due_date === dateString)
+        
+        days.push({
+          date: dateString,
+          day_of_week: dayOfWeek,
+          day_name: dayNames[dayOfWeek],
+          is_today: dateString === new Date().toISOString().split('T')[0],
+          is_weekend: dayOfWeek === 0 || dayOfWeek === 6,
+          tasks: dayTasks,
+          task_count: dayTasks.length,
+          overdue_count: dayTasks.filter(t => new Date(t.due_date) < new Date() && !t.completed).length,
+          completed_count: dayTasks.filter(t => t.completed).length
+        })
+      }
+
       const calendarData: WeeklyCalendar = {
         week_start: weekStart.toISOString().split('T')[0],
         week_end: weekEnd.toISOString().split('T')[0],
         week_number: this.getWeekNumber(weekStart),
         year: weekStart.getFullYear(),
+        days: days,
         total_tasks: transformedData.length,
-        overdue_tasks: transformedData.filter(t => new Date(t.due_date) < new Date() && !t.completed).length,
-        today_tasks: transformedData.filter(t => t.due_date === new Date().toISOString().split('T')[0] && !t.completed).length,
-        upcoming_tasks: transformedData.filter(t => new Date(t.due_date) > new Date() && !t.completed).length
+        completed_tasks: transformedData.filter(t => t.completed).length,
+        overdue_tasks: transformedData.filter(t => new Date(t.due_date) < new Date() && !t.completed).length
       }
 
       return { data: calendarData, error: null }

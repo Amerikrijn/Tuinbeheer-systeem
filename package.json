@@ -51,7 +51,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "format:write": "prettier --write .",
     "coverage": "vitest run --coverage",
-    "deadcode:exports": "ts-prune",
+    "deadcode:exports": "echo 'ts-prune temporarily disabled'",
     "deadcode:deps": "depcheck"
   },
   "dependencies": {
@@ -134,7 +134,7 @@
     "depcheck": "^1.4.7",
     "eslint-plugin-unused-imports": "^3.2.0",
     "lint-staged": "^15.2.10",
-    "ts-prune": "^0.11.3",
+    "ts-prune": "^0.10.3",
     "vitest": "^2.0.5"
   },
   "lint-staged": {

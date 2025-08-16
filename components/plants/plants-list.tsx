@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Leaf, Calendar, Droplets } from 'lucide-react'
+import { Plus, Leaf, Calendar, Droplets, Info } from 'lucide-react'
 import Link from 'next/link'
 
 interface Plant {
@@ -20,8 +20,12 @@ export function PlantsList() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // TODO: Implementeer echte data fetching
-    setLoading(false)
+    // Simulate loading delay
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 1000)
+    
+    return () => clearTimeout(timer)
   }, [])
 
   const getHealthColor = (health: Plant['health']) => {
@@ -77,6 +81,19 @@ export function PlantsList() {
               <p className="text-gray-500 dark:text-gray-400 mb-4">
                 Begin met het toevoegen van je eerste plant om je tuin te beheren.
               </p>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                  <div className="text-left">
+                    <p className="text-sm text-blue-800 dark:text-blue-200 font-medium mb-1">
+                      Planten functionaliteit
+                    </p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      De planten functionaliteit wordt momenteel ontwikkeld. Je kunt wel taken en logboek entries maken voor je planten.
+                    </p>
+                  </div>
+                </div>
+              </div>
               <Link href="/plants/new">
                 <Button>
                   <Plus className="w-4 h-4 mr-2" />
@@ -98,25 +115,25 @@ export function PlantsList() {
                 <div className="space-y-3">
                   <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                     <Calendar className="w-4 h-4 mr-2" />
-                    Geplant: {new Date(plant.plantedDate).toLocaleDateString('nl-NL')}
+                    <span>Geplant: {new Date(plant.plantedDate).toLocaleDateString('nl-NL')}</span>
                   </div>
                   
                   {plant.lastWatered && (
                     <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
                       <Droplets className="w-4 h-4 mr-2" />
-                      Laatst bewaterd: {new Date(plant.lastWatered).toLocaleDateString('nl-NL')}
+                      <span>Laatst bewaterd: {new Date(plant.lastWatered).toLocaleDateString('nl-NL')}</span>
                     </div>
                   )}
                   
-                  <div className="flex items-center text-sm">
-                    <span className="mr-2">Gezondheid:</span>
-                    <span className={`font-medium ${getHealthColor(plant.health)}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Gezondheid:</span>
+                    <span className={`text-sm font-medium ${getHealthColor(plant.health)}`}>
                       {getHealthLabel(plant.health)}
                     </span>
                   </div>
                 </div>
                 
-                <div className="mt-4">
+                <div className="mt-4 flex gap-2">
                   <Link href={`/plants/${plant.id}`}>
                     <Button variant="outline" size="sm">
                       Bekijk Details
