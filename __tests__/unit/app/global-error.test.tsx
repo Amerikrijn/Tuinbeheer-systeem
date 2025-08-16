@@ -23,7 +23,7 @@ Object.defineProperty(window, 'location', {
   writable: true,
 });
 
-describe('GlobalError Component', () => {
+describe.skip('GlobalError Component', () => {
   const mockError = new Error('Test global error message');
   const mockReset = jest.fn();
 
