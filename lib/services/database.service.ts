@@ -1002,7 +1002,7 @@ export class LogbookService {
       PerformanceLogger.endTimer(operationId, 'logbook-getPlantPhotos', { error: true })
       
       if (error instanceof DatabaseError) {
-        databaseLogger.error('Database error in LogbookService.getPlantPhotos', error, { plantId, year, operationId })
+        databaseLogger.error('Database error in LogbookService.getPlantPhotos')
         return createResponse({
           photos: [],
           totalCount: 0,
