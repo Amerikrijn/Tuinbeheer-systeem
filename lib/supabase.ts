@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+// Singleton pattern to prevent multiple instances
+let supabaseInstance: ReturnType<typeof createClient> | null = null
+let supabaseAdminInstance: ReturnType<typeof createClient> | null = null
 
 // Create mock client for development when env vars are missing
 const createMockClient = () => {
@@ -22,24 +23,35 @@ const createMockClient = () => {
   }
 }
 
-// Create Supabase client with banking security standards
-export const supabase = (() => {
+// Get or create Supabase client instance
+const getSupabaseClient = () => {
+  if (supabaseInstance) {
+    return supabaseInstance
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error('❌ Supabase environment variables are missing!')
-    console.error('Please set the following in your .env.local file:')
+    console.error('Please set the following in your Vercel environment:')
     console.error('NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co')
     console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key')
     
     // In development, use mock client
     if (process.env.NODE_ENV === 'development') {
       console.warn('🚨 Development mode: Using mock Supabase client')
-      return createMockClient()
+      supabaseInstance = createMockClient()
+      return supabaseInstance
     }
     
     throw new Error('Supabase environment variables are required in production')
   }
   
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  console.log('🔧 Creating Supabase client with URL:', supabaseUrl)
+  console.log('🔑 Anon key present:', !!supabaseAnonKey)
+  
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
@@ -52,25 +64,41 @@ export const supabase = (() => {
       }
     }
   })
-})()
+  
+  return supabaseInstance
+}
 
-// Admin client for server-side operations (banking compliance)
-export const supabaseAdmin = (() => {
-  if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+// Get or create Supabase admin client instance
+const getSupabaseAdminClient = () => {
+  if (supabaseAdminInstance) {
+    return supabaseAdminInstance
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
     if (process.env.NODE_ENV === 'development') {
       console.warn('🚨 Development mode: Using mock admin client')
-      return createMockClient()
+      supabaseAdminInstance = createMockClient()
+      return supabaseAdminInstance
     }
     throw new Error('Supabase admin environment variables are required in production')
   }
   
-  return createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, {
+  supabaseAdminInstance = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
     }
   })
-})()
+  
+  return supabaseAdminInstance
+}
+
+// Export singleton instances
+export const supabase = getSupabaseClient()
+export const supabaseAdmin = getSupabaseAdminClient()
 
 // Banking security utilities
 export const secureSupabaseCall = async <T>(
