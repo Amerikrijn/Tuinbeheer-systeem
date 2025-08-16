@@ -5,6 +5,9 @@ set -euo pipefail
 
 API_URL="${AGENT_API_URL:-}"
 
+# Maximum number of attempts to fetch and apply a patch from the agent
+MAX_RETRIES=5
+
 if [[ -z "$API_URL" ]]; then
   echo "AGENT_API_URL not set; skipping agent fix."
   exit 0
