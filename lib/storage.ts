@@ -56,7 +56,7 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
     const filePath = `${folder}/${fileName}`
 
     // Upload file to storage
-    const { data, error } = await supabase.storage
+    const { error } = await supabase.storage
       .from('plant-images')
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -80,7 +80,7 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
       success: true,
       url: publicUrl
     }
-  } catch (error) {
+  } catch {
     // Console logging removed for banking standards.error('Upload error:', error)
     return {
       success: false,
@@ -114,7 +114,7 @@ export async function deleteImage(url: string): Promise<boolean> {
     }
 
     return true
-  } catch (error) {
+  } catch {
     // Console logging removed for banking standards.error('Delete error:', error)
     return false
   }
