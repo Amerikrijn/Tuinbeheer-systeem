@@ -2,9 +2,9 @@ name: Banking-Grade CI/CD Pipeline
 
 on:
   push:
-    branches: [ 'feature/**', 'bugfix/**', 'hotfix/**', 'preview/**', 'main' ]
+    branches: [ 'feature/**', 'bugfix/**', 'hotfix/**', 'preview/**', 'main', 'cursor/**' ]
   pull_request:
-    branches: [ preview, main ]
+    branches: [ preview, main, 'cursor/**' ]
   workflow_dispatch:
     inputs:
       environment:
