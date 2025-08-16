@@ -1,5 +1,22 @@
 import { createClient, type SupabaseClient, AuthError } from '@supabase/supabase-js'
-import { ENV } from '@/lib/env'
+
+// ========================================
+// ENVIRONMENT VARIABLES SETUP:
+// ========================================
+// ✅ PRODUCTION (Vercel): Uses environment variables set in Vercel dashboard
+// ✅ PREVIEW (Vercel): Uses environment variables set in Vercel dashboard  
+// ❌ LOCAL DEVELOPMENT: Requires .env.local file with same credentials
+// ========================================
+// For local development, copy your Vercel Preview environment variables
+// to a .env.local file in your project root.
+// ========================================
+
+// Environment variable access - works with Vercel deployment
+const getEnvVar = (key: string): string | undefined => {
+  // In Vercel, these will be the actual values
+  // In local development, they might be undefined or placeholder values
+  return process.env[key]
+}
 
 // Singleton pattern to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
@@ -45,15 +62,13 @@ const getSupabaseClient = (): SupabaseClient => {
     return supabaseInstance
   }
 
-  const supabaseUrl = ENV.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL')
+  const supabaseAnonKey = getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY')
 
   // Check if we're using placeholder values
   if (supabaseUrl === 'https://YOUR-PROJECT.supabase.co' || supabaseAnonKey === 'YOUR-ANON-KEY') {
     console.error('❌ Supabase environment variables are set to placeholder values!')
-    console.error('Please create a .env.local file with your actual Supabase credentials:')
-    console.error('NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co')
-    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_actual_anon_key')
+    console.error('Please set your actual Supabase credentials in Vercel or create a .env.local file for local development.')
     
     // In development, use mock client
     if (process.env.NODE_ENV === 'development') {
@@ -67,9 +82,11 @@ const getSupabaseClient = (): SupabaseClient => {
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error('❌ Supabase environment variables are missing!')
-    console.error('Please set the following in your .env.local file:')
+    console.error('Please set the following in your Vercel environment variables:')
     console.error('NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co')
     console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key')
+    console.error('')
+    console.error('For local development, create a .env.local file with these values.')
     
     // In development, use mock client
     if (process.env.NODE_ENV === 'development') {
@@ -107,8 +124,8 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     return supabaseAdminInstance
   }
 
-  const supabaseUrl = ENV.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL')
+  const serviceRoleKey = getEnvVar('SUPABASE_SERVICE_ROLE_KEY')
 
   // Check if we're using placeholder values
   if (supabaseUrl === 'https://YOUR-PROJECT.supabase.co' || serviceRoleKey === 'YOUR-SERVICE-ROLE-KEY') {
