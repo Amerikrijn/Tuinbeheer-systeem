@@ -40,7 +40,7 @@ jobs:
           echo "ESLint issues: $ESLINT_ISSUES"
           
           # TypeScript issues count
-          TYPESCRIPT_ISSUES=$(npm run type-check 2>&1 | grep -c "error" || echo "0")
+          TYPESCRIPT_ISSUES=$(npm run typecheck 2>&1 | grep -c "error" || echo "0")
           echo "TypeScript issues: $TYPESCRIPT_ISSUES"
           
           # Test coverage
