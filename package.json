@@ -35,7 +35,7 @@
     "mobile:ios": "cd apps/mobile && npm run ios",
     "shared:build": "cd packages/shared && npm install && npm run build",
     "deploy:check": "./scripts/auto-deploy-safety.sh",
-    "deploy:test": "node scripts/auto-test-loops.js",
+    "deploy:test": "node scripts/auto-test-loop.js",
     "auto-test-loop": "node scripts/auto-test-loop.js",
     "deploy:production": "npm run deploy:check && npm run deploy:test && echo 'Ready for production deployment'",
     "security:foundation": "echo 'Run security-implementation/scripts/01-foundation-security.sql in Supabase'",

@@ -1,23 +1,46 @@
 #!/usr/bin/env node
 'use strict';
 
-const { spawnSync } = require('child_process');
+const { exec, execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
-function run(command, args) {
-  return spawnSync(command, args, { stdio: 'inherit' }).status;
+const MAX_ATTEMPTS = 5;
+const logFile = path.resolve(__dirname, '..', 'test-log.txt');
+
+async function runCommand(cmd) {
+  return new Promise((resolve) => {
+    exec(cmd, { maxBuffer: 1024 * 1024 * 10 }, (error, stdout, stderr) => {
+      process.stdout.write(stdout);
+      if (error) {
+        fs.appendFileSync(logFile, `Attempt failed:\n${stderr}\n`);
+        resolve(false);
+      } else {
+        resolve(true);
+      }
+    });
+  });
 }
 
-while (true) {
-  const testStatus = run('npm', ['run', 'test:ci']);
-  if (testStatus === 0) {
-    console.log('✅ Tests passed');
-    process.exit(0);
+(async () => {
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    console.log(`\nAttempt ${attempt}/${MAX_ATTEMPTS}: running tests...`);
+    const success = await runCommand('npm run test:ci');
+    if (success) {
+      console.log('Tests passed.');
+      process.exit(0);
+    }
+
+    console.error(`Attempt ${attempt} failed. Log written to test-log.txt`);
+    if (attempt < MAX_ATTEMPTS) {
+      try {
+        execSync('scripts/agent-fix-tests.sh', { stdio: 'inherit' });
+      } catch (err) {
+        console.error('agent-fix-tests.sh encountered an error:', err.message);
+      }
+    }
   }
 
-  console.log('❌ Tests failed, running agent-fix-tests.sh...');
-  const fixStatus = run('bash', ['scripts/agent-fix-tests.sh']);
-  if (fixStatus !== 0) {
-    console.error('Fix script failed. Exiting.');
-    process.exit(testStatus || 1);
-  }
-}
+  console.error(`Tests failed after ${MAX_ATTEMPTS} attempts.`);
+  process.exit(1);
+})();
