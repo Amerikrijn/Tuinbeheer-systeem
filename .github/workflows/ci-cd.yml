@@ -18,7 +18,7 @@ on:
 
 env:
   NODE_VERSION: '18'
-  COVERAGE_THRESHOLD: '60'  # Start with 60%, increase to 80% in 2 weeks
+  COVERAGE_THRESHOLD: '80'  # Minimum required coverage
 
 jobs:
   # 🔍 CHANGE DETECTION
@@ -126,7 +126,7 @@ jobs:
           CI: true
         continue-on-error: false
 
-        - name: 📊 Coverage Threshold Validation (CRITICAL - 60% MINIMUM)
+        - name: 📊 Coverage Threshold Validation (CRITICAL - 80% MINIMUM)
           run: |
             echo "🔍 Validating test coverage thresholds..."
             echo "🎯 Target: ${{ env.COVERAGE_THRESHOLD }}% minimum coverage"
@@ -590,14 +590,14 @@ jobs:
              [ "${{ needs.docs.result }}" == "success" ]; then
             echo "✅ ALL QUALITY GATES PASSED - Ready for deployment!"
             echo "🚀 Preview deployment will be triggered automatically"
-            echo "📊 Coverage target: ${{ env.COVERAGE_THRESHOLD }}% (Phase 1: 60% → 80% in 2 weeks)"
+            echo "📊 Coverage target: ${{ env.COVERAGE_THRESHOLD }}%"
           else
             echo "❌ QUALITY GATES FAILED - Deployment blocked!"
             echo "🔒 Preview deployment will NOT be triggered"
             echo "📋 Please fix the following issues:"
             
             if [ "${{ needs.quality.result }}" != "success" ]; then
-              echo "  - Quality Gates (Lint, Types, Tests, 60% Coverage)"
+            echo "  - Quality Gates (Lint, Types, Tests, 80% Coverage)"
             fi
             if [ "${{ needs.security.result }}" != "success" ]; then
               echo "  - Security & Compliance (SAST, Secrets Detection)"
@@ -628,7 +628,7 @@ jobs:
           echo "📋 Please fix all issues and push again"
           echo ""
           echo "🎯 Current Requirements:"
-          echo "  - 60% minimum code coverage"
+          echo "  - 80% minimum code coverage"
           echo "  - All security checks (SAST & DAST) must pass"
           echo "  - All regression tests must pass"
           echo "  - Build must succeed"

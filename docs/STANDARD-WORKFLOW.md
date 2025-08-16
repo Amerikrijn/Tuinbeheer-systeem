@@ -11,7 +11,7 @@ Elke Cursor agent die aan dit project werkt MOET deze workflow volgen. Dit is ge
 npm run test:ci
 ```
 - **EIS**: Alle tests moeten slagen (groen)
-- **EIS**: Coverage moet minimaal 60% zijn
+- **EIS**: Coverage moet minimaal 80% zijn
 - **EIS**: Geen TypeScript errors
 - **EIS**: Geen ESLint errors (alleen warnings toegestaan)
 
@@ -33,7 +33,7 @@ npm run ci:quality
 - **NOOIT** direct naar main pushen
 - **ALLEEN** feature branch gebruiken
 - **ALLEEN** pushen als alle tests slagen
-- **ALLEEN** pushen als coverage ≥60% is
+- **ALLEEN** pushen als coverage ≥80% is
 
 ## 🔄 CONTINUE PIPELINE EXECUTIE
 
@@ -60,8 +60,8 @@ git push origin feature/[branch-name]
 
 ## 📊 KWALITEITSVOORWAARDEN (MOETEN ALTIJD WORDEN GEHAALD)
 
-### Test Coverage
-- **MINIMUM**: 60% (momenteel: 3.38%)
+- ### Test Coverage
+- **MINIMUM**: 80% (momenteel: 3.38%)
 - **DOEL**: 80% binnen 2 weken
 - **EIS**: Geen daling van coverage
 
@@ -82,7 +82,7 @@ git push origin feature/[branch-name]
 - Tests overslaan
 - CI/CD pipeline negeren
 - Stoppen voordat alles groen is
-- Coverage onder 60% accepteren
+- Coverage onder 80% accepteren
 
 ### ✅ ALTIJD DOEN:
 - Lokaal testen vóór elke wijziging
@@ -94,13 +94,13 @@ git push origin feature/[branch-name]
 ## 📈 VOORUITGANG MONITORING
 
 ### Huidige Status:
-- **Coverage**: 3.38% (doel: 60%)
+- **Coverage**: 3.38% (doel: 80%)
 - **Tests**: 154 passed, 31 skipped
 - **Test Suites**: 13 passed, 0 failed
 
 ### Volgende Stappen:
 1. **Meer tests toevoegen** voor bestaande modules
-2. **Coverage verhogen** naar 60%
+2. **Coverage verhogen** naar 80%
 3. **Alle tests laten slagen**
 4. **CI/CD pipeline groen krijgen**
 
@@ -118,7 +118,7 @@ git push origin feature/[branch-name]
 ### GitHub Actions:
 - **Trigger**: Alleen op feature branches (NOOIT main)
 - **Quality Gates**: Alle tests moeten slagen
-- **Coverage Check**: Minimum 60%
+- **Coverage Check**: Minimum 80%
 - **Security Scan**: Geen kritieke vulnerabilities
 
 ## 📝 WORKFLOW CHECKLIST
@@ -126,7 +126,7 @@ git push origin feature/[branch-name]
 ### Voor elke wijziging:
 - [ ] Lokaal getest met `npm run test:ci`
 - [ ] Alle tests slagen
-- [ ] Coverage ≥60%
+- [ ] Coverage ≥80%
 - [ ] Geen TypeScript errors
 - [ ] Geen ESLint errors
 
@@ -146,7 +146,7 @@ git push origin feature/[branch-name]
 
 **EINDOEL**: Een volledig groene CI/CD pipeline met:
 - ✅ 100% test success rate
-- ✅ ≥60% code coverage
+- ✅ ≥80% code coverage
 - ✅ Geen TypeScript errors
 - ✅ Geen ESLint errors
 - ✅ Banking-grade kwaliteit
