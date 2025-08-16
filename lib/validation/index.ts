@@ -1,7 +1,7 @@
 import type { 
   TuinFormData, 
   PlantvakFormData, 
-  BloemFormData, 
+  PlantFormData, 
   ValidationError, 
   ValidationResult 
 } from '../types/index'
@@ -293,7 +293,7 @@ export function validatePlantvakFormData(data: Partial<PlantvakFormData>): Valid
   return validator.getResult()
 }
 
-export function validateBloemFormData(data: Partial<BloemFormData>): ValidationResult {
+export function validatePlantFormData(data: Partial<PlantFormData>): ValidationResult {
   const validator = new Validator()
 
   // Required fields validation
