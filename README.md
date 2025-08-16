@@ -72,6 +72,13 @@ git push --no-verify
 HUSKY=0 git push
 ```
 
+## 🔏 How to sign commits
+
+1. Generate a GPG key: `gpg --full-generate-key`
+2. List your keys: `gpg --list-secret-keys --keyid-format=long`
+3. Configure Git to use the key: `git config --global user.signingkey <KEY_ID>`
+4. Enable automatic signing: `git config --global commit.gpgsign true`
+
 ## 🔧 Beschikbare Scripts
 
 ```bash
