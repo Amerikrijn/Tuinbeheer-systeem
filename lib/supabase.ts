@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient, AuthError } from '@supabase/supabase-js'
 
 // Singleton pattern to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
@@ -30,7 +30,7 @@ const createMockClient = (): SupabaseClient => {
   })
   mockClient.auth.signInWithPassword = async () => ({ 
     data: { user: null, session: null }, 
-    error: new Error('Mock client - set environment variables') 
+    error: new AuthError('Mock client - set environment variables', { status: 400, name: 'AuthError' })
   })
   mockClient.auth.signOut = async () => ({ data: {}, error: null })
   mockClient.auth.resetPasswordForEmail = async () => ({ data: {}, error: null })
@@ -196,8 +196,8 @@ export interface PlantBedWithPosition {
 
 export interface ApiResponse<T = unknown> {
   success: boolean
-  data?: T
-  error?: string
+  data?: T | null
+  error?: string | null
   message?: string
 }
 
