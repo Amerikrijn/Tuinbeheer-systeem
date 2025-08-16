@@ -36,6 +36,10 @@ npm run test:ci
 npm run ci:quality
 ```
 
+## 🔁 Development flow
+
+Gebruik `npm run auto-test-loop` om automatisch `npm run test:ci` uit te voeren en bij falen `scripts/agent-fix-tests.sh` aan te roepen.
+
 ## 📋 Verplichte Workflow
 
 ### Voor elke wijziging:
