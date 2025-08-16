@@ -1,4 +1,3 @@
-import { z } from 'zod';
 
 // Environment configuration - using hardcoded Supabase credentials
 // These are the actual credentials for the preview environment

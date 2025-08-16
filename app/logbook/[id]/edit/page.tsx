@@ -10,12 +10,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Calendar, Save, Upload, X, Image as ImageIcon } from "lucide-react"
+import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uploadImage, type UploadResult } from "@/lib/storage"
 import type { LogbookEntryWithDetails, PlantvakWithBloemen } from "@/lib/types/index"
-import { format } from "date-fns"
 
 interface EditLogbookState {
   entry: LogbookEntryWithDetails | null
