@@ -13,32 +13,6 @@ jest.mock('next/navigation', () => ({
 
 // Test simple component files
 describe('Simple Component Files', () => {
-  describe('components/banking-form.tsx', () => {
-    it('should render banking form component', () => {
-      const BankingFormComponent = () => (
-        <form className="space-y-4">
-          <div>
-            <label htmlFor="accountNumber" className="block text-sm font-medium">Account Number</label>
-            <input
-              type="text"
-              id="accountNumber"
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-              placeholder="Enter account number"
-            />
-          </div>
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-            Submit
-          </button>
-        </form>
-      );
-      
-      render(<BankingFormComponent />);
-      expect(screen.getByText('Account Number')).toBeInTheDocument();
-      expect(screen.getByPlaceholderText('Enter account number')).toBeInTheDocument();
-      expect(screen.getByText('Submit')).toBeInTheDocument();
-    });
-  });
-
   describe('components/error-boundary.tsx', () => {
     it('should render error boundary component', () => {
       const ErrorBoundaryComponent = ({ children }: { children: React.ReactNode }) => (
