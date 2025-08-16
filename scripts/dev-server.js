@@ -49,15 +49,16 @@ function checkEnvironment() {
   
   if (!fs.existsSync(envFile)) {
     if (fs.existsSync(envExample)) {
-      logWarning('No .env.local file found. Please copy .env.local.example to .env.local and configure your environment variables.')
+      logWarning('No .env.local file found. You can copy .env.local.example to .env.local for local development.')
       logInfo('Required variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY')
+      logInfo('These should be set in Vercel for production deployment.')
     } else {
-      logError('No environment configuration found. Please create a .env.local file with your Supabase credentials.')
+      logWarning('No local environment file found. Environment variables should be set in Vercel.')
     }
     return false
   }
   
-  logSuccess('Environment file found')
+  logSuccess('Local environment file found')
   return true
 }
 

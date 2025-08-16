@@ -52,8 +52,8 @@ function parseEnv() {
       const missingVars = error.errors.map(err => err.path.join('.'))
       console.error('❌ Missing or invalid environment variables:')
       missingVars.forEach(varName => console.error(`   - ${varName}`))
-      console.error('\n📝 Please check your .env.local file and ensure all required variables are set.')
-      console.error('💡 You can copy .env.local.example to .env.local and fill in the values.')
+      console.error('\n📝 Please check your Vercel environment variables or .env.local file.')
+      console.error('💡 Required variables: NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY')
     }
     throw error
   }

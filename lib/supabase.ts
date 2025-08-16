@@ -64,8 +64,11 @@ const getSupabaseClient = (): SupabaseClient => {
     throw new Error('Supabase environment variables are required in production')
   }
   
-  console.log('🔧 Creating Supabase client with URL:', supabaseUrl)
-  console.log('🔑 Anon key present:', !!supabaseAnonKey)
+  // Don't log sensitive information in production
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔧 Creating Supabase client with URL:', supabaseUrl)
+    console.log('🔑 Anon key present:', !!supabaseAnonKey)
+  }
   
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
