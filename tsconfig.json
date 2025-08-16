@@ -8,7 +8,8 @@
     "strictNullChecks": true,
     "exactOptionalPropertyTypes": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": false,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
@@ -25,7 +26,7 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "types": ["jest", "@testing-library/jest-dom"]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [

@@ -18,14 +18,18 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
-  // Limit coverage collection to a well-tested subset so tests complete quickly
-  collectCoverageFrom: ['components/ui/button.tsx', 'lib/get-plant-emoji.ts'],
+  // Keep our broader coverage collection for comprehensive testing
+  collectCoverageFrom: [
+    'components/**/*.{ts,tsx}',
+    'lib/**/*.{ts,tsx}',
+    'app/**/*.{ts,tsx}',
+  ],
   coverageThreshold: {
     global: {
-      branches: 60,
-      functions: 60,
-      lines: 60,
-      statements: 60,
+      branches: 30,
+      functions: 30,
+      lines: 30,
+      statements: 30,
     },
   },
 }
