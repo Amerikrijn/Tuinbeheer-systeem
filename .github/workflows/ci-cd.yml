@@ -628,8 +628,8 @@ jobs:
           echo "📋 Please fix all issues and push again"
           echo ""
           echo "🎯 Current Requirements:"
-          echo "  - 60% minimum code coverage"
-          echo "  - All security checks (SAST & DAST) must pass"
+          echo "  - 80% minimum code coverage"
+          echo "  - All security checks must pass"
           echo "  - All regression tests must pass"
           echo "  - Build must succeed"
           exit 1
