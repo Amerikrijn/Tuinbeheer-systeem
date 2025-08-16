@@ -1,30 +1,34 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 // Singleton pattern to prevent multiple instances
-let supabaseInstance: ReturnType<typeof createClient> | null = null
-let supabaseAdminInstance: ReturnType<typeof createClient> | null = null
+let supabaseInstance: SupabaseClient | null = null
+let supabaseAdminInstance: SupabaseClient | null = null
 
 // Create mock client for development when env vars are missing
-const createMockClient = () => {
+const createMockClient = (): SupabaseClient => {
   console.warn('⚠️ Using mock Supabase client - environment variables not set')
-  return {
+  
+  // Create a minimal mock client that satisfies the SupabaseClient interface
+  const mockClient = createClient('https://mock.supabase.co', 'mock-key', {
     auth: {
-      getSession: async () => ({ data: { session: null }, error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-      signInWithPassword: async () => ({ data: null, error: new Error('Mock client - set environment variables') }),
-      signOut: async () => ({ error: null }),
-      resetPasswordForEmail: async () => ({ error: null })
-    },
-    from: () => ({
-      select: () => ({ eq: () => ({ single: async () => ({ data: null, error: new Error('Mock client') }) }) }),
-      insert: async () => ({ error: new Error('Mock client') }),
-      update: async () => ({ eq: async () => ({ error: new Error('Mock client') }) })
-    })
-  }
+      autoRefreshToken: false,
+      persistSession: false,
+      detectSessionInUrl: false
+    }
+  })
+  
+  // Override methods to return mock responses
+  mockClient.auth.getSession = async () => ({ data: { session: null }, error: null })
+  mockClient.auth.onAuthStateChange = () => ({ data: { subscription: { unsubscribe: () => {} } } })
+  mockClient.auth.signInWithPassword = async () => ({ data: null, error: new Error('Mock client - set environment variables') })
+  mockClient.auth.signOut = async () => ({ error: null })
+  mockClient.auth.resetPasswordForEmail = async () => ({ error: null })
+  
+  return mockClient
 }
 
 // Get or create Supabase client instance
-const getSupabaseClient = () => {
+const getSupabaseClient = (): SupabaseClient => {
   if (supabaseInstance) {
     return supabaseInstance
   }
@@ -69,7 +73,7 @@ const getSupabaseClient = () => {
 }
 
 // Get or create Supabase admin client instance
-const getSupabaseAdminClient = () => {
+const getSupabaseAdminClient = (): SupabaseClient => {
   if (supabaseAdminInstance) {
     return supabaseAdminInstance
   }
