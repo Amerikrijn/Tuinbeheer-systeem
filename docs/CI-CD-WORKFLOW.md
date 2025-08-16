@@ -36,7 +36,7 @@ git push origin feature/nieuwe-functie
 ```
 
 ### **4. Automatische CI/CD Pipeline**
-✅ **Quality Gates** (ESLint, TypeScript, Tests, 60% Coverage)  
+✅ **Quality Gates** (ESLint, TypeScript, Tests, 80% Coverage)
 ✅ **Security Checks** (SAST, Secrets Detection, Vulnerability Scan)  
 ✅ **Regression Tests** (E2E, API Integration, Database, Auth)  
 ✅ **Build Validation** (Next.js build, Post-build tests)  
@@ -65,7 +65,7 @@ git push origin feature/nieuwe-functie
 - De pipeline controleert dit en faalt bij ontbrekende documentatie
 
 ### **🔒 Banking-Grade Security**
-- 60% minimum code coverage (→ 80% in 2 weken)
+- 80% minimum code coverage
 - Alle security checks moeten slagen
 - Geen hardcoded secrets
 - SAST en dependency scanning
@@ -99,7 +99,7 @@ git push origin feature/nieuwe-functie
 ### **Quality Gates:**
 - **ESLint**: Code kwaliteit
 - **TypeScript**: Type safety
-- **Jest Tests**: Unit tests met 60% coverage
+- **Jest Tests**: Unit tests met 80% coverage
 - **Security Audit**: Vulnerabilities
 
 ### **Security Checks:**
@@ -123,13 +123,7 @@ git push origin feature/nieuwe-functie
 
 ## 📊 **Code Coverage Requirements**
 
-### **Phase 1 (Nu): 60% Minimum**
-- Branches: 60%
-- Functions: 60%
-- Lines: 60%
-- Statements: 60%
-
-### **Phase 2 (Over 2 weken): 80% Minimum**
+### **Minimum 80%**
 - Branches: 80%
 - Functions: 80%
 - Lines: 80%
@@ -201,7 +195,7 @@ git push origin feature/nieuwe-functie
 1. Voeg meer tests toe
 2. Check coverage report
 3. Focus op ongedekte code
-4. Herhaal tot 60% bereikt
+4. Herhaal tot 80% bereikt
 
 ### **Security issues:**
 1. Fix hardcoded secrets
@@ -246,4 +240,4 @@ git push origin feature/nieuwe-functie
 
 **🔒 Security First: Alle security checks moeten slagen voor deployment!**
 
-**📊 Coverage: Start met 60%, ga naar 80% in 2 weken!**
+**📊 Coverage: Minimum 80%!**

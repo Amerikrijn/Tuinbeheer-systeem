@@ -7,6 +7,7 @@
  */
 
 import { supabase } from './supabase';
+import { logger } from './logger';
 
 /**
  * Security Event Logging
