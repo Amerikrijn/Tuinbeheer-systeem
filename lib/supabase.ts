@@ -1,34 +1,76 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// Create mock client for development when env vars are missing
+const createMockClient = () => {
+  console.warn('⚠️ Using mock Supabase client - environment variables not set')
+  return {
+    auth: {
+      getSession: async () => ({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      signInWithPassword: async () => ({ data: null, error: new Error('Mock client - set environment variables') }),
+      signOut: async () => ({ error: null }),
+      resetPasswordForEmail: async () => ({ error: null })
+    },
+    from: () => ({
+      select: () => ({ eq: () => ({ single: async () => ({ data: null, error: new Error('Mock client') }) }) }),
+      insert: async () => ({ error: new Error('Mock client') }),
+      update: async () => ({ eq: async () => ({ error: new Error('Mock client') }) })
+    })
+  }
+}
 
 // Create Supabase client with banking security standards
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
-  // Secure configuration for banking standards
-  global: {
-    headers: {
-      'X-Client-Info': 'tuinbeheer-banking-app'
+export const supabase = (() => {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('❌ Supabase environment variables are missing!')
+    console.error('Please set the following in your .env.local file:')
+    console.error('NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co')
+    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key')
+    
+    // In development, use mock client
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('🚨 Development mode: Using mock Supabase client')
+      return createMockClient()
     }
+    
+    throw new Error('Supabase environment variables are required in production')
   }
-})
+  
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true
+    },
+    // Secure configuration for banking standards
+    global: {
+      headers: {
+        'X-Client-Info': 'tuinbeheer-banking-app'
+      }
+    }
+  })
+})()
 
 // Admin client for server-side operations (banking compliance)
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
+export const supabaseAdmin = (() => {
+  if (!supabaseUrl || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('🚨 Development mode: Using mock admin client')
+      return createMockClient()
+    }
+    throw new Error('Supabase admin environment variables are required in production')
+  }
+  
+  return createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
     }
-  }
-)
+  })
+})()
 
 // Banking security utilities
 export const secureSupabaseCall = async <T>(
