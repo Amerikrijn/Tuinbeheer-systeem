@@ -17,6 +17,7 @@ on:
 
 env:
   NODE_VERSION: '18'
+  COVERAGE_THRESHOLD: '60'
 
 jobs:
   local-test:
@@ -31,6 +32,9 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+
+      - name: Install bc
+        run: sudo apt-get update && sudo apt-get install -y bc
 
       - name: Install dependencies
         run: npm ci
@@ -62,10 +66,30 @@ jobs:
         if: ${{ inputs.test_type == 'all' || inputs.test_type == 'tests' }}
         run: |
           echo "🧪 Running unit tests..."
-          
+
           echo "📊 Running tests with coverage..."
           npm run test:ci
-          
+
+          echo "🔍 Validating test coverage thresholds..."
+          echo "🎯 Target: ${COVERAGE_THRESHOLD}% minimum coverage"
+
+          if [ ! -f "coverage/lcov.info" ]; then
+            echo "❌ CRITICAL: No coverage report generated - tests failed!"
+            exit 1
+          fi
+
+          # Calculate line coverage percentage from lcov.info
+          COVERAGE=$(awk -F: '/^LH:/ {lh+=$2} /^LF:/ {lf+=$2} END {if (lf>0) printf "%.2f", (lh/lf)*100}' coverage/lcov.info)
+          echo "📈 Line coverage: ${COVERAGE}%"
+
+          # Compare against threshold using bc for precision
+          if [ "$(echo "$COVERAGE < ${COVERAGE_THRESHOLD}" | bc -l)" -eq 1 ]; then
+            echo "❌ Coverage ${COVERAGE}% is below required ${COVERAGE_THRESHOLD}%"
+            exit 1
+          fi
+
+          echo "✅ Coverage threshold met."
+
           echo "✅ Unit tests completed!"
 
       - name: 🏗️ Build Test
