@@ -10,7 +10,7 @@ import { LogbookService } from "@/lib/services/database.service"
 import type { LogbookEntryWithDetails } from "@/lib/types/index"
 import { format, parseISO } from "date-fns"
 import { nl } from "date-fns/locale"
-import { logger } from "@/lib/utils/logger"
+import { logger } from "@/lib/logger"
 
 interface PlantPhotoGalleryProps {
   plantId: string
