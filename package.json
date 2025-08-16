@@ -111,8 +111,7 @@
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
-    "winston": "^3.11.0",
-    "zod": "^3.24.1"
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.0.0",
