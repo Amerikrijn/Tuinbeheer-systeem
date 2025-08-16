@@ -137,6 +137,10 @@ git push origin feature/nieuwe-functie
 
 ## 🔒 **Security Testing**
 
+### **Secrets Scan (Gitleaks):**
+- Workflow `.github/workflows/secret-scan.yml` draait [Gitleaks](https://github.com/gitleaks/gitleaks) bij elke `push` en `pull_request`.
+- Vindt hardcoded secrets en laat de job falen totdat de secret is verwijderd.
+
 ### **SAST (Static Analysis):**
 - SQL injection patterns
 - XSS vulnerabilities
