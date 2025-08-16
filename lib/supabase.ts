@@ -37,7 +37,7 @@ export const secureSupabaseCall = async <T>(
 ): Promise<T> => {
   try {
     return await operation()
-  } catch (error) {
+  } catch {
     // Secure error handling for banking standards - no console logging in production
     return fallback
   }
@@ -109,7 +109,7 @@ export interface PlantBedWithPosition {
   updated_at: string
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   error?: string
