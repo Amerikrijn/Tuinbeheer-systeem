@@ -45,10 +45,11 @@ jobs:
           
           # Test coverage
           if [ -f "coverage/lcov.info" ]; then
-            COVERAGE_FILES=$(grep -E "^SF:" coverage/lcov.info | wc -l)
-            echo "Coverage files: $COVERAGE_FILES"
+            COVERAGE_PERCENT=$(awk -F: '/^LH:/ {lh+=$2} /^LF:/ {lf+=$2} END {if (lf>0) printf "%.2f", (lh/lf)*100}' coverage/lcov.info)
+            echo "Line coverage: ${COVERAGE_PERCENT}%"
           else
             echo "No coverage data found"
+            COVERAGE_PERCENT="0"
           fi
           
           # Security vulnerabilities
@@ -58,7 +59,7 @@ jobs:
           # Save metrics for other jobs
           echo "eslint_issues=$ESLINT_ISSUES" >> $GITHUB_OUTPUT
           echo "typescript_issues=$TYPESCRIPT_ISSUES" >> $GITHUB_OUTPUT
-          echo "coverage_files=$COVERAGE_FILES" >> $GITHUB_OUTPUT
+          echo "coverage_percent=$COVERAGE_PERCENT" >> $GITHUB_OUTPUT
           echo "security_issues=$SECURITY_ISSUES" >> $GITHUB_OUTPUT
 
       - name: 📊 Generate Quality Report
@@ -76,7 +77,7 @@ jobs:
           
           - **ESLint Issues**: ${{ steps.health-check.outputs.eslint_issues }}
           - **TypeScript Issues**: ${{ steps.health-check.outputs.typescript_issues }}
-          - **Coverage Files**: ${{ steps.health-check.outputs.coverage_files }}
+          - **Test Coverage**: ${{ steps.health-check.outputs.coverage_percent }}%
           - **Security Vulnerabilities**: ${{ steps.health-check.outputs.security_issues }}
           
           ## 🎯 Quality Status
@@ -343,6 +344,7 @@ jobs:
           echo "## 📈 Quality Metrics" >> summary-report.md
           echo "- **ESLint Issues**: ${{ needs.health-check.outputs.eslint_issues || 'N/A' }}" >> summary-report.md
           echo "- **TypeScript Issues**: ${{ needs.health-check.outputs.typescript_issues || 'N/A' }}" >> summary-report.md
+          echo "- **Test Coverage**: ${{ needs.health-check.outputs.coverage_percent || 'N/A' }}%" >> summary-report.md
           echo "- **Security Issues**: ${{ needs.health-check.outputs.security_issues || 'N/A' }}" >> summary-report.md
           echo "- **Pipeline Success Rate**: $((${{ needs.pipeline-status.outputs.success_count || 0 }} * 100 / ${{ needs.pipeline-status.outputs.total_count || 1 }}))%" >> summary-report.md
           
