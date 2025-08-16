@@ -438,7 +438,7 @@ jobs:
     needs: [quality, security, regression, build, dast]
     if: |
       (needs.changes.outputs.code == 'true' || github.event_name == 'pull_request') &&
-      (github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/bugfix/') || startsWith(github.ref, 'refs/heads/preview/')) &&
+      (github.event_name == 'pull_request' || startsWith(github.ref, 'refs/heads/feature/') || startsWith(github.ref, 'refs/heads/bugfix/') || startsWith(github.ref, 'refs/heads/preview/') || github.ref == 'refs/heads/main') &&
       needs.quality.result == 'success' &&
       needs.security.result == 'success' &&
       needs.regression.result == 'success' &&
