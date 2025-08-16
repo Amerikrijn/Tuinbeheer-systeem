@@ -187,6 +187,7 @@ git push origin feature/nieuwe-functie
 2. Fix de issues lokaal
 3. Push opnieuw
 4. Pipeline draait automatisch
+5. Gebruik `scripts/agent-fix-tests.sh` voor automatische patches. Deze probeert nu maximaal **5** keer een fix toe te passen.
 
 ### **Coverage te laag:**
 1. Voeg meer tests toe
