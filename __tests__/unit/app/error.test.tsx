@@ -1,100 +1,126 @@
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import React from 'react'
+import { render, screen, fireEvent } from '@testing-library/react'
+import Error from '@/app/error'
 
-// Mock console.error to avoid noise in tests
-const originalConsoleError = console.error;
-beforeAll(() => {
-  console.error = jest.fn();
-});
+// Mock window.location
+const mockLocation = {
+  href: ''
+}
+Object.defineProperty(window, 'location', {
+  value: mockLocation,
+  writable: true
+})
 
-afterAll(() => {
-  console.error = originalConsoleError;
-});
+describe('Error Component', () => {
+  const mockError = {
+    message: 'Test error message',
+    digest: 'error-123',
+    name: 'TestError',
+    stack: 'Error stack trace'
+  }
 
-// Import the component after setting up mocks
-let ErrorComponent: any;
-beforeAll(async () => {
-  const module = await import('@/app/error');
-  ErrorComponent = module.default;
-});
-
-describe.skip('Error Component', () => {
-  const mockError = new Error('Test error message');
-  const mockReset = jest.fn();
+  const mockReset = jest.fn()
 
   beforeEach(() => {
-    mockReset.mockClear();
-  });
+    jest.clearAllMocks()
+    mockLocation.href = ''
+  })
 
-  it('should render error page with correct content', () => {
-    render(<ErrorComponent error={mockError} reset={mockReset} />);
-
-    // Check main heading and description
-    expect(screen.getByText('Tuinbeheer Systeem')).toBeInTheDocument();
-    expect(screen.getByText('Garden Management System')).toBeInTheDocument();
-
-    // Check error title
-    expect(screen.getByText('Er is een fout opgetreden')).toBeInTheDocument();
-
-    // Check error message
-    expect(screen.getByText('Foutmelding:')).toBeInTheDocument();
-    expect(screen.getByText('Test error message')).toBeInTheDocument();
-
-    // Check action buttons
-    expect(screen.getByText('Probeer Opnieuw')).toBeInTheDocument();
-    expect(screen.getByText('Naar Hoofdpagina')).toBeInTheDocument();
-
-    // Check help text
-    expect(screen.getByText('Wat kunt u doen:')).toBeInTheDocument();
-    expect(screen.getByText(/Probeer de pagina te vernieuwen/)).toBeInTheDocument();
-  });
-
-  it('should call reset function when retry button is clicked', () => {
-    render(<ErrorComponent error={mockError} reset={mockReset} />);
-
-    const retryButton = screen.getByText('Probeer Opnieuw');
-    fireEvent.click(retryButton);
-
-    expect(mockReset).toHaveBeenCalledTimes(1);
-  });
-
-  it('should handle error without message', () => {
-    const errorWithoutMessage = new Error();
-    render(<ErrorComponent error={errorWithoutMessage} reset={mockReset} />);
-
-    expect(screen.getByText('Er is een onverwachte fout opgetreden')).toBeInTheDocument();
-  });
-
-  it('should display error digest when available', () => {
-    const errorWithDigest = new Error('Test error');
-    (errorWithDigest as any).digest = 'error-123';
+  it('renders error component with error message', () => {
+    render(<Error error={mockError} reset={mockReset} />)
     
-    render(<ErrorComponent error={errorWithDigest} reset={mockReset} />);
+    expect(screen.getByText('Tuinbeheer Systeem')).toBeInTheDocument()
+    expect(screen.getByText('Garden Management System')).toBeInTheDocument()
+    expect(screen.getByText('Er is een fout opgetreden')).toBeInTheDocument()
+    expect(screen.getByText('Test error message')).toBeInTheDocument()
+  })
 
-    expect(screen.getByText('Error ID: error-123')).toBeInTheDocument();
-  });
+  it('displays error digest when available', () => {
+    render(<Error error={mockError} reset={mockReset} />)
+    
+    expect(screen.getByText('Error ID: error-123')).toBeInTheDocument()
+  })
 
-  it('should not display error digest when not available', () => {
-    render(<ErrorComponent error={mockError} reset={mockReset} />);
+  it('shows default error message when no message is provided', () => {
+    const errorWithoutMessage = { ...mockError, message: '' }
+    render(<Error error={errorWithoutMessage} reset={mockReset} />)
+    
+    expect(screen.getByText('Er is een onverwachte fout opgetreden')).toBeInTheDocument()
+  })
 
-    expect(screen.queryByText(/Error ID:/)).not.toBeInTheDocument();
-  });
+  it('displays helpful instructions', () => {
+    render(<Error error={mockError} reset={mockReset} />)
+    
+    expect(screen.getByText('Wat kunt u doen:')).toBeInTheDocument()
+    expect(screen.getByText('• Probeer de pagina te vernieuwen')).toBeInTheDocument()
+    expect(screen.getByText('• Controleer uw internetverbinding')).toBeInTheDocument()
+    expect(screen.getByText('• Wacht een moment en probeer het opnieuw')).toBeInTheDocument()
+    expect(screen.getByText('• Ga terug naar de hoofdpagina')).toBeInTheDocument()
+  })
 
-  it('should log error to console', () => {
-    render(<ErrorComponent error={mockError} reset={mockReset} />);
+  it('calls reset function when retry button is clicked', () => {
+    render(<Error error={mockError} reset={mockReset} />)
+    
+    const retryButton = screen.getByText('Probeer Opnieuw')
+    fireEvent.click(retryButton)
+    
+    expect(mockReset).toHaveBeenCalledTimes(1)
+  })
 
-    expect(console.error).toHaveBeenCalledWith('Application error:', mockError);
-  });
+  it('navigates to home page when home button is clicked', () => {
+    render(<Error error={mockError} reset={mockReset} />)
+    
+    const homeButton = screen.getByText('Naar Hoofdpagina')
+    fireEvent.click(homeButton)
+    
+    expect(mockLocation.href).toBe('/')
+  })
 
-  it('should have proper accessibility attributes', () => {
-    render(<ErrorComponent error={mockError} reset={mockReset} />);
+  it('displays contact information for persistent issues', () => {
+    render(<Error error={mockError} reset={mockReset} />)
+    
+    expect(screen.getByText(/Als dit probleem blijft bestaan/)).toBeInTheDocument()
+    expect(screen.getByText(/neem dan contact op met de systeembeheerder/)).toBeInTheDocument()
+  })
 
-    // Check that buttons are accessible
-    expect(screen.getByRole('button', { name: 'Probeer Opnieuw' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Naar Hoofdpagina' })).toBeInTheDocument();
+  it('renders with correct styling classes', () => {
+    render(<Error error={mockError} reset={mockReset} />)
+    
+    const errorCard = screen.getByText('Er is een fout opgetreden').closest('.border-red-200')
+    expect(errorCard).toBeInTheDocument()
+    
+    const instructionsBox = screen.getByText('Wat kunt u doen:').closest('.bg-yellow-50')
+    expect(instructionsBox).toBeInTheDocument()
+  })
 
-    // Check that headings are properly structured
-    expect(screen.getByRole('heading', { name: 'Tuinbeheer Systeem' })).toBeInTheDocument();
-  });
-});
+  it('handles error without digest gracefully', () => {
+    const errorWithoutDigest = { ...mockError }
+    delete errorWithoutDigest.digest
+    
+    render(<Error error={errorWithoutDigest} reset={mockReset} />)
+    
+    expect(screen.queryByText(/Error ID:/)).not.toBeInTheDocument()
+  })
+
+  it('renders error component with minimal error object', () => {
+    const minimalError = {
+      message: 'Minimal error',
+      name: 'MinimalError'
+    }
+    
+    render(<Error error={minimalError} reset={mockReset} />)
+    
+    expect(screen.getByText('Minimal error')).toBeInTheDocument()
+    expect(screen.queryByText(/Error ID:/)).not.toBeInTheDocument()
+  })
+
+  it('displays all UI elements correctly', () => {
+    render(<Error error={mockError} reset={mockReset} />)
+    
+    // Check icons are present
+    expect(screen.getByTestId('tree-pine-icon')).toBeInTheDocument()
+    expect(screen.getByTestId('alert-circle-icon')).toBeInTheDocument()
+    expect(screen.getByTestId('refresh-cw-icon')).toBeInTheDocument()
+    expect(screen.getByTestId('home-icon')).toBeInTheDocument()
+  })
+})
