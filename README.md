@@ -123,7 +123,7 @@ Ons systeem gebruikt een **preview-first** aanpak:
 
 ## 🧰 Hulpscripts
 
-De map `scripts/` bevat diverse hulpscripts voor onderhoudstaken. Deze scripts draaien niet automatisch in de pipeline maar kunnen handmatig worden gebruikt:
+De map `scripts/` bevat kernhulpscripts voor test- en deploy-taken. Oudere of zelden gebruikte onderhoudsscripts zijn verplaatst naar `scripts/archive/` en kunnen handmatig worden gebruikt wanneer nodig:
 
 - `fix-all-syntax-final.sh` – corrigeert resterende syntaxfouten en verwijdert console-statements.
 - `fix-closing-braces.sh` – controleert op ontbrekende sluitaccolades bij conditionele console-statements.
@@ -162,7 +162,7 @@ Gebruik deze tools alleen wanneer nodig en voer altijd de verplichte tests uit n
 
 ## Deployment
 
-Gebruik `scripts/auto-test-loops.js` om `npm run test:ci` automatisch te herhalen tot de tests slagen of het maximale aantal pogingen is bereikt. Bij falen wordt de fout naar `test-log.txt` geschreven en wordt `scripts/agent-fix-tests.sh` uitgevoerd voordat een nieuwe poging start.
+Gebruik `scripts/auto-test-loop.js` om `npm run test:ci` automatisch te herhalen tot de tests slagen of het maximale aantal pogingen is bereikt. Bij falen wordt de fout naar `test-log.txt` geschreven en wordt `scripts/agent-fix-tests.sh` uitgevoerd voordat een nieuwe poging start.
 
 ## ⚠️ Belangrijke Regels
 
