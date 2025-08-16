@@ -1,6 +1,6 @@
 # Onderhoudscripts
 
-De map `scripts/` bevat hulpscripts voor handmatige opschoontaken. Ze draaien **niet** automatisch in de pipeline. Gebruik ze alleen wanneer nodig en voer daarna altijd de tests uit.
+De map `scripts/archive/` bevat hulpscripts voor handmatige opschoontaken. Ze draaien **niet** automatisch in de pipeline. Gebruik ze alleen wanneer nodig en voer daarna altijd de tests uit.
 
 ## Beschikbare scripts
 
@@ -16,7 +16,7 @@ De map `scripts/` bevat hulpscripts voor handmatige opschoontaken. Ze draaien **
 Voer een script uit vanuit de projectroot:
 
 ```bash
-./scripts/fix-all-syntax-final.sh
+./scripts/archive/fix-all-syntax-final.sh
 ```
 
 Vervang de bestandsnaam door het gewenste script. Voer na afloop altijd `npm test` uit.
