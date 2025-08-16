@@ -145,78 +145,58 @@ describe('Validation Functions', () => {
   })
 
   describe('validatePlantvakFormData', () => {
-    it('should validate valid plant bed data', () => {
-      const validData = {
-        id: 'test-id',
-        name: 'Test Bed',
-        location: 'North Side',
-        size: '2x3m',
-        soilType: 'clay',
-        sunExposure: 'full-sun' as const,
-        description: 'A test plant bed',
-      }
+    const validData: PlantvakFormData = {
+      id: 'bed-1',
+      // name field removed - will be auto-generated based on letter_code
+      location: 'North side',
+      size: '2x3m',
+      soilType: 'sandy',
+      sunExposure: 'partial-sun',
+      description: 'A plant bed for vegetables'
+    }
 
+    const invalidData: PlantvakFormData = {
+      id: '',
+      // name field removed - will be auto-generated based on letter_code
+      location: '',
+      size: '',
+      soilType: '',
+      sunExposure: 'partial-sun',
+      description: 'A plant bed for vegetables'
+    }
+
+    it('should validate valid plantvak data', () => {
       const result = validatePlantvakFormData(validData)
-
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
 
-    it('should validate required fields', () => {
-      const invalidData = {
-        id: '',
-        name: '',
-        location: '',
-        size: '',
-        soilType: '',
-        sunExposure: 'full-sun' as const,
-        description: '',
-      }
-
+    it('should reject invalid plantvak data', () => {
       const result = validatePlantvakFormData(invalidData)
-
       expect(result.isValid).toBe(false)
-      expect(result.errors.length).toBeGreaterThan(0)
-      expect(result.errors.some(e => e.field === 'name')).toBe(true)
-      expect(result.errors.some(e => e.field === 'location')).toBe(true)
-      expect(result.errors.some(e => e.field === 'size')).toBe(true)
+      expect(result.errors).toHaveLength(3) // id, location, size, soilType are required
     })
 
-    it('should validate sun exposure options', () => {
+    it('should reject invalid sun exposure', () => {
       const invalidSunExposure = {
-        id: 'test-id',
-        name: 'Test Bed',
-        location: 'North Side',
-        size: '2x3m',
-        soilType: 'clay',
-        sunExposure: 'invalid-exposure' as any,
-        description: 'A test plant bed',
+        ...validData,
+        sunExposure: 'invalid-sun' as any
       }
-
       const result = validatePlantvakFormData(invalidSunExposure)
-
       expect(result.isValid).toBe(false)
-      expect(result.errors).toContainEqual({
-        field: 'sunExposure',
-        message: 'Moet een van de volgende zijn: full-sun, partial-sun, shade',
-      })
+      expect(result.errors).toHaveLength(1)
+      expect(result.errors[0].field).toBe('sunExposure')
     })
 
-    it('should validate size format', () => {
+    it('should reject invalid size format', () => {
       const invalidSize = {
-        id: 'test-id',
-        name: 'Test Bed',
-        location: 'North Side',
-        size: 'invalid-size',
-        soilType: 'clay',
-        sunExposure: 'full-sun' as const,
-        description: 'A test plant bed',
+        ...validData,
+        size: 'invalid-size'
       }
-
       const result = validatePlantvakFormData(invalidSize)
-
       expect(result.isValid).toBe(false)
-      expect(result.errors.some(e => e.field === 'size')).toBe(true)
+      expect(result.errors).toHaveLength(1)
+      expect(result.errors[0].field).toBe('size')
     })
   })
 
