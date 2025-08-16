@@ -72,6 +72,14 @@ if: |
 
 ## 🛠️ Automatische Setup
 
+### 0. Master Setup Script
+
+Gebruik het onderstaande script om de volledige CI/CD-configuratie in één keer uit te voeren. Het script valideert de projectstructuur, controleert afhankelijkheden en draait alle noodzakelijke checks.
+
+```bash
+./scripts/setup-ci-cd.sh
+```
+
 ### 1. Branch Protection Script
 
 ```bash
