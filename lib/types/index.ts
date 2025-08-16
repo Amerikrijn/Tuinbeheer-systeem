@@ -27,8 +27,8 @@ export interface Tuin {
 export interface Plantvak {
   id: string
   garden_id: string
-  name: string
-  letter_code?: string // Unique letter code (A, B, C, etc.) for plantvak identification
+  name: string // Auto-generated based on letter_code
+  letter_code: string // Required unique letter code (A, B, C, etc.) for plantvak identification
   location?: string
   size?: string
   soil_type?: string
@@ -121,7 +121,7 @@ export interface TuinFormData {
 
 export interface PlantvakFormData {
   id: string
-  name: string
+  // name field removed - will be auto-generated based on letter_code
   location: string
   size: string
   soilType: string

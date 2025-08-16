@@ -278,7 +278,7 @@ export function validatePlantvakFormData(data: Partial<PlantvakFormData>): Valid
   const validator = new Validator()
 
   validator.validateString('id', data.id || '', { required: true })
-  validator.validateString('name', data.name || '', { required: true, maxLength: 100 })
+  // name field validation removed - will be auto-generated based on letter_code
   validator.validateString('location', data.location || '', { required: true, maxLength: 200 })
   validator.validateString('size', data.size || '', { required: true })
   validator.validateString('soilType', data.soilType || '', { required: true })
