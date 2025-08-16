@@ -1,11 +1,22 @@
 import { defineConfig } from 'vitest/config';
+import { resolve } from 'path';
 
 export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
-    include: ['{app,components,lib}/**/*.{test,spec}.{ts,tsx}'],
+    include: ['**/*.{test,spec}.{ts,tsx}'],
+    resolve: {
+      alias: [
+        { find: '@', replacement: resolve(__dirname, '.') },
+        { find: '@/lib', replacement: resolve(__dirname, './lib') },
+        { find: '@/components', replacement: resolve(__dirname, './components') },
+        { find: '@/app', replacement: resolve(__dirname, './app') },
+        { find: '@/hooks', replacement: resolve(__dirname, './hooks') },
+        { find: '@/__tests__', replacement: resolve(__dirname, './__tests__') }
+      ]
+    },
     coverage: {
       provider: 'v8',
       reportsDirectory: './coverage',

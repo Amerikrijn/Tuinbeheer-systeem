@@ -1,0 +1,58 @@
+{
+  "timestamp": "2025-08-16T19:09:36.947Z",
+  "duration": 22875,
+  "tests": {
+    "infrastructure": {
+      "serverHealth": false,
+      "apiEndpoints": {
+        "/api/gardens": {
+          "status": "error",
+          "error": "fetch failed"
+        },
+        "/api/status": {
+          "status": "error",
+          "error": "fetch failed"
+        },
+        "/api/version": {
+          "status": "error",
+          "error": "fetch failed"
+        }
+      },
+      "databaseConnection": {
+        "status": "error",
+        "error": "fetch failed"
+      }
+    },
+    "coreFunctionality": {
+      "search": {
+        "status": "error",
+        "error": "fetch failed"
+      },
+      "pagination": {
+        "status": "error",
+        "error": "fetch failed"
+      },
+      "errorHandling": {
+        "status": "error",
+        "error": "fetch failed"
+      }
+    },
+    "automated": {
+      "unit": {
+        "status": "error",
+        "error": "Command failed: npm run test:integration"
+      },
+      "e2e": {
+        "status": "error",
+        "error": "Command failed: npm run test:e2e"
+      }
+    }
+  },
+  "summary": {
+    "totalTests": 8,
+    "passedTests": 0,
+    "failedTests": 8,
+    "successRate": "0.0%",
+    "overallStatus": "FAILED"
+  }
+}
