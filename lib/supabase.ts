@@ -48,9 +48,26 @@ const getSupabaseClient = (): SupabaseClient => {
   const supabaseUrl = ENV.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+  // Check if we're using placeholder values
+  if (supabaseUrl === 'https://YOUR-PROJECT.supabase.co' || supabaseAnonKey === 'YOUR-ANON-KEY') {
+    console.error('❌ Supabase environment variables are set to placeholder values!')
+    console.error('Please create a .env.local file with your actual Supabase credentials:')
+    console.error('NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co')
+    console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_actual_anon_key')
+    
+    // In development, use mock client
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('🚨 Development mode: Using mock Supabase client')
+      supabaseInstance = createMockClient()
+      return supabaseInstance
+    }
+    
+    throw new Error('Supabase environment variables are required in production')
+  }
+
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error('❌ Supabase environment variables are missing!')
-    console.error('Please set the following in your Vercel environment:')
+    console.error('Please set the following in your .env.local file:')
     console.error('NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co')
     console.error('NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key')
     
@@ -92,6 +109,16 @@ const getSupabaseAdminClient = (): SupabaseClient => {
 
   const supabaseUrl = ENV.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  // Check if we're using placeholder values
+  if (supabaseUrl === 'https://YOUR-PROJECT.supabase.co' || serviceRoleKey === 'YOUR-SERVICE-ROLE-KEY') {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('🚨 Development mode: Using mock admin client')
+      supabaseAdminInstance = createMockClient()
+      return supabaseAdminInstance
+    }
+    throw new Error('Supabase admin environment variables are required in production')
+  }
 
   if (!supabaseUrl || !serviceRoleKey) {
     if (process.env.NODE_ENV === 'development') {
