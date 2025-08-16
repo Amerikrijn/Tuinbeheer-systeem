@@ -123,37 +123,28 @@ jobs:
           CI: true
         continue-on-error: false
 
-      - name: 📊 Coverage Threshold Validation (CRITICAL - 60% MINIMUM)
-        run: |
-          echo "🔍 Validating test coverage thresholds..."
-          echo "🎯 Target: ${{ env.COVERAGE_THRESHOLD }}% minimum coverage"
-          
-          if [ ! -f "coverage/lcov.info" ]; then
-            echo "❌ CRITICAL: No coverage report generated - tests failed!"
-            exit 1
-          fi
-          
-          # Parse coverage from lcov.info
-          COVERAGE=$(grep -E "^SF:" coverage/lcov.info | wc -l)
-          if [ $COVERAGE -eq 0 ]; then
-            echo "❌ CRITICAL: No test coverage data found!"
-            exit 1
-          fi
-          
-          echo "✅ Coverage report generated successfully"
-          echo "📊 Test files covered: $COVERAGE"
-          
-          # Check if all tests passed (Jest exit code 0)
-          if [ $? -ne 0 ]; then
-            echo "❌ CRITICAL: Tests failed with exit code $?"
-            exit 1
-          fi
-          
-          # Validate coverage threshold
-          echo "🔍 Checking coverage threshold..."
-          npm run test:coverage
-          
-          echo "✅ All quality gates passed successfully!"
+        - name: 📊 Coverage Threshold Validation (CRITICAL - 60% MINIMUM)
+          run: |
+            echo "🔍 Validating test coverage thresholds..."
+            echo "🎯 Target: ${{ env.COVERAGE_THRESHOLD }}% minimum coverage"
+
+            if [ ! -f "coverage/lcov.info" ]; then
+              echo "❌ CRITICAL: No coverage report generated - tests failed!"
+              exit 1
+            fi
+
+            # Calculate line coverage percentage from lcov.info
+            COVERAGE=$(awk -F':' '/^LH:/ {hit+=$2} /^LF:/ {found+=$2} END { if (found==0){print 0}else{printf "%.2f", (hit/found)*100} }' coverage/lcov.info)
+            echo "📈 Line coverage: ${COVERAGE}%"
+
+            # Compare against threshold using awk for portability
+            if awk -v cov="$COVERAGE" -v thr="${{ env.COVERAGE_THRESHOLD }}" 'BEGIN { exit (cov < thr) ? 0 : 1 }'; then
+              echo "❌ Coverage ${COVERAGE}% is below required ${{ env.COVERAGE_THRESHOLD }}%"
+              exit 1
+            fi
+
+            echo "✅ Coverage threshold met."
+            echo "✅ All quality gates passed successfully!"
 
       - name: 📊 Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
