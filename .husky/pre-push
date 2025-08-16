@@ -1,4 +1,15 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+unsigned_commits=$(git rev-list --not --remotes | while read commit; do
+  [ "$(git log -1 --pretty=%G? "$commit")" = "G" ] || echo "$commit"
+done)
+
+if [ -n "$unsigned_commits" ]; then
+  echo "🚫 unsigned commits detected:"
+  echo "$unsigned_commits"
+  echo "Please sign your commits (git commit -S) before pushing."
+  exit 1
+fi
+
 npm run test:ci || exit 1
