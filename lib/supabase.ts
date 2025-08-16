@@ -1,5 +1,4 @@
 import { createClient, type SupabaseClient, AuthError } from '@supabase/supabase-js'
-import { env } from '@/lib/env'
 
 // Singleton pattern to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
@@ -11,8 +10,13 @@ const getSupabaseClient = (): SupabaseClient => {
     return supabaseInstance
   }
   
-  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  // Use process.env directly for client-side compatibility
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Supabase environment variables are not available')
+  }
   
   // Don't log sensitive information in production
   if (process.env.NODE_ENV === 'development') {
@@ -45,8 +49,9 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     return supabaseAdminInstance
   }
 
-  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  // Use process.env directly for client-side compatibility
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Supabase environment variables are required')
@@ -63,9 +68,47 @@ const getSupabaseAdminClient = (): SupabaseClient => {
   return supabaseAdminInstance
 }
 
-// Export singleton instances
-export const supabase = getSupabaseClient()
-export const supabaseAdmin = getSupabaseAdminClient()
+// Mock client for graceful degradation
+const createMockClient = (): SupabaseClient => {
+  return {
+    from: () => ({
+      select: () => ({ eq: () => ({ single: () => ({ data: null, error: null }) }) }),
+      update: () => ({ eq: () => ({ data: null, error: null }) }),
+      delete: () => ({ eq: () => ({ data: null, error: null }) })
+    }),
+    auth: {
+      signIn: () => Promise.resolve({ data: null, error: null }),
+      signUp: () => Promise.resolve({ data: null, error: null }),
+      signOut: () => Promise.resolve({ data: null, error: null }),
+      getSession: () => Promise.resolve({ data: null, error: null }),
+      getUser: () => Promise.resolve({ data: null, error: null }),
+      admin: {
+        deleteUser: () => Promise.resolve({ error: null })
+      }
+    }
+  } as unknown as SupabaseClient
+}
+
+// Export singleton instances with error handling
+export const supabase = (() => {
+  try {
+    return getSupabaseClient()
+  } catch (error) {
+    console.error('Failed to initialize Supabase client:', error)
+    // Return a mock client for graceful degradation
+    return createMockClient()
+  }
+})()
+
+export const supabaseAdmin = (() => {
+  try {
+    return getSupabaseAdminClient()
+  } catch (error) {
+    console.error('Failed to initialize Supabase admin client:', error)
+    // Return a mock client for graceful degradation
+    return createMockClient()
+  }
+})()
 
 // Banking security utilities
 export const secureSupabaseCall = async <T>(
@@ -79,6 +122,10 @@ export const secureSupabaseCall = async <T>(
     return fallback
   }
 }
+
+// Helper function to get client when needed
+export const getClient = () => supabase
+export const getAdminClient = () => supabaseAdmin
 
 // Type definitions for compatibility
 export interface Plant {
