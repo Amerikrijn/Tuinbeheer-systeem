@@ -48,7 +48,7 @@ jobs:
           npm run lint
           
           echo "🔍 TypeScript check..."
-          npm run type-check
+          npm run typecheck
           
           echo "✅ Quality tests completed!"
 
