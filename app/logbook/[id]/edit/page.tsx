@@ -14,12 +14,12 @@ import { ArrowLeft, Calendar, Save, Upload, X, Image as ImageIcon } from "lucide
 import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uploadImage, type UploadResult } from "@/lib/storage"
-import type { LogbookEntryWithDetails, PlantvakWithBloemen } from "@/lib/types/index"
+import type { LogbookEntryWithDetails, PlantvakWithPlants } from "@/lib/types/index"
 import { format } from "date-fns"
 
 interface EditLogbookState {
   entry: LogbookEntryWithDetails | null
-  plantBeds: PlantvakWithBloemen[]
+  plantBeds: PlantvakWithPlants[]
   loading: boolean
   saving: boolean
   error: string | null
@@ -87,7 +87,7 @@ export default function EditLogbookPage() {
         setState(prev => ({
           ...prev,
           entry,
-          plantBeds: plantBeds as PlantvakWithBloemen[],
+          plantBeds: plantBeds as PlantvakWithPlants[],
           loading: false,
         }))
 

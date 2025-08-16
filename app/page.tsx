@@ -18,7 +18,7 @@ import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3, S
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger, AuditLogger } from "@/lib/logger"
-import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
+import type { Tuin, PlantBedWithPlants, PlantvakWithPlants } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-supabase-auth"
@@ -381,7 +381,7 @@ interface GardenCardProps {
 }
 
 function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
-  const [plantBeds, setPlantBeds] = React.useState<PlantvakWithBloemen[]>([])
+  const [plantBeds, setPlantBeds] = React.useState<PlantvakWithPlants[]>([])
   const [loadingFlowers, setLoadingFlowers] = React.useState(true)
   const [gardenUsers, setGardenUsers] = React.useState<Array<{ id: string; email: string; full_name?: string }>>([])
   const [loadingUsers, setLoadingUsers] = React.useState(true)
@@ -426,7 +426,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
       try {
         setLoadingFlowers(true)
         const beds = await getPlantBeds(garden.id)
-        setPlantBeds(beds as PlantvakWithBloemen[])
+        setPlantBeds(beds as PlantvakWithPlants[])
       } catch (error) {
         uiLogger.error('Error loading flowers for garden preview', error as Error, { gardenId: garden.id })
         setPlantBeds([])
@@ -530,9 +530,9 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
           {/* Flower Preview Section */}
           <div className={isListView ? "mb-2" : "mb-4"}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-card-foreground">Bloemen in deze tuin:</span>
+                              <span className="text-sm font-medium text-card-foreground">Planten in deze tuin:</span>
               <span className="text-xs text-muted-foreground">
-                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} bloemen
+                                  {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} planten
               </span>
             </div>
             
