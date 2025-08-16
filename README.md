@@ -153,6 +153,7 @@ Gebruik deze tools alleen wanneer nodig en voer altijd de verplichte tests uit n
 - **Authentication**: Supabase Auth integratie
 - **Audit Logging**: Alle acties gelogd
 - **Security Scanning**: Automatische vulnerability detectie
+- **Secret Scanning**: Gitleaks controleert elke `push` en `pull_request` op hardcoded secrets (zie [CI/CD workflow](docs/CI-CD-WORKFLOW.md))
 
 ## 📚 Documentatie
 
