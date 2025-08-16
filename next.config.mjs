@@ -92,8 +92,7 @@ const nextConfig = {
     pagesBufferLength: 2,
   },
   
-  // Disable telemetry in development
-  telemetry: false,
+
 }
 
 export default nextConfig

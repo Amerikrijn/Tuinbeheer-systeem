@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient, AuthError } from '@supabase/supabase-js'
+import { env } from '@/lib/env'
 
 // Singleton pattern to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
@@ -9,6 +10,9 @@ const getSupabaseClient = (): SupabaseClient => {
   if (supabaseInstance) {
     return supabaseInstance
   }
+  
+  const supabaseUrl = env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   
   // Don't log sensitive information in production
   if (process.env.NODE_ENV === 'development') {
@@ -31,6 +35,22 @@ const getSupabaseClient = (): SupabaseClient => {
   })
   
   return supabaseInstance
+}
+
+// Mock client for development/testing
+const createMockClient = (): SupabaseClient => {
+  return {
+    from: () => ({
+      select: () => ({ eq: () => ({ single: () => ({ data: null, error: null }) }) }),
+      update: () => ({ eq: () => ({ data: null, error: null }) }),
+      delete: () => ({ eq: () => ({ data: null, error: null }) })
+    }),
+    auth: {
+      admin: {
+        deleteUser: () => ({ error: null })
+      }
+    }
+  } as unknown as SupabaseClient
 }
 
 // Get or create Supabase admin client instance
