@@ -268,11 +268,15 @@ export function useSupabaseAuth(): AuthContextType {
 
   // Initialize auth state with faster session recovery
   useEffect(() => {
+    let isMounted = true
+    let subscription: any = null
+    let loadingTimeout: NodeJS.Timeout | null = null
+
     const initializeAuth = async () => {
       try {
         // Try to get cached user first for instant loading
         const cachedUser = getCachedUserProfile()
-        if (cachedUser) {
+        if (cachedUser && isMounted) {
           setState(prev => ({
             ...prev,
             user: cachedUser,
@@ -287,7 +291,7 @@ export function useSupabaseAuth(): AuthContextType {
           throw sessionError
         }
 
-        if (session?.user) {
+        if (session?.user && isMounted) {
           // If we have a cached user and it matches, just update session
           if (cachedUser && cachedUser.id === session.user.id) {
             setState(prev => ({
@@ -299,14 +303,16 @@ export function useSupabaseAuth(): AuthContextType {
           } else {
             // Load fresh profile if no cache or different user
             const userProfile = await loadUserProfile(session.user, false) // Don't use cache on init
-            setState({
-              user: userProfile,
-              session,
-              loading: false,
-              error: null
-            })
+            if (isMounted) {
+              setState({
+                user: userProfile,
+                session,
+                loading: false,
+                error: null
+              })
+            }
           }
-        } else {
+        } else if (isMounted) {
           // Clear cache if no session
           clearCachedUserProfile()
           setState({
@@ -317,62 +323,87 @@ export function useSupabaseAuth(): AuthContextType {
           })
         }
       } catch (error) {
-        // Console logging removed for banking standards.error('Auth initialization error:', error)
-        clearCachedUserProfile()
-        setState({
-          user: null,
-          session: null,
-          loading: false,
-          error: error instanceof Error ? error.message : 'Authentication error'
-        })
+        if (isMounted) {
+          // Console logging removed for banking standards.error('Auth initialization error:', error)
+          clearCachedUserProfile()
+          setState({
+            user: null,
+            session: null,
+            loading: false,
+            error: error instanceof Error ? error.message : 'Authentication error'
+          })
+        }
       }
     }
 
     initializeAuth()
 
     // Reduced loading timeout for better UX
-    const loadingTimeout = setTimeout(() => {
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: prev.user ? null : 'Loading timeout - please refresh page'
-      }))
+    loadingTimeout = setTimeout(() => {
+      if (isMounted) {
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          error: prev.user ? null : 'Loading timeout - please refresh page'
+        }))
+      }
     }, 8000) // Reduced from 10000ms
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        // Only load profile if we don't already have it or it's a different user
-        if (!state.user || state.user.id !== session.user.id) {
-          const userProfile = await loadUserProfile(session.user)
+    // Listen for auth changes - ensure only one subscription
+    try {
+      const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (!isMounted) return
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Only load profile if we don't already have it or it's a different user
+          if (!state.user || state.user.id !== session.user.id) {
+            const userProfile = await loadUserProfile(session.user)
+            if (isMounted) {
+              setState({
+                user: userProfile,
+                session,
+                loading: false,
+                error: null
+              })
+            }
+          } else {
+            // Just update session if user is the same
+            if (isMounted) {
+              setState(prev => ({
+                ...prev,
+                session,
+                loading: false
+              }))
+            }
+          }
+        } else if (event === 'SIGNED_OUT' && isMounted) {
+          clearCachedUserProfile()
           setState({
-            user: userProfile,
-            session,
+            user: null,
+            session: null,
             loading: false,
             error: null
           })
-        } else {
-          // Just update session if user is the same
-          setState(prev => ({
-            ...prev,
-            session,
-            loading: false
-          }))
         }
-      } else if (event === 'SIGNED_OUT') {
-        clearCachedUserProfile()
-        setState({
-          user: null,
-          session: null,
-          loading: false,
-          error: null
-        })
-      }
-    })
+      })
+      
+      subscription = authSubscription
+    } catch (error) {
+      console.error('Failed to set up auth subscription:', error)
+    }
 
     return () => {
-      subscription.unsubscribe()
-      clearTimeout(loadingTimeout)
+      isMounted = false
+      if (subscription) {
+        try {
+          subscription.unsubscribe()
+        } catch (error) {
+          // Ignore unsubscribe errors
+        }
+      }
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout)
+      }
     }
   }, [])
 
