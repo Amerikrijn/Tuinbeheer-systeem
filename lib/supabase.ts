@@ -49,41 +49,8 @@ const getSupabaseClient = (): SupabaseClient => {
   return supabaseInstance
 }
 
-// Admin client for server-side operations
-let supabaseAdminInstance: SupabaseClient | null = null
-
-const getSupabaseAdminClient = (): SupabaseClient => {
-  if (supabaseAdminInstance) {
-    return supabaseAdminInstance
-  }
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-  
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing Supabase admin environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your environment.')
-  }
-
-  supabaseAdminInstance = createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'tuinbeheer-admin'
-      }
-    },
-    db: {
-      schema: 'public'
-    }
-  })
-
-  return supabaseAdminInstance
-}
-
 // Export the functions
-export { getSupabaseClient, getSupabaseAdminClient }
+export { getSupabaseClient }
 
 // ========================================
 // VISUAL GARDEN CONSTANTS
