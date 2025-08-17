@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { AddTaskForm } from '@/components/tasks/add-task-form'
 import { TaskService } from '@/lib/services/task.service'
 import { supabase } from '@/lib/supabase'
@@ -30,13 +29,10 @@ import {
   Sun, 
   CloudSun, 
   Cloud, 
-  Ruler, 
-  Palette, 
   Users, 
   Calendar,
   Plus,
   CheckCircle2,
-  Clock,
   AlertCircle,
   Edit
 } from "lucide-react"
