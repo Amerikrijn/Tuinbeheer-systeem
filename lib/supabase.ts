@@ -1,10 +1,11 @@
 import { createClient, type SupabaseClient, AuthError } from '@supabase/supabase-js'
 
 // ========================================
-// SUPABASE CREDENTIALS (Preview Environment)
+// SUPABASE CREDENTIALS (Environment Variables)
 // ========================================
-// These are the actual credentials for your preview environment
-// Connected to: https://dwsgwqosmihsfaxuheji.supabase.co
+// Using environment variables only
+// Production: Set in Vercel environment variables
+// Development: Must be set in .env.local
 // ========================================
 
 // Singleton pattern to prevent multiple instances
@@ -17,11 +18,13 @@ const getSupabaseClient = (): SupabaseClient => {
     return supabaseInstance
   }
 
-  // Use environment variables with fallbacks for development
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dwsgwqosmihsfaxuheji.supabase.co'
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1MTI3NTAsImV4cCI6MjA2ODA4ODc1MH0.Tq24K455oEOyO_bRourUQrg8-9F6HiRBjEwofEImEtE'
+  // Use environment variables only
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   
-  // Console logging removed for production stability
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.')
+  }
   
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
@@ -46,8 +49,12 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     return supabaseAdminInstance
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dwsgwqosmihsfaxuheji.supabase.co'
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR3c2d3cW9zbWloc2ZheHVoZWppIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MjUxMjc1MCwiZXhwIjoyMDY4MDg4NzUwfQ.Bc26dsmPHzjetITmfjcvvIl9gDYkBfmSbSETQWv4AQY'
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Missing Supabase admin environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your environment.')
+  }
   
   supabaseAdminInstance = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
