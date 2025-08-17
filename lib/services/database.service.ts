@@ -56,7 +56,8 @@ export class NotFoundError extends Error {
 async function validateConnection(retries = 3): Promise<void> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const { error } = await supabase.from('gardens').select('count').limit(1)
+      // Use a faster, lighter query for connection validation
+      const { error } = await supabase.from('gardens').select('id').limit(1)
       if (!error) {
         databaseLogger.debug('Database connection validated successfully', { attempt })
         return
