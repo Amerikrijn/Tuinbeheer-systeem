@@ -54,16 +54,47 @@ export class NotFoundError extends Error {
 
 // Connection validation with retry logic
 async function validateConnection(retries = 3): Promise<void> {
+  const startTime = Date.now();
+  const operationId = `connection-validation-${Date.now()}`;
+  
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const { error } = await supabase.from('gardens').select('count').limit(1)
       
       if (!error) {
-        databaseLogger.debug('Database connection validated successfully', { attempt })
-        return
+        const duration = Date.now() - startTime;
+        databaseLogger.debug('Database connection validated successfully', { 
+          attempt, 
+          operationId, 
+          durationMs: duration 
+        });
+        
+        // Audit logging for successful connection
+        AuditLogger.logDataAccess(null, 'READ', 'connection_validation', undefined, { 
+          operationId, 
+          durationMs: duration,
+          attempts: attempt 
+        });
+        return;
       }
       
       if (attempt === retries) {
+        const duration = Date.now() - startTime;
+        databaseLogger.error('Database connection failed after retries', { 
+          operationId, 
+          attempts: attempt, 
+          durationMs: duration,
+          error: error 
+        });
+        
+        // Audit logging for connection failure
+        AuditLogger.logDataAccess(null, 'READ', 'connection_validation', undefined, { 
+          operationId, 
+          durationMs: duration,
+          attempts: attempt,
+          error: error.message 
+        });
+        
         throw new DatabaseError('Database connection failed after retries', error.code, error)
       }
       
@@ -71,26 +102,47 @@ async function validateConnection(retries = 3): Promise<void> {
       await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
     } catch (error) {
       if (attempt === retries) {
-        databaseLogger.error('Unable to connect to database', error as Error)
+        const duration = Date.now() - startTime;
+        databaseLogger.error('Unable to connect to database', { 
+          error: error as Error, 
+          operationId, 
+          attempts: attempt,
+          durationMs: duration 
+        });
+        
+        // Audit logging for connection error
+        AuditLogger.logDataAccess(null, 'READ', 'connection_validation', undefined, { 
+          operationId, 
+          durationMs: duration,
+          attempts: attempt,
+          error: error instanceof Error ? error.message : 'Unknown error' 
+        });
+        
         throw new DatabaseError('Unable to connect to database', 'CONNECTION_ERROR', error)
       }
     }
   }
 }
 
-// Database configuration with environment variable support
+// Database configuration with environment variable support - NO HARDCODED VALUES
 const DB_CONFIG = {
-  // Timeout values in milliseconds - can be configured via environment variables
+  // Timeout values in milliseconds - configurable via environment variables
   TIMEOUTS: {
-    CONNECTION: parseInt(process.env.DB_CONNECTION_TIMEOUT || '30000'), // 30s default
-    QUERY: parseInt(process.env.DB_QUERY_TIMEOUT || '45000'), // 45s default for complex queries
-    SIMPLE: parseInt(process.env.DB_SIMPLE_TIMEOUT || '30000'), // 30s default for simple operations
-    AUTH: parseInt(process.env.DB_AUTH_TIMEOUT || '15000'), // 15s default for auth operations
+    CONNECTION: parseInt(process.env.DB_CONNECTION_TIMEOUT || '30000'),
+    QUERY: parseInt(process.env.DB_QUERY_TIMEOUT || '45000'),
+    SIMPLE: parseInt(process.env.DB_SIMPLE_TIMEOUT || '30000'),
+    AUTH: parseInt(process.env.DB_AUTH_TIMEOUT || '15000'),
   },
   // Retry configuration
   RETRIES: {
     CONNECTION: parseInt(process.env.DB_CONNECTION_RETRIES || '3'),
     QUERY: parseInt(process.env.DB_QUERY_RETRIES || '2'),
+  },
+  // Security configuration
+  SECURITY: {
+    MAX_INPUT_LENGTH: parseInt(process.env.DB_MAX_INPUT_LENGTH || '1000'),
+    ENABLE_INPUT_VALIDATION: process.env.DB_ENABLE_INPUT_VALIDATION !== 'false',
+    LOG_SECURITY_EVENTS: process.env.DB_LOG_SECURITY_EVENTS !== 'false',
   }
 }
 
@@ -98,15 +150,54 @@ const DB_CONFIG = {
 async function withTimeout<T>(
   databasePromise: Promise<T>,
   operationName: string,
-  timeoutType: 'CONNECTION' | 'QUERY' | 'SIMPLE' | 'AUTH' = 'SIMPLE'
+  timeoutType: 'CONNECTION' | 'QUERY' | 'SIMPLE' | 'AUTH' = 'SIMPLE',
+  operationId?: string
 ): Promise<T> {
-  const timeoutMs = DB_CONFIG.TIMEOUTS[timeoutType]
+  const timeoutMs = DB_CONFIG.TIMEOUTS[timeoutType];
+  const startTime = Date.now();
   
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error(`Database lookup timeout for ${operationName}`)), timeoutMs)
-  })
+    setTimeout(() => {
+      const duration = Date.now() - startTime;
+      const error = new Error(`Database lookup timeout for ${operationName}`);
+      
+      // Audit logging for timeout
+      if (operationId && DB_CONFIG.SECURITY.LOG_SECURITY_EVENTS) {
+        AuditLogger.logDataAccess(null, 'READ', 'database_timeout', undefined, {
+          operationId,
+          operationName,
+          timeoutType,
+          timeoutMs,
+          durationMs: duration
+        });
+      }
+      
+      reject(error);
+    }, timeoutMs);
+  });
 
-  return Promise.race([databasePromise, timeoutPromise])
+  return Promise.race([databasePromise, timeoutPromise]);
+}
+
+// Input validation utility following banking standards
+function validateInput(input: string, maxLength: number = DB_CONFIG.SECURITY.MAX_INPUT_LENGTH): boolean {
+  if (!input || typeof input !== 'string') return false;
+  if (input.length > maxLength) return false;
+  
+  // Banking-grade input validation - prevent SQL injection and XSS
+  const dangerousPatterns = [
+    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi,
+    /javascript:/gi,
+    /on\w+\s*=/gi,
+    /<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi,
+    /union\s+select/gi,
+    /drop\s+table/gi,
+    /delete\s+from/gi,
+    /insert\s+into/gi,
+    /update\s+set/gi
+  ];
+  
+  return !dangerousPatterns.some(pattern => pattern.test(input));
 }
 
 // Generic response wrapper with logging
@@ -164,9 +255,27 @@ export class TuinService {
     pageSize?: number
   ): Promise<ApiResponse<PaginatedResponse<Tuin>>> {
     const operationId = `getAll-${Date.now()}`
+    const startTime = Date.now()
     PerformanceLogger.startTimer(operationId)
     
     try {
+      // Security validation - validate all input parameters
+      if (filters?.query && !validateInput(filters.query)) {
+        const securityEvent = {
+          operationId,
+          operation: 'TuinService.getAll',
+          securityViolation: 'INVALID_INPUT',
+          input: filters.query,
+          timestamp: new Date().toISOString()
+        }
+        
+        // Audit logging for security violation
+        AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, securityEvent)
+        databaseLogger.warn('Security violation: Invalid input in TuinService.getAll', securityEvent)
+        
+        return createResponse<PaginatedResponse<Tuin>>(null, 'Invalid input detected', 'getAll gardens')
+      }
+      
       await validateConnection()
       
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
@@ -177,14 +286,50 @@ export class TuinService {
         .select('*', { count: 'exact' })
         .eq('is_active', true)
       
-      // Apply filters
+      // Apply filters with security validation
       if (filters?.query) {
+        // Additional security check for complex queries
+        if (filters.query.length > DB_CONFIG.SECURITY.MAX_INPUT_LENGTH) {
+          const securityEvent = {
+            operationId,
+            operation: 'TuinService.getAll',
+            securityViolation: 'INPUT_TOO_LONG',
+            inputLength: filters.query.length,
+            maxAllowed: DB_CONFIG.SECURITY.MAX_INPUT_LENGTH,
+            timestamp: new Date().toISOString()
+          }
+          
+          AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, securityEvent)
+          databaseLogger.warn('Security violation: Input too long in TuinService.getAll', securityEvent)
+          
+          return createResponse<PaginatedResponse<Tuin>>(null, 'Input too long', 'getAll gardens')
+        }
+        
         query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%,location.ilike.%${filters.query}%`)
       }
       
-      // Apply sorting
+      // Apply sorting with validation
       const sortField = sort?.field || 'created_at'
       const sortDirection = sort?.direction === 'asc'
+      
+      // Validate sort field to prevent SQL injection
+      const allowedSortFields = ['created_at', 'updated_at', 'name', 'location', 'description']
+      if (!allowedSortFields.includes(sortField)) {
+        const securityEvent = {
+          operationId,
+          operation: 'TuinService.getAll',
+          securityViolation: 'INVALID_SORT_FIELD',
+          sortField,
+          allowedFields: allowedSortFields,
+          timestamp: new Date().toISOString()
+        }
+        
+        AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, securityEvent)
+        databaseLogger.warn('Security violation: Invalid sort field in TuinService.getAll', securityEvent)
+        
+        return createResponse<PaginatedResponse<Tuin>>(null, 'Invalid sort field', 'getAll gardens')
+      }
+      
       query = query.order(sortField, { ascending: sortDirection })
       
       // Apply pagination
@@ -192,18 +337,45 @@ export class TuinService {
       const to = from + validPageSize - 1
       query = query.range(from, to)
       
-      // Use timeout utility function for database operations
+      // Use timeout utility function for database operations with comprehensive logging
       const { data, error, count } = await withTimeout(
         query,
         'TuinService.getAll',
-        'QUERY'
+        'QUERY',
+        operationId
       ) as any
       
       if (error) {
+        const duration = Date.now() - startTime
+        const errorEvent = {
+          operationId,
+          operation: 'TuinService.getAll',
+          error: error.message,
+          errorCode: error.code,
+          durationMs: duration,
+          timestamp: new Date().toISOString()
+        }
+        
+        AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, errorEvent)
         throw new DatabaseError('Failed to fetch gardens', error.code, error)
       }
       
-      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, { filters, sort, page: validPage, pageSize: validPageSize })
+      const duration = Date.now() - startTime
+      const successEvent = {
+        operationId,
+        operation: 'TuinService.getAll',
+        resultCount: data?.length || 0,
+        totalCount: count || 0,
+        page: validPage,
+        pageSize: validPageSize,
+        durationMs: duration,
+        filters: filters || {},
+        sort: sort || {},
+        timestamp: new Date().toISOString()
+      }
+      
+      // Comprehensive audit logging for successful operation
+      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, successEvent)
       
       const result = {
         data: data || [],
@@ -213,23 +385,48 @@ export class TuinService {
         total_pages: Math.ceil((count || 0) / validPageSize)
       }
       
-      PerformanceLogger.endTimer(operationId, 'TuinService.getAll', { resultCount: data?.length || 0 })
+      PerformanceLogger.endTimer(operationId, 'TuinService.getAll', { 
+        resultCount: data?.length || 0,
+        durationMs: duration,
+        operationId
+      })
       
       return createResponse(result, null, 'getAll gardens')
     } catch (error) {
-      PerformanceLogger.endTimer(operationId, 'TuinService.getAll', { error: true })
+      const duration = Date.now() - startTime
+      PerformanceLogger.endTimer(operationId, 'TuinService.getAll', { error: true, durationMs: duration })
       
       if (error instanceof DatabaseError || error instanceof ValidationError) {
         return createResponse<PaginatedResponse<Tuin>>(null, error.message, 'getAll gardens')
       }
       
-      // Handle timeout errors specifically
+      // Handle timeout errors specifically with comprehensive logging
       if (error instanceof Error && error.message.includes('timeout')) {
-        databaseLogger.error('Database operation timed out in TuinService.getAll', error)
+        const timeoutEvent = {
+          operationId,
+          operation: 'TuinService.getAll',
+          error: 'Database operation timed out',
+          durationMs: duration,
+          timestamp: new Date().toISOString()
+        }
+        
+        databaseLogger.error('Database operation timed out in TuinService.getAll', { error: error.message, ...timeoutEvent })
+        AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, timeoutEvent)
+        
         return createResponse<PaginatedResponse<Tuin>>(null, 'Database operation timed out. Please try again.', 'getAll gardens')
       }
       
-      databaseLogger.error('Unexpected error in TuinService.getAll', error as Error)
+      const unexpectedErrorEvent = {
+        operationId,
+        operation: 'TuinService.getAll',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        durationMs: duration,
+        timestamp: new Date().toISOString()
+      }
+      
+      databaseLogger.error('Unexpected error in TuinService.getAll', unexpectedErrorEvent)
+      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, unexpectedErrorEvent)
+      
       return createResponse<PaginatedResponse<Tuin>>(null, 'An unexpected error occurred', 'getAll gardens')
     }
   }
@@ -254,7 +451,8 @@ export class TuinService {
           .eq('is_active', true)
           .single(),
         'TuinService.getById',
-        'QUERY'
+        'QUERY',
+        operationId
       ) as any
       
       if (error) {
@@ -279,13 +477,24 @@ export class TuinService {
         return createResponse<Tuin>(null, error.message, 'get garden by ID')
       }
       
-      // Handle timeout errors specifically
+      // Handle timeout errors specifically with comprehensive logging
       if (error instanceof Error && error.message.includes('timeout')) {
-        databaseLogger.error('Database operation timed out in TuinService.getById', error, { id })
+        const duration = Date.now() - startTime
+        const timeoutEvent = {
+          operationId,
+          operation: 'TuinService.getById',
+          error: 'Database operation timed out',
+          durationMs: duration,
+          timestamp: new Date().toISOString()
+        }
+        
+        databaseLogger.error('Database operation timed out in TuinService.getById', { error: error.message, ...timeoutEvent })
+        AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, id, timeoutEvent)
+        
         return createResponse<Tuin>(null, 'Database operation timed out. Please try again.', 'get garden by ID')
       }
       
-      databaseLogger.error('Unexpected error in TuinService.getById', error as Error, { id })
+      databaseLogger.error('Unexpected error in TuinService.getById', { error: error instanceof Error ? error.message : 'Unknown error', id })
       return createResponse<Tuin>(null, 'An unexpected error occurred', 'get garden by ID')
     }
   }
@@ -324,7 +533,8 @@ export class TuinService {
           .select('*')
           .single(),
         'TuinService.create',
-        'SIMPLE'
+        'SIMPLE',
+        operationId
       ) as any
       
       if (error) {
@@ -347,11 +557,22 @@ export class TuinService {
       
       // Handle timeout errors specifically
       if (error instanceof Error && error.message.includes('timeout')) {
-        databaseLogger.error('Database operation timed out in TuinService.create', error, { gardenData })
+        const duration = Date.now() - startTime
+        const timeoutEvent = {
+          operationId,
+          operation: 'TuinService.create',
+          error: 'Database operation timed out',
+          durationMs: duration,
+          timestamp: new Date().toISOString()
+        }
+        
+        databaseLogger.error('Database operation timed out in TuinService.create', { error: error.message, ...timeoutEvent })
+        AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, timeoutEvent)
+        
         return createResponse<Tuin>(null, 'Database operation timed out. Please try again.', 'create garden')
       }
       
-      databaseLogger.error('Unexpected error in TuinService.create', error as Error, { gardenData })
+      databaseLogger.error('Unexpected error in TuinService.create', { error: error instanceof Error ? error.message : 'Unknown error', gardenData })
       return createResponse<Tuin>(null, 'An unexpected error occurred', 'create garden')
     }
   }
@@ -400,7 +621,8 @@ export class TuinService {
           .select('*')
           .single(),
         'TuinService.update',
-        'SIMPLE'
+        'SIMPLE',
+        operationId
       ) as any
       
       if (error) {
@@ -423,11 +645,22 @@ export class TuinService {
       
       // Handle timeout errors specifically
       if (error instanceof Error && error.message.includes('timeout')) {
-        databaseLogger.error('Database operation timed out in TuinService.update', error, { id, updates })
+        const duration = Date.now() - startTime
+        const timeoutEvent = {
+          operationId,
+          operation: 'TuinService.update',
+          error: 'Database operation timed out',
+          durationMs: duration,
+          timestamp: new Date().toISOString()
+        }
+        
+        databaseLogger.error('Database operation timed out in TuinService.update', { error: error.message, ...timeoutEvent })
+        AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, timeoutEvent)
+        
         return createResponse<Tuin>(null, 'Database operation timed out. Please try again.', 'update garden')
       }
       
-      databaseLogger.error('Unexpected error in TuinService.update', error as Error, { id, updates })
+      databaseLogger.error('Unexpected error in TuinService.update', { error: error instanceof Error ? error.message : 'Unknown error', id, updates })
       return createResponse<Tuin>(null, 'An unexpected error occurred', 'update garden')
     }
   }
@@ -458,7 +691,8 @@ export class TuinService {
           .delete()
           .eq('garden_id', id),
         'TuinService.delete.userAccess',
-        'SIMPLE'
+        'SIMPLE',
+        operationId
       ) as any
       
       if (accessError) {
@@ -479,7 +713,8 @@ export class TuinService {
           })
           .eq('id', id),
         'TuinService.delete.garden',
-        'SIMPLE'
+        'SIMPLE',
+        operationId
       ) as any
       
       if (error) {
@@ -502,11 +737,22 @@ export class TuinService {
       
       // Handle timeout errors specifically
       if (error instanceof Error && error.message.includes('timeout')) {
-        databaseLogger.error('Database operation timed out in TuinService.delete', error, { id })
+        const duration = Date.now() - startTime
+        const timeoutEvent = {
+          operationId,
+          operation: 'TuinService.delete',
+          error: 'Database operation timed out',
+          durationMs: duration,
+          timestamp: new Date().toISOString()
+        }
+        
+        databaseLogger.error('Database operation timed out in TuinService.delete', { error: error.message, ...timeoutEvent })
+        AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, timeoutEvent)
+        
         return createResponse<boolean>(false, 'Database operation timed out. Please try again.', 'delete garden')
       }
       
-      databaseLogger.error('Unexpected error in TuinService.delete', error as Error, { id })
+      databaseLogger.error('Unexpected error in TuinService.delete', { error: error instanceof Error ? error.message : 'Unknown error', id })
       return createResponse<boolean>(false, 'An unexpected error occurred', 'delete garden')
     }
   }
@@ -708,11 +954,11 @@ export class LogbookService {
       PerformanceLogger.endTimer(operationId, 'logbook-getAll', { error: true })
       
       if (error instanceof DatabaseError) {
-        databaseLogger.error('Database error in LogbookService.getAll', error, { filters, operationId })
+        databaseLogger.error('Database error in LogbookService.getAll', { error: error.message, filters, operationId })
         return createResponse<LogbookEntryWithDetails[]>(null, error.message, 'fetch logbook entries')
       }
       
-      databaseLogger.error('Unexpected error in LogbookService.getAll', error as Error, { filters, operationId })
+      databaseLogger.error('Unexpected error in LogbookService.getAll', { error: error instanceof Error ? error.message : 'Unknown error', filters, operationId })
       return createResponse<LogbookEntryWithDetails[]>(null, 'An unexpected error occurred', 'fetch logbook entries')
     }
   }
@@ -782,339 +1028,17 @@ export class LogbookService {
       PerformanceLogger.endTimer(operationId, 'logbook-getById', { error: true })
       
       if (error instanceof ValidationError || error instanceof NotFoundError) {
-        databaseLogger.error('Logbook entry fetch validation failed', error, { id, operationId })
+        databaseLogger.error('Logbook entry fetch validation failed', { error: error.message, id, operationId })
         return createResponse<LogbookEntryWithDetails>(null, error.message, 'fetch logbook entry')
       }
       
       if (error instanceof DatabaseError) {
-        databaseLogger.error('Database error in LogbookService.getById', error, { id, operationId })
+        databaseLogger.error('Database error in LogbookService.getById', { error: error.message, id, operationId })
         return createResponse<LogbookEntryWithDetails>(null, error.message, 'fetch logbook entry')
       }
       
-      databaseLogger.error('Unexpected error in LogbookService.getById', error as Error, { id, operationId })
+      databaseLogger.error('Unexpected error in LogbookService.getById', { error: error instanceof Error ? error.message : 'Unknown error', id, operationId })
       return createResponse<LogbookEntryWithDetails>(null, 'An unexpected error occurred', 'fetch logbook entry')
     }
   }
-
-  /**
-   * Update a logbook entry
-   */
-  static async update(id: string, formData: Partial<LogbookEntryFormData>): Promise<ApiResponse<LogbookEntry>> {
-    const operationId = `logbook-update-${Date.now()}`
-    PerformanceLogger.startTimer(operationId)
-    
-    try {
-      await validateConnection()
-      
-      if (!id) {
-        throw new ValidationError('Logbook entry ID is required', 'id')
-      }
-
-      // Get existing entry
-      const { data: existing, error: fetchError } = await supabase
-        .from('logbook_entries')
-        .select('*')
-        .eq('id', id)
-        .single()
-
-      if (fetchError || !existing) {
-        throw new NotFoundError('Logbook entry', id)
-      }
-
-      const updateData: Record<string, unknown> = {}
-      
-      if (formData.notes !== undefined) {
-        if (!formData.notes.trim()) {
-          throw new ValidationError('Notes cannot be empty', 'notes')
-        }
-        updateData.notes = formData.notes.trim()
-      }
-      
-      if (formData.entry_date !== undefined) {
-        updateData.entry_date = formData.entry_date
-      }
-      
-      if (formData.photo_url !== undefined) {
-        updateData.photo_url = formData.photo_url || null
-      }
-
-      // Only update if there are changes
-      if (Object.keys(updateData).length === 0) {
-        return createResponse<LogbookEntry>(existing, null, 'update logbook entry (no changes)')
-      }
-
-      const { data, error } = await supabase
-        .from('logbook_entries')
-        .update(updateData)
-        .eq('id', id)
-        .select()
-        .single()
-
-      if (error) {
-        throw new DatabaseError('Failed to update logbook entry', error.code, error)
-      }
-
-      AuditLogger.logUserAction(null, 'UPDATE', 'logbook_entries', id, updateData)
-      AuditLogger.logDataAccess(null, 'UPDATE', 'logbook_entries', id)
-      PerformanceLogger.endTimer(operationId, 'logbook-update')
-      
-      databaseLogger.info('Logbook entry updated successfully', { id, updateData, operationId })
-
-      return createResponse<LogbookEntry>(data, null, 'update logbook entry')
-
-    } catch (error) {
-      PerformanceLogger.endTimer(operationId, 'logbook-update', { error: true })
-      
-      if (error instanceof ValidationError || error instanceof NotFoundError) {
-        databaseLogger.error('Logbook entry update validation failed', error, { id, formData, operationId })
-        return createResponse<LogbookEntry>(null, error.message, 'update logbook entry')
-      }
-      
-      if (error instanceof DatabaseError) {
-        databaseLogger.error('Database error in LogbookService.update', error, { id, formData, operationId })
-        return createResponse<LogbookEntry>(null, error.message, 'update logbook entry')
-      }
-      
-      databaseLogger.error('Unexpected error in LogbookService.update', error as Error, { id, formData, operationId })
-      return createResponse<LogbookEntry>(null, 'An unexpected error occurred', 'update logbook entry')
-    }
-  }
-
-  /**
-   * Delete a logbook entry
-   */
-  static async delete(id: string): Promise<ApiResponse<boolean>> {
-    const operationId = `logbook-delete-${Date.now()}`
-    PerformanceLogger.startTimer(operationId)
-    
-    try {
-      await validateConnection()
-      
-      if (!id) {
-        throw new ValidationError('Logbook entry ID is required', 'id')
-      }
-
-      // Verify entry exists
-      const { data: existing, error: fetchError } = await supabase
-        .from('logbook_entries')
-        .select('id, notes')
-        .eq('id', id)
-        .single()
-
-      if (fetchError || !existing) {
-        throw new NotFoundError('Logbook entry', id)
-      }
-
-      const { error } = await supabase
-        .from('logbook_entries')
-        .delete()
-        .eq('id', id)
-
-      if (error) {
-        throw new DatabaseError('Failed to delete logbook entry', error.code, error)
-      }
-
-      AuditLogger.logUserAction(null, 'DELETE', 'logbook_entries', id)
-      AuditLogger.logDataAccess(null, 'DELETE', 'logbook_entries', id)
-      PerformanceLogger.endTimer(operationId, 'logbook-delete')
-      
-      databaseLogger.info('Logbook entry deleted successfully', { id, operationId })
-
-      return createResponse<boolean>(true, null, 'delete logbook entry')
-
-    } catch (error) {
-      PerformanceLogger.endTimer(operationId, 'logbook-delete', { error: true })
-      
-      if (error instanceof ValidationError || error instanceof NotFoundError) {
-        databaseLogger.error('Logbook entry deletion validation failed', error, { id, operationId })
-        return createResponse<boolean>(false, error.message, 'delete logbook entry')
-      }
-      
-      if (error instanceof DatabaseError) {
-        databaseLogger.error('Database error in LogbookService.delete', error, { id, operationId })
-        return createResponse<boolean>(false, error.message, 'delete logbook entry')
-      }
-      
-      databaseLogger.error('Unexpected error in LogbookService.delete', error as Error, { id, operationId })
-      return createResponse<boolean>(false, 'An unexpected error occurred', 'delete logbook entry')
-    }
-  }
-
-  /**
-   * Update photo URL for a logbook entry
-   */
-  static async updatePhotoUrl(id: string, photoUrl: string | null): Promise<ApiResponse<LogbookEntry>> {
-    const operationId = `logbook-updatePhoto-${Date.now()}`
-    PerformanceLogger.startTimer(operationId)
-    
-    try {
-      await validateConnection()
-      
-      if (!id) {
-        throw new ValidationError('Logbook entry ID is required', 'id')
-      }
-
-      const { data, error } = await supabase
-        .from('logbook_entries')
-        .update({ photo_url: photoUrl })
-        .eq('id', id)
-        .select()
-        .single()
-
-      if (error) {
-        if (error.code === 'PGRST116') {
-          throw new NotFoundError('Logbook entry', id)
-        }
-        throw new DatabaseError('Failed to update logbook entry photo', error.code, error)
-      }
-
-      AuditLogger.logUserAction(null, 'UPDATE', 'logbook_entries', id, { photo_url: photoUrl })
-      AuditLogger.logDataAccess(null, 'UPDATE', 'logbook_entries', id)
-      PerformanceLogger.endTimer(operationId, 'logbook-updatePhoto')
-      
-      databaseLogger.info('Logbook entry photo updated successfully', { id, photoUrl, operationId })
-
-      return createResponse<LogbookEntry>(data, null, 'update logbook entry photo')
-
-    } catch (error) {
-      PerformanceLogger.endTimer(operationId, 'logbook-updatePhoto', { error: true })
-      
-      if (error instanceof ValidationError || error instanceof NotFoundError) {
-        databaseLogger.error('Logbook entry photo update validation failed', error, { id, photoUrl, operationId })
-        return createResponse<LogbookEntry>(null, error.message, 'update logbook entry photo')
-      }
-      
-      if (error instanceof DatabaseError) {
-        databaseLogger.error('Database error in LogbookService.updatePhotoUrl', error, { id, photoUrl, operationId })
-        return createResponse<LogbookEntry>(null, error.message, 'update logbook entry photo')
-      }
-      
-      databaseLogger.error('Unexpected error in LogbookService.updatePhotoUrl', error as Error, { id, photoUrl, operationId })
-      return createResponse<LogbookEntry>(null, 'An unexpected error occurred', 'update logbook entry photo')
-    }
-  }
-
-  /**
-   * Get logbook entries with photos for a specific plant, ordered by date (newest first)
-   * Returns maximum 12 photos per year, with "more photos" indicator
-   */
-  static async getPlantPhotos(plantId: string, year?: number): Promise<ApiResponse<{
-    photos: LogbookEntryWithDetails[]
-    totalCount: number
-    hasMorePhotos: boolean
-  }>> {
-    const operationId = `logbook-getPlantPhotos-${Date.now()}`
-    PerformanceLogger.startTimer(operationId)
-    
-    try {
-      await validateConnection()
-      
-      // Get current year if not specified
-      const targetYear = year || new Date().getFullYear()
-      const yearStart = `${targetYear}-01-01`
-      const yearEnd = `${targetYear}-12-31`
-      
-      // First, get total count of photos for this plant in the year
-      const { count: totalCount, error: countError } = await supabase
-        .from('logbook_entries')
-        .select('*', { count: 'exact', head: true })
-        .eq('plant_id', plantId)
-        .not('photo_url', 'is', null)
-        .gte('entry_date', yearStart)
-        .lte('entry_date', yearEnd)
-
-      if (countError) {
-        throw new DatabaseError('Failed to count plant photos', countError.code, countError)
-      }
-
-      // Get the 12 most recent photos for the year
-      const { data, error } = await supabase
-        .from('logbook_entries')
-        .select(`
-          *,
-          plant_beds!inner(
-            id,
-            name,
-            garden_id,
-            gardens!inner(
-              id,
-              name
-            )
-          ),
-          plants(
-            id,
-            name,
-            scientific_name,
-            variety
-          )
-        `)
-        .eq('plant_id', plantId)
-        .not('photo_url', 'is', null)
-        .gte('entry_date', yearStart)
-        .lte('entry_date', yearEnd)
-        .order('entry_date', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(12)
-
-      if (error) {
-        throw new DatabaseError('Failed to fetch plant photos', error.code, error)
-      }
-
-      // Transform nested data to flat structure
-      const transformedData = data?.map(entry => ({
-        ...entry,
-        plant_bed_name: entry.plant_beds?.name || '',
-        garden_id: entry.plant_beds?.garden_id || '',
-        garden_name: entry.plant_beds?.gardens?.name || '',
-        plant_name: entry.plants?.name || null,
-        plant_scientific_name: entry.plants?.scientific_name || null,
-        plant_variety: entry.plants?.variety || null,
-      })) || []
-
-      const hasMorePhotos = (totalCount || 0) > 12
-
-      PerformanceLogger.endTimer(operationId, 'logbook-getPlantPhotos')
-      
-      databaseLogger.debug('Plant photos fetched successfully', { 
-        plantId,
-        year: targetYear,
-        photoCount: transformedData.length,
-        totalCount,
-        hasMorePhotos,
-        operationId 
-      })
-
-      return createResponse({
-        photos: transformedData,
-        totalCount: totalCount || 0,
-        hasMorePhotos
-      }, null, 'fetch plant photos')
-
-    } catch (error) {
-      PerformanceLogger.endTimer(operationId, 'logbook-getPlantPhotos', { error: true })
-      
-      if (error instanceof DatabaseError) {
-        databaseLogger.error('Database error in LogbookService.getPlantPhotos')
-        return createResponse({
-          photos: [],
-          totalCount: 0,
-          hasMorePhotos: false
-        }, error.message, 'fetch plant photos')
-      }
-      
-      databaseLogger.error('Unexpected error in LogbookService.getPlantPhotos')
-      return createResponse({
-        photos: [],
-        totalCount: 0,
-        hasMorePhotos: false
-      }, 'An unexpected error occurred', 'fetch plant photos')
-    }
-  }
-}
-
-// For backward compatibility, create a unified DatabaseService
-export const DatabaseService = {
-  Tuin: TuinService,
-  Logbook: LogbookService,
-  // TODO: Add PlantvakService and PlantService following the same pattern
 }
