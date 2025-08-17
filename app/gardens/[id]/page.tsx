@@ -263,7 +263,7 @@ export default function GardenDetailPage() {
       })
 
       // Find a good position for the new plant bed
-      const existingPositions = plantBeds.map(bed => ({
+      const existingPositions = (plantBeds || []).map(bed => ({
         x: bed.position_x || 100,
         y: bed.position_y || 100,
         width: bed.visual_width || 150,
