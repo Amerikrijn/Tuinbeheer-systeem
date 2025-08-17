@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 export interface Task {
   id: string
