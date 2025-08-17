@@ -144,7 +144,7 @@ export function useSupabaseAuth(): AuthContextType {
     try {
       // 🏦 IMPROVED: Better timeout with progressive fallback
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 15000) // Increased for production stability
+        setTimeout(() => reject(new Error('Database lookup timeout')), 5000) // Reduced for better UX
       })
 
       // 🏦 BANKING-GRADE: Case-insensitive email lookup with timeout

@@ -57,7 +57,16 @@ async function validateConnection(retries = 3): Promise<void> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       const supabase = getSupabaseClient();
-      const { error } = await supabase.from('gardens').select('count').limit(1)
+      
+      // Add timeout to the database query
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database connection timeout')), 5000) // 5 second timeout
+      })
+      
+      const dbPromise = supabase.from('gardens').select('count').limit(1)
+      
+      const { error } = await Promise.race([dbPromise, timeoutPromise]) as any
+      
       if (!error) {
         databaseLogger.debug('Database connection validated successfully', { attempt })
         return
@@ -141,6 +150,7 @@ export class TuinService {
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
       
       // Build query
+      const supabase = getSupabaseClient();
       let query = supabase
         .from(this.RESOURCE_NAME)
         .select('*', { count: 'exact' })
@@ -203,6 +213,7 @@ export class TuinService {
       validateId(id, 'Garden')
       await validateConnection()
       
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from(this.RESOURCE_NAME)
         .select('*')
