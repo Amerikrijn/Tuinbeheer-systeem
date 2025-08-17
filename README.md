@@ -8,6 +8,62 @@ Een modern tuinbeheer systeem gebouwd met Next.js, TypeScript en Supabase.
 
 Dit is een test
 
+## 🧪 Tests
+
+### Test Commands
+```bash
+# Voer alle tests uit
+npm run test
+
+# Voer tests uit in watch mode (voor development)
+npm run test:watch
+
+# Voer tests uit met coverage rapport
+npm run test:coverage
+
+# Voer tests uit in CI mode (geen watch)
+npm run test:ci
+
+# Voer alleen unit tests uit
+npm run test:unit
+
+# Voer alleen integration tests uit
+npm run test:integration
+```
+
+### Test Structuur
+```
+__tests__/
+├── unit/           # Unit tests voor individuele componenten
+├── integration/    # Integration tests voor API endpoints
+└── e2e/           # End-to-end tests (indien beschikbaar)
+```
+
+### Test Vereisten
+- **Node.js 18.x** - Getest met 18.19.0
+- **npm 10.x** - Getest met 10.9.2
+- **Vitest 3.2.4** - Voor test runner
+- **@vitest/coverage-v8 3.2.4** - Voor coverage rapporten
+
+### Test Best Practices
+1. **Schrijf tests voor alle nieuwe functionaliteit**
+2. **Gebruik beschrijvende test namen**
+3. **Test edge cases en error scenarios**
+4. **Houd tests snel en geïsoleerd**
+5. **Gebruik mocks voor externe dependencies**
+
+### Troubleshooting Tests
+```bash
+# Als tests falen, controleer eerst:
+npm run audit:security    # Moet 0 vulnerabilities tonen
+npm run lint              # Moet geen lint errors tonen
+npm run typecheck         # Moet geen type errors tonen
+
+# Herinstalleer dependencies indien nodig:
+rm -rf node_modules package-lock.json
+npm install
+```
+
 ## 📚 Documentatie
 
 ### 🛠️ Lokale Ontwikkelomgeving
