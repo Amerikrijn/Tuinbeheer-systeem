@@ -22,7 +22,7 @@ import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-supabase-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
-import { supabase } from "@/lib/supabase"
+import { getSupabaseClient } from "@/lib/supabase"
 import { WeeklyTaskList } from "@/components/tasks/weekly-task-list"
 import { getUserFriendlyErrorMessage } from "@/lib/errors"
 
