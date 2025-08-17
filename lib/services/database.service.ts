@@ -1,4 +1,4 @@
-import { supabase } from '../supabase'
+import { getSupabaseClient } from '../supabase'
 import { databaseLogger, AuditLogger, PerformanceLogger } from '../logger'
 import type { 
   Tuin, 
@@ -59,7 +59,7 @@ async function validateConnection(retries = 3): Promise<void> {
   
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const { error } = await supabase.from('gardens').select('count').limit(1)
+      const { error } = await getSupabaseClient().from('gardens').select('count').limit(1)
       
       if (!error) {
         const duration = Date.now() - startTime;
@@ -281,7 +281,7 @@ export class TuinService {
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
       
       // Build query
-      let query = supabase
+      let query = getSupabaseClient()
         .from(this.RESOURCE_NAME)
         .select('*', { count: 'exact' })
         .eq('is_active', true)
@@ -444,7 +444,7 @@ export class TuinService {
       
       // Use timeout utility function for database operations
       const { data, error } = await withTimeout(
-        supabase
+        getSupabaseClient()
           .from(this.RESOURCE_NAME)
           .select('*')
           .eq('id', id)
@@ -527,7 +527,7 @@ export class TuinService {
       
       // Add timeout protection to prevent database lookup timeout errors
       const { data, error } = await withTimeout(
-        supabase
+        getSupabaseClient()
           .from(this.RESOURCE_NAME)
           .insert(insertData)
           .select('*')
@@ -613,7 +613,7 @@ export class TuinService {
       
       // Add timeout protection to prevent database lookup timeout errors
       const { data, error } = await withTimeout(
-        supabase
+        getSupabaseClient()
           .from(this.RESOURCE_NAME)
           .update(updateData)
           .eq('id', id)
@@ -686,7 +686,7 @@ export class TuinService {
       // First, remove all user access to this garden
       // Use timeout utility function for database operations
       const { error: accessError } = await withTimeout(
-        supabase
+        getSupabaseClient()
           .from('user_garden_access')
           .delete()
           .eq('garden_id', id),
@@ -705,7 +705,7 @@ export class TuinService {
       // Then soft delete the garden
       // Use timeout utility function for database operations
       const { error } = await withTimeout(
-        supabase
+        getSupabaseClient()
           .from(this.RESOURCE_NAME)
           .update({ 
             is_active: false,
@@ -785,7 +785,7 @@ export class LogbookService {
       }
 
       // Verify plant bed exists
-      const { data: plantBed, error: plantBedError } = await supabase
+      const { data: plantBed, error: plantBedError } = await getSupabaseClient()
         .from('plant_beds')
         .select('id, name')
         .eq('id', formData.plant_bed_id)
@@ -798,7 +798,7 @@ export class LogbookService {
 
       // If plant_id is provided, verify it exists and belongs to the plant bed
       if (formData.plant_id) {
-        const { data: plant, error: plantError } = await supabase
+        const { data: plant, error: plantError } = await getSupabaseClient()
           .from('plants')
           .select('id, name')
           .eq('id', formData.plant_id)
@@ -818,7 +818,7 @@ export class LogbookService {
         photo_url: null // Will be updated after photo upload if provided
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('logbook_entries')
         .insert([logbookData])
         .select()
@@ -875,7 +875,7 @@ export class LogbookService {
     try {
       await validateConnection()
       
-      let query = supabase
+      let query = getSupabaseClient()
         .from('logbook_entries')
         .select(`
           *,
@@ -977,7 +977,7 @@ export class LogbookService {
         throw new ValidationError('Logbook entry ID is required', 'id')
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await getSupabaseClient()
         .from('logbook_entries')
         .select(`
           *,
