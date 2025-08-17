@@ -143,6 +143,7 @@ export function useSupabaseAuth(): AuthContextType {
     
     try {
       // 🏦 BANKING-GRADE: Case-insensitive email lookup without artificial timeout
+      const supabase = getSupabase()
       const { data: userProfile, error: userError } = await supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
@@ -538,6 +539,7 @@ export function useSupabaseAuth(): AuthContextType {
     if (!state.user || state.user.role === 'admin') return
     
     try {
+      const supabase = getSupabase()
       const { data: accessData, error: accessError } = await supabase
         .from('user_garden_access')
         .select('garden_id')
