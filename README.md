@@ -6,7 +6,61 @@ Een modern tuinbeheer systeem gebouwd met Next.js, TypeScript en Supabase.
 
 ## 🚀 Features
 
-Dit is een test
+## 🧪 Testen
+
+### Test Suite Overzicht
+Het tuinbeheer systeem bevat een uitgebreide test suite die alle kritieke functionaliteiten dekt:
+
+#### Unit Tests
+- **API Endpoints**: Alle REST endpoints worden getest op correcte responses en error handling
+- **Database Operaties**: CRUD operaties worden gevalideerd met mock data
+- **Utility Functies**: Helper functies worden getest op edge cases en validatie
+
+#### Integration Tests
+- **Database Connecties**: Supabase connecties en queries worden getest
+- **API Integratie**: End-to-end API calls worden gevalideerd
+- **Authentication Flow**: Login/logout en session management worden getest
+
+#### Test Commands
+```bash
+# Voer alle tests uit
+npm run test
+
+# Voer tests uit met coverage rapport
+npm run test:coverage
+
+# Voer tests uit in CI mode (geen watch mode)
+npm run test:ci
+
+# Voer alleen unit tests uit
+npm run test:unit
+
+# Voer alleen integration tests uit
+npm run test:integration
+```
+
+#### Test Bestanden Structuur
+```
+__tests__/
+├── unit/           # Unit tests voor individuele componenten
+│   ├── api/        # API endpoint tests
+│   ├── utils/      # Utility functie tests
+│   └── components/ # React component tests
+├── integration/    # Integration tests
+│   ├── database/   # Database integratie tests
+│   └── api/        # API integratie tests
+└── fixtures/       # Test data en mock bestanden
+```
+
+#### Test Data Management
+- **Mock Data**: Gestructureerde test data voor consistente testen
+- **Database Seeding**: Test database wordt automatisch gevuld met test data
+- **Cleanup**: Alle test data wordt automatisch opgeruimd na testen
+
+#### Continuous Integration
+- **Automated Testing**: Alle tests worden automatisch uitgevoerd bij elke commit
+- **Coverage Requirements**: Minimum 80% code coverage vereist voor deployment
+- **Security Scanning**: Automatische security checks op dependencies
 
 ## 📚 Documentatie
 
