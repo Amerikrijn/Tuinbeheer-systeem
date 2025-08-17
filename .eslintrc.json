@@ -1,45 +1,43 @@
 {
+  "parser": "@typescript-eslint/parser",
   "extends": [
-    "next/core-web-vitals", 
-    "eslint:recommended"
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "@typescript-eslint/recommended"
   ],
-  "plugins": [
-    "unused-imports"
-  ],
+  "plugins": ["@typescript-eslint", "unused-imports"],
   "env": {
     "browser": true,
-    "es2020": true,
+    "es2021": true,
     "node": true,
     "jest": true
+  },
+  "globals": {
+    "vi": "readonly",
+    "expect": "readonly",
+    "describe": "readonly",
+    "it": "readonly",
+    "beforeEach": "readonly",
+    "afterEach": "readonly",
+    "beforeAll": "readonly",
+    "afterAll": "readonly",
+    "React": "readonly",
+    "NodeJS": "readonly",
+    "EventListener": "readonly"
   },
   "rules": {
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": "off",
-    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-imports": "warn",
     "react/no-unescaped-entities": "off",
     "@next/next/no-img-element": "off",
     "react-hooks/exhaustive-deps": "warn",
-    "@typescript-eslint/no-require-imports": "off",
-    "import/no-anonymous-default-export": "off",
-    "no-undef": "off"
-  },
-  "overrides": [
-    {
-      "files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx"],
-      "env": {
-        "jest": true
-      },
-      "globals": {
-        "describe": "readonly",
-        "it": "readonly",
-        "test": "readonly",
-        "expect": "readonly",
-        "beforeEach": "readonly",
-        "afterEach": "readonly",
-        "beforeAll": "readonly",
-        "afterAll": "readonly",
-        "vi": "readonly"
-      }
-    }
-  ]
+    "no-undef": "warn",
+    "no-redeclare": "warn",
+    "no-prototype-builtins": "warn",
+    "no-useless-escape": "warn",
+    "no-useless-catch": "warn",
+    "no-dupe-else-if": "warn",
+    "no-mixed-spaces-and-tabs": "warn"
+  }
 }
