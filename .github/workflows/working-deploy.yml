@@ -3,6 +3,7 @@ name: Working Deploy
 # Based on original CI-CD documentation + chat experiences
 # AI Agent/Workflow: Only preview if ALL tests pass
 # Manual Deployment: Always available if build succeeds
+# NO SUPABASE SECRETS - Only in Vercel!
 
 on:
   push:
