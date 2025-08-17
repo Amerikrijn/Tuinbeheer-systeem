@@ -1,11 +1,7 @@
-
-name: CI/CD Pipeline
+name: DEPRECATED: CI/CD Pipeline (replaced by ci-cd.yml)
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   test:
