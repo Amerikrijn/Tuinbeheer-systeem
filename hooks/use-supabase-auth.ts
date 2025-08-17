@@ -132,23 +132,13 @@ export function useSupabaseAuth(): AuthContextType {
     }
     
     try {
-      // 🏦 IMPROVED: Better timeout with progressive fallback
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 15000) // Increased for production stability
-      })
-
-      // 🏦 BANKING-GRADE: Case-insensitive email lookup with timeout
-      const databasePromise = supabase
+      // 🏦 BANKING-GRADE: Case-insensitive email lookup without artificial timeout
+      const { data: userProfile, error: userError } = await supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
         .ilike('email', supabaseUser.email || '') // Case-insensitive match
         .eq('is_active', true) // Only active users
         .single()
-
-      const { data: userProfile, error: userError } = await Promise.race([
-        databasePromise,
-        timeoutPromise
-      ]) as { data: any, error: any }
 
       let role: 'admin' | 'user' = 'user'
       let fullName = supabaseUser.email?.split('@')[0] || 'User'

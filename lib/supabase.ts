@@ -29,14 +29,6 @@ const getSupabaseClient = (): SupabaseClient => {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'garden-management-app'
-      }
-    },
-    db: {
-      schema: 'public'
     }
   })
 
@@ -62,14 +54,6 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     auth: {
       autoRefreshToken: false,
       persistSession: false
-    },
-    global: {
-      headers: {
-        'X-Client-Info': 'garden-management-app-admin'
-      }
-    },
-    db: {
-      schema: 'public'
     }
   })
 
