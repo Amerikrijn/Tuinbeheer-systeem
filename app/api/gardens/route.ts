@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { TuinService } from '@/lib/services/database.service'
 import { apiLogger, AuditLogger } from '@/lib/logger'
 import { validateTuinFormData } from '@/lib/validation'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import { logClientSecurityEvent, validateApiInput } from '@/lib/banking-security'
 
 // Force dynamic rendering since this route handles query parameters
@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     
     // 1. Authentication check (banking-grade)
     try {
+      const supabase = getSupabaseClient();
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       if (authError || !user) {
         await logClientSecurityEvent('API_AUTH_FAILED', 'HIGH', false, 'Unauthorized API access to gardens')
@@ -95,6 +96,7 @@ export async function POST(request: NextRequest) {
     
     // 1. Authentication check (banking-grade)
     try {
+      const supabase = getSupabaseClient();
       const { data: { user }, error: authError } = await supabase.auth.getUser()
       if (authError || !user) {
         await logClientSecurityEvent('API_AUTH_FAILED', 'HIGH', false, 'Unauthorized API access to create garden')

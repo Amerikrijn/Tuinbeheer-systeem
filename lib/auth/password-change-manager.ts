@@ -1,4 +1,4 @@
-import { supabase } from '../supabase'
+import { getSupabaseClient } from '../supabase'
 
 export interface PasswordValidation {
   isValid: boolean
@@ -95,6 +95,7 @@ export class PasswordChangeManager {
       }
 
       // Get current user
+      const supabase = getSupabaseClient();
       const { data: { user }, error: userError } = await supabase.auth.getUser()
       if (userError || !user) {
         return {

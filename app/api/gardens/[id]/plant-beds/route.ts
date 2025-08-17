@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import { apiLogger } from '@/lib/logger';
 import { logClientSecurityEvent } from '@/lib/banking-security';
 
@@ -21,6 +21,7 @@ export async function GET(
 
     // 1. Authentication check (banking-grade)
     try {
+      const supabase = getSupabaseClient();
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
         await logClientSecurityEvent('API_AUTH_FAILED', 'HIGH', false, 'Unauthorized API access to plant beds');

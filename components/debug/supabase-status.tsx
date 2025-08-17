@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 export function SupabaseStatus() {
   const [status, setStatus] = useState<{
@@ -19,6 +19,7 @@ export function SupabaseStatus() {
     const checkStatus = async () => {
       try {
         // Check if we can access the Supabase client
+        const supabase = getSupabaseClient();
         const url = supabase.supabaseUrl
         const hasKey = !!supabase.supabaseKey
         

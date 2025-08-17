@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 export interface Task {
   id: string
@@ -69,6 +69,7 @@ export interface WeeklyCalendar {
 export class TaskService {
   static async getTasksWithPlantInfo(filters?: Record<string, unknown>): Promise<{ data: TaskWithPlantInfo[]; error: string | null }> {
     try {
+      const supabase = getSupabaseClient();
       let query = supabase
         .from('tasks')
         .select(`

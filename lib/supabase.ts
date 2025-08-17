@@ -21,21 +21,36 @@ const getSupabaseClient = (): SupabaseClient => {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables:', {
+      url: supabaseUrl ? 'Set' : 'Missing',
+      key: supabaseAnonKey ? 'Set' : 'Missing'
+    })
     throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.')
   }
+
+  console.log('Initializing Supabase client with URL:', supabaseUrl)
 
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'tuinbeheer-app',
+        'X-Compliance': 'banking-grade'
+      }
+    },
+    db: {
+      schema: 'public'
     }
   })
 
   return supabaseInstance
 }
 
-// Admin client for server-side operations
+// Admin client for server-side operations (required for banking compliance)
 let supabaseAdminInstance: SupabaseClient | null = null
 
 const getSupabaseAdminClient = (): SupabaseClient => {
@@ -47,13 +62,22 @@ const getSupabaseAdminClient = (): SupabaseClient => {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Missing Supabase admin environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your environment.')
+    throw new Error('Missing Supabase admin environment variables. Required for banking compliance operations.')
   }
 
   supabaseAdminInstance = createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'tuinbeheer-admin',
+        'X-Compliance': 'banking-grade'
+      }
+    },
+    db: {
+      schema: 'public'
     }
   })
 

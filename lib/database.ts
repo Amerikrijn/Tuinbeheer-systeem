@@ -1,12 +1,13 @@
-import { supabase, type Garden, type PlantBed, type Plant, type PlantBedWithPlants } from "./supabase"
+import { getSupabaseClient } from "./supabase"
 
 function isMissingRelation(err: { code?: string } | null): boolean {
   return !!err && err.code === "42P01"
 }
 
 // Garden functions
-export async function getGardens(): Promise<Garden[]> {
+export async function getGardens(): Promise<any[]> {
   console.log("Fetching gardens...")
+  const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("gardens")
     .select("*")
@@ -26,9 +27,10 @@ export async function getGardens(): Promise<Garden[]> {
   return data || []
 }
 
-export async function getGarden(id?: string): Promise<Garden | null> {
+export async function getGarden(id?: string): Promise<any | null> {
   if (!id) {
     // Get the first active garden if no ID provided
+    const supabase = getSupabaseClient();
     const { data, error } = await supabase
       .from("gardens")
       .select("*")
@@ -73,10 +75,11 @@ export async function createGarden(garden: {
   garden_type?: string
   established_date?: string
   notes?: string
-}): Promise<Garden | null> {
+}): Promise<any | null> {
   console.log("Creating garden with data:", garden)
 
   // Test if table exists first
+  const supabase = getSupabaseClient();
   const { data: testData, error: testError } = await supabase.from("gardens").select("id").limit(1)
 
   if (testError) {
