@@ -11,7 +11,7 @@ jest.mock('@/components/ui/toggle', () => ({
   toggleVariants: jest.fn(() => 'mock-toggle-classes')
 }));
 
-jest.mock('@radix-ui/react-toggle-group', () => ({
+jest.mock('radix-ui/react-toggle-group', () => ({
   Root: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <div
       ref={ref}

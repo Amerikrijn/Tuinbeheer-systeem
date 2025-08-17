@@ -7,7 +7,16 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const ToastProvider = ToastPrimitives.Provider
+const ToastProvider = React.forwardRef<
+  React.ElementRef<typeof ToastPrimitives.Provider>,
+  React.ComponentPropsWithoutRef<typeof ToastPrimitives.Provider>
+>(({ ...props }, ref) => (
+  <ToastPrimitives.Provider
+    ref={ref}
+    data-testid="toast-provider"
+    {...props}
+  />
+))
 
 const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
@@ -19,6 +28,7 @@ const ToastViewport = React.forwardRef<
       "fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:bottom-0 sm:right-0 sm:top-auto sm:flex-col md:max-w-[420px]",
       className
     )}
+    data-testid="toast-viewport"
     {...props}
   />
 ))
@@ -49,6 +59,7 @@ const Toast = React.forwardRef<
     <ToastPrimitives.Root
       ref={ref}
       className={cn(toastVariants({ variant }), className)}
+      data-testid="toast-root"
       {...props}
     />
   )
@@ -81,9 +92,10 @@ const ToastClose = React.forwardRef<
       className
     )}
     toast-close=""
+    data-testid="toast-close"
     {...props}
   >
-    <X className="h-4 w-4" />
+    <X className="h-4 w-4" data-testid="x-icon" />
   </ToastPrimitives.Close>
 ))
 ToastClose.displayName = ToastPrimitives.Close.displayName
@@ -95,6 +107,7 @@ const ToastTitle = React.forwardRef<
   <ToastPrimitives.Title
     ref={ref}
     className={cn("text-sm font-semibold", className)}
+    data-testid="toast-title"
     {...props}
   />
 ))
@@ -107,6 +120,7 @@ const ToastDescription = React.forwardRef<
   <ToastPrimitives.Description
     ref={ref}
     className={cn("text-sm opacity-90", className)}
+    data-testid="toast-description"
     {...props}
   />
 ))

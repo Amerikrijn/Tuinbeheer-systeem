@@ -174,7 +174,7 @@ describe('Validation Functions', () => {
     it('should reject invalid plantvak data', () => {
       const result = validatePlantvakFormData(invalidData)
       expect(result.isValid).toBe(false)
-      expect(result.errors).toHaveLength(3) // id, location, size, soilType are required
+      expect(result.errors).toHaveLength(4) // id, location, size, soilType are required
     })
 
     it('should reject invalid sun exposure', () => {

@@ -1,0 +1,4 @@
+
+> tuinbeheer-systeem@0.1.0 test:coverage
+> vitest run --coverage --reporter=json
+
