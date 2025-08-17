@@ -6,6 +6,35 @@ Een modern tuinbeheer systeem gebouwd met Next.js, TypeScript en Supabase.
 
 ## 🚀 Features
 
+## 🔒 Security Update - Environment Variables
+
+**BELANGRIJK**: Alle hardcoded Supabase credentials zijn verwijderd uit de code. De applicatie gebruikt nu alleen environment variables.
+
+### 📋 Environment Variables Setup
+
+#### **Voor Development:**
+1. Kopieer `.env.local.example` naar `.env.local`
+2. Vul je Supabase credentials in
+3. Start je development server opnieuw
+
+```bash
+cp .env.local.example .env.local
+# Vul je credentials in en start opnieuw
+npm run dev
+```
+
+#### **Voor Production (Vercel):**
+- Alle credentials staan al in Vercel environment variables
+- Geen code wijzigingen nodig
+- Automatische deployment via CI/CD pipeline
+
+### 🚨 Waarom Deze Wijziging?
+
+- **Security**: Geen hardcoded credentials meer in de code
+- **CI/CD**: Pipeline blokkeert niet meer op security checks
+- **Compliance**: Voldoet aan banking security standards
+- **Flexibility**: Makkelijk wisselen tussen verschillende environments
+
 ## 📚 Documentatie
 
 ### 🛠️ Lokale Ontwikkelomgeving
