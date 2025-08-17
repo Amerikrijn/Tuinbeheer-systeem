@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdminClient } from '@/lib/supabase'
 
 // Force dynamic rendering since this route handles query parameters
 export const dynamic = 'force-dynamic'
@@ -265,7 +265,8 @@ export async function DELETE(request: NextRequest) {
 
     // Only proceed if no dependencies (rare case)
     // Delete from auth first
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    const supabase = getSupabaseAdminClient()
+    const { error: authError } = await supabase.auth.admin.deleteUser(userId)
     if (authError) {
       console.warn('Auth deletion warning:', authError)
       // Continue anyway - auth user might not exist

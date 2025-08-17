@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdminClient } from '@/lib/supabase'
 
 // Force dynamic rendering since this route handles query parameters
 export const dynamic = 'force-dynamic';
@@ -49,6 +49,7 @@ export async function GET() {
 // POST - Create new user
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseAdminClient()
     const { email, fullName, role, gardenAccess } = await request.json()
 
     // Validation

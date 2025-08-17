@@ -87,9 +87,6 @@ const getSupabaseAdminClient = (): SupabaseClient => {
 // Export the functions only
 export { getSupabaseClient, getSupabaseAdminClient }
 
-// Backward compatibility aliases
-export const supabaseAdmin = getSupabaseAdminClient
-
 // ========================================
 // VISUAL GARDEN CONSTANTS
 // ========================================
