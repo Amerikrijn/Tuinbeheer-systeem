@@ -1,11 +1,7 @@
 import { getSupabaseClient } from '../supabase'
 import { databaseLogger, AuditLogger, PerformanceLogger } from '../logger'
 import type { 
-  Tuin, 
-  Plantvak, 
-  Plant, 
-  PlantvakWithPlants, 
-  TuinWithPlantvakken,
+  Tuin,
   LogbookEntry,
   LogbookEntryWithDetails,
   LogbookEntryFormData,
