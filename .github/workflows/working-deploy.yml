@@ -52,9 +52,7 @@ jobs:
     name: AI Agent Preview (Strict)
     runs-on: ubuntu-latest
     needs: quality-strict
-    if: |
-      needs.quality-strict.result == 'success' &&
-      secrets.VERCEL_TOKEN != ''
+    if: needs.quality-strict.result == 'success'
     environment: preview
     steps:
       - name: Checkout
@@ -93,9 +91,7 @@ jobs:
   preview-manual:
     name: Manual Preview (Flexible)
     runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'workflow_dispatch' &&
-      secrets.VERCEL_TOKEN != ''
+    if: github.event_name == 'workflow_dispatch'
     environment: preview
     steps:
       - name: Checkout
@@ -139,8 +135,7 @@ jobs:
       github.event_name == 'workflow_dispatch' &&
       github.ref == 'refs/heads/main' &&
       needs.quality-strict.result == 'success' &&
-      needs.preview-ai.result == 'success' &&
-      secrets.VERCEL_TOKEN != ''
+      needs.preview-ai.result == 'success'
     environment: production
     steps:
       - name: Checkout
