@@ -56,7 +56,15 @@ export class NotFoundError extends Error {
 async function validateConnection(retries = 3): Promise<void> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const { error } = await supabase.from('gardens').select('count').limit(1)
+      // Add timeout to the connection test
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Connection timeout')), 10000) // 10 second timeout
+      })
+
+      const connectionPromise = supabase.from('gardens').select('count').limit(1)
+      
+      const { error } = await Promise.race([connectionPromise, timeoutPromise]) as any
+      
       if (!error) {
         databaseLogger.debug('Database connection validated successfully', { attempt })
         return
@@ -160,7 +168,14 @@ export class TuinService {
       const to = from + validPageSize - 1
       query = query.range(from, to)
       
-      const { data, error, count } = await query
+      // Add timeout to the main query
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database query timeout')), 15000) // 15 second timeout
+      })
+      
+      const queryPromise = query
+      
+      const { data, error, count } = await Promise.race([queryPromise, timeoutPromise]) as any
       
       if (error) {
         throw new DatabaseError('Failed to fetch gardens', error.code, error)
@@ -202,12 +217,19 @@ export class TuinService {
       validateId(id, 'Garden')
       await validateConnection()
       
-      const { data, error } = await supabase
+      // Add timeout to the query
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database query timeout')), 15000) // 15 second timeout
+      })
+      
+      const queryPromise = supabase
         .from(this.RESOURCE_NAME)
         .select('*')
         .eq('id', id)
         .eq('is_active', true)
         .single()
+      
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
       
       if (error) {
         if (error.code === 'PGRST116') {
@@ -262,11 +284,18 @@ export class TuinService {
         is_active: true,
       }
       
-      const { data, error } = await supabase
+      // Add timeout to the insert query
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database insert timeout')), 15000) // 15 second timeout
+      })
+      
+      const insertPromise = supabase
         .from(this.RESOURCE_NAME)
         .insert(insertData)
         .select('*')
         .single()
+      
+      const { data, error } = await Promise.race([insertPromise, timeoutPromise]) as any
       
       if (error) {
         throw new DatabaseError('Failed to create garden', error.code, error)

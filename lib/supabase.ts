@@ -29,6 +29,14 @@ const getSupabaseClient = (): SupabaseClient => {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'garden-management-app'
+      }
+    },
+    db: {
+      schema: 'public'
     }
   })
 
@@ -54,14 +62,26 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     auth: {
       autoRefreshToken: false,
       persistSession: false
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'garden-management-app-admin'
+      }
+    },
+    db: {
+      schema: 'public'
     }
   })
 
   return supabaseAdminInstance
 }
 
-// Export the functions
-export { getSupabaseClient, getSupabaseAdminClient }
+// Create a default supabase instance for backward compatibility
+const supabase = getSupabaseClient()
+
+// Export the functions and default instance
+export { getSupabaseClient, getSupabaseAdminClient, supabase }
+export default supabase
 
 // ========================================
 // VISUAL GARDEN CONSTANTS
