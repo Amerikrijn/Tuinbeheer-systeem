@@ -1,6 +1,13 @@
 # Nederlandse Banking Standards - Automatische Code Regels
 # Voor Tuinbeheer Systeem - Elke wijziging moet voldoen aan banking grade security 
-Overal waar cursor staat kun je ook elke andere AI agent lezen. 
+Overal waar cursor staat kun je ook elke andere AI agent lezen.
+
+## 🚨 KRITIEKE WAARSCHUWING VOOR ALLE AI AGENTS 🚨
+
+**SUPABASE KEYS MOGEN NOOIT IN `vercel.json` WORDEN HARDCODEERD!**
+- Gebruik ALTIJD Vercel Secrets: `@supabase-anon-key` en `@supabase-service-role-key`
+- Deze fout is al één keer gemaakt en mag NOOIT meer gebeuren
+- Zie sectie "🔒 BANKING COMPLIANCE CONFIGURATIE" voor details 
 
 ## 🧠 AI Governance en Configuratie
 
@@ -36,13 +43,18 @@ pas alleen technical debt toe als hier expliceit toestemming voor is anders een 
 - Geen openstaande TODO’s of warnings
 - Pull request bevat duidelijke beschrijving en changelog
 - Documentatie is technisch, functioneel en architectuur bijgewerkt
+- **🚨 KRITIEK: Geen Supabase keys hardgecodeerd in vercel.json of andere configuratiebestanden**
+- **🚨 KRITIEK: Alle secrets worden correct beheerd via Vercel Secrets**
+- **🚨 KRITIEK: Controleer ALLE bestanden op hardgecodeerde waarden zoals `your_anon_key`, `YOUR-ANON-KEY`, etc.**
+- **🚨 KRITIEK: Gebruik ALTIJD Vercel Secrets: `@supabase-anon-key` en `@supabase-service-role-key`**
 
 ### 🏦 Banking‑grade Coding Standards (aanvullend op onderstaande secties)
 - DNB‑richtlijnen toepassen waar relevant
 - OWASP Top 10 mitigaties aantoonbaar
 - Supabase Row Level Security (RLS) als uitgangspunt
 - Audit logging voor gevoelige acties en schema‑wijzigingen
-- Secrets management via Vault of GitHub Secrets (nooit in code)
+- **🚨 KRITIEK: Secrets management via Vercel Secrets (NOOIT in vercel.json hardcoden)**
+- **🚨 KRITIEK: Supabase keys ALTIJD via @supabase-anon-key en @supabase-service-role-key secrets**
 - Artifact signing en immutable builds
 - TypeScript + Zod/Yup voor type safety en validatie
 - Husky pre‑commit hooks (lint, type‑check, tests)
@@ -67,6 +79,10 @@ pas alleen technical debt toe als hier expliceit toestemming voor is anders een 
 - Gebruik preview branch voor staging, `main` voor productie
 - Voeg rollback en security checks toe in de pipeline
 - Cursor controleert bij elke wijziging of pipeline en documentatie actueel zijn
+- **🚨 KRITIEK: Controleer ALTIJD of er geen Supabase keys in vercel.json zijn hardgecodeerd**
+- **🚨 KRITIEK: Verifieer dat alle secrets correct via Vercel Secrets worden beheerd**
+- **🚨 KRITIEK: Zoek naar hardgecodeerde waarden zoals `your_anon_key`, `YOUR-ANON-KEY`, `YOUR-PROJECT` in alle bestanden**
+- **🚨 KRITIEK: Controleer `.env.example`, error boundaries, en alle documentatie bestanden**
 
 ## 📋 SESSION START PROTOCOL - VERPLICHT
 De productower stelt een vraag
@@ -813,16 +829,54 @@ Als ER EEN ❌ is: FIX FIRST, THEN DEPLOY
 
 ## 🔒 BANKING COMPLIANCE CONFIGURATIE
 
+### ⚠️ KRITIEKE SECURITY WAARSCHUWING - NOOIT OVERTREDEN ⚠️
+
+**SUPABASE KEYS MOGEN NOOIT MEER IN `vercel.json` WORDEN HARDCODEERD!**
+
+Deze fout is al één keer gemaakt en mag NOOIT meer gebeuren. Alle Supabase keys worden nu beheerd via Vercel Secrets.
+
+#### ❌ VERBODEN IN `vercel.json`:
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` (gebruik `@supabase-anon-key` secret)
+- `SUPABASE_SERVICE_ROLE_KEY` (gebruik `@supabase-service-role-key` secret)
+
+#### ❌ VERBODEN IN ALLE BESTANDEN:
+- `your_anon_key` of `your_anon_key_here`
+- `your_service_role_key` of `your_service_role_key_here`
+- `YOUR-ANON-KEY` of `YOUR-SERVICE-ROLE-KEY`
+- `YOUR-PROJECT.supabase.co`
+
+#### ✅ CORRECTE CONFIGURATIE VOOR ALLE BESTANDEN:
+- Gebruik ALTIJD: `@supabase-anon-key` en `@supabase-service-role-key`
+- Gebruik ALTIJD: `https://dwsgwqosmihsfaxuheji.supabase.co`
+
+#### 🔍 BESTANDEN DIE AGENTS MOETEN CONTROLEREN:
+- `vercel.json` - Hoofdconfiguratie
+- `.env.example` - Voorbeeld environment variables
+- `components/error-boundary.tsx` - Error handling voorbeelden
+- Alle documentatie bestanden (`.md` bestanden)
+- Alle TypeScript/JavaScript bestanden
+- Alle configuratie bestanden
+
+#### ✅ CORRECTE `vercel.json` CONFIGURATIE:
+```json
+{
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key"
+  }
+}
+```
+
 ### VERPLICHTE ENVIRONMENT VARIABLES
 
 #### Production Environment (Vercel)
 ```bash
 # Supabase - Public (safe in browser)
 NEXT_PUBLIC_SUPABASE_URL=https://dwsgwqosmihsfaxuheji.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=@supabase-anon-key
 
 # Supabase - Private (SERVER-SIDE ONLY!)
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_SERVICE_ROLE_KEY=@supabase-service-role-key
 
 # Site Configuration
 NEXT_PUBLIC_SITE_URL=https://tuinbeheer-systeem.vercel.app
@@ -833,8 +887,8 @@ NEXT_PUBLIC_PROTECTED_ADMIN_EMAIL=admin@tuinbeheer.nl
 ```bash
 # Supabase - Same as production
 NEXT_PUBLIC_SUPABASE_URL=https://dwsgwqosmihsfaxuheji.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=@supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=@supabase-service-role-key
 
 # Site Configuration - Preview URLs
 NEXT_PUBLIC_SITE_URL=https://tuinbeheer-systeem-git-preview-amerikrijn.vercel.app

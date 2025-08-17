@@ -2,7 +2,21 @@
   "buildCommand": "npm run build",
   "env": {
     "APP_ENV": "production",
-    "NEXT_PUBLIC_SUPABASE_URL": "https://dwsgwqosmihsfaxuheji.supabase.co"
+    
+    // =============================================================================
+    // SUPABASE CONFIGURATIE (PRODUCTIE)
+    // =============================================================================
+    "NEXT_PUBLIC_SUPABASE_URL": "https://dwsgwqosmihsfaxuheji.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase-service-role-key"
+    
+    // =============================================================================
+    // ⚠️  BELANGRIJK:
+    // =============================================================================
+    // - @supabase-anon-key en @supabase-service-role-key zijn Vercel Secrets
+    // - Deze worden automatisch ingevuld door Vercel
+    // - NOOIT echte keys hier hardcoden
+    // =============================================================================
   },
   "functions": {
     "app/api/**/*.ts": {

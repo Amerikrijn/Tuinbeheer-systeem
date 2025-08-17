@@ -11,8 +11,9 @@ Dit is een test
 ## 📚 Documentatie
 
 ### 🛠️ Lokale Ontwikkelomgeving
-- [`docs/LOCAL-SETUP.md`](docs/LOCAL-SETUP.md) - **VERPLICHT**: Setup guide voor lokale omgeving
-- Deze guide voorkomt dependency conflicts en security vulnerabilities
+- [`docs/SETUP.md`](docs/SETUP.md) - **VERPLICHT**: Complete setup guide voor alle omgevingen
+- [`docs/LOCAL-SETUP.md`](docs/LOCAL-SETUP.md) - Dependency en security configuratie
+- Deze guides voorkomen dependency conflicts en security vulnerabilities
 - Alle teamleden moeten deze configuratie volgen voor succesvolle testen
 
 ### 🚨 Waarom Deze Documentatie Cruciaal Is
@@ -34,6 +35,31 @@ Dit is een test
 - ✅ Test altijd lokaal voordat je pusht
 - ✅ Update documentatie als je dependency wijzigingen maakt
 - ✅ Gebruik de troubleshooting sectie bij problemen
+
+## 🚀 Quick Start
+
+### 1. **Kloon het project**
+```bash
+git clone https://github.com/Amerikrijn/Tuinbeheer-systeem.git
+cd Tuinbeheer-systeem
+```
+
+### 2. **Setup lokale omgeving**
+```bash
+# Kopieer .env.example naar .env.local
+cp .env.example .env.local
+
+# Vul je eigen Supabase keys in .env.local
+# (zie docs/SETUP.md voor details)
+
+# Installeer dependencies
+npm install
+```
+
+### 3. **Start development server**
+```bash
+npm run dev
+```
 
 ## 🛠️ Lokale Ontwikkelomgeving Setup
 
