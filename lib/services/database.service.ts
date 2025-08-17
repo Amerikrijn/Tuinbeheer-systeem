@@ -56,7 +56,15 @@ export class NotFoundError extends Error {
 async function validateConnection(retries = 3): Promise<void> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const { error } = await supabase.from('gardens').select('count').limit(1)
+      // Add timeout protection to connection validation
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database connection timeout')), 30000) // 30 second timeout
+      })
+
+      const connectionPromise = supabase.from('gardens').select('count').limit(1)
+      
+      const { error } = await Promise.race([connectionPromise, timeoutPromise]) as any
+      
       if (!error) {
         databaseLogger.debug('Database connection validated successfully', { attempt })
         return
@@ -75,6 +83,19 @@ async function validateConnection(retries = 3): Promise<void> {
       }
     }
   }
+}
+
+// Utility function for database operations with timeout protection
+async function withTimeout<T>(
+  databasePromise: Promise<T>,
+  operationName: string,
+  timeoutMs: number = 30000
+): Promise<T> {
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error(`Database lookup timeout for ${operationName}`)), timeoutMs)
+  })
+
+  return Promise.race([databasePromise, timeoutPromise])
 }
 
 // Generic response wrapper with logging
@@ -160,7 +181,12 @@ export class TuinService {
       const to = from + validPageSize - 1
       query = query.range(from, to)
       
-      const { data, error, count } = await query
+      // Use timeout utility function for database operations
+      const { data, error, count } = await withTimeout(
+        query,
+        'TuinService.getAll',
+        45000 // 45 second timeout for complex queries
+      ) as any
       
       if (error) {
         throw new DatabaseError('Failed to fetch gardens', error.code, error)
@@ -186,6 +212,12 @@ export class TuinService {
         return createResponse<PaginatedResponse<Tuin>>(null, error.message, 'getAll gardens')
       }
       
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.message.includes('timeout')) {
+        databaseLogger.error('Database operation timed out in TuinService.getAll', error)
+        return createResponse<PaginatedResponse<Tuin>>(null, 'Database operation timed out. Please try again.', 'getAll gardens')
+      }
+      
       databaseLogger.error('Unexpected error in TuinService.getAll', error as Error)
       return createResponse<PaginatedResponse<Tuin>>(null, 'An unexpected error occurred', 'getAll gardens')
     }
@@ -202,12 +234,17 @@ export class TuinService {
       validateId(id, 'Garden')
       await validateConnection()
       
-      const { data, error } = await supabase
-        .from(this.RESOURCE_NAME)
-        .select('*')
-        .eq('id', id)
-        .eq('is_active', true)
-        .single()
+      // Use timeout utility function for database operations
+      const { data, error } = await withTimeout(
+        supabase
+          .from(this.RESOURCE_NAME)
+          .select('*')
+          .eq('id', id)
+          .eq('is_active', true)
+          .single(),
+        'TuinService.getById',
+        30000 // 30 second timeout
+      ) as any
       
       if (error) {
         if (error.code === 'PGRST116') {
@@ -229,6 +266,12 @@ export class TuinService {
       
       if (error instanceof DatabaseError || error instanceof ValidationError) {
         return createResponse<Tuin>(null, error.message, 'get garden by ID')
+      }
+      
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.message.includes('timeout')) {
+        databaseLogger.error('Database operation timed out in TuinService.getById', error, { id })
+        return createResponse<Tuin>(null, 'Database operation timed out. Please try again.', 'get garden by ID')
       }
       
       databaseLogger.error('Unexpected error in TuinService.getById', error as Error, { id })
@@ -262,11 +305,18 @@ export class TuinService {
         is_active: true,
       }
       
-      const { data, error } = await supabase
+      // Add timeout protection to prevent database lookup timeout errors
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database lookup timeout')), 30000) // 30 second timeout
+      })
+
+      const databasePromise = supabase
         .from(this.RESOURCE_NAME)
         .insert(insertData)
         .select('*')
         .single()
+
+      const { data, error } = await Promise.race([databasePromise, timeoutPromise]) as any
       
       if (error) {
         throw new DatabaseError('Failed to create garden', error.code, error)
@@ -284,6 +334,12 @@ export class TuinService {
       
       if (error instanceof DatabaseError || error instanceof ValidationError) {
         return createResponse<Tuin>(null, error.message, 'create garden')
+      }
+      
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.message.includes('timeout')) {
+        databaseLogger.error('Database operation timed out in TuinService.create', error, { gardenData })
+        return createResponse<Tuin>(null, 'Database operation timed out. Please try again.', 'create garden')
       }
       
       databaseLogger.error('Unexpected error in TuinService.create', error as Error, { gardenData })
@@ -325,13 +381,20 @@ export class TuinService {
         updated_at: new Date().toISOString(),
       }
       
-      const { data, error } = await supabase
+      // Add timeout protection to prevent database lookup timeout errors
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database lookup timeout')), 30000) // 30 second timeout
+      })
+
+      const databasePromise = supabase
         .from(this.RESOURCE_NAME)
         .update(updateData)
         .eq('id', id)
         .eq('is_active', true)
         .select('*')
         .single()
+
+      const { data, error } = await Promise.race([databasePromise, timeoutPromise]) as any
       
       if (error) {
         throw new DatabaseError('Failed to update garden', error.code, error)
@@ -349,6 +412,12 @@ export class TuinService {
       
       if (error instanceof DatabaseError || error instanceof ValidationError || error instanceof NotFoundError) {
         return createResponse<Tuin>(null, error.message, 'update garden')
+      }
+      
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.message.includes('timeout')) {
+        databaseLogger.error('Database operation timed out in TuinService.update', error, { id, updates })
+        return createResponse<Tuin>(null, 'Database operation timed out. Please try again.', 'update garden')
       }
       
       databaseLogger.error('Unexpected error in TuinService.update', error as Error, { id, updates })
@@ -375,10 +444,17 @@ export class TuinService {
       }
       
       // First, remove all user access to this garden
-      const { error: accessError } = await supabase
+      // Add timeout protection to prevent database lookup timeout errors
+      const accessTimeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database lookup timeout')), 30000) // 30 second timeout
+      })
+
+      const accessDatabasePromise = supabase
         .from('user_garden_access')
         .delete()
         .eq('garden_id', id)
+
+      const { error: accessError } = await Promise.race([accessDatabasePromise, accessTimeoutPromise]) as any
       
       if (accessError) {
         databaseLogger.warn('Failed to remove user access for garden', { gardenId: id, error: accessError })
@@ -388,13 +464,20 @@ export class TuinService {
       }
       
       // Then soft delete the garden
-      const { error } = await supabase
+      // Add timeout protection to prevent database lookup timeout errors
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Database lookup timeout')), 30000) // 30 second timeout
+      })
+
+      const databasePromise = supabase
         .from(this.RESOURCE_NAME)
         .update({ 
           is_active: false,
           updated_at: new Date().toISOString()
         })
         .eq('id', id)
+
+      const { error } = await Promise.race([databasePromise, timeoutPromise]) as any
       
       if (error) {
         throw new DatabaseError('Failed to delete garden', error.code, error)
@@ -412,6 +495,12 @@ export class TuinService {
       
       if (error instanceof DatabaseError || error instanceof ValidationError) {
         return createResponse<boolean>(false, error.message, 'delete garden')
+      }
+      
+      // Handle timeout errors specifically
+      if (error instanceof Error && error.message.includes('timeout')) {
+        databaseLogger.error('Database operation timed out in TuinService.delete', error, { id })
+        return createResponse<boolean>(false, 'Database operation timed out. Please try again.', 'delete garden')
       }
       
       databaseLogger.error('Unexpected error in TuinService.delete', error as Error, { id })

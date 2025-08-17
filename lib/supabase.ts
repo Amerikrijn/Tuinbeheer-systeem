@@ -29,6 +29,18 @@ const getSupabaseClient = (): SupabaseClient => {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'visual-garden-app'
+      }
+    },
+    db: {
+      schema: 'public'
+    },
+    // Add timeout configuration to prevent database lookup timeout errors
+    realtime: {
+      timeout: 20000 // 20 second timeout for realtime connections
     }
   })
 
@@ -54,6 +66,18 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     auth: {
       autoRefreshToken: false,
       persistSession: false
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'visual-garden-app-admin'
+      }
+    },
+    db: {
+      schema: 'public'
+    },
+    // Add timeout configuration to prevent database lookup timeout errors
+    realtime: {
+      timeout: 20000 // 20 second timeout for realtime connections
     }
   })
 
