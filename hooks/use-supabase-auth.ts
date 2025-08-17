@@ -47,6 +47,16 @@ const AuthContext = createContext<AuthContextType | null>(null)
 const SESSION_CACHE_KEY = 'tuinbeheer_user_profile'
 const CACHE_DURATION = 30 * 1000 // 30 seconds - shorter for critical updates
 
+// Helper function to get Supabase client
+const getSupabase = () => {
+  try {
+    return getSupabaseClient()
+  } catch (error) {
+    console.error('Failed to initialize Supabase client:', error)
+    throw new Error('Authentication service unavailable')
+  }
+}
+
 interface CachedUserProfile {
   user: User
   timestamp: number
@@ -138,6 +148,7 @@ export function useSupabaseAuth(): AuthContextType {
       })
 
       // 🏦 BANKING-GRADE: Case-insensitive email lookup with timeout
+      const supabase = getSupabase();
       const databasePromise = supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
@@ -287,8 +298,8 @@ export function useSupabaseAuth(): AuthContextType {
         // Get current session with error handling
         let session
         try {
-          const supabase = getSupabaseClient();
-  const { data, error: sessionError } = await supabase.auth.getSession()
+          const supabase = getSupabase();
+          const { data, error: sessionError } = await supabase.auth.getSession()
           if (sessionError) {
             console.warn('Session error, continuing without session:', sessionError.message)
             session = null
@@ -358,10 +369,10 @@ export function useSupabaseAuth(): AuthContextType {
       }
     }, 3000) // Reduced for faster loading
 
-    // Listen for auth changes - ensure only one subscription
-    try {
-              const supabase = getSupabaseClient();
-        const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            // Listen for auth changes - ensure only one subscription
+        try {
+          const supabase = getSupabase();
+          const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!isMounted) return
         
         if (event === 'SIGNED_IN' && session?.user) {
@@ -420,12 +431,12 @@ export function useSupabaseAuth(): AuthContextType {
   const signIn = async (email: string, password: string): Promise<void> => {
     setState(prev => ({ ...prev, loading: true, error: null }))
     
-    try {
-              const supabase = getSupabaseClient();
+          try {
+        const supabase = getSupabase();
         const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+          email,
+          password
+        })
 
       if (error) {
         throw error
@@ -453,9 +464,9 @@ export function useSupabaseAuth(): AuthContextType {
   const signOut = async (): Promise<void> => {
     setState(prev => ({ ...prev, loading: true }))
     
-    try {
-      clearCachedUserProfile()
-              const supabase = getSupabaseClient();
+          try {
+        clearCachedUserProfile()
+        const supabase = getSupabase();
         const { error } = await supabase.auth.signOut()
       if (error) {
         throw error
@@ -475,8 +486,8 @@ export function useSupabaseAuth(): AuthContextType {
     setState(prev => ({ ...prev, loading: true, error: null }))
     
     try {
-              const supabase = getSupabaseClient();
-        const { data, error } = await supabase.auth.signUp({
+      const supabase = getSupabase();
+      const { data, error } = await supabase.auth.signUp({
         email,
         password
       })
@@ -498,8 +509,8 @@ export function useSupabaseAuth(): AuthContextType {
 
   const resetPassword = async (email: string): Promise<void> => {
     try {
-              const supabase = getSupabaseClient();
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const supabase = getSupabase();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`
       })
       
