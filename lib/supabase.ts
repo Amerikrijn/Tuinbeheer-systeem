@@ -84,8 +84,12 @@ const getSupabaseAdminClient = (): SupabaseClient => {
   return supabaseAdminInstance
 }
 
-// Export the functions
-export { getSupabaseClient, getSupabaseAdminClient }
+// Create a default supabase instance for backward compatibility
+const supabase = getSupabaseClient()
+
+// Export the functions and default instance
+export { getSupabaseClient, getSupabaseAdminClient, supabase }
+export default supabase
 
 // ========================================
 // VISUAL GARDEN CONSTANTS

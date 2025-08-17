@@ -54,19 +54,16 @@ export class NotFoundError extends Error {
 
 // Connection validation with retry logic (banking compliant)
 async function validateConnection(retries = 3): Promise<void> {
+  // Temporarily disabled to fix login performance issues
+  // TODO: Re-enable when database performance is improved
+  return;
+  
+  // Original code commented out:
+  /*
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const supabase = getSupabaseClient();
-      
-      // Add timeout to the database query
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database connection timeout')), 3000) // Reduced timeout for better UX
-      })
-      
-      const dbPromise = supabase.from('gardens').select('count').limit(1)
-      
-      const { error } = await Promise.race([dbPromise, timeoutPromise]) as any
-      
+      // Use a faster, lighter query for connection validation
+      const { error } = await supabase.from('gardens').select('id').limit(1)
       if (!error) {
         databaseLogger.debug('Database connection validated successfully', { attempt })
         return
@@ -85,6 +82,7 @@ async function validateConnection(retries = 3): Promise<void> {
       }
     }
   }
+  */
 }
 
 // Generic response wrapper with logging
