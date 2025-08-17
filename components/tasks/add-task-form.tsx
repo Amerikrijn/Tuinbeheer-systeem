@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Plus } from "lucide-react"
 import { TaskService } from "@/lib/services/task.service"
-import { supabase } from "@/lib/supabase"
+import { getSupabaseClient } from "@/lib/supabase"
 import type { CreateTaskData } from "@/lib/types/tasks"
 import { TASK_TYPE_CONFIGS, PRIORITY_CONFIGS } from "@/lib/types/tasks"
 
@@ -75,6 +75,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
 
   const loadPlants = async () => {
     try {
+      const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('plants')
         .select(`
@@ -116,6 +117,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
 
   const loadPlantBeds = async () => {
     try {
+      const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('plant_beds')
         .select(`
