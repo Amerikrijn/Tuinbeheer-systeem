@@ -8,15 +8,12 @@ import { createClient, type SupabaseClient, AuthError } from '@supabase/supabase
 // Development: Must be set in .env.local
 // ========================================
 
-// Singleton pattern to prevent multiple instances
+// Global variables to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
+let supabaseAdminInstance: SupabaseClient | null = null
 
-const getSupabaseClient = (): SupabaseClient => {
-  if (supabaseInstance) {
-    return supabaseInstance
-  }
-
-  // Use environment variables only
+// Create client only once - prevents multiple instances
+const createSupabaseClient = (): SupabaseClient => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -24,7 +21,7 @@ const getSupabaseClient = (): SupabaseClient => {
     throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.')
   }
 
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+  return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
@@ -39,18 +36,10 @@ const getSupabaseClient = (): SupabaseClient => {
       schema: 'public'
     }
   })
-
-  return supabaseInstance
 }
 
-// Admin client for server-side operations
-let supabaseAdminInstance: SupabaseClient | null = null
-
-const getSupabaseAdminClient = (): SupabaseClient => {
-  if (supabaseAdminInstance) {
-    return supabaseAdminInstance
-  }
-
+// Create admin client only once
+const createSupabaseAdminClient = (): SupabaseClient => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   
@@ -58,7 +47,7 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     throw new Error('Missing Supabase admin environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your environment.')
   }
 
-  supabaseAdminInstance = createClient(supabaseUrl, serviceRoleKey, {
+  return createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
@@ -72,18 +61,38 @@ const getSupabaseAdminClient = (): SupabaseClient => {
       schema: 'public'
     }
   })
+}
 
+// Getter functions that ensure single instance
+const getSupabaseClient = (): SupabaseClient => {
+  if (!supabaseInstance) {
+    supabaseInstance = createSupabaseClient()
+  }
+  return supabaseInstance
+}
+
+const getSupabaseAdminClient = (): SupabaseClient => {
+  if (!supabaseAdminInstance) {
+    supabaseAdminInstance = createSupabaseAdminClient()
+  }
   return supabaseAdminInstance
 }
 
 // Export the functions
 export { getSupabaseClient, getSupabaseAdminClient }
 
-// Export supabase client for frontend compatibility
+// Export single instances - these are created only once
 export const supabase = getSupabaseClient()
 
-// Export supabaseAdmin client for server-side operations
-export const supabaseAdmin = getSupabaseAdminClient()
+// Export supabaseAdmin for server-side operations ONLY
+export const supabaseAdmin = (() => {
+  // Check if we're on the client side
+  if (typeof window !== 'undefined') {
+    console.warn('supabaseAdmin should not be used on the client side')
+    return null
+  }
+  return getSupabaseAdminClient()
+})()
 
 // ========================================
 // VISUAL GARDEN CONSTANTS
