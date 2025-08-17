@@ -332,6 +332,14 @@ export function useSupabaseAuth(): AuthContextType {
             error: null
           })
         }
+        
+        // Ensure loading is always set to false
+        if (isMounted) {
+          setState(prev => ({
+            ...prev,
+            loading: false
+          }))
+        }
       } catch (error) {
         if (isMounted) {
           // Console logging removed for banking standards.error('Auth initialization error:', error)
@@ -342,6 +350,14 @@ export function useSupabaseAuth(): AuthContextType {
             loading: false,
             error: error instanceof Error ? error.message : 'Authentication error'
           })
+        }
+        
+        // Ensure loading is always set to false even on error
+        if (isMounted) {
+          setState(prev => ({
+            ...prev,
+            loading: false
+          }))
         }
       }
     }
@@ -357,7 +373,7 @@ export function useSupabaseAuth(): AuthContextType {
           error: prev.user ? null : 'Loading timeout - please refresh page'
         }))
       }
-    }, 3000) // Reduced for faster loading
+    }, 1000) // Reduced for faster loading
 
             // Listen for auth changes - ensure only one subscription
         try {
