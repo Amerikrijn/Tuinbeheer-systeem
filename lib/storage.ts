@@ -28,8 +28,8 @@ export interface UploadResult {
  * @returns Promise with upload result
  */
 export async function uploadImage(file: File, folder: string = 'plants'): Promise<UploadResult> {
-    const supabase = getSupabaseClient()
   try {
+    const supabase = getSupabaseClient()
     // Validate file type
     if (!file.type.startsWith('image/')) {
       return {
@@ -96,8 +96,8 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
  * @returns Promise with deletion result
  */
 export async function deleteImage(url: string): Promise<boolean> {
-    const supabase = getSupabaseClient()
   try {
+    const supabase = getSupabaseClient()
     // Extract file path from URL
     const urlParts = url.split('/plant-images/')
     if (urlParts.length < 2) {

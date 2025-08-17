@@ -13,7 +13,6 @@ import { getSupabaseClient } from './supabase';
  * Logt alle security-gerelateerde events voor audit trail
  */
 export async function logClientSecurityEvent(
-    const supabase = getSupabaseClient()
   action: string,
   severity: string,
   success: boolean,
@@ -23,6 +22,7 @@ export async function logClientSecurityEvent(
   newValues?: any
 ): Promise<void> {
   try {
+    const supabase = getSupabaseClient()
     const { error } = await supabase.rpc('log_security_event', {
       p_user_id: userId,
       p_action: action,
