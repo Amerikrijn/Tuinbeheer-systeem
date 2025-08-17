@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { getSupabaseClient } from './supabase'
 
 export async function ensureBucketExists(bucket: string = 'plant-images', isPublic: boolean = true): Promise<boolean> {
   try {

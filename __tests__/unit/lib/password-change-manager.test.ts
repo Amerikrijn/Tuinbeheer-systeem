@@ -12,7 +12,7 @@ jest.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import { passwordChangeManager } from '@/lib/password-change-manager';
 
 describe('PasswordChangeManager', () => {

@@ -6,7 +6,7 @@
  * Elke functie voldoet aan Nederlandse banking standards
  */
 
-import { supabase } from './supabase';
+import { getSupabaseClient } from './supabase';
 
 /**
  * Security Event Logging
