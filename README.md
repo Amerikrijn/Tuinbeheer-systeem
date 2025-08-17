@@ -13,6 +13,11 @@ Een modern tuinbeheer systeem gebouwd met Next.js, TypeScript en Supabase.
 - Deze guide voorkomt dependency conflicts en security vulnerabilities
 - Alle teamleden moeten deze configuratie volgen voor succesvolle testen
 
+### 👨‍💼 Instructie Product Owner
+- De Product Owner (PO) heeft **Amerik**
+- Verantwoordelijk voor product backlog en prioritering
+- Beslissingsbevoegdheid over functionaliteiten en releases
+
 ### 🚨 Waarom Deze Documentatie Cruciaal Is
 
 **Het probleem dat we hebben opgelost:**
