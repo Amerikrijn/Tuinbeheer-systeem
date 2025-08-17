@@ -45,6 +45,8 @@ pas alleen technical debt toe als hier expliceit toestemming voor is anders een 
 - Documentatie is technisch, functioneel en architectuur bijgewerkt
 - **🚨 KRITIEK: Geen Supabase keys hardgecodeerd in vercel.json of andere configuratiebestanden**
 - **🚨 KRITIEK: Alle secrets worden correct beheerd via Vercel Secrets**
+- **🚨 KRITIEK: Controleer ALLE bestanden op hardgecodeerde waarden zoals `your_anon_key`, `YOUR-ANON-KEY`, etc.**
+- **🚨 KRITIEK: Gebruik ALTIJD Vercel Secrets: `@supabase-anon-key` en `@supabase-service-role-key`**
 
 ### 🏦 Banking‑grade Coding Standards (aanvullend op onderstaande secties)
 - DNB‑richtlijnen toepassen waar relevant
@@ -79,6 +81,8 @@ pas alleen technical debt toe als hier expliceit toestemming voor is anders een 
 - Cursor controleert bij elke wijziging of pipeline en documentatie actueel zijn
 - **🚨 KRITIEK: Controleer ALTIJD of er geen Supabase keys in vercel.json zijn hardgecodeerd**
 - **🚨 KRITIEK: Verifieer dat alle secrets correct via Vercel Secrets worden beheerd**
+- **🚨 KRITIEK: Zoek naar hardgecodeerde waarden zoals `your_anon_key`, `YOUR-ANON-KEY`, `YOUR-PROJECT` in alle bestanden**
+- **🚨 KRITIEK: Controleer `.env.example`, error boundaries, en alle documentatie bestanden**
 
 ## 📋 SESSION START PROTOCOL - VERPLICHT
 De productower stelt een vraag
@@ -834,6 +838,24 @@ Deze fout is al één keer gemaakt en mag NOOIT meer gebeuren. Alle Supabase key
 #### ❌ VERBODEN IN `vercel.json`:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (gebruik `@supabase-anon-key` secret)
 - `SUPABASE_SERVICE_ROLE_KEY` (gebruik `@supabase-service-role-key` secret)
+
+#### ❌ VERBODEN IN ALLE BESTANDEN:
+- `your_anon_key` of `your_anon_key_here`
+- `your_service_role_key` of `your_service_role_key_here`
+- `YOUR-ANON-KEY` of `YOUR-SERVICE-ROLE-KEY`
+- `YOUR-PROJECT.supabase.co`
+
+#### ✅ CORRECTE CONFIGURATIE VOOR ALLE BESTANDEN:
+- Gebruik ALTIJD: `@supabase-anon-key` en `@supabase-service-role-key`
+- Gebruik ALTIJD: `https://dwsgwqosmihsfaxuheji.supabase.co`
+
+#### 🔍 BESTANDEN DIE AGENTS MOETEN CONTROLEREN:
+- `vercel.json` - Hoofdconfiguratie
+- `.env.example` - Voorbeeld environment variables
+- `components/error-boundary.tsx` - Error handling voorbeelden
+- Alle documentatie bestanden (`.md` bestanden)
+- Alle TypeScript/JavaScript bestanden
+- Alle configuratie bestanden
 
 #### ✅ CORRECTE `vercel.json` CONFIGURATIE:
 ```json
