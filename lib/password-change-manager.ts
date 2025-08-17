@@ -115,8 +115,8 @@ export class PasswordChangeManager {
       // Get current user if not provided
       let user: SupabaseUser | null = null
       if (userId) {
-        const supabaseAdmin = getSupabaseAdminClient();
-        const { data: { user: fetchedUser }, error } = await supabaseAdmin.auth.admin.getUserById(userId)
+        const supabaseClient = getSupabaseAdminClient();
+        const { data: { user: fetchedUser }, error } = await supabaseClient.auth.admin.getUserById(userId)
         if (error || !fetchedUser) {
           return {
             success: false,
@@ -197,8 +197,8 @@ export class PasswordChangeManager {
       }
 
       // Admin password change
-      const supabaseAdmin = getSupabaseAdminClient();
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      const supabaseClient = getSupabaseAdminClient();
+      const { error } = await supabaseClient.auth.admin.updateUserById(userId, {
         password: newPassword
       })
 
@@ -233,8 +233,8 @@ export class PasswordChangeManager {
       let user: SupabaseUser | null = null
       
       if (userId) {
-        const supabaseAdmin = getSupabaseAdminClient();
-        const { data: { user: fetchedUser }, error } = await supabaseAdmin.auth.admin.getUserById(userId)
+        const supabaseClient = getSupabaseAdminClient();
+        const { data: { user: fetchedUser }, error } = await supabaseClient.auth.admin.getUserById(userId)
         if (error || !fetchedUser) return false
         user = fetchedUser
       } else {
@@ -258,8 +258,8 @@ export class PasswordChangeManager {
    */
   async setPasswordChangeRequired(userId: string, required: boolean = true): Promise<boolean> {
     try {
-      const supabaseAdmin = getSupabaseAdminClient();
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      const supabaseClient = getSupabaseAdminClient();
+      const { error } = await supabaseClient.auth.admin.updateUserById(userId, {
         user_metadata: {
           force_password_change: required
         }
@@ -337,8 +337,8 @@ export class PasswordChangeManager {
       let user: SupabaseUser | null = null
       
       if (userId) {
-        const supabaseAdmin = getSupabaseAdminClient();
-        const { data: { user: fetchedUser }, error } = await supabaseAdmin.auth.admin.getUserById(userId)
+        const supabaseClient = getSupabaseAdminClient();
+        const { data: { user: fetchedUser }, error } = await supabaseClient.auth.admin.getUserById(userId)
         if (error || !fetchedUser) return false
         user = fetchedUser
       } else {
