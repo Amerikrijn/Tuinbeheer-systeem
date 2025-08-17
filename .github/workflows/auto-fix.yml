@@ -1,0 +1,56 @@
+name: Auto-Fix Tests
+
+on:
+  workflow_run:
+    workflows: ["PR Quality Gates", "Banking-Grade CI/CD Pipeline"]
+    types: [completed]
+    branches: [ main, develop ]
+
+jobs:
+  auto-fix:
+    name: Auto-Fix Failing Tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Attempt auto-fix
+        run: |
+          echo "🔧 Attempting to auto-fix failing tests..."
+          npm run auto-test-loop
+          
+      - name: Check if fixes were successful
+        run: |
+          echo "🧪 Testing if auto-fixes resolved the issues..."
+          npm run ci:quality
+          
+      - name: Auto-fix summary
+        run: |
+          echo "## 🔧 Auto-Fix Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if npm run ci:quality >/dev/null 2>&1; then
+            echo "✅ **Auto-fix successful!** Tests are now passing." >> $GITHUB_STEP_SUMMARY
+            echo "The pipeline will re-run automatically." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Auto-fix unsuccessful.** Manual intervention required." >> $GITHUB_STEP_SUMMARY
+            echo "Please review the failing tests and fix them manually." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+      - name: Commit fixes if successful
+        if: success()
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "🔧 Auto-fix: Resolved failing tests" || echo "No changes to commit"
+          git push origin HEAD:${{ github.head_ref }} || echo "Could not push changes"
