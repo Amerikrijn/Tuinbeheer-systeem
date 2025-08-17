@@ -25,6 +25,18 @@ if [ ! -f "package.json" ]; then
     exit 1
 fi
 
+# Documentation check
+echo "📚 Checking documentation compliance..."
+if [ -f "scripts/ensure-docs-updated.sh" ]; then
+    if ./scripts/ensure-docs-updated.sh; then
+        echo "✅ Documentation check passed"
+    else
+        echo "⚠️  Documentation check failed, but continuing..."
+    fi
+else
+    echo "⚠️  Documentation check script not found, skipping..."
+fi
+
 # Check if build works (skip if it fails, just warn)
 echo "🔨 Testing build process..."
 if npm run build; then
