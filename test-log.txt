@@ -3378,3 +3378,128 @@ Error: Failed to resolve import "@/lib/utils" from "components/ui/button.tsx". D
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
 
 
+Attempt failed:
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  components/ui/button.test.tsx [ components/ui/button.test.tsx ]
+Error: Failed to resolve import "@/lib/utils" from "components/ui/button.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /workspace/components/ui/button.tsx:5:19
+  2  |  import { Slot } from "@radix-ui/react-slot";
+  3  |  import { cva } from "class-variance-authority";
+  4  |  import { cn } from "@/lib/utils";
+     |                      ^
+  5  |  const buttonVariants = cva(
+  6  |    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation",
+ ❯ TransformPluginContext._formatLog node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31553:43
+ ❯ TransformPluginContext.error node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31550:14
+ ❯ normalizeUrl node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30022:18
+ ❯ node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30080:32
+ ❯ TransformPluginContext.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30048:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31351:14
+ ❯ loadAndTransform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:26438:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+Attempt failed:
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  components/ui/button.test.tsx [ components/ui/button.test.tsx ]
+Error: Failed to resolve import "@/lib/utils" from "components/ui/button.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /workspace/components/ui/button.tsx:5:19
+  2  |  import { Slot } from "@radix-ui/react-slot";
+  3  |  import { cva } from "class-variance-authority";
+  4  |  import { cn } from "@/lib/utils";
+     |                      ^
+  5  |  const buttonVariants = cva(
+  6  |    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation",
+ ❯ TransformPluginContext._formatLog node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31553:43
+ ❯ TransformPluginContext.error node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31550:14
+ ❯ normalizeUrl node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30022:18
+ ❯ node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30080:32
+ ❯ TransformPluginContext.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30048:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31351:14
+ ❯ loadAndTransform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:26438:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+Attempt failed:
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  components/ui/button.test.tsx [ components/ui/button.test.tsx ]
+Error: Failed to resolve import "@/lib/utils" from "components/ui/button.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /workspace/components/ui/button.tsx:5:19
+  2  |  import { Slot } from "@radix-ui/react-slot";
+  3  |  import { cva } from "class-variance-authority";
+  4  |  import { cn } from "@/lib/utils";
+     |                      ^
+  5  |  const buttonVariants = cva(
+  6  |    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation",
+ ❯ TransformPluginContext._formatLog node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31553:43
+ ❯ TransformPluginContext.error node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31550:14
+ ❯ normalizeUrl node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30022:18
+ ❯ node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30080:32
+ ❯ TransformPluginContext.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30048:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31351:14
+ ❯ loadAndTransform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:26438:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+Attempt failed:
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  components/ui/button.test.tsx [ components/ui/button.test.tsx ]
+Error: Failed to resolve import "@/lib/utils" from "components/ui/button.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /workspace/components/ui/button.tsx:5:19
+  2  |  import { Slot } from "@radix-ui/react-slot";
+  3  |  import { cva } from "class-variance-authority";
+  4  |  import { cn } from "@/lib/utils";
+     |                      ^
+  5  |  const buttonVariants = cva(
+  6  |    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation",
+ ❯ TransformPluginContext._formatLog node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31553:43
+ ❯ TransformPluginContext.error node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31550:14
+ ❯ normalizeUrl node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30022:18
+ ❯ node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30080:32
+ ❯ TransformPluginContext.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30048:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31351:14
+ ❯ loadAndTransform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:26438:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+Attempt failed:
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  components/ui/button.test.tsx [ components/ui/button.test.tsx ]
+Error: Failed to resolve import "@/lib/utils" from "components/ui/button.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /workspace/components/ui/button.tsx:5:19
+  2  |  import { Slot } from "@radix-ui/react-slot";
+  3  |  import { cva } from "class-variance-authority";
+  4  |  import { cn } from "@/lib/utils";
+     |                      ^
+  5  |  const buttonVariants = cva(
+  6  |    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation",
+ ❯ TransformPluginContext._formatLog node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31553:43
+ ❯ TransformPluginContext.error node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31550:14
+ ❯ normalizeUrl node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30022:18
+ ❯ node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30080:32
+ ❯ TransformPluginContext.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:30048:4
+ ❯ EnvironmentPluginContainer.transform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:31351:14
+ ❯ loadAndTransform node_modules/vitest/node_modules/vite/dist/node/chunks/dep-CMEinpL-.js:26438:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
