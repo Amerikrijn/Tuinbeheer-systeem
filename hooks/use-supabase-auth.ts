@@ -109,6 +109,7 @@ function clearCachedUserProfile(): void {
 }
 
 export function useSupabaseAuth(): AuthContextType {
+    const supabase = getSupabaseClient()
   const [state, setState] = useState<AuthState>({
     user: null,
     session: null,

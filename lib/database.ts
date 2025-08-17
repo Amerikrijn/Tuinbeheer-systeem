@@ -467,6 +467,7 @@ export async function getPlantBedsWithPlants(gardenId?: string): Promise<PlantBe
 
 // Utility functions
 export async function checkDatabaseConnection(): Promise<boolean> {
+    const supabase = getSupabaseClient()
   try {
     const { error } = await supabase.from("gardens").select("count").limit(1)
     return !error

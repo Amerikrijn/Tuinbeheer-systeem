@@ -13,6 +13,7 @@ import { getSupabaseClient } from './supabase';
  * Logt alle security-gerelateerde events voor audit trail
  */
 export async function logClientSecurityEvent(
+    const supabase = getSupabaseClient()
   action: string,
   severity: string,
   success: boolean,
