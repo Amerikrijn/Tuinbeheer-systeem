@@ -284,11 +284,19 @@ export function useSupabaseAuth(): AuthContextType {
           }))
         }
 
-        // Get current session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
-        if (sessionError) {
-          throw sessionError
+        // Get current session with error handling
+        let session
+        try {
+          const { data, error: sessionError } = await supabase.auth.getSession()
+          if (sessionError) {
+            console.warn('Session error, continuing without session:', sessionError.message)
+            session = null
+          } else {
+            session = data.session
+          }
+        } catch (error) {
+          console.warn('Failed to get session, continuing without session:', error)
+          session = null
         }
 
         if (session?.user && isMounted) {
@@ -347,7 +355,7 @@ export function useSupabaseAuth(): AuthContextType {
           error: prev.user ? null : 'Loading timeout - please refresh page'
         }))
       }
-    }, 8000) // Reduced from 10000ms
+    }, 3000) // Reduced for faster loading
 
     // Listen for auth changes - ensure only one subscription
     try {
