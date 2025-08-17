@@ -38,7 +38,8 @@ const getSupabaseClient = (): SupabaseClient => {
     },
     global: {
       headers: {
-        'X-Client-Info': 'tuinbeheer-app'
+        'X-Client-Info': 'tuinbeheer-app',
+        'X-Compliance': 'banking-grade'
       }
     },
     db: {
@@ -49,8 +50,42 @@ const getSupabaseClient = (): SupabaseClient => {
   return supabaseInstance
 }
 
+// Admin client for server-side operations (required for banking compliance)
+let supabaseAdminInstance: SupabaseClient | null = null
+
+const getSupabaseAdminClient = (): SupabaseClient => {
+  if (supabaseAdminInstance) {
+    return supabaseAdminInstance
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error('Missing Supabase admin environment variables. Required for banking compliance operations.')
+  }
+
+  supabaseAdminInstance = createClient(supabaseUrl, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'tuinbeheer-admin',
+        'X-Compliance': 'banking-grade'
+      }
+    },
+    db: {
+      schema: 'public'
+    }
+  })
+
+  return supabaseAdminInstance
+}
+
 // Export the functions
-export { getSupabaseClient }
+export { getSupabaseClient, getSupabaseAdminClient }
 
 // ========================================
 // VISUAL GARDEN CONSTANTS
