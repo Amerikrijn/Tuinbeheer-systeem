@@ -72,9 +72,9 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             <p>1. Create a <code className="bg-blue-100 px-1 rounded">.env.local</code> file in your project root</p>
             <p>2. Add your Supabase credentials:</p>
             <pre className="bg-blue-100 p-2 rounded text-xs overflow-x-auto">
-{`NEXT_PUBLIC_SUPABASE_URL=https://dwsgwqosmihsfaxuheji.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=@supabase-anon-key
-SUPABASE_SERVICE_ROLE_KEY=@supabase-service-role-key`}
+{`NEXT_PUBLIC_SUPABASE_URL=https://jouw-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=jouw_echte_anon_key_hier
+SUPABASE_SERVICE_ROLE_KEY=jouw_echte_service_role_key_hier`}
             </pre>
             <p>3. Restart your development server</p>
           </div>
