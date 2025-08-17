@@ -17,6 +17,7 @@ Een modern tuinbeheer systeem gebouwd met Next.js, TypeScript en Supabase.
 - De Product Owner (PO) heeft **Amerik**
 - Verantwoordelijk voor product backlog en prioritering
 - Beslissingsbevoegdheid over functionaliteiten en releases
+- HI THIS IS A TEST
 
 ### 🚨 Waarom Deze Documentatie Cruciaal Is
 
