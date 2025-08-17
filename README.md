@@ -1,7 +1,5 @@
 # 🌱 Visual Garden App
 
-test
-
 # Tuinbeheer Systeem
 
 Een modern tuinbeheer systeem gebouwd met Next.js, TypeScript en Supabase.
