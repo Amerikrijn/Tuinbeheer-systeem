@@ -54,6 +54,12 @@ export class NotFoundError extends Error {
 
 // Connection validation with retry logic
 async function validateConnection(retries = 3): Promise<void> {
+  // Temporarily disabled to fix login performance issues
+  // TODO: Re-enable when database performance is improved
+  return;
+  
+  // Original code commented out:
+  /*
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       // Use a faster, lighter query for connection validation
@@ -76,6 +82,7 @@ async function validateConnection(retries = 3): Promise<void> {
       }
     }
   }
+  */
 }
 
 // Generic response wrapper with logging
