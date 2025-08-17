@@ -6,6 +6,8 @@ Een modern tuinbeheer systeem gebouwd met Next.js, TypeScript en Supabase.
 
 ## 🚀 Features
 
+Dit is een test
+
 ## 📚 Documentatie
 
 ### 🛠️ Lokale Ontwikkelomgeving
@@ -135,5 +137,3 @@ npm install eslint@^8.57.1
 # 3. Verifieer
 npm run audit:security
 ```
-
-## 🚀 Features
