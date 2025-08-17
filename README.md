@@ -6,7 +6,7 @@ Een modern tuinbeheer systeem gebouwd met Next.js, TypeScript en Supabase.
 
 ## 🚀 Features
 
-Dit is een test
+Dit gaat beter
 
 ## 📚 Documentatie
 
