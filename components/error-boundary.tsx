@@ -21,10 +21,24 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    // Don't block render for Supabase errors
+    if (error.message.includes('Supabase') || 
+        error.message.includes('auth') || 
+        error.message.includes('fetch') ||
+        error.message.includes('network') ||
+        error.message.includes('timeout')) {
+      return { hasError: false, error }
+    }
     return { hasError: true, error }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // Only catch critical errors, not Supabase auth errors
+    if (this.isSupabaseError(error)) {
+      console.warn('Supabase error caught, not blocking render:', error.message)
+      return
+    }
+    
     this.setState({
       error,
       errorInfo
@@ -39,7 +53,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       error.message.includes('supabaseKey') ||
       error.message.includes('GoTrueClient') ||
       error.message.includes('Supabase') ||
-      error.message.includes('auth')
+      error.message.includes('auth') ||
+      error.message.includes('fetch') ||
+      error.message.includes('network') ||
+      error.message.includes('timeout')
     )
   }
 
