@@ -21,14 +21,28 @@ const getSupabaseClient = (): SupabaseClient => {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables:', {
+      url: supabaseUrl ? 'Set' : 'Missing',
+      key: supabaseAnonKey ? 'Set' : 'Missing'
+    })
     throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.')
   }
+
+  console.log('Initializing Supabase client with URL:', supabaseUrl)
 
   supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: true
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'tuinbeheer-app'
+      }
+    },
+    db: {
+      schema: 'public'
     }
   })
 
@@ -54,6 +68,14 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     auth: {
       autoRefreshToken: false,
       persistSession: false
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'tuinbeheer-admin'
+      }
+    },
+    db: {
+      schema: 'public'
     }
   })
 
