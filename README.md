@@ -1,6 +1,6 @@
 # 🌱 Visual Garden App
 
-**Test CI/CD Pipeline** - Deze wijziging triggert de nieuwe CI/CD pipeline om te testen of alle quality gates werken.
+
 
 # Tuinbeheer Systeem
 
