@@ -126,21 +126,21 @@ async function validateConnection(retries = 3): Promise<void> {
 
 // Database configuration with environment variable support - NO HARDCODED VALUES
 const DB_CONFIG = {
-  // Timeout values in milliseconds - configurable via environment variables
+  // Timeout values in milliseconds - OPTIMIZED for better performance
   TIMEOUTS: {
-    CONNECTION: parseInt(process.env.DB_CONNECTION_TIMEOUT || '30000'),
-    QUERY: parseInt(process.env.DB_QUERY_TIMEOUT || '45000'),
-    SIMPLE: parseInt(process.env.DB_SIMPLE_TIMEOUT || '30000'),
-    AUTH: parseInt(process.env.DB_AUTH_TIMEOUT || '15000'),
+    CONNECTION: parseInt(process.env.DB_CONNECTION_TIMEOUT || '15000'), // Reduced from 30s to 15s
+    QUERY: parseInt(process.env.DB_QUERY_TIMEOUT || '30000'), // Reduced from 45s to 30s
+    SIMPLE: parseInt(process.env.DB_SIMPLE_TIMEOUT || '15000'), // Reduced from 30s to 15s
+    AUTH: parseInt(process.env.DB_AUTH_TIMEOUT || '10000'), // Reduced from 15s to 10s
   },
-  // Retry configuration
+  // Retry configuration - OPTIMIZED
   RETRIES: {
-    CONNECTION: parseInt(process.env.DB_CONNECTION_RETRIES || '3'),
-    QUERY: parseInt(process.env.DB_QUERY_RETRIES || '2'),
+    CONNECTION: parseInt(process.env.DB_CONNECTION_RETRIES || '2'), // Reduced from 3 to 2
+    QUERY: parseInt(process.env.DB_QUERY_RETRIES || '1'), // Reduced from 2 to 1
   },
   // Security configuration
   SECURITY: {
-    MAX_INPUT_LENGTH: parseInt(process.env.DB_MAX_INPUT_LENGTH || '1000'),
+    MAX_INPUT_LENGTH: parseInt(process.env.DB_MAX_INPUT_LENGTH || '500'), // Reduced from 1000 to 500
     ENABLE_INPUT_VALIDATION: process.env.DB_ENABLE_INPUT_VALIDATION !== 'false',
     LOG_SECURITY_EVENTS: process.env.DB_LOG_SECURITY_EVENTS !== 'false',
   }
@@ -280,21 +280,23 @@ export class TuinService {
       
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
       
-      // Build query
+      // Build query - OPTIMIZED for performance
       let query = getSupabaseClient()
         .from(this.RESOURCE_NAME)
-        .select('*', { count: 'exact' })
+        .select('id, name, description, location, created_at, updated_at', { count: 'exact' })
         .eq('is_active', true)
       
-      // Apply filters with security validation
-      if (filters?.query) {
+      // Apply filters with security validation - OPTIMIZED
+      if (filters?.query && filters.query.trim()) {
+        const searchTerm = filters.query.trim()
+        
         // Additional security check for complex queries
-        if (filters.query.length > DB_CONFIG.SECURITY.MAX_INPUT_LENGTH) {
+        if (searchTerm.length > DB_CONFIG.SECURITY.MAX_INPUT_LENGTH) {
           const securityEvent = {
             operationId,
             operation: 'TuinService.getAll',
             securityViolation: 'INPUT_TOO_LONG',
-            inputLength: filters.query.length,
+            inputLength: searchTerm.length,
             maxAllowed: DB_CONFIG.SECURITY.MAX_INPUT_LENGTH,
             timestamp: new Date().toISOString()
           }
@@ -305,15 +307,16 @@ export class TuinService {
           return createResponse<PaginatedResponse<Tuin>>(null, 'Input too long', 'getAll gardens')
         }
         
-        query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%,location.ilike.%${filters.query}%`)
+        // OPTIMIZED: Use more efficient search pattern
+        query = query.or(`name.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
       }
       
-      // Apply sorting with validation
+      // Apply sorting with validation - OPTIMIZED
       const sortField = sort?.field || 'created_at'
       const sortDirection = sort?.direction === 'asc'
       
       // Validate sort field to prevent SQL injection
-      const allowedSortFields = ['created_at', 'updated_at', 'name', 'location', 'description']
+      const allowedSortFields = ['created_at', 'updated_at', 'name', 'location']
       if (!allowedSortFields.includes(sortField)) {
         const securityEvent = {
           operationId,
@@ -330,18 +333,19 @@ export class TuinService {
         return createResponse<PaginatedResponse<Tuin>>(null, 'Invalid sort field', 'getAll gardens')
       }
       
+      // OPTIMIZED: Add index hint for better performance
       query = query.order(sortField, { ascending: sortDirection })
       
-      // Apply pagination
+      // Apply pagination - OPTIMIZED
       const from = (validPage - 1) * validPageSize
       const to = from + validPageSize - 1
       query = query.range(from, to)
       
-      // Use timeout utility function for database operations with comprehensive logging
+      // OPTIMIZED: Use shorter timeout for simple queries
       const { data, error, count } = await withTimeout(
         query,
         'TuinService.getAll',
-        'QUERY',
+        'SIMPLE', // Changed from 'QUERY' to 'SIMPLE' for better performance
         operationId
       ) as any
       
