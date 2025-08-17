@@ -8,6 +8,17 @@ import { createClient, type SupabaseClient, AuthError } from '@supabase/supabase
 // Development: Must be set in .env.local
 // ========================================
 
+// Database configuration with environment variable support
+const SUPABASE_CONFIG = {
+  TIMEOUTS: {
+    REALTIME: parseInt(process.env.SUPABASE_REALTIME_TIMEOUT || '20000'), // 20s default
+    AUTH: parseInt(process.env.SUPABASE_AUTH_TIMEOUT || '30000'), // 30s default
+  },
+  RETRIES: {
+    CONNECTION: parseInt(process.env.SUPABASE_CONNECTION_RETRIES || '3'),
+  }
+}
+
 // Singleton pattern to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
 
@@ -40,7 +51,7 @@ const getSupabaseClient = (): SupabaseClient => {
     },
     // Add timeout configuration to prevent database lookup timeout errors
     realtime: {
-      timeout: 20000 // 20 second timeout for realtime connections
+      timeout: SUPABASE_CONFIG.TIMEOUTS.REALTIME
     }
   })
 
@@ -77,7 +88,7 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     },
     // Add timeout configuration to prevent database lookup timeout errors
     realtime: {
-      timeout: 20000 // 20 second timeout for realtime connections
+      timeout: SUPABASE_CONFIG.TIMEOUTS.REALTIME
     }
   })
 

@@ -56,14 +56,7 @@ export class NotFoundError extends Error {
 async function validateConnection(retries = 3): Promise<void> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      // Add timeout protection to connection validation
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database connection timeout')), 30000) // 30 second timeout
-      })
-
-      const connectionPromise = supabase.from('gardens').select('count').limit(1)
-      
-      const { error } = await Promise.race([connectionPromise, timeoutPromise]) as any
+      const { error } = await supabase.from('gardens').select('count').limit(1)
       
       if (!error) {
         databaseLogger.debug('Database connection validated successfully', { attempt })
@@ -85,12 +78,30 @@ async function validateConnection(retries = 3): Promise<void> {
   }
 }
 
-// Utility function for database operations with timeout protection
+// Database configuration with environment variable support
+const DB_CONFIG = {
+  // Timeout values in milliseconds - can be configured via environment variables
+  TIMEOUTS: {
+    CONNECTION: parseInt(process.env.DB_CONNECTION_TIMEOUT || '30000'), // 30s default
+    QUERY: parseInt(process.env.DB_QUERY_TIMEOUT || '45000'), // 45s default for complex queries
+    SIMPLE: parseInt(process.env.DB_SIMPLE_TIMEOUT || '30000'), // 30s default for simple operations
+    AUTH: parseInt(process.env.DB_AUTH_TIMEOUT || '15000'), // 15s default for auth operations
+  },
+  // Retry configuration
+  RETRIES: {
+    CONNECTION: parseInt(process.env.DB_CONNECTION_RETRIES || '3'),
+    QUERY: parseInt(process.env.DB_QUERY_RETRIES || '2'),
+  }
+}
+
+// Utility function for database operations with configurable timeout protection
 async function withTimeout<T>(
   databasePromise: Promise<T>,
   operationName: string,
-  timeoutMs: number = 30000
+  timeoutType: 'CONNECTION' | 'QUERY' | 'SIMPLE' | 'AUTH' = 'SIMPLE'
 ): Promise<T> {
+  const timeoutMs = DB_CONFIG.TIMEOUTS[timeoutType]
+  
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => reject(new Error(`Database lookup timeout for ${operationName}`)), timeoutMs)
   })
@@ -185,7 +196,7 @@ export class TuinService {
       const { data, error, count } = await withTimeout(
         query,
         'TuinService.getAll',
-        45000 // 45 second timeout for complex queries
+        'QUERY'
       ) as any
       
       if (error) {
@@ -243,7 +254,7 @@ export class TuinService {
           .eq('is_active', true)
           .single(),
         'TuinService.getById',
-        30000 // 30 second timeout
+        'QUERY'
       ) as any
       
       if (error) {
@@ -306,17 +317,15 @@ export class TuinService {
       }
       
       // Add timeout protection to prevent database lookup timeout errors
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 30000) // 30 second timeout
-      })
-
-      const databasePromise = supabase
-        .from(this.RESOURCE_NAME)
-        .insert(insertData)
-        .select('*')
-        .single()
-
-      const { data, error } = await Promise.race([databasePromise, timeoutPromise]) as any
+      const { data, error } = await withTimeout(
+        supabase
+          .from(this.RESOURCE_NAME)
+          .insert(insertData)
+          .select('*')
+          .single(),
+        'TuinService.create',
+        'SIMPLE'
+      ) as any
       
       if (error) {
         throw new DatabaseError('Failed to create garden', error.code, error)
@@ -382,19 +391,17 @@ export class TuinService {
       }
       
       // Add timeout protection to prevent database lookup timeout errors
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 30000) // 30 second timeout
-      })
-
-      const databasePromise = supabase
-        .from(this.RESOURCE_NAME)
-        .update(updateData)
-        .eq('id', id)
-        .eq('is_active', true)
-        .select('*')
-        .single()
-
-      const { data, error } = await Promise.race([databasePromise, timeoutPromise]) as any
+      const { data, error } = await withTimeout(
+        supabase
+          .from(this.RESOURCE_NAME)
+          .update(updateData)
+          .eq('id', id)
+          .eq('is_active', true)
+          .select('*')
+          .single(),
+        'TuinService.update',
+        'SIMPLE'
+      ) as any
       
       if (error) {
         throw new DatabaseError('Failed to update garden', error.code, error)
@@ -444,17 +451,15 @@ export class TuinService {
       }
       
       // First, remove all user access to this garden
-      // Add timeout protection to prevent database lookup timeout errors
-      const accessTimeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 30000) // 30 second timeout
-      })
-
-      const accessDatabasePromise = supabase
-        .from('user_garden_access')
-        .delete()
-        .eq('garden_id', id)
-
-      const { error: accessError } = await Promise.race([accessDatabasePromise, accessTimeoutPromise]) as any
+      // Use timeout utility function for database operations
+      const { error: accessError } = await withTimeout(
+        supabase
+          .from('user_garden_access')
+          .delete()
+          .eq('garden_id', id),
+        'TuinService.delete.userAccess',
+        'SIMPLE'
+      ) as any
       
       if (accessError) {
         databaseLogger.warn('Failed to remove user access for garden', { gardenId: id, error: accessError })
@@ -464,20 +469,18 @@ export class TuinService {
       }
       
       // Then soft delete the garden
-      // Add timeout protection to prevent database lookup timeout errors
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 30000) // 30 second timeout
-      })
-
-      const databasePromise = supabase
-        .from(this.RESOURCE_NAME)
-        .update({ 
-          is_active: false,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', id)
-
-      const { error } = await Promise.race([databasePromise, timeoutPromise]) as any
+      // Use timeout utility function for database operations
+      const { error } = await withTimeout(
+        supabase
+          .from(this.RESOURCE_NAME)
+          .update({ 
+            is_active: false,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', id),
+        'TuinService.delete.garden',
+        'SIMPLE'
+      ) as any
       
       if (error) {
         throw new DatabaseError('Failed to delete garden', error.code, error)
