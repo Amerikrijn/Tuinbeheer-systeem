@@ -79,6 +79,12 @@ const getSupabaseAdminClient = (): SupabaseClient => {
 // Export the functions
 export { getSupabaseClient, getSupabaseAdminClient }
 
+// Export supabase client for frontend compatibility
+export const supabase = getSupabaseClient()
+
+// Export supabaseAdmin client for server-side operations
+export const supabaseAdmin = getSupabaseAdminClient()
+
 // ========================================
 // VISUAL GARDEN CONSTANTS
 // ========================================
