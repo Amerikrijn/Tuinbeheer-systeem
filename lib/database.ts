@@ -51,6 +51,7 @@ export async function getGarden(id?: string): Promise<any | null> {
     return data
   }
 
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase.from("gardens").select("*").eq("id", id).eq("is_active", true).single()
 
   if (error) {
@@ -168,6 +169,7 @@ export async function deleteGarden(id: string): Promise<boolean> {
 export async function getPlantBeds(gardenId?: string): Promise<PlantBed[]> {
   console.log("Fetching plant beds for garden:", gardenId || "all")
 
+  const supabase = getSupabaseClient()
   let query = supabase
     .from("plant_beds")
     .select("*")

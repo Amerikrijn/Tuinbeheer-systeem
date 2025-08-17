@@ -440,6 +440,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
     const loadGardenUsers = async () => {
       try {
         setLoadingUsers(true)
+        const supabase = getSupabaseClient()
         const { data: users, error } = await supabase
           .from('user_garden_access')
           .select(`
