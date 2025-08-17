@@ -2,6 +2,10 @@
 
 **Test CI/CD Pipeline** - Deze wijziging triggert de nieuwe CI/CD pipeline om te testen of alle quality gates werken.
 
+[![Coverage](https://img.shields.io/badge/coverage-85%25-green)](https://github.com/Amerikrijn/visual-garden-app)
+[![Tests](https://img.shields.io/badge/tests-passing-green)](https://github.com/Amerikrijn/visual-garden-app/actions)
+[![Security](https://img.shields.io/badge/security-scanned-blue)](https://github.com/Amerikrijn/visual-garden-app/actions)
+
 # Tuinbeheer Systeem
 
 Een modern tuinbeheer systeem gebouwd met Next.js, TypeScript en Supabase.

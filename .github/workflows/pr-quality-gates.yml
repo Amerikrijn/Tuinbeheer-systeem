@@ -25,6 +25,83 @@ jobs:
       - name: Run all quality checks
         run: npm run ci:all
         
+      - name: Generate coverage report for PR
+        run: npm run test:coverage
+        
+      - name: Coverage PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Extract coverage data
+            let coverageData = {};
+            try {
+              const fs = require('fs');
+              if (fs.existsSync('coverage/coverage-summary.json')) {
+                coverageData = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+              }
+            } catch (e) {
+              console.log('Could not read coverage data:', e.message);
+            }
+            
+            const linesCoverage = coverageData.total?.lines?.pct || 0;
+            const functionsCoverage = coverageData.total?.functions?.pct || 0;
+            const branchesCoverage = coverageData.total?.branches?.pct || 0;
+            const statementsCoverage = coverageData.total?.statements?.pct || 0;
+            
+            // Determine coverage status
+            const threshold = 80;
+            const isAboveThreshold = linesCoverage >= threshold;
+            const statusEmoji = isAboveThreshold ? '✅' : '⚠️';
+            const statusText = isAboveThreshold ? 'Above threshold' : 'Below threshold';
+            
+            const commentBody = `## 📊 Coverage Report for PR
+            
+            **Lines Coverage:** ${linesCoverage}% ${statusEmoji}
+            **Threshold:** ${threshold}% (overrulable)
+            
+            ### Status: ${statusText}
+            
+            ### Coverage Breakdown:
+            - **Functions:** ${functionsCoverage}%
+            - **Branches:** ${branchesCoverage}%
+            - **Statements:** ${statementsCoverage}%
+            
+            ℹ️ **Note:** This is information only - PR can still be merged
+            ℹ️ **Repository owner** can override any coverage requirements
+            
+            ---
+            *Coverage report generated automatically*`;
+            
+            // Find existing coverage comment
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            
+            const coverageComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Coverage Report for PR')
+            );
+            
+            if (coverageComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                comment_id: coverageComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: commentBody,
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: commentBody,
+              });
+            }
+        
       - name: Quality Gates Summary
         run: |
           echo "## 🚦 PR Quality Gates Status" >> $GITHUB_STEP_SUMMARY

@@ -34,6 +34,44 @@ jobs:
       - name: Run unit tests
         run: npm run test:ci
         
+      - name: Generate coverage report
+        run: npm run test:coverage
+        
+      - name: Coverage quality gate (Overrulable)
+        run: |
+          echo "## 📊 Coverage Status" >> $GITHUB_STEP_SUMMARY
+          
+          # Extract coverage percentage from coverage report
+          if [ -f "coverage/coverage-summary.json" ]; then
+            COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct' 2>/dev/null || echo "0")
+            echo "**Lines Coverage:** $COVERAGE%" >> $GITHUB_STEP_SUMMARY
+          else
+            COVERAGE=0
+            echo "**Lines Coverage:** $COVERAGE% (no coverage data)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Coverage threshold check (WARNING ONLY - no blocking)
+          THRESHOLD=80
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l 2>/dev/null || echo "1") )); then
+            echo "⚠️  **Status:** Below $THRESHOLD% threshold" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️  **Note:** This is a WARNING only - deployment can continue" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️  **Repository owner** can override any coverage requirements" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Status:** Above $THRESHOLD% threshold" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Coverage Details:" >> $GITHUB_STEP_SUMMARY
+          if [ -f "coverage/coverage-summary.json" ]; then
+            echo "- **Functions:** $(cat coverage/coverage-summary.json | jq -r '.total.functions.pct' 2>/dev/null || echo "N/A")%" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branches:** $(cat coverage/coverage-summary.json | jq -r '.total.branches.pct' 2>/dev/null || echo "N/A")%" >> $GITHUB_STEP_SUMMARY
+            echo "- **Statements:** $(cat coverage/coverage-summary.json | jq -r '.total.statements.pct' 2>/dev/null || echo "N/A")%" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Functions:** N/A" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branches:** N/A" >> $GITHUB_STEP_SUMMARY
+            echo "- **Statements:** N/A" >> $GITHUB_STEP_SUMMARY
+          fi
+        
       - name: Quality check summary
         run: |
           echo "## 🔍 Code Quality Results" >> $GITHUB_STEP_SUMMARY
