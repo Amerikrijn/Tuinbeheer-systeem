@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, CheckCircle, AlertCircle, Eye, EyeOff, Lock } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 interface InvitationData {
   id: string
@@ -54,6 +54,7 @@ export default function AcceptInvitationPage() {
 
       try {
         // Verify the invitation with Supabase
+        const supabase = getSupabaseClient();
         const { data: invitationData, error } = await supabase.auth.verifyOtp({
           token: accessToken,
           type: 'invite',

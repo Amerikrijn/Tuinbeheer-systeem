@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { TreePine, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { useToast } from '@/hooks/use-toast'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 
 export default function ChangePasswordPage() {
   const router = useRouter()
@@ -41,6 +41,7 @@ export default function ChangePasswordPage() {
       }
 
       // Get user metadata from Supabase auth
+      const supabase = getSupabaseClient();
       const { data: { user: authUser } } = await supabase.auth.getUser()
       
       if (authUser?.user_metadata?.temp_password) {

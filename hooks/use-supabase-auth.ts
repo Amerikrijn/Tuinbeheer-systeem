@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, createContext, useContext } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import { clearStaleCache } from '@/lib/version'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 
@@ -287,7 +287,8 @@ export function useSupabaseAuth(): AuthContextType {
         // Get current session with error handling
         let session
         try {
-          const { data, error: sessionError } = await supabase.auth.getSession()
+          const supabase = getSupabaseClient();
+  const { data, error: sessionError } = await supabase.auth.getSession()
           if (sessionError) {
             console.warn('Session error, continuing without session:', sessionError.message)
             session = null
@@ -359,7 +360,8 @@ export function useSupabaseAuth(): AuthContextType {
 
     // Listen for auth changes - ensure only one subscription
     try {
-      const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+              const supabase = getSupabaseClient();
+        const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!isMounted) return
         
         if (event === 'SIGNED_IN' && session?.user) {
@@ -419,7 +421,8 @@ export function useSupabaseAuth(): AuthContextType {
     setState(prev => ({ ...prev, loading: true, error: null }))
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+              const supabase = getSupabaseClient();
+        const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
@@ -452,7 +455,8 @@ export function useSupabaseAuth(): AuthContextType {
     
     try {
       clearCachedUserProfile()
-      const { error } = await supabase.auth.signOut()
+              const supabase = getSupabaseClient();
+        const { error } = await supabase.auth.signOut()
       if (error) {
         throw error
       }
@@ -471,7 +475,8 @@ export function useSupabaseAuth(): AuthContextType {
     setState(prev => ({ ...prev, loading: true, error: null }))
     
     try {
-      const { data, error } = await supabase.auth.signUp({
+              const supabase = getSupabaseClient();
+        const { data, error } = await supabase.auth.signUp({
         email,
         password
       })
@@ -493,7 +498,8 @@ export function useSupabaseAuth(): AuthContextType {
 
   const resetPassword = async (email: string): Promise<void> => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+              const supabase = getSupabaseClient();
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`
       })
       

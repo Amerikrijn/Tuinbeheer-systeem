@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { TreePine, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import Link from 'next/link'
 
 interface ResetPasswordFormData {
@@ -64,6 +64,7 @@ function ResetPasswordContent() {
         }
 
         // Set the session with the tokens from the URL
+        const supabase = getSupabaseClient();
         const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken

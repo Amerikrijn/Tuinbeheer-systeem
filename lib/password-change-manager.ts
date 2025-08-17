@@ -8,7 +8,7 @@
  * - Banking compliance
  */
 
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient, getSupabaseAdminClient } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export interface PasswordChangeResult {
@@ -115,7 +115,8 @@ export class PasswordChangeManager {
       // Get current user if not provided
       let user: SupabaseUser | null = null
       if (userId) {
-        const { data: { user: fetchedUser }, error } = await supabase.auth.admin.getUserById(userId)
+        const supabaseAdmin = getSupabaseAdminClient();
+        const { data: { user: fetchedUser }, error } = await supabaseAdmin.auth.admin.getUserById(userId)
         if (error || !fetchedUser) {
           return {
             success: false,
@@ -124,6 +125,7 @@ export class PasswordChangeManager {
         }
         user = fetchedUser
       } else {
+        const supabase = getSupabaseClient();
         const { data: { user: currentUser }, error } = await supabase.auth.getUser()
         if (error || !currentUser) {
           return {
@@ -135,6 +137,7 @@ export class PasswordChangeManager {
       }
 
       // Verify current password
+      const supabase = getSupabaseClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email!,
         password: currentPassword
@@ -194,7 +197,8 @@ export class PasswordChangeManager {
       }
 
       // Admin password change
-      const { error } = await supabase.auth.admin.updateUserById(userId, {
+      const supabaseAdmin = getSupabaseAdminClient();
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         password: newPassword
       })
 
@@ -229,10 +233,12 @@ export class PasswordChangeManager {
       let user: SupabaseUser | null = null
       
       if (userId) {
-        const { data: { user: fetchedUser }, error } = await supabase.auth.admin.getUserById(userId)
+        const supabaseAdmin = getSupabaseAdminClient();
+        const { data: { user: fetchedUser }, error } = await supabaseAdmin.auth.admin.getUserById(userId)
         if (error || !fetchedUser) return false
         user = fetchedUser
       } else {
+        const supabase = getSupabaseClient();
         const { data: { user: currentUser }, error } = await supabase.auth.getUser()
         if (error || !currentUser) return false
         user = currentUser
@@ -252,7 +258,8 @@ export class PasswordChangeManager {
    */
   async setPasswordChangeRequired(userId: string, required: boolean = true): Promise<boolean> {
     try {
-      const { error } = await supabase.auth.admin.updateUserById(userId, {
+      const supabaseAdmin = getSupabaseAdminClient();
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
         user_metadata: {
           force_password_change: required
         }
@@ -330,10 +337,12 @@ export class PasswordChangeManager {
       let user: SupabaseUser | null = null
       
       if (userId) {
-        const { data: { user: fetchedUser }, error } = await supabase.auth.admin.getUserById(userId)
+        const supabaseAdmin = getSupabaseAdminClient();
+        const { data: { user: fetchedUser }, error } = await supabaseAdmin.auth.admin.getUserById(userId)
         if (error || !fetchedUser) return false
         user = fetchedUser
       } else {
+        const supabase = getSupabaseClient();
         const { data: { user: currentUser }, error } = await supabase.auth.getUser()
         if (error || !currentUser) return false
         user = currentUser
