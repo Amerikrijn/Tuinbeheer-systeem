@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     const tempPassword = generateSecurePassword()
 
     // Create auth user
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: email.toLowerCase().trim(),
       password: tempPassword,
       email_confirm: true,
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       console.error('Profile creation failed:', profileError)
       
       // CRITICAL: Cleanup auth user if profile fails
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+      await supabase.auth.admin.deleteUser(authData.user.id)
       
       return NextResponse.json(
         { error: `Profile creation failed: ${profileError.message}` },
@@ -237,7 +237,7 @@ export async function PUT(request: NextRequest) {
       const newPassword = generateSecurePassword()
 
       // Update auth password
-      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      const { error: authError } = await supabase.auth.admin.updateUserById(userId, {
         password: newPassword,
         user_metadata: {
           temp_password: true,
