@@ -184,3 +184,23 @@ jobs:
           else
             echo "❌ **SOME CHECKS FAILED** - Review required before deployment" >> $GITHUB_STEP_SUMMARY
           fi
+=======
+name: CI/CD Pipeline
+
+on: [push, pull_request]
+
+env:
+  NODE_VERSION: '18'
+  COVERAGE_THRESHOLD: '60'
+
+jobs:
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Build Docker
+        run: echo "Docker build step"
+>>>>>>> 0e3a96f6a2247696847b22cb53842ce312f32c25
