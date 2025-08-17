@@ -1,4 +1,4 @@
-name: Banking-Grade CI/CD Pipeline
+name: CI/CD Pipeline
 
 # Trigger workflow on push to main and other branches
 # Updated: Ensure production deployment works with fixed security vulnerabilities
