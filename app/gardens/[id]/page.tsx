@@ -656,7 +656,7 @@ export default function GardenDetailPage() {
                 />
 
                 {/* Plant Beds */}
-                {plantBeds.map((bed) => {
+                {(plantBeds || []).map((bed) => {
                   const isSelected = selectedBed === bed.id
                   
                   // Always recalculate dimensions from size to ensure correct scaling
@@ -713,11 +713,11 @@ export default function GardenDetailPage() {
                             {/* Flower Visualization System */}
                             <FlowerVisualization 
                               plantBed={bed}
-                              plants={bed.plants}
+                              plants={bed.plants || []}
                               containerWidth={bedWidth}
                               containerHeight={bedHeight}
                             />
-                            {bed.plants.length === 0 && (
+                            {(bed.plants || []).length === 0 && (
                               <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
                                 🌱 Leeg plantvak
                               </div>
@@ -737,7 +737,7 @@ export default function GardenDetailPage() {
                         <div className="mt-1 text-center">
                           <div className="text-xs text-gray-600 font-medium">{bed.name}</div>
                           <div className="text-xs text-gray-500">
-                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {bed.plants.length} 🌸
+                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {(bed.plants || []).length} 🌸
                           </div>
                         </div>
                       </div>
@@ -746,20 +746,19 @@ export default function GardenDetailPage() {
                 })}
 
                 {/* Empty State */}
-                {plantBeds.length === 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center bg-white/80 p-8 rounded-lg border-2 border-dashed border-gray-300">
-                      <Leaf className="h-20 w-20 mx-auto text-gray-400 mb-4" />
-                      <h3 className="text-xl font-medium text-gray-900 mb-2">Nog geen plantvakken</h3>
-                      <p className="text-gray-600 mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
-                      <Button 
-                        className="bg-green-600 hover:bg-green-700"
-                        onClick={() => setIsAddingPlantBed(true)}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Eerste Plantvak Maken
-                      </Button>
+                {(plantBeds || []).length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="text-gray-500 mb-4">
+                      <TreePine className="h-16 w-16 mx-auto text-gray-300" />
                     </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Geen plantvakken</h3>
+                    <p className="text-gray-500 mb-4">
+                      Voeg je eerste plantvak toe om te beginnen met tuinieren.
+                    </p>
+                    <Button onClick={() => setIsAddingPlantBed(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Plantvak Toevoegen
+                    </Button>
                   </div>
                 )}
               </div>
@@ -811,7 +810,7 @@ export default function GardenDetailPage() {
           </Card>
         ) : (
           <div className="grid gap-4">
-            {plantBeds.map((bed) => (
+            {(plantBeds || []).map((bed) => (
               <Card key={bed.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -828,15 +827,15 @@ export default function GardenDetailPage() {
                           </div>
                         )}
                         <div>
-                          {bed.plants.length} bloemen
+                          {(bed.plants || []).length} bloemen
                         </div>
                       </div>
                       
                       {/* Flower preview in plant bed list */}
-                      {bed.plants.length > 0 && (
+                      {(bed.plants || []).length > 0 && (
                         <div className="mt-2">
                           <div className="flex flex-wrap gap-1">
-                            {bed.plants.slice(0, 4).map((flower, index) => (
+                            {(bed.plants || []).slice(0, 4).map((flower, index) => (
                               <div
                                 key={`${flower.id}-${index}`}
                                 className="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-1"
@@ -857,10 +856,10 @@ export default function GardenDetailPage() {
                                 )}
                               </div>
                             ))}
-                            {bed.plants.length > 4 && (
+                            {(bed.plants || []).length > 4 && (
                               <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
                                 <span className="text-xs text-gray-600">
-                                  +{bed.plants.length - 4}
+                                  +{(bed.plants || []).length - 4}
                                 </span>
                               </div>
                             )}
@@ -869,7 +868,7 @@ export default function GardenDetailPage() {
                       )}
                     </div>
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      {bed.plants.length > 0 ? 'Beplant' : 'Leeg'}
+                      {(bed.plants || []).length > 0 ? 'Beplant' : 'Leeg'}
                     </Badge>
                   </div>
                 </CardHeader>

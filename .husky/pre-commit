@@ -1,0 +1,35 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# 🚨 KRITIEKE SECURITY CHECK - NOOIT SUPABASE KEYS COMMITTEN
+echo "🔒 Checking for hardcoded Supabase keys..."
+
+# Check for hardcoded Supabase keys in all files
+if grep -r "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage; then
+    echo "❌ KRITIEKE FOUT: Hardcoded Supabase JWT tokens gevonden!"
+    echo "🚨 Deze mogen NOOIT in de repository staan!"
+    echo "🔒 Gebruik ALTIJD Vercel Secrets voor productie keys"
+    exit 1
+fi
+
+# Check for hardcoded Supabase URLs with real project IDs
+if grep -r "dwsgwqosmihsfaxuheji.supabase.co" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage; then
+    echo "❌ KRITIEKE FOUT: Hardcoded Supabase project URL gevonden!"
+    echo "🚨 Deze mogen NOOIT in de repository staan!"
+    echo "🔒 Gebruik ALTIJD environment variables voor URLs"
+    exit 1
+fi
+
+# Check for hardcoded anon keys (even test keys)
+if grep -r "test-anon-key" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.next --exclude-dir=coverage; then
+    echo "❌ KRITIEKE FOUT: Hardcoded test Supabase keys gevonden!"
+    echo "🚨 Zelfs test keys mogen niet hardgecodeerd zijn!"
+    echo "🔒 Gebruik ALTIJD environment variables"
+    exit 1
+fi
+
+echo "✅ Geen hardcoded Supabase keys gevonden - Security check geslaagd!"
+
+# Run other pre-commit checks
+npm run lint
+npm run typecheck
