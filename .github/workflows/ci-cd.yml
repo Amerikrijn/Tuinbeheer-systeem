@@ -1,6 +1,5 @@
 name: Banking-Grade CI/CD Pipeline
 
-# Force GitHub Actions refresh - Updated workflow structure
 on:
   push:
     branches: [ main, develop ]
@@ -33,6 +32,44 @@ jobs:
         
       - name: Run unit tests
         run: npm run test:ci
+        
+      - name: Generate coverage report
+        run: npm run test:coverage
+        
+      - name: Coverage quality gate (Overrulable)
+        run: |
+          echo "## 📊 Coverage Status" >> $GITHUB_STEP_SUMMARY
+          
+          # Extract coverage percentage from coverage report
+          if [ -f "coverage/coverage-summary.json" ]; then
+            COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct' 2>/dev/null || echo "0")
+            echo "**Lines Coverage:** $COVERAGE%" >> $GITHUB_STEP_SUMMARY
+          else
+            COVERAGE=0
+            echo "**Lines Coverage:** $COVERAGE% (no coverage data)" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Coverage threshold check (WARNING ONLY - no blocking)
+          THRESHOLD=80
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l 2>/dev/null || echo "1") )); then
+            echo "⚠️  **Status:** Below $THRESHOLD% threshold" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️  **Note:** This is a WARNING only - deployment can continue" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️  **Repository owner** can override any coverage requirements" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ **Status:** Above $THRESHOLD% threshold" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Coverage Details:" >> $GITHUB_STEP_SUMMARY
+          if [ -f "coverage/coverage-summary.json" ]; then
+            echo "- **Functions:** $(cat coverage/coverage-summary.json | jq -r '.total.functions.pct' 2>/dev/null || echo "N/A")%" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branches:** $(cat coverage/coverage-summary.json | jq -r '.total.branches.pct' 2>/dev/null || echo "N/A")%" >> $GITHUB_STEP_SUMMARY
+            echo "- **Statements:** $(cat coverage/coverage-summary.json | jq -r '.total.statements.pct' 2>/dev/null || echo "N/A")%" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Functions:** N/A" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branches:** N/A" >> $GITHUB_STEP_SUMMARY
+            echo "- **Statements:** N/A" >> $GITHUB_STEP_SUMMARY
+          fi
         
       - name: Quality check summary
         run: |
@@ -106,19 +143,10 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Check documentation compliance
-        run: |
-          echo "📋 Checking documentation compliance..."
-          if [ -d "docs/" ] || [ -f "README.md" ]; then
-            echo "✅ Documentation files found"
-          else
-            echo "⚠️  No documentation files found"
-          fi
+        run: ./scripts/ensure-docs-updated.sh
         
       - name: Banking compliance check
-        run: |
-          echo "🏦 Running banking compliance checks..."
-          echo "✅ Basic compliance checks passed"
-          echo "This is a simplified version - full checks can be added later"
+        run: npm run banking:compliance
         
       - name: Compliance summary
         run: |
@@ -129,7 +157,6 @@ jobs:
   regression:
     name: Regression Testing
     runs-on: ubuntu-latest
-    needs: [quality, build]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -152,12 +179,11 @@ jobs:
           echo "- Integration Tests: ✅ Passed" >> $GITHUB_STEP_SUMMARY
           echo "- End-to-End Tests: ✅ Passed" >> $GITHUB_STEP_SUMMARY
 
-  # Keep existing Docker build for compatibility
   docker-build:
     name: Docker Build
     runs-on: ubuntu-latest
-    needs: [quality, security, build, compliance, regression]
-    if: always()
+    needs: [build]
+    if: needs.build.result == 'success'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -170,7 +196,6 @@ jobs:
           echo "🚀 Docker build successful!"
           echo "Ready for deployment!"
 
-  # Summary job that runs after all others
   summary:
     name: Pipeline Summary
     runs-on: ubuntu-latest
@@ -187,10 +212,11 @@ jobs:
           echo "- Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- Compliance: ${{ needs.compliance.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- Regression: ${{ needs.regression.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Build: ${{ needs.docker-build.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Overall Status:" >> $GITHUB_STEP_SUMMARY
           if [[ "${{ needs.quality.result }}" == "success" && "${{ needs.security.result }}" == "success" && "${{ needs.build.result }}" == "success" && "${{ needs.compliance.result }}" == "success" && "${{ needs.regression.result }}" == "success" ]]; then
             echo "🎉 **ALL CHECKS PASSED** - Ready for deployment!" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ **SOME CHECKS FAILED** - Review required before deployment" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️  **SOME CHECKS FAILED** - Review recommended but deployment can continue" >> $GITHUB_STEP_SUMMARY
           fi
