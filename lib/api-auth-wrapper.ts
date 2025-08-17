@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import { apiLogger } from '@/lib/logger';
 import { logClientSecurityEvent, validateApiInput } from '@/lib/banking-security';
 
@@ -39,6 +39,7 @@ export async function requireAuthentication(
     const token = authHeader.substring(7);
 
     // Verifieer JWT token met Supabase
+    const supabase = getSupabaseClient();
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {
@@ -132,6 +133,7 @@ export async function requireAuthenticationQuick(
     }
 
     const token = authHeader.substring(7);
+    const supabase = getSupabaseClient();
     const { data: { user }, error } = await supabase.auth.getUser(token);
 
     if (error || !user) {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, createContext, useContext } from 'react'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import { clearStaleCache } from '@/lib/version'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 
@@ -46,6 +46,16 @@ const AuthContext = createContext<AuthContextType | null>(null)
 // Session cache to prevent redundant database calls
 const SESSION_CACHE_KEY = 'tuinbeheer_user_profile'
 const CACHE_DURATION = 30 * 1000 // 30 seconds - shorter for critical updates
+
+// Helper function to get Supabase client
+const getSupabase = () => {
+  try {
+    return getSupabaseClient()
+  } catch (error) {
+    console.error('Failed to initialize Supabase client:', error)
+    throw new Error('Authentication service unavailable')
+  }
+}
 
 interface CachedUserProfile {
   user: User
@@ -134,10 +144,11 @@ export function useSupabaseAuth(): AuthContextType {
     try {
       // 🏦 IMPROVED: Better timeout with progressive fallback
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 15000) // Increased for production stability
+        setTimeout(() => reject(new Error('Database lookup timeout')), 3000) // Banking compliant timeout
       })
 
       // 🏦 BANKING-GRADE: Case-insensitive email lookup with timeout
+      const supabase = getSupabase();
       const databasePromise = supabase
         .from('users')
         .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
@@ -287,6 +298,7 @@ export function useSupabaseAuth(): AuthContextType {
         // Get current session with error handling
         let session
         try {
+          const supabase = getSupabase();
           const { data, error: sessionError } = await supabase.auth.getSession()
           if (sessionError) {
             console.warn('Session error, continuing without session:', sessionError.message)
@@ -357,9 +369,10 @@ export function useSupabaseAuth(): AuthContextType {
       }
     }, 3000) // Reduced for faster loading
 
-    // Listen for auth changes - ensure only one subscription
-    try {
-      const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            // Listen for auth changes - ensure only one subscription
+        try {
+          const supabase = getSupabase();
+          const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!isMounted) return
         
         if (event === 'SIGNED_IN' && session?.user) {
@@ -418,11 +431,12 @@ export function useSupabaseAuth(): AuthContextType {
   const signIn = async (email: string, password: string): Promise<void> => {
     setState(prev => ({ ...prev, loading: true, error: null }))
     
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+          try {
+        const supabase = getSupabase();
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        })
 
       if (error) {
         throw error
@@ -450,9 +464,10 @@ export function useSupabaseAuth(): AuthContextType {
   const signOut = async (): Promise<void> => {
     setState(prev => ({ ...prev, loading: true }))
     
-    try {
-      clearCachedUserProfile()
-      const { error } = await supabase.auth.signOut()
+          try {
+        clearCachedUserProfile()
+        const supabase = getSupabase();
+        const { error } = await supabase.auth.signOut()
       if (error) {
         throw error
       }
@@ -471,6 +486,7 @@ export function useSupabaseAuth(): AuthContextType {
     setState(prev => ({ ...prev, loading: true, error: null }))
     
     try {
+      const supabase = getSupabase();
       const { data, error } = await supabase.auth.signUp({
         email,
         password
@@ -493,6 +509,7 @@ export function useSupabaseAuth(): AuthContextType {
 
   const resetPassword = async (email: string): Promise<void> => {
     try {
+      const supabase = getSupabase();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`
       })
