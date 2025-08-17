@@ -11,11 +11,28 @@ interface SupabaseAuthProviderProps {
 }
 
 export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
-  const auth = useSupabaseAuth()
+  const [authError, setAuthError] = React.useState<Error | null>(null)
+  
+  let auth
+  try {
+    auth = useSupabaseAuth()
+  } catch (error) {
+    if (error instanceof Error) {
+      setAuthError(error)
+    }
+    // Return children without auth if there's an error
+    return <>{children}</>
+  }
+  
   const pathname = usePathname()
   
   // Initialize activity timeout for automatic logout
   useActivityTimeout()
+
+  // If there's an auth error, just render children without auth
+  if (authError) {
+    return <>{children}</>
+  }
 
   // 🏦 BANKING SECURITY: Check if user needs password change
   // More robust check to prevent infinite loops
