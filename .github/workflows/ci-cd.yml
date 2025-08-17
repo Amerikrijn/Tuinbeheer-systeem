@@ -1,0 +1,26 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ 'feature/**', 'bugfix/**', 'hotfix/**', 'preview/**', 'main', 'cursor/**' ]
+  pull_request:
+    branches: [ preview, main, 'cursor/**' ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+        - preview
+        - staging
+
+env:
+  NODE_VERSION: '18'
+  COVERAGE_THRESHOLD: '60'
+
+jobs:
+  changes:
+    name: Detect Code Changes
+    runs-o
