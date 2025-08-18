@@ -6,10 +6,10 @@ on:
     branches: [main]
 
 jobs:
-  # Job 1: Complete AI Testing Pipeline (all 3 agents)
-  ai-testing:
+  # Job 1: Test Generator Agent (starts the pipeline)
+  test-generator:
     runs-on: ubuntu-latest
-    name: 🤖 AI Testing Pipeline (3 Agents)
+    name: 🧪 Test Generator Agent
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -64,32 +64,139 @@ jobs:
           echo "====================================="
           echo "🚀 Proceeding to generate comprehensive summary..."
       
+      - name: Generate Test Generator Summary
+        run: |
+          echo "📊 Generating Test Generator Summary..."
+          echo "## 🧪 Test Generation Results" > test-generator-summary.md
+          if [ -f "agents/test-generator/test-results/login-exploration-summary.md" ]; then
+            cat "agents/test-generator/test-results/login-exploration-summary.md" >> test-generator-summary.md
+          fi
+      
+      - name: Upload Test Generator Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-generator-results
+          path: |
+            agents/test-generator/test-results/
+                         test-generator-summary.md
+  
+  # Job 2: Quality Analyzer Agent (waits for Test Generator)
+  quality-analyzer:
+    needs: [test-generator]
+    runs-on: ubuntu-latest
+    name: 🔍 Quality Analyzer Agent
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Quality Analyzer dependencies
+        run: |
+          echo "📦 Installing Quality Analyzer dependencies..."
+          cd agents/quality-analyzer && npm install
+      
+      - name: Download Test Generator Results
+        uses: actions/download-artifact@v4
+        with:
+          name: test-generator-results
+      
+      - name: 🔍 Run Quality Analyzer Agent
+        run: |
+          echo "🔍 Running Quality Analyzer Agent..."
+          echo "====================================="
+          cd agents/quality-analyzer
+          npx ts-node simple-cli.ts "../test-generator/test-results/login-exploration.json"
+          echo "✅ Quality Analyzer Agent completed successfully!"
+      
+      - name: Generate Quality Analyzer Summary
+        run: |
+          echo "📊 Generating Quality Analyzer Summary..."
+          echo "## 🔍 Quality Analysis Results" > quality-analyzer-summary.md
+          if [ -f "agents/quality-analyzer/quality-results/quality-analysis-summary.md" ]; then
+            cat "agents/quality-analyzer/quality-results/quality-analysis-summary.md" >> quality-analyzer-summary.md
+          fi
+      
+      - name: Upload Quality Analyzer Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-analyzer-results
+          path: |
+            agents/quality-analyzer/quality-results/
+            quality-analyzer-summary.md
+  
+  # Job 3: Auto-Fix Agent (waits for Quality Analyzer)
+  auto-fix:
+    needs: [quality-analyzer]
+    runs-on: ubuntu-latest
+    name: 🔧 Auto-Fix Agent
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Auto-Fix dependencies
+        run: |
+          echo "📦 Installing Auto-Fix dependencies..."
+          cd agents/auto-fix && npm install
+      
+      - name: Download Quality Analyzer Results
+        uses: actions/download-artifact@v4
+        with:
+          name: quality-analyzer-results
+      
+      - name: 🔧 Run Auto-Fix Agent
+        run: |
+          echo "🔧 Running Auto-Fix Agent..."
+          echo "====================================="
+          cd agents/auto-fix
+          npx ts-node simple-cli.ts "../quality-analyzer/quality-results/quality-analysis.json"
+          echo "✅ Auto-Fix Agent completed successfully!"
+      
+      - name: Generate Auto-Fix Summary
+        run: |
+          echo "📊 Generating Auto-Fix Summary..."
+          echo "## 🔧 Auto-Fix Suggestions" > auto-fix-summary.md
+          if [ -f "agents/auto-fix/auto-fix-results/auto-fix-summary.md" ]; then
+            cat "agents/auto-fix/auto-fix-results/auto-fix-summary.md" >> auto-fix-summary.md
+          fi
+      
       - name: Generate Complete AI Summary
         run: |
-          echo "📊 Step 4: Generating Complete AI Testing Summary..."
-          
-          # Create comprehensive summary from all three agents
+          echo "📊 Generating Complete AI Summary..."
           echo "## 🤖 Complete AI Testing Pipeline Results" > ai-summary.md
           echo "" >> ai-summary.md
           
-          # Test Generator Results
-          if [ -f "agents/test-generator/test-results/login-exploration-summary.md" ]; then
-            echo "### 🧪 Test Generation Results" >> ai-summary.md
-            cat "agents/test-generator/test-results/login-exploration-summary.md" >> ai-summary.md
+          # Combine all summaries
+          if [ -f "test-generator-summary.md" ]; then
+            cat "test-generator-summary.md" >> ai-summary.md
             echo "" >> ai-summary.md
           fi
           
-          # Quality Analyzer Results
-          if [ -f "agents/quality-analyzer/quality-results/quality-analysis-summary.md" ]; then
-            echo "### 🔍 Quality Analysis Results" >> ai-summary.md
-            cat "agents/quality-analyzer/quality-results/quality-analysis-summary.md" >> ai-summary.md
+          if [ -f "quality-analyzer-summary.md" ]; then
+            cat "quality-analyzer-summary.md" >> ai-summary.md
             echo "" >> ai-summary.md
           fi
           
-          # Auto-Fix Suggestions
-          if [ -f "agents/auto-fix/auto-fix-results/auto-fix-summary.md" ]; then
-            echo "### 🔧 Auto-Fix Suggestions" >> ai-summary.md
-            cat "agents/auto-fix/auto-fix-results/auto-fix-summary.md" >> ai-summary.md
+          if [ -f "auto-fix-summary.md" ]; then
+            cat "auto-fix-summary.md" >> ai-summary.md
           fi
           
           echo "" >> ai-summary.md
@@ -107,19 +214,13 @@ jobs:
             agents/*/quality-results/
             agents/*/auto-fix-results/
             ai-summary.md
-      
-      - name: Upload AI Summary
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: complete-ai-summary
-          path: ai-summary.md
   
-  # Job 2: Deploy (independent, can run anytime)
+  # Job 4: Deploy (waits for all AI agents, only for PRs)
   deploy:
+    needs: [auto-fix]
     runs-on: ubuntu-latest
     name: 🚀 Deploy
-    if: always()
+    if: github.event_name == 'pull_request'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -158,8 +259,9 @@ jobs:
           echo "📱 Preview URL will be available in Vercel dashboard"
           echo "🚀 Production deployment will start automatically"
   
-  # Job 3: Comment PR with Results (only for PRs, independent)
+  # Job 5: Comment PR with Results (waits for all AI agents, only for PRs)
   comment-pr:
+    needs: [auto-fix]
     runs-on: ubuntu-latest
     name: 💬 Comment PR
     if: github.event_name == 'pull_request'
