@@ -128,11 +128,12 @@ export function useSupabaseAuth(): AuthContextType {
         throw new Error('No authenticated user found')
       }
 
-      // Try to get existing user profile
+      // 🚀 PERFORMANCE: Optimized query - only select needed fields
       const { data: userProfile, error: profileError } = await supabase
         .from('users')
-        .select('*')
+        .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
         .eq('id', userId)
+        .eq('is_active', true) // Only active users
         .single()
 
       let role: string
@@ -150,6 +151,7 @@ export function useSupabaseAuth(): AuthContextType {
             full_name: supabaseUser.user_metadata?.full_name || 'New User',
             role: 'user', // Default role
             status: 'active', // Default status
+            is_active: true, // Ensure active
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
             last_login: new Date().toISOString(),
@@ -162,7 +164,7 @@ export function useSupabaseAuth(): AuthContextType {
           const { data: createdProfile, error: createError } = await supabase
             .from('users')
             .insert(newUserProfile)
-            .select()
+            .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
             .single()
 
           if (createError) {
@@ -189,38 +191,6 @@ export function useSupabaseAuth(): AuthContextType {
         role = userProfile.role || 'user'
         fullName = userProfile.full_name || fullName
         status = userProfile.status || 'active'
-      }
-
-      // 🏦 BANKING AUDIT: Comprehensive login audit trail
-      if (userProfile) {
-        const loginAuditData = {
-          timestamp: new Date().toISOString(),
-          event: 'AUTH_SUCCESS_LOGIN',
-          userId: supabaseUser.id,
-          email: supabaseUser.email,
-          role: role,
-          ip: typeof window !== 'undefined' ? 'client-side' : 'server-side',
-          userAgent: typeof window !== 'undefined' ? window.navigator?.userAgent : 'N/A',
-          sessionId: supabaseUser.id + '_' + Date.now()
-        }
-        
-        // Console logging removed for banking standards.log('🏦 BANKING AUDIT: Successful authentication', loginAuditData)
-        
-        // Update last_login asynchronously (non-blocking)
-        supabase
-          .from('users')
-          .update({ 
-            last_login: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', userProfile.id)
-          .then(({ error }) => {
-            if (error) {
-              // Console logging removed for banking standards.error('🏦 BANKING AUDIT: Failed to update last_login:', error)
-            } else {
-              // Console logging removed for banking standards.log('🏦 BANKING AUDIT: Last login timestamp updated')
-            }
-          })
       }
 
       // 🏦 BANKING-GRADE USER OBJECT: Complete with all security fields
@@ -456,27 +426,45 @@ export function useSupabaseAuth(): AuthContextType {
       }
 
       console.log('🔍 DEBUG: User authenticated successfully:', data.user.id)
-      console.log('🔍 DEBUG: Loading user profile...')
       
-      // Load user profile
-      const profileStart = Date.now()
-      await loadUserProfile(data.user.id)
-      const profileDuration = Date.now() - profileStart
-      console.log('🔍 DEBUG: User profile loaded in', profileDuration, 'ms')
+      // 🚀 PERFORMANCE: Update state immediately with basic user info
+      const basicUser: User = {
+        id: data.user.id,
+        email: data.user.email || '',
+        full_name: data.user.user_metadata?.full_name || 'User',
+        role: 'user', // Will be updated after profile load
+        status: 'active',
+        permissions: [],
+        garden_access: [],
+        created_at: new Date().toISOString(),
+        force_password_change: false
+      }
       
-      console.log('🔍 DEBUG: Loading garden access...')
-      const accessStart = Date.now()
-      await loadGardenAccess(data.user.id)
-      const accessDuration = Date.now() - accessStart
-      console.log('🔍 DEBUG: Garden access loaded in', accessDuration, 'ms')
-      
-      console.log('🔍 DEBUG: SignIn process completed successfully')
       setState(prev => ({ 
         ...prev, 
         loading: false, 
-        user: data.user,
+        user: basicUser,
         session: data.session
       }))
+      
+      console.log('🔍 DEBUG: Basic user state set, starting background profile load...')
+      
+      // 🚀 PERFORMANCE: Load profile and garden access in parallel (non-blocking)
+      Promise.all([
+        loadUserProfile(data.user.id),
+        loadGardenAccess(data.user.id)
+      ]).then(([userProfile, gardenAccess]) => {
+        console.log('🔍 DEBUG: Background profile load completed')
+        
+        // Update state with complete user info
+        setState(prev => ({
+          ...prev,
+          user: userProfile
+        }))
+      }).catch((error) => {
+        console.error('❌ ERROR: Background profile load failed:', error)
+        // Don't show error to user, basic login already succeeded
+      })
       
     } catch (error) {
       const duration = Date.now() - startTime
@@ -490,23 +478,39 @@ export function useSupabaseAuth(): AuthContextType {
   }
 
   const signOut = async (): Promise<void> => {
-    setState(prev => ({ ...prev, loading: true }))
+    console.log('🔍 DEBUG: Starting signOut process')
     
-          try {
-        clearCachedUserProfile()
-        const supabase = getSupabase();
-        const { error } = await supabase.auth.signOut()
-      if (error) {
-        throw error
-      }
-      // State will be updated by onAuthStateChange
+    // 🚀 PERFORMANCE: Update state immediately to remove spinner
+    setState(prev => ({ 
+      ...prev, 
+      loading: false, // Remove loading state immediately
+      user: null,
+      session: null,
+      error: null
+    }))
+    
+    console.log('🔍 DEBUG: State cleared immediately, starting background cleanup...')
+    
+    try {
+      // Clear cache immediately
+      clearCachedUserProfile()
+      
+      // Start background cleanup (non-blocking)
+      const supabase = getSupabase()
+      
+      // Sign out in background
+      supabase.auth.signOut().then(() => {
+        console.log('🔍 DEBUG: Background signOut completed')
+      }).catch((error) => {
+        console.error('❌ ERROR: Background signOut failed:', error)
+        // Don't show error to user, state already cleared
+      })
+      
+      console.log('🔍 DEBUG: SignOut process completed (non-blocking)')
+      
     } catch (error) {
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: error instanceof Error ? error.message : 'Sign out failed'
-      }))
-      throw error
+      console.error('❌ ERROR: SignOut error:', error)
+      // State already cleared, no need to update again
     }
   }
 
