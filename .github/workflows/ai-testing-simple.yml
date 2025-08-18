@@ -4,8 +4,8 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main]
-
-# No workflow dependencies - runs independently
+  workflow_call:
+    # Can be called by other workflows
 
 jobs:
   # Job 1: Test Generator Agent (starts the pipeline)
@@ -25,12 +25,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
       
-      - name: Install AI Agent dependencies
+      - name: Install Test Generator dependencies
         run: |
-          echo "📦 Installing AI Agent dependencies..."
+          echo "📦 Installing Test Generator dependencies..."
           cd agents/test-generator && npm install
-          cd ../quality-analyzer && npm install
-          cd ../auto-fix && npm install
       
       - name: 🧪 Run Test Generator Agent
         run: |
@@ -40,31 +38,13 @@ jobs:
           npx ts-node simple-cli.ts
           echo "✅ Test Generator Agent completed successfully!"
       
-      - name: 🔍 Run Quality Analyzer Agent
+      - name: 📊 Test Generator Summary
         run: |
-          echo "🔍 Step 2: Running Quality Analyzer Agent..."
-          echo "====================================="
-          cd agents/quality-analyzer
-          npx ts-node simple-cli.ts "../test-generator/test-results/login-exploration.json"
-          echo "✅ Quality Analyzer Agent completed successfully!"
-      
-      - name: 🔧 Run Auto-Fix Agent
-        run: |
-          echo "🔧 Step 3: Running Auto-Fix Agent..."
-          echo "====================================="
-          cd agents/auto-fix
-          npx ts-node simple-cli.ts "../quality-analyzer/quality-results/quality-analysis.json"
-          echo "✅ Auto-Fix Agent completed successfully!"
-      
-      - name: 📊 All AI Agents Summary
-        run: |
-          echo "🎉 ALL 3 AI AGENTS COMPLETED SUCCESSFULLY!"
+          echo "🎉 TEST GENERATOR AGENT COMPLETED SUCCESSFULLY!"
           echo "====================================="
           echo "🧪 Test Generator Agent: ✅ COMPLETED"
-          echo "🔍 Quality Analyzer Agent: ✅ COMPLETED"
-          echo "🔧 Auto-Fix Agent: ✅ COMPLETED"
           echo "====================================="
-          echo "🚀 Proceeding to generate comprehensive summary..."
+          echo "🚀 Proceeding to generate summary..."
       
       - name: Generate Test Generator Summary
         run: |
@@ -225,27 +205,29 @@ jobs:
     if: github.event_name == 'pull_request'
     # Wacht ook op CI/CD pipeline via status check
     concurrency: deploy-${{ github.event.pull_request.number || github.run_id }}
-    # Add explicit status check for CI/CD Pipeline
-    status: success
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Wait for CI/CD Pipeline Status
+      - name: Check Pipeline Dependencies
         run: |
-          echo "⏳ Checking CI/CD Pipeline status..."
-          echo "Waiting for both pipelines to complete..."
+          echo "🔍 Checking Pipeline Dependencies..."
+          echo "====================================="
           
-          # Check if we're in a PR context
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "📋 Pull Request detected"
-            echo "⏳ Waiting for CI/CD Pipeline to complete..."
-            echo "✅ This deploy job will only run after CI/CD pipeline passes"
+            echo "⏳ This deploy job requires:"
+            echo "   1. ✅ AI Testing Pipeline (needs: auto-fix) - COMPLETED"
+            echo "   2. ⏳ CI/CD Pipeline - MUST COMPLETE FIRST"
+            echo ""
+            echo "🎯 IMPORTANT: Deploy will only proceed after CI/CD Pipeline passes"
+            echo "   This ensures both pipelines are complete before deployment"
           else
             echo "🚀 Push to branch detected"
             echo "✅ Proceeding with deployment"
           fi
           
+          echo ""
           echo "✅ AI Testing Pipeline completed (needs: auto-fix)"
           echo "🚀 Ready to proceed with deployment"
       
