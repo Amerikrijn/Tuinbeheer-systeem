@@ -1,0 +1,196 @@
+name: AI Testing Pipeline (Simple)
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Job 1: Standard Tests & Build (existing pipeline)
+  standard-tests:
+    runs-on: ubuntu-latest
+    name: 🧪 Standard Tests & Build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Build project
+        run: npm run build
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: standard-test-results
+          path: |
+            coverage/
+            test-results/
+  
+  # Job 2: AI Testing Pipeline (runs once, not continuously)
+  ai-testing:
+    runs-on: ubuntu-latest
+    name: 🤖 AI Testing Pipeline
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install AI Agent dependencies
+        run: |
+          echo "📦 Installing AI Agent dependencies..."
+          cd agents/test-generator && npm install
+          cd ../quality-analyzer && npm install
+      
+      - name: Run Test Generator Agent
+        run: |
+          echo "🚀 Step 1: Running Test Generator Agent..."
+          cd agents/test-generator
+          npx ts-node simple-cli.ts
+      
+      - name: Run Quality Analyzer Agent
+        run: |
+          echo "🔍 Step 2: Running Quality Analyzer Agent..."
+          cd agents/quality-analyzer
+          npx ts-node simple-cli.ts "../test-generator/test-results/login-exploration.json"
+      
+      - name: Generate AI Summary
+        run: |
+          echo "📊 Step 3: Generating AI Testing Summary..."
+          
+          # Create summary from both agents
+          echo "## 🤖 AI Testing Pipeline Results" > ai-summary.md
+          echo "" >> ai-summary.md
+          
+          if [ -f "agents/test-generator/test-results/login-exploration-summary.md" ]; then
+            echo "### 🧪 Test Generation Results" >> ai-summary.md
+            cat "agents/test-generator/test-results/login-exploration-summary.md" >> ai-summary.md
+            echo "" >> ai-summary.md
+          fi
+          
+          if [ -f "agents/quality-analyzer/quality-results/quality-analysis-summary.md" ]; then
+            echo "### 🔍 Quality Analysis Results" >> ai-summary.md
+            cat "agents/quality-analyzer/quality-results/quality-analysis-summary.md" >> ai-summary.md
+          fi
+          
+          echo "" >> ai-summary.md
+          echo "---" >> ai-summary.md
+          echo "*AI Testing completed successfully* 🎉" >> ai-summary.md
+      
+      - name: Upload AI Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-testing-results
+          path: |
+            agents/*/test-results/
+            agents/*/quality-results/
+            ai-summary.md
+      
+      - name: Upload AI Summary
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ai-summary
+          path: ai-summary.md
+  
+  # Job 3: Deploy (only if both jobs succeed)
+  deploy:
+    needs: [standard-tests, ai-testing]
+    runs-on: ubuntu-latest
+    name: 🚀 Deploy
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download AI Summary
+        uses: actions/download-artifact@v4
+        with:
+          name: ai-summary
+      
+      - name: Display AI Summary
+        run: |
+          echo "🤖 AI Testing Summary:"
+          if [ -f "ai-summary.md" ]; then
+            cat ai-summary.md
+          else
+            echo "No AI summary available"
+          fi
+      
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deploying to production..."
+          echo "✅ Standard tests passed"
+          echo "✅ AI testing completed"
+          echo "🚀 Starting deployment..."
+          
+          # Trigger Vercel deployment
+          echo "🌐 Triggering Vercel deployment..."
+          echo "📱 Preview URL will be available in Vercel dashboard"
+          echo "🚀 Production deployment will start automatically"
+  
+  # Job 4: Comment PR with Results (only for PRs)
+  comment-pr:
+    needs: [standard-tests, ai-testing]
+    runs-on: ubuntu-latest
+    name: 💬 Comment PR
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Download AI Summary
+        uses: actions/download-artifact@v4
+        with:
+          name: ai-summary
+      
+      - name: Comment PR with AI Results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let comment = '## 🤖 AI Testing Pipeline Results\n\n';
+            
+            // Check if AI summary exists
+            if (fs.existsSync('./ai-summary.md')) {
+              const summary = fs.readFileSync('./ai-summary.md', 'utf8');
+              comment += summary + '\n\n';
+            } else {
+              comment += '⚠️ AI Testing completed but no summary available\n\n';
+            }
+            
+            // Add status information
+            comment += '### 📊 Pipeline Status\n';
+            comment += `- 🧪 Standard Tests: ✅ **PASSED**\n`;
+            comment += `- 🤖 AI Testing: ✅ **COMPLETED**\n`;
+            comment += `- 🚀 Ready for deployment\n\n`;
+            
+            comment += '### 💡 Next Steps\n';
+            comment += '- Review AI testing results above\n';
+            comment += '- Consider applying suggested improvements\n';
+            comment += '- Merge when ready\n';
+            
+            // Post comment to PR
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
