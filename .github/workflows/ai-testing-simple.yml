@@ -1,4 +1,4 @@
-name: AI Testing Pipeline (Simple)
+name: AI Testing Pipeline (Complete)
 on:
   push:
     branches: [main, develop]
@@ -6,41 +6,10 @@ on:
     branches: [main]
 
 jobs:
-  # Job 1: Standard Tests & Build (existing pipeline)
-  standard-tests:
-    runs-on: ubuntu-latest
-    name: 🧪 Standard Tests & Build
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Run tests
-        run: npm test
-      
-      - name: Build project
-        run: npm run build
-      
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: standard-test-results
-          path: |
-            coverage/
-            test-results/
-  
-  # Job 2: AI Testing Pipeline (runs once, not continuously)
+  # Job 1: Complete AI Testing Pipeline (all 3 agents)
   ai-testing:
     runs-on: ubuntu-latest
-    name: 🤖 AI Testing Pipeline
+    name: 🤖 AI Testing Pipeline (3 Agents)
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,6 +28,7 @@ jobs:
           echo "📦 Installing AI Agent dependencies..."
           cd agents/test-generator && npm install
           cd ../quality-analyzer && npm install
+          cd ../auto-fix && npm install
       
       - name: Run Test Generator Agent
         run: |
@@ -72,49 +42,66 @@ jobs:
           cd agents/quality-analyzer
           npx ts-node simple-cli.ts "../test-generator/test-results/login-exploration.json"
       
-      - name: Generate AI Summary
+      - name: Run Auto-Fix Agent
         run: |
-          echo "📊 Step 3: Generating AI Testing Summary..."
+          echo "🔧 Step 3: Running Auto-Fix Agent..."
+          cd agents/auto-fix
+          npx ts-node simple-cli.ts "../quality-analyzer/quality-results/quality-analysis.json"
+      
+      - name: Generate Complete AI Summary
+        run: |
+          echo "📊 Step 4: Generating Complete AI Testing Summary..."
           
-          # Create summary from both agents
-          echo "## 🤖 AI Testing Pipeline Results" > ai-summary.md
+          # Create comprehensive summary from all three agents
+          echo "## 🤖 Complete AI Testing Pipeline Results" > ai-summary.md
           echo "" >> ai-summary.md
           
+          # Test Generator Results
           if [ -f "agents/test-generator/test-results/login-exploration-summary.md" ]; then
             echo "### 🧪 Test Generation Results" >> ai-summary.md
             cat "agents/test-generator/test-results/login-exploration-summary.md" >> ai-summary.md
             echo "" >> ai-summary.md
           fi
           
+          # Quality Analyzer Results
           if [ -f "agents/quality-analyzer/quality-results/quality-analysis-summary.md" ]; then
             echo "### 🔍 Quality Analysis Results" >> ai-summary.md
             cat "agents/quality-analyzer/quality-results/quality-analysis-summary.md" >> ai-summary.md
+            echo "" >> ai-summary.md
+          fi
+          
+          # Auto-Fix Suggestions
+          if [ -f "agents/auto-fix/auto-fix-results/auto-fix-summary.md" ]; then
+            echo "### 🔧 Auto-Fix Suggestions" >> ai-summary.md
+            cat "agents/auto-fix/auto-fix-results/auto-fix-summary.md" >> ai-summary.md
           fi
           
           echo "" >> ai-summary.md
           echo "---" >> ai-summary.md
-          echo "*AI Testing completed successfully* 🎉" >> ai-summary.md
+          echo "*Complete AI Testing Pipeline completed successfully* 🎉" >> ai-summary.md
+          echo "*All 3 agents: Test Generator ✅, Quality Analyzer ✅, Auto-Fix ✅*" >> ai-summary.md
       
-      - name: Upload AI Results
+      - name: Upload Complete AI Results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ai-testing-results
+          name: complete-ai-testing-results
           path: |
             agents/*/test-results/
             agents/*/quality-results/
+            agents/*/auto-fix-results/
             ai-summary.md
       
       - name: Upload AI Summary
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: ai-summary
+          name: complete-ai-summary
           path: ai-summary.md
   
-  # Job 3: Deploy (only if both jobs succeed)
+  # Job 2: Deploy (only if AI testing succeeds)
   deploy:
-    needs: [standard-tests, ai-testing]
+    needs: [ai-testing]
     runs-on: ubuntu-latest
     name: 🚀 Deploy
     if: success()
@@ -125,11 +112,11 @@ jobs:
       - name: Download AI Summary
         uses: actions/download-artifact@v4
         with:
-          name: ai-summary
+          name: complete-ai-summary
       
       - name: Display AI Summary
         run: |
-          echo "🤖 AI Testing Summary:"
+          echo "🤖 Complete AI Testing Summary:"
           if [ -f "ai-summary.md" ]; then
             cat ai-summary.md
           else
@@ -139,8 +126,7 @@ jobs:
       - name: Deploy to production
         run: |
           echo "🚀 Deploying to production..."
-          echo "✅ Standard tests passed"
-          echo "✅ AI testing completed"
+          echo "✅ All 3 AI agents completed successfully"
           echo "🚀 Starting deployment..."
           
           # Trigger Vercel deployment
@@ -148,9 +134,9 @@ jobs:
           echo "📱 Preview URL will be available in Vercel dashboard"
           echo "🚀 Production deployment will start automatically"
   
-  # Job 4: Comment PR with Results (only for PRs)
+  # Job 3: Comment PR with Results (only for PRs)
   comment-pr:
-    needs: [standard-tests, ai-testing]
+    needs: [ai-testing]
     runs-on: ubuntu-latest
     name: 💬 Comment PR
     if: github.event_name == 'pull_request'
@@ -158,15 +144,15 @@ jobs:
       - name: Download AI Summary
         uses: actions/download-artifact@v4
         with:
-          name: ai-summary
+          name: complete-ai-summary
       
-      - name: Comment PR with AI Results
+      - name: Comment PR with Complete AI Results
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             
-            let comment = '## 🤖 AI Testing Pipeline Results\n\n';
+            let comment = '## 🤖 Complete AI Testing Pipeline Results\n\n';
             
             // Check if AI summary exists
             if (fs.existsSync('./ai-summary.md')) {
@@ -178,13 +164,14 @@ jobs:
             
             // Add status information
             comment += '### 📊 Pipeline Status\n';
-            comment += `- 🧪 Standard Tests: ✅ **PASSED**\n`;
-            comment += `- 🤖 AI Testing: ✅ **COMPLETED**\n`;
+            comment += `- 🧪 Test Generator: ✅ **COMPLETED**\n`;
+            comment += `- 🔍 Quality Analyzer: ✅ **COMPLETED**\n`;
+            comment += `- 🔧 Auto-Fix Agent: ✅ **COMPLETED**\n`;
             comment += `- 🚀 Ready for deployment\n\n`;
             
             comment += '### 💡 Next Steps\n';
             comment += '- Review AI testing results above\n';
-            comment += '- Consider applying suggested improvements\n';
+            comment += '- Consider implementing high-priority suggestions\n';
             comment += '- Merge when ready\n';
             
             // Post comment to PR

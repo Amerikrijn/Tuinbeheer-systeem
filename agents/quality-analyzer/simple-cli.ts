@@ -31,9 +31,9 @@ function analyzeQuality(testResultsPath: string) {
       averageExecutionTime: Math.round(summary.totalTime / results.length)
     },
     riskAssessment: {
-      highRiskScenarios: scenarios.filter(s => s.riskLevel === 'high').length,
-      mediumRiskScenarios: scenarios.filter(s => s.riskLevel === 'medium').length,
-      lowRiskScenarios: scenarios.filter(s => s.riskLevel === 'low').length
+      highRiskScenarios: scenarios.filter((s: any) => s.riskLevel === 'high').length,
+      mediumRiskScenarios: scenarios.filter((s: any) => s.riskLevel === 'medium').length,
+      lowRiskScenarios: scenarios.filter((s: any) => s.riskLevel === 'low').length
     },
     coverageAnalysis: {
       byCategory: scenarios.reduce((acc: any, s: any) => {

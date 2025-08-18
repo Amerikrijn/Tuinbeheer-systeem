@@ -45,7 +45,7 @@
       "id": "result-login-001",
       "scenarioId": "login-001",
       "status": "passed",
-      "executionTime": 56,
+      "executionTime": 92,
       "details": {
         "category": "authentication",
         "priority": "high"
@@ -55,7 +55,7 @@
       "id": "result-login-002",
       "scenarioId": "login-002",
       "status": "passed",
-      "executionTime": 101,
+      "executionTime": 97,
       "details": {
         "category": "authentication",
         "priority": "high"
@@ -65,7 +65,7 @@
       "id": "result-login-003",
       "scenarioId": "login-003",
       "status": "passed",
-      "executionTime": 102,
+      "executionTime": 60,
       "details": {
         "category": "validation",
         "priority": "medium"
@@ -78,7 +78,7 @@
     "failed": 0,
     "errors": 0,
     "skipped": 0,
-    "totalTime": 259,
+    "totalTime": 249,
     "passRate": 100
   },
   "qualityScore": 85
