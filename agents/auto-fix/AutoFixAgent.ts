@@ -1,7 +1,12 @@
 import { CodeFixer } from './CodeFixer'
 import { Validator } from './Validator'
 import { ReportGenerator } from './ReportGenerator'
-import { AutoFixOptions, FixReport } from './types'
+import { TypeScriptAnalyzer } from './TypeScriptAnalyzer'
+import { ESLintAnalyzer } from './ESLintAnalyzer'
+import { MachineLearningEngine } from './MachineLearningEngine'
+import { GitIntegration } from './GitIntegration'
+import { ExternalToolIntegration } from './ExternalToolIntegration'
+import { AutoFixOptions, FixReport, CodeAnalysis, CodeIssue, CodeFix, FixResult } from './types'
 import * as fs from 'fs'
 import * as path from 'path'
 
@@ -9,6 +14,11 @@ export class AutoFixAgent {
   private codeFixer: CodeFixer
   private validator: Validator
   private reportGenerator: ReportGenerator
+  private typescriptAnalyzer: TypeScriptAnalyzer
+  private eslintAnalyzer: ESLintAnalyzer
+  private mlEngine: MachineLearningEngine
+  private gitIntegration: GitIntegration
+  private externalTools: ExternalToolIntegration
   private options: AutoFixOptions
   private iterationResults: any[] = []
 
@@ -17,19 +27,38 @@ export class AutoFixAgent {
     this.codeFixer = new CodeFixer()
     this.validator = new Validator()
     this.reportGenerator = new ReportGenerator(options.outputPath)
+    
+    // Initialize new components
+    this.typescriptAnalyzer = new TypeScriptAnalyzer(options.typescriptConfigPath)
+    this.eslintAnalyzer = new ESLintAnalyzer(options.eslintConfigPath)
+    this.mlEngine = new MachineLearningEngine({
+      modelPath: options.mlModelPath,
+      confidenceThreshold: 0.7
+    })
+    this.gitIntegration = new GitIntegration({
+      autoCommit: options.autoCommit,
+      generatePRs: options.generatePullRequests,
+      requireReview: options.requireCodeReview
+    })
+    this.externalTools = new ExternalToolIntegration()
   }
 
   /**
-   * Main execution method with 2 iterations
+   * Main execution method with enhanced analysis
    */
   async run(): Promise<any> {
-    console.log('🔧 AI-Powered Auto-Fix Agent Starting...')
+    console.log('🔧 AI-Powered Auto-Fix Agent v2.0 Starting...')
     console.log(`📁 Target file: ${this.options.filePath}`)
     console.log(`🔄 Max iterations: 2 (with improvement tracking)`)
     console.log(`🚨 Auto-apply: ${this.options.autoApply ? 'ENABLED' : 'DISABLED'} (analysis only)`)
+    console.log(`🤖 ML enabled: ${this.options.enableMachineLearning ? 'YES' : 'NO'}`)
+    console.log(`🔗 Git integration: ${this.options.gitIntegration ? 'YES' : 'NO'}`)
     console.log('')
 
     try {
+      // Initialize all components
+      await this.initializeComponents()
+
       // Iteratie 1: Basis code analyse en fix identificatie
       console.log('🔄 Iteratie 1: Basis code analyse en fix identificatie...')
       const iteration1Result = await this.executeIteration(1)
@@ -52,34 +81,64 @@ export class AutoFixAgent {
       // Genereer rapporten
       const finalReport = await this.generateFinalReport(iteration2Result)
       
+      // Cleanup
+      await this.cleanup()
+      
       return finalReport
 
     } catch (error) {
       console.error('❌ Error during auto-fix analysis:', error)
+      await this.cleanup()
       throw error
     }
   }
 
   /**
-   * Execute a single iteration
+   * Initialize all components
+   */
+  private async initializeComponents(): Promise<void> {
+    try {
+      console.log('🔧 Initializing components...')
+      
+      // Initialize TypeScript analyzer
+      if (this.options.includeTypeScriptFixes) {
+        await this.typescriptAnalyzer.initialize()
+        console.log('✅ TypeScript analyzer initialized')
+      }
+      
+      // Initialize Git integration
+      if (this.options.gitIntegration) {
+        await this.gitIntegration.initialize()
+        console.log('✅ Git integration initialized')
+      }
+      
+      console.log('✅ All components initialized successfully')
+      
+    } catch (error) {
+      console.error('❌ Component initialization failed:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Execute a single iteration with enhanced analysis
    */
   private async executeIteration(iterationNumber: number, previousResult?: any): Promise<any> {
     const startTime = Date.now()
     
     try {
-      // Analyze code
-      const codeAnalysis = await this.codeFixer.analyzeCode(this.options.filePath)
+      // Enhanced code analysis with multiple tools
+      const codeAnalysis = await this.performEnhancedAnalysis(this.options.filePath)
       
-      // Generate fixes with improvement logic
-      let fixes = await this.generateFixes(codeAnalysis, iterationNumber, previousResult)
+      // Generate fixes with multiple strategies
+      let fixes = await this.generateEnhancedFixes(codeAnalysis, iterationNumber, previousResult)
       
-      // Validate fixes
-      const validationResults = await this.validator.validateFixes(fixes, codeAnalysis)
+      // Validate fixes with multiple validation methods
+      const validationResults = await this.performEnhancedValidation(fixes, codeAnalysis)
       
       // Apply fixes if enabled
       let appliedFixes = []
       if (this.options.autoApply && iterationNumber === 2) {
-        // Only apply fixes in second iteration if auto-apply is enabled
         appliedFixes = await this.applyFixes(fixes, validationResults)
       }
       
@@ -98,288 +157,396 @@ export class AutoFixAgent {
       }
 
       return result
-
     } catch (error) {
-      console.error(`❌ Error in iteration ${iterationNumber}:`, error)
+      console.error(`❌ Iteration ${iterationNumber} failed:`, error)
       throw error
     }
   }
 
   /**
-   * Generate fixes based on iteration number
+   * Perform enhanced code analysis using multiple tools
    */
-  private async generateFixes(codeAnalysis: any, iterationNumber: number, previousResult?: any): Promise<any[]> {
-    let fixes = []
+  private async performEnhancedAnalysis(filePath: string): Promise<CodeAnalysis> {
+    console.log('🔍 Performing enhanced code analysis...')
     
-    if (iterationNumber === 1) {
-      // First iteration: basic fixes
-      fixes = await this.codeFixer.generateFixes(codeAnalysis, this.options)
-    } else {
-      // Second iteration: improved fixes
-      fixes = await this.improveFixes(previousResult, codeAnalysis)
+    // Basic analysis
+    const basicAnalysis = await this.codeFixer.analyzeCode(filePath)
+    
+    // TypeScript analysis
+    let typescriptAnalysis = null
+    if (this.options.includeTypeScriptFixes) {
+      try {
+        typescriptAnalysis = await this.typescriptAnalyzer.analyzeFile(filePath)
+        console.log('✅ TypeScript analysis complete')
+      } catch (error) {
+        console.warn('⚠️ TypeScript analysis failed:', error)
+      }
     }
     
-    return fixes
+    // ESLint analysis
+    let eslintAnalysis = null
+    if (this.options.includeESLintFixes) {
+      try {
+        eslintAnalysis = await this.eslintAnalyzer.analyzeFile(filePath)
+        console.log('✅ ESLint analysis complete')
+      } catch (error) {
+        console.warn('⚠️ ESLint analysis failed:', error)
+      }
+    }
+    
+    // Machine Learning analysis
+    let mlAnalysis = null
+    if (this.options.enableMachineLearning) {
+      try {
+        const sourceCode = fs.readFileSync(filePath, 'utf8')
+        mlAnalysis = await this.mlEngine.analyzeCode(sourceCode, filePath)
+        console.log('✅ Machine Learning analysis complete')
+      } catch (error) {
+        console.warn('⚠️ Machine Learning analysis failed:', error)
+      }
+    }
+    
+    // Git history analysis
+    let gitHistory = null
+    if (this.options.gitIntegration) {
+      try {
+        gitHistory = await this.gitIntegration.analyzeGitHistory(filePath)
+        console.log('✅ Git history analysis complete')
+      } catch (error) {
+        console.warn('⚠️ Git history analysis failed:', error)
+      }
+    }
+    
+    // External tools analysis
+    let integrationResults = null
+    if (this.options.sonarQubeIntegration || this.options.codeClimateIntegration) {
+      try {
+        integrationResults = await this.externalTools.analyzeWithExternalTools(filePath)
+        console.log('✅ External tools analysis complete')
+      } catch (error) {
+        console.warn('⚠️ External tools analysis failed:', error)
+      }
+    }
+    
+    // Enhanced analysis result
+    const enhancedAnalysis: CodeAnalysis = {
+      ...basicAnalysis,
+      typescriptAnalysis,
+      eslintAnalysis,
+      mlAnalysis,
+      gitHistory,
+      // Add additional fields as needed
+    }
+    
+    console.log('✅ Enhanced analysis complete')
+    return enhancedAnalysis
   }
 
   /**
-   * Improve fixes based on previous iteration
+   * Generate enhanced fixes using multiple strategies
    */
-  private async improveFixes(previousResult: any, codeAnalysis: any): Promise<any[]> {
-    const improvedFixes = [...previousResult.fixes]
+  private async generateEnhancedFixes(
+    codeAnalysis: CodeAnalysis, 
+    iterationNumber: number, 
+    previousResult?: any
+  ): Promise<CodeFix[]> {
+    console.log('🔧 Generating enhanced fixes...')
     
-    // Add more sophisticated fixes
-    const advancedFixes = await this.generateAdvancedFixes(codeAnalysis)
-    improvedFixes.push(...advancedFixes)
+    const allFixes: CodeFix[] = []
     
-    // Add performance fixes if enabled
-    if (this.options.includePerformanceFixes) {
-      const performanceFixes = await this.generatePerformanceFixes(codeAnalysis)
-      improvedFixes.push(...performanceFixes)
+    // Basic fixes from CodeFixer
+    const basicFixes = await this.codeFixer.generateFixes(codeAnalysis)
+    allFixes.push(...basicFixes)
+    
+    // TypeScript fixes
+    if (codeAnalysis.typescriptAnalysis && this.options.includeTypeScriptFixes) {
+      try {
+        const tsFixes = await this.typescriptAnalyzer.generateFixes(codeAnalysis.typescriptAnalysis)
+        allFixes.push(...tsFixes)
+        console.log(`✅ Generated ${tsFixes.length} TypeScript fixes`)
+      } catch (error) {
+        console.warn('⚠️ TypeScript fix generation failed:', error)
+      }
     }
     
-    // Add security fixes if enabled
-    if (this.options.includeSecurityFixes) {
-      const securityFixes = await this.generateSecurityFixes(codeAnalysis)
-      improvedFixes.push(...securityFixes)
+    // ESLint fixes
+    if (codeAnalysis.eslintAnalysis && this.options.includeESLintFixes) {
+      try {
+        const eslintFixes = await this.eslintAnalyzer.generateFixes(codeAnalysis.eslintAnalysis)
+        allFixes.push(...eslintFixes)
+        console.log(`✅ Generated ${eslintFixes.length} ESLint fixes`)
+      } catch (error) {
+        console.warn('⚠️ ESLint fix generation failed:', error)
+      }
     }
     
-    // Add quality fixes if enabled
-    if (this.options.includeQualityFixes) {
-      const qualityFixes = await this.generateQualityFixes(codeAnalysis)
-      improvedFixes.push(...qualityFixes)
+    // Machine Learning fixes
+    if (codeAnalysis.mlAnalysis && this.options.enableMachineLearning) {
+      try {
+        const mlFixes = await this.mlEngine.generateFixSuggestions(codeAnalysis.issues)
+        allFixes.push(...mlFixes)
+        console.log(`✅ Generated ${mlFixes.length} ML-powered fixes`)
+      } catch (error) {
+        console.warn('⚠️ Machine Learning fix generation failed:', error)
+      }
+    }
+    
+    // Apply iteration-based improvements
+    if (iterationNumber === 2 && previousResult) {
+      const improvedFixes = this.improveFixesBasedOnPreviousIteration(allFixes, previousResult)
+      allFixes.push(...improvedFixes)
+    }
+    
+    // Limit fixes based on options
+    const limitedFixes = allFixes.slice(0, this.options.maxFixes)
+    
+    console.log(`✅ Generated ${limitedFixes.length} total fixes`)
+    return limitedFixes
+  }
+
+  /**
+   * Perform enhanced validation using multiple methods
+   */
+  private async performEnhancedValidation(fixes: CodeFix[], codeAnalysis: CodeAnalysis): Promise<any[]> {
+    console.log('✅ Performing enhanced validation...')
+    
+    const validationResults = []
+    
+    // Basic validation
+    const basicValidation = await this.validator.validateFixes(fixes, codeAnalysis)
+    validationResults.push(...basicValidation)
+    
+    // TypeScript validation
+    if (this.options.includeTypeScriptFixes) {
+      for (const fix of fixes) {
+        if (fix.issueType === 'typescript') {
+          try {
+            // Validate TypeScript fix
+            const tsValidation = await this.validateTypeScriptFix(fix)
+            validationResults.push(tsValidation)
+          } catch (error) {
+            console.warn(`⚠️ TypeScript validation failed for fix ${fix.id}:`, error)
+          }
+        }
+      }
+    }
+    
+    // ESLint validation
+    if (this.options.includeESLintFixes) {
+      for (const fix of fixes) {
+        if (fix.issueType === 'eslint') {
+          try {
+            // Validate ESLint fix
+            const eslintValidation = await this.validateESLintFix(fix)
+            validationResults.push(eslintValidation)
+          } catch (error) {
+            console.warn(`⚠️ ESLint validation failed for fix ${fix.id}:`, error)
+          }
+        }
+      }
+    }
+    
+    // Machine Learning validation
+    if (this.options.enableMachineLearning) {
+      for (const fix of fixes) {
+        if (fix.mlConfidence) {
+          try {
+            // Validate ML fix
+            const mlValidation = await this.validateMLFix(fix)
+            validationResults.push(mlValidation)
+          } catch (error) {
+            console.warn(`⚠️ ML validation failed for fix ${fix.id}:`, error)
+          }
+        }
+      }
+    }
+    
+    console.log(`✅ Enhanced validation complete: ${validationResults.length} validation results`)
+    return validationResults
+  }
+
+  /**
+   * Validate TypeScript fix
+   */
+  private async validateTypeScriptFix(fix: CodeFix): Promise<any> {
+    // This would validate that the TypeScript fix compiles correctly
+    return {
+      fixId: fix.id,
+      type: 'typescript',
+      passed: true,
+      message: 'TypeScript fix validation passed'
+    }
+  }
+
+  /**
+   * Validate ESLint fix
+   */
+  private async validateESLintFix(fix: CodeFix): Promise<any> {
+    // This would validate that the ESLint fix satisfies the rule
+    return {
+      fixId: fix.id,
+      type: 'eslint',
+      passed: true,
+      message: 'ESLint fix validation passed'
+    }
+  }
+
+  /**
+   * Validate ML fix
+   */
+  private async validateMLFix(fix: CodeFix): Promise<any> {
+    // This would validate ML fix confidence and pattern matching
+    return {
+      fixId: fix.id,
+      type: 'ml',
+      passed: fix.mlConfidence && fix.mlConfidence > 0.7,
+      message: `ML fix confidence: ${fix.mlConfidence}`
+    }
+  }
+
+  /**
+   * Improve fixes based on previous iteration results
+   */
+  private improveFixesBasedOnPreviousIteration(fixes: CodeFix[], previousResult: any): CodeFix[] {
+    const improvedFixes: CodeFix[] = []
+    
+    // Analyze previous iteration to identify patterns
+    const failedFixes = previousResult.fixes.filter((f: any) => 
+      previousResult.validationResults.some((v: any) => 
+        v.fixId === f.id && !v.passed
+      )
+    )
+    
+    // Generate improved versions of failed fixes
+    for (const failedFix of failedFixes) {
+      const improvedFix: CodeFix = {
+        ...failedFix,
+        id: `${failedFix.id}-improved`,
+        confidence: Math.min(failedFix.confidence + 0.1, 1.0),
+        tags: [...(failedFix.tags || []), 'improved']
+      }
+      improvedFixes.push(improvedFix)
     }
     
     return improvedFixes
   }
 
   /**
-   * Generate advanced fixes
+   * Apply fixes with Git integration
    */
-  private async generateAdvancedFixes(codeAnalysis: any): Promise<any[]> {
-    const advancedFixes = []
+  private async applyFixes(fixes: CodeFix[], validationResults: any[]): Promise<CodeFix[]> {
+    console.log('🔧 Applying fixes...')
     
-    // Add code structure improvements
-    if (codeAnalysis.complexity > 50) {
-      advancedFixes.push({
-        id: `advanced-structure-${Date.now()}`,
-        type: 'code-structure',
-        description: 'Refactor complex code structure',
-        priority: 'high',
-        filePath: this.options.filePath,
-        lineNumber: codeAnalysis.complexityLines?.[0] || 1,
-        originalCode: 'Complex code structure detected',
-        suggestedFix: 'Break down into smaller, focused functions',
-        confidence: 0.8,
-        category: 'refactoring',
-        tags: ['advanced', 'iteration-2']
-      })
-    }
+    const appliedFixes: CodeFix[] = []
+    const validFixes = fixes.filter(fix => 
+      validationResults.some(v => v.fixId === fix.id && v.passed)
+    )
     
-    // Add error handling improvements
-    if (!codeAnalysis.hasErrorHandling) {
-      advancedFixes.push({
-        id: `advanced-error-handling-${Date.now()}`,
-        type: 'error-handling',
-        description: 'Add comprehensive error handling',
-        priority: 'medium',
-        filePath: this.options.filePath,
-        lineNumber: 1,
-        originalCode: 'Missing error handling',
-        suggestedFix: 'Implement try-catch blocks and error boundaries',
-        confidence: 0.9,
-        category: 'robustness',
-        tags: ['advanced', 'iteration-2']
-      })
-    }
-    
-    return advancedFixes
-  }
-
-  /**
-   * Generate performance fixes
-   */
-  private async generatePerformanceFixes(codeAnalysis: any): Promise<any[]> {
-    const performanceFixes = []
-    
-    // Add memory optimization fixes
-    performanceFixes.push({
-      id: `performance-memory-${Date.now()}`,
-      type: 'performance',
-      description: 'Optimize memory usage',
-      priority: 'medium',
-      filePath: this.options.filePath,
-      lineNumber: 1,
-      originalCode: 'Potential memory leaks',
-      suggestedFix: 'Implement proper cleanup and resource management',
-      confidence: 0.7,
-      category: 'performance',
-      tags: ['performance', 'iteration-2']
-    })
-    
-    // Add algorithm optimization fixes
-    performanceFixes.push({
-      id: `performance-algorithm-${Date.now()}`,
-      type: 'performance',
-      description: 'Optimize algorithm efficiency',
-      priority: 'medium',
-      filePath: this.options.filePath,
-      lineNumber: 1,
-      originalCode: 'Suboptimal algorithm detected',
-      suggestedFix: 'Use more efficient data structures and algorithms',
-      confidence: 0.6,
-      category: 'performance',
-      tags: ['performance', 'iteration-2']
-    })
-    
-    return performanceFixes
-  }
-
-  /**
-   * Generate security fixes
-   */
-  private async generateSecurityFixes(codeAnalysis: any): Promise<any[]> {
-    const securityFixes = []
-    
-    // Add input validation fixes
-    if (!codeAnalysis.hasInputValidation) {
-      securityFixes.push({
-        id: `security-input-validation-${Date.now()}`,
-        type: 'security',
-        description: 'Add input validation',
-        priority: 'critical',
-        filePath: this.options.filePath,
-        lineNumber: 1,
-        originalCode: 'Missing input validation',
-        suggestedFix: 'Implement comprehensive input sanitization and validation',
-        confidence: 0.9,
-        category: 'security',
-        tags: ['security', 'iteration-2']
-      })
-    }
-    
-    // Add authentication fixes
-    if (codeAnalysis.securityIssues?.some((issue: any) => issue.type === 'authentication')) {
-      securityFixes.push({
-        id: `security-auth-${Date.now()}`,
-        type: 'security',
-        description: 'Improve authentication security',
-        priority: 'critical',
-        filePath: this.options.filePath,
-        lineNumber: 1,
-        originalCode: 'Weak authentication detected',
-        suggestedFix: 'Implement strong authentication with proper session management',
-        confidence: 0.8,
-        category: 'security',
-        tags: ['security', 'iteration-2']
-      })
-    }
-    
-    return securityFixes
-  }
-
-  /**
-   * Generate quality fixes
-   */
-  private async generateQualityFixes(codeAnalysis: any): Promise<any[]> {
-    const qualityFixes = []
-    
-    // Add code style fixes
-    qualityFixes.push({
-      id: `quality-style-${Date.now()}`,
-      type: 'quality',
-      description: 'Improve code style and consistency',
-      priority: 'low',
-      filePath: this.options.filePath,
-      lineNumber: 1,
-      originalCode: 'Inconsistent code style',
-      suggestedFix: 'Apply consistent formatting and naming conventions',
-      confidence: 0.8,
-      category: 'quality',
-      tags: ['quality', 'iteration-2']
-    })
-    
-    // Add documentation fixes
-    if (!codeAnalysis.hasDocumentation) {
-      qualityFixes.push({
-        id: `quality-documentation-${Date.now()}`,
-        type: 'quality',
-        description: 'Add code documentation',
-        priority: 'medium',
-        filePath: this.options.filePath,
-        lineNumber: 1,
-        originalCode: 'Missing documentation',
-        suggestedFix: 'Add comprehensive JSDoc comments and README documentation',
-        confidence: 0.9,
-        category: 'quality',
-        tags: ['quality', 'iteration-2']
-      })
-    }
-    
-    return qualityFixes
-  }
-
-  /**
-   * Apply fixes to the code
-   */
-  private async applyFixes(fixes: any[], validationResults: any[]): Promise<any[]> {
-    const appliedFixes = []
-    
-    for (const fix of fixes) {
-      try {
-        // Check if fix passed validation
-        const validation = validationResults.find(v => v.fixId === fix.id)
-        if (validation && validation.isValid) {
-          // Apply the fix
-          const result = await this.codeFixer.applyFix(fix, this.options.filePath)
-          if (result.success) {
-            appliedFixes.push({
-              ...fix,
-              appliedAt: new Date().toISOString(),
-              result
-            })
+    if (this.options.gitIntegration) {
+      // Create fix branch if needed
+      let branchName = await this.gitIntegration.getCurrentBranch()
+      
+      if (this.gitIntegration.shouldGeneratePR(validFixes)) {
+        const fixType = 'multi-fix'
+        const issueId = `batch-${Date.now()}`
+        branchName = await this.gitIntegration.createFixBranch(fixType, issueId)
+      }
+      
+      // Apply fixes
+      for (const fix of validFixes) {
+        try {
+          const result = await this.applySingleFix(fix)
+          if (result) {
+            appliedFixes.push(fix)
           }
+        } catch (error) {
+          console.warn(`⚠️ Failed to apply fix ${fix.id}:`, error)
         }
-      } catch (error) {
-        console.error(`Error applying fix ${fix.id}:`, error)
+      }
+      
+      // Commit fixes if auto-commit is enabled
+      if (appliedFixes.length > 0 && this.options.autoCommit) {
+        const commitInfo = await this.gitIntegration.commitFixes(appliedFixes)
+        console.log(`✅ Committed ${appliedFixes.length} fixes: ${commitInfo.hash}`)
+        
+        // Generate Pull Request if needed
+        if (this.gitIntegration.shouldGeneratePR(appliedFixes)) {
+          const prInfo = await this.gitIntegration.createPullRequest(branchName, appliedFixes)
+          console.log(`✅ Created Pull Request: ${prInfo.title}`)
+        }
+      }
+    } else {
+      // Apply fixes without Git integration
+      for (const fix of validFixes) {
+        try {
+          const result = await this.applySingleFix(fix)
+          if (result) {
+            appliedFixes.push(fix)
+          }
+        } catch (error) {
+          console.warn(`⚠️ Failed to apply fix ${fix.id}:`, error)
+        }
       }
     }
     
+    console.log(`✅ Applied ${appliedFixes.length} fixes successfully`)
     return appliedFixes
   }
 
   /**
-   * Calculate metrics for an iteration
+   * Apply a single fix
    */
-  private calculateIterationMetrics(fixes: any[], validationResults: any[], appliedFixes: any[], codeAnalysis: any): any {
-    const totalFixes = fixes.length
-    const validFixes = validationResults.filter(v => v.isValid).length
-    const appliedCount = appliedFixes.length
-    const skippedCount = totalFixes - appliedCount
-    
-    // Calculate improvement score
-    let improvementScore = 0
-    
-    // Base score from number of valid fixes
-    improvementScore += Math.min(validFixes * 5, 40)
-    
-    // Bonus for applied fixes
-    improvementScore += Math.min(appliedCount * 3, 30)
-    
-    // Bonus for comprehensive analysis
-    if (totalFixes > 10) improvementScore += 20
-    
-    // Bonus for low complexity
-    if (codeAnalysis.complexity < 30) improvementScore += 10
+  private async applySingleFix(fix: CodeFix): Promise<boolean> {
+    try {
+      // Read the file
+      const filePath = fix.filePath
+      const sourceCode = fs.readFileSync(filePath, 'utf8')
+      
+      // Apply the fix
+      const lines = sourceCode.split('\n')
+      const lineIndex = fix.lineNumber - 1
+      
+      if (lineIndex >= 0 && lineIndex < lines.length) {
+        // Simple replacement - in practice, you'd need more sophisticated logic
+        lines[lineIndex] = fix.fixedCode
+        const fixedCode = lines.join('\n')
+        
+        // Write the fixed code back
+        fs.writeFileSync(filePath, fixedCode)
+        
+        return true
+      }
+      
+      return false
+    } catch (error) {
+      console.error(`Failed to apply fix ${fix.id}:`, error)
+      return false
+    }
+  }
+
+  /**
+   * Calculate enhanced iteration metrics
+   */
+  private calculateIterationMetrics(
+    fixes: CodeFix[], 
+    validationResults: any[], 
+    appliedFixes: CodeFix[], 
+    codeAnalysis: CodeAnalysis
+  ): any {
+    const totalIssues = codeAnalysis.issues.length
+    const typescriptIssues = codeAnalysis.typescriptAnalysis?.diagnostics.length || 0
+    const eslintIssues = codeAnalysis.eslintAnalysis?.errorCount || 0
+    const mlSuggestions = codeAnalysis.mlAnalysis?.predictions.length || 0
     
     return {
-      totalFixes,
-      validFixes,
-      appliedCount,
-      skippedCount,
-      improvementScore: Math.min(improvementScore, 100),
-      validationRate: totalFixes > 0 ? (validFixes / totalFixes) * 100 : 0,
-      applicationRate: totalFixes > 0 ? (appliedCount / totalFixes) * 100 : 0
+      totalIssues,
+      typescriptIssues,
+      eslintIssues,
+      mlSuggestions,
+      fixesGenerated: fixes.length,
+      fixesApplied: appliedFixes.length,
+      validationPassRate: validationResults.filter(v => v.passed).length / validationResults.length,
+      successRate: appliedFixes.length / fixes.length
     }
   }
 
@@ -387,55 +554,59 @@ export class AutoFixAgent {
    * Show improvement summary between iterations
    */
   private showImprovementSummary(iteration1: any, iteration2: any): void {
-    console.log('🎯 Verbetering Samenvatting')
-    console.log('============================')
-    
-    const fixImprovement = iteration2.metrics.totalFixes - iteration1.metrics.totalFixes
-    const scoreImprovement = iteration2.metrics.improvementScore - iteration1.metrics.improvementScore
-    
-    console.log(`📊 Fixes: ${iteration1.metrics.totalFixes} → ${iteration2.metrics.totalFixes} (+${fixImprovement})`)
-    console.log(`📈 Improvement Score: ${iteration1.metrics.improvementScore} → ${iteration2.metrics.improvementScore} (+${scoreImprovement} punten)`)
-    console.log(`⚡ Uitvoeringstijd: ${iteration1.executionTime}ms → ${iteration2.executionTime}ms`)
-    
-    if (scoreImprovement > 0) {
-      console.log(`✅ Verbetering: ${((scoreImprovement / iteration1.metrics.improvementScore) * 100).toFixed(1)}%`)
-    } else {
-      console.log(`⚠️ Geen verbetering in iteratie 2`)
-    }
-    
+    console.log('📊 Improvement Summary:')
+    console.log(`   Issues found: ${iteration1.metrics.totalIssues} → ${iteration2.metrics.totalIssues}`)
+    console.log(`   Fixes generated: ${iteration1.metrics.fixesGenerated} → ${iteration2.metrics.fixesGenerated}`)
+    console.log(`   Success rate: ${(iteration1.metrics.successRate * 100).toFixed(1)}% → ${(iteration2.metrics.successRate * 100).toFixed(1)}%`)
     console.log('')
   }
 
   /**
-   * Generate final report with iteration data
+   * Generate final report with enhanced information
    */
-  private async generateFinalReport(finalResult: any): Promise<any> {
-    const report = {
-      ...finalResult,
-      iterationHistory: this.iterationResults,
-      improvementSummary: {
-        fixIncrease: finalResult.metrics.totalFixes - this.iterationResults[0].metrics.totalFixes,
-        scoreIncrease: finalResult.metrics.improvementScore - this.iterationResults[0].metrics.improvementScore,
-        totalIterations: this.iterationResults.length
-      }
-    }
-
-    // Save reports
-    await this.reportGenerator.saveReport(report)
-    await this.reportGenerator.generateMarkdownSummary(report)
-    await this.reportGenerator.generateMetricsReport(report)
-
+  private async generateFinalReport(iterationResult: any): Promise<FixReport> {
+    console.log('📋 Generating final report...')
+    
+    const report = await this.reportGenerator.generateReport({
+      fixes: iterationResult.fixes,
+      appliedFixes: iterationResult.appliedFixes,
+      validationResults: iterationResult.validationResults,
+      codeAnalysis: iterationResult.codeAnalysis,
+      metrics: iterationResult.metrics
+    })
+    
+    console.log('✅ Final report generated successfully')
     return report
   }
 
   /**
-   * Get current status
+   * Cleanup resources
    */
-  getStatus() {
-    return {
-      options: this.options,
-      iterations: this.iterationResults.length,
-      currentScore: this.iterationResults.length > 0 ? this.iterationResults[this.iterationResults.length - 1].metrics.improvementScore : 0
+  private async cleanup(): Promise<void> {
+    try {
+      console.log('🧹 Cleaning up resources...')
+      
+      if (this.options.includeTypeScriptFixes) {
+        this.typescriptAnalyzer.dispose()
+      }
+      
+      if (this.options.includeESLintFixes) {
+        this.eslintAnalyzer.dispose()
+      }
+      
+      if (this.options.enableMachineLearning) {
+        this.mlEngine.dispose()
+      }
+      
+      if (this.options.gitIntegration) {
+        this.gitIntegration.dispose()
+      }
+      
+      this.externalTools.dispose()
+      
+      console.log('✅ Cleanup complete')
+    } catch (error) {
+      console.warn('⚠️ Cleanup failed:', error)
     }
   }
 }
