@@ -78,7 +78,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     }
   }, [user])
 
-  // Complete/uncomplete task with simple, reliable approach
+  // Complete/uncomplete task with optimistic updates for better performance
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
     // Prevent multiple simultaneous updates of the same task
     if (updatingTasks.has(taskId)) {
@@ -89,19 +89,70 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       // Add task to updating set
       setUpdatingTasks(prev => new Set(prev).add(taskId))
 
-      // Update task in database
+      // 🚀 PERFORMANCE: Optimistic update - update UI immediately
+      if (calendar) {
+        const updatedCalendar = { ...calendar }
+        
+        // Find and update the task in the calendar
+        Object.keys(updatedCalendar).forEach(dateKey => {
+          const day = updatedCalendar[dateKey]
+          if (day.tasks) {
+            day.tasks = day.tasks.map(task => 
+              task.id === taskId ? { ...task, completed } : task
+            )
+          }
+        })
+        
+        // Update UI immediately for better responsiveness
+        setCalendar(updatedCalendar)
+      }
+
+      // Update task in database (non-blocking)
       const { error } = await TaskService.updateTask(taskId, { completed })
       
       if (error) {
-        // Console logging removed for banking standards.error('Error updating task:', error)
+        console.error('❌ ERROR: Task update failed:', error)
+        
+        // 🚨 ROLLBACK: Revert optimistic update on error
+        if (calendar) {
+          const rollbackCalendar = { ...calendar }
+          Object.keys(rollbackCalendar).forEach(dateKey => {
+            const day = rollbackCalendar[dateKey]
+            if (day.tasks) {
+              day.tasks = day.tasks.map(task => 
+                task.id === taskId ? { ...task, completed: !completed } : task
+              )
+            }
+          })
+          setCalendar(rollbackCalendar)
+        }
+        
+        // Show error to user
+        setError('Taak kon niet worden bijgewerkt')
         return
       }
       
-      // Reload calendar to get fresh data from database
-      await loadWeeklyCalendar(currentWeekStart)
+      // ✅ SUCCESS: No need to reload entire calendar - optimistic update worked
+      console.log('✅ SUCCESS: Task updated with optimistic update')
       
     } catch (err) {
-      // Console logging removed for banking standards.error('Error completing task:', err)
+      console.error('❌ ERROR: Task completion failed:', err)
+      
+      // 🚨 ROLLBACK: Revert optimistic update on exception
+      if (calendar) {
+        const rollbackCalendar = { ...calendar }
+        Object.keys(rollbackCalendar).forEach(dateKey => {
+          const day = rollbackCalendar[dateKey]
+          if (day.tasks) {
+            day.tasks = day.tasks.map(task => 
+              task.id === taskId ? { ...task, completed: !completed } : task
+            )
+          }
+        })
+        setCalendar(rollbackCalendar)
+      }
+      
+      setError('Er ging iets mis bij het bijwerken van de taak')
     } finally {
       // Always remove task from updating set
       setUpdatingTasks(prev => {
@@ -306,6 +357,29 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       </Card>
     )
   }
+
+  // 🚀 PERFORMANCE: Skeleton loading component for better perceived performance
+  const TaskListSkeleton = () => (
+    <div className="space-y-4 animate-pulse">
+      {Array.from({ length: 7 }).map((_, dayIndex) => (
+        <div key={dayIndex} className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+          </div>
+          <div className="space-y-2">
+            {Array.from({ length: 3 }).map((_, taskIndex) => (
+              <div key={taskIndex} className="flex items-center space-x-3">
+                <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded flex-1"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 
   if (loading) {
     return (
