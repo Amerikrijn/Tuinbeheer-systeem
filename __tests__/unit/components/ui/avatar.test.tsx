@@ -75,7 +75,11 @@ describe('Avatar Components', () => {
 
   describe('AvatarImage', () => {
     it('should render with default props', () => {
-      render(<AvatarImage src="/test-image.jpg" alt="Test avatar" />);
+      render(
+        <Avatar>
+          <AvatarImage src="/test-image.jpg" alt="Test avatar" />
+        </Avatar>
+      );
       const image = screen.getByTestId('avatar-image');
       expect(image).toBeInTheDocument();
       expect(image).toHaveAttribute('src', '/test-image.jpg');
@@ -84,19 +88,25 @@ describe('Avatar Components', () => {
     });
 
     it('should render with custom className', () => {
-      render(<AvatarImage className="custom-image" src="/test.jpg" alt="Test" />);
+      render(
+        <Avatar>
+          <AvatarImage className="custom-image" src="/test.jpg" alt="Test" />
+        </Avatar>
+      );
       const image = screen.getByTestId('avatar-image');
       expect(image).toHaveClass('custom-image');
     });
 
     it('should pass through additional props', () => {
       render(
-        <AvatarImage
-          data-testid="custom-image"
-          src="/test.jpg"
-          alt="Test"
-          loading="lazy"
-        />
+        <Avatar>
+          <AvatarImage
+            data-testid="custom-image"
+            src="/test.jpg"
+            alt="Test"
+            loading="lazy"
+          />
+        </Avatar>
       );
       const image = screen.getByTestId('custom-image');
       expect(image).toHaveAttribute('loading', 'lazy');
@@ -104,14 +114,22 @@ describe('Avatar Components', () => {
 
     it('should forward ref correctly', () => {
       const ref = React.createRef<HTMLImageElement>();
-      render(<AvatarImage ref={ref} src="/test.jpg" alt="Test" />);
+      render(
+        <Avatar>
+          <AvatarImage ref={ref} src="/test.jpg" alt="Test" />
+        </Avatar>
+      );
       expect(ref.current).toBeInTheDocument();
     });
   });
 
   describe('AvatarFallback', () => {
     it('should render with default props', () => {
-      render(<AvatarFallback>JD</AvatarFallback>);
+      render(
+        <Avatar>
+          <AvatarFallback>JD</AvatarFallback>
+        </Avatar>
+      );
       const fallback = screen.getByTestId('avatar-fallback');
       expect(fallback).toBeInTheDocument();
       expect(fallback).toHaveTextContent('JD');
@@ -119,16 +137,22 @@ describe('Avatar Components', () => {
     });
 
     it('should render with custom className', () => {
-      render(<AvatarFallback className="custom-fallback">Custom</AvatarFallback>);
+      render(
+        <Avatar>
+          <AvatarFallback className="custom-fallback">Custom</AvatarFallback>
+        </Avatar>
+      );
       const fallback = screen.getByTestId('avatar-fallback');
       expect(fallback).toHaveClass('custom-fallback');
     });
 
     it('should pass through additional props', () => {
       render(
-        <AvatarFallback data-testid="custom-fallback" aria-label="Custom fallback">
-          Props test
-        </AvatarFallback>
+        <Avatar>
+          <AvatarFallback data-testid="custom-fallback" aria-label="Custom fallback">
+            Props test
+          </AvatarFallback>
+        </Avatar>
       );
       const fallback = screen.getByTestId('custom-fallback');
       expect(fallback).toHaveAttribute('aria-label', 'Custom fallback');
@@ -136,7 +160,11 @@ describe('Avatar Components', () => {
 
     it('should forward ref correctly', () => {
       const ref = React.createRef<HTMLDivElement>();
-      render(<AvatarFallback ref={ref}>Ref test</AvatarFallback>);
+      render(
+        <Avatar>
+          <AvatarFallback ref={ref}>Ref test</AvatarFallback>
+        </Avatar>
+      );
       expect(ref.current).toBeInTheDocument();
     });
   });

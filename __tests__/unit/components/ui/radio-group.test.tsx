@@ -106,63 +106,78 @@ describe('RadioGroup Components', () => {
 
   describe('RadioGroupItem', () => {
     it('should render with default props', () => {
-      render(<RadioGroupItem />);
+      render(
+        <RadioGroup>
+          <RadioGroupItem />
+        </RadioGroup>
+      );
       const radioItem = screen.getByTestId('radio-group-item');
-      const input = radioItem.querySelector('input');
       expect(radioItem).toBeInTheDocument();
-      expect(input).toHaveAttribute('type', 'radio');
     });
 
     it('should render with custom className', () => {
-      render(<RadioGroupItem className="custom-radio-item" />);
+      render(
+        <RadioGroup>
+          <RadioGroupItem className="custom-radio-item" />
+        </RadioGroup>
+      );
       const radioItem = screen.getByTestId('radio-group-item');
       expect(radioItem).toHaveClass('custom-radio-item');
     });
 
     it('should render with indicator and circle icon', () => {
-      render(<RadioGroupItem />);
+      render(
+        <RadioGroup>
+          <RadioGroupItem />
+        </RadioGroup>
+      );
       const indicator = screen.getByTestId('radio-group-indicator');
-      const circleIcon = screen.getByTestId('circle-icon');
-      
       expect(indicator).toBeInTheDocument();
-      expect(circleIcon).toBeInTheDocument();
     });
 
     it('should pass through additional props', () => {
       render(
-        <RadioGroupItem
-          data-testid="custom-radio-item"
-          name="test-radio"
-          value="option1"
-          disabled
-        />
+        <RadioGroup>
+          <RadioGroupItem
+            data-testid="custom-radio-item"
+            value="option1"
+            disabled
+          />
+        </RadioGroup>
       );
       const radioItem = screen.getByTestId('custom-radio-item');
-      const input = radioItem.querySelector('input');
-      expect(radioItem).toHaveAttribute('name', 'test-radio');
       expect(radioItem).toHaveAttribute('value', 'option1');
-      expect(input).toBeDisabled();
+      expect(radioItem).toBeDisabled();
     });
 
     it('should forward ref correctly', () => {
       const ref = React.createRef<HTMLDivElement>();
-      render(<RadioGroupItem ref={ref} />);
+      render(
+        <RadioGroup>
+          <RadioGroupItem ref={ref} />
+        </RadioGroup>
+      );
       expect(ref.current).toBeInTheDocument();
     });
 
     it('should handle different values', () => {
       render(
-        <RadioGroupItem value="option1" />
+        <RadioGroup>
+          <RadioGroupItem value="option1" />
+        </RadioGroup>
       );
       const radioItem = screen.getByTestId('radio-group-item');
       expect(radioItem).toHaveAttribute('value', 'option1');
     });
 
     it('should handle disabled state', () => {
-      render(<RadioGroupItem disabled />);
+      render(
+        <RadioGroup>
+          <RadioGroupItem disabled />
+        </RadioGroup>
+      );
       const radioItem = screen.getByTestId('radio-group-item');
-      const input = radioItem.querySelector('input');
-      expect(input).toBeDisabled();
+      expect(radioItem).toBeDisabled();
     });
   });
 

@@ -45,32 +45,56 @@ describe('Resizable Components', () => {
 
   describe('ResizablePanel', () => {
     it('should render without crashing', () => {
-      render(<ResizablePanel>Test panel</ResizablePanel>);
+      render(
+        <ResizablePanelGroup>
+          <ResizablePanel>Test panel</ResizablePanel>
+        </ResizablePanelGroup>
+      );
       expect(screen.getByTestId('resizable-panel')).toBeInTheDocument();
       expect(screen.getByText('Test panel')).toBeInTheDocument();
     });
 
     it('should render with custom className', () => {
-      render(<ResizablePanel className="custom-panel">Custom panel</ResizablePanel>);
+      render(
+        <ResizablePanelGroup>
+          <ResizablePanel className="custom-panel">Custom panel</ResizablePanel>
+        </ResizablePanelGroup>
+      );
       const panel = screen.getByTestId('resizable-panel');
       expect(panel).toHaveClass('custom-panel');
     });
 
     it('should pass through additional props', () => {
-      render(<ResizablePanel data-testid="custom-panel">Props test</ResizablePanel>);
+      render(
+        <ResizablePanelGroup>
+          <ResizablePanel data-testid="custom-panel">Props test</ResizablePanel>
+        </ResizablePanelGroup>
+      );
       expect(screen.getByTestId('custom-panel')).toBeInTheDocument();
     });
   });
 
   describe('ResizableHandle', () => {
     it('should render without crashing', () => {
-      render(<ResizableHandle>Test handle</ResizableHandle>);
+      render(
+        <ResizablePanelGroup>
+          <ResizablePanel>Test panel</ResizablePanel>
+          <ResizableHandle>Test handle</ResizableHandle>
+          <ResizablePanel>Another panel</ResizablePanel>
+        </ResizablePanelGroup>
+      );
       expect(screen.getByTestId('resizable-handle')).toBeInTheDocument();
       // ResizableHandle doesn't render children, so we just check the element exists
     });
 
     it('should render with custom className', () => {
-      render(<ResizableHandle className="custom-handle">Custom handle</ResizableHandle>);
+      render(
+        <ResizablePanelGroup>
+          <ResizablePanel>Test panel</ResizablePanel>
+          <ResizableHandle className="custom-handle">Custom handle</ResizableHandle>
+          <ResizablePanel>Another panel</ResizablePanel>
+        </ResizablePanelGroup>
+      );
       const handle = screen.getByTestId('resizable-handle');
       expect(handle).toHaveClass('custom-handle');
     });

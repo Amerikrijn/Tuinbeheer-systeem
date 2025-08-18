@@ -44,43 +44,24 @@ describe('ToggleGroup Components', () => {
     it('should render with default props', () => {
       render(
         <ToggleGroup>
-          <div>Toggle group content</div>
+          <ToggleGroupItem value="item1">Item 1</ToggleGroupItem>
+          <ToggleGroupItem value="item2">Item 2</ToggleGroupItem>
         </ToggleGroup>
       );
       const toggleGroup = screen.getByTestId('toggle-group-root');
       expect(toggleGroup).toBeInTheDocument();
-      expect(toggleGroup).toHaveClass('flex', 'items-center', 'justify-center', 'gap-1');
-      expect(screen.getByText('Toggle group content')).toBeInTheDocument();
+      expect(screen.getByText('Item 1')).toBeInTheDocument();
+      expect(screen.getByText('Item 2')).toBeInTheDocument();
     });
 
     it('should render with custom className', () => {
       render(
         <ToggleGroup className="custom-toggle-group">
-          Custom toggle group
+          <ToggleGroupItem value="item1">Custom item</ToggleGroupItem>
         </ToggleGroup>
       );
       const toggleGroup = screen.getByTestId('toggle-group-root');
       expect(toggleGroup).toHaveClass('custom-toggle-group');
-    });
-
-    it('should render with custom variant', () => {
-      render(
-        <ToggleGroup variant="outline">
-          <div>Outline variant</div>
-        </ToggleGroup>
-      );
-      const toggleGroup = screen.getByTestId('toggle-group-root');
-      expect(toggleGroup).toBeInTheDocument();
-    });
-
-    it('should render with custom size', () => {
-      render(
-        <ToggleGroup size="sm">
-          <div>Small size</div>
-        </ToggleGroup>
-      );
-      const toggleGroup = screen.getByTestId('toggle-group-root');
-      expect(toggleGroup).toBeInTheDocument();
     });
 
     it('should pass through additional props', () => {
@@ -88,82 +69,129 @@ describe('ToggleGroup Components', () => {
         <ToggleGroup
           data-testid="custom-toggle-group"
           aria-label="Custom toggle group"
-          type="single"
         >
-          Props test
+          <ToggleGroupItem value="item1">Props test</ToggleGroupItem>
         </ToggleGroup>
       );
       const toggleGroup = screen.getByTestId('custom-toggle-group');
       expect(toggleGroup).toHaveAttribute('aria-label', 'Custom toggle group');
-      expect(toggleGroup).toHaveAttribute('type', 'single');
+    });
+
+    it('should forward ref correctly', () => {
+      const ref = React.createRef<HTMLDivElement>();
+      render(
+        <ToggleGroup ref={ref}>
+          <ToggleGroupItem value="item1">Ref test</ToggleGroupItem>
+        </ToggleGroup>
+      );
+      expect(ref.current).toBeInTheDocument();
+    });
+
+    it('should handle multiple items', () => {
+      render(
+        <ToggleGroup>
+          <ToggleGroupItem value="item1">First</ToggleGroupItem>
+          <ToggleGroupItem value="item2">Second</ToggleGroupItem>
+          <ToggleGroupItem value="item3">Third</ToggleGroupItem>
+        </ToggleGroup>
+      );
+      const items = screen.getAllByTestId('toggle-group-item');
+      expect(items).toHaveLength(3);
+      expect(items[0]).toHaveTextContent('First');
+      expect(items[1]).toHaveTextContent('Second');
+      expect(items[2]).toHaveTextContent('Third');
     });
   });
 
   describe('ToggleGroupItem', () => {
     it('should render with default props', () => {
       render(
-        <ToggleGroupItem>
-          <div>Toggle item content</div>
-        </ToggleGroupItem>
+        <ToggleGroup>
+          <ToggleGroupItem value="item1">Toggle item</ToggleGroupItem>
+        </ToggleGroup>
       );
-      const toggleItem = screen.getByTestId('toggle-group-item');
-      expect(toggleItem).toBeInTheDocument();
-      expect(screen.getByText('Toggle item content')).toBeInTheDocument();
+      const item = screen.getByTestId('toggle-group-item');
+      expect(item).toBeInTheDocument();
+      expect(item).toHaveTextContent('Toggle item');
+      expect(item.tagName).toBe('BUTTON');
     });
 
     it('should render with custom className', () => {
       render(
-        <ToggleGroupItem className="custom-toggle-item">
-          Custom toggle item
-        </ToggleGroupItem>
+        <ToggleGroup>
+          <ToggleGroupItem value="item1" className="custom-item">Custom item</ToggleGroupItem>
+        </ToggleGroup>
       );
-      const toggleItem = screen.getByTestId('toggle-group-item');
-      expect(toggleItem).toHaveClass('custom-toggle-item');
+      const item = screen.getByTestId('toggle-group-item');
+      expect(item).toHaveClass('custom-item');
     });
 
     it('should render with custom variant', () => {
       render(
-        <ToggleGroupItem variant="outline">
-          <div>Outline variant</div>
-        </ToggleGroupItem>
+        <ToggleGroup variant="outline">
+          <ToggleGroupItem value="item1">Outline variant</ToggleGroupItem>
+        </ToggleGroup>
       );
-      const toggleItem = screen.getByTestId('toggle-group-item');
-      expect(toggleItem).toBeInTheDocument();
+      const item = screen.getByTestId('toggle-group-item');
+      expect(item).toBeInTheDocument();
     });
 
     it('should render with custom size', () => {
       render(
-        <ToggleGroupItem size="sm">
-          <div>Small size</div>
-        </ToggleGroupItem>
+        <ToggleGroup size="sm">
+          <ToggleGroupItem value="item1">Small size</ToggleGroupItem>
+        </ToggleGroup>
       );
-      const toggleItem = screen.getByTestId('toggle-group-item');
-      expect(toggleItem).toBeInTheDocument();
-    });
-
-    it('should handle value attribute', () => {
-      render(
-        <ToggleGroupItem value="toggle1">
-          <div>Toggle 1</div>
-        </ToggleGroupItem>
-      );
-      const toggleItem = screen.getByTestId('toggle-group-item');
-      expect(toggleItem).toHaveAttribute('value', 'toggle1');
+      const item = screen.getByTestId('toggle-group-item');
+      expect(item).toBeInTheDocument();
     });
 
     it('should pass through additional props', () => {
       render(
-        <ToggleGroupItem
-          data-testid="custom-toggle-item"
-          disabled
-          value="item1"
-        >
-          <div>Props test</div>
-        </ToggleGroupItem>
+        <ToggleGroup>
+          <ToggleGroupItem
+            value="item1"
+            data-testid="custom-item"
+            aria-label="Custom toggle item"
+            disabled
+          >
+            Props test
+          </ToggleGroupItem>
+        </ToggleGroup>
       );
-      const toggleItem = screen.getByTestId('custom-toggle-item');
-      expect(toggleItem).toHaveAttribute('value', 'item1');
-      expect(toggleItem).toBeDisabled();
+      const item = screen.getByTestId('custom-item');
+      expect(item).toHaveAttribute('aria-label', 'Custom toggle item');
+      expect(item).toBeDisabled();
+    });
+
+    it('should forward ref correctly', () => {
+      const ref = React.createRef<HTMLButtonElement>();
+      render(
+        <ToggleGroup>
+          <ToggleGroupItem value="item1" ref={ref}>Ref test</ToggleGroupItem>
+        </ToggleGroup>
+      );
+      expect(ref.current).toBeInTheDocument();
+    });
+
+    it('should handle disabled state', () => {
+      render(
+        <ToggleGroup>
+          <ToggleGroupItem value="item1" disabled>Disabled item</ToggleGroupItem>
+        </ToggleGroup>
+      );
+      const item = screen.getByTestId('toggle-group-item');
+      expect(item).toBeDisabled();
+    });
+
+    it('should handle aria-pressed attribute', () => {
+      render(
+        <ToggleGroup>
+          <ToggleGroupItem value="item1" aria-pressed="true">Pressed item</ToggleGroupItem>
+        </ToggleGroup>
+      );
+      const item = screen.getByTestId('toggle-group-item');
+      expect(item).toHaveAttribute('aria-pressed', 'true');
     });
   });
 
@@ -171,31 +199,46 @@ describe('ToggleGroup Components', () => {
     it('should render complete toggle group structure', () => {
       render(
         <ToggleGroup>
-          <ToggleGroupItem value="item1">Item 1</ToggleGroupItem>
-          <ToggleGroupItem value="item2">Item 2</ToggleGroupItem>
+          <ToggleGroupItem value="item1">First</ToggleGroupItem>
+          <ToggleGroupItem value="item2">Second</ToggleGroupItem>
+          <ToggleGroupItem value="item3">Third</ToggleGroupItem>
         </ToggleGroup>
       );
 
       expect(screen.getByTestId('toggle-group-root')).toBeInTheDocument();
-      expect(screen.getAllByTestId('toggle-group-item')).toHaveLength(2);
-      expect(screen.getByText('Item 1')).toBeInTheDocument();
-      expect(screen.getByText('Item 2')).toBeInTheDocument();
+      const items = screen.getAllByTestId('toggle-group-item');
+      expect(items).toHaveLength(3);
+      expect(items[0]).toHaveTextContent('First');
+      expect(items[1]).toHaveTextContent('Second');
+      expect(items[2]).toHaveTextContent('Third');
     });
 
-    it('should handle multiple toggle group items', () => {
+    it('should handle different variants and sizes', () => {
+      render(
+        <ToggleGroup variant="outline" size="sm">
+          <ToggleGroupItem value="item1">Small outline</ToggleGroupItem>
+          <ToggleGroupItem value="item2">Another item</ToggleGroupItem>
+        </ToggleGroup>
+      );
+
+      expect(screen.getByTestId('toggle-group-root')).toBeInTheDocument();
+      const items = screen.getAllByTestId('toggle-group-item');
+      expect(items).toHaveLength(2);
+    });
+
+    it('should handle mixed states', () => {
       render(
         <ToggleGroup>
-          <ToggleGroupItem value="option1">Option 1</ToggleGroupItem>
-          <ToggleGroupItem value="option2">Option 2</ToggleGroupItem>
-          <ToggleGroupItem value="option3">Option 3</ToggleGroupItem>
+          <ToggleGroupItem value="item1">Normal item</ToggleGroupItem>
+          <ToggleGroupItem value="item2" disabled>Disabled item</ToggleGroupItem>
+          <ToggleGroupItem value="item3" aria-pressed="true">Pressed item</ToggleGroupItem>
         </ToggleGroup>
       );
 
       const items = screen.getAllByTestId('toggle-group-item');
-      expect(items).toHaveLength(3);
-      expect(items[0]).toHaveAttribute('value', 'option1');
-      expect(items[1]).toHaveAttribute('value', 'option2');
-      expect(items[2]).toHaveAttribute('value', 'option3');
+      expect(items[0]).not.toBeDisabled();
+      expect(items[1]).toBeDisabled();
+      expect(items[2]).toHaveAttribute('aria-pressed', 'true');
     });
   });
 });

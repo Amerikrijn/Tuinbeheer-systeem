@@ -183,7 +183,7 @@ describe('Table Components', () => {
           <TableBody>
             <TableRow>
               <td>Row content</td>
-            </tr>
+            </TableRow>
           </TableBody>
         </Table>
       )
@@ -197,7 +197,7 @@ describe('Table Components', () => {
           <TableBody>
             <TableRow>
               <td>Test</td>
-            </tr>
+            </TableRow>
           </TableBody>
         </Table>
       )

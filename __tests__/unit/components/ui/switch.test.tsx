@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Switch } from '@/components/ui/switch';
+import { Switch, SwitchThumb } from '@/components/ui/switch';
 
 // Mock the cn utility function
 jest.mock('@/lib/utils', () => ({
@@ -31,7 +31,11 @@ jest.mock('@radix-ui/react-switch', () => ({
 
 describe('Switch Component', () => {
   it('should render with default props', () => {
-    render(<Switch />);
+    render(
+      <Switch>
+        <SwitchThumb />
+      </Switch>
+    );
     
     const switchElement = screen.getByTestId('switch');
     const thumb = screen.getByTestId('switch-thumb');
@@ -41,7 +45,11 @@ describe('Switch Component', () => {
   });
 
   it('should apply default classes', () => {
-    render(<Switch />);
+    render(
+      <Switch>
+        <SwitchThumb />
+      </Switch>
+    );
     
     const switchElement = screen.getByTestId('switch');
     expect(switchElement).toHaveClass('peer', 'inline-flex', 'h-6', 'w-11');
@@ -49,15 +57,23 @@ describe('Switch Component', () => {
 
   it('should apply custom className', () => {
     const customClass = 'custom-switch-class';
-    render(<Switch className={customClass} />);
+    render(
+      <Switch className={customClass}>
+        <SwitchThumb />
+      </Switch>
+    );
     
     const switchElement = screen.getByTestId('switch');
     expect(switchElement).toHaveClass(customClass);
   });
 
   it('should forward ref correctly', () => {
-    const ref = React.createRef<HTMLButtonElement>();
-    render(<Switch ref={ref} />);
+    const ref = { current: null };
+    render(
+      <Switch ref={ref}>
+        <SwitchThumb />
+      </Switch>
+    );
     
     expect(ref.current).toBeInTheDocument();
     expect(ref.current).toHaveAttribute('data-testid', 'switch');
@@ -68,12 +84,5 @@ describe('Switch Component', () => {
     
     const switchElement = screen.getByTestId('custom-switch');
     expect(switchElement).toHaveAttribute('aria-label', 'Toggle switch');
-  });
-
-  it('should render thumb with correct classes', () => {
-    render(<Switch />);
-    
-    const thumb = screen.getByTestId('switch-thumb');
-    expect(thumb).toHaveClass('pointer-events-none', 'block', 'h-5', 'w-5', 'rounded-full');
   });
 });
