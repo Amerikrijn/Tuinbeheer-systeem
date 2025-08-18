@@ -1,397 +1,212 @@
-import { FixReport, CodeFix, FixResult, ValidationResult } from './types'
-import * as fs from 'fs'
-import * as path from 'path'
+import { CodeAnalysis, CodeFix, FixReport } from './types'
 
 export class ReportGenerator {
-  private outputPath: string
+  constructor() {}
 
-  constructor(outputPath: string) {
-    this.outputPath = outputPath
-    this.ensureOutputDirectory()
-  }
+  async generateReport(analysis: CodeAnalysis, fixes: CodeFix[], iterations: number): Promise<FixReport> {
+    const summary = this.calculateSummary(analysis, fixes)
+    const recommendations = this.generateRecommendations(analysis, fixes)
 
-  /**
-   * Ensure output directory exists
-   */
-  private ensureOutputDirectory() {
-    if (!fs.existsSync(this.outputPath)) {
-      fs.mkdirSync(this.outputPath, { recursive: true })
+    return {
+      summary,
+      analysis,
+      fixes,
+      results: [], // Will be populated by the agent
+      recommendations,
+      timestamp: new Date()
     }
   }
 
-  /**
-   * Generate comprehensive fix report
-   */
-  async generateFixReport(
-    appliedFixes: CodeFix[],
-    failedFixes: CodeFix[],
-    skippedFixes: CodeFix[],
-    validationResults: ValidationResult[][],
-    metadata: any
-  ): Promise<FixReport> {
-    const summary = this.generateFixSummary(appliedFixes, failedFixes, skippedFixes)
+  generateMarkdownReport(report: FixReport): string {
+    let markdown = '# 🔧 Auto-Fix Report\n\n'
+    markdown += `**Generated:** ${report.timestamp.toISOString()}\n\n`
+
+    // Summary
+    markdown += '## 📊 Summary\n\n'
+    markdown += `- **Total Issues:** ${report.summary.totalIssues}\n`
+    markdown += `- **Total Fixes:** ${report.summary.totalFixes}\n`
+    markdown += `- **Applied Fixes:** ${report.summary.appliedFixes}\n`
+    markdown += `- **Failed Fixes:** ${report.summary.failedFixes}\n`
+    markdown += `- **Quality Score:** ${report.summary.qualityScore.toFixed(1)}%\n`
+    markdown += `- **Risk Level:** ${report.summary.riskLevel}\n\n`
+
+    // Analysis Details
+    markdown += '## 🔍 Analysis Details\n\n'
+    markdown += `**File:** ${report.analysis.filePath}\n`
+    markdown += `**Total Lines:** ${report.analysis.metrics.totalLines}\n`
+    markdown += `**Security Issues:** ${report.analysis.metrics.securityIssues}\n`
+    markdown += `**Performance Issues:** ${report.analysis.metrics.performanceIssues}\n`
+    markdown += `**Quality Issues:** ${report.analysis.metrics.qualityIssues}\n\n`
+
+    // Issues by Category
+    markdown += '## 🚨 Issues by Category\n\n'
     
-    const report: FixReport = {
-      id: `fix-report-${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      summary,
-      appliedFixes,
-      failedFixes,
-      skippedFixes,
-      validationResults: validationResults.flat(),
-      recommendations: this.generateRecommendations(appliedFixes, failedFixes, skippedFixes),
-      metadata: {
-        generatedAt: new Date().toISOString(),
-        fixerVersion: '1.0.0',
-        totalFixTime: metadata.totalFixTime || 0,
-        confidence: this.calculateConfidence(appliedFixes, failedFixes),
-        dataSources: metadata.dataSources || [],
-        appliedStrategies: metadata.appliedStrategies || []
+    const issuesByCategory = this.groupIssuesByCategory(report.analysis.issues)
+    for (const [category, issues] of Object.entries(issuesByCategory)) {
+      markdown += `### ${category.charAt(0).toUpperCase() + category.slice(1)} (${issues.length})\n\n`
+      
+      for (const issue of issues.slice(0, 5)) { // Show first 5 issues per category
+        markdown += `- **Line ${issue.line}:** ${issue.message}\n`
+        markdown += `  - Severity: ${issue.severity}\n`
+        markdown += `  - Fixable: ${issue.fixable ? 'Yes' : 'No'}\n`
+        markdown += `  - Confidence: ${issue.confidence}%\n\n`
+      }
+      
+      if (issues.length > 5) {
+        markdown += `*... and ${issues.length - 5} more issues*\n\n`
       }
     }
 
-    return report
+    // Fixes
+    if (report.fixes.length > 0) {
+      markdown += '## 🔧 Generated Fixes\n\n'
+      
+      const fixesByCategory = this.groupFixesByCategory(report.fixes)
+      for (const [category, fixes] of Object.entries(fixesByCategory)) {
+        markdown += `### ${category.charAt(0).toUpperCase() + category.slice(1)} Fixes (${fixes.length})\n\n`
+        
+        for (const fix of fixes.slice(0, 3)) { // Show first 3 fixes per category
+          markdown += `- **Line ${fix.line}:** ${fix.description}\n`
+          markdown += `  - Risk: ${fix.risk}\n`
+          markdown += `  - Confidence: ${fix.confidence}%\n`
+          markdown += `  - Auto-apply: ${fix.autoApply ? 'Yes' : 'No'}\n`
+          markdown += `  - Before: \`${fix.before}\`\n`
+          markdown += `  - After: \`${fix.after}\`\n\n`
+        }
+        
+        if (fixes.length > 3) {
+          markdown += `*... and ${fixes.length - 3} more fixes*\n\n`
+        }
+      }
+    }
+
+    // Recommendations
+    if (report.recommendations.length > 0) {
+      markdown += '## 💡 Recommendations\n\n'
+      for (const recommendation of report.recommendations) {
+        markdown += `- ${recommendation}\n`
+      }
+      markdown += '\n'
+    }
+
+    // Risk Assessment
+    markdown += '## ⚠️ Risk Assessment\n\n'
+    const riskLevel = report.summary.riskLevel
+    if (riskLevel === 'high') {
+      markdown += '**⚠️ HIGH RISK** - Manual review required before applying fixes.\n\n'
+    } else if (riskLevel === 'medium') {
+      markdown += '**⚠️ MEDIUM RISK** - Review fixes before applying to production.\n\n'
+    } else {
+      markdown += '**✅ LOW RISK** - Fixes can be applied automatically.\n\n'
+    }
+
+    // Next Steps
+    markdown += '## 🚀 Next Steps\n\n'
+    if (report.summary.failedFixes > 0) {
+      markdown += '1. **Review failed fixes** and address any validation issues\n'
+    }
+    if (report.summary.riskLevel === 'high') {
+      markdown += '2. **Manual review** of high-risk fixes required\n'
+    }
+    markdown += '3. **Test fixes** in a development environment\n'
+    markdown += '4. **Apply fixes** to production after validation\n'
+    markdown += '5. **Monitor** for any issues after deployment\n\n'
+
+    markdown += '---\n'
+    markdown += '*Report generated by AI Auto-Fix Agent v2.0*'
+
+    return markdown
   }
 
-  /**
-   * Generate fix summary
-   */
-  private generateFixSummary(
-    appliedFixes: CodeFix[],
-    failedFixes: CodeFix[],
-    skippedFixes: CodeFix[]
-  ) {
-    const totalIssues = appliedFixes.length + failedFixes.length + skippedFixes.length
-    const successRate = totalIssues > 0 ? appliedFixes.length / totalIssues : 0
-    const improvementScore = this.calculateImprovementScore(appliedFixes)
-    const overallGrade = this.calculateOverallGrade(successRate, improvementScore)
+  private calculateSummary(analysis: CodeAnalysis, fixes: CodeFix[]): any {
+    const totalIssues = analysis.issues.length
+    const totalFixes = fixes.length
+    const appliedFixes = fixes.filter(f => f.autoApply && f.risk === 'low').length
+    const failedFixes = totalFixes - appliedFixes
+
+    // Calculate quality score based on issues resolved
+    const qualityScore = totalIssues > 0 ? Math.min(100, (appliedFixes / totalIssues) * 100) : 100
+
+    // Determine risk level
+    let riskLevel: 'low' | 'medium' | 'high' = 'low'
+    if (fixes.some(f => f.risk === 'high')) {
+      riskLevel = 'high'
+    } else if (fixes.some(f => f.risk === 'medium')) {
+      riskLevel = 'medium'
+    }
 
     return {
       totalIssues,
-      autoFixed: appliedFixes.length,
-      failedFixes: failedFixes.length,
-      skippedFixes: skippedFixes.length,
-      successRate,
-      improvementScore,
-      overallGrade
+      totalFixes,
+      appliedFixes,
+      failedFixes,
+      qualityScore,
+      riskLevel
     }
   }
 
-  /**
-   * Calculate improvement score based on applied fixes
-   */
-  private calculateImprovementScore(appliedFixes: CodeFix[]): number {
-    if (appliedFixes.length === 0) return 0
-
-    let totalScore = 0
-    let maxScore = 0
-
-    for (const fix of appliedFixes) {
-      let fixScore = 0
-      let maxFixScore = 0
-
-      // Score based on severity
-      switch (fix.severity) {
-        case 'critical':
-          fixScore += 10
-          maxFixScore += 10
-          break
-        case 'high':
-          fixScore += 8
-          maxFixScore += 8
-          break
-        case 'medium':
-          fixScore += 5
-          maxFixScore += 5
-          break
-        case 'low':
-          fixScore += 2
-          maxFixScore += 2
-          break
-      }
-
-      // Score based on confidence
-      fixScore += Math.round(fix.confidence * 5)
-      maxFixScore += 5
-
-      // Score based on effort
-      switch (fix.estimatedEffort) {
-        case 'low':
-          fixScore += 3
-          maxFixScore += 3
-          break
-        case 'medium':
-          fixScore += 2
-          maxFixScore += 2
-          break
-        case 'high':
-          fixScore += 1
-          maxFixScore += 1
-          break
-      }
-
-      totalScore += fixScore
-      maxScore += maxFixScore
-    }
-
-    return maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0
-  }
-
-  /**
-   * Calculate overall grade
-   */
-  private calculateOverallGrade(successRate: number, improvementScore: number): 'A' | 'B' | 'C' | 'D' | 'F' {
-    const combinedScore = (successRate * 0.6) + (improvementScore / 100 * 0.4)
-
-    if (combinedScore >= 0.9) return 'A'
-    if (combinedScore >= 0.8) return 'B'
-    if (combinedScore >= 0.7) return 'C'
-    if (combinedScore >= 0.6) return 'D'
-    return 'F'
-  }
-
-  /**
-   * Calculate confidence level
-   */
-  private calculateConfidence(appliedFixes: CodeFix[], failedFixes: CodeFix[]): number {
-    if (appliedFixes.length === 0 && failedFixes.length === 0) return 0
-
-    const totalFixes = appliedFixes.length + failedFixes.length
-    const successRate = appliedFixes.length / totalFixes
-
-    // Base confidence on success rate
-    let confidence = successRate
-
-    // Adjust based on fix confidence levels
-    if (appliedFixes.length > 0) {
-      const avgFixConfidence = appliedFixes.reduce((sum, fix) => sum + fix.confidence, 0) / appliedFixes.length
-      confidence = (confidence + avgFixConfidence) / 2
-    }
-
-    return Math.round(confidence * 100)
-  }
-
-  /**
-   * Generate recommendations
-   */
-  private generateRecommendations(
-    appliedFixes: CodeFix[],
-    failedFixes: CodeFix[],
-    skippedFixes: CodeFix[]
-  ): string[] {
+  private generateRecommendations(analysis: CodeAnalysis, fixes: CodeFix[]): string[] {
     const recommendations: string[] = []
 
-    // Recommendations based on applied fixes
-    if (appliedFixes.length > 0) {
-      recommendations.push(`Successfully applied ${appliedFixes.length} automatic fixes`)
-      
-      const criticalFixes = appliedFixes.filter(fix => fix.severity === 'critical')
-      if (criticalFixes.length > 0) {
-        recommendations.push(`Fixed ${criticalFixes.length} critical issues automatically`)
-      }
+    // Security recommendations
+    if (analysis.metrics.securityIssues > 0) {
+      recommendations.push('Address security issues immediately to prevent vulnerabilities')
+      recommendations.push('Review all security-related fixes before applying')
     }
 
-    // Recommendations based on failed fixes
-    if (failedFixes.length > 0) {
-      recommendations.push(`Review ${failedFixes.length} failed fixes manually`)
-      
-      const highPriorityFailed = failedFixes.filter(fix => fix.severity === 'high' || fix.severity === 'critical')
-      if (highPriorityFailed.length > 0) {
-        recommendations.push(`Prioritize manual review of ${highPriorityFailed.length} high-priority failed fixes`)
-      }
+    // Performance recommendations
+    if (analysis.metrics.performanceIssues > 0) {
+      recommendations.push('Apply performance improvements to enhance user experience')
+      recommendations.push('Monitor performance metrics after applying fixes')
     }
 
-    // Recommendations based on skipped fixes
-    if (skippedFixes.length > 0) {
-      recommendations.push(`Consider manual fixes for ${skippedFixes.length} skipped issues`)
-      
-      const autoFixableSkipped = skippedFixes.filter(fix => fix.autoFixable)
-      if (autoFixableSkipped.length > 0) {
-        recommendations.push(`${autoFixableSkipped.length} skipped issues could potentially be auto-fixed`)
-      }
+    // Quality recommendations
+    if (analysis.metrics.qualityIssues > 0) {
+      recommendations.push('Address code quality issues to improve maintainability')
+      recommendations.push('Consider implementing automated quality checks')
     }
 
     // General recommendations
-    if (appliedFixes.length === 0 && failedFixes.length === 0) {
-      recommendations.push('No issues were found or fixed - code quality appears good')
+    if (fixes.length > 0) {
+      recommendations.push('Test all fixes in a development environment first')
+      recommendations.push('Review high-risk fixes manually before applying')
     }
 
-    if (appliedFixes.length > 0) {
-      recommendations.push('Run tests to ensure fixes did not introduce regressions')
-      recommendations.push('Consider adding similar validation rules to prevent future issues')
+    if (analysis.metrics.totalLines > 1000) {
+      recommendations.push('Consider splitting large files into smaller, focused modules')
+    }
+
+    if (analysis.metrics.totalIssues > 50) {
+      recommendations.push('Implement regular code reviews to catch issues early')
+      recommendations.push('Consider using automated linting tools in your CI/CD pipeline')
     }
 
     return recommendations
   }
 
-  /**
-   * Save report to JSON file
-   */
-  async saveReport(report: FixReport, filename: string = 'fix-report.json'): Promise<string> {
-    const filePath = path.join(this.outputPath, filename)
-    const jsonContent = JSON.stringify(report, null, 2)
+  private groupIssuesByCategory(issues: any[]): Record<string, any[]> {
+    const grouped: Record<string, any[]> = {}
     
-    fs.writeFileSync(filePath, jsonContent, 'utf-8')
-    
-    return filePath
-  }
-
-  /**
-   * Generate markdown summary
-   */
-  async generateMarkdownSummary(report: FixReport, filename: string = 'fix-report-summary.md'): Promise<string> {
-    const filePath = path.join(this.outputPath, filename)
-    
-    const markdown = this.formatMarkdownReport(report)
-    
-    fs.writeFileSync(filePath, markdown, 'utf-8')
-    
-    return filePath
-  }
-
-  /**
-   * Format report as markdown
-   */
-  private formatMarkdownReport(report: FixReport): string {
-    const { summary, appliedFixes, failedFixes, skippedFixes, recommendations, metadata } = report
-
-    let markdown = `# 🔧 Auto-Fix Report Summary\n\n`
-    markdown += `**Generated:** ${new Date(metadata.generatedAt).toLocaleString()}\n`
-    markdown += `**Fixer Version:** ${metadata.fixerVersion}\n`
-    markdown += `**Total Fix Time:** ${metadata.totalFixTime}ms\n\n`
-
-    // Summary section
-    markdown += `## 📊 Summary\n\n`
-    markdown += `| Metric | Value |\n`
-    markdown += `|--------|-------|\n`
-    markdown += `| **Overall Grade** | **${summary.overallGrade}** |\n`
-    markdown += `| **Quality Score** | **${summary.improvementScore}/100** |\n`
-    markdown += `| **Success Rate** | **${Math.round(summary.successRate * 100)}%** |\n`
-    markdown += `| **Total Issues** | ${summary.totalIssues} |\n`
-    markdown += `| **Auto-Fixed** | ${summary.autoFixed} |\n`
-    markdown += `| **Failed Fixes** | ${summary.failedFixes} |\n`
-    markdown += `| **Skipped Issues** | ${summary.skippedFixes} |\n\n`
-
-    // Applied fixes section
-    if (appliedFixes.length > 0) {
-      markdown += `## ✅ Successfully Applied Fixes\n\n`
-      markdown += `| File | Line | Issue | Severity |\n`
-      markdown += `|------|------|-------|----------|\n`
-      
-      for (const fix of appliedFixes) {
-        const fileName = path.basename(fix.filePath)
-        markdown += `| \`${fileName}\` | ${fix.lineNumber} | ${fix.description} | ${fix.severity} |\n`
+    for (const issue of issues) {
+      const category = issue.category
+      if (!grouped[category]) {
+        grouped[category] = []
       }
-      markdown += `\n`
-    }
-
-    // Failed fixes section
-    if (failedFixes.length > 0) {
-      markdown += `## ❌ Failed Fixes\n\n`
-      markdown += `| File | Line | Issue | Severity |\n`
-      markdown += `|------|------|-------|----------|\n`
-      
-      for (const fix of failedFixes) {
-        const fileName = path.basename(fix.filePath)
-        markdown += `| \`${fileName}\` | ${fix.lineNumber} | ${fix.description} | ${fix.severity} |\n`
-      }
-      markdown += `\n`
-    }
-
-    // Skipped issues section
-    if (skippedFixes.length > 0) {
-      markdown += `## ⏭️ Skipped Issues\n\n`
-      markdown += `| File | Line | Issue | Severity | Auto-Fixable |\n`
-      markdown += `|------|------|-------|----------|--------------|\n`
-      
-      for (const fix of skippedFixes) {
-        const fileName = path.basename(fix.filePath)
-        markdown += `| \`${fileName}\` | ${fix.lineNumber} | ${fix.description} | ${fix.severity} | ${fix.autoFixable ? 'Yes' : 'No'} |\n`
-      }
-      markdown += `\n`
-    }
-
-    // Recommendations section
-    if (recommendations.length > 0) {
-      markdown += `## 💡 Recommendations\n\n`
-      for (const recommendation of recommendations) {
-        markdown += `- ${recommendation}\n`
-      }
-      markdown += `\n`
-    }
-
-    // Metadata section
-    markdown += `## 🔍 Technical Details\n\n`
-    markdown += `- **Confidence Level:** ${metadata.confidence}%\n`
-    markdown += `- **Data Sources:** ${metadata.dataSources.join(', ') || 'None'}\n`
-    markdown += `- **Applied Strategies:** ${metadata.appliedStrategies.join(', ') || 'None'}\n`
-    markdown += `- **Report ID:** \`${report.id}\`\n`
-
-    return markdown
-  }
-
-  /**
-   * Generate metrics report
-   */
-  async generateMetricsReport(report: FixReport, filename: string = 'fix-metrics.json'): Promise<string> {
-    const filePath = path.join(this.outputPath, filename)
-    
-    const metrics = {
-      summary: report.summary,
-      metadata: report.metadata,
-      fixDistribution: {
-        bySeverity: this.groupFixesBySeverity(report.appliedFixes),
-        byType: this.groupFixesByType(report.appliedFixes),
-        byFile: this.groupFixesByFile(report.appliedFixes)
-      },
-      validationSummary: {
-        totalValidations: report.validationResults.length,
-        passedValidations: report.validationResults.filter(r => r.passed).length,
-        failedValidations: report.validationResults.filter(r => !r.passed).length
-      }
-    }
-    
-    const jsonContent = JSON.stringify(metrics, null, 2)
-    fs.writeFileSync(filePath, jsonContent, 'utf-8')
-    
-    return filePath
-  }
-
-  /**
-   * Group fixes by severity
-   */
-  private groupFixesBySeverity(fixes: CodeFix[]): Record<string, number> {
-    const grouped: Record<string, number> = {}
-    
-    for (const fix of fixes) {
-      grouped[fix.severity] = (grouped[fix.severity] || 0) + 1
+      grouped[category].push(issue)
     }
     
     return grouped
   }
 
-  /**
-   * Group fixes by type
-   */
-  private groupFixesByType(fixes: CodeFix[]): Record<string, number> {
-    const grouped: Record<string, number> = {}
+  private groupFixesByCategory(fixes: CodeFix[]): Record<string, CodeFix[]> {
+    const grouped: Record<string, CodeFix[]> = {}
     
     for (const fix of fixes) {
-      grouped[fix.issueType] = (grouped[fix.issueType] || 0) + 1
-    }
-    
-    return grouped
-  }
-
-  /**
-   * Group fixes by file
-   */
-  private groupFixesByFile(fixes: CodeFix[]): Record<string, number> {
-    const grouped: Record<string, number> = {}
-    
-    for (const fix of fixes) {
-      const fileName = path.basename(fix.filePath)
-      grouped[fileName] = (grouped[fileName] || 0) + 1
+      const category = fix.category
+      if (!grouped[category]) {
+        grouped[category] = []
+      }
+      grouped[category].push(fix)
     }
     
     return grouped
