@@ -94,6 +94,7 @@ export default function ChangePasswordPage() {
     setIsSubmitting(true)
     try {
       // Update password in Supabase Auth
+      const supabase = getSupabaseClient();
       const { error: updateError } = await supabase.auth.updateUser({
         password: formData.newPassword,
         data: {
