@@ -6,11 +6,13 @@ main:
   required_status_checks:
     strict: true
     contexts:
-      - "Quality Gates (Lint, Types, Tests)"
-      - "Security & Compliance"
-      - "Build & Validation"
-      - "Documentation Compliance"
-      - "Pipeline Status & Quality Gate Enforcement"
+      - "quality"
+      - "security"
+      - "build"
+      - "compliance"
+      - "regression"
+      - "docker-build"
+      - "summary"
   
   required_pull_request_reviews:
     required_approving_review_count: 2
@@ -32,11 +34,13 @@ develop:
   required_status_checks:
     strict: true
     contexts:
-      - "Quality Gates (Lint, Types, Tests)"
-      - "Security & Compliance"
-      - "Build & Validation"
-      - "Documentation Compliance"
-      - "Pipeline Status & Quality Gate Enforcement"
+      - "quality"
+      - "security"
+      - "build"
+      - "compliance"
+      - "regression"
+      - "docker-build"
+      - "summary"
   
   required_pull_request_reviews:
     required_approving_review_count: 1
@@ -58,9 +62,9 @@ feature:
   required_status_checks:
     strict: true
     contexts:
-      - "Quality Gates (Lint, Types, Tests)"
-      - "Security & Compliance"
-      - "Build & Validation"
+      - "quality"
+      - "security"
+      - "build"
   
   required_pull_request_reviews:
     required_approving_review_count: 1
@@ -81,9 +85,9 @@ hotfix:
   required_status_checks:
     strict: true
     contexts:
-      - "Quality Gates (Lint, Types, Tests)"
-      - "Security & Compliance"
-      - "Build & Validation"
+      - "quality"
+      - "security"
+      - "build"
   
   required_pull_request_reviews:
     required_approving_review_count: 2
