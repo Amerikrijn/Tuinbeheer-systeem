@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { getSupabaseClient } from './supabase'
 
 export async function ensureBucketExists(bucket: string = 'plant-images', isPublic: boolean = true): Promise<boolean> {
   try {
@@ -29,6 +29,7 @@ export interface UploadResult {
  */
 export async function uploadImage(file: File, folder: string = 'plants'): Promise<UploadResult> {
   try {
+    const supabase = getSupabaseClient()
     // Validate file type
     if (!file.type.startsWith('image/')) {
       return {
@@ -96,6 +97,7 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
  */
 export async function deleteImage(url: string): Promise<boolean> {
   try {
+    const supabase = getSupabaseClient()
     // Extract file path from URL
     const urlParts = url.split('/plant-images/')
     if (urlParts.length < 2) {

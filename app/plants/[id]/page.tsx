@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { AddTaskForm } from '@/components/tasks/add-task-form'
 import { TaskService } from '@/lib/services/task.service'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import type { TaskWithPlantInfo } from '@/lib/types/tasks'
 import type { Plant } from '@/lib/types/index'
 import { PlantPhotoGallery } from '@/components/plant-photo-gallery'

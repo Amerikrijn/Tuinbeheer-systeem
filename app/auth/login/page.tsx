@@ -46,7 +46,7 @@ function LoginContent() {
     )
   }
   
-  const { signIn, loading } = auth
+  const { signIn, loading, user, error: authError } = auth
   const { toast } = useToast()
   
   const [formData, setFormData] = useState({
@@ -57,6 +57,27 @@ function LoginContent() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  // 🚀 AUTO-REDIRECT: Redirect to dashboard when user is logged in
+  useEffect(() => {
+    if (user && !loading) {
+      console.log('🔍 DEBUG: User logged in, redirecting to dashboard:', user.email)
+      router.push('/user-dashboard')
+    }
+  }, [user, loading, router])
+
+  // 🚨 ERROR HANDLING: Show auth errors
+  useEffect(() => {
+    if (authError) {
+      console.log('🔍 DEBUG: Auth error detected:', authError)
+      setError(authError)
+      toast({
+        title: "Inloggen mislukt",
+        description: authError,
+        variant: "destructive"
+      })
+    }
+  }, [authError, toast])
 
   // Handle password change success message
   useEffect(() => {
@@ -131,8 +152,8 @@ function LoginContent() {
         description: "Welkom terug!",
       })
       
-      // Redirect will happen automatically via router or auth provider
-      router.push('/')
+      // 🚀 AUTO-REDIRECT: Redirect will happen automatically via useEffect
+      // No manual redirect needed - the useEffect will handle it
       
     } catch (error) {
       // Log error only in development for security
@@ -227,6 +248,16 @@ function LoginContent() {
                   </p>
                 )}
               </div>
+
+              {/* Error Display */}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    {error}
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {/* Submit Button */}
               <Button

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdminClient } from '@/lib/supabase'
 
 // Force dynamic rendering since this route handles query parameters
 export const dynamic = 'force-dynamic';
@@ -26,7 +26,7 @@ function auditLog(action: string, details: Record<string, unknown>) {
 // GET - List all active users
 export async function GET() {
   try {
-    const { data: users, error } = await supabaseAdmin
+    const { data: users, error } = await supabase
       .from('users')
       .select('id, email, full_name, role, status, created_at, last_login, force_password_change')
       .eq('is_active', true)
@@ -49,6 +49,7 @@ export async function GET() {
 // POST - Create new user
 export async function POST(request: NextRequest) {
   try {
+    const supabase = getSupabaseAdminClient()
     const { email, fullName, role, gardenAccess } = await request.json()
 
     // Validation
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user exists
-    const { data: existingUser } = await supabaseAdmin
+    const { data: existingUser } = await supabase
       .from('users')
       .select('id')
       .eq('email', email.toLowerCase().trim())
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
     const tempPassword = generateSecurePassword()
 
     // Create auth user
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: email.toLowerCase().trim(),
       password: tempPassword,
       email_confirm: true,
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create profile - CRITICAL: must match auth ID
-    const { error: profileError } = await supabaseAdmin
+    const { error: profileError } = await supabase
       .from('users')
       .insert({
         id: authData.user.id, // EXACT match with auth ID
@@ -130,7 +131,7 @@ export async function POST(request: NextRequest) {
       console.error('Profile creation failed:', profileError)
       
       // CRITICAL: Cleanup auth user if profile fails
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
+      await supabase.auth.admin.deleteUser(authData.user.id)
       
       return NextResponse.json(
         { error: `Profile creation failed: ${profileError.message}` },
@@ -147,7 +148,7 @@ export async function POST(request: NextRequest) {
         created_at: new Date().toISOString()
       }))
 
-      const { error: accessError } = await supabaseAdmin
+      const { error: accessError } = await supabase
         .from('user_garden_access')
         .insert(gardenAccessRecords)
 
@@ -220,7 +221,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Get user details
-    const { data: userData, error: userError } = await supabaseAdmin
+    const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id, email, full_name, role')
       .eq('id', userId)
@@ -236,7 +237,7 @@ export async function PUT(request: NextRequest) {
       const newPassword = generateSecurePassword()
 
       // Update auth password
-      const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      const { error: authError } = await supabase.auth.admin.updateUserById(userId, {
         password: newPassword,
         user_metadata: {
           temp_password: true,
@@ -253,7 +254,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Update profile
-      const { error: profileError } = await supabaseAdmin
+      const { error: profileError } = await supabase
         .from('users')
         .update({
           force_password_change: true,
@@ -303,7 +304,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Update user profile
-      const { error: profileError } = await supabaseAdmin
+      const { error: profileError } = await supabase
         .from('users')
         .update({
           full_name: fullName,
@@ -322,7 +323,7 @@ export async function PUT(request: NextRequest) {
 
       // 🏦 BANKING-GRADE: Update garden access for both users and admins
       // First, remove all existing garden access
-      const { error: deleteError } = await supabaseAdmin
+      const { error: deleteError } = await supabase
         .from('user_garden_access')
         .delete()
         .eq('user_id', userId)
@@ -341,7 +342,7 @@ export async function PUT(request: NextRequest) {
           created_at: new Date().toISOString()
         }))
 
-        const { error: insertError } = await supabaseAdmin
+        const { error: insertError } = await supabase
           .from('user_garden_access')
           .insert(gardenAccessRecords)
 
@@ -420,7 +421,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get user details
-    const { data: userData, error: userError } = await supabaseAdmin
+    const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id, email, full_name, role')
       .eq('id', userId)
@@ -432,7 +433,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Soft delete
-    const { error: deleteError } = await supabaseAdmin
+    const { error: deleteError } = await supabase
       .from('users')
       .update({
         is_active: false,

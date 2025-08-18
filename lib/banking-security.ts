@@ -6,7 +6,7 @@
  * Elke functie voldoet aan Nederlandse banking standards
  */
 
-import { supabase } from './supabase';
+import { getSupabaseClient } from './supabase';
 
 /**
  * Security Event Logging
@@ -22,6 +22,7 @@ export async function logClientSecurityEvent(
   newValues?: any
 ): Promise<void> {
   try {
+    const supabase = getSupabaseClient()
     const { error } = await supabase.rpc('log_security_event', {
       p_user_id: userId,
       p_action: action,

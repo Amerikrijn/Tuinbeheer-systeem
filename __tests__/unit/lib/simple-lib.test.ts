@@ -77,6 +77,7 @@ describe('Simple Lib Files', () => {
         set: (key: string, value: string) => localStorage.setItem(key, value),
         remove: (key: string) => localStorage.removeItem(key),
         clear: () => localStorage.clear(),
+    const supabase = getSupabaseClient()
       };
       
       expect(typeof storage.get).toBe('function');

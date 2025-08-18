@@ -51,6 +51,7 @@ export async function getGarden(id?: string): Promise<any | null> {
     return data
   }
 
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase.from("gardens").select("*").eq("id", id).eq("is_active", true).single()
 
   if (error) {
@@ -168,6 +169,7 @@ export async function deleteGarden(id: string): Promise<boolean> {
 export async function getPlantBeds(gardenId?: string): Promise<PlantBed[]> {
   console.log("Fetching plant beds for garden:", gardenId || "all")
 
+  const supabase = getSupabaseClient()
   let query = supabase
     .from("plant_beds")
     .select("*")
@@ -466,6 +468,7 @@ export async function getPlantBedsWithPlants(gardenId?: string): Promise<PlantBe
 // Utility functions
 export async function checkDatabaseConnection(): Promise<boolean> {
   try {
+    const supabase = getSupabaseClient()
     const { error } = await supabase.from("gardens").select("count").limit(1)
     return !error
   } catch {

@@ -22,7 +22,7 @@ import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-supabase-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
-import { supabase } from "@/lib/supabase"
+import { getSupabaseClient } from "@/lib/supabase"
 import { WeeklyTaskList } from "@/components/tasks/weekly-task-list"
 import { getUserFriendlyErrorMessage } from "@/lib/errors"
 
@@ -440,6 +440,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
     const loadGardenUsers = async () => {
       try {
         setLoadingUsers(true)
+        const supabase = getSupabaseClient()
         const { data: users, error } = await supabase
           .from('user_garden_access')
           .select(`

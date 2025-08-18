@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { getSupabaseAdminClient } from '@/lib/supabase'
 
 // Force dynamic rendering since this route handles query parameters
 export const dynamic = 'force-dynamic'
@@ -18,12 +18,13 @@ function localAuditLog(action: string, details: Record<string, unknown>) {
 // GET - List deleted users and plantvakken
 export async function GET(request: NextRequest) {
   try {
+    const supabase = getSupabaseAdminClient()
     const type = request.nextUrl.searchParams.get('type') || 'all';
     
     let result: any = {};
     
     if (type === 'users' || type === 'all') {
-      const { data: deletedUsers, error: userError } = await supabaseAdmin
+      const { data: deletedUsers, error: userError } = await supabase
         .from('users')
         .select('id, email, full_name, role, updated_at')
         .eq('is_active', false)
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (type === 'plantvakken' || type === 'all') {
-      const { data: deletedPlantvakken, error: plantvakError } = await supabaseAdmin
+      const { data: deletedPlantvakken, error: plantvakError } = await supabase
         .from('deleted_plantvakken')
         .select('*')
         .order('deleted_at', { ascending: false })
@@ -73,6 +74,7 @@ export async function GET(request: NextRequest) {
 // PUT - Restore user or plantvak
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = getSupabaseAdminClient()
     const { userId, plantvakId, type } = await request.json()
 
     if (type === 'plantvak') {
@@ -81,7 +83,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Get deleted plantvak details
-      const { data: plantvakData, error: plantvakError } = await supabaseAdmin
+      const { data: plantvakData, error: plantvakError } = await supabase
         .from('deleted_plantvakken')
         .select('*')
         .eq('original_id', plantvakId)
@@ -92,7 +94,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Check if the letter code is still available in the garden
-      const { data: existingPlantvak, error: checkError } = await supabaseAdmin
+      const { data: existingPlantvak, error: checkError } = await supabase
         .from('plant_beds')
         .select('id')
         .eq('garden_id', plantvakData.garden_id)
@@ -107,7 +109,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Restore plantvak
-      const { error: restoreError } = await supabaseAdmin
+      const { error: restoreError } = await supabase
         .from('plant_beds')
         .update({
           is_active: true,
@@ -126,7 +128,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Remove from deleted_plantvakken table
-      await supabaseAdmin
+      await supabase
         .from('deleted_plantvakken')
         .delete()
         .eq('original_id', plantvakId)
@@ -148,7 +150,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Get deleted user details
-      const { data: userData, error: userError } = await supabaseAdmin
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id, email, full_name, role')
         .eq('id', userId)
@@ -160,7 +162,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Restore user
-      const { error: restoreError } = await supabaseAdmin
+      const { error: restoreError } = await supabase
         .from('users')
         .update({
           is_active: true,
@@ -208,7 +210,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get deleted user details
-    const { data: userData, error: userError } = await supabaseAdmin
+    const { data: userData, error: userError } = await supabase
       .from('users')
       .select('id, email, full_name')
       .eq('id', userId)
@@ -223,7 +225,7 @@ export async function DELETE(request: NextRequest) {
     const dependencies = []
 
     // Check user_garden_access
-    const { data: gardenAccess } = await supabaseAdmin
+    const { data: gardenAccess } = await supabase
       .from('user_garden_access')
       .select('id')
       .eq('user_id', userId)
@@ -234,7 +236,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Check tasks
-    const { data: tasks } = await supabaseAdmin
+    const { data: tasks } = await supabase
       .from('tasks')
       .select('id')
       .eq('user_id', userId)
@@ -245,7 +247,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Check logbook entries
-    const { data: logbook } = await supabaseAdmin
+    const { data: logbook } = await supabase
       .from('logbook_entries')
       .select('id')
       .eq('user_id', userId)
@@ -265,14 +267,15 @@ export async function DELETE(request: NextRequest) {
 
     // Only proceed if no dependencies (rare case)
     // Delete from auth first
-    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+    const supabase = getSupabaseAdminClient()
+    const { error: authError } = await supabase.auth.admin.deleteUser(userId)
     if (authError) {
       console.warn('Auth deletion warning:', authError)
       // Continue anyway - auth user might not exist
     }
 
     // Delete from database
-    const { error: dbError } = await supabaseAdmin
+    const { error: dbError } = await supabase
       .from('users')
       .delete()
       .eq('id', userId)

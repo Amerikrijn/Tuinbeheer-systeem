@@ -50,6 +50,7 @@ export class NotFoundError extends Error {
 
 // Connection validation with retry logic (banking compliant)
 async function validateConnection(retries = 3): Promise<void> {
+    const supabase = getSupabaseClient()
   // Temporarily disabled to fix login performance issues
   // TODO: Re-enable when database performance is improved
   return;

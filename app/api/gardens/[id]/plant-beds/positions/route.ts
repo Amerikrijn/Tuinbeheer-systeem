@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import { 
   BulkUpdatePositionsRequest, 
   PlantBedWithPosition,

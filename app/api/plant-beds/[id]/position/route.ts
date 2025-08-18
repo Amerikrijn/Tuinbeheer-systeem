@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
 import { logClientSecurityEvent } from '@/lib/banking-security';
 import { 
   UpdatePositionRequest, 
@@ -94,6 +94,7 @@ async function checkCollision(
   visual_height: number
 ): Promise<boolean> {
   try {
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .rpc('check_plant_bed_collision', {
         p_garden_id: gardenId,
@@ -134,6 +135,7 @@ async function checkCanvasBoundaries(
   visual_height: number
 ): Promise<boolean> {
   try {
+    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .rpc('check_canvas_boundaries', {
         p_garden_id: gardenId,
@@ -181,6 +183,7 @@ export async function GET(
     }
     
     // Get plant bed with position data
+    const supabase = getSupabaseClient()
     const { data: plantBed, error } = await supabase
       .from('plant_beds')
       .select(`
@@ -268,6 +271,7 @@ export async function PUT(
     }
     
     // Get current plant bed data
+    const supabase = getSupabaseClient()
     const { data: currentPlantBed, error: fetchError } = await supabase
       .from('plant_beds')
       .select('*')
