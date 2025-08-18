@@ -1,7 +1,7 @@
 name: Complete CI/CD with AI Testing
 on:
   push:
-    branches: [main, develop]
+    branches: [main]  # Alleen main, niet develop
   pull_request:
     branches: [main]
 
