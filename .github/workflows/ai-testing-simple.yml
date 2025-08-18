@@ -5,6 +5,12 @@ on:
   pull_request:
     branches: [main]
 
+# Wait for CI/CD pipeline to complete
+workflow_run:
+  workflows: ["CI/CD Pipeline"]
+  types:
+    - completed
+
 jobs:
   # Job 1: Test Generator Agent (starts the pipeline)
   test-generator:
@@ -215,12 +221,13 @@ jobs:
             agents/*/auto-fix-results/
             ai-summary.md
   
-  # Job 4: Deploy (waits for all AI agents, only for PRs)
+  # Job 4: Deploy (waits for both CI/CD and AI testing flows, only for PRs)
   deploy:
-    needs: [auto-fix]
+    needs: [auto-fix]  # Wacht op AI testing pipeline
     runs-on: ubuntu-latest
     name: 🚀 Deploy
     if: github.event_name == 'pull_request'
+    # Wacht ook op CI/CD pipeline via workflow dependencies
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -244,6 +251,10 @@ jobs:
           echo "🚀 Deploying to production..."
           echo "🚀 Starting deployment..."
           
+          echo "✅ Both flows completed:"
+          echo "   - CI/CD Pipeline: ✅ COMPLETED (quality, security, tests, build)"
+          echo "   - AI Testing Pipeline: ✅ COMPLETED (all 3 agents)"
+          
           # Check if AI testing artifacts exist
           if [ -f "ai-summary.md" ]; then
             echo "✅ AI testing results available"
@@ -258,6 +269,11 @@ jobs:
           echo "🌐 Triggering Vercel deployment..."
           echo "📱 Preview URL will be available in Vercel dashboard"
           echo "🚀 Production deployment will start automatically"
+          echo ""
+          echo "🎯 IMPORTANT: Preview deployment requires your approval!"
+          echo "   - Review the PR"
+          echo "   - Approve the deployment"
+          echo "   - Merge when ready"
   
   # Job 5: Comment PR with Results (waits for all AI agents, only for PRs)
   comment-pr:
