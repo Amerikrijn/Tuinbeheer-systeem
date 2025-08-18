@@ -1,22 +1,25 @@
-import { CodeAnalyzer } from './CodeAnalyzer'
-import { TestExecutor } from './TestExecutor'
-import { ReportGenerator } from './ReportGenerator'
+import { IntelligentCodeAnalyzer } from './IntelligentCodeAnalyzer'
+import { IntelligentTestExecutor } from './IntelligentTestExecutor'
+import { LearningEngine } from './LearningEngine'
+import { IntelligentReportGenerator } from './IntelligentReportGenerator'
 import { TestGenerationOptions, TestCoverageReport } from './types'
 import * as fs from 'fs'
 import * as path from 'path'
 
 export class TestGeneratorAgent {
-  private codeAnalyzer: CodeAnalyzer
-  private testExecutor: TestExecutor
-  private reportGenerator: ReportGenerator
+  private codeAnalyzer: IntelligentCodeAnalyzer
+  private intelligentTestExecutor: IntelligentTestExecutor
+  private learningEngine: LearningEngine
+  private reportGenerator: IntelligentReportGenerator
   private options: TestGenerationOptions
   private iterationResults: any[] = []
 
   constructor(options: TestGenerationOptions) {
     this.options = options
-    this.codeAnalyzer = new CodeAnalyzer()
-    this.testExecutor = new TestExecutor()
-    this.reportGenerator = new ReportGenerator(options.outputPath)
+    this.learningEngine = new LearningEngine()
+    this.codeAnalyzer = new IntelligentCodeAnalyzer(this.learningEngine)
+    this.intelligentTestExecutor = new IntelligentTestExecutor(this.learningEngine)
+    this.reportGenerator = new IntelligentReportGenerator(this.learningEngine, options.outputPath)
   }
 
   /**
@@ -49,8 +52,8 @@ export class TestGeneratorAgent {
       // Vergelijk resultaten
       this.showImprovementSummary(iteration1Result, iteration2Result)
 
-      // Genereer rapporten
-      const finalReport = await this.generateFinalReport(iteration2Result)
+      // Genereer intelligente rapporten
+      const finalReport = await this.generateIntelligentFinalReport(iteration2Result)
       
       return finalReport
 
@@ -67,14 +70,18 @@ export class TestGeneratorAgent {
     const startTime = Date.now()
     
     try {
-      // Analyze code
-      const codeAnalysis = await this.codeAnalyzer.analyzeCode(this.options.featurePath)
+      // Analyze code with intelligent pattern recognition
+      const codeAnalysis = await this.codeAnalyzer.analyzeCodeIntelligently(this.options.featurePath)
       
-      // Generate test scenarios with improvement logic
-      let scenarios = await this.generateTestScenarios(codeAnalysis, iterationNumber, previousResult)
+      // Generate intelligent test scenarios
+      let scenarios = await this.codeAnalyzer.generateIntelligentTestScenarios(codeAnalysis, this.options)
       
-      // Execute tests
-      const testResults = await this.testExecutor.executeTests(scenarios, this.options.featurePath)
+      // Execute tests with intelligent optimization
+      const intelligentResults = await this.intelligentTestExecutor.executeTestsIntelligently(
+        scenarios, 
+        this.options.featurePath
+      )
+      const testResults = intelligentResults.testResults
       
       // Calculate quality score for this iteration
       const qualityScore = this.calculateQualityScore(scenarios, testResults, codeAnalysis)
@@ -315,9 +322,49 @@ export class TestGeneratorAgent {
   }
 
   /**
-   * Generate final report with iteration data
+   * Generate intelligent final report with iteration data
    */
-  private async generateFinalReport(finalResult: any): Promise<any> {
+  private async generateIntelligentFinalReport(finalResult: any): Promise<any> {
+    try {
+      // Get the intelligent results from the final iteration
+      const intelligentResults = finalResult.intelligentResults
+      
+      if (!intelligentResults) {
+        console.warn('No intelligent results found, falling back to basic report')
+        return await this.generateBasicFinalReport(finalResult)
+      }
+      
+      const report = await this.reportGenerator.generateIntelligentReport(
+        finalResult.scenarios,
+        intelligentResults,
+        finalResult.codeAnalysis,
+        this.options
+      )
+      
+      // Add iteration history
+      const enhancedReport = {
+        ...report,
+        iterationHistory: this.iterationResults,
+        improvementSummary: {
+          qualityIncrease: finalResult.qualityScore - this.iterationResults[0].qualityScore,
+          scenarioIncrease: finalResult.scenarios.length - this.iterationResults[0].scenarios.length,
+          totalIterations: this.iterationResults.length
+        }
+      }
+      
+      return enhancedReport
+      
+    } catch (error) {
+      console.error('Error generating intelligent final report:', error)
+      // Fallback to basic report
+      return await this.generateBasicFinalReport(finalResult)
+    }
+  }
+
+  /**
+   * Generate basic final report (fallback)
+   */
+  private async generateBasicFinalReport(finalResult: any): Promise<any> {
     const report = {
       ...finalResult,
       iterationHistory: this.iterationResults,
