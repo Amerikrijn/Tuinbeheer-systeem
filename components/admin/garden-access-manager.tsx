@@ -40,6 +40,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
     
     setLoading(true)
     try {
+      const supabase = getSupabaseClient();
       // Load only active gardens (exclude soft-deleted ones)
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
@@ -98,6 +99,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
 
     setSaving(true)
     try {
+      const supabase = getSupabaseClient();
       // First, remove all existing access for this user
       const { error: deleteError } = await supabase
         .from('user_garden_access')

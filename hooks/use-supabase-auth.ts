@@ -122,7 +122,7 @@ export function useSupabaseAuth(): AuthContextType {
       console.log('🔍 DEBUG: loadUserProfile called for userId:', userId)
       
       const supabase = getSupabase()
-      const supabaseUser = (await supabase.auth.getUser()).data.user
+      const supabaseUser = (await getSupabase().auth.getUser()).data.user
       
       if (!supabaseUser) {
         throw new Error('No authenticated user found')

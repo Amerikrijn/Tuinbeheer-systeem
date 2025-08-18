@@ -193,6 +193,7 @@ export class TaskService {
 
   static async createRecurringTasks(config: Record<string, unknown>): Promise<{ data: number | null; error: string | null }> {
     try {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase.rpc('create_recurring_task', {
         task_title: config.title,
         task_description: config.description,
@@ -213,6 +214,7 @@ export class TaskService {
 
   static async bulkCompleteTasks(taskIds: string[], completed: boolean = true): Promise<{ error: string | null }> {
     try {
+      const supabase = getSupabaseClient();
       const updateData: Record<string, unknown> = { completed }
       const { error } = await supabase
         .from('tasks')
@@ -229,6 +231,7 @@ export class TaskService {
 
   static async bulkDeleteTasks(taskIds: string[]): Promise<{ error: string | null }> {
     try {
+      const supabase = getSupabaseClient();
       const { error } = await supabase
         .from('tasks')
         .delete()
@@ -248,6 +251,7 @@ export class TaskService {
 
   static async getTodayTasks(): Promise<{ data: WeeklyTask[]; error: string | null }> {
     try {
+      const supabase = getSupabaseClient();
       const today = new Date().toISOString().split('T')[0]
       const { data, error } = await supabase
         .from('tasks')
@@ -275,6 +279,7 @@ export class TaskService {
 
   static async getOverdueTasks(): Promise<{ data: WeeklyTask[]; error: string | null }> {
     try {
+      const supabase = getSupabaseClient();
       const today = new Date().toISOString().split('T')[0]
       const { data, error } = await supabase
         .from('tasks')

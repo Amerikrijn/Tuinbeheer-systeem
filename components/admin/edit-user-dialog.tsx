@@ -59,6 +59,7 @@ export function EditUserDialog({
 
   const loadUserGardenAccess = useCallback(async (userId: string) => {
     try {
+      const supabase = getSupabaseClient();
       const { data: accessData, error } = await supabase
         .from('user_garden_access')
         .select('garden_id')

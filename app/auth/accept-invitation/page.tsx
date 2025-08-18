@@ -149,6 +149,7 @@ export default function AcceptInvitationPage() {
     setAccepting(true)
 
     try {
+      const supabase = getSupabaseClient();
       // Update user password and complete the invitation
       const { error: updateError } = await supabase.auth.updateUser({
         password: formData.password,

@@ -56,6 +56,7 @@ export default function PlantDetailPage() {
 
   const loadPlantData = async () => {
     try {
+      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('plants')
         .select(`

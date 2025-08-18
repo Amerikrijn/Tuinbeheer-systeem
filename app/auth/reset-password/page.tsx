@@ -154,6 +154,7 @@ function ResetPasswordContent() {
 
     setIsSubmitting(true)
     try {
+      const supabase = getSupabaseClient();
       // Update password using the authenticated session
       const { error: updateError } = await supabase.auth.updateUser({
         password: formData.password
