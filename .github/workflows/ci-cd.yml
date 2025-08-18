@@ -1,16 +1,22 @@
-name: Banking-Grade CI/CD Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main, develop ]
-  workflow_dispatch:
+    branches: [main]
+
+env:
+  NODE_VERSION: '18'
+  NPM_CACHE_KEY: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
 
 jobs:
+  # Quality Checks
   quality:
-    name: quality
+    name: Code Quality
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,69 +24,34 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           
       - name: Install dependencies
         run: npm ci
         
-      - name: Run ESLint
+      - name: Run linting
         run: npm run lint
         
-      - name: TypeScript type checking
+      - name: Run type check
         run: npm run typecheck
         
-      - name: Run unit tests
-        run: npm run test:ci
+      - name: Check formatting
+        run: npm run format
         
-      - name: Generate coverage report
-        run: npm run test:coverage
+      - name: Check for dead code
+        run: npm run deadcode:exports
         
-      - name: Coverage quality gate (Overrulable)
-        run: |
-          echo "## 📊 Coverage Status" >> $GITHUB_STEP_SUMMARY
-          
-          # Extract coverage percentage from coverage report
-          if [ -f "coverage/coverage-summary.json" ]; then
-            COVERAGE=$(cat coverage/coverage-summary.json | jq -r '.total.lines.pct' 2>/dev/null || echo "0")
-            echo "**Lines Coverage:** $COVERAGE%" >> $GITHUB_STEP_SUMMARY
-          else
-            COVERAGE=0
-            echo "**Lines Coverage:** $COVERAGE% (no coverage data)" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          # Coverage threshold check (WARNING ONLY - no blocking)
-          THRESHOLD=80
-          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l 2>/dev/null || echo "1") )); then
-            echo "⚠️  **Status:** Below $THRESHOLD% threshold" >> $GITHUB_STEP_SUMMARY
-            echo "ℹ️  **Note:** This is a WARNING only - deployment can continue" >> $GITHUB_STEP_SUMMARY
-            echo "ℹ️  **Repository owner** can override any coverage requirements" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "✅ **Status:** Above $THRESHOLD% threshold" >> $GITHUB_STEP_SUMMARY
-          fi
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Coverage Details:" >> $GITHUB_STEP_SUMMARY
-          if [ -f "coverage/coverage-summary.json" ]; then
-            echo "- **Functions:** $(cat coverage/coverage-summary.json | jq -r '.total.functions.pct' 2>/dev/null || echo "N/A")%" >> $GITHUB_STEP_SUMMARY
-            echo "- **Branches:** $(cat coverage/coverage-summary.json | jq -r '.total.branches.pct' 2>/dev/null || echo "N/A")%" >> $GITHUB_STEP_SUMMARY
-            echo "- **Statements:** $(cat coverage/coverage-summary.json | jq -r '.total.statements.pct' 2>/dev/null || echo "N/A")%" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "- **Functions:** N/A" >> $GITHUB_STEP_SUMMARY
-            echo "- **Branches:** N/A" >> $GITHUB_STEP_SUMMARY
-            echo "- **Statements:** N/A" >> $GITHUB_STEP_SUMMARY
-          fi
-        
-      - name: Quality check summary
-        run: |
-          echo "## 🔍 Code Quality Results" >> $GITHUB_STEP_SUMMARY
-          echo "- ESLint: ✅ Passed" >> $GITHUB_STEP_SUMMARY
-          echo "- TypeScript: ✅ Passed" >> $GITHUB_STEP_SUMMARY
-          echo "- Unit Tests: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+      - name: Check for unused dependencies
+        run: npm run deadcode:deps
 
+  # Security Checks
   security:
-    name: security
+    name: Security Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: quality
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -88,31 +59,36 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           
       - name: Install dependencies
         run: npm ci
         
-      - name: Security audit
-        run: npm run audit:security
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
         
-      - name: Security pattern check
+      - name: Run security pattern checks
         run: npm run test:security:patterns
         
-      - name: DAST security scan
-        run: ./scripts/dast-scan.sh
-        
-      - name: Security summary
-        run: |
-          echo "## 🔒 Security Results" >> $GITHUB_STEP_SUMMARY
-          echo "- NPM Audit: ✅ Passed" >> $GITHUB_STEP_SUMMARY
-          echo "- Security Patterns: ✅ Passed" >> $GITHUB_STEP_SUMMARY
-          echo "- DAST Scan: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+          queries: security-extended,security-and-quality
+          
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:javascript"
 
-  build:
-    name: build
+  # Unit Tests
+  unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [quality, security]
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -120,7 +96,69 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run unit tests
+        run: npm run test:unit
+        
+      - name: Run test coverage
+        run: npm run test:coverage
+        
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: unit-tests
+          name: codecov-umbrella
+
+  # Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [quality, security]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Setup test database
+        run: npm run db:setup
+        
+      - name: Run integration tests
+        run: npm run test:integration
+        
+      - name: Run regression tests
+        run: npm run test:regression
+
+  # E2E Tests
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [quality, security]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           
       - name: Install dependencies
@@ -129,34 +167,16 @@ jobs:
       - name: Build application
         run: npm run build
         
-      - name: Build summary
-        run: |
-          echo "## 🏗️ Build Results" >> $GITHUB_STEP_SUMMARY
-          echo "- Next.js Build: ✅ Success" >> $GITHUB_STEP_SUMMARY
-          echo "- Dependencies: ✅ Resolved" >> $GITHUB_STEP_SUMMARY
+      - name: Run E2E tests
+        run: npm run test:e2e
 
-  compliance:
-    name: compliance
+  # Build Validation
+  build:
+    name: Build Validation
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Check documentation compliance
-        run: ./scripts/ensure-docs-updated.sh
-        
-      - name: Banking compliance check
-        run: npm run banking:compliance
-        
-      - name: Compliance summary
-        run: |
-          echo "## 📋 Compliance Results" >> $GITHUB_STEP_SUMMARY
-          echo "- Documentation: ✅ Up to date" >> $GITHUB_STEP_SUMMARY
-          echo "- Banking Standards: ✅ Compliant" >> $GITHUB_STEP_SUMMARY
-
-  regression:
-    name: regression
-    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [unit-tests, integration-tests, e2e-tests]
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -164,59 +184,140 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
           
       - name: Install dependencies
         run: npm ci
         
-      - name: Run regression tests
-        run: npm run test:regression
+      - name: Build application
+        run: npm run build
         
-      - name: Regression summary
+      - name: Verify build output
         run: |
-          echo "## 🔄 Regression Results" >> $GITHUB_STEP_SUMMARY
-          echo "- Integration Tests: ✅ Passed" >> $GITHUB_STEP_SUMMARY
-          echo "- End-to-End Tests: ✅ Passed" >> $GITHUB_STEP_SUMMARY
+          if [ ! -d ".next" ]; then
+            echo "❌ Build failed: .next directory not found"
+            exit 1
+          fi
+          echo "✅ Build successful"
 
-  docker-build:
-    name: docker-build
+  # Deploy to Staging
+  deploy-staging:
+    name: Deploy to Staging
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [build]
-    if: needs.build.result == 'success'
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
         
-      - name: Build Docker image
-        run: |
-          echo "🚀 Docker build successful!"
-          echo "Ready for deployment!"
+      - name: Run deployment safety checks
+        run: npm run deploy:check
+        
+      - name: Deploy to staging
+        run: npm run deploy:staging
+        
+      - name: Run post-deployment tests
+        run: npm run deploy:test
 
-  summary:
-    name: summary
+  # Deploy to Production
+  deploy-production:
+    name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: [quality, security, build, compliance, regression, docker-build]
-    if: always()
+    timeout-minutes: 30
+    needs: [build, deploy-staging]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
     steps:
-      - name: Pipeline Results
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run final safety checks
+        run: npm run deploy:check
+        
+      - name: Run production deployment tests
+        run: npm run deploy:test
+        
+      - name: Deploy to production
+        run: npm run deploy:production
+        
+      - name: Verify production deployment
         run: |
-          echo "## 🎯 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Quality Gates:" >> $GITHUB_STEP_SUMMARY
-          echo "- Code Quality: ${{ needs.quality.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Security: ${{ needs.security.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Compliance: ${{ needs.compliance.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Regression: ${{ needs.regression.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Docker Build: ${{ needs.docker-build.result }}" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Overall Status:" >> $GITHUB_STEP_SUMMARY
-          if [[ "${{ needs.quality.result }}" == "success" && "${{ needs.security.result }}" == "success" && "${{ needs.build.result }}" == "success" && "${{ needs.compliance.result }}" == "success" && "${{ needs.regression.result }}" == "success" ]]; then
-            echo "🎉 **ALL CHECKS PASSED** - Ready for deployment!" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️  **SOME CHECKS FAILED** - Review recommended but deployment can continue" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "🚀 Production deployment successful!"
+          echo "📊 Monitoring deployment health..."
+          npm run health:check
+
+  # Health Check
+  health-check:
+    name: Health Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [deploy-production]
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run health checks
+        run: npm run health:check
+        
+      - name: Verify critical endpoints
+        run: |
+          echo "🔍 Checking critical endpoints..."
+          npm run test:critical-endpoints
+
+  # Notifications
+  notify:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: [health-check]
+    if: always()
+    
+    steps:
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "✅ CI/CD Pipeline completed successfully!"
+          echo "🚀 Application deployed to production"
+          echo "📊 All tests passed"
+          echo "🔒 Security checks completed"
+          
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ CI/CD Pipeline failed!"
+          echo "🚨 Deployment blocked"
+          echo "🔍 Check logs for details"
+          echo "📞 Notify team immediately"

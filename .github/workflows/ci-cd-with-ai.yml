@@ -132,7 +132,14 @@ jobs:
           echo "✅ Standard tests passed"
           echo "✅ AI testing completed"
           echo "🚀 Starting deployment..."
-          # Hier komt je deployment logic
+          
+          # Trigger Vercel deployment
+          echo "🌐 Triggering Vercel deployment..."
+          echo "📱 Preview URL will be available in Vercel dashboard"
+          echo "🚀 Production deployment will start automatically"
+          
+          # Note: Vercel automatically deploys on push to main
+          # Preview deployments are available for all branches
   
   # Job 4: Comment PR with Results (alleen bij PRs)
   comment-pr:
