@@ -26,6 +26,7 @@ function auditLog(action: string, details: Record<string, unknown>) {
 // GET - List all active users
 export async function GET() {
   try {
+    const supabase = getSupabaseAdminClient()
     const { data: users, error } = await supabase
       .from('users')
       .select('id, email, full_name, role, status, created_at, last_login, force_password_change')

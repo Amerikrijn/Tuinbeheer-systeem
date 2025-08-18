@@ -86,6 +86,7 @@ function UserDashboardContent() {
       const accessibleGardens = getAccessibleGardens()
       
       // Load tasks for accessible gardens
+      const supabase = getSupabaseClient();
       let tasksQuery = supabase
         .from('tasks')
         .select(`
