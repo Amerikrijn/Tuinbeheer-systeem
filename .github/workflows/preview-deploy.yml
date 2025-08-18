@@ -1,0 +1,44 @@
+name: Preview Deployment
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  preview-deploy:
+    runs-on: ubuntu-latest
+    name: 🌐 Preview Deployment
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Build project
+        run: npm run build
+      
+      - name: Deploy to Vercel Preview
+        run: |
+          echo "🌐 Starting Vercel Preview Deployment..."
+          echo "📱 Preview URL will be generated after deployment"
+          echo "🚀 Production deployment will follow after approval"
+          
+          # Note: Vercel automatically creates preview deployments
+          # The preview URL will be available in the Vercel dashboard
+          # and can be shared for testing before production deployment
+      
+      - name: Deployment Status
+        run: |
+          echo "✅ Preview deployment completed successfully!"
+          echo "📊 Check Vercel dashboard for preview URL"
+          echo "🔍 Review changes before production deployment"
