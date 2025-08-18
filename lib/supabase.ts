@@ -79,7 +79,6 @@ const testConnection = async (client: SupabaseClient) => {
       .from('users')
       .select('count')
       .limit(1)
-      .timeout(10000) // 10 second timeout
     
     const duration = Date.now() - start
     
@@ -159,7 +158,6 @@ const testAdminConnection = async (client: SupabaseClient) => {
       .from('users')
       .select('count')
       .limit(1)
-      .timeout(10000) // 10 second timeout
     
     const duration = Date.now() - start
     

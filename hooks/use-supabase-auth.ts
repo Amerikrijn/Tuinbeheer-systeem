@@ -117,95 +117,75 @@ export function useSupabaseAuth(): AuthContextType {
   })
 
   // Load user profile with caching and optimized database lookup
-  const loadUserProfile = async (supabaseUser: SupabaseUser, useCache = true): Promise<User> => {
-    // 🚨 PRODUCTION FIX: Clear cache if environment changed
-    if (typeof window !== 'undefined') {
-      const currentHost = window.location.host
-      const cachedHost = localStorage.getItem('tuinbeheer_cached_host')
-      if (cachedHost && cachedHost !== currentHost) {
-        // Console logging removed for banking standards.log('🔧 PRODUCTION: Host changed, clearing cache', { old: cachedHost, new: currentHost })
-        localStorage.removeItem(SESSION_CACHE_KEY)
-        localStorage.setItem('tuinbeheer_cached_host', currentHost)
-        useCache = false
-      } else if (!cachedHost) {
-        localStorage.setItem('tuinbeheer_cached_host', currentHost)
-      }
-    }
-
-    // Check cache first for faster loading
-    if (useCache) {
-      const cached = getCachedUserProfile()
-      if (cached && cached.id === supabaseUser.id) {
-        // Console logging removed for banking standards.log('🚀 Using cached user profile for faster loading')
-        return cached
-      }
-    }
-    
+  const loadUserProfile = async (userId: string): Promise<User> => {
     try {
-      // 🏦 BANKING-GRADE: Case-insensitive email lookup without artificial timeout
+      console.log('🔍 DEBUG: loadUserProfile called for userId:', userId)
+      
       const supabase = getSupabase()
-      const { data: userProfile, error: userError } = await supabase
+      const supabaseUser = (await supabase.auth.getUser()).data.user
+      
+      if (!supabaseUser) {
+        throw new Error('No authenticated user found')
+      }
+
+      // Try to get existing user profile
+      const { data: userProfile, error: profileError } = await supabase
         .from('users')
-        .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
-        .ilike('email', supabaseUser.email || '') // Case-insensitive match
-        .eq('is_active', true) // Only active users
+        .select('*')
+        .eq('id', userId)
         .single()
 
-      let role: 'admin' | 'user' = 'user'
-      let fullName = supabaseUser.email?.split('@')[0] || 'User'
-      let status: 'active' | 'inactive' | 'pending' = 'active'
+      let role: string
+      let fullName: string
+      let status: string
 
-      if (userError || !userProfile) {
-        // 🏦 BANKING COMPLIANCE: Detailed error logging with audit trail
-        const auditData = {
-          timestamp: new Date().toISOString(),
-          event: 'AUTH_FAILURE_USER_NOT_FOUND',
-          email: supabaseUser.email,
-          userId: supabaseUser.id,
-          error: userError?.message || 'User profile not found',
-          ip: typeof window !== 'undefined' ? 'client-side' : 'server-side',
-          userAgent: typeof window !== 'undefined' ? window.navigator?.userAgent : 'N/A'
+      if (profileError || !userProfile) {
+        console.log('🔍 DEBUG: User profile not found, creating new profile...')
+        
+        // 🆕 AUTO-CREATE USER PROFILE: If user doesn't exist in database, create them
+        try {
+          const newUserProfile = {
+            id: supabaseUser.id,
+            email: supabaseUser.email || '',
+            full_name: supabaseUser.user_metadata?.full_name || 'New User',
+            role: 'user', // Default role
+            status: 'active', // Default status
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            last_login: new Date().toISOString(),
+            force_password_change: false,
+            email_verified: supabaseUser.email_confirmed_at ? true : false
+          }
+
+          console.log('🔍 DEBUG: Creating new user profile:', newUserProfile)
+          
+          const { data: createdProfile, error: createError } = await supabase
+            .from('users')
+            .insert(newUserProfile)
+            .select()
+            .single()
+
+          if (createError) {
+            console.error('❌ ERROR: Failed to create user profile:', createError)
+            throw new Error(`Failed to create user profile: ${createError.message}`)
+          }
+
+          console.log('✅ SUCCESS: User profile created successfully:', createdProfile)
+          
+          // Use the newly created profile
+          role = createdProfile.role
+          fullName = createdProfile.full_name
+          status = createdProfile.status
+          
+        } catch (createException) {
+          console.error('❌ ERROR: Exception during profile creation:', createException)
+          // Fallback to basic user object if profile creation fails
+          role = 'user'
+          fullName = supabaseUser.user_metadata?.full_name || 'New User'
+          status = 'active'
         }
-        
-        // Log to console for immediate debugging
-        // Console logging removed for banking standards.error('🏦 BANKING AUDIT: Authentication failed', auditData)
-        
-                 // 🚨 GODELIEVE FIX: Auto-create missing profile for known admin
-         if (supabaseUser.email?.toLowerCase().includes('godelieve')) {
-           // Console logging removed for banking standards.log('🔧 GODELIEVE FIX: Creating missing admin profile')
-           
-           try {
-             const { error: createError } = await supabase
-               .from('users')
-               .insert({
-                 id: supabaseUser.id,
-                 email: supabaseUser.email,
-                 full_name: 'Godelieve Ochtendster',
-                 role: 'admin',
-                 status: 'active',
-                 is_active: true,
-                 force_password_change: false,
-                 created_at: new Date().toISOString(),
-                 updated_at: new Date().toISOString()
-               })
-             
-             if (!createError) {
-               // Console logging removed for banking standards.log('✅ GODELIEVE FIX: Profile created successfully')
-               role = 'admin'
-               fullName = 'Godelieve Ochtendster'
-               status = 'active'
-             } else {
-               // Console logging removed for banking standards.error('🚨 GODELIEVE FIX: Creation failed', createError)
-               throw new Error('Access denied: User not found in system. Contact admin to create your account.')
-             }
-           } catch (error) {
-             // Console logging removed for banking standards.error('🚨 GODELIEVE FIX: Error', error)
-             throw new Error('Access denied: User not found in system. Contact admin to create your account.')
-           }
-         } else {
-           throw new Error('Access denied: User not found in system. Contact admin to create your account.')
-         }
       } else {
+        console.log('🔍 DEBUG: Existing user profile found:', userProfile)
         role = userProfile.role || 'user'
         fullName = userProfile.full_name || fullName
         status = userProfile.status || 'active'
@@ -256,13 +236,15 @@ export function useSupabaseAuth(): AuthContextType {
         force_password_change: userProfile?.force_password_change || false // 🏦 BANKING REQUIREMENT
       }
       
+      console.log('🔍 DEBUG: User object created successfully:', user)
+      
       // Cache the user profile for faster subsequent loads
       setCachedUserProfile(user)
       
       return user
 
     } catch (error) {
-      // Console logging removed for banking standards.error('Error in loadUserProfile:', error)
+      console.error('❌ ERROR: Error in loadUserProfile:', error)
       throw error
     }
   }
@@ -271,7 +253,7 @@ export function useSupabaseAuth(): AuthContextType {
   useEffect(() => {
     let isMounted = true
     let subscription: any = null
-    let loadingTimeout: NodeJS.Timeout | null = null
+    // 🚫 REMOVED: Loading timeout variable - no longer needed
 
     const initializeAuth = async () => {
       try {
@@ -312,7 +294,7 @@ export function useSupabaseAuth(): AuthContextType {
             }))
           } else {
             // Load fresh profile if no cache or different user
-            const userProfile = await loadUserProfile(session.user, false) // Don't use cache on init
+            const userProfile = await loadUserProfile(session.user.id) // Don't use cache on init
             if (isMounted) {
               setState({
                 user: userProfile,
@@ -364,16 +346,8 @@ export function useSupabaseAuth(): AuthContextType {
 
     initializeAuth()
 
-    // Reduced loading timeout for better UX
-    loadingTimeout = setTimeout(() => {
-      if (isMounted) {
-        setState(prev => ({
-          ...prev,
-          loading: false,
-          error: prev.user ? null : 'Loading timeout - please refresh page'
-        }))
-      }
-    }, 1000) // Reduced for faster loading
+    // 🚫 REMOVED: Loading timeout - causes false errors and poor UX
+    // The auth flow will complete naturally without artificial timeouts
 
             // Listen for auth changes - ensure only one subscription
         try {
@@ -384,7 +358,7 @@ export function useSupabaseAuth(): AuthContextType {
         if (event === 'SIGNED_IN' && session?.user) {
           // Only load profile if we don't already have it or it's a different user
           if (!state.user || state.user.id !== session.user.id) {
-            const userProfile = await loadUserProfile(session.user)
+            const userProfile = await loadUserProfile(session.user.id)
             if (isMounted) {
               setState({
                 user: userProfile,
@@ -428,9 +402,7 @@ export function useSupabaseAuth(): AuthContextType {
           // Ignore unsubscribe errors
         }
       }
-      if (loadingTimeout) {
-        clearTimeout(loadingTimeout)
-      }
+      // 🚫 REMOVED: Loading timeout cleanup - no longer needed
     }
   }, [])
 
@@ -580,7 +552,7 @@ export function useSupabaseAuth(): AuthContextType {
 
   const refreshUser = async (): Promise<void> => {
     if (state.session?.user) {
-      const userProfile = await loadUserProfile(state.session.user, false) // Force fresh load
+      const userProfile = await loadUserProfile(state.session.user.id) // Force fresh load
       setState(prev => ({ ...prev, user: userProfile }))
     }
   }
@@ -595,32 +567,40 @@ export function useSupabaseAuth(): AuthContextType {
     }
     
     if (state.session?.user) {
-      const userProfile = await loadUserProfile(state.session.user, false) // Force fresh load
+      const userProfile = await loadUserProfile(state.session.user.id) // Force fresh load
       setState(prev => ({ ...prev, user: userProfile }))
     }
   }
 
   // Load garden access separately after login
-  const loadGardenAccess = async (): Promise<void> => {
-    if (!state.user || state.user.role === 'admin') return
-    
+  const loadGardenAccess = async (userId: string): Promise<void> => {
     try {
+      console.log('🔍 DEBUG: loadGardenAccess called for userId:', userId)
+      
       const supabase = getSupabase()
       const { data: accessData, error: accessError } = await supabase
         .from('user_garden_access')
         .select('garden_id')
-        .eq('user_id', state.user.id)
+        .eq('user_id', userId)
       
-      if (!accessError && accessData) {
+      if (accessError) {
+        console.error('❌ ERROR: Failed to load garden access:', accessError)
+        return
+      }
+      
+      if (accessData) {
         const gardenAccess = accessData.map(row => row.garden_id)
+        console.log('🔍 DEBUG: Garden access loaded:', gardenAccess)
         
         setState(prev => ({
           ...prev,
           user: prev.user ? { ...prev.user, garden_access: gardenAccess } : null
         }))
+      } else {
+        console.log('🔍 DEBUG: No garden access found for user')
       }
     } catch (error) {
-      // Console logging removed for banking standards.warn('Garden access loading failed:', error)
+      console.error('❌ ERROR: Garden access loading failed:', error)
     }
   }
 
