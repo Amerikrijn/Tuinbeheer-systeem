@@ -435,35 +435,85 @@ export function useSupabaseAuth(): AuthContextType {
   }, [])
 
   const signIn = async (email: string, password: string): Promise<void> => {
-    setState(prev => ({ ...prev, loading: true, error: null }))
+    console.log('🔍 DEBUG: Starting signIn process for email:', email)
+    console.log('🔍 DEBUG: Current state before signIn:', state)
     
-          try {
-        const supabase = getSupabase();
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        })
-
+    const startTime = Date.now()
+    setState(prev => ({ ...prev, loading: true, error: null }))
+    console.log('🔍 DEBUG: State updated to loading: true')
+    
+    try {
+      console.log('🔍 DEBUG: Getting Supabase client...')
+      const supabase = getSupabase()
+      console.log('🔍 DEBUG: Supabase client obtained successfully')
+      
+      console.log('🔍 DEBUG: Calling signInWithPassword...')
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+      
+      const duration = Date.now() - startTime
+      console.log('🔍 DEBUG: signInWithPassword completed in', duration, 'ms')
+      console.log('🔍 DEBUG: Auth response:', { 
+        hasData: !!data, 
+        hasError: !!error,
+        user: data?.user?.id,
+        session: !!data?.session
+      })
+      
       if (error) {
-        throw error
+        console.error('❌ ERROR: SignIn failed:', error)
+        setState(prev => ({ 
+          ...prev, 
+          loading: false, 
+          error: error.message 
+        }))
+        return
       }
 
       if (!data.user) {
-        throw new Error('No user returned from sign in')
+        console.error('❌ ERROR: No user data returned')
+        setState(prev => ({ 
+          ...prev, 
+          loading: false, 
+          error: 'No user data returned' 
+        }))
+        return
       }
+
+      console.log('🔍 DEBUG: User authenticated successfully:', data.user.id)
+      console.log('🔍 DEBUG: Loading user profile...')
       
-      // 🏦 NEW ARCHITECTURE: No more temp_password checks here
-      // The auth provider will handle force password change detection
-      // based on the user profile data, not user_metadata
+      // Load user profile
+      const profileStart = Date.now()
+      await loadUserProfile(data.user.id)
+      const profileDuration = Date.now() - profileStart
+      console.log('🔍 DEBUG: User profile loaded in', profileDuration, 'ms')
       
-      // User profile will be loaded automatically by onAuthStateChange
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        loading: false,
-        error: error instanceof Error ? error.message : 'Sign in failed'
+      console.log('🔍 DEBUG: Loading garden access...')
+      const accessStart = Date.now()
+      await loadGardenAccess(data.user.id)
+      const accessDuration = Date.now() - accessStart
+      console.log('🔍 DEBUG: Garden access loaded in', accessDuration, 'ms')
+      
+      console.log('🔍 DEBUG: SignIn process completed successfully')
+      setState(prev => ({ 
+        ...prev, 
+        loading: false, 
+        user: data.user,
+        session: data.session
       }))
-      throw error
+      
+    } catch (error) {
+      const duration = Date.now() - startTime
+      console.error('❌ ERROR: SignIn exception after', duration, 'ms:', error)
+      setState(prev => ({ 
+        ...prev, 
+        loading: false, 
+        error: error instanceof Error ? error.message : 'An unexpected error occurred' 
+      }))
     }
   }
 
