@@ -7,8 +7,9 @@ import * as path from 'path'
 export class PipelineOrchestratorAgent {
   private workflowEngine: WorkflowEngine
   private agentManager: AgentManager
-  private config: PipelineConfig
+  private config!: PipelineConfig
   private iterationResults: any[] = []
+  private startTime: number = Date.now()
 
   constructor() {
     this.workflowEngine = new WorkflowEngine()

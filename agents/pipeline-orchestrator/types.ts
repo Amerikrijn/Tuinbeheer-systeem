@@ -133,6 +133,7 @@ export interface ExecutionStep {
   error?: string
   retries: number
   metadata: Record<string, any>
+  required?: boolean
 }
 
 export interface ExecutionResults {
@@ -208,4 +209,7 @@ export interface PipelineStatus {
   agentStatus: Record<string, string>
   lastActivity: string
   uptime: number
+  registeredAgents: number
+  totalIterations: number
+  lastExecution?: string
 }
