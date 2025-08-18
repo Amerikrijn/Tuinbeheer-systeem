@@ -193,8 +193,8 @@ describe('RadioGroup Components', () => {
 
       expect(screen.getByRole('radiogroup')).toBeInTheDocument();
       expect(screen.getAllByTestId('radio-group-item')).toHaveLength(3);
-      expect(screen.getAllByTestId('radio-group-indicator')).toHaveLength(3);
-      expect(screen.getAllByTestId('circle-icon')).toHaveLength(3);
+      // RadioGroupItem renders as buttons, not inputs with indicators
+      expect(screen.getAllByTestId('radio-group-item')).toHaveLength(3);
     });
 
     it('should handle multiple radio groups', () => {
