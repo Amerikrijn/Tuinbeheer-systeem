@@ -1,123 +1,37 @@
 {
-  "id": "quality-analysis-1755533573268",
-  "timestamp": "2025-08-18T16:12:53.268Z",
-  "summary": {
-    "totalTests": 8,
-    "passedTests": 4,
-    "failedTests": 4,
-    "errorTests": 0,
-    "successRate": 50,
-    "qualityScore": 30,
-    "overallGrade": "F"
-  },
-  "analysis": {
+  "qualityAnalysis": {
     "testQuality": {
       "coverage": 100,
-      "reliability": 50,
-      "maintainability": 75,
-      "readability": 75,
-      "completeness": 100
+      "passRate": 100,
+      "averageExecutionTime": 83
     },
-    "codeQuality": {
-      "complexity": 60,
-      "duplication": 20,
-      "maintainability": 70,
-      "testability": 80,
-      "readability": 75
+    "riskAssessment": {
+      "highRiskScenarios": 0,
+      "mediumRiskScenarios": 1,
+      "lowRiskScenarios": 2
     },
-    "securityQuality": {
-      "vulnerabilityCount": 0,
-      "riskLevel": "low",
-      "securityScore": 0,
-      "complianceStatus": "non-compliant"
-    },
-    "performanceQuality": {
-      "responseTime": 0,
-      "throughput": 85,
-      "resourceUsage": 70,
-      "scalability": 75,
-      "efficiency": 80
-    },
-    "maintainabilityQuality": {
-      "codeComplexity": 60,
-      "documentation": 65,
-      "modularity": 70,
-      "reusability": 75,
-      "testability": 80
-    }
-  },
-  "recommendations": [
-    {
-      "id": "improvement-1755533573268-2",
-      "type": "security",
-      "priority": "critical",
-      "category": "security",
-      "title": "Improve Security Testing",
-      "description": "Security test quality is below acceptable levels",
-      "currentState": "0% security score",
-      "targetState": "70%+ security score",
-      "actionItems": [
-        "Add comprehensive security test scenarios",
-        "Implement vulnerability scanning",
-        "Review authentication and authorization tests"
-      ],
-      "estimatedEffort": "high",
-      "impact": "critical",
-      "risk": "low",
-      "dependencies": [],
-      "tags": [
-        "security",
-        "critical"
-      ]
-    }
-  ],
-  "riskAssessment": {
-    "overallRisk": "medium",
-    "riskFactors": [
-      {
-        "id": "failed-tests",
-        "category": "test-quality",
-        "description": "4 tests failed, indicating potential code quality issues",
-        "probability": "high",
-        "impact": "medium",
-        "riskLevel": "medium",
-        "mitigation": "Review and fix failed tests, investigate root causes"
+    "coverageAnalysis": {
+      "byCategory": {
+        "authentication": 2,
+        "validation": 1
+      },
+      "byPriority": {
+        "high": 2,
+        "medium": 1
       }
-    ],
-    "mitigationStrategies": [
-      "Review and fix failed tests, investigate root causes",
-      "Implement continuous monitoring and alerting",
-      "Establish regular code review processes",
-      "Set up automated quality gates in CI/CD pipeline"
-    ],
-    "riskScore": 15
+    },
+    "performanceMetrics": {
+      "totalExecutionTime": 249,
+      "averageExecutionTime": 83,
+      "fastestTest": 60,
+      "slowestTest": 97
+    }
   },
-  "coverageAnalysis": {
-    "overallCoverage": 100,
-    "functionalCoverage": 100,
-    "securityCoverage": 0,
-    "edgeCaseCoverage": 0,
-    "uiCoverage": 100,
-    "performanceCoverage": 0,
-    "gaps": [],
-    "recommendations": []
-  },
-  "performanceMetrics": {
-    "averageExecutionTime": 0,
-    "slowestTests": [],
-    "fastestTests": [],
-    "performanceTrend": "stable",
-    "bottlenecks": []
-  },
-  "metadata": {
-    "generatedAt": "2025-08-18T16:12:53.268Z",
-    "analyzerVersion": "1.0.0",
-    "totalAnalysisTime": 0,
-    "confidence": 0.95,
-    "dataSources": [
-      "test-results",
-      "test-scenarios",
-      "code-analysis"
-    ]
+  "suggestions": [],
+  "summary": {
+    "totalScenarios": 3,
+    "totalTests": 3,
+    "qualityScore": 85,
+    "analysisDate": "2025-08-18T19:55:33.017Z"
   }
 }

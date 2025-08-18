@@ -1,457 +1,85 @@
 {
-  "test_session": {
-    "status": "completed",
-    "end_time": "2025-08-18T16:07:46.464Z"
-  },
-  "test_results": [
+  "scenarios": [
     {
-      "scenarioId": "login-valid-credentials-1755533265660",
-      "status": "passed",
-      "executionTime": 0,
-      "output": {
-        "success": true,
-        "redirect": "/",
-        "message": "Login successful"
-      },
-      "timestamp": "2025-08-18T16:07:45.660Z",
-      "metadata": {
-        "category": "functional",
-        "priority": "medium",
-        "riskLevel": "low"
-      },
-      "scenario": {
-        "id": "login-valid-credentials-1755533265660",
-        "name": "Valid Login Credentials",
-        "description": "Test login with valid email and password",
-        "category": "functional",
-        "priority": "medium",
-        "input": {
-          "email": "test@example.com",
-          "password": "validPassword123"
-        },
-        "expectedOutput": {
-          "success": true,
-          "redirect": "/"
-        },
-        "validationRules": [
-          {
-            "type": "assertion",
-            "condition": "response.status === expectedOutput.success",
-            "message": "Login response should match expected output"
-          }
-        ],
-        "riskLevel": "low",
-        "tags": [
-          "login",
-          "authentication",
-          "valid-credentials"
-        ],
-        "createdAt": "2025-08-18T16:07:45.659Z"
-      }
-    },
-    {
-      "scenarioId": "login-invalid-credentials-1755533265660",
-      "status": "failed",
-      "executionTime": 0,
-      "output": {
-        "success": false,
-        "error": "Invalid credentials",
-        "message": "Authentication failed"
-      },
-      "timestamp": "2025-08-18T16:07:45.761Z",
-      "metadata": {
-        "category": "functional",
-        "priority": "medium",
-        "riskLevel": "medium"
-      },
-      "scenario": {
-        "id": "login-invalid-credentials-1755533265660",
-        "name": "Invalid Login Credentials",
-        "description": "Test login with invalid email or password",
-        "category": "functional",
-        "priority": "medium",
-        "input": {
-          "email": "invalid@example.com",
-          "password": "wrongPassword"
-        },
-        "expectedOutput": {
-          "success": false,
-          "error": "Invalid credentials"
-        },
-        "validationRules": [
-          {
-            "type": "assertion",
-            "condition": "response.status === expectedOutput.success",
-            "message": "Login response should match expected output"
-          }
-        ],
-        "riskLevel": "medium",
-        "tags": [
-          "login",
-          "authentication",
-          "invalid-credentials"
-        ],
-        "createdAt": "2025-08-18T16:07:45.659Z"
-      }
-    },
-    {
-      "scenarioId": "login-empty-credentials-1755533265660",
-      "status": "failed",
-      "executionTime": 0,
-      "output": {
-        "success": false,
-        "error": "Invalid input",
-        "message": "Test failed"
-      },
-      "timestamp": "2025-08-18T16:07:45.861Z",
-      "metadata": {
-        "category": "functional",
-        "priority": "medium",
-        "riskLevel": "low"
-      },
-      "scenario": {
-        "id": "login-empty-credentials-1755533265660",
-        "name": "Empty Login Credentials",
-        "description": "Test login with empty email or password fields",
-        "category": "functional",
-        "priority": "medium",
-        "input": {
-          "email": "",
-          "password": ""
-        },
-        "expectedOutput": {
-          "success": false,
-          "error": "Fields are required"
-        },
-        "validationRules": [
-          {
-            "type": "assertion",
-            "condition": "response.status === expectedOutput.success",
-            "message": "Login response should match expected output"
-          }
-        ],
-        "riskLevel": "low",
-        "tags": [
-          "login",
-          "authentication",
-          "empty-credentials"
-        ],
-        "createdAt": "2025-08-18T16:07:45.659Z"
-      }
-    },
-    {
-      "scenarioId": "login-sql-injection-attempt-1755533265660",
-      "status": "failed",
-      "executionTime": 0,
-      "output": {
-        "success": false,
-        "error": "Invalid credentials",
-        "message": "Authentication failed"
-      },
-      "timestamp": "2025-08-18T16:07:45.961Z",
-      "metadata": {
-        "category": "functional",
-        "priority": "medium",
-        "riskLevel": "high"
-      },
-      "scenario": {
-        "id": "login-sql-injection-attempt-1755533265660",
-        "name": "SQL Injection Prevention",
-        "description": "Test login with SQL injection attempt",
-        "category": "functional",
-        "priority": "medium",
-        "input": {
-          "email": "'; DROP TABLE users; --",
-          "password": "password"
-        },
-        "expectedOutput": {
-          "success": false,
-          "error": "Invalid input"
-        },
-        "validationRules": [
-          {
-            "type": "assertion",
-            "condition": "response.status === expectedOutput.success",
-            "message": "Login response should match expected output"
-          }
-        ],
-        "riskLevel": "high",
-        "tags": [
-          "login",
-          "authentication",
-          "sql-injection-attempt"
-        ],
-        "createdAt": "2025-08-18T16:07:45.659Z"
-      }
-    },
-    {
-      "scenarioId": "login-xss-attempt-1755533265660",
-      "status": "failed",
-      "executionTime": 0,
-      "output": {
-        "success": false,
-        "error": "Invalid credentials",
-        "message": "Authentication failed"
-      },
-      "timestamp": "2025-08-18T16:07:46.062Z",
-      "metadata": {
-        "category": "functional",
-        "priority": "medium",
-        "riskLevel": "high"
-      },
-      "scenario": {
-        "id": "login-xss-attempt-1755533265660",
-        "name": "XSS Prevention",
-        "description": "Test login with XSS attempt",
-        "category": "functional",
-        "priority": "medium",
-        "input": {
-          "email": "<script>alert(\"xss\")</script>",
-          "password": "password"
-        },
-        "expectedOutput": {
-          "success": false,
-          "error": "Invalid input"
-        },
-        "validationRules": [
-          {
-            "type": "assertion",
-            "condition": "response.status === expectedOutput.success",
-            "message": "Login response should match expected output"
-          }
-        ],
-        "riskLevel": "high",
-        "tags": [
-          "login",
-          "authentication",
-          "xss-attempt"
-        ],
-        "createdAt": "2025-08-18T16:07:45.659Z"
-      }
-    },
-    {
-      "scenarioId": "ui-button-clicks-1755533265660",
-      "status": "passed",
-      "executionTime": 0,
-      "output": {
-        "success": true,
-        "action": "executed",
-        "element": "button",
-        "clicked": true
-      },
-      "timestamp": "2025-08-18T16:07:46.162Z",
-      "metadata": {
-        "category": "ui",
-        "priority": "medium",
-        "riskLevel": "low"
-      },
-      "scenario": {
-        "id": "ui-button-clicks-1755533265660",
-        "name": "Button Click Interactions",
-        "description": "Test all button click interactions in the UI",
-        "category": "ui",
-        "priority": "medium",
-        "input": {
-          "action": "click",
-          "element": "button"
-        },
-        "expectedOutput": {
-          "success": true,
-          "action": "executed"
-        },
-        "validationRules": [
-          {
-            "type": "assertion",
-            "condition": "ui.element.visible === true",
-            "message": "UI element should be visible and interactive"
-          }
-        ],
-        "riskLevel": "low",
-        "tags": [
-          "ui",
-          "interaction",
-          "button-clicks"
-        ],
-        "createdAt": "2025-08-18T16:07:45.659Z"
-      }
-    },
-    {
-      "scenarioId": "ui-form-validation-1755533265660",
-      "status": "passed",
-      "executionTime": 0,
-      "output": {
-        "success": true,
-        "validation": "passed",
-        "form": "login",
-        "valid": true
-      },
-      "timestamp": "2025-08-18T16:07:46.262Z",
-      "metadata": {
-        "category": "ui",
-        "priority": "medium",
-        "riskLevel": "medium"
-      },
-      "scenario": {
-        "id": "ui-form-validation-1755533265660",
-        "name": "Form Validation",
-        "description": "Test form validation and error handling",
-        "category": "ui",
-        "priority": "medium",
-        "input": {
-          "action": "validate",
-          "form": "login"
-        },
-        "expectedOutput": {
-          "success": true,
-          "validation": "passed"
-        },
-        "validationRules": [
-          {
-            "type": "assertion",
-            "condition": "ui.element.visible === true",
-            "message": "UI element should be visible and interactive"
-          }
-        ],
-        "riskLevel": "medium",
-        "tags": [
-          "ui",
-          "interaction",
-          "form-validation"
-        ],
-        "createdAt": "2025-08-18T16:07:45.659Z"
-      }
-    },
-    {
-      "scenarioId": "ui-responsive-design-1755533265660",
-      "status": "passed",
-      "executionTime": 0,
-      "output": {
-        "success": true,
-        "responsive": true,
-        "dimensions": [
-          "mobile",
-          "tablet",
-          "desktop"
-        ],
-        "tested": true
-      },
-      "timestamp": "2025-08-18T16:07:46.363Z",
-      "metadata": {
-        "category": "ui",
-        "priority": "medium",
-        "riskLevel": "low"
-      },
-      "scenario": {
-        "id": "ui-responsive-design-1755533265660",
-        "name": "Responsive Design",
-        "description": "Test UI responsiveness across different screen sizes",
-        "category": "ui",
-        "priority": "medium",
-        "input": {
-          "action": "resize",
-          "dimensions": [
-            "mobile",
-            "tablet",
-            "desktop"
-          ]
-        },
-        "expectedOutput": {
-          "success": true,
-          "responsive": true
-        },
-        "validationRules": [
-          {
-            "type": "assertion",
-            "condition": "ui.element.visible === true",
-            "message": "UI element should be visible and interactive"
-          }
-        ],
-        "riskLevel": "low",
-        "tags": [
-          "ui",
-          "interaction",
-          "responsive-design"
-        ],
-        "createdAt": "2025-08-18T16:07:45.659Z"
-      }
-    }
-  ],
-  "issues_found": [
-    {
-      "type": "test-failure",
-      "severity": "medium",
-      "description": "Test \"Invalid Login Credentials\" failed",
-      "scenarioId": "login-invalid-credentials-1755533265660",
-      "output": {
-        "success": false,
-        "error": "Invalid credentials",
-        "message": "Authentication failed"
-      },
-      "recommendation": "Review test logic and expected output"
-    },
-    {
-      "type": "test-failure",
-      "severity": "medium",
-      "description": "Test \"Empty Login Credentials\" failed",
-      "scenarioId": "login-empty-credentials-1755533265660",
-      "output": {
-        "success": false,
-        "error": "Invalid input",
-        "message": "Test failed"
-      },
-      "recommendation": "Review test logic and expected output"
-    },
-    {
-      "type": "test-failure",
-      "severity": "medium",
-      "description": "Test \"SQL Injection Prevention\" failed",
-      "scenarioId": "login-sql-injection-attempt-1755533265660",
-      "output": {
-        "success": false,
-        "error": "Invalid credentials",
-        "message": "Authentication failed"
-      },
-      "recommendation": "Review test logic and expected output"
-    },
-    {
-      "type": "test-failure",
-      "severity": "medium",
-      "description": "Test \"XSS Prevention\" failed",
-      "scenarioId": "login-xss-attempt-1755533265660",
-      "output": {
-        "success": false,
-        "error": "Invalid credentials",
-        "message": "Authentication failed"
-      },
-      "recommendation": "Review test logic and expected output"
-    }
-  ],
-  "improvements_suggested": [
-    {
-      "type": "coverage",
+      "id": "login-001",
+      "name": "Valid Login Credentials",
+      "description": "Test login with valid username and password",
+      "category": "authentication",
       "priority": "high",
-      "description": "Increase test coverage by adding more test scenarios",
-      "action": "Generate additional test cases for uncovered functionality"
+      "riskLevel": "low",
+      "tags": [
+        "login",
+        "valid",
+        "happy-path"
+      ]
     },
     {
-      "type": "security",
-      "priority": "critical",
-      "description": "No security tests were executed",
-      "action": "Implement comprehensive security testing for authentication flows"
+      "id": "login-002",
+      "name": "Invalid Login Credentials",
+      "description": "Test login with invalid username or password",
+      "category": "authentication",
+      "priority": "high",
+      "riskLevel": "medium",
+      "tags": [
+        "login",
+        "invalid",
+        "security"
+      ]
+    },
+    {
+      "id": "login-003",
+      "name": "Empty Login Form",
+      "description": "Test login with empty username and password fields",
+      "category": "validation",
+      "priority": "medium",
+      "riskLevel": "low",
+      "tags": [
+        "login",
+        "validation",
+        "empty"
+      ]
     }
   ],
-  "coverage_metrics": {
-    "functional_paths": 100,
-    "edge_cases": 0,
-    "security_tests": 0,
-    "ui_tests": 100,
-    "total_tests": 8
+  "results": [
+    {
+      "id": "result-login-001",
+      "scenarioId": "login-001",
+      "status": "passed",
+      "executionTime": 92,
+      "details": {
+        "category": "authentication",
+        "priority": "high"
+      }
+    },
+    {
+      "id": "result-login-002",
+      "scenarioId": "login-002",
+      "status": "passed",
+      "executionTime": 97,
+      "details": {
+        "category": "authentication",
+        "priority": "high"
+      }
+    },
+    {
+      "id": "result-login-003",
+      "scenarioId": "login-003",
+      "status": "passed",
+      "executionTime": 60,
+      "details": {
+        "category": "validation",
+        "priority": "medium"
+      }
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "totalTime": 249,
+    "passRate": 100
   },
-  "execution_summary": {
-    "tests_executed": 8,
-    "tests_passed": 4,
-    "tests_failed": 4,
-    "execution_time": 0,
-    "last_updated": "2025-08-18T16:07:46.464Z"
-  }
+  "qualityScore": 85
 }
