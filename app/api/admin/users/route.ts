@@ -93,7 +93,6 @@ export async function POST(request: NextRequest) {
     const tempPassword = generateSecurePassword()
 
     // Create auth user
-    const supabase = getSupabaseAdminClient()
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: email.toLowerCase().trim(),
       password: tempPassword,
