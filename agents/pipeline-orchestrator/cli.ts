@@ -1,338 +1,320 @@
 #!/usr/bin/env ts-node
 
 import { PipelineOrchestratorAgent } from './PipelineOrchestratorAgent'
-import { OrchestratorOptions } from './types'
-import * as path from 'path'
+import * as readline from 'readline'
 
-/**
- * Parse command line arguments
- */
-function parseArguments(): OrchestratorOptions {
-  const args = process.argv.slice(2)
-  const options: Partial<OrchestratorOptions> = {
-    enableMonitoring: true,
-    enableNotifications: false,
-    maxConcurrentWorkflows: 3,
-    defaultTimeout: 300000,
-    logLevel: 'info'
-  }
-
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i]
-    const nextArg = args[i + 1]
-
-    switch (arg) {
-      case '--help':
-      case '-h':
-        showHelp()
-        process.exit(0)
-        break
-
-      case '--config':
-      case '-c':
-        if (nextArg) {
-          options.configPath = nextArg
-          i++
-        } else {
-          console.error('❌ Error: --config requires a config file path')
-          process.exit(1)
-        }
-        break
-
-      case '--output':
-      case '-o':
-        if (nextArg) {
-          options.outputPath = nextArg
-          i++
-        } else {
-          console.error('❌ Error: --output requires an output path')
-          process.exit(1)
-        }
-        break
-
-      case '--max-workflows':
-        if (nextArg) {
-          const maxWorkflows = parseInt(nextArg)
-          if (isNaN(maxWorkflows) || maxWorkflows < 1) {
-            console.error('❌ Error: --max-workflows must be a positive number')
-            process.exit(1)
-          }
-          options.maxConcurrentWorkflows = maxWorkflows
-          i++
-        } else {
-          console.error('❌ Error: --max-workflows requires a number')
-          process.exit(1)
-        }
-        break
-
-      case '--timeout':
-        if (nextArg) {
-          const timeout = parseInt(nextArg)
-          if (isNaN(timeout) || timeout < 1000) {
-            console.error('❌ Error: --timeout must be at least 1000ms')
-            process.exit(1)
-          }
-          options.defaultTimeout = timeout
-          i++
-        } else {
-          console.error('❌ Error: --timeout requires a number')
-          process.exit(1)
-        }
-        break
-
-      case '--no-monitoring':
-        options.enableMonitoring = false
-        break
-
-      case '--enable-notifications':
-        options.enableNotifications = true
-        break
-
-      case '--log-level':
-        if (nextArg) {
-          const logLevel = nextArg as 'debug' | 'info' | 'warn' | 'error'
-          if (!['debug', 'info', 'warn', 'error'].includes(logLevel)) {
-            console.error('❌ Error: --log-level must be debug, info, warn, or error')
-            process.exit(1)
-          }
-          options.logLevel = logLevel
-          i++
-        } else {
-          console.error('❌ Error: --log-level requires a level')
-          process.exit(1)
-        }
-        break
-
-      case '--version':
-      case '-v':
-        showVersion()
-        process.exit(0)
-        break
-
-      default:
-        console.error(`❌ Error: Unknown option: ${arg}`)
-        showHelp()
-        process.exit(1)
-    }
-  }
-
-  // Set default values
-  if (!options.configPath) {
-    options.configPath = './pipeline-config.json'
-  }
-
-  if (!options.outputPath) {
-    options.outputPath = './pipeline-results'
-  }
-
-  return options as OrchestratorOptions
+interface CLIArgs {
+  config?: string
+  workflow?: string
+  execute?: boolean
+  status?: boolean
+  metrics?: boolean
+  help?: boolean
+  version?: boolean
 }
 
-/**
- * Show help information
- */
-function showHelp() {
+function parseArgs(): CLIArgs {
+  const args: CLIArgs = {}
+  
+  for (let i = 2; i < process.argv.length; i++) {
+    const arg = process.argv[i]
+    
+    switch (arg) {
+      case '--config':
+      case '-c':
+        args.config = process.argv[++i]
+        break
+      case '--workflow':
+      case '-w':
+        args.workflow = process.argv[++i]
+        break
+      case '--execute':
+      case '-e':
+        args.execute = true
+        break
+      case '--status':
+      case '-s':
+        args.status = true
+        break
+      case '--metrics':
+      case '-m':
+        args.metrics = true
+        break
+      case '--help':
+      case '-h':
+        args.help = true
+        break
+      case '--version':
+      case '-v':
+        args.version = true
+        break
+    }
+  }
+  
+  return args
+}
+
+function showHelp(): void {
   console.log(`
-🚀 AI-Powered Pipeline Orchestrator Agent CLI
+🚀 AI-Powered Pipeline Orchestrator Agent
 
-USAGE:
-  npx ts-node cli.ts [OPTIONS]
+Usage: npx ts-node cli.ts [options]
 
-OPTIONS:
-  -c, --config <path>           Configuration file path (default: ./pipeline-config.json)
-  -o, --output <path>           Output directory for results (default: ./pipeline-results)
-  --max-workflows <number>       Maximum concurrent workflows (default: 3)
-  --timeout <ms>                Default timeout in milliseconds (default: 300000)
-  --no-monitoring               Disable monitoring and health checks
-  --enable-notifications        Enable notifications
-  --log-level <level>           Log level: debug, info, warn, error (default: info)
-  -h, --help                    Show this help message
-  -v, --version                 Show version information
+Options:
+  -c, --config <path>      Path to pipeline configuration file
+  -w, --workflow <id>      Workflow ID to execute
+  -e, --execute            Execute the specified workflow
+  -s, --status             Show pipeline status
+  -m, --metrics            Show pipeline metrics
+  -h, --help               Show this help message
+  -v, --version            Show version information
 
-EXAMPLES:
-  # Basic usage with default configuration
-  npx ts-node cli.ts
+Examples:
+  # Initialize with config and execute workflow
+  npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json --workflow ci-ai-pipeline --execute
 
-  # Custom configuration and output
-  npx ts-node cli.ts --config ./my-pipeline.json --output ./results
+  # Show pipeline status
+  npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json --status
 
-  # High-performance mode
-  npx ts-node cli.ts --max-workflows 10 --timeout 600000
+  # Show pipeline metrics
+  npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json --metrics
 
-  # Development mode
-  npx ts-node cli.ts --log-level debug --no-monitoring
+  # Interactive mode
+  npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json
 
-FEATURES:
-  🔄 Workflow orchestration and execution
-  🤖 Multi-agent coordination and management
-  📊 Real-time monitoring and health checks
-  🎯 Quality gates and validation
-  📈 Metrics collection and reporting
-  🚀 Parallel workflow execution
-  🔒 Retry policies and rollback strategies
-  📋 Comprehensive logging and debugging
+Features:
+  🔄 2 Iterations with improvement tracking
+  📊 Performance metrics and monitoring
+  🎯 Advanced reporting and analysis
+  🚀 CI/CD ready workflow execution
+  📈 Trend analysis and recommendations
 
-For more information, visit: https://github.com/your-repo/ai-testing-system
+The orchestrator will:
+  1. Run iteration 1: Execute basic workflow
+  2. Run iteration 2: Execute improved workflow with enhanced monitoring
+  3. Compare results and show improvements
+  4. Generate comprehensive reports
 `)
 }
 
-/**
- * Show version information
- */
-function showVersion() {
+function showVersion(): void {
   console.log('AI-Powered Pipeline Orchestrator Agent v1.0.0')
-  console.log('Part of the AI Testing & Quality Analysis System')
 }
 
-/**
- * Main execution function
- */
-async function main() {
+async function main(): Promise<void> {
+  const args = parseArgs()
+  
+  if (args.help) {
+    showHelp()
+    return
+  }
+  
+  if (args.version) {
+    showVersion()
+    return
+  }
+  
   try {
-    console.log('🚀 AI-Powered Pipeline Orchestrator Agent')
-    console.log('==========================================')
-    console.log('')
-
-    // Parse command line arguments
-    const options = parseArguments()
-
-    // Display configuration
-    console.log('📋 Configuration:')
-    console.log(`  Config File: ${options.configPath}`)
-    console.log(`  Output Directory: ${options.outputPath}`)
-    console.log(`  Max Concurrent Workflows: ${options.maxConcurrentWorkflows}`)
-    console.log(`  Default Timeout: ${options.defaultTimeout}ms`)
-    console.log(`  Monitoring: ${options.enableMonitoring ? 'Enabled' : 'Disabled'}`)
-    console.log(`  Notifications: ${options.enableNotifications ? 'Enabled' : 'Disabled'}`)
-    console.log(`  Log Level: ${options.logLevel}`)
-    console.log('')
-
-    // Create and initialize the orchestrator
-    const orchestrator = new PipelineOrchestratorAgent(options)
+    // Initialize orchestrator
+    const orchestrator = new PipelineOrchestratorAgent()
     
-    // Initialize the pipeline
-    await orchestrator.initialize()
-    
-    // Display status
-    const status = orchestrator.getStatus()
-    console.log('📊 Pipeline Status:')
-    console.log(`  Status: ${status.status}`)
-    console.log(`  Active Workflows: ${status.activeWorkflows}`)
-    console.log(`  Queued Workflows: ${status.queuedWorkflows}`)
-    console.log(`  Agents: ${Object.keys(status.agentStatus).length}`)
-    console.log(`  Uptime: ${Math.round(status.uptime / 1000)}s`)
-    console.log('')
-
-    // Display available workflows
-    const workflows = orchestrator.getWorkflows()
-    if (workflows.length > 0) {
-      console.log('🔄 Available Workflows:')
-      workflows.forEach(workflow => {
-        console.log(`  - ${workflow.name} (${workflow.id})`)
-        console.log(`    ${workflow.description}`)
-        console.log(`    Steps: ${workflow.steps.length}, Timeout: ${workflow.timeout}ms`)
-        console.log('')
-      })
+    if (args.config) {
+      await orchestrator.initialize(args.config)
+    } else {
+      await orchestrator.initialize()
     }
-
-    // Display agent information
-    const agents = orchestrator.getAgents()
-    if (agents.length > 0) {
-      console.log('🤖 Registered Agents:')
-      agents.forEach(agent => {
-        const health = orchestrator.getAgentHealth(agent.id)
-        const healthStatus = health ? health.status : 'unknown'
-        console.log(`  - ${agent.name} (${agent.type}): ${agent.status} [${healthStatus}]`)
-      })
+    
+    // Execute workflow if requested
+    if (args.execute && args.workflow) {
+      console.log(`🚀 Executing workflow: ${args.workflow}`)
+      const result = await orchestrator.executeWorkflow(args.workflow)
+      
       console.log('')
-    }
-
-    // Interactive mode (simplified)
-    console.log('🎯 Pipeline Orchestrator is ready!')
-    console.log('Use the following commands:')
-    console.log('  - execute <workflow-id> [config] - Execute a workflow')
-    console.log('  - status                        - Show current status')
-    console.log('  - metrics                       - Show metrics')
-    console.log('  - agents                        - Show agent information')
-    console.log('  - workflows                     - Show available workflows')
-    console.log('  - quit                          - Exit the orchestrator')
-    console.log('')
-
-    // Simple command loop
-    process.stdin.setRawMode(false)
-    process.stdin.resume()
-    process.stdin.setEncoding('utf8')
-
-    process.stdin.on('data', async (data) => {
-      const input = data.toString().trim()
-      const parts = input.split(' ')
-      const command = parts[0].toLowerCase()
-
-      try {
-        switch (command) {
-          case 'execute':
-            if (parts.length < 2) {
-              console.log('❌ Usage: execute <workflow-id> [config]')
-              break
-            }
-            const workflowId = parts[1]
-            const config = parts.length > 2 ? JSON.parse(parts.slice(2).join(' ')) : {}
-            console.log(`🚀 Executing workflow: ${workflowId}`)
-            const result = await orchestrator.executeWorkflow(workflowId, config)
-            console.log(`✅ Workflow completed: ${result.id}`)
-            break
-
-          case 'status':
-            const currentStatus = orchestrator.getStatus()
-            console.log('📊 Current Status:', currentStatus)
-            break
-
-          case 'metrics':
-            const metrics = orchestrator.getMetrics()
-            console.log('📈 Metrics:', metrics)
-            break
-
-          case 'agents':
-            const allAgents = orchestrator.getAgents()
-            console.log('🤖 Agents:', allAgents)
-            break
-
-          case 'workflows':
-            const allWorkflows = orchestrator.getWorkflows()
-            console.log('🔄 Workflows:', allWorkflows)
-            break
-
-          case 'quit':
-          case 'exit':
-            console.log('🔄 Shutting down...')
-            await orchestrator.shutdown()
-            process.exit(0)
-            break
-
-          default:
-            console.log(`❌ Unknown command: ${command}`)
-            break
-        }
-      } catch (error) {
-        console.error(`❌ Error executing command: ${error.message}`)
+      console.log('🎉 Workflow execution completed!')
+      console.log('')
+      console.log('📊 Final Results:')
+      console.log(`   Workflow: ${result.workflowName}`)
+      console.log(`   Status: ${result.executionResult?.status || 'unknown'}`)
+      console.log(`   Total Execution Time: ${result.executionTime}ms`)
+      console.log(`   Iterations Completed: ${result.iterationHistory?.length || 1}`)
+      
+      if (result.improvementSummary) {
+        console.log('')
+        console.log('📈 Improvement Summary:')
+        console.log(`   Success Rate Increase: +${result.improvementSummary.successRateIncrease.toFixed(1)}%`)
+        console.log(`   Score Increase: +${result.improvementSummary.scoreIncrease} points`)
+        console.log(`   Total Iterations: ${result.improvementSummary.totalIterations}`)
       }
-
-      console.log('\n🎯 Enter command:')
-    })
-
-    console.log('🎯 Enter command:')
-
+      
+      return
+    }
+    
+    // Show status if requested
+    if (args.status) {
+      const status = orchestrator.getStatus()
+      console.log('')
+      console.log('📊 Pipeline Status:')
+      console.log(`   Status: ${status.status}`)
+      console.log(`   Active Workflows: ${status.activeWorkflows}`)
+      console.log(`   Registered Agents: ${status.registeredAgents}`)
+      console.log(`   Total Iterations: ${status.totalIterations}`)
+      console.log(`   Last Execution: ${status.lastExecution || 'None'}`)
+      return
+    }
+    
+    // Show metrics if requested
+    if (args.metrics) {
+      const metrics = orchestrator.getMetrics()
+      console.log('')
+      console.log('📈 Pipeline Metrics:')
+      console.log(`   Total Iterations: ${metrics.totalIterations}`)
+      console.log(`   Average Execution Time: ${Math.round(metrics.averageExecutionTime)}ms`)
+      console.log(`   Average Success Rate: ${metrics.successRate.toFixed(1)}%`)
+      console.log(`   Improvement Trend: ${metrics.improvementTrend > 0 ? '+' : ''}${metrics.improvementTrend} points`)
+      return
+    }
+    
+    // Interactive mode
+    if (!args.execute && !args.status && !args.metrics) {
+      await interactiveMode(orchestrator)
+    }
+    
   } catch (error) {
-    console.error('❌ Fatal error:', error.message)
-    console.error('Stack trace:', error.stack)
+    console.error('❌ Error:', error)
     process.exit(1)
   }
 }
 
-// Run if this file is executed directly
+async function interactiveMode(orchestrator: PipelineOrchestratorAgent): Promise<void> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  })
+  
+  console.log('')
+  console.log('🤖 Pipeline Orchestrator Interactive Mode')
+  console.log('=========================================')
+  console.log('')
+  
+  const question = (query: string): Promise<string> => {
+    return new Promise((resolve) => {
+      rl.question(query, resolve)
+    })
+  }
+  
+  try {
+    while (true) {
+      console.log('Available commands:')
+      console.log('  1. execute <workflow-id>  - Execute a workflow')
+      console.log('  2. status                 - Show pipeline status')
+      console.log('  3. metrics                - Show pipeline metrics')
+      console.log('  4. workflows              - List available workflows')
+      console.log('  5. agents                 - List registered agents')
+      console.log('  6. help                   - Show help')
+      console.log('  7. exit                   - Exit interactive mode')
+      console.log('')
+      
+      const input = await question('Enter command: ')
+      const [command, ...args] = input.trim().split(' ')
+      
+      switch (command.toLowerCase()) {
+        case 'execute':
+          if (args.length === 0) {
+            console.log('❌ Please specify a workflow ID')
+            break
+          }
+          
+          const workflowId = args[0]
+          console.log(`🚀 Executing workflow: ${workflowId}`)
+          
+          try {
+            const result = await orchestrator.executeWorkflow(workflowId)
+            console.log('✅ Workflow executed successfully!')
+            console.log(`📊 Result: ${result.executionResult?.status || 'unknown'}`)
+          } catch (error) {
+            console.error(`❌ Error executing workflow: ${error}`)
+          }
+          break
+          
+        case 'status':
+          const status = orchestrator.getStatus()
+          console.log('')
+          console.log('📊 Pipeline Status:')
+          console.log(`   Status: ${status.status}`)
+          console.log(`   Active Workflows: ${status.activeWorkflows}`)
+          console.log(`   Registered Agents: ${status.registeredAgents}`)
+          console.log(`   Total Iterations: ${status.totalIterations}`)
+          console.log(`   Last Execution: ${status.lastExecution || 'None'}`)
+          break
+          
+        case 'metrics':
+          const metrics = orchestrator.getMetrics()
+          console.log('')
+          console.log('📈 Pipeline Metrics:')
+          console.log(`   Total Iterations: ${metrics.totalIterations}`)
+          console.log(`   Average Execution Time: ${Math.round(metrics.averageExecutionTime)}ms`)
+          console.log(`   Average Success Rate: ${metrics.successRate.toFixed(1)}%`)
+          console.log(`   Improvement Trend: ${metrics.improvementTrend > 0 ? '+' : ''}${metrics.improvementTrend} points`)
+          break
+          
+        case 'workflows':
+          const workflows = orchestrator.getWorkflows()
+          console.log('')
+          console.log('🔄 Available Workflows:')
+          if (workflows.length === 0) {
+            console.log('   No workflows configured')
+          } else {
+            workflows.forEach(workflow => {
+              console.log(`   ${workflow.id}: ${workflow.name}`)
+              console.log(`     ${workflow.description}`)
+              console.log(`     Enabled: ${workflow.enabled ? '✅' : '❌'}`)
+              console.log('')
+            })
+          }
+          break
+          
+        case 'agents':
+          const agents = orchestrator.getAgents()
+          console.log('')
+          console.log('🤖 Registered Agents:')
+          if (agents.length === 0) {
+            console.log('   No agents registered')
+          } else {
+            agents.forEach(agent => {
+              console.log(`   ${agent.id}: ${agent.name}`)
+              console.log(`     Type: ${agent.type}`)
+              console.log(`     Status: ${agent.status}`)
+              console.log('')
+            })
+          }
+          break
+          
+        case 'help':
+          showHelp()
+          break
+          
+        case 'exit':
+          console.log('👋 Goodbye!')
+          rl.close()
+          return
+          
+        default:
+          console.log(`❌ Unknown command: ${command}`)
+          console.log('Type "help" for available commands')
+          break
+      }
+      
+      console.log('')
+    }
+  } finally {
+    rl.close()
+  }
+}
+
+// Run the CLI
 if (require.main === module) {
-  main().catch((error) => {
-    console.error('❌ Unhandled error:', error)
+  main().catch(error => {
+    console.error('❌ Fatal error:', error)
     process.exit(1)
   })
 }

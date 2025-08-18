@@ -1,571 +1,308 @@
+import { TestScenario, TestResult } from './types'
 import * as fs from 'fs'
 import * as path from 'path'
-import { TestScenario, TestResult, TestCoverageReport } from './types'
 
 export class ReportGenerator {
-  private scenarios: TestScenario[]
-  private results: TestResult[]
   private outputPath: string
 
-  constructor(scenarios: TestScenario[], results: TestResult[], outputPath: string) {
-    this.scenarios = scenarios
-    this.results = results
+  constructor(outputPath: string) {
     this.outputPath = outputPath
+    this.ensureOutputDirectory()
   }
 
-  async generateReport(): Promise<void> {
-    console.log('📊 Generating comprehensive test report...')
+  /**
+   * Save the complete test report
+   */
+  async saveReport(report: any): Promise<void> {
+    try {
+      const reportPath = path.join(this.outputPath, 'test-execution-report.json')
+      await fs.promises.writeFile(reportPath, JSON.stringify(report, null, 2))
+      console.log(`📄 Test report saved to: ${reportPath}`)
+    } catch (error) {
+      console.error('❌ Error saving test report:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Generate markdown summary
+   */
+  async generateMarkdownSummary(report: any): Promise<void> {
+    try {
+      const summaryPath = path.join(this.outputPath, 'test-execution-summary.md')
+      const markdown = this.formatMarkdownSummary(report)
+      await fs.promises.writeFile(summaryPath, markdown)
+      console.log(`📄 Markdown summary saved to: ${summaryPath}`)
+    } catch (error) {
+      console.error('❌ Error generating markdown summary:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Generate coverage report
+   */
+  async generateCoverageReport(report: any): Promise<void> {
+    try {
+      const coveragePath = path.join(this.outputPath, 'test-coverage-report.json')
+      const coverageReport = this.generateCoverageData(report)
+      await fs.promises.writeFile(coveragePath, JSON.stringify(coverageReport, null, 2))
+      console.log(`📄 Coverage report saved to: ${coveragePath}`)
+    } catch (error) {
+      console.error('❌ Error generating coverage report:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Format markdown summary
+   */
+  private formatMarkdownSummary(report: any): string {
+    const { scenarios, testResults, qualityScore, iterationHistory, improvementSummary } = report
     
-    const report = {
-      summary: this.generateSummary(),
-      coverage: this.generateCoverageReport(),
-      results: this.organizeResults(),
-      issues: this.identifyIssues(),
-      recommendations: this.generateRecommendations(),
-      metadata: this.generateMetadata()
+    let markdown = `# 🧪 Test Execution Summary\n\n`
+    markdown += `**Generated:** ${new Date().toLocaleString()}\n`
+    markdown += `**Quality Score:** ${qualityScore}/100\n\n`
+
+    // Iteration Summary
+    if (iterationHistory && iterationHistory.length > 0) {
+      markdown += `## 🔄 Iteration Summary\n\n`
+      markdown += `| Iteration | Scenarios | Quality Score | Execution Time |\n`
+      markdown += `|------------|-----------|---------------|----------------|\n`
+      
+      iterationHistory.forEach((iteration: any, index: number) => {
+        markdown += `| ${index + 1} | ${iteration.scenarios.length} | ${iteration.qualityScore}/100 | ${iteration.executionTime}ms |\n`
+      })
+      
+      if (improvementSummary) {
+        markdown += `\n**Improvement Summary:**\n`
+        markdown += `- Quality Increase: +${improvementSummary.qualityIncrease} points\n`
+        markdown += `- Scenario Increase: +${improvementSummary.scenarioIncrease}\n`
+        markdown += `- Total Iterations: ${improvementSummary.totalIterations}\n\n`
+      }
     }
 
-    // Save detailed JSON report
-    await this.saveJsonReport(report)
-    
-    // Save human-readable summary
-    await this.saveHumanReadableReport(report)
-    
-    // Save coverage metrics
-    await this.saveCoverageReport(report.coverage)
-    
-    console.log('📋 Test report generated successfully!')
+    // Test Results Summary
+    if (testResults && testResults.length > 0) {
+      const summary = this.calculateTestSummary(testResults)
+      
+      markdown += `## 📊 Test Results Summary\n\n`
+      markdown += `- **Total Tests:** ${summary.total}\n`
+      markdown += `- **Passed:** ${summary.passed} (${summary.passRate}%)\n`
+      markdown += `- **Failed:** ${summary.failed}\n`
+      markdown += `- **Errors:** ${summary.errors}\n`
+      markdown += `- **Total Execution Time:** ${summary.totalTime}ms\n\n`
+    }
+
+    // Scenarios by Category
+    if (scenarios && scenarios.length > 0) {
+      markdown += `## 🎯 Scenarios by Category\n\n`
+      
+      const categories = this.groupScenariosByCategory(scenarios)
+      Object.entries(categories).forEach(([category, categoryScenarios]) => {
+        markdown += `### ${category.charAt(0).toUpperCase() + category.slice(1)} (${categoryScenarios.length})\n\n`
+        
+        categoryScenarios.forEach((scenario: any) => {
+          markdown += `- **${scenario.name}** (${scenario.priority})\n`
+          markdown += `  - ${scenario.description}\n`
+          markdown += `  - Risk Level: ${scenario.riskLevel}\n`
+          markdown += `  - Tags: ${scenario.tags.join(', ')}\n\n`
+        })
+      }
+    }
+
+    // Test Results Details
+    if (testResults && testResults.length > 0) {
+      markdown += `## 🔍 Test Results Details\n\n`
+      
+      testResults.forEach((result: any) => {
+        const scenario = scenarios.find((s: any) => s.id === result.scenarioId)
+        const status = result.status === 'passed' ? '✅' : result.status === 'failed' ? '❌' : '⚠️'
+        
+        markdown += `### ${status} ${scenario ? scenario.name : 'Unknown Scenario'}\n\n`
+        markdown += `- **Status:** ${result.status}\n`
+        markdown += `- **Execution Time:** ${result.executionTime}ms\n`
+        markdown += `- **Category:** ${result.details?.category || 'Unknown'}\n`
+        markdown += `- **Priority:** ${result.details?.priority || 'Unknown'}\n`
+        
+        if (result.error) {
+          markdown += `- **Error:** ${result.error}\n`
+        }
+        
+        if (result.output) {
+          markdown += `- **Output:** \`\`\`json\n${JSON.stringify(result.output, null, 2)}\n\`\`\`\n`
+        }
+        
+        markdown += `\n`
+      })
+    }
+
+    return markdown
   }
 
-  private generateSummary(): any {
-    const totalScenarios = this.scenarios.length
-    const totalResults = this.results.length
-    const passed = this.results.filter(r => r.status === 'passed').length
-    const failed = this.results.filter(r => r.status === 'failed').length
-    const errors = this.results.filter(r => r.status === 'error').length
-    const skipped = this.results.filter(r => r.status === 'skipped').length
+  /**
+   * Generate coverage data
+   */
+  private generateCoverageData(report: any): any {
+    const { scenarios, testResults, codeAnalysis } = report
     
-    const totalExecutionTime = this.results.reduce((sum, r) => sum + r.executionTime, 0)
-    const averageExecutionTime = totalResults > 0 ? totalExecutionTime / totalResults : 0
+    const coverage = {
+      summary: {
+        totalScenarios: scenarios?.length || 0,
+        totalTests: testResults?.length || 0,
+        qualityScore: report.qualityScore || 0,
+        estimatedCoverage: codeAnalysis?.testCoverage || 0
+      },
+      byCategory: this.groupScenariosByCategory(scenarios || []),
+      byPriority: this.groupScenariosByPriority(scenarios || []),
+      byRiskLevel: this.groupScenariosByRiskLevel(scenarios || []),
+      testResults: {
+        byStatus: this.groupTestResultsByStatus(testResults || []),
+        byCategory: this.groupTestResultsByCategory(testResults || []),
+        executionTimes: this.calculateExecutionTimeStats(testResults || [])
+      }
+    }
     
-    const successRate = totalResults > 0 ? (passed / totalResults) * 100 : 0
+    return coverage
+  }
+
+  /**
+   * Calculate test summary
+   */
+  private calculateTestSummary(testResults: TestResult[]): any {
+    const total = testResults.length
+    const passed = testResults.filter(r => r.status === 'passed').length
+    const failed = testResults.filter(r => r.status === 'failed').length
+    const errors = testResults.filter(r => r.status === 'error').length
+    const skipped = testResults.filter(r => r.status === 'skipped').length
+    
+    const totalTime = testResults.reduce((sum, r) => sum + r.executionTime, 0)
+    const passRate = total > 0 ? Math.round((passed / total) * 100) : 0
     
     return {
-      totalScenarios,
-      totalResults,
+      total,
       passed,
       failed,
       errors,
       skipped,
-      successRate: Math.round(successRate * 100) / 100,
-      totalExecutionTime,
-      averageExecutionTime: Math.round(averageExecutionTime * 100) / 100,
-      timestamp: new Date().toISOString()
+      totalTime,
+      passRate
     }
   }
 
-  private generateCoverageReport(): TestCoverageReport {
-    const totalScenarios = this.scenarios.length
-    const executedScenarios = this.results.length
-    const passedScenarios = this.results.filter(r => r.status === 'passed').length
-    const failedScenarios = this.results.filter(r => r.status === 'failed').length
+  /**
+   * Group scenarios by category
+   */
+  private groupScenariosByCategory(scenarios: TestScenario[]): Record<string, TestScenario[]> {
+    const categories: Record<string, TestScenario[]> = {}
     
-    // Calculate coverage by category
-    const coverageByCategory: Record<string, number> = {}
-    const categoryCounts: Record<string, number> = {}
-    
-    this.scenarios.forEach(scenario => {
-      const category = scenario.category
-      categoryCounts[category] = (categoryCounts[category] || 0) + 1
-    })
-    
-    this.results.forEach(result => {
-      const category = result.metadata?.category || 'unknown'
-      if (!coverageByCategory[category]) {
-        coverageByCategory[category] = 0
+    scenarios.forEach(scenario => {
+      const category = scenario.category || 'unknown'
+      if (!categories[category]) {
+        categories[category] = []
       }
-      if (result.status === 'passed' || result.status === 'failed') {
-        coverageByCategory[category]++
+      categories[category].push(scenario)
+    })
+    
+    return categories
+  }
+
+  /**
+   * Group scenarios by priority
+   */
+  private groupScenariosByPriority(scenarios: TestScenario[]): Record<string, TestScenario[]> {
+    const priorities: Record<string, TestScenario[]> = {}
+    
+    scenarios.forEach(scenario => {
+      const priority = scenario.priority || 'unknown'
+      if (!priorities[priority]) {
+        priorities[priority] = []
       }
+      priorities[priority].push(scenario)
     })
     
-    // Calculate percentage coverage for each category
-    Object.keys(categoryCounts).forEach(category => {
-      const total = categoryCounts[category]
-      const covered = coverageByCategory[category] || 0
-      coverageByCategory[category] = total > 0 ? Math.round((covered / total) * 100) : 0
-    })
+    return priorities
+  }
+
+  /**
+   * Group scenarios by risk level
+   */
+  private groupScenariosByRiskLevel(scenarios: TestScenario[]): Record<string, TestScenario[]> {
+    const riskLevels: Record<string, TestScenario[]> = {}
     
-    // Calculate risk coverage
-    const riskCoverage: Record<string, number> = {}
-    const riskCounts: Record<string, number> = {}
-    
-    this.scenarios.forEach(scenario => {
-      const risk = scenario.riskLevel
-      riskCounts[risk] = (riskCounts[risk] || 0) + 1
-    })
-    
-    this.results.forEach(result => {
-      const risk = result.metadata?.riskLevel || 'unknown'
-      if (!riskCoverage[risk]) {
-        riskCoverage[risk] = 0
+    scenarios.forEach(scenario => {
+      const riskLevel = scenario.riskLevel || 'unknown'
+      if (!riskLevels[riskLevel]) {
+        riskLevels[riskLevel] = []
       }
-      if (result.status === 'passed' || result.status === 'failed') {
-        riskCoverage[risk]++
+      riskLevels[riskLevel].push(scenario)
+    })
+    
+    return riskLevels
+  }
+
+  /**
+   * Group test results by status
+   */
+  private groupTestResultsByStatus(testResults: TestResult[]): Record<string, TestResult[]> {
+    const statuses: Record<string, TestResult[]> = {}
+    
+    testResults.forEach(result => {
+      const status = result.status || 'unknown'
+      if (!statuses[status]) {
+        statuses[status] = []
       }
+      statuses[status].push(result)
     })
     
-    // Calculate percentage coverage for each risk level
-    Object.keys(riskCounts).forEach(risk => {
-      const total = riskCounts[risk]
-      const covered = riskCoverage[risk] || 0
-      riskCoverage[risk] = total > 0 ? Math.round((covered / total) * 100) : 0
+    return statuses
+  }
+
+  /**
+   * Group test results by category
+   */
+  private groupTestResultsByCategory(testResults: TestResult[]): Record<string, TestResult[]> {
+    const categories: Record<string, TestResult[]> = {}
+    
+    testResults.forEach(result => {
+      const category = result.details?.category || 'unknown'
+      if (!categories[category]) {
+        categories[category] = []
+      }
+      categories[category].push(result)
     })
     
-    const executionTime = this.results.reduce((sum, r) => sum + r.executionTime, 0)
+    return categories
+  }
+
+  /**
+   * Calculate execution time statistics
+   */
+  private calculateExecutionTimeStats(testResults: TestResult[]): any {
+    if (testResults.length === 0) {
+      return { min: 0, max: 0, average: 0, median: 0 }
+    }
     
-    const recommendations = this.generateCoverageRecommendations(coverageByCategory, riskCoverage)
+    const times = testResults.map(r => r.executionTime).sort((a, b) => a - b)
+    const min = times[0]
+    const max = times[times.length - 1]
+    const average = times.reduce((sum, time) => sum + time, 0) / times.length
+    const median = times[Math.floor(times.length / 2)]
     
     return {
-      totalScenarios,
-      executedScenarios,
-      passedScenarios,
-      failedScenarios,
-      coverageByCategory,
-      riskCoverage,
-      executionTime,
-      recommendations
+      min,
+      max,
+      average: Math.round(average),
+      median
     }
   }
 
-  private organizeResults(): any {
-    const resultsByCategory = this.groupResultsByCategory()
-    const resultsByPriority = this.groupResultsByPriority()
-    const resultsByStatus = this.groupResultsByStatus()
-    const resultsByRiskLevel = this.groupResultsByRiskLevel()
-    
-    return {
-      byCategory: resultsByCategory,
-      byPriority: resultsByPriority,
-      byStatus: resultsByStatus,
-      byRiskLevel: resultsByRiskLevel,
-      detailed: this.results.map(result => ({
-        ...result,
-        scenario: this.scenarios.find(s => s.id === result.scenarioId)
-      }))
+  /**
+   * Ensure output directory exists
+   */
+  private ensureOutputDirectory(): void {
+    if (!fs.existsSync(this.outputPath)) {
+      fs.mkdirSync(this.outputPath, { recursive: true })
     }
-  }
-
-  private groupResultsByCategory(): Record<string, any> {
-    const grouped: Record<string, any> = {}
-    
-    this.results.forEach(result => {
-      const category = result.metadata?.category || 'unknown'
-      if (!grouped[category]) {
-        grouped[category] = {
-          total: 0,
-          passed: 0,
-          failed: 0,
-          errors: 0,
-          results: []
-        }
-      }
-      
-      grouped[category].total++
-      grouped[category].results.push(result)
-      
-      switch (result.status) {
-        case 'passed':
-          grouped[category].passed++
-          break
-        case 'failed':
-          grouped[category].failed++
-          break
-        case 'error':
-          grouped[category].errors++
-          break
-      }
-    })
-    
-    return grouped
-  }
-
-  private groupResultsByPriority(): Record<string, any> {
-    const grouped: Record<string, any> = {}
-    
-    this.results.forEach(result => {
-      const priority = result.metadata?.priority || 'unknown'
-      if (!grouped[priority]) {
-        grouped[priority] = {
-          total: 0,
-          passed: 0,
-          failed: 0,
-          errors: 0,
-          results: []
-        }
-      }
-      
-      grouped[priority].total++
-      grouped[priority].results.push(result)
-      
-      switch (result.status) {
-        case 'passed':
-          grouped[priority].passed++
-          break
-        case 'failed':
-          grouped[priority].failed++
-          break
-        case 'error':
-          grouped[priority].errors++
-          break
-      }
-    })
-    
-    return grouped
-  }
-
-  private groupResultsByStatus(): Record<string, TestResult[]> {
-    const grouped: Record<string, TestResult[]> = {
-      passed: [],
-      failed: [],
-      error: [],
-      skipped: []
-    }
-    
-    this.results.forEach(result => {
-      grouped[result.status].push(result)
-    })
-    
-    return grouped
-  }
-
-  private groupResultsByRiskLevel(): Record<string, any> {
-    const grouped: Record<string, any> = {}
-    
-    this.results.forEach(result => {
-      const risk = result.metadata?.riskLevel || 'unknown'
-      if (!grouped[risk]) {
-        grouped[risk] = {
-          total: 0,
-          passed: 0,
-          failed: 0,
-          errors: 0,
-          results: []
-        }
-      }
-      
-      grouped[risk].total++
-      grouped[risk].results.push(result)
-      
-      switch (result.status) {
-        case 'passed':
-          grouped[risk].passed++
-          break
-        case 'failed':
-          grouped[risk].failed++
-          break
-        case 'error':
-          grouped[risk].errors++
-          break
-      }
-    })
-    
-    return grouped
-  }
-
-  private identifyIssues(): any[] {
-    const issues: any[] = []
-    
-    // Identify failed tests
-    this.results.filter(r => r.status === 'failed').forEach(result => {
-      const scenario = this.scenarios.find(s => s.id === result.scenarioId)
-      issues.push({
-        type: 'test-failure',
-        severity: 'medium',
-        description: `Test "${scenario?.name || 'Unknown'}" failed`,
-        scenarioId: result.scenarioId,
-        output: result.output,
-        recommendation: 'Review test logic and expected output'
-      })
-    })
-    
-    // Identify test errors
-    this.results.filter(r => r.status === 'error').forEach(result => {
-      const scenario = this.scenarios.find(s => s.id === result.scenarioId)
-      issues.push({
-        type: 'test-error',
-        severity: 'high',
-        description: `Test "${scenario?.name || 'Unknown'}" encountered an error`,
-        scenarioId: result.scenarioId,
-        error: result.error,
-        recommendation: 'Investigate test execution environment and dependencies'
-      })
-    })
-    
-    // Identify low coverage areas
-    const coverageReport = this.generateCoverageReport()
-    Object.entries(coverageReport.coverageByCategory).forEach(([category, coverage]) => {
-      if (coverage < 80) {
-        issues.push({
-          type: 'low-coverage',
-          severity: 'medium',
-          description: `Low test coverage in ${category} category: ${coverage}%`,
-          category,
-          coverage,
-          recommendation: `Add more tests for ${category} functionality`
-        })
-      }
-    })
-    
-    // Identify high-risk areas with low coverage
-    Object.entries(coverageReport.riskCoverage).forEach(([risk, coverage]) => {
-      if (coverage < 90 && (risk === 'critical' || risk === 'high')) {
-        issues.push({
-          type: 'high-risk-low-coverage',
-          severity: 'critical',
-          description: `Critical risk area "${risk}" has low test coverage: ${coverage}%`,
-          riskLevel: risk,
-          coverage,
-          recommendation: `Prioritize testing for ${risk} risk scenarios`
-        })
-      }
-    })
-    
-    return issues
-  }
-
-  private generateRecommendations(): any[] {
-    const recommendations: any[] = []
-    
-    // Coverage-based recommendations
-    const coverageReport = this.generateCoverageReport()
-    
-    if (coverageReport.totalScenarios < 10) {
-      recommendations.push({
-        type: 'coverage',
-        priority: 'high',
-        description: 'Increase test coverage by adding more test scenarios',
-        action: 'Generate additional test cases for uncovered functionality'
-      })
-    }
-    
-    // Performance recommendations
-    const slowTests = this.results.filter(r => r.executionTime > 1000)
-    if (slowTests.length > 0) {
-      recommendations.push({
-        type: 'performance',
-        priority: 'medium',
-        description: `${slowTests.length} tests are taking longer than 1 second to execute`,
-        action: 'Optimize slow tests or consider parallel execution'
-      })
-    }
-    
-    // Quality recommendations
-    const errorRate = this.results.filter(r => r.status === 'error').length / this.results.length
-    if (errorRate > 0.1) {
-      recommendations.push({
-        type: 'quality',
-        priority: 'high',
-        description: `High error rate detected: ${Math.round(errorRate * 100)}% of tests failed with errors`,
-        action: 'Investigate test environment and fix underlying issues'
-      })
-    }
-    
-    // Security recommendations
-    const securityTests = this.results.filter(r => r.metadata?.category === 'security')
-    if (securityTests.length === 0) {
-      recommendations.push({
-        type: 'security',
-        priority: 'critical',
-        description: 'No security tests were executed',
-        action: 'Implement comprehensive security testing for authentication flows'
-      })
-    }
-    
-    return recommendations
-  }
-
-  private generateCoverageRecommendations(coverageByCategory: Record<string, number>, riskCoverage: Record<string, number>): string[] {
-    const recommendations: string[] = []
-    
-    // Category coverage recommendations
-    Object.entries(coverageByCategory).forEach(([category, coverage]) => {
-      if (coverage < 80) {
-        recommendations.push(`Increase test coverage for ${category} category (currently ${coverage}%)`)
-      }
-    })
-    
-    // Risk coverage recommendations
-    Object.entries(riskCoverage).forEach(([risk, coverage]) => {
-      if (coverage < 90) {
-        recommendations.push(`Improve test coverage for ${risk} risk scenarios (currently ${coverage}%)`)
-      }
-    })
-    
-    return recommendations
-  }
-
-  private generateMetadata(): any {
-    return {
-      generatedAt: new Date().toISOString(),
-      totalScenarios: this.scenarios.length,
-      totalResults: this.results.length,
-      reportVersion: '1.0.0',
-      generator: 'AI-Powered Test Generator Agent'
-    }
-  }
-
-  private async saveJsonReport(report: any): Promise<void> {
-    const reportPath = path.join(this.outputPath, 'login-exploration.json')
-    
-    try {
-      // Ensure directory exists
-      const dir = path.dirname(reportPath)
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true })
-      }
-      
-      // Update the existing file with new data
-      const existingData = fs.existsSync(reportPath) 
-        ? JSON.parse(fs.readFileSync(reportPath, 'utf-8'))
-        : {}
-      
-      const updatedData = {
-        ...existingData,
-        test_session: {
-          ...existingData.test_session,
-          status: 'completed',
-          end_time: new Date().toISOString()
-        },
-        test_results: report.results.detailed,
-        issues_found: report.issues,
-        improvements_suggested: report.recommendations,
-        coverage_metrics: {
-          functional_paths: report.coverage.coverageByCategory.functional || 0,
-          edge_cases: report.coverage.coverageByCategory['edge-case'] || 0,
-          security_tests: report.coverage.coverageByCategory.security || 0,
-          ui_tests: report.coverage.coverageByCategory.ui || 0,
-          total_tests: report.coverage.totalScenarios
-        },
-        execution_summary: {
-          tests_executed: report.summary.totalResults,
-          tests_passed: report.summary.passed,
-          tests_failed: report.summary.failed,
-          execution_time: report.summary.totalExecutionTime,
-          last_updated: new Date().toISOString()
-        }
-      }
-      
-      fs.writeFileSync(reportPath, JSON.stringify(updatedData, null, 2))
-      console.log(`💾 JSON report saved to: ${reportPath}`)
-    } catch (error) {
-      console.error('Error saving JSON report:', error)
-    }
-  }
-
-  private async saveHumanReadableReport(report: any): Promise<void> {
-    const reportPath = path.join(this.outputPath, 'login-exploration-summary.md')
-    
-    try {
-      const markdown = this.generateMarkdownReport(report)
-      
-      // Ensure directory exists
-      const dir = path.dirname(reportPath)
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true })
-      }
-      
-      fs.writeFileSync(reportPath, markdown)
-      console.log(`📝 Human-readable report saved to: ${reportPath}`)
-    } catch (error) {
-      console.error('Error saving human-readable report:', error)
-    }
-  }
-
-  private async saveCoverageReport(coverage: TestCoverageReport): Promise<void> {
-    const reportPath = path.join(this.outputPath, 'coverage-report.json')
-    
-    try {
-      // Ensure directory exists
-      const dir = path.dirname(reportPath)
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true })
-      }
-      
-      fs.writeFileSync(reportPath, JSON.stringify(coverage, null, 2))
-      console.log(`📊 Coverage report saved to: ${reportPath}`)
-    } catch (error) {
-      console.error('Error saving coverage report:', error)
-    }
-  }
-
-  private generateMarkdownReport(report: any): string {
-    const { summary, coverage, issues, recommendations } = report
-    
-    return `# Login Flow Test Exploration Report
-
-## Executive Summary
-
-- **Total Scenarios**: ${summary.totalScenarios}
-- **Tests Executed**: ${summary.totalResults}
-- **Success Rate**: ${summary.successRate}%
-- **Total Execution Time**: ${summary.totalExecutionTime}ms
-- **Average Execution Time**: ${summary.averageExecutionTime}ms
-
-## Test Results Breakdown
-
-### By Status
-- ✅ **Passed**: ${summary.passed}
-- ❌ **Failed**: ${summary.failed}
-- ⚠️ **Errors**: ${summary.errors}
-- ⏭️ **Skipped**: ${summary.skipped}
-
-### By Category
-${Object.entries(coverage.coverageByCategory).map(([category, coverage]) => 
-  `- **${category}**: ${coverage}% coverage`
-).join('\n')}
-
-### By Risk Level
-${Object.entries(coverage.riskCoverage).map(([risk, coverage]) => 
-  `- **${risk}**: ${coverage}% coverage`
-).join('\n')}
-
-## Issues Identified
-
-${issues.length === 0 ? 'No issues found! 🎉' : issues.map((issue: any) =>
-  `### ${issue.type.toUpperCase()}
-- **Severity**: ${issue.severity}
-- **Description**: ${issue.description}
-- **Recommendation**: ${issue.recommendation}
-`
-).join('\n')}
-
-## Recommendations
-
-${recommendations.map((rec: any) =>
-  `### ${rec.type.toUpperCase()}
-- **Priority**: ${rec.priority}
-- **Description**: ${rec.description}
-- **Action**: ${rec.action}
-`
-).join('\n')}
-
-## Coverage Analysis
-
-### Category Coverage
-${Object.entries(coverage.coverageByCategory).map(([category, coverage]) => {
-  const status = (coverage as number) >= 80 ? '🟢' : (coverage as number) >= 60 ? '🟡' : '🔴'
-  return `${status} **${category}**: ${coverage}%`
-}).join('\n')}
-
-### Risk Coverage
-${Object.entries(coverage.riskCoverage).map(([risk, coverage]) => {
-  const status = (coverage as number) >= 90 ? '🟢' : (coverage as number) >= 70 ? '🟡' : '🔴'
-  return `${status} **${risk}**: ${coverage}%`
-}).join('\n')}
-
----
-*Report generated on ${new Date().toLocaleString()} by AI-Powered Test Generator Agent*
-`
   }
 }

@@ -1,10 +1,17 @@
-import { TestGeneratorAgent } from './TestGeneratorAgent'
-import { TestScenario } from './types'
-import { CodeAnalyzer } from './CodeAnalyzer'
-import { TestExecutor } from './TestExecutor'
-import { ReportGenerator } from './ReportGenerator'
+export { TestGeneratorAgent } from './TestGeneratorAgent'
+export { CodeAnalyzer } from './CodeAnalyzer'
+export { TestExecutor } from './TestExecutor'
+export { ReportGenerator } from './ReportGenerator'
 
-export { TestGeneratorAgent, TestScenario, CodeAnalyzer, TestExecutor, ReportGenerator }
+export type {
+  TestScenario,
+  TestResult,
+  CodeAnalysis,
+  SecurityIssue,
+  ValidationRule,
+  TestGenerationOptions,
+  TestCoverageReport
+} from './types'
 
 // Main entry point for the Test Generator Agent
 export async function runTestGeneration(options: {

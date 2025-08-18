@@ -1,413 +1,349 @@
 import { CodeAnalyzer } from './CodeAnalyzer'
 import { TestExecutor } from './TestExecutor'
 import { ReportGenerator } from './ReportGenerator'
-import { TestGenerationOptions, TestScenario, TestResult } from './types'
+import { TestGenerationOptions, TestCoverageReport } from './types'
+import * as fs from 'fs'
+import * as path from 'path'
 
 export class TestGeneratorAgent {
-  private options: TestGenerationOptions
   private codeAnalyzer: CodeAnalyzer
-  private testExecutor!: TestExecutor
+  private testExecutor: TestExecutor
   private reportGenerator: ReportGenerator
+  private options: TestGenerationOptions
+  private iterationResults: any[] = []
 
   constructor(options: TestGenerationOptions) {
     this.options = options
-    this.codeAnalyzer = new CodeAnalyzer(options.featurePath)
-    this.reportGenerator = new ReportGenerator([], [], options.outputPath)
+    this.codeAnalyzer = new CodeAnalyzer()
+    this.testExecutor = new TestExecutor()
+    this.reportGenerator = new ReportGenerator(options.outputPath)
   }
 
-  async run(): Promise<{
-    scenarios: TestScenario[]
-    results: TestResult[]
-    summary: any
-    coverage: any
-  }> {
-    console.log('🤖 AI-Powered Test Generator Agent Starting...')
-    console.log(`📁 Analyzing feature: ${this.options.featurePath}`)
+  /**
+   * Main execution method with 2 iterations
+   */
+  async run(): Promise<any> {
+    console.log('🚀 AI-Powered Test Generator Agent Starting...')
+    console.log(`📁 Target feature: ${this.options.featurePath}`)
     console.log(`🎯 Strategy: ${this.options.strategy}`)
-    console.log(`🔢 Max interactions: ${this.options.maxInteractions}`)
-    console.log(`📤 Output path: ${this.options.outputPath}`)
-    
+    console.log(`🔄 Max iterations: 2 (with improvement tracking)`)
+    console.log('')
+
     try {
-      // Step 1: Analyze the codebase
-      console.log('\n🔍 Step 1: Analyzing codebase...')
-      const analyses = await this.codeAnalyzer.analyzeCodebase()
-      console.log(`✅ Code analysis completed. Analyzed ${analyses.length} files.`)
+      // Iteratie 1: Basis test generatie
+      console.log('🔄 Iteratie 1: Basis test generatie...')
+      const iteration1Result = await this.executeIteration(1)
+      this.iterationResults.push(iteration1Result)
       
-      // Step 2: Generate test scenarios
-      console.log('\n🧪 Step 2: Generating test scenarios...')
-      const scenarios = await this.codeAnalyzer.generateTestScenarios()
-      console.log(`✅ Generated ${scenarios.length} test scenarios.`)
+      console.log(`📊 Iteratie 1 Resultaat: ${iteration1Result.scenarios.length} scenarios, Kwaliteit: ${iteration1Result.qualityScore}/100`)
+      console.log('')
+
+      // Iteratie 2: Verbeterde test generatie
+      console.log('🔄 Iteratie 2: Verbeterde test generatie...')
+      const iteration2Result = await this.executeIteration(2, iteration1Result)
+      this.iterationResults.push(iteration2Result)
       
-      // Step 3: Execute tests
-      console.log('\n🚀 Step 3: Executing tests...')
-      this.testExecutor = new TestExecutor(scenarios, this.options.maxInteractions)
-      const results = await this.testExecutor.executeAllTests()
-      console.log(`✅ Test execution completed. ${results.length} tests executed.`)
+      console.log(`📊 Iteratie 2 Resultaat: ${iteration2Result.scenarios.length} scenarios, Kwaliteit: ${iteration2Result.qualityScore}/100`)
+      console.log('')
+
+      // Vergelijk resultaten
+      this.showImprovementSummary(iteration1Result, iteration2Result)
+
+      // Genereer rapporten
+      const finalReport = await this.generateFinalReport(iteration2Result)
       
-      // Step 4: Generate reports
-      console.log('\n📊 Step 4: Generating reports...')
-      this.reportGenerator = new ReportGenerator(scenarios, results, this.options.outputPath)
-      await this.reportGenerator.generateReport()
-      
-      // Step 5: Display summary
-      console.log('\n📋 Step 5: Execution Summary')
-      const summary = this.testExecutor.getExecutionSummary()
-      const coverage = this.testExecutor.getResultsByCategory()
-      
-      this.displayExecutionSummary(summary)
-      this.displayCoverageSummary(coverage)
-      
-      console.log('\n🎉 Test Generation Process Completed Successfully!')
-      
-      return {
-        scenarios,
-        results,
-        summary,
-        coverage
-      }
-      
+      return finalReport
+
     } catch (error) {
-      console.error('❌ Error in test generation process:', error)
+      console.error('❌ Error during test generation:', error)
       throw error
     }
   }
 
-  private displayExecutionSummary(summary: any): void {
-    console.log('\n📊 EXECUTION SUMMARY')
-    console.log('='.repeat(50))
-    console.log(`Total Tests: ${summary.total}`)
-    console.log(`✅ Passed: ${summary.passed}`)
-    console.log(`❌ Failed: ${summary.failed}`)
-    console.log(`⚠️  Errors: ${summary.errors}`)
-    console.log(`⏭️  Skipped: ${summary.skipped}`)
-    console.log(`⏱️  Total Time: ${summary.executionTime}ms`)
-    console.log(`📈 Success Rate: ${summary.total > 0 ? Math.round((summary.passed / summary.total) * 100) : 0}%`)
-  }
-
-  private displayCoverageSummary(coverage: Record<string, any>): void {
-    console.log('\n🎯 COVERAGE BY CATEGORY')
-    console.log('='.repeat(50))
-    
-    Object.entries(coverage).forEach(([category, data]) => {
-      const successRate = data.total > 0 ? Math.round((data.passed / data.total) * 100) : 0
-      const status = successRate >= 80 ? '🟢' : successRate >= 60 ? '🟡' : '🔴'
-      
-      console.log(`${status} ${category.toUpperCase()}:`)
-      console.log(`   Total: ${data.total} | Passed: ${data.passed} | Failed: ${data.failed} | Errors: ${data.errors}`)
-      console.log(`   Success Rate: ${successRate}%`)
-    })
-  }
-
-  async generateAdditionalScenarios(issueType: string): Promise<TestScenario[]> {
-    console.log(`🔄 Generating additional scenarios for issue type: ${issueType}`)
+  /**
+   * Execute a single iteration
+   */
+  private async executeIteration(iterationNumber: number, previousResult?: any): Promise<any> {
+    const startTime = Date.now()
     
     try {
-      // Analyze the codebase again to identify specific areas
-      const analyses = await this.codeAnalyzer.analyzeCodebase()
+      // Analyze code
+      const codeAnalysis = await this.codeAnalyzer.analyzeCode(this.options.featurePath)
       
-      // Generate focused scenarios based on issue type
-      let additionalScenarios: TestScenario[] = []
+      // Generate test scenarios with improvement logic
+      let scenarios = await this.generateTestScenarios(codeAnalysis, iterationNumber, previousResult)
       
-      switch (issueType) {
-        case 'security':
-          additionalScenarios = this.generateSecurityScenarios(analyses)
-          break
-        case 'performance':
-          additionalScenarios = this.generatePerformanceScenarios(analyses)
-          break
-        case 'edge-cases':
-          additionalScenarios = this.generateEdgeCaseScenarios(analyses)
-          break
-        case 'ui':
-          additionalScenarios = this.generateUIScenarios(analyses)
-          break
-        default:
-          additionalScenarios = this.generateGenericScenarios(analyses)
+      // Execute tests
+      const testResults = await this.testExecutor.executeTests(scenarios, this.options.featurePath)
+      
+      // Calculate quality score for this iteration
+      const qualityScore = this.calculateQualityScore(scenarios, testResults, codeAnalysis)
+      
+      const result = {
+        iteration: iterationNumber,
+        scenarios,
+        testResults,
+        codeAnalysis,
+        qualityScore,
+        executionTime: Date.now() - startTime,
+        timestamp: new Date().toISOString()
       }
-      
-      console.log(`✅ Generated ${additionalScenarios.length} additional ${issueType} scenarios`)
-      return additionalScenarios
-      
+
+      return result
+
     } catch (error) {
-      console.error(`❌ Error generating additional scenarios for ${issueType}:`, error)
-      return []
+      console.error(`❌ Error in iteration ${iterationNumber}:`, error)
+      throw error
     }
   }
 
-  private generateSecurityScenarios(analyses: any[]): TestScenario[] {
-    const scenarios: TestScenario[] = []
-    const timestamp = new Date().toISOString()
+  /**
+   * Generate test scenarios with improvement logic
+   */
+  private async generateTestScenarios(codeAnalysis: any, iterationNumber: number, previousResult?: any): Promise<any[]> {
+    let scenarios = []
     
-    // Generate comprehensive security test scenarios
-    const securityTests = [
-      {
-        name: 'Brute Force Attack Prevention',
-        description: 'Test login form against brute force attacks',
-        input: { action: 'brute-force', attempts: 10, delay: 1000 },
-        expectedOutput: { success: false, blocked: true, cooldown: true }
-      },
-      {
-        name: 'Session Hijacking Prevention',
-        description: 'Test session security and token validation',
-        input: { action: 'session-test', token: 'invalid-token' },
-        expectedOutput: { success: false, error: 'Invalid session' }
-      },
-      {
-        name: 'CSRF Protection',
-        description: 'Test CSRF token validation',
-        input: { action: 'csrf-test', token: 'invalid-csrf' },
-        expectedOutput: { success: false, error: 'CSRF validation failed' }
-      },
-      {
-        name: 'Input Sanitization',
-        description: 'Test various malicious input patterns',
-        input: { action: 'sanitization-test', payload: '<script>alert("xss")</script>' },
-        expectedOutput: { success: false, sanitized: true }
-      }
-    ]
-    
-    securityTests.forEach((test, index) => {
-      scenarios.push({
-        id: `security-${index}-${Date.now()}`,
-        name: test.name,
-        description: test.description,
-        category: 'security',
-        priority: 'critical',
-        input: test.input,
-        expectedOutput: test.expectedOutput,
-        validationRules: [
-          {
-            type: 'assertion',
-            condition: 'security.validation === true',
-            message: 'Security validation should pass'
-          }
-        ],
-        riskLevel: 'critical',
-        tags: ['security', 'vulnerability', 'protection'],
-        createdAt: timestamp
-      })
-    })
+    if (iterationNumber === 1) {
+      // Eerste iteratie: basis scenarios
+      scenarios = await this.codeAnalyzer.generateTestScenarios(codeAnalysis, this.options)
+    } else {
+      // Tweede iteratie: verbeterde scenarios
+      scenarios = await this.improveTestScenarios(previousResult, codeAnalysis)
+    }
     
     return scenarios
   }
 
-  private generatePerformanceScenarios(analyses: any[]): TestScenario[] {
-    const scenarios: TestScenario[] = []
-    const timestamp = new Date().toISOString()
+  /**
+   * Improve test scenarios based on previous iteration
+   */
+  private async improveTestScenarios(previousResult: any, codeAnalysis: any): Promise<any[]> {
+    const improvedScenarios = [...previousResult.scenarios]
     
-    const performanceTests = [
-      {
-        name: 'Login Response Time',
-        description: 'Test login form response time under normal load',
-        input: { action: 'performance-test', load: 'normal', users: 1 },
-        expectedOutput: { success: true, responseTime: '< 500ms' }
-      },
-      {
-        name: 'Concurrent User Login',
-        description: 'Test login performance with multiple concurrent users',
-        input: { action: 'performance-test', load: 'concurrent', users: 10 },
-        expectedOutput: { success: true, responseTime: '< 1000ms' }
-      },
-      {
-        name: 'Memory Usage Test',
-        description: 'Test memory usage during login operations',
-        input: { action: 'memory-test', operations: 100 },
-        expectedOutput: { success: true, memoryUsage: 'stable' }
-      }
-    ]
+    // Voeg edge cases toe
+    const edgeCaseScenarios = await this.generateEdgeCaseScenarios(codeAnalysis)
+    improvedScenarios.push(...edgeCaseScenarios)
     
-    performanceTests.forEach((test, index) => {
-      scenarios.push({
-        id: `performance-${index}-${Date.now()}`,
-        name: test.name,
-        description: test.description,
-        category: 'performance',
-        priority: 'medium',
-        input: test.input,
-        expectedOutput: test.expectedOutput,
-        validationRules: [
-          {
-            type: 'assertion',
-            condition: 'performance.threshold === "met"',
-            message: 'Performance threshold should be met'
-          }
-        ],
-        riskLevel: 'medium',
-        tags: ['performance', 'load', 'scalability'],
-        createdAt: timestamp
-      })
-    })
+    // Voeg error scenarios toe
+    const errorScenarios = await this.generateErrorScenarios(codeAnalysis)
+    improvedScenarios.push(...errorScenarios)
     
-    return scenarios
+    // Voeg security test scenarios toe
+    if (this.options.includeSecurityTests) {
+      const securityScenarios = await this.generateSecurityScenarios(codeAnalysis)
+      improvedScenarios.push(...securityScenarios)
+    }
+    
+    // Voeg performance test scenarios toe
+    if (this.options.includePerformanceTests) {
+      const performanceScenarios = await this.generatePerformanceScenarios(codeAnalysis)
+      improvedScenarios.push(...performanceScenarios)
+    }
+    
+    return improvedScenarios
   }
 
-  private generateEdgeCaseScenarios(analyses: any[]): TestScenario[] {
-    const scenarios: TestScenario[] = []
-    const timestamp = new Date().toISOString()
+  /**
+   * Generate edge case scenarios
+   */
+  private async generateEdgeCaseScenarios(codeAnalysis: any): Promise<any[]> {
+    const edgeCases = []
     
-    const edgeCaseTests = [
-      {
-        name: 'Extremely Long Input',
-        description: 'Test with extremely long email and password inputs',
-        input: { email: 'a'.repeat(1000) + '@test.com', password: 'b'.repeat(1000) },
-        expectedOutput: { success: false, error: 'Input too long' }
-      },
-      {
-        name: 'Special Characters',
-        description: 'Test with various special characters and unicode',
-        input: { email: 'test@test.com', password: '!@#$%^&*()_+-=[]{}|;:,.<>?' },
-        expectedOutput: { success: false, error: 'Invalid characters' }
-      },
-      {
-        name: 'Empty Form Submission',
-        description: 'Test form submission with all fields empty',
-        input: { email: '', password: '' },
-        expectedOutput: { success: false, error: 'All fields required' }
-      },
-      {
-        name: 'Whitespace Only',
-        description: 'Test with whitespace-only inputs',
-        input: { email: '   ', password: '   ' },
-        expectedOutput: { success: false, error: 'Invalid input' }
-      }
-    ]
-    
-    edgeCaseTests.forEach((test, index) => {
-      scenarios.push({
-        id: `edge-case-${index}-${Date.now()}`,
-        name: test.name,
-        description: test.description,
+    // Voeg edge cases toe op basis van code analyse
+    if (codeAnalysis.hasInputValidation) {
+      edgeCases.push({
+        id: `edge-case-${Date.now()}`,
+        name: 'Empty Input Validation',
+        description: 'Test with empty/null input values',
         category: 'edge-case',
-        priority: 'medium',
-        input: test.input,
-        expectedOutput: test.expectedOutput,
+        priority: 'high',
+        input: { email: '', password: null },
+        expectedOutput: 'validation_error',
         validationRules: [
           {
             type: 'assertion',
-            condition: 'edgeCase.handled === true',
-            message: 'Edge case should be handled gracefully'
-          }
-        ],
-        riskLevel: 'low',
-        tags: ['edge-case', 'input-validation', 'robustness'],
-        createdAt: timestamp
-      })
-    })
-    
-    return scenarios
-  }
-
-  private generateUIScenarios(analyses: any[]): TestScenario[] {
-    const scenarios: TestScenario[] = []
-    const timestamp = new Date().toISOString()
-    
-    const uiTests = [
-      {
-        name: 'Form Field Focus',
-        description: 'Test form field focus and navigation',
-        input: { action: 'focus-test', field: 'email' },
-        expectedOutput: { success: true, focused: true, accessible: true }
-      },
-      {
-        name: 'Keyboard Navigation',
-        description: 'Test keyboard navigation through form fields',
-        input: { action: 'keyboard-test', key: 'Tab' },
-        expectedOutput: { success: true, navigated: true, order: 'correct' }
-      },
-      {
-        name: 'Screen Reader Compatibility',
-        description: 'Test screen reader accessibility',
-        input: { action: 'accessibility-test', reader: 'screen-reader' },
-        expectedOutput: { success: true, accessible: true, aria: 'proper' }
-      },
-      {
-        name: 'Mobile Responsiveness',
-        description: 'Test mobile device compatibility',
-        input: { action: 'mobile-test', device: 'mobile', orientation: 'portrait' },
-        expectedOutput: { success: true, responsive: true, usable: true }
-      }
-    ]
-    
-    uiTests.forEach((test, index) => {
-      scenarios.push({
-        id: `ui-${index}-${Date.now()}`,
-        name: test.name,
-        description: test.description,
-        category: 'ui',
-        priority: 'medium',
-        input: test.input,
-        expectedOutput: test.expectedOutput,
-        validationRules: [
-          {
-            type: 'assertion',
-            condition: 'ui.accessible === true',
-            message: 'UI should be accessible and usable'
-          }
-        ],
-        riskLevel: 'low',
-        tags: ['ui', 'accessibility', 'usability'],
-        createdAt: timestamp
-      })
-    })
-    
-    return scenarios
-  }
-
-  private generateGenericScenarios(analyses: any[]): TestScenario[] {
-    const scenarios: TestScenario[] = []
-    const timestamp = new Date().toISOString()
-    
-    const genericTests = [
-      {
-        name: 'Network Error Handling',
-        description: 'Test behavior when network is unavailable',
-        input: { action: 'network-test', status: 'offline' },
-        expectedOutput: { success: false, error: 'Network unavailable' }
-      },
-      {
-        name: 'Server Error Handling',
-        description: 'Test behavior when server returns errors',
-        input: { action: 'server-test', status: '500' },
-        expectedOutput: { success: false, error: 'Server error' }
-      },
-      {
-        name: 'Timeout Handling',
-        description: 'Test behavior when requests timeout',
-        input: { action: 'timeout-test', duration: 5000 },
-        expectedOutput: { success: false, error: 'Request timeout' }
-      }
-    ]
-    
-    genericTests.forEach((test, index) => {
-      scenarios.push({
-        id: `generic-${index}-${Date.now()}`,
-        name: test.name,
-        description: test.description,
-        category: 'functional',
-        priority: 'medium',
-        input: test.input,
-        expectedOutput: test.expectedOutput,
-        validationRules: [
-          {
-            type: 'assertion',
-            condition: 'error.handled === true',
-            message: 'Error should be handled gracefully'
+            condition: 'should_return_validation_error',
+            message: 'Empty inputs should trigger validation error'
           }
         ],
         riskLevel: 'medium',
-        tags: ['error-handling', 'robustness', 'reliability'],
-        createdAt: timestamp
+        tags: ['edge-case', 'validation', 'iteration-2']
       })
+    }
+    
+    return edgeCases
+  }
+
+  /**
+   * Generate error scenarios
+   */
+  private async generateErrorScenarios(codeAnalysis: any): Promise<any[]> {
+    const errorScenarios = []
+    
+    // Voeg error scenarios toe
+    errorScenarios.push({
+      id: `error-case-${Date.now()}`,
+      name: 'Network Error Handling',
+      description: 'Test behavior when network requests fail',
+      category: 'edge-case',
+      priority: 'medium',
+      input: { simulateNetworkError: true },
+      expectedOutput: 'graceful_error_handling',
+      validationRules: [
+        {
+          type: 'assertion',
+          condition: 'should_handle_error_gracefully',
+          message: 'Network errors should be handled gracefully'
+        }
+      ],
+      riskLevel: 'low',
+      tags: ['error-handling', 'iteration-2']
     })
     
-    return scenarios
+    return errorScenarios
   }
 
-  getStatus(): string {
-    return 'Test Generator Agent is ready and operational'
+  /**
+   * Generate security scenarios
+   */
+  private async generateSecurityScenarios(codeAnalysis: any): Promise<any[]> {
+    const securityScenarios = []
+    
+    // Voeg security test scenarios toe
+    securityScenarios.push({
+      id: `security-case-${Date.now()}`,
+      name: 'SQL Injection Prevention',
+      description: 'Test SQL injection prevention',
+      category: 'security',
+      priority: 'critical',
+      input: { userInput: "'; DROP TABLE users; --" },
+      expectedOutput: 'safe_handling',
+      validationRules: [
+        {
+          type: 'assertion',
+          condition: 'should_prevent_sql_injection',
+          message: 'SQL injection attempts should be safely handled'
+        }
+      ],
+      riskLevel: 'critical',
+      tags: ['security', 'sql-injection', 'iteration-2']
+    })
+    
+    return securityScenarios
   }
 
-  getOptions(): TestGenerationOptions {
-    return { ...this.options }
+  /**
+   * Generate performance scenarios
+   */
+  private async generatePerformanceScenarios(codeAnalysis: any): Promise<any[]> {
+    const performanceScenarios = []
+    
+    // Voeg performance test scenarios toe
+    performanceScenarios.push({
+      id: `performance-case-${Date.now()}`,
+      name: 'Large Data Set Performance',
+      description: 'Test performance with large data sets',
+      category: 'performance',
+      priority: 'medium',
+      input: { dataSize: 'large', timeout: 5000 },
+      expectedOutput: 'completes_within_timeout',
+      validationRules: [
+        {
+          type: 'assertion',
+          condition: 'should_complete_within_timeout',
+          message: 'Large data sets should complete within timeout'
+        }
+      ],
+      riskLevel: 'low',
+      tags: ['performance', 'iteration-2']
+    })
+    
+    return performanceScenarios
+  }
+
+  /**
+   * Calculate quality score for an iteration
+   */
+  private calculateQualityScore(scenarios: any[], testResults: any[], codeAnalysis: any): number {
+    let score = 0
+    
+    // Base score from number of scenarios
+    score += Math.min(scenarios.length * 5, 30)
+    
+    // Score from test execution
+    if (testResults.length > 0) {
+      const passedTests = testResults.filter(r => r.status === 'passed').length
+      score += (passedTests / testResults.length) * 30
+    }
+    
+    // Score from code coverage
+    if (codeAnalysis.testCoverage) {
+      score += codeAnalysis.testCoverage * 0.4
+    }
+    
+    // Bonus for edge cases and security tests
+    const edgeCaseCount = scenarios.filter(s => s.category === 'edge-case').length
+    const securityCount = scenarios.filter(s => s.category === 'security').length
+    
+    score += Math.min(edgeCaseCount * 2, 10)
+    score += Math.min(securityCount * 3, 15)
+    
+    return Math.round(Math.min(score, 100))
+  }
+
+  /**
+   * Show improvement summary between iterations
+   */
+  private showImprovementSummary(iteration1: any, iteration2: any): void {
+    console.log('🎯 Verbetering Samenvatting')
+    console.log('============================')
+    
+    const qualityImprovement = iteration2.qualityScore - iteration1.qualityScore
+    const scenarioImprovement = iteration2.scenarios.length - iteration1.scenarios.length
+    
+    console.log(`📊 Kwaliteit: ${iteration1.qualityScore} → ${iteration2.qualityScore} (+${qualityImprovement} punten)`)
+    console.log(`🔍 Scenarios: ${iteration1.scenarios.length} → ${iteration2.scenarios.length} (+${scenarioImprovement})`)
+    console.log(`⚡ Uitvoeringstijd: ${iteration1.executionTime}ms → ${iteration2.executionTime}ms`)
+    
+    if (qualityImprovement > 0) {
+      console.log(`✅ Verbetering: ${((qualityImprovement / iteration1.qualityScore) * 100).toFixed(1)}%`)
+    } else {
+      console.log(`⚠️ Geen kwaliteitsverbetering in iteratie 2`)
+    }
+    
+    console.log('')
+  }
+
+  /**
+   * Generate final report with iteration data
+   */
+  private async generateFinalReport(finalResult: any): Promise<any> {
+    const report = {
+      ...finalResult,
+      iterationHistory: this.iterationResults,
+      improvementSummary: {
+        qualityIncrease: finalResult.qualityScore - this.iterationResults[0].qualityScore,
+        scenarioIncrease: finalResult.scenarios.length - this.iterationResults[0].scenarios.length,
+        totalIterations: this.iterationResults.length
+      }
+    }
+
+    // Save reports
+    await this.reportGenerator.saveReport(report)
+    await this.reportGenerator.generateMarkdownSummary(report)
+    await this.reportGenerator.generateCoverageReport(report)
+
+    return report
+  }
+
+  /**
+   * Get current status
+   */
+  getStatus() {
+    return {
+      options: this.options,
+      iterations: this.iterationResults.length,
+      currentQuality: this.iterationResults.length > 0 ? this.iterationResults[this.iterationResults.length - 1].qualityScore : 0
+    }
   }
 }

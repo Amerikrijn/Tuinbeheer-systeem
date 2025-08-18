@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "🚀 Quick Start: AI Testing Pipeline"
-echo "===================================="
+echo "🚀 Quick Start: AI Testing Pipeline (2 Iterations)"
+echo "=================================================="
 echo ""
 
 # Colors for output
@@ -15,9 +15,10 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}🎯 What This Script Does:${NC}"
 echo "1. 🤖 Start the Pipeline Orchestrator Agent"
-echo "2. 🔄 Execute the CI/CD AI Testing Pipeline"
-echo "3. 📊 Show results and summary"
+echo "2. 🔄 Execute the CI/CD AI Testing Pipeline with 2 iterations"
+echo "3. 📊 Show results and improvement tracking"
 echo "4. 🚀 Simulate the CI/CD workflow locally"
+echo "5. 📈 Demonstrate iterative improvement capabilities"
 echo ""
 
 echo -e "${YELLOW}📁 Current Directory:${NC} $(pwd)"
@@ -108,8 +109,8 @@ fi
 cd ../..
 echo ""
 
-# Step 3: Start the AI Pipeline
-echo -e "${GREEN}🚀 Step 3: Starting AI Testing Pipeline${NC}"
+# Step 3: Start the AI Pipeline with 2 Iterations
+echo -e "${GREEN}🚀 Step 3: Starting AI Testing Pipeline (2 Iterations)${NC}"
 echo "Starting the Pipeline Orchestrator Agent..."
 echo ""
 
@@ -123,18 +124,19 @@ if [ ! -f "../../.github/ai-pipeline-config.json" ]; then
     exit 1
 fi
 
-echo -e "${CYAN}🚀 Executing AI Testing Pipeline...${NC}"
+echo -e "${CYAN}🚀 Executing AI Testing Pipeline with 2 Iterations...${NC}"
 echo "This will run:"
-echo "  1. Test Generator Agent"
-echo "  2. Quality Analyzer Agent"
-echo "  3. Auto-Fix Agent (analysis only, no fixes applied)"
+echo "  1. 🔄 Iteratie 1: Basis test generatie en kwaliteitsanalyse"
+echo "  2. 🔄 Iteratie 2: Verbeterde tests, edge cases, security, performance"
+echo "  3. 📊 Vergelijking van resultaten en verbetering tracking"
+echo "  4. 🎯 Auto-Fix analyse (geen automatische fixes)"
 echo ""
 
 # Execute the pipeline
-npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json execute ci-ai-pipeline
+npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json --workflow ci-ai-pipeline --execute
 
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ AI Testing Pipeline completed successfully!${NC}"
+    echo -e "${GREEN}✅ AI Testing Pipeline with 2 iterations completed successfully!${NC}"
 else
     echo -e "${RED}❌ AI Testing Pipeline failed!${NC}"
     exit 1
@@ -142,86 +144,93 @@ fi
 
 echo ""
 
-# Step 4: Display Results
-echo -e "${GREEN}📊 Step 4: AI Testing Results${NC}"
-echo "======================================"
+# Step 4: Display Results with Iteration Comparison
+echo -e "${GREEN}📊 Step 4: AI Testing Results (2 Iterations)${NC}"
+echo "======================================================"
 echo ""
 
 cd ../..
 
 # Check for generated results
-if [ -f "agents/test-generator/test-results/login-exploration-summary.md" ]; then
-    echo -e "${BLUE}📋 Test Generation Results:${NC}"
+if [ -f "agents/test-generator/test-results/test-execution-summary.md" ]; then
+    echo -e "${BLUE}📋 Test Generation Results (2 Iterations):${NC}"
     echo "Generated reports:"
-    echo "  - login-exploration.json (Detailed results)"
-    echo "  - login-exploration-summary.md (Human-readable summary)"
-    echo "  - coverage-report.json (Coverage metrics)"
+    echo "  - test-execution-report.json (Detailed results with iteration data)"
+    echo "  - test-execution-summary.md (Human-readable summary with improvements)"
+    echo "  - test-coverage-report.json (Coverage metrics per iteration)"
     echo ""
 fi
 
 if [ -f "agents/quality-analyzer/quality-results/quality-analysis-summary.md" ]; then
-    echo -e "${BLUE}📊 Quality Analysis Results:${NC}"
+    echo -e "${BLUE}📊 Quality Analysis Results (2 Iterations):${NC}"
     echo "Generated reports:"
-    echo "  - quality-analysis.json (Detailed analysis)"
-    echo "  - quality-analysis-summary.md (Human-readable summary)"
-    echo "  - quality-metrics.json (Quality metrics)"
+    echo "  - quality-analysis.json (Detailed analysis with iteration data)"
+    echo "  - quality-analysis-summary.md (Human-readable summary with improvements)"
+    echo "  - quality-metrics.json (Quality metrics per iteration)"
     echo ""
 fi
 
 if [ -f "agents/auto-fix/auto-fix-results/fix-report-summary.md" ]; then
-    echo -e "${BLUE}🔧 Auto-Fix Analysis Results:${NC}"
+    echo -e "${BLUE}🔧 Auto-Fix Analysis Results (2 Iterations):${NC}"
     echo "Generated reports:"
-    echo "  - fix-report.json (Detailed fix analysis)"
-    echo "  - fix-report-summary.md (Human-readable summary)"
-    echo "  - fix-metrics.json (Fix metrics)"
+    echo "  - fix-report.json (Detailed fix analysis with iteration data)"
+    echo "  - fix-report-summary.md (Human-readable summary with improvements)"
+    echo "  - fix-metrics.json (Fix metrics per iteration)"
     echo ""
 fi
 
-# Step 5: Summary
-echo -e "${GREEN}🎯 AI Pipeline Execution Summary${NC}"
-echo "=========================================="
+# Step 5: Summary with Iteration Benefits
+echo -e "${GREEN}🎯 AI Pipeline Execution Summary (2 Iterations)${NC}"
+echo "========================================================"
 
 echo -e "${BLUE}🎯 What We've Accomplished:${NC}"
-echo "✅ Built a complete 4-agent AI testing ecosystem"
-echo "✅ Test Generator Agent automatically created test scenarios"
-echo "✅ Quality Analyzer Agent provided detailed quality insights"
-echo "✅ Auto-Fix Agent identified potential fixes (without applying them)"
-echo "✅ Pipeline Orchestrator coordinated all agents"
-echo "✅ Generated comprehensive reports in multiple formats"
-echo "✅ Identified areas for improvement and optimization"
+echo "✅ Built a complete 4-agent AI testing ecosystem with iterative improvement"
+echo "✅ Test Generator Agent: 2 iterations with enhanced test scenarios"
+echo "✅ Quality Analyzer Agent: 2 iterations with deeper analysis"
+echo "✅ Auto-Fix Agent: 2 iterations with comprehensive fix identification"
+echo "✅ Pipeline Orchestrator: Coordinated all agents with iteration tracking"
+echo "✅ Generated comprehensive reports showing improvements between iterations"
+echo "✅ Demonstrated iterative learning and improvement capabilities"
 echo ""
 
-echo -e "${BLUE}📊 Key Metrics:${NC}"
-if [ -f "agents/test-generator/test-results/login-exploration.json" ]; then
+echo -e "${BLUE}🔄 Iteration Benefits:${NC}"
+echo "• Iteratie 1: Basis functionaliteit en test scenarios"
+echo "• Iteratie 2: Edge cases, security tests, performance tests, advanced analysis"
+echo "• Verbetering tracking: Kwaliteit, performance, en coverage metrics"
+echo "• Trend analysis: Vergelijking tussen iteraties"
+echo "• Advanced recommendations: Op basis van beide iteraties"
+echo ""
+
+echo -e "${BLUE}📊 Key Metrics (2 Iterations):${NC}"
+if [ -f "agents/test-generator/test-results/test-execution-report.json" ]; then
     echo "Test Results:"
-    echo "  - Total scenarios generated: $(jq '.test_results | length' agents/test-generator/test-results/login-exploration.json 2>/dev/null || echo 'N/A')"
-    echo "  - Tests executed: $(jq '.execution_summary.tests_executed' agents/test-generator/test-results/login-exploration.json 2>/dev/null || echo 'N/A')"
-    echo "  - Success rate: $(jq '.execution_summary.tests_passed // 0 / (.execution_summary.tests_executed // 1) * 100 | round' agents/test-generator/test-results/login-exploration.json 2>/dev/null || echo 'N/A')%"
+    echo "  - Total scenarios generated: $(jq '.scenarios | length' agents/test-generator/test-results/test-execution-report.json 2>/dev/null || echo 'N/A')"
+    echo "  - Quality improvement: $(jq '.improvementSummary.qualityIncrease // 0' agents/test-generator/test-results/test-execution-report.json 2>/dev/null || echo 'N/A') points"
+    echo "  - Scenario increase: $(jq '.improvementSummary.scenarioIncrease // 0' agents/test-generator/test-results/test-execution-report.json 2>/dev/null || echo 'N/A')"
 fi
 
 if [ -f "agents/quality-analyzer/quality-results/quality-analysis.json" ]; then
     echo "Quality Analysis:"
-    echo "  - Overall Grade: $(jq -r '.summary.overallGrade' agents/quality-analyzer/quality-results/quality-analysis.json 2>/dev/null || echo 'N/A')"
-    echo "  - Quality Score: $(jq '.summary.qualityScore' agents/quality-analyzer/quality-results/quality-analysis.json 2>/dev/null || echo 'N/A')/100"
-    echo "  - Risk Level: $(jq -r '.riskAssessment.overallRisk' agents/quality-analyzer/quality-results/quality-analysis.json 2>/dev/null || echo 'N/A')"
-    echo "  - Recommendations: $(jq '.recommendations | length' agents/quality-analyzer/quality-results/quality-analysis.json 2>/dev/null || echo 'N/A')"
+    echo "  - Overall Grade: $(jq -r '.overallGrade' agents/quality-analyzer/quality-results/quality-analysis.json 2>/dev/null || echo 'N/A')"
+    echo "  - Quality Score: $(jq '.qualityScore' agents/quality-analyzer/quality-results/quality-analysis.json 2>/dev/null || echo 'N/A')/100"
+    echo "  - Quality improvement: $(jq '.improvementSummary.qualityIncrease // 0' agents/quality-analyzer/quality-results/quality-analysis.json 2>/dev/null || echo 'N/A') points"
 fi
 
 if [ -f "agents/auto-fix/auto-fix-results/fix-report.json" ]; then
     echo "Auto-Fix Analysis:"
-    echo "  - Issues Found: $(jq '.summary.totalIssues' agents/auto-fix/auto-fix-results/fix-report.json 2>/dev/null || echo 'N/A')"
-    echo "  - Auto-Fixable: $(jq '.summary.autoFixed' agents/auto-fix/auto-fix-results/fix-report.json 2>/dev/null || echo 'N/A')"
-    echo "  - Manual Review: $(jq '.summary.skippedFixes' agents/auto-fix/auto-fix-results/fix-report.json 2>/dev/null || echo 'N/A')"
+    echo "  - Total fixes identified: $(jq '.metrics.totalFixes' agents/auto-fix/auto-fix-results/fix-report.json 2>/dev/null || echo 'N/A')"
+    echo "  - Improvement score: $(jq '.metrics.improvementScore' agents/auto-fix/auto-fix-results/fix-report.json 2>/dev/null || echo 'N/A')/100"
+    echo "  - Score improvement: $(jq '.improvementSummary.scoreIncrease // 0' agents/auto-fix/auto-fix-results/fix-report.json 2>/dev/null || echo 'N/A') points"
 fi
 
 echo ""
 echo -e "${BLUE}🔮 Next Steps & CI/CD Integration:${NC}"
 echo "1. 🚀 Push this to GitHub to trigger the CI/CD pipeline"
-echo "2. 🔄 Both pipelines will run in parallel:"
+echo "2. 🔄 Both pipelines will run in parallel with 2 iterations each:"
 echo "   - Standard Tests & Build"
-echo "   - AI Testing Pipeline"
-echo "3. 📊 Results will be available in GitHub Actions"
-echo "4. 💬 PR comments will include AI testing insights"
+echo "   - AI Testing Pipeline (2 iterations per agent)"
+echo "3. 📊 Results will show iterative improvements in GitHub Actions"
+echo "4. 💬 PR comments will include iteration comparison and improvements"
 echo "5. 🚀 Deploy only happens when both pipelines succeed"
 echo ""
 
@@ -231,13 +240,18 @@ echo "Quality Analysis: $(pwd)/agents/quality-analyzer/quality-results/"
 echo "Auto-Fix Analysis: $(pwd)/agents/auto-fix/auto-fix-results/"
 echo ""
 
-echo -e "${GREEN}🎉 AI Pipeline test completed successfully!${NC}"
+echo -e "${GREEN}🎉 AI Pipeline with 2 iterations test completed successfully!${NC}"
 echo ""
-echo -e "${YELLOW}💡 To explore the results:${NC}"
-echo "  - View test results: cat agents/test-generator/test-results/login-exploration-summary.md"
+echo -e "${YELLOW}💡 To explore the iteration results:${NC}"
+echo "  - View test results: cat agents/test-generator/test-results/test-execution-summary.md"
 echo "  - View quality analysis: cat agents/quality-analyzer/quality-results/quality-analysis-summary.md"
 echo "  - View auto-fix analysis: cat agents/auto-fix/auto-fix-results/fix-report-summary.md"
 echo ""
+echo -e "${YELLOW}🔄 To see iteration improvements:${NC}"
+echo "  - Check improvement summaries in each report"
+echo "  - Compare metrics between iterations"
+echo "  - Review trend analysis and recommendations"
+echo ""
 
-echo -e "${PURPLE}🤖 Your AI Testing Pipeline is ready for CI/CD!${NC}"
-echo "Push to GitHub to see both pipelines run in parallel."
+echo -e "${PURPLE}🤖 Your AI Testing Pipeline with 2 iterations is ready for CI/CD!${NC}"
+echo "Push to GitHub to see both pipelines run in parallel with iterative improvements."
