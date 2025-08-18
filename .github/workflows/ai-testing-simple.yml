@@ -222,6 +222,9 @@ jobs:
             echo ""
             echo "🎯 IMPORTANT: Deploy will only proceed after CI/CD Pipeline passes"
             echo "   This ensures both pipelines are complete before deployment"
+            echo ""
+            echo "💡 Note: Preview Deployment is controlled by you, not automatic"
+            echo "   You must manually approve the deployment after both pipelines complete"
           else
             echo "🚀 Push to branch detected"
             echo "✅ Proceeding with deployment"
@@ -281,10 +284,14 @@ jobs:
     name: 💬 Comment PR
     if: github.event_name == 'pull_request'
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
       - name: Download AI Summary
         uses: actions/download-artifact@v4
         with:
           name: complete-ai-testing-results
+          path: ./
       
       - name: Comment PR with Complete AI Results
         uses: actions/github-script@v7
