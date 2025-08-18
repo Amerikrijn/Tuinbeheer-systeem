@@ -1,0 +1,33 @@
+{
+  "name": "ai-auto-fix-agent",
+  "version": "1.0.0",
+  "description": "AI-Powered Auto-Fix Agent for automatic bug fixes and code improvements",
+  "main": "index.ts",
+  "scripts": {
+    "start": "ts-node cli.ts",
+    "build": "tsc",
+    "test": "echo 'Tests will be implemented in next phase'",
+    "dev": "ts-node --watch cli.ts",
+    "help": "ts-node cli.ts --help"
+  },
+  "keywords": [
+    "ai",
+    "testing",
+    "automation",
+    "auto-fix",
+    "code-improvement",
+    "bug-fixing"
+  ],
+  "author": "AI Testing Team",
+  "license": "MIT",
+  "dependencies": {
+    "typescript": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.11",
+    "ts-node": "^10.9.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
