@@ -93,6 +93,7 @@ export async function POST(request: NextRequest) {
     const tempPassword = generateSecurePassword()
 
     // Create auth user
+    const supabase = getSupabaseAdminClient()
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: email.toLowerCase().trim(),
       password: tempPassword,
@@ -212,6 +213,7 @@ export async function POST(request: NextRequest) {
 // PUT - Update user (password reset or edit user)
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = getSupabaseAdminClient()
     const { userId, action, fullName, role, gardenAccess } = await request.json()
 
     if (!userId || !action) {
@@ -331,10 +333,13 @@ export async function PUT(request: NextRequest) {
 
       if (deleteError) {
         console.error('Garden access deletion failed:', deleteError)
-        // Don't fail the whole operation
+        return NextResponse.json(
+          { error: `Garden access update failed: ${deleteError.message}` },
+          { status: 500 }
+        )
       }
 
-      // Then, add new garden access if provided (for both users and admins)
+      // Then, add new garden access if specified
       if (gardenAccess && gardenAccess.length > 0) {
         const gardenAccessRecords = gardenAccess.map((gardenId: string) => ({
           user_id: userId,
@@ -343,52 +348,28 @@ export async function PUT(request: NextRequest) {
           created_at: new Date().toISOString()
         }))
 
-        const { error: insertError } = await supabase
+        const { error: accessError } = await supabase
           .from('user_garden_access')
           .insert(gardenAccessRecords)
 
-        if (insertError) {
-          console.error('Garden access creation failed:', insertError)
-          // Don't fail the user update
-          auditLog('GARDEN_ACCESS_UPDATE_FAILED', {
-            userId: userId,
-            email: userData.email,
-            role: role,
-            gardenAccess: gardenAccess,
-            error: insertError.message
-          })
-        } else {
-          auditLog('GARDEN_ACCESS_UPDATED', {
-            userId: userId,
-            email: userData.email,
-            role: role,
-            gardenAccess: gardenAccess,
-            count: gardenAccess.length,
-            accessType: gardenAccess.length > 0 
-              ? `${role}_limited_access` 
-              : `${role}_no_specific_access`
-          })
+        if (accessError) {
+          console.error('Garden access creation failed:', accessError)
+          return NextResponse.json(
+            { error: `Garden access update failed: ${accessError.message}` },
+            { status: 500 }
+          )
         }
-      } else {
-        // No specific garden access - log the access type
-        auditLog('GARDEN_ACCESS_CLEARED', {
-          userId: userId,
-          email: userData.email,
-          role: role,
-          accessType: role === 'admin' 
-            ? 'super_admin_all_access' 
-            : 'user_no_access'
-        })
       }
 
-      auditLog('EDIT_USER', {
+      auditLog('EDIT_USER', { 
+        email: userData.email, 
         userId: userId,
-        email: userData.email,
-        changes: {
-          fullName: fullName !== userData.full_name ? { from: userData.full_name, to: fullName } : null,
-          role: role !== userData.role ? { from: userData.role, to: role } : null,
-          gardenAccessCount: role === 'user' ? (gardenAccess?.length || 0) : 'admin_all_access'
-        }
+        newRole: role,
+        gardenAccessType: gardenAccess && gardenAccess.length > 0 
+          ? `${role}_limited_access` 
+          : role === 'admin' 
+            ? 'super_admin_all_access' 
+            : 'user_no_access'
       })
 
       return NextResponse.json({
@@ -398,9 +379,13 @@ export async function PUT(request: NextRequest) {
           email: userData.email,
           fullName: fullName,
           role: role,
-          gardenAccessCount: role === 'user' ? (gardenAccess?.length || 0) : 'all'
+          gardenAccessType: gardenAccess && gardenAccess.length > 0 
+            ? `${role}_limited_access` 
+            : role === 'admin' 
+              ? 'super_admin_all_access' 
+              : 'user_no_access'
         },
-        message: 'User updated successfully.'
+        message: 'User updated successfully'
       })
     }
 
@@ -415,6 +400,7 @@ export async function PUT(request: NextRequest) {
 // DELETE - Soft delete user
 export async function DELETE(request: NextRequest) {
   try {
+    const supabase = getSupabaseAdminClient()
     const userId = request.nextUrl.searchParams.get('userId')
 
     if (!userId) {
