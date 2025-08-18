@@ -2,252 +2,176 @@
 
 import { AutoFixAgent } from './AutoFixAgent'
 import { AutoFixOptions } from './types'
-import * as path from 'path'
 
-/**
- * Parse command line arguments
- */
-function parseArguments(): AutoFixOptions {
-  const args = process.argv.slice(2)
-  const options: Partial<AutoFixOptions> = {
-    maxFixes: 50,
-    includeSecurityFixes: true,
-    includePerformanceFixes: true,
-    includeQualityFixes: true,
-    autoApply: false,
-    requireValidation: true
-  }
+interface CLIArgs {
+  path?: string
+  autoApply?: boolean
+  maxFixes?: number
+  output?: string
+  typescript?: boolean
+  eslint?: boolean
+  security?: boolean
+  performance?: boolean
+  quality?: boolean
+  help?: boolean
+  version?: boolean
+}
 
-  for (let i = 0; i < args.length; i++) {
-    const arg = args[i]
-    const nextArg = args[i + 1]
-
+function parseArgs(): CLIArgs {
+  const args: CLIArgs = {}
+  
+  for (let i = 2; i < process.argv.length; i++) {
+    const arg = process.argv[i]
+    
     switch (arg) {
-      case '--help':
-      case '-h':
-        showHelp()
-        process.exit(0)
+      case '--path':
+      case '-p':
+        args.path = process.argv[++i]
         break
-
-      case '--file':
-      case '-f':
-        if (nextArg) {
-          options.filePath = nextArg
-          i++
-        } else {
-          console.error('❌ Error: --file requires a file path')
-          process.exit(1)
-        }
+      case '--auto-apply':
+      case '-a':
+        args.autoApply = true
         break
-
+      case '--max-fixes':
+      case '-m':
+        args.maxFixes = parseInt(process.argv[++i])
+        break
       case '--output':
       case '-o':
-        if (nextArg) {
-          options.outputPath = nextArg
-          i++
-        } else {
-          console.error('❌ Error: --output requires an output path')
-          process.exit(1)
-        }
+        args.output = process.argv[++i]
         break
-
-      case '--max-fixes':
-        if (nextArg) {
-          const maxFixes = parseInt(nextArg)
-          if (isNaN(maxFixes) || maxFixes < 1) {
-            console.error('❌ Error: --max-fixes must be a positive number')
-            process.exit(1)
-          }
-          options.maxFixes = maxFixes
-          i++
-        } else {
-          console.error('❌ Error: --max-fixes requires a number')
-          process.exit(1)
-        }
+      case '--typescript':
+      case '-t':
+        args.typescript = true
         break
-
-      case '--auto-apply':
-        options.autoApply = true
+      case '--eslint':
+      case '-e':
+        args.eslint = true
         break
-
-      case '--no-auto-apply':
-        options.autoApply = false
+      case '--security':
+        args.security = true
         break
-
-      case '--require-validation':
-        options.requireValidation = true
+      case '--performance':
+        args.performance = true
         break
-
-      case '--no-validation':
-        options.requireValidation = false
+      case '--quality':
+        args.quality = true
         break
-
-      case '--include-security':
-        options.includeSecurityFixes = true
+      case '--help':
+      case '-h':
+        args.help = true
         break
-
-      case '--no-security':
-        options.includeSecurityFixes = false
-        break
-
-      case '--include-performance':
-        options.includePerformanceFixes = true
-        break
-
-      case '--no-performance':
-        options.includePerformanceFixes = false
-        break
-
-      case '--include-quality':
-        options.includeQualityFixes = true
-        break
-
-      case '--no-quality':
-        options.includeQualityFixes = false
-        break
-
       case '--version':
       case '-v':
-        showVersion()
-        process.exit(0)
-        break
-
-      default:
-        if (!options.filePath) {
-          options.filePath = arg
-        } else {
-          console.error(`❌ Error: Unknown option: ${arg}`)
-          showHelp()
-          process.exit(1)
-        }
+        args.version = true
         break
     }
   }
-
-  // Validate required options
-  if (!options.filePath) {
-    console.error('❌ Error: File path is required')
-    showHelp()
-    process.exit(1)
-  }
-
-  if (!options.outputPath) {
-    options.outputPath = './auto-fix-results'
-  }
-
-  return options as AutoFixOptions
+  
+  return args
 }
 
-/**
- * Show help information
- */
-function showHelp() {
+function showHelp(): void {
   console.log(`
-🚀 AI-Powered Auto-Fix Agent CLI
+🔧 AI-Powered Auto-Fix Agent
 
-USAGE:
-  npx ts-node cli.ts [OPTIONS] <file-path>
+Usage: npx ts-node cli.ts [options]
 
-OPTIONS:
-  -f, --file <path>           Target file to analyze and fix
-  -o, --output <path>         Output directory for reports (default: ./auto-fix-results)
-  --max-fixes <number>        Maximum number of fixes to apply (default: 50)
-  --auto-apply                Automatically apply fixes to files
-  --no-auto-apply            Don't apply fixes automatically (default)
-  --require-validation        Require validation of applied fixes (default)
-  --no-validation            Skip validation of applied fixes
-  --include-security          Include security-related fixes (default)
-  --no-security              Exclude security-related fixes
-  --include-performance       Include performance-related fixes (default)
-  --no-performance           Exclude performance-related fixes
-  --include-quality           Include quality-related fixes (default)
-  --no-quality               Exclude quality-related fixes
-  -h, --help                 Show this help message
-  -v, --version              Show version information
+Options:
+  -p, --path <path>              Path to the file/directory to fix (default: ./src)
+  -a, --auto-apply               Automatically apply fixes (default: false)
+  -m, --max-fixes <num>          Maximum number of fixes to apply (default: 50)
+  -o, --output <path>            Output directory for reports (default: ./auto-fix-results)
+  -t, --typescript               Enable TypeScript analysis
+  -e, --eslint                   Enable ESLint analysis
+  --security                     Include security fixes
+  --performance                  Include performance fixes
+  --quality                      Include quality fixes
+  -h, --help                     Show this help message
+  -v, --version                  Show version information
 
-EXAMPLES:
-  # Basic usage - analyze file without applying fixes
-  npx ts-node cli.ts ./src/components/Button.tsx
+Examples:
+  # Basic usage with default settings
+  npx ts-node cli.ts
 
-  # Auto-apply fixes with custom output directory
-  npx ts-node cli.ts --auto-apply --output ./fixes ./src/utils/helpers.ts
+  # Custom path and auto-apply
+  npx ts-node cli.ts --path ./src/components --auto-apply
 
-  # Limit fixes and exclude security fixes
-  npx ts-node cli.ts --max-fixes 10 --no-security ./src/auth/login.ts
+  # Include all analysis types
+  npx ts-node cli.ts --typescript --eslint --security --performance --quality
 
-  # Full auto-fix with validation
-  npx ts-node cli.ts --auto-apply --require-validation ./src/index.ts
+  # Custom output directory
+  npx ts-node cli.ts --output ./custom-results
 
-FEATURES:
-  🔍 Automatic code issue detection
-  🔧 Intelligent fix generation
-  ⚡ Optional automatic fix application
-  🔍 Comprehensive validation
-  📊 Detailed reporting (JSON, Markdown, Metrics)
-  🎯 Risk-based prioritization
-  🛡️ Safety controls and rollback options
-
-For more information, visit: https://github.com/your-repo/ai-testing-system
+Features:
+  🔄 2 Iterations with improvement tracking
+  📊 Quality scoring per iteration
+  🎯 Multiple fix categories
+  📈 Performance metrics
+  🔍 Detailed reporting
 `)
 }
 
-/**
- * Show version information
- */
-function showVersion() {
-  console.log('AI-Powered Auto-Fix Agent v1.0.0')
-  console.log('Part of the AI Testing & Quality Analysis System')
+function showVersion(): void {
+  console.log('AI Auto-Fix Agent v2.0.0')
 }
 
-/**
- * Main execution function
- */
-async function main() {
+async function main(): Promise<void> {
+  const args = parseArgs()
+  
+  if (args.help) {
+    showHelp()
+    return
+  }
+  
+  if (args.version) {
+    showVersion()
+    return
+  }
+  
+  // Default values
+  const options: AutoFixOptions = {
+    filePath: args.path || './src',
+    outputPath: args.output || './auto-fix-results',
+    maxFixes: args.maxFixes || 50,
+    autoApply: args.autoApply || false,
+    requireValidation: true,
+    includeSecurityFixes: args.security !== false,
+    includePerformanceFixes: args.performance !== false,
+    includeQualityFixes: args.quality !== false,
+    includeTypeScriptFixes: args.typescript || false,
+    includeESLintFixes: args.eslint || false
+  }
+  
+  console.log('🚀 Starting AI Auto-Fix Agent...')
+  console.log(`Target: ${options.filePath}`)
+  console.log(`Auto-apply: ${options.autoApply ? 'YES' : 'NO'}`)
+  console.log(`Max fixes: ${options.maxFixes}`)
+  console.log(`Output: ${options.outputPath}`)
+  console.log('')
+  
   try {
-    console.log('🚀 AI-Powered Auto-Fix Agent')
-    console.log('================================')
-    console.log('')
-
-    // Parse command line arguments
-    const options = parseArguments()
-
-    // Display configuration
-    console.log('📋 Configuration:')
-    console.log(`  Target File: ${options.filePath}`)
-    console.log(`  Output Directory: ${options.outputPath}`)
-    console.log(`  Max Fixes: ${options.maxFixes}`)
-    console.log(`  Auto-Apply: ${options.autoApply ? 'Yes' : 'No'}`)
-    console.log(`  Require Validation: ${options.requireValidation ? 'Yes' : 'No'}`)
-    console.log(`  Include Security: ${options.includeSecurityFixes ? 'Yes' : 'No'}`)
-    console.log(`  Include Performance: ${options.includePerformanceFixes ? 'Yes' : 'No'}`)
-    console.log(`  Include Quality: ${options.includeQualityFixes ? 'Yes' : 'No'}`)
-    console.log('')
-
-    // Validate file exists
-    const fs = require('fs')
-    if (!fs.existsSync(options.filePath)) {
-      console.error(`❌ Error: File not found: ${options.filePath}`)
-      process.exit(1)
-    }
-
-    // Create and run the agent
     const agent = new AutoFixAgent(options)
     const result = await agent.run()
-
-    console.log('🎉 Auto-Fix Agent completed successfully!')
-    process.exit(0)
-
+    
+    console.log('✅ Auto-fix analysis complete!')
+    console.log(`📊 Results saved to: ${options.outputPath}`)
+    
+    if (result.metrics) {
+      console.log(`Total issues: ${result.metrics.totalIssues || 0}`)
+      console.log(`Fixes generated: ${result.metrics.fixesGenerated || 0}`)
+      if (options.autoApply) {
+        console.log(`Fixes applied: ${result.metrics.fixesApplied || 0}`)
+      }
+    }
+    
   } catch (error) {
-    console.error('❌ Fatal error:', error.message)
-    console.error('Stack trace:', error.stack)
+    console.error('❌ Auto-fix failed:', error)
     process.exit(1)
   }
 }
 
-// Run if this file is executed directly
+// Run if called directly
 if (require.main === module) {
-  main().catch((error) => {
-    console.error('❌ Unhandled error:', error)
-    process.exit(1)
-  })
+  main().catch(console.error)
 }
