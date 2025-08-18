@@ -43,7 +43,7 @@ jobs:
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
-          name: ci-cd-results
+          name: ci-cds-results
           path: |
             coverage/
             test-results/
