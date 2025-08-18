@@ -1,0 +1,207 @@
+{
+  "id": "ci-ai-pipeline",
+  "name": "CI/CD AI Testing Pipeline",
+  "description": "AI-powered testing pipeline for CI/CD - runs parallel to standard tests",
+  "version": "1.0.0",
+  "agents": [
+    {
+      "id": "test-generator",
+      "name": "Test Generator Agent",
+      "type": "test-generator",
+      "status": "active",
+      "path": "./agents/test-generator",
+      "dependencies": [],
+      "config": {
+        "path": "./app/auth/login",
+        "strategy": "risk-based",
+        "maxInteractions": 100,
+        "outputPath": "./agents/test-generator/test-results"
+      },
+      "healthCheck": {
+        "enabled": true,
+        "interval": 30000,
+        "timeout": 5000,
+        "retries": 3
+      }
+    },
+    {
+      "id": "quality-analyzer",
+      "name": "Quality Analyzer Agent",
+      "type": "quality-analyzer",
+      "status": "active",
+      "path": "./agents/quality-analyzer",
+      "dependencies": ["test-generator"],
+      "config": {
+        "testResults": "./agents/test-generator/test-results/login-exploration.json",
+        "testScenarios": "./agents/test-generator/test-results/login-exploration.json",
+        "outputPath": "./agents/quality-analyzer/quality-results"
+      },
+      "healthCheck": {
+        "enabled": true,
+        "interval": 30000,
+        "timeout": 5000,
+        "retries": 3
+      }
+    },
+    {
+      "id": "auto-fix",
+      "name": "Auto-Fix Agent",
+      "type": "auto-fix",
+      "status": "active",
+      "path": "./agents/auto-fix",
+      "dependencies": ["quality-analyzer"],
+      "config": {
+        "filePath": "./app/auth/login",
+        "maxFixes": 25,
+        "autoApply": false,
+        "requireValidation": true,
+        "includeSecurityFixes": true,
+        "includePerformanceFixes": true,
+        "includeQualityFixes": true,
+        "outputPath": "./agents/auto-fix/auto-fix-results"
+      },
+      "healthCheck": {
+        "enabled": true,
+        "interval": 30000,
+        "timeout": 5000,
+        "retries": 3
+      }
+    }
+  ],
+  "workflows": [
+    {
+      "id": "ci-ai-pipeline",
+      "name": "CI/CD AI Testing Pipeline",
+      "description": "Complete AI testing workflow for CI/CD",
+      "steps": [
+        {
+          "id": "generate-tests",
+          "name": "Generate Tests",
+          "agentId": "test-generator",
+          "order": 1,
+          "required": true,
+          "config": {
+            "path": "./app/auth/login",
+            "strategy": "risk-based",
+            "maxInteractions": 100
+          },
+          "dependencies": [],
+          "timeout": 300000,
+          "retryPolicy": {
+            "maxRetries": 2,
+            "backoffMultiplier": 2,
+            "initialDelay": 1000,
+            "maxDelay": 10000
+          },
+          "rollbackPolicy": {
+            "enabled": false,
+            "strategy": "full",
+            "checkpointInterval": 0,
+            "maxCheckpoints": 0
+          }
+        },
+        {
+          "id": "analyze-quality",
+          "name": "Analyze Quality",
+          "agentId": "quality-analyzer",
+          "order": 2,
+          "required": true,
+          "config": {
+            "testResults": "./agents/test-generator/test-results/login-exploration.json",
+            "testScenarios": "./agents/test-generator/test-results/login-exploration.json"
+          },
+          "dependencies": ["generate-tests"],
+          "timeout": 180000,
+          "retryPolicy": {
+            "maxRetries": 2,
+            "backoffMultiplier": 2,
+            "initialDelay": 1000,
+            "maxDelay": 10000
+          },
+          "rollbackPolicy": {
+            "enabled": false,
+            "strategy": "full",
+            "checkpointInterval": 0,
+            "maxCheckpoints": 0
+          }
+        },
+        {
+          "id": "identify-fixes",
+          "name": "Identify Auto-Fixes",
+          "agentId": "auto-fix",
+          "order": 3,
+          "required": false,
+          "config": {
+            "filePath": "./app/auth/login",
+            "maxFixes": 25,
+            "autoApply": false,
+            "requireValidation": true
+          },
+          "dependencies": ["analyze-quality"],
+          "timeout": 240000,
+          "retryPolicy": {
+            "maxRetries": 1,
+            "backoffMultiplier": 2,
+            "initialDelay": 2000,
+            "maxDelay": 10000
+          },
+          "rollbackPolicy": {
+            "enabled": true,
+            "strategy": "partial",
+            "checkpointInterval": 60000,
+            "maxCheckpoints": 5
+          }
+        }
+      ],
+      "triggers": [
+        {
+          "type": "manual",
+          "config": {},
+          "enabled": true
+        }
+      ],
+      "conditions": [
+        {
+          "type": "quality-score",
+          "operator": "gte",
+          "value": 60,
+          "field": "qualityScore"
+        }
+      ],
+      "maxRetries": 2,
+      "timeout": 900000,
+      "parallel": false,
+      "enabled": true
+    }
+  ],
+  "settings": {
+    "maxConcurrentWorkflows": 2,
+    "defaultTimeout": 300000,
+    "enableLogging": true,
+    "enableMetrics": true,
+    "enableNotifications": false,
+    "qualityGates": [
+      {
+        "id": "quality-threshold",
+        "name": "Quality Score Threshold",
+        "type": "quality-score",
+        "threshold": 60,
+        "operator": "gte",
+        "action": "warn",
+        "enabled": true
+      },
+      {
+        "id": "test-coverage-threshold",
+        "name": "Test Coverage Threshold",
+        "type": "test-coverage",
+        "threshold": 70,
+        "operator": "gte",
+        "action": "warn",
+        "enabled": true
+      }
+    ],
+    "notifications": []
+  },
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-01T00:00:00.000Z"
+}
