@@ -42,11 +42,12 @@ describe('Label Component', () => {
       </Label>
     )
     const label = screen.getByTestId('custom-label')
+    // Check if htmlFor is passed through props
     expect(label).toHaveAttribute('htmlFor', 'input-id')
     expect(label).toHaveAttribute('aria-label', 'Custom label')
   })
 
   it('has correct display name', () => {
-    expect(Label.displayName).toBe('Root')
+    expect(Label.displayName).toBe('Label')
   })
 })

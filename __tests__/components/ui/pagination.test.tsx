@@ -210,7 +210,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const previous = screen.getByText('Previous')
+      const previous = screen.getByTestId('pagination-previous')
       expect(previous).toBeInTheDocument()
       expect(previous.tagName).toBe('A')
     })
@@ -225,7 +225,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const previous = screen.getByText('Previous')
+      const previous = screen.getByTestId('pagination-previous')
       expect(previous).toHaveClass('gap-1', 'pl-2.5')
     })
 
@@ -239,7 +239,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const previous = screen.getByText('Previous')
+      const previous = screen.getByTestId('pagination-previous')
       expect(previous).toHaveClass('custom-previous')
     })
 
@@ -253,7 +253,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const previous = screen.getByText('Previous')
+      const previous = screen.getByTestId('pagination-previous')
       expect(previous).toHaveAttribute('aria-label', 'Go to previous page')
     })
 
@@ -267,7 +267,8 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const chevron = screen.getByText('Previous').querySelector('svg')
+      const previous = screen.getByTestId('pagination-previous')
+      const chevron = previous.querySelector('svg')
       expect(chevron).toBeInTheDocument()
     })
 
@@ -287,7 +288,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const next = screen.getByText('Next')
+      const next = screen.getByTestId('pagination-next')
       expect(next).toBeInTheDocument()
       expect(next.tagName).toBe('A')
     })
@@ -302,7 +303,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const next = screen.getByText('Next')
+      const next = screen.getByTestId('pagination-next')
       expect(next).toHaveClass('gap-1', 'pr-2.5')
     })
 
@@ -316,7 +317,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const next = screen.getByText('Next')
+      const next = screen.getByTestId('pagination-next')
       expect(next).toHaveClass('custom-next')
     })
 
@@ -330,7 +331,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const next = screen.getByText('Next')
+      const next = screen.getByTestId('pagination-next')
       expect(next).toHaveAttribute('aria-label', 'Go to next page')
     })
 
@@ -344,7 +345,8 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const chevron = screen.getByText('Next').querySelector('svg')
+      const next = screen.getByTestId('pagination-next')
+      const chevron = next.querySelector('svg')
       expect(chevron).toBeInTheDocument()
     })
 
@@ -378,7 +380,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const ellipsis = screen.getByText('More pages').closest('span')
+      const ellipsis = screen.getByTestId('pagination-ellipsis')
       expect(ellipsis).toHaveClass('flex', 'h-9', 'w-9', 'items-center', 'justify-center')
     })
 
@@ -392,7 +394,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const ellipsis = screen.getByText('More pages').closest('span')
+      const ellipsis = screen.getByTestId('pagination-ellipsis')
       expect(ellipsis).toHaveClass('custom-ellipsis')
     })
 
@@ -406,7 +408,7 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const ellipsis = screen.getByText('More pages').closest('span')
+      const ellipsis = screen.getByTestId('pagination-ellipsis')
       expect(ellipsis).toHaveAttribute('aria-hidden', 'true')
     })
 
@@ -420,7 +422,8 @@ describe('Pagination Components', () => {
           </PaginationContent>
         </Pagination>
       )
-      const icon = screen.getByText('More pages').closest('span')?.querySelector('svg')
+      const ellipsis = screen.getByTestId('pagination-ellipsis')
+      const icon = ellipsis.querySelector('svg')
       expect(icon).toBeInTheDocument()
     })
 

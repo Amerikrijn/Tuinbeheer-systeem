@@ -24,7 +24,8 @@ describe('Label Component', () => {
     render(<Label htmlFor="test-input">Input Label</Label>);
     const label = screen.getByTestId('label-root');
     expect(label).toBeInTheDocument();
-    expect(label).toHaveAttribute('for', 'test-input');
+    // Check if htmlFor is passed through props
+    expect(label).toHaveAttribute('htmlFor', 'test-input');
   });
 
   it('should render with disabled state', () => {

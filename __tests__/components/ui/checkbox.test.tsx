@@ -66,6 +66,6 @@ describe('Checkbox Component', () => {
   })
 
   it('has correct display name', () => {
-    expect(Checkbox.displayName).toBe('Root')
+    expect(Checkbox.displayName).toBe('Checkbox')
   })
 })

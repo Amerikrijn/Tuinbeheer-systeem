@@ -317,7 +317,7 @@ describe('Breadcrumb Components', () => {
           </BreadcrumbList>
         </Breadcrumb>
       )
-      const separator = screen.getByRole('presentation')
+      const separator = screen.getByTestId('breadcrumb-separator')
       expect(separator).toBeInTheDocument()
     })
 
@@ -331,7 +331,7 @@ describe('Breadcrumb Components', () => {
           </BreadcrumbList>
         </Breadcrumb>
       )
-      const separator = screen.getByRole('presentation')
+      const separator = screen.getByTestId('breadcrumb-separator')
       expect(separator).toHaveClass('[&>svg]:w-3.5', '[&>svg]:h-3.5')
     })
 
@@ -345,7 +345,7 @@ describe('Breadcrumb Components', () => {
           </BreadcrumbList>
         </Breadcrumb>
       )
-      const separator = screen.getByRole('presentation')
+      const separator = screen.getByTestId('breadcrumb-separator')
       expect(separator).toHaveClass('custom-separator')
     })
 
@@ -359,7 +359,7 @@ describe('Breadcrumb Components', () => {
           </BreadcrumbList>
         </Breadcrumb>
       )
-      const separator = screen.getByRole('presentation')
+      const separator = screen.getByTestId('breadcrumb-separator')
       expect(separator).toHaveAttribute('role', 'presentation')
       expect(separator).toHaveAttribute('aria-hidden', 'true')
     })
@@ -374,7 +374,7 @@ describe('Breadcrumb Components', () => {
           </BreadcrumbList>
         </Breadcrumb>
       )
-      const separator = screen.getByRole('presentation')
+      const separator = screen.getByTestId('breadcrumb-separator')
       const icon = separator.querySelector('svg')
       expect(icon).toBeInTheDocument()
     })
@@ -423,7 +423,7 @@ describe('Breadcrumb Components', () => {
           </BreadcrumbList>
         </Breadcrumb>
       )
-      const ellipsis = screen.getByText('More').closest('span')
+      const ellipsis = screen.getByTestId('breadcrumb-ellipsis')
       expect(ellipsis).toHaveClass('flex', 'h-9', 'w-9', 'items-center', 'justify-center')
     })
 
@@ -437,7 +437,7 @@ describe('Breadcrumb Components', () => {
           </BreadcrumbList>
         </Breadcrumb>
       )
-      const ellipsis = screen.getByText('More').closest('span')
+      const ellipsis = screen.getByTestId('breadcrumb-ellipsis')
       expect(ellipsis).toHaveClass('custom-ellipsis')
     })
 
@@ -451,7 +451,7 @@ describe('Breadcrumb Components', () => {
           </BreadcrumbList>
         </Breadcrumb>
       )
-      const ellipsis = screen.getByText('More').closest('span')
+      const ellipsis = screen.getByTestId('breadcrumb-ellipsis')
       expect(ellipsis).toHaveAttribute('role', 'presentation')
       expect(ellipsis).toHaveAttribute('aria-hidden', 'true')
     })
@@ -466,8 +466,8 @@ describe('Breadcrumb Components', () => {
           </BreadcrumbList>
         </Breadcrumb>
       )
-      const ellipsis = screen.getByText('More').closest('span')
-      const icon = ellipsis?.querySelector('svg')
+      const ellipsis = screen.getByTestId('breadcrumb-ellipsis')
+      const icon = ellipsis.querySelector('svg')
       expect(icon).toBeInTheDocument()
     })
 
@@ -499,7 +499,7 @@ describe('Breadcrumb Components', () => {
       expect(screen.getByText('Home')).toBeInTheDocument()
       expect(screen.getByText('Products')).toBeInTheDocument()
       expect(screen.getByText('Current Product')).toBeInTheDocument()
-      expect(screen.getAllByRole('presentation')).toHaveLength(2)
+      expect(screen.getAllByTestId('breadcrumb-separator')).toHaveLength(2)
     })
   })
 })
