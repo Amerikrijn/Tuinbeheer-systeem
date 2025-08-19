@@ -99,7 +99,13 @@ export class PipelineOrchestratorAgent {
       }
 
       // Execute workflow with improvement logic
-      let executionResult = await this.workflowEngine.executeWorkflow(workflow, this.config.agents, options)
+      let executionResult = await this.workflowEngine.executeWorkflow(workflow, {
+        workflowId: workflow.id,
+        config: {},
+        priority: 'normal',
+        timeout: workflow.timeout || 300000,
+        metadata: options || {}
+      })
       
       if (iterationNumber === 2 && previousResult) {
         // Improve execution in second iteration
@@ -168,7 +174,7 @@ export class PipelineOrchestratorAgent {
     if (!steps || steps.length === 0) return {}
     
     const executionTimes = steps.map((step: any) => step.executionTime || 0)
-    const totalTime = executionTimes.reduce((sum, time) => sum + time, 0)
+    const totalTime = executionTimes.reduce((sum: number, time: number) => sum + time, 0)
     const avgTime = totalTime / executionTimes.length
     
     return {
@@ -177,6 +183,28 @@ export class PipelineOrchestratorAgent {
       fastestStep: Math.min(...executionTimes),
       slowestStep: Math.max(...executionTimes),
       timeDistribution: this.calculateTimeDistribution(executionTimes)
+    }
+  }
+
+  /**
+   * Calculate time distribution
+   */
+  private calculateTimeDistribution(executionTimes: number[]): any {
+    if (executionTimes.length === 0) return {}
+    
+    const sorted = [...executionTimes].sort((a, b) => a - b)
+    const total = executionTimes.length
+    
+    return {
+      quartiles: {
+        q1: sorted[Math.floor(total * 0.25)],
+        q2: sorted[Math.floor(total * 0.5)],
+        q3: sorted[Math.floor(total * 0.75)]
+      },
+      percentiles: {
+        p10: sorted[Math.floor(total * 0.1)],
+        p90: sorted[Math.floor(total * 0.9)]
+      }
     }
   }
 
@@ -193,9 +221,9 @@ export class PipelineOrchestratorAgent {
     
     return {
       peakMemoryUsage: Math.max(...memoryUsage),
-      averageMemoryUsage: memoryUsage.reduce((sum, mem) => sum + mem, 0) / memoryUsage.length,
+      averageMemoryUsage: memoryUsage.reduce((sum: number, mem: number) => sum + mem, 0) / memoryUsage.length,
       peakCpuUsage: Math.max(...cpuUsage),
-      averageCpuUsage: cpuUsage.reduce((sum, cpu) => sum + cpu, 0) / cpuUsage.length
+      averageCpuUsage: cpuUsage.reduce((sum: number, cpu: number) => sum + cpu, 0) / cpuUsage.length
     }
   }
 
@@ -211,7 +239,7 @@ export class PipelineOrchestratorAgent {
     const errorTypes = errorSteps.map((step: any) => step.error?.type || 'unknown')
     
     const errorCounts: Record<string, number> = {}
-    errorTypes.forEach(type => {
+    errorTypes.forEach((type: string) => {
       errorCounts[type] = (errorCounts[type] || 0) + 1
     })
     
@@ -241,7 +269,7 @@ export class PipelineOrchestratorAgent {
     return {
       totalSuccessful: successfulSteps.length,
       successRate: (successfulSteps.length / steps.length) * 100,
-      averageSuccessTime: successfulSteps.reduce((sum, step) => sum + (step.executionTime || 0), 0) / successfulSteps.length,
+      averageSuccessTime: successfulSteps.reduce((sum: number, step: any) => sum + (step.executionTime || 0), 0) / successfulSteps.length,
       successFactors
     }
   }
@@ -631,12 +659,21 @@ export class PipelineOrchestratorAgent {
    * Get current status
    */
   getStatus(): PipelineStatus {
+    const agentStatusMap: Record<string, string> = {}
+    this.config.agents.forEach(agent => {
+      agentStatusMap[agent.id] = agent.status
+    })
+    
     return {
       status: 'running',
       activeWorkflows: this.workflowEngine.getActiveExecutions().length,
       registeredAgents: this.agentManager.getAllAgents().length,
       totalIterations: this.iterationResults.length,
-      lastExecution: this.iterationResults.length > 0 ? this.iterationResults[this.iterationResults.length - 1].timestamp : null
+      lastExecution: this.iterationResults.length > 0 ? this.iterationResults[this.iterationResults.length - 1].timestamp : null,
+      queuedWorkflows: 0, // Add missing property
+      agentStatus: agentStatusMap,
+      lastActivity: new Date().toISOString(),
+      uptime: Date.now() - this.startTime
     }
   }
 

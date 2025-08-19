@@ -290,7 +290,9 @@ export class AgentManager {
         Array.from(this.agents.entries()).map(([id, agent]) => [id, agent.status])
       ),
       lastActivity: new Date().toISOString(),
-      uptime: Date.now() - this.startTime
+      uptime: Date.now() - this.startTime,
+      registeredAgents: totalAgents,
+      totalIterations: 0 // This would come from PipelineOrchestrator
     }
   }
 

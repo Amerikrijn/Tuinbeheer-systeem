@@ -22,7 +22,9 @@
   "author": "AI Testing Team",
   "license": "MIT",
   "dependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
   },
   "devDependencies": {
     "@types/node": "^20.19.11",

@@ -80,7 +80,7 @@ export class WorkflowEngine {
       execution.status = 'failed'
       execution.endTime = new Date().toISOString()
       execution.duration = new Date(execution.endTime).getTime() - new Date(execution.startTime).getTime()
-      execution.results.summary = `Workflow failed: ${error.message}`
+      execution.results.summary = `Workflow failed: ${error instanceof Error ? error.message : String(error)}`
       execution.results.overallStatus = 'failure'
     } finally {
       // Remove from active executions
@@ -119,15 +119,25 @@ export class WorkflowEngine {
         
       } catch (error) {
         executionStep.status = 'failed'
-        executionStep.error = error.message
         executionStep.endTime = new Date().toISOString()
+        executionStep.duration = new Date(executionStep.endTime).getTime() - new Date(executionStep.startTime).getTime()
+        executionStep.error = error instanceof Error ? error.message : String(error)
         
-        // Handle retry policy
-        if (executionStep.retries < step.retryPolicy.maxRetries) {
-          await this.retryStep(executionStep, step, execution)
-        } else {
-          throw new Error(`Step ${step.name} failed after ${step.retryPolicy.maxRetries} retries: ${error.message}`)
+        // Handle retries
+        if (step.retryPolicy && executionStep.retries < step.retryPolicy.maxRetries) {
+          executionStep.retries++
+          executionStep.status = 'pending'
+          executionStep.startTime = ''
+          executionStep.endTime = ''
+          executionStep.duration = 0
+          executionStep.error = undefined
+          
+          // Wait before retry
+          await this.delay(step.retryPolicy.initialDelay * Math.pow(step.retryPolicy.backoffMultiplier, executionStep.retries - 1))
+          continue
         }
+        
+        throw new Error(`Step ${step.name} failed after ${step.retryPolicy.maxRetries} retries: ${error instanceof Error ? error.message : String(error)}`)
       }
     }
   }
@@ -314,10 +324,13 @@ export class WorkflowEngine {
           testCoverage = Math.max(testCoverage, step.output.testCoverage)
         }
         
-        // Extract risk level
-        if (step.output.riskLevel) {
-          const riskOrder = { low: 1, medium: 2, high: 3, critical: 4 }
-          if (riskOrder[step.output.riskLevel] > riskOrder[riskLevel]) {
+        // Update overall risk level
+        if (step.output && step.output.riskLevel) {
+          const riskOrder: Record<string, number> = { low: 1, medium: 2, high: 3, critical: 4 }
+          const currentRisk = riskOrder[riskLevel] || 0
+          const stepRisk = riskOrder[step.output.riskLevel] || 0
+          
+          if (stepRisk > currentRisk) {
             riskLevel = step.output.riskLevel
           }
         }
@@ -502,5 +515,12 @@ export class WorkflowEngine {
 
     // TODO: Load workflow config and execute
     console.log(`Processing queued workflow: ${nextRequest.workflowId}`)
+  }
+
+  /**
+   * Delay for a given number of milliseconds
+   */
+  private async delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
   }
 }
