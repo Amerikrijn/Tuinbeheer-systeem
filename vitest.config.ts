@@ -33,5 +33,13 @@ export default defineConfig({
   },
   esbuild: {
     target: 'node18'
+  },
+  // Fix ES Module issues
+  optimizeDeps: {
+    include: ['vitest']
+  },
+  // Ensure proper module resolution
+  build: {
+    target: 'node18'
   }
 });

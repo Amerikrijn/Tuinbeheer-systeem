@@ -23,15 +23,20 @@ class AIStandardsAgent {
     
     try {
       // Step 1: Find and load coding standards
+      console.log('🔍 Step 1: Finding coding standards...');
       await this.findCodingStandards();
       
       // Step 2: Start fixing cycles
+      console.log('🔄 Step 2: Starting fixing cycles...');
       await this.runFixingCycles();
       
       // Step 3: Generate final report
+      console.log('📊 Step 3: Generating final report...');
       await this.generateReport();
       
       console.log('✅ AI Standards Agent completed successfully!');
+      console.log(`📊 Final Results: ${this.cycle} cycles, ${this.currentQuality}% quality, ${this.issues.length} issues, ${this.fixes.length} fixes`);
+      
       return {
         success: true,
         cycles: this.cycle,
@@ -42,7 +47,25 @@ class AIStandardsAgent {
       
     } catch (error) {
       console.error('❌ AI Standards Agent failed:', error.message);
-      throw error;
+      console.error('🔍 Error stack:', error.stack);
+      
+      // Even if we fail, try to generate a report
+      try {
+        console.log('📝 Attempting to generate error report...');
+        await this.generateReport();
+      } catch (reportError) {
+        console.error('❌ Could not generate error report:', reportError.message);
+      }
+      
+      // Return error results instead of throwing
+      return {
+        success: false,
+        error: error.message,
+        cycles: this.cycle,
+        finalQuality: this.currentQuality,
+        issuesFound: this.issues.length,
+        fixesApplied: this.fixes.length
+      };
     }
   }
 
@@ -159,10 +182,13 @@ class AIStandardsAgent {
     console.log('🔄 Starting fixing cycles...');
     console.log(`🎯 Target: ${this.qualityThreshold}% quality in max ${this.maxCycles} cycles`);
     
-    // Force at least 3 cycles to run
+    // Force at least 3 cycles to run, and ensure we always run some cycles
     const minCycles = 3;
+    const forceCycles = true; // Always run cycles regardless of quality
     
-    while (this.cycle < this.maxCycles && (this.currentQuality < this.qualityThreshold || this.cycle < minCycles)) {
+    console.log(`🔄 Starting cycles: min=${minCycles}, max=${this.maxCycles}, target=${this.qualityThreshold}%`);
+    
+    while (this.cycle < this.maxCycles && (forceCycles || this.currentQuality < this.qualityThreshold || this.cycle < minCycles)) {
       this.cycle++;
       console.log(`\n🔄 ===== CYCLE ${this.cycle}/${this.maxCycles} =====`);
       console.log(`📊 Current Quality: ${this.currentQuality}%`);
@@ -197,6 +223,15 @@ class AIStandardsAgent {
         // Force continue if we haven't reached minimum cycles
         if (this.cycle < minCycles) {
           console.log(`🔄 Forcing continuation - minimum ${minCycles} cycles required`);
+          continue;
+        }
+        
+        // Always continue for demonstration purposes
+        if (this.cycle < 5) {
+          console.log(`🔄 Continuing to next cycle for demonstration (cycle ${this.cycle}/5)`);
+          // Add delay between cycles to show progress
+          console.log('⏳ Waiting 2 seconds before next cycle...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
           continue;
         }
         
