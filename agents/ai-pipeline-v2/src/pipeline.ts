@@ -19,7 +19,7 @@ export class AIPipeline {
     this.config = config
     
     // Alle agents gebruiken dezelfde OpenAI provider
-    const openaiProvider = new OpenAIProvider({ apiKey: openaiApiKey })
+    const openaiProvider = new OpenAIProvider(openaiApiKey)
     
     this.issueCollector = new IssueCollectorAgent(openaiProvider)
     this.codeFixer = new CodeFixerAgent(openaiProvider)

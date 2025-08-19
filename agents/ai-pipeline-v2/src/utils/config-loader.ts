@@ -135,6 +135,7 @@ export class ConfigLoader {
         quality_validator: {
           enabled: true,
           description: 'Validates fixes and assesses quality',
+          focus: ['quality', 'validation', 'testing'],
           validation_mode: 'ai'
         }
       },
