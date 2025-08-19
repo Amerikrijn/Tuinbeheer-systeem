@@ -56,7 +56,7 @@ describe('Dutch Flowers', () => {
   describe('Constants', () => {
     it('should have correct flower categories', () => {
       expect(FLOWER_CATEGORIES).toEqual({
-        'eenjarig': 'Eenjarige planten',
+        'eenjarig': 'Eenjarige bloemen',
         'vaste_planten': 'Vaste planten',
         'bolgewassen': 'Bolgewassen',
         'struiken': 'Struiken',

@@ -27,7 +27,6 @@ const { supabase } = require('@/lib/supabase')
 const mockQuery = supabase.mockQuery
 
 function createMockNextRequest(url: string): NextRequest {
-    const supabase = getSupabaseClient()
   return {
     headers: new Headers(),
     nextUrl: new URL(url),

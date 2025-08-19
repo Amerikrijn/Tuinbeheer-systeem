@@ -1,5 +1,5 @@
 import { DatabaseService } from '@/lib/services/database.service'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import * as database from '@/lib/database'
 
 // Mock dependencies
