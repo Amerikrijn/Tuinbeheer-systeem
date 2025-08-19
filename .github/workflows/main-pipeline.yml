@@ -398,7 +398,7 @@ jobs:
             echo "✅ Complete banking standards test suite completed"
           fi
           
-          # Collect test results summary
+          # Always create test results summary, regardless of test failures
           echo "📊 Collecting test results summary..."
           
           # Create test results summary with real data
@@ -445,8 +445,12 @@ jobs:
           
           echo "📁 Test results summary created"
           
+          # Always upload test results, even if tests failed
+          echo "📤 Uploading test results as artifacts..."
+          
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
+        if: always()  # Always upload, even if tests failed
         with:
           name: conventional-test-results
           path: test-results/
@@ -584,6 +588,7 @@ jobs:
           
       - name: Upload AI Results
         uses: actions/upload-artifact@v4
+        if: always()  # Always upload, even if AI agent fails
         with:
           name: ai-standards-results
           path: agents/ai-standards-agent/ai-standards-results/
