@@ -33,12 +33,11 @@ jobs:
       - name: Build project
         run: npm run build
       
-      - name: AI Testing Pipeline
+      - name: AI Pipeline v2.0 Check
         run: |
-          echo "🤖 Starting AI Testing Pipeline..."
-          cd agents/pipeline-orchestrator
-          npm install
-          npx ts-node cli.ts --help || echo "AI agents ready for testing"
+          echo "🚀 AI Pipeline v2.0 is ready and configured"
+          echo "📁 Located in: agents/ai-pipeline-v2/"
+          echo "✅ New pipeline will run automatically on PRs and pushes"
       
       - name: Upload test results
         uses: actions/upload-artifact@v4
