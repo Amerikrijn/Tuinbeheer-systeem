@@ -63,7 +63,7 @@ jobs:
           # Check if OpenAI API key is available
           if [ -z "$OPENAI_API_KEY" ]; then
             echo "❌ OPENAI_API_KEY not found, falling back to CI mode"
-            npm start -- run --target ../../app --iterations 1 --quality 80 --ci-mode --output ./ai-pipeline-results || {
+            npm start run --target ../../app --iterations 1 --quality 80 --ci-mode --output ./ai-pipeline-results || {
               echo "❌ Pipeline failed, creating fallback results..."
               mkdir -p ./ai-pipeline-results
               echo '{"success": true, "finalQualityScore": 85, "iterations": 1, "mode": "ci-fallback"}' > ./ai-pipeline-results/pipeline-results.json
@@ -71,7 +71,7 @@ jobs:
             }
           else
             echo "✅ OpenAI API key found, running in AI mode"
-            npm start -- run --target ../../app --iterations 3 --quality 85 --output ./ai-pipeline-results || {
+            npm start run --target ../../app --iterations 3 --quality 85 --output ./ai-pipeline-results || {
               echo "❌ AI Pipeline failed, creating fallback results..."
               mkdir -p ./ai-pipeline-results
               echo '{"success": false, "finalQualityScore": 0, "iterations": 0, "mode": "ai-failed", "error": "AI pipeline execution failed"}' > ./ai-pipeline-results/pipeline-results.json
