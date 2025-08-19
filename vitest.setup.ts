@@ -91,6 +91,9 @@ vi.mock('lucide-react', () => ({
   Home: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'home-icon' }, children: '🏠' })),
   AlertTriangle: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'alert-triangle-icon' }, children: '⚠️' })),
   Menu: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'menu-icon' }, children: '☰' })),
+  // Add remaining missing icons
+  Settings: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'settings-icon' }, children: '⚙️' })),
+  MapPin: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'map-pin-icon' }, children: '📍' })),
   // Add more icons as needed
 }));
 
@@ -122,6 +125,61 @@ vi.mock('@/services/logbook-service', () => ({
       success: true,
     }),
   },
+}));
+
+// Mock auth context
+vi.mock('@/hooks/use-supabase-auth', () => ({
+  useAuth: vi.fn(() => ({
+    user: { id: 'test-user-id', email: 'test@example.com' },
+    signIn: vi.fn(),
+    signUp: vi.fn(),
+    signOut: vi.fn(),
+    loading: false,
+    refreshUser: vi.fn(),
+    forceRefreshUser: vi.fn(),
+  })),
+  SupabaseAuthProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+// Mock health API
+vi.mock('@/app/api/health/route', () => ({
+  GET: vi.fn(() => Promise.resolve({
+    status: 200,
+    json: () => Promise.resolve({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      uptime: 12345,
+      environment: 'test',
+      checks: {
+        database: 'healthy',
+        auth: 'healthy',
+        environment: 'healthy'
+      },
+      responseTime: 10
+    })
+  })),
+  POST: vi.fn(() => Promise.resolve({
+    status: 200,
+    json: () => Promise.resolve({
+      status: 'healthy',
+      method: 'POST',
+      timestamp: new Date().toISOString()
+    })
+  }))
+}));
+
+// Mock plant photo gallery component
+vi.mock('@/components/plant-photo-gallery', () => ({
+  default: vi.fn(() => ({
+    type: 'div',
+    props: { 'data-testid': 'plant-photo-gallery' },
+    children: 'Plant Photo Gallery Mock'
+  })),
+  PlantPhotoGallery: vi.fn(() => ({
+    type: 'div',
+    props: { 'data-testid': 'plant-photo-gallery' },
+    children: 'Plant Photo Gallery Mock'
+  }))
 }));
 
 // Mock Supabase
