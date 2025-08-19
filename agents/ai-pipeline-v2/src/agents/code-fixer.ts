@@ -124,22 +124,11 @@ export class CodeFixerAgent {
         case 'security':
         case 'quality':
           if (issue.message.includes('console.log')) {
-            // Extract just the console.log statement
-            console.log(`🔍 Debug: issue.code = "${issue.code}"`)
-            const consoleLogMatch = issue.code.match(/console\.log\([^)]*\)/)
-            console.log(`🔍 Debug: consoleLogMatch =`, consoleLogMatch)
-            if (consoleLogMatch) {
-              before = consoleLogMatch[0]
-              after = '// ' + consoleLogMatch[0] + ' // Removed for security'
-              description = 'Removed console.log for security'
-            } else {
-              // Fallback: use the whole line
-              before = issue.code
-              after = '// ' + issue.code + ' // Removed for security'
-              description = 'Removed console.log for security (fallback)'
-            }
-            console.log(`🔍 Debug: Final before = "${before}"`)
-            console.log(`🔍 Debug: Final after = "${after}"`)
+            // Simple fix: comment out the console.log
+            before = 'console.log'
+            after = '// console.log'
+            description = 'Commented out console.log for security'
+            console.log(`🔧 Demo fix: before="${before}", after="${after}"`)
           } else if (issue.message.includes('TODO')) {
             before = issue.code
             after = issue.code.replace('TODO:', '// TODO:')
@@ -237,12 +226,12 @@ export class CodeFixerAgent {
               // Apply fix
         const targetLine = lines[fix.line - 1]
         if (targetLine) {
-          console.log(`🔍 Debug: Line ${fix.line}: "${targetLine}"`)
-          console.log(`🔍 Debug: Before: "${fix.before}"`)
-          console.log(`🔍 Debug: After: "${fix.after}"`)
-          
-          const newLine = targetLine.replace(fix.before, fix.after)
-          console.log(`🔍 Debug: New line: "${newLine}"`)
+          // Simple string replacement
+          let newLine = targetLine
+          if (targetLine.includes(fix.before)) {
+            newLine = targetLine.replace(fix.before, fix.after)
+            console.log(`🔧 Replacing "${fix.before}" with "${fix.after}"`)
+          }
           
           lines[fix.line - 1] = newLine
           
