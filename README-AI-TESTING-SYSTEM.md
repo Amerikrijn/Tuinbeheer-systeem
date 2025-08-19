@@ -1,4 +1,5 @@
-# 🤖 AI-Powered Testing & Quality Analysis System
+<!-- 🧪 TEST COMMENT: Testing new AI Pipeline v2.0 - This comment was added to trigger the new pipeline -->
+# 🚀 AI Testing System - Complete Guide
 
 Een revolutionair systeem dat AI-agents gebruikt om automatisch tests te genereren, kwaliteit te analyseren en verbeteringen voor te stellen.
 
