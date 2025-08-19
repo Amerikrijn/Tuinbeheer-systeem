@@ -628,12 +628,12 @@ jobs:
             echo "- **Results**: AI analysis completed (check logs for details)" >> $GITHUB_STEP_SUMMARY
           fi
 
-  # Job 4: Unified Summary (Final Job)
+  # Job 4: Unified Summary (Final Job) - Always runs regardless of other job failures
   unified-summary:
     runs-on: ubuntu-latest
     name: 📋 Unified Summary
     needs: [foundation-build, preview-build, docker-build, conventional-tests, ai-code-check]
-    if: github.event_name == 'pull_request'
+    if: always() && github.event_name == 'pull_request'
     timeout-minutes: 5
     permissions:
       contents: read
@@ -665,9 +665,10 @@ jobs:
               console.log('📋 Creating unified summary...');
               
               // Get PR details
-              const { data: pr } = await github.repos.get({
+              const { data: pr } = await github.rest.pulls.get({
                 owner: context.repo.owner,
-                repo: context.repo.repo
+                repo: context.repo.repo,
+                pull_number: context.issue.number
               });
               
               // Get workflow run details for test results
@@ -684,9 +685,12 @@ jobs:
                 run_id: context.runId
               });
               
-              // Find test job results
+              // Find test job results and determine their status
               const testJob = jobs.jobs.find(job => job.name === '🏦 Conventional Tests (Banking Standards)');
               const aiJob = jobs.jobs.find(job => job.name === '🤖 AI Code Check');
+              const foundationJob = jobs.jobs.find(job => job.name === '🔨 Foundation Build');
+              const previewJob = jobs.jobs.find(job => job.name === '🌐 Preview Build (Vercel)');
+              const dockerJob = jobs.jobs.find(job => job.name === '🐳 Docker Build');
               
               // Read test results from artifacts
               let testResultsSummary = 'No detailed test results available';
@@ -714,58 +718,82 @@ jobs:
                 console.log('⚠️ Could not read artifact results:', error.message);
               }
               
-              // Create comprehensive summary with test results
+              // Determine job statuses
+              const getJobStatus = (job) => {
+                if (!job) return '❓ UNKNOWN';
+                if (job.conclusion === 'success') return '✅ SUCCESS';
+                if (job.conclusion === 'failure') return '❌ FAILED';
+                if (job.conclusion === 'cancelled') return '🚫 CANCELLED';
+                if (job.conclusion === 'skipped') return '⏭️ SKIPPED';
+                return '🔄 RUNNING';
+              };
+              
+              const getJobDuration = (job) => {
+                if (!job || !job.completed_at || !job.started_at) return 'N/A';
+                return `${Math.round((new Date(job.completed_at) - new Date(job.started_at)) / 1000)}s`;
+              };
+              
+              // Create comprehensive summary with real job statuses
               const summary = `## 🚀 Main Pipeline - Complete Status Report
               
               ### 🔨 Foundation Build
-              - **Status**: ✅ SUCCESS
+              - **Status**: ${getJobStatus(foundationJob)}
               - **Purpose**: Core build verification
-              - **Result**: Project compiled successfully
+              - **Duration**: ${getJobDuration(foundationJob)}
+              - **Result**: ${foundationJob?.conclusion === 'success' ? 'Project compiled successfully' : 'Build verification failed'}
               
               ### 🌐 Preview Build (Vercel)
-              - **Status**: ✅ READY
+              - **Status**: ${getJobStatus(previewJob)}
               - **Purpose**: Preview deployment preparation
-              - **Result**: Ready for Vercel deployment
+              - **Duration**: ${getJobDuration(previewJob)}
+              - **Result**: ${previewJob?.conclusion === 'success' ? 'Ready for Vercel deployment' : 'Preview build failed'}
               
               ### 🐳 Docker Build
-              - **Status**: ✅ VERIFIED
+              - **Status**: ${getJobStatus(dockerJob)}
               - **Purpose**: Container verification
-              - **Result**: Docker image built successfully with production dependencies
+              - **Duration**: ${getJobDuration(dockerJob)}
+              - **Result**: ${dockerJob?.conclusion === 'success' ? 'Docker image built successfully' : 'Docker build failed'}
               
               ### 🏦 Conventional Tests (Banking Standards)
-              - **Status**: ✅ COMPLETED
+              - **Status**: ${getJobStatus(testJob)}
               - **Purpose**: Complete banking compliance verification
-              - **Result**: 18+ test suites executed including CI suites, security, and dead code analysis
+              - **Duration**: ${getJobDuration(testJob)}
+              - **Result**: ${testJob?.conclusion === 'success' ? '18+ test suites executed successfully' : 'Some tests failed'}
               ${testJob ? `
-              - **Duration**: ${Math.round((new Date(testJob.completed_at) - new Date(testJob.started_at)) / 1000)}s
-              - **Test Results**: [View Detailed Results](${testJob.html_url})
-              - **Test Logs**: [Download Test Logs](${testJob.html_url}/logs)` : ''}
+              - **Job Details**: [View Job Results](${testJob.html_url})
+              - **Job Logs**: [Download Job Logs](${testJob.html_url}/logs)` : ''}
               
               ### 🤖 AI Code Check
-              - **Status**: ✅ COMPLETED
+              - **Status**: ${getJobStatus(aiJob)}
               - **Purpose**: Banking standards discovery, code analysis & auto-fixing
-              - **Result**: AI-powered quality improvement with 80%+ target
+              - **Duration**: ${getJobDuration(aiJob)}
+              - **Result**: ${aiJob?.conclusion === 'success' ? 'AI-powered quality improvement completed' : 'AI analysis failed'}
               ${aiJob ? `
-              - **Duration**: ${Math.round((new Date(aiJob.completed_at) - new Date(aiJob.started_at)) / 1000)}s
-              - **AI Results**: [View AI Analysis](${aiJob.html_url})
-              - **AI Logs**: [Download AI Logs](${aiJob.html_url}/logs)` : ''}
+              - **Job Details**: [View Job Results](${aiJob.html_url})
+              - **Job Logs**: [Download Job Logs](${aiJob.html_url}/logs)` : ''}
               
               ### 📊 Overall Pipeline Status
-              - **Foundation**: ✅ SUCCESS (Required)
-              - **Preview Build**: ✅ READY
-              - **Docker**: ✅ VERIFIED (image built successfully)
-              - **Tests**: ✅ COMPLETED
-              - **AI Check**: ✅ COMPLETED
+              - **Foundation**: ${getJobStatus(foundationJob)}
+              - **Preview Build**: ${getJobStatus(previewJob)}
+              - **Docker**: ${getJobStatus(dockerJob)}
+              - **Tests**: ${getJobStatus(testJob)}
+              - **AI Check**: ${getJobStatus(aiJob)}
               
-              ### 🎯 Next Steps
-              🎉 **Foundation build successful!** Your code is ready for review and deployment.
+              ### 🎯 Pipeline Analysis
+              ${foundationJob?.conclusion === 'success' ? '🎉 **Foundation build successful!** Your code compiled successfully.' : '❌ **Foundation build failed!** This is critical and must be fixed.'}
               
-              🤖 **AI code check completed!** Your code has been automatically improved to meet banking standards with 80%+ quality!
+              ${previewJob?.conclusion === 'success' ? '🌐 **Preview build ready!** Ready for Vercel deployment.' : '⚠️ **Preview build failed!** Vercel deployment may be affected.'}
+              
+              ${dockerJob?.conclusion === 'success' ? '🐳 **Docker verified!** Container build successful.' : '⚠️ **Docker build failed!** Container verification incomplete.'}
+              
+              ${testJob?.conclusion === 'success' ? '🏦 **Tests passed!** Banking standards compliance verified.' : '⚠️ **Some tests failed!** Check test results for details.'}
+              
+              ${aiJob?.conclusion === 'success' ? '🤖 **AI analysis completed!** Code quality improvement finished.' : '⚠️ **AI analysis failed!** Manual review may be needed.'}
               
               ### 📋 PR Information
               - **Title**: ${pr.title || 'PR Title'}
-              - **Author**: @${pr.owner?.login || 'Unknown'}
-              - **Repository**: ${pr.full_name || context.repo.repo}
+              - **Author**: @${pr.user?.login || 'Unknown'}
+              - **Repository**: ${pr.base.repo.full_name || context.repo.repo}
               
               ### 🔍 Detailed Results
               - **Pipeline Run**: [View Full Pipeline](${workflowRun.html_url})
@@ -779,7 +807,7 @@ jobs:
               ${aiResultsSummary}
               
               ---
-              *Generated by Main Pipeline - Simple & Effective*`;
+              *Generated by Main Pipeline - Always Reports, Even on Failures*`;
               
               // Post unified summary comment
               await github.rest.issues.createComment({
