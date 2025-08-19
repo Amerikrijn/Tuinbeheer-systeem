@@ -167,3 +167,4 @@ npm install eslint@^8.57.1
 # 3. Verifieer
 npm run audit:security
 ```
+# 🧪 Test nieuwe AI Pipeline v2.0
