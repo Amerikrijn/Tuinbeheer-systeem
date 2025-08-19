@@ -102,32 +102,125 @@ export class WorkflowEngine {
     // Sort steps by order
     const sortedSteps = [...steps].sort((a, b) => a.order - b.order)
 
-    for (const step of sortedSteps) {
-      const executionStep = execution.steps.find(es => es.stepId === step.id)
-      if (!executionStep) continue
-
-      try {
-        // Check dependencies
-        if (!this.checkStepDependencies(execution, step)) {
-          executionStep.status = 'skipped'
-          executionStep.metadata.reason = 'Dependencies not met'
-          continue
-        }
-
-        // Execute step
-        await this.executeStep(executionStep, step, execution)
+    // Check if workflow should run in parallel
+    if (workflow.parallel) {
+      console.log('🚀 Executing workflow steps in parallel mode')
+      
+      // Group steps by dependencies for parallel execution
+      const stepGroups = this.groupStepsByDependencies(sortedSteps)
+      
+      // Execute each group in parallel
+      for (const group of stepGroups) {
+        const groupPromises = group.map(step => {
+          const executionStep = execution.steps.find(es => es.stepId === step.id)
+          if (!executionStep) return Promise.resolve()
+          
+          return this.executeStepWithDependencies(executionStep, step, execution)
+        })
         
-      } catch (error) {
-        executionStep.status = 'failed'
-        executionStep.error = error.message
-        executionStep.endTime = new Date().toISOString()
-        
-        // Handle retry policy
-        if (executionStep.retries < step.retryPolicy.maxRetries) {
-          await this.retryStep(executionStep, step, execution)
-        } else {
-          throw new Error(`Step ${step.name} failed after ${step.retryPolicy.maxRetries} retries: ${error.message}`)
+        // Wait for all steps in the current group to complete
+        await Promise.all(groupPromises)
+      }
+    } else {
+      console.log('🔄 Executing workflow steps sequentially')
+      
+      // Sequential execution (original logic)
+      for (const step of sortedSteps) {
+        const executionStep = execution.steps.find(es => es.stepId === step.id)
+        if (!executionStep) continue
+
+        try {
+          // Check dependencies
+          if (!this.checkStepDependencies(execution, step)) {
+            executionStep.status = 'skipped'
+            executionStep.metadata.reason = 'Dependencies not met'
+            continue
+          }
+
+          // Execute step
+          await this.executeStep(executionStep, step, execution)
+          
+        } catch (error) {
+          executionStep.status = 'failed'
+          executionStep.error = error.message
+          executionStep.endTime = new Date().toISOString()
+          
+          // Handle retry policy
+          if (executionStep.retries < step.retryPolicy.maxRetries) {
+            await this.retryStep(executionStep, step, execution)
+          } else {
+            throw new Error(`Step ${step.name} failed after ${step.retryPolicy.maxRetries} retries: ${error.message}`)
+          }
         }
+      }
+    }
+  }
+
+  /**
+   * Group steps by dependencies for parallel execution
+   */
+  private groupStepsByDependencies(steps: WorkflowStep[]): WorkflowStep[][] {
+    const groups: WorkflowStep[][] = []
+    const remainingSteps = new Set(steps)
+    
+    while (remainingSteps.size > 0) {
+      const currentGroup: WorkflowStep[] = []
+      
+      for (const step of remainingSteps) {
+        // Check if all dependencies are already completed
+        const dependenciesMet = step.dependencies.every(depId => 
+          !remainingSteps.has(steps.find(s => s.id === depId)!)
+        )
+        
+        if (dependenciesMet) {
+          currentGroup.push(step)
+        }
+      }
+      
+      if (currentGroup.length === 0) {
+        // If no steps can be added to current group, add remaining steps to avoid infinite loop
+        const remainingArray = Array.from(remainingSteps)
+        currentGroup.push(...remainingArray)
+      }
+      
+      groups.push(currentGroup)
+      
+      // Remove completed steps from remaining
+      currentGroup.forEach(step => remainingSteps.delete(step))
+    }
+    
+    return groups
+  }
+
+  /**
+   * Execute a step with dependency checking
+   */
+  private async executeStepWithDependencies(
+    executionStep: ExecutionStep,
+    step: WorkflowStep,
+    execution: PipelineExecution
+  ): Promise<void> {
+    try {
+      // Check dependencies
+      if (!this.checkStepDependencies(execution, step)) {
+        executionStep.status = 'skipped'
+        executionStep.metadata.reason = 'Dependencies not met'
+        return
+      }
+
+      // Execute step
+      await this.executeStep(executionStep, step, execution)
+      
+    } catch (error) {
+      executionStep.status = 'failed'
+      executionStep.error = error.message
+      executionStep.endTime = new Date().toISOString()
+      
+      // Handle retry policy
+      if (executionStep.retries < step.retryPolicy.maxRetries) {
+        await this.retryStep(executionStep, step, execution)
+      } else {
+        throw new Error(`Step ${step.name} failed after ${step.retryPolicy.maxRetries} retries: ${error.message}`)
       }
     }
   }

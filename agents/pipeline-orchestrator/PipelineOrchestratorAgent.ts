@@ -55,9 +55,19 @@ export class PipelineOrchestratorAgent {
     console.log('')
 
     try {
+      // Find workflow configuration
+      const workflow = this.config.workflows.find(w => w.id === workflowId)
+      if (!workflow) {
+        throw new Error(`Workflow not found: ${workflowId}`)
+      }
+
+      console.log(`🚀 Workflow mode: ${workflow.parallel ? 'Parallel' : 'Sequential'}`)
+      console.log(`📊 Workflow steps: ${workflow.steps.length}`)
+      console.log('')
+
       // Iteratie 1: Basis workflow uitvoering
       console.log('🔄 Iteratie 1: Basis workflow uitvoering...')
-      const iteration1Result = await this.executeWorkflowIteration(workflowId, 1, options)
+      const iteration1Result = await this.executeWorkflowIteration(workflowId, 1, options, workflow)
       this.iterationResults.push(iteration1Result)
       
       console.log(`📊 Iteratie 1 Resultaat: ${iteration1Result.status}, ${iteration1Result.stepsCompleted} stappen voltooid`)
@@ -65,7 +75,7 @@ export class PipelineOrchestratorAgent {
 
       // Iteratie 2: Verbeterde workflow uitvoering
       console.log('🔄 Iteratie 2: Verbeterde workflow uitvoering...')
-      const iteration2Result = await this.executeWorkflowIteration(workflowId, 2, options, iteration1Result)
+      const iteration2Result = await this.executeWorkflowIteration(workflowId, 2, options, workflow, iteration1Result)
       this.iterationResults.push(iteration2Result)
       
       console.log(`📊 Iteratie 2 Resultaat: ${iteration2Result.status}, ${iteration2Result.stepsCompleted} stappen voltooid`)
@@ -88,12 +98,12 @@ export class PipelineOrchestratorAgent {
   /**
    * Execute a single workflow iteration
    */
-  private async executeWorkflowIteration(workflowId: string, iterationNumber: number, options?: any, previousResult?: any): Promise<any> {
+  private async executeWorkflowIteration(workflowId: string, iterationNumber: number, options?: any, workflowConfig?: any, previousResult?: any): Promise<any> {
     const startTime = Date.now()
     
     try {
       // Find workflow
-      const workflow = this.config.workflows.find(w => w.id === workflowId)
+      const workflow = workflowConfig || this.config.workflows.find(w => w.id === workflowId)
       if (!workflow) {
         throw new Error(`Workflow not found: ${workflowId}`)
       }

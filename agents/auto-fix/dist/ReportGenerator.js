@@ -1,0 +1,184 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ReportGenerator = void 0;
+class ReportGenerator {
+    constructor() { }
+    async generateReport(analysis, fixes, iterations) {
+        const summary = this.calculateSummary(analysis, fixes);
+        const recommendations = this.generateRecommendations(analysis, fixes);
+        return {
+            summary,
+            analysis,
+            fixes,
+            results: [], // Will be populated by the agent
+            recommendations,
+            timestamp: new Date()
+        };
+    }
+    generateMarkdownReport(report) {
+        let markdown = '# 🔧 Auto-Fix Report\n\n';
+        markdown += `**Generated:** ${report.timestamp.toISOString()}\n\n`;
+        // Summary
+        markdown += '## 📊 Summary\n\n';
+        markdown += `- **Total Issues:** ${report.summary.totalIssues}\n`;
+        markdown += `- **Total Fixes:** ${report.summary.totalFixes}\n`;
+        markdown += `- **Applied Fixes:** ${report.summary.appliedFixes}\n`;
+        markdown += `- **Failed Fixes:** ${report.summary.failedFixes}\n`;
+        markdown += `- **Quality Score:** ${report.summary.qualityScore.toFixed(1)}%\n`;
+        markdown += `- **Risk Level:** ${report.summary.riskLevel}\n\n`;
+        // Analysis Details
+        markdown += '## 🔍 Analysis Details\n\n';
+        markdown += `**File:** ${report.analysis.filePath}\n`;
+        markdown += `**Total Lines:** ${report.analysis.metrics.totalLines}\n`;
+        markdown += `**Security Issues:** ${report.analysis.metrics.securityIssues}\n`;
+        markdown += `**Performance Issues:** ${report.analysis.metrics.performanceIssues}\n`;
+        markdown += `**Quality Issues:** ${report.analysis.metrics.qualityIssues}\n\n`;
+        // Issues by Category
+        markdown += '## 🚨 Issues by Category\n\n';
+        const issuesByCategory = this.groupIssuesByCategory(report.analysis.issues);
+        for (const [category, issues] of Object.entries(issuesByCategory)) {
+            markdown += `### ${category.charAt(0).toUpperCase() + category.slice(1)} (${issues.length})\n\n`;
+            for (const issue of issues.slice(0, 5)) { // Show first 5 issues per category
+                markdown += `- **Line ${issue.line}:** ${issue.message}\n`;
+                markdown += `  - Severity: ${issue.severity}\n`;
+                markdown += `  - Fixable: ${issue.fixable ? 'Yes' : 'No'}\n`;
+                markdown += `  - Confidence: ${issue.confidence}%\n\n`;
+            }
+            if (issues.length > 5) {
+                markdown += `*... and ${issues.length - 5} more issues*\n\n`;
+            }
+        }
+        // Fixes
+        if (report.fixes.length > 0) {
+            markdown += '## 🔧 Generated Fixes\n\n';
+            const fixesByCategory = this.groupFixesByCategory(report.fixes);
+            for (const [category, fixes] of Object.entries(fixesByCategory)) {
+                markdown += `### ${category.charAt(0).toUpperCase() + category.slice(1)} Fixes (${fixes.length})\n\n`;
+                for (const fix of fixes.slice(0, 3)) { // Show first 3 fixes per category
+                    markdown += `- **Line ${fix.line}:** ${fix.description}\n`;
+                    markdown += `  - Risk: ${fix.risk}\n`;
+                    markdown += `  - Confidence: ${fix.confidence}%\n`;
+                    markdown += `  - Auto-apply: ${fix.autoApply ? 'Yes' : 'No'}\n`;
+                    markdown += `  - Before: \`${fix.before}\`\n`;
+                    markdown += `  - After: \`${fix.after}\`\n\n`;
+                }
+                if (fixes.length > 3) {
+                    markdown += `*... and ${fixes.length - 3} more fixes*\n\n`;
+                }
+            }
+        }
+        // Recommendations
+        if (report.recommendations.length > 0) {
+            markdown += '## 💡 Recommendations\n\n';
+            for (const recommendation of report.recommendations) {
+                markdown += `- ${recommendation}\n`;
+            }
+            markdown += '\n';
+        }
+        // Risk Assessment
+        markdown += '## ⚠️ Risk Assessment\n\n';
+        const riskLevel = report.summary.riskLevel;
+        if (riskLevel === 'high') {
+            markdown += '**⚠️ HIGH RISK** - Manual review required before applying fixes.\n\n';
+        }
+        else if (riskLevel === 'medium') {
+            markdown += '**⚠️ MEDIUM RISK** - Review fixes before applying to production.\n\n';
+        }
+        else {
+            markdown += '**✅ LOW RISK** - Fixes can be applied automatically.\n\n';
+        }
+        // Next Steps
+        markdown += '## 🚀 Next Steps\n\n';
+        if (report.summary.failedFixes > 0) {
+            markdown += '1. **Review failed fixes** and address any validation issues\n';
+        }
+        if (report.summary.riskLevel === 'high') {
+            markdown += '2. **Manual review** of high-risk fixes required\n';
+        }
+        markdown += '3. **Test fixes** in a development environment\n';
+        markdown += '4. **Apply fixes** to production after validation\n';
+        markdown += '5. **Monitor** for any issues after deployment\n\n';
+        markdown += '---\n';
+        markdown += '*Report generated by AI Auto-Fix Agent v2.0*';
+        return markdown;
+    }
+    calculateSummary(analysis, fixes) {
+        const totalIssues = analysis.issues.length;
+        const totalFixes = fixes.length;
+        const appliedFixes = fixes.filter(f => f.autoApply && f.risk === 'low').length;
+        const failedFixes = totalFixes - appliedFixes;
+        // Calculate quality score based on issues resolved
+        const qualityScore = totalIssues > 0 ? Math.min(100, (appliedFixes / totalIssues) * 100) : 100;
+        // Determine risk level
+        let riskLevel = 'low';
+        if (fixes.some(f => f.risk === 'high')) {
+            riskLevel = 'high';
+        }
+        else if (fixes.some(f => f.risk === 'medium')) {
+            riskLevel = 'medium';
+        }
+        return {
+            totalIssues,
+            totalFixes,
+            appliedFixes,
+            failedFixes,
+            qualityScore,
+            riskLevel
+        };
+    }
+    generateRecommendations(analysis, fixes) {
+        const recommendations = [];
+        // Security recommendations
+        if (analysis.metrics.securityIssues > 0) {
+            recommendations.push('Address security issues immediately to prevent vulnerabilities');
+            recommendations.push('Review all security-related fixes before applying');
+        }
+        // Performance recommendations
+        if (analysis.metrics.performanceIssues > 0) {
+            recommendations.push('Apply performance improvements to enhance user experience');
+            recommendations.push('Monitor performance metrics after applying fixes');
+        }
+        // Quality recommendations
+        if (analysis.metrics.qualityIssues > 0) {
+            recommendations.push('Address code quality issues to improve maintainability');
+            recommendations.push('Consider implementing automated quality checks');
+        }
+        // General recommendations
+        if (fixes.length > 0) {
+            recommendations.push('Test all fixes in a development environment first');
+            recommendations.push('Review high-risk fixes manually before applying');
+        }
+        if (analysis.metrics.totalLines > 1000) {
+            recommendations.push('Consider splitting large files into smaller, focused modules');
+        }
+        if (analysis.metrics.totalIssues > 50) {
+            recommendations.push('Implement regular code reviews to catch issues early');
+            recommendations.push('Consider using automated linting tools in your CI/CD pipeline');
+        }
+        return recommendations;
+    }
+    groupIssuesByCategory(issues) {
+        const grouped = {};
+        for (const issue of issues) {
+            const category = issue.category;
+            if (!grouped[category]) {
+                grouped[category] = [];
+            }
+            grouped[category].push(issue);
+        }
+        return grouped;
+    }
+    groupFixesByCategory(fixes) {
+        const grouped = {};
+        for (const fix of fixes) {
+            const category = fix.category;
+            if (!grouped[category]) {
+                grouped[category] = [];
+            }
+            grouped[category].push(fix);
+        }
+        return grouped;
+    }
+}
+exports.ReportGenerator = ReportGenerator;
+//# sourceMappingURL=ReportGenerator.js.map
