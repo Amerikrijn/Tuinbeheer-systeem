@@ -289,15 +289,21 @@ jobs:
           echo "- **Coverage**: All quality checks executed" >> $GITHUB_STEP_SUMMARY
           echo "- **Standards**: Banking & quality compliance verified" >> $GITHUB_STEP_SUMMARY
 
-  # Job 5: AI Agents v2 (Complex Fixing Loop)
+  # Job 5: AI Agents v2 (Complex Fixing Loop) - REAL AI FUNCTIONALITY
   ai-agents-v2:
     runs-on: ubuntu-latest
-    name: 🤖 AI Agents v2 (Complex Fixing Loop)
+    name: 🤖 AI Agents v2 (Real AI Analysis)
     needs: [foundation-build]
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -331,27 +337,102 @@ jobs:
           npm run build
           echo "✅ AI Pipeline built successfully"
       
-      - name: Run AI Pipeline (CI Mode)
+      - name: Run AI Pipeline with Real AI Analysis
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           cd agents/ai-pipeline-v2
-          echo "🚀 Running AI Pipeline in CI mode..."
+          echo "🚀 Starting REAL AI Pipeline with OpenAI GPT-4..."
+          echo "🤖 This will perform actual AI analysis, test generation, and code fixing"
           
-          # Test CLI functionality
-          node dist/cli.js --help || {
-            echo "❌ CLI test failed, creating fallback results"
+          # Check if OpenAI API key is available
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "❌ OPENAI_API_KEY not found - cannot run AI analysis"
+            echo "📝 Creating fallback results for CI mode"
             mkdir -p ai-pipeline-results
-            echo '{"success": false, "error": "CLI test failed", "mode": "ci-fallback"}' > ai-pipeline-results/pipeline-results.json
-            exit 0
+            echo '{"success": false, "error": "No OpenAI API key available", "mode": "ci-fallback", "finalQualityScore": 0, "iterations": 0, "issuesFound": 0, "issuesFixed": 0, "testsGenerated": 0}' > ai-pipeline-results/pipeline-results.json
+            exit 1
+          fi
+          
+          echo "✅ OpenAI API key found - running REAL AI analysis"
+          
+          # Run the AI pipeline with real AI functionality (no ci-mode flag)
+          node dist/cli.js run --target ../../app --iterations 3 --quality 85 --output ./ai-pipeline-results || {
+            echo "❌ AI Pipeline execution failed"
+            echo "📝 Creating error results"
+            mkdir -p ai-pipeline-results
+            echo '{"success": false, "error": "AI pipeline execution failed", "mode": "ai-failed", "finalQualityScore": 0, "iterations": 0, "issuesFound": 0, "issuesFixed": 0, "testsGenerated": 0}' > ai-pipeline-results/pipeline-results.json
+            exit 1
           }
           
-          # Run in CI mode
-          node dist/cli.js run --target ../../app --iterations 1 --quality 80 --ci-mode --output ./ai-pipeline-results || {
-            echo "⚠️ AI Pipeline execution failed, creating fallback results"
-            mkdir -p ai-pipeline-results
-            echo '{"success": true, "finalQualityScore": 85, "iterations": 1, "mode": "ci-fallback"}' > ai-pipeline-results/pipeline-results.json
-          }
+          echo "✅ AI Pipeline execution completed successfully"
+      
+      - name: Generate AI Analysis Report
+        if: success()
+        run: |
+          cd agents/ai-pipeline-v2
+          echo "📊 Generating comprehensive AI analysis report..."
           
-          echo "✅ AI Pipeline execution completed"
+          # Read the pipeline results
+          if [ -f "ai-pipeline-results/pipeline-results.json" ]; then
+            echo "✅ Pipeline results found, generating report..."
+            
+            # Create a comprehensive report
+            cat > ai-pipeline-results/ai-analysis-report.md << 'EOF'
+            # 🤖 AI Pipeline v2.0 - Comprehensive Analysis Report
+            
+            ## 📊 Executive Summary
+            
+            This report contains the results of AI-powered code analysis, test generation, and code fixing performed by OpenAI GPT-4.
+            
+            ## 🔍 Analysis Details
+            
+            The AI pipeline analyzed the codebase using multiple specialized agents:
+            
+            ### 1. Issue Collector Agent
+            - **Purpose**: Identifies code quality issues, bugs, and potential improvements
+            - **Technology**: OpenAI GPT-4 with code analysis capabilities
+            - **Output**: Detailed list of code issues with severity and location
+            
+            ### 2. Test Generator Agent
+            - **Purpose**: Generates comprehensive test suites for identified issues
+            - **Technology**: AI-powered test generation with best practices
+            - **Output**: Test files with high coverage and edge case handling
+            
+            ### 3. Code Fixer Agent
+            - **Purpose**: Automatically fixes identified code issues
+            - **Technology**: AI-powered code refactoring and bug fixing
+            - **Output**: Improved code with fixes applied
+            
+            ### 4. Quality Validator Agent
+            - **Purpose**: Validates fixes and measures quality improvements
+            - **Technology**: AI-powered code quality assessment
+            - **Output**: Quality scores and validation results
+            
+            ## 🚀 Complex Fixing Loop
+            
+            The pipeline implements an iterative improvement process:
+            
+            1. **Issue Detection** → 2. **Test Generation** → 3. **Code Fixing** → 4. **Quality Validation**
+            5. **Repeat** until quality threshold is met or max iterations reached
+            
+            ## 📈 Results Summary
+            
+            Check the pipeline-results.json file for detailed metrics including:
+            - Quality scores before and after
+            - Number of issues found and fixed
+            - Tests generated
+            - Iterations performed
+            - Execution time
+            
+            ---
+            *Generated by AI Pipeline v2.0 with OpenAI GPT-4*
+            EOF
+            
+            echo "✅ AI analysis report generated"
+          else
+            echo "❌ No pipeline results found"
+          fi
       
       - name: Upload AI Pipeline Results
         uses: actions/upload-artifact@v4
@@ -363,9 +444,11 @@ jobs:
       - name: AI Pipeline Summary
         run: |
           echo "## 🤖 AI Pipeline v2.0 Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ✅ EXECUTED" >> $GITHUB_STEP_SUMMARY
-          echo "- **Mode**: CI Mode (Complex Fixing Loop)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Results**: Generated and uploaded" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ REAL AI ANALYSIS COMPLETED" >> $GITHUB_STEP_SUMMARY
+          echo "- **Mode**: AI Mode with OpenAI GPT-4" >> $GITHUB_STEP_SUMMARY
+          echo "- **Functionality**: Issue detection, test generation, code fixing" >> $GITHUB_STEP_SUMMARY
+          echo "- **Complex Loop**: Iterative improvement until quality threshold" >> $GITHUB_STEP_SUMMARY
+          echo "- **Results**: Generated and uploaded with comprehensive report" >> $GITHUB_STEP_SUMMARY
 
   # Job 6: Unified PR Summary (Final Job)
   unified-pr-summary:
@@ -438,10 +521,10 @@ jobs:
               - **Purpose**: Complete quality verification
               - **Result**: All quality gates checked
               
-              ### 🤖 AI Agents v2 (Complex Fixing Loop)
+              ### 🤖 AI Agents v2 (Real AI Analysis)
               - **Status**: ${jobStatuses['ai-agents-v2']}
-              - **Purpose**: AI-powered code analysis
-              - **Result**: AI analysis completed
+              - **Purpose**: AI-powered code analysis, test generation & fixing
+              - **Result**: OpenAI GPT-4 analysis with complex fixing loop
               
               ### 📊 Overall Pipeline Status
               - **Foundation**: ✅ SUCCESS (Required)
@@ -455,6 +538,10 @@ jobs:
               ${jobStatuses['foundation-build'] === '✅ SUCCESS' 
                 ? '🎉 **Foundation build successful!** Your code is ready for review and deployment.' 
                 : '❌ **Foundation build failed.** Please fix the build issues before proceeding.'}
+              
+              ${jobStatuses['ai-agents-v2'] === '✅ SUCCESS' 
+                ? '🤖 **AI analysis completed!** Check the AI analysis report for detailed insights, generated tests, and code improvements.' 
+                : '⚠️ **AI analysis failed.** Check the pipeline logs for details on the AI pipeline execution.'}
               
               ### 📋 PR Information
               - **Title**: ${pr.title}
@@ -512,5 +599,13 @@ jobs:
             echo "- **AI Agents v2**: ✅ EXECUTED" >> $GITHUB_STEP_SUMMARY
             echo "- **Unified Summary**: ✅ POSTED" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🚀 Ready for Deployment" >> $GITHUB_STEP_SUMMARY
-          echo "Your code has passed all pipeline checks and is ready for Vercel deployment!" >> $GITHUB_STEP_SUMMARY
+                      echo "### 🚀 Ready for Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "Your code has passed all pipeline checks and is ready for Vercel deployment!" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### 🤖 AI Analysis Results" >> $GITHUB_STEP_SUMMARY
+            echo "AI Pipeline v2.0 has completed real AI analysis with:" >> $GITHUB_STEP_SUMMARY
+            echo "- Issue detection and analysis" >> $GITHUB_STEP_SUMMARY
+            echo "- AI-generated test suites" >> $GITHUB_STEP_SUMMARY
+            echo "- Automated code fixing" >> $GITHUB_STEP_SUMMARY
+            echo "- Quality validation and scoring" >> $GITHUB_STEP_SUMMARY
+            echo "- Comprehensive analysis report" >> $GITHUB_STEP_SUMMARY
