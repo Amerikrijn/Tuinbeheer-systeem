@@ -79,7 +79,13 @@ program
           testsGenerated: 0,
           executionTime: Date.now(),
           errors: [],
-          timestamp: new Date()
+          timestamp: new Date(),
+          mode: 'ci',
+          aiProvider: 'ci-mode',
+          targetPath: options.target,
+          allIssues: [],
+          allFixes: [],
+          allTests: []
         }
         
         // Save results
@@ -116,12 +122,21 @@ program
         throw new Error('OPENAI_API_KEY environment variable is required for AI analysis mode')
       }
 
+      console.log(chalk.green('✅ OpenAI API key found'))
+      console.log(chalk.blue(`🎯 Quality threshold: ${config.qualityThreshold}%`))
+      console.log(chalk.blue(`🔄 Max iterations: ${config.maxIterations}`))
+      console.log(chalk.blue(`📁 Target: ${options.target}`))
+      console.log('')
+
       // Create and run pipeline
       const pipeline = new AIPipeline(config, openaiApiKey)
       const results = await pipeline.run(options.target)
 
       // Display results
       displayResults(results)
+
+      // Save results
+      await saveResults(results, options.output)
 
     } catch (error) {
       console.error(chalk.red('❌ Pipeline failed:'), error)
@@ -198,7 +213,7 @@ async function loadConfiguration(configPath?: string): Promise<PipelineConfig> {
           config: {},
           isAvailable: false
         },
-        enabled: false,
+        enabled: true,
         config: {}
       },
       {
@@ -206,18 +221,18 @@ async function loadConfiguration(configPath?: string): Promise<PipelineConfig> {
         name: 'Code Fixer',
         description: 'Fixes identified code issues',
         provider: {
-          name: 'GitHub Copilot',
-          type: 'github-copilot',
+          name: 'OpenAI GPT-4',
+          type: 'openai',
           config: {},
-          isAvailable: false
+          isAvailable: true
         },
-        enabled: false,
+        enabled: true,
         config: {}
       },
       {
         id: 'quality-validator',
         name: 'Quality Validator',
-        description: 'Validates fixes and assesses quality',
+        description: 'Validates code quality improvements',
         provider: {
           name: 'OpenAI GPT-4',
           type: 'openai',
@@ -238,15 +253,59 @@ async function loadConfiguration(configPath?: string): Promise<PipelineConfig> {
 
   if (configPath && fs.existsSync(configPath)) {
     try {
-      const fileContent = fs.readFileSync(configPath, 'utf-8')
-      const fileConfig = JSON.parse(fileContent)
-      return { ...defaultConfig, ...fileConfig }
+      const configContent = fs.readFileSync(configPath, 'utf-8')
+      const userConfig = JSON.parse(configContent)
+      return { ...defaultConfig, ...userConfig }
     } catch (error) {
-      console.warn(chalk.yellow(`Failed to load config from ${configPath}, using defaults`))
+      console.warn(chalk.yellow(`⚠️ Failed to load config from ${configPath}: ${error}`))
     }
   }
 
   return defaultConfig
+}
+
+function displayResults(results: any): void {
+  console.log('')
+  console.log(chalk.blue('📊 AI Pipeline Results'))
+  console.log('─'.repeat(50))
+  
+  if (results.success) {
+    console.log(chalk.green(`✅ Status: SUCCESS`))
+    console.log(chalk.blue(`🎯 Quality Score: ${results.finalQualityScore}/100`))
+    console.log(chalk.blue(`🔄 Iterations: ${results.iterations}`))
+    console.log(chalk.blue(`🔍 Issues Found: ${results.issuesFound}`))
+    console.log(chalk.blue(`🔧 Issues Fixed: ${results.issuesFixed}`))
+    console.log(chalk.blue(`🧪 Tests Generated: ${results.testsGenerated}`))
+    console.log(chalk.blue(`⏱️ Execution Time: ${(results.executionTime / 1000).toFixed(2)}s`))
+    console.log(chalk.blue(`🤖 AI Provider: ${results.aiProvider}`))
+    console.log(chalk.blue(`🔧 Mode: ${results.mode}`))
+  } else {
+    console.log(chalk.red(`❌ Status: FAILED`))
+    if (results.errors && results.errors.length > 0) {
+      console.log(chalk.red(`❌ Errors:`))
+      results.errors.forEach((error: string) => {
+        console.log(chalk.red(`   - ${error}`))
+      })
+    }
+  }
+  
+  console.log('')
+}
+
+async function saveResults(results: any, outputPath: string): Promise<void> {
+  try {
+    const outputDir = path.resolve(outputPath)
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true })
+    }
+    
+    const outputFile = path.join(outputDir, 'pipeline-results.json')
+    fs.writeFileSync(outputFile, JSON.stringify(results, null, 2))
+    
+    console.log(chalk.green(`✅ Results saved to: ${outputFile}`))
+  } catch (error) {
+    console.error(chalk.red(`❌ Failed to save results: ${error}`))
+  }
 }
 
 async function initializeConfiguration(): Promise<void> {
@@ -254,7 +313,7 @@ async function initializeConfiguration(): Promise<void> {
   const config = await loadConfiguration()
   
   fs.writeFileSync(configPath, JSON.stringify(config, null, 2))
-  console.log(chalk.green(`✅ Configuration initialized at ${configPath}`))
+  console.log(chalk.green(`✅ Configuration initialized at: ${configPath}`))
 }
 
 async function showConfiguration(): Promise<void> {
@@ -264,54 +323,23 @@ async function showConfiguration(): Promise<void> {
 }
 
 async function setConfiguration(keyValue: string): Promise<void> {
-  const [key, value] = keyValue.split('=')
-  if (!key || !value) {
-    throw new Error('Invalid format. Use: --set key=value')
-  }
-  
-  console.log(chalk.yellow(`Setting ${key} = ${value} not yet implemented`))
+  console.log(chalk.yellow('⚠️ Configuration setting not implemented yet'))
 }
 
 async function listAgents(): Promise<void> {
   const config = await loadConfiguration()
   console.log(chalk.blue('🤖 Available Agents:'))
   
-  for (const agent of config.agents) {
-    const status = agent.enabled ? chalk.green('✅ Enabled') : chalk.red('❌ Disabled')
-    const provider = chalk.cyan(agent.provider.name)
-    console.log(`  ${agent.name} (${provider}) - ${status}`)
-    console.log(`    ${agent.description}`)
-  }
+  config.agents.forEach(agent => {
+    const status = agent.enabled ? chalk.green('✅') : chalk.red('❌')
+    const provider = agent.provider.isAvailable ? chalk.green(agent.provider.name) : chalk.red(agent.provider.name)
+    console.log(`${status} ${agent.name} (${agent.id}) - ${agent.description}`)
+    console.log(`   Provider: ${provider}`)
+  })
 }
 
 async function checkAgentStatus(): Promise<void> {
-  console.log(chalk.yellow('Agent status check not yet implemented'))
+  console.log(chalk.yellow('⚠️ Agent status checking not implemented yet'))
 }
 
-function displayResults(results: any): void {
-  console.log('')
-  console.log(chalk.green('🎯 Pipeline Results:'))
-  console.log('─'.repeat(50))
-  console.log(`Success: ${results.success ? chalk.green('✅ Yes') : chalk.red('❌ No')}`)
-  console.log(`Iterations: ${chalk.cyan(results.iterations)}`)
-  console.log(`Final Quality: ${chalk.cyan(results.finalQualityScore.toFixed(1))}%`)
-  console.log(`Issues Found: ${chalk.cyan(results.issuesFound)}`)
-  console.log(`Issues Fixed: ${chalk.cyan(results.issuesFixed)}`)
-  console.log(`Tests Generated: ${chalk.cyan(results.testsGenerated)}`)
-  console.log(`Execution Time: ${chalk.cyan(results.executionTime)}ms`)
-  
-  if (results.errors.length > 0) {
-    console.log('')
-    console.log(chalk.red('❌ Errors:'), results.errors)
-  }
-  
-  if (results.warnings.length > 0) {
-    console.log('')
-    console.log(chalk.yellow('⚠️ Warnings:'), results.warnings)
-  }
-}
-
-// Run CLI
-if (require.main === module) {
-  program.parse()
-}
+program.parse()

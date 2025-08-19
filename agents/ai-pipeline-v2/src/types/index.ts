@@ -97,14 +97,34 @@ export interface PipelineResult {
   testsGenerated: number
   executionTime: number
   errors: string[]
-  warnings: string[]
   timestamp: Date
+  mode: 'ai' | 'ci' | 'unknown'
+  aiProvider: string
+  targetPath: string
+  allIssues: CodeIssue[]
+  allFixes: CodeFix[]
+  allTests: TestSuite[]
 }
 
-export interface AgentResult<T = any> {
+export interface AgentResult<T> {
   success: boolean
   data: T
   error?: string
+  executionTime: number
+  aiProvider: string
+  timestamp: Date
+  warnings?: string[]
+}
+
+export interface PipelineSummary {
+  totalFiles: number
+  totalIssues: number
+  criticalIssues: number
+  highIssues: number
+  mediumIssues: number
+  lowIssues: number
+  qualityScore: number
+  recommendations: string[]
   executionTime: number
   aiProvider: string
   timestamp: Date
