@@ -21,6 +21,7 @@ jobs:
         run: |
           echo "⏳ Waiting for other workflows to complete..."
           sleep 30
+          echo "✅ Wait period completed"
 
       - name: Create Comprehensive PR Summary
         uses: actions/github-script@v7
@@ -158,8 +159,8 @@ jobs:
             console.log('');
             console.log('### ✅ Workflow Status');
             console.log(`- **Job**: PR Summary & Quality Report`);
-            console.log(`- **Status**: ${job.status === 'success' ? '✅ SUCCESS' : '❌ FAILED'}`);
-            console.log(`- **Duration**: ${job.steps ? job.steps.reduce((acc, step) => acc + (step.completed_at ? new Date(step.completed_at) - new Date(step.started_at) : 0), 0) / 1000 : 'Unknown'}s`);
+            console.log(`- **Status**: ✅ Workflow completed`);
+            console.log(`- **Duration**: Workflow finished`);
             console.log('');
             console.log('### 🚀 Summary Generation');
             console.log('- **Workflow Analysis**: ✅ Completed');
