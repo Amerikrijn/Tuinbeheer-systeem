@@ -159,8 +159,7 @@ EOF
             echo "📋 Pipeline Results:"
             cat "./ai-pipeline-results/pipeline-results.json"
             
-            # Extract key metrics using grep/sed instead of jq
-            echo "📊 Extracting metrics..."
+            # Extract key metrics using grep and cut
             QUALITY_SCORE=$(grep -o '"finalQualityScore":[0-9]*' "./ai-pipeline-results/pipeline-results.json" | cut -d: -f2 || echo "0")
             ISSUES_FOUND=$(grep -o '"issuesFound":[0-9]*' "./ai-pipeline-results/pipeline-results.json" | cut -d: -f2 || echo "0")
             ISSUES_FIXED=$(grep -o '"issuesFixed":[0-9]*' "./ai-pipeline-results/pipeline-results.json" | cut -d: -f2 || echo "0")
@@ -185,8 +184,8 @@ EOF
           THRESHOLD=${{ github.event.inputs.quality_threshold || '90' }}
           
           echo "🎯 Quality Gate Check:"
-          echo "Current Score: ${QUALITY_SCORE}%"
-          echo "Required Threshold: ${THRESHOLD}%"
+          echo "Current Quality: ${QUALITY_SCORE}%"
+          echo "Target Quality: ${THRESHOLD}%"
           
           if [ "$QUALITY_SCORE" -ge "$THRESHOLD" ]; then
             echo "✅ Quality threshold met!"
