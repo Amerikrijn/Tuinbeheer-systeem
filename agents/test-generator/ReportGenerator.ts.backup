@@ -1,44 +1,25 @@
-import { TestScenario, TestResult, TestReport } from './types'
+import { TestScenario, TestResult } from './types'
 import * as fs from 'fs'
 import * as path from 'path'
 
 export class ReportGenerator {
-  constructor() {}
+  private outputPath: string
 
-  /**
-   * Generate all reports
-   */
-  async generateReports(report: TestReport, outputPath: string): Promise<void> {
-    try {
-      // Create output directory if it doesn't exist
-      if (!fs.existsSync(outputPath)) {
-        fs.mkdirSync(outputPath, { recursive: true })
-      }
-
-      // Generate different report formats
-      await Promise.all([
-        this.generateJsonReport(report, outputPath),
-        this.generateMarkdownSummary(report, outputPath),
-        this.generateCoverageReport(report, outputPath)
-      ])
-
-      console.log(`📊 All reports generated successfully in: ${outputPath}`)
-    } catch (error) {
-      console.error('❌ Error generating reports:', error)
-      throw error
-    }
+  constructor(outputPath: string) {
+    this.outputPath = outputPath
+    this.ensureOutputDirectory()
   }
 
   /**
-   * Generate JSON report
+   * Save the complete test report
    */
-  async generateJsonReport(report: TestReport, outputPath: string): Promise<void> {
+  async saveReport(report: any): Promise<void> {
     try {
-      const jsonPath = path.join(outputPath, 'test-execution-report.json')
-      await fs.promises.writeFile(jsonPath, JSON.stringify(report, null, 2))
-      console.log(`📄 JSON report saved to: ${jsonPath}`)
+      const reportPath = path.join(this.outputPath, 'test-execution-report.json')
+      await fs.promises.writeFile(reportPath, JSON.stringify(report, null, 2))
+      console.log(`📄 Test report saved to: ${reportPath}`)
     } catch (error) {
-      console.error('❌ Error generating JSON report:', error)
+      console.error('❌ Error saving test report:', error)
       throw error
     }
   }
@@ -46,9 +27,9 @@ export class ReportGenerator {
   /**
    * Generate markdown summary
    */
-  async generateMarkdownSummary(report: TestReport, outputPath: string): Promise<void> {
+  async generateMarkdownSummary(report: any): Promise<void> {
     try {
-      const summaryPath = path.join(outputPath, 'test-execution-summary.md')
+      const summaryPath = path.join(this.outputPath, 'test-execution-summary.md')
       const markdown = this.formatMarkdownSummary(report)
       await fs.promises.writeFile(summaryPath, markdown)
       console.log(`📄 Markdown summary saved to: ${summaryPath}`)
@@ -61,11 +42,11 @@ export class ReportGenerator {
   /**
    * Generate coverage report
    */
-  async generateCoverageReport(report: TestReport, outputPath: string): Promise<void> {
+  async generateCoverageReport(report: any): Promise<void> {
     try {
-      const coveragePath = path.join(outputPath, 'test-coverage-report.json')
-      const coverage = this.generateCoverageData(report)
-      await fs.promises.writeFile(coveragePath, JSON.stringify(coverage, null, 2))
+      const coveragePath = path.join(this.outputPath, 'test-coverage-report.json')
+      const coverageReport = this.generateCoverageData(report)
+      await fs.promises.writeFile(coveragePath, JSON.stringify(coverageReport, null, 2))
       console.log(`📄 Coverage report saved to: ${coveragePath}`)
     } catch (error) {
       console.error('❌ Error generating coverage report:', error)
@@ -127,7 +108,7 @@ export class ReportGenerator {
           markdown += `  - Risk Level: ${scenario.riskLevel}\n`
           markdown += `  - Tags: ${scenario.tags.join(', ')}\n\n`
         })
-      })
+      }
     }
 
     // Test Results Details
@@ -233,7 +214,7 @@ export class ReportGenerator {
     const priorities: Record<string, TestScenario[]> = {}
     
     scenarios.forEach(scenario => {
-      const priority = scenario.priority || 'medium'
+      const priority = scenario.priority || 'unknown'
       if (!priorities[priority]) {
         priorities[priority] = []
       }
@@ -250,7 +231,7 @@ export class ReportGenerator {
     const riskLevels: Record<string, TestScenario[]> = {}
     
     scenarios.forEach(scenario => {
-      const riskLevel = scenario.riskLevel || 'low'
+      const riskLevel = scenario.riskLevel || 'unknown'
       if (!riskLevels[riskLevel]) {
         riskLevels[riskLevel] = []
       }
@@ -267,7 +248,7 @@ export class ReportGenerator {
     const statuses: Record<string, TestResult[]> = {}
     
     testResults.forEach(result => {
-      const status = result.status
+      const status = result.status || 'unknown'
       if (!statuses[status]) {
         statuses[status] = []
       }
@@ -298,32 +279,30 @@ export class ReportGenerator {
    * Calculate execution time statistics
    */
   private calculateExecutionTimeStats(testResults: TestResult[]): any {
-    if (testResults.length === 0) return {}
+    if (testResults.length === 0) {
+      return { min: 0, max: 0, average: 0, median: 0 }
+    }
     
-    const times = testResults.map(r => r.executionTime)
-    const total = times.reduce((sum, time) => sum + time, 0)
-    const average = total / times.length
-    const min = Math.min(...times)
-    const max = Math.max(...times)
+    const times = testResults.map(r => r.executionTime).sort((a, b) => a - b)
+    const min = times[0]
+    const max = times[times.length - 1]
+    const average = times.reduce((sum, time) => sum + time, 0) / times.length
+    const median = times[Math.floor(times.length / 2)]
     
     return {
-      total,
-      average: Math.round(average),
       min,
       max,
-      median: this.calculateMedian(times)
+      average: Math.round(average),
+      median
     }
   }
 
   /**
-   * Calculate median value
+   * Ensure output directory exists
    */
-  private calculateMedian(values: number[]): number {
-    const sorted = [...values].sort((a, b) => a - b)
-    const mid = Math.floor(sorted.length / 2)
-    
-    return sorted.length % 2 !== 0
-      ? sorted[mid]
-      : (sorted[mid - 1] + sorted[mid]) / 2
+  private ensureOutputDirectory(): void {
+    if (!fs.existsSync(this.outputPath)) {
+      fs.mkdirSync(this.outputPath, { recursive: true })
+    }
   }
 }
