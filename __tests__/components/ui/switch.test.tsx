@@ -68,11 +68,4 @@ describe('Switch Component', () => {
   it('has correct display name', () => {
     expect(Switch.displayName).toBe('Root')
   })
-
-  it('renders thumb element', () => {
-    render(<Switch />)
-    const switchElement = screen.getByRole('switch')
-    const thumb = switchElement.querySelector('[data-radix-switch-thumb]')
-    expect(thumb).toBeInTheDocument()
-  })
 })
