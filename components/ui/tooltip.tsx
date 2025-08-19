@@ -5,11 +5,35 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 
 import { cn } from "@/lib/utils"
 
-const TooltipProvider = TooltipPrimitive.Provider
+const TooltipProvider = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Provider>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Provider>
+>(({ children, ...props }, ref) => (
+  <TooltipPrimitive.Provider {...props} ref={ref} data-testid="tooltip-provider">
+    {children}
+  </TooltipPrimitive.Provider>
+))
+TooltipProvider.displayName = TooltipPrimitive.Provider.displayName
 
-const Tooltip = TooltipPrimitive.Root
+const Tooltip = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Root>
+>(({ children, ...props }, ref) => (
+  <TooltipPrimitive.Root {...props} ref={ref} data-testid="tooltip-root">
+    {children}
+  </TooltipPrimitive.Root>
+))
+Tooltip.displayName = TooltipPrimitive.Root.displayName
 
-const TooltipTrigger = TooltipPrimitive.Trigger
+const TooltipTrigger = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Trigger>
+>(({ children, ...props }, ref) => (
+  <TooltipPrimitive.Trigger {...props} ref={ref} data-testid="tooltip-trigger">
+    {children}
+  </TooltipPrimitive.Trigger>
+))
+TooltipTrigger.displayName = TooltipPrimitive.Trigger.displayName
 
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,
@@ -22,6 +46,7 @@ const TooltipContent = React.forwardRef<
       "z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
       className
     )}
+    data-testid="tooltip-content"
     {...props}
   />
 ))

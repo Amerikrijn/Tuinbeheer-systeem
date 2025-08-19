@@ -6,7 +6,15 @@ import { ChevronDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const Accordion = AccordionPrimitive.Root
+const Accordion = React.forwardRef<
+  React.ElementRef<typeof AccordionPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Root>
+>(({ children, ...props }, ref) => (
+  <AccordionPrimitive.Root {...props} ref={ref} data-testid="accordion-root">
+    {children}
+  </AccordionPrimitive.Root>
+))
+Accordion.displayName = AccordionPrimitive.Root.displayName
 
 const AccordionItem = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Item>,
@@ -15,6 +23,7 @@ const AccordionItem = React.forwardRef<
   <AccordionPrimitive.Item
     ref={ref}
     className={cn("border-b", className)}
+    data-testid="accordion-item"
     {...props}
   />
 ))
@@ -31,6 +40,7 @@ const AccordionTrigger = React.forwardRef<
         "flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180",
         className
       )}
+      data-testid="accordion-trigger"
       {...props}
     >
       {children}
@@ -47,6 +57,7 @@ const AccordionContent = React.forwardRef<
   <AccordionPrimitive.Content
     ref={ref}
     className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+    data-testid="accordion-content"
     {...props}
   >
     <div className={cn("pb-4 pt-0", className)}>{children}</div>
