@@ -10,7 +10,7 @@ const Accordion = React.forwardRef<
   React.ElementRef<typeof AccordionPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Root>
 >(({ children, ...props }, ref) => (
-  <AccordionPrimitive.Root {...props} ref={ref} data-testid="accordion-root">
+  <AccordionPrimitive.Root {...props} ref={ref} data-testid={props['data-testid'] || "accordion-root"}>
     {children}
   </AccordionPrimitive.Root>
 ))

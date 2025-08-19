@@ -10,7 +10,7 @@ const Select = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root>
 >(({ children, ...props }, ref) => (
-  <SelectPrimitive.Root {...props} ref={ref} data-testid="select">
+  <SelectPrimitive.Root {...props} ref={ref} data-testid={props['data-testid'] || "select"}>
     {children}
   </SelectPrimitive.Root>
 ))

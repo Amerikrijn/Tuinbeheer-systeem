@@ -74,6 +74,7 @@ vi.mock('lucide-react', () => ({
   ChevronLeft: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'chevron-left-icon' }, children: '‹' })),
   ChevronRight: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'chevron-right-icon' }, children: '›' })),
   ChevronDown: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'chevron-down-icon' }, children: '⌄' })),
+  ChevronUp: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'chevron-up-icon' }, children: '⌃' })),
   TreePine: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'tree-pine-icon' }, children: '🌲' })),
   Loader2: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'loader2-icon' }, children: '⏳' })),
   X: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'x-icon' }, children: '✕' })),
@@ -81,6 +82,16 @@ vi.mock('lucide-react', () => ({
   ClipboardList: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'clipboard-list-icon' }, children: '📋' })),
   BookOpen: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'book-open-icon' }, children: '📖' })),
   Camera: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'camera-icon' }, children: '📷' })),
+  // Add missing icons that are causing test failures
+  AlertCircle: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'alert-circle-icon' }, children: '⚠️' })),
+  User: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'user-icon' }, children: '👤' })),
+  RefreshCw: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'refresh-cw-icon' }, children: '🔄' })),
+  GripVertical: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'grip-vertical-icon' }, children: '⋮' })),
+  // Add more missing icons
+  Home: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'home-icon' }, children: '🏠' })),
+  AlertTriangle: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'alert-triangle-icon' }, children: '⚠️' })),
+  Menu: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'menu-icon' }, children: '☰' })),
+  // Add more icons as needed
 }));
 
 // Mock next/font/google
@@ -89,6 +100,28 @@ vi.mock('next/font/google', () => ({
     className: 'mock-inter-font',
     style: { fontFamily: 'Inter' },
   })),
+}));
+
+// Mock logbook service
+vi.mock('@/services/logbook-service', () => ({
+  logbookService: {
+    getPlantPhotos: vi.fn().mockResolvedValue({
+      success: true,
+      data: [],
+      hasMorePhotos: false,
+    }),
+    getPlantPhoto: vi.fn().mockResolvedValue({
+      success: true,
+      data: null,
+    }),
+    uploadPlantPhoto: vi.fn().mockResolvedValue({
+      success: true,
+      data: null,
+    }),
+    deletePlantPhoto: vi.fn().mockResolvedValue({
+      success: true,
+    }),
+  },
 }));
 
 // Mock Supabase
@@ -121,4 +154,51 @@ vi.mock('@/lib/supabase', () => ({
       })),
     },
   })),
+  // Add direct exports that tests are trying to import
+  supabase: {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      signInWithPassword: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      signUp: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      signOut: vi.fn().mockResolvedValue({ error: null }),
+      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: null } }),
+    },
+    from: vi.fn(() => ({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn().mockResolvedValue({ data: null, error: null }),
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        })),
+        insert: vi.fn().mockResolvedValue({ data: null, error: null }),
+        update: vi.fn().mockResolvedValue({ data: null, error: null }),
+        delete: vi.fn().mockResolvedValue({ data: null, error: null }),
+      })),
+    })),
+    storage: {
+      from: vi.fn(() => ({
+        upload: vi.fn().mockResolvedValue({ data: null, error: null }),
+        download: vi.fn().mockResolvedValue({ data: null, error: null }),
+        remove: vi.fn().mockResolvedValue({ data: null, error: null }),
+        list: vi.fn().mockResolvedValue({ data: null, error: null }),
+        getBucket: vi.fn().mockResolvedValue({ data: null, error: null }),
+        createBucket: vi.fn().mockResolvedValue({ data: null, error: null }),
+      })),
+    },
+    rpc: vi.fn().mockResolvedValue({ data: null, error: null }),
+  },
+  supabaseAdmin: {
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+    },
+    storage: {
+      getBucket: vi.fn().mockResolvedValue({ data: null, error: null }),
+      createBucket: vi.fn().mockResolvedValue({ data: null, error: null }),
+      from: vi.fn(() => ({
+        upload: vi.fn().mockResolvedValue({ data: null, error: null }),
+        download: vi.fn().mockResolvedValue({ data: null, error: null }),
+        remove: vi.fn().mockResolvedValue({ data: null, error: null }),
+        list: vi.fn().mockResolvedValue({ data: null, error: null }),
+      })),
+    },
+  },
 }));

@@ -7,7 +7,7 @@ const AspectRatio = React.forwardRef<
   React.ElementRef<typeof AspectRatioPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof AspectRatioPrimitive.Root>
 >(({ children, ...props }, ref) => (
-  <AspectRatioPrimitive.Root {...props} ref={ref} data-testid="aspect-ratio">
+  <AspectRatioPrimitive.Root {...props} ref={ref} data-testid={props['data-testid'] || "aspect-ratio"}>
     {children}
   </AspectRatioPrimitive.Root>
 ))
