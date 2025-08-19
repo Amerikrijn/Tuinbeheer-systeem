@@ -1,0 +1,110 @@
+{
+  "summary": {
+    "totalIssues": 2,
+    "totalFixes": 2,
+    "appliedFixes": 2,
+    "failedFixes": 0,
+    "qualityScore": 100,
+    "riskLevel": "low"
+  },
+  "analysis": {
+    "filePath": "../../components/ui/use-toast.ts",
+    "issues": [
+      {
+        "id": "typescript-30-1755551444540",
+        "type": "suggestion",
+        "severity": "medium",
+        "message": "TypeScript improvement: function name() { can be enhanced",
+        "line": 30,
+        "column": 0,
+        "code": "function genId() {",
+        "category": "typescript",
+        "fixable": true,
+        "confidence": 85
+      },
+      {
+        "id": "typescript-136-1755551444540",
+        "type": "suggestion",
+        "severity": "medium",
+        "message": "TypeScript improvement: function name() { can be enhanced",
+        "line": 136,
+        "column": 0,
+        "code": "function dispatch(action: Action) {",
+        "category": "typescript",
+        "fixable": true,
+        "confidence": 85
+      }
+    ],
+    "fixes": [
+      {
+        "id": "fix-typescript-30-1755551444540",
+        "issueId": "typescript-30-1755551444540",
+        "description": "TypeScript improvement: function name() { can be enhanced",
+        "before": "function genId() {",
+        "after": "function genId(): string {",
+        "line": 30,
+        "column": 0,
+        "risk": "low",
+        "confidence": 85,
+        "category": "typescript",
+        "autoApply": true
+      },
+      {
+        "id": "fix-typescript-136-1755551444540",
+        "issueId": "typescript-136-1755551444540",
+        "description": "TypeScript improvement: function name() { can be enhanced",
+        "before": "function dispatch(action: Action) {",
+        "after": "function dispatch(action: Action): string {",
+        "line": 136,
+        "column": 0,
+        "risk": "low",
+        "confidence": 85,
+        "category": "typescript",
+        "autoApply": true
+      }
+    ],
+    "metrics": {
+      "totalLines": 195,
+      "totalIssues": 2,
+      "fixableIssues": 2,
+      "securityIssues": 0,
+      "performanceIssues": 0,
+      "qualityIssues": 0
+    },
+    "timestamp": "2025-08-18T21:10:44.540Z"
+  },
+  "fixes": [
+    {
+      "id": "fix-typescript-30-1755551444540",
+      "issueId": "typescript-30-1755551444540",
+      "description": "TypeScript improvement: function name() { can be enhanced",
+      "before": "function genId() {",
+      "after": "function genId(): string {",
+      "line": 30,
+      "column": 0,
+      "risk": "low",
+      "confidence": 85,
+      "category": "typescript",
+      "autoApply": true
+    },
+    {
+      "id": "fix-typescript-136-1755551444540",
+      "issueId": "typescript-136-1755551444540",
+      "description": "TypeScript improvement: function name() { can be enhanced",
+      "before": "function dispatch(action: Action) {",
+      "after": "function dispatch(action: Action): string {",
+      "line": 136,
+      "column": 0,
+      "risk": "low",
+      "confidence": 85,
+      "category": "typescript",
+      "autoApply": true
+    }
+  ],
+  "results": [],
+  "recommendations": [
+    "Test all fixes in a development environment first",
+    "Review high-risk fixes manually before applying"
+  ],
+  "timestamp": "2025-08-18T21:10:44.541Z"
+}

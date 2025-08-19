@@ -9,6 +9,7 @@ interface CLIArgs {
   execute?: boolean
   status?: boolean
   metrics?: boolean
+  parallel?: boolean
   help?: boolean
   version?: boolean
 }
@@ -40,6 +41,10 @@ function parseArgs(): CLIArgs {
       case '-m':
         args.metrics = true
         break
+      case '--parallel':
+      case '-p':
+        args.parallel = true
+        break
       case '--help':
       case '-h':
         args.help = true
@@ -66,12 +71,16 @@ Options:
   -e, --execute            Execute the specified workflow
   -s, --status             Show pipeline status
   -m, --metrics            Show pipeline metrics
+  -p, --parallel           Enable parallel workflow execution
   -h, --help               Show this help message
   -v, --version            Show version information
 
 Examples:
   # Initialize with config and execute workflow
   npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json --workflow ci-ai-pipeline --execute
+
+  # Execute workflow in parallel mode
+  npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json --workflow ci-ai-pipeline --execute --parallel
 
   # Show pipeline status
   npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json --status
@@ -88,6 +97,7 @@ Features:
   🎯 Advanced reporting and analysis
   🚀 CI/CD ready workflow execution
   📈 Trend analysis and recommendations
+  🚀 Parallel workflow execution support
 
 The orchestrator will:
   1. Run iteration 1: Execute basic workflow
