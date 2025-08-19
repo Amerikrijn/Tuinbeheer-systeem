@@ -10,6 +10,16 @@ export async function runQualityAnalysis(options: {
   testScenarios: TestScenario[]
   outputPath: string
 }) {
-  const agent = new QualityAnalyzerAgent(options)
+  const fullOptions = {
+    ...options,
+    includeSecurity: true,
+    includePerformance: true,
+    includeMaintainability: true,
+    qualityThreshold: 80,
+    maxRecommendations: 10,
+    enableDetailedAnalysis: true
+  }
+  
+  const agent = new QualityAnalyzerAgent(fullOptions)
   return await agent.run()
 }

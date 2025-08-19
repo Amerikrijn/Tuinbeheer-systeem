@@ -66,6 +66,27 @@
         "timeout": 5000,
         "retries": 3
       }
+    },
+    {
+      "id": "v2-pipeline",
+      "name": "V2 AI Pipeline Agent",
+      "type": "v2-pipeline",
+      "status": "active",
+      "path": "./agents/ai-pipeline-v2",
+      "dependencies": [],
+      "config": {
+        "target": "./app",
+        "iterations": 2,
+        "quality": 80,
+        "ciMode": true,
+        "outputPath": "./agents/ai-pipeline-v2/ai-pipeline-results"
+      },
+      "healthCheck": {
+        "enabled": true,
+        "interval": 30000,
+        "timeout": 5000,
+        "retries": 3
+      }
     }
   ],
   "workflows": [
@@ -171,6 +192,60 @@
       "maxRetries": 2,
       "timeout": 900000,
       "parallel": false,
+      "enabled": true
+    },
+    {
+      "id": "v2-ai-pipeline",
+      "name": "V2 AI Testing Pipeline",
+      "description": "Advanced AI testing workflow with enhanced capabilities",
+      "steps": [
+        {
+          "id": "v2-run",
+          "name": "V2 Pipeline Run",
+          "agentId": "v2-pipeline",
+          "order": 1,
+          "required": true,
+          "config": {
+            "target": "./app",
+            "iterations": 2,
+            "quality": 80,
+            "ciMode": true,
+            "outputPath": "./agents/ai-pipeline-v2/ai-pipeline-results"
+          },
+          "dependencies": [],
+          "timeout": 600000,
+          "retryPolicy": {
+            "maxRetries": 1,
+            "backoffMultiplier": 2,
+            "initialDelay": 2000,
+            "maxDelay": 15000
+          },
+          "rollbackPolicy": {
+            "enabled": true,
+            "strategy": "partial",
+            "checkpointInterval": 120000,
+            "maxCheckpoints": 3
+          }
+        }
+      ],
+      "triggers": [
+        {
+          "type": "manual",
+          "config": {},
+          "enabled": true
+        }
+      ],
+      "conditions": [
+        {
+          "type": "quality-score",
+          "operator": "gte",
+          "value": 70,
+          "field": "qualityScore"
+        }
+      ],
+      "maxRetries": 1,
+      "timeout": 600000,
+      "parallel": true,
       "enabled": true
     }
   ],

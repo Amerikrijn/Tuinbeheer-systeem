@@ -98,6 +98,11 @@ export class PipelineOrchestratorAgent {
         throw new Error(`Workflow not found: ${workflowId}`)
       }
 
+      // Check if this is a V2 pipeline workflow
+      if (workflowId === 'v2-ai-pipeline') {
+        return await this.executeV2PipelineWorkflow(workflow, iterationNumber, options, previousResult)
+      }
+
       // Execute workflow with improvement logic
       let executionResult = await this.workflowEngine.executeWorkflow(workflow, {
         workflowId: workflow.id,
@@ -654,6 +659,100 @@ export class PipelineOrchestratorAgent {
     // Workflows are initialized when needed
     console.log(`🔄 Initialized ${this.config.workflows.length} workflows`)
   }
+
+  /**
+   * Execute V2 Pipeline workflow
+   */
+  private async executeV2PipelineWorkflow(workflow: any, iterationNumber: number, options?: any, previousResult?: any): Promise<any> {
+    console.log(`🚀 Executing V2 Pipeline workflow (iteration ${iterationNumber})`)
+    
+    try {
+      // Get V2 pipeline configuration
+      const v2Config = workflow.steps.find((s: any) => s.agentId === 'v2-pipeline')?.config
+      if (!v2Config) {
+        throw new Error('V2 pipeline configuration not found')
+      }
+
+      // Execute V2 pipeline using child process
+      const { spawn } = require('child_process')
+      const v2PipelinePath = path.join(process.cwd(), 'agents/ai-pipeline-v2')
+      
+      return new Promise((resolve, reject) => {
+        const v2Process = spawn('npm', ['start', '--', 'run', 
+          '--target', v2Config.target || './app',
+          '--iterations', (v2Config.iterations || 2).toString(),
+          '--quality', (v2Config.quality || 80).toString(),
+          '--ci-mode',
+          '--output', v2Config.outputPath || './ai-pipeline-results'
+        ], {
+          cwd: v2PipelinePath,
+          stdio: 'pipe'
+        })
+
+        let stdout = ''
+        let stderr = ''
+
+        v2Process.stdout.on('data', (data: Buffer) => {
+          stdout += data.toString()
+          console.log(`V2 Pipeline: ${data.toString().trim()}`)
+        })
+
+        v2Process.stderr.on('data', (data: Buffer) => {
+          stderr += data.toString()
+          console.error(`V2 Pipeline Error: ${data.toString().trim()}`)
+        })
+
+        v2Process.on('close', (code: number) => {
+          if (code === 0) {
+            console.log('✅ V2 Pipeline executed successfully')
+            
+            // Try to read results
+            try {
+              const resultsPath = path.join(v2PipelinePath, v2Config.outputPath || './ai-pipeline-results', 'pipeline-results.json')
+              if (fs.existsSync(resultsPath)) {
+                const results = JSON.parse(fs.readFileSync(resultsPath, 'utf-8'))
+                resolve({
+                  status: 'completed',
+                  stepsCompleted: 1,
+                  executionTime: Date.now() - Date.now(), // Will be calculated by caller
+                  v2Results: results,
+                  iteration: iterationNumber
+                })
+              } else {
+                resolve({
+                  status: 'completed',
+                  stepsCompleted: 1,
+                  executionTime: Date.now() - Date.now(),
+                  v2Results: { message: 'V2 Pipeline completed but no results file found' },
+                  iteration: iterationNumber
+                })
+              }
+            } catch (error) {
+              resolve({
+                status: 'completed',
+                stepsCompleted: 1,
+                executionTime: Date.now() - Date.now(),
+                v2Results: { message: 'V2 Pipeline completed but could not read results' },
+                iteration: iterationNumber
+              })
+            }
+          } else {
+            reject(new Error(`V2 Pipeline failed with exit code ${code}: ${stderr}`))
+          }
+        })
+
+        v2Process.on('error', (error: Error) => {
+          reject(new Error(`Failed to start V2 Pipeline: ${error.message}`))
+        })
+      })
+
+    } catch (error) {
+      console.error('❌ Error executing V2 Pipeline workflow:', error)
+      throw error
+    }
+  }
+
+  
 
   /**
    * Get current status

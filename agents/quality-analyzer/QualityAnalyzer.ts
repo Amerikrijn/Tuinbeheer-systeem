@@ -79,7 +79,7 @@ export class QualityAnalyzer {
     // Count security-related tests
     const securityTests = testScenarios.filter(s => s.category === 'security')
     const securityResults = testResults.filter(r => 
-      r.metadata?.category === 'security'
+      r.details?.category === 'security'
     )
     
     const vulnerabilityCount = this.countSecurityVulnerabilities(testResults)
@@ -192,7 +192,7 @@ export class QualityAnalyzer {
     
     // Security test failures
     const securityFailures = testResults.filter(r => 
-      r.metadata?.category === 'security' && r.status === 'failed'
+      r.details?.category === 'security' && r.status === 'failed'
     )
     if (securityFailures.length > 0) {
       riskFactors.push({
@@ -295,7 +295,7 @@ export class QualityAnalyzer {
 
   private calculateCategoryCoverage(testResults: TestResult[], testScenarios: TestScenario[], category: string): number {
     const categoryScenarios = testScenarios.filter(s => s.category === category)
-    const categoryResults = testResults.filter(r => r.metadata?.category === category)
+    const categoryResults = testResults.filter(r => r.details?.category === category)
     
     if (categoryScenarios.length === 0) return 0
     return (categoryResults.length / categoryScenarios.length) * 100
@@ -378,7 +378,7 @@ export class QualityAnalyzer {
         testId: r.scenarioId,
         testName: 'Test', // Would get from scenario
         executionTime: r.executionTime,
-        category: r.metadata?.category || 'unknown',
+        category: r.details?.category || 'unknown',
         performance: this.categorizePerformance(r.executionTime)
       }))
   }
@@ -392,7 +392,7 @@ export class QualityAnalyzer {
         testId: r.scenarioId,
         testName: 'Test', // Would get from scenario
         executionTime: r.executionTime,
-        category: r.metadata?.category || 'unknown',
+        category: r.details?.category || 'unknown',
         performance: this.categorizePerformance(r.executionTime)
       }))
   }
@@ -569,7 +569,7 @@ export class QualityAnalyzer {
   private countSecurityVulnerabilities(testResults: TestResult[]): number {
     // Count failed security tests
     return testResults.filter(r => 
-      r.metadata?.category === 'security' && r.status === 'failed'
+      r.details?.category === 'security' && r.status === 'failed'
     ).length
   }
 

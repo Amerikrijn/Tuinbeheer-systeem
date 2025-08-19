@@ -1,3 +1,17 @@
+import { TestResult, TestScenario } from '../test-generator/types'
+
+export interface QualityAnalysisOptions {
+  outputPath: string
+  testResults?: string | TestResult[]
+  testScenarios?: string | TestScenario[]
+  includeSecurity: boolean
+  includePerformance: boolean
+  includeMaintainability: boolean
+  qualityThreshold: number
+  maxRecommendations: number
+  enableDetailedAnalysis: boolean
+}
+
 export interface QualityReport {
   id: string
   timestamp: string

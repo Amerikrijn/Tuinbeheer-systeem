@@ -13,7 +13,7 @@ export class QualityAnalyzerAgent {
   constructor(options: QualityAnalysisOptions) {
     this.options = options
     this.qualityAnalyzer = new QualityAnalyzer()
-    this.reportGenerator = new ReportGenerator(options.outputPath)
+    this.reportGenerator = new ReportGenerator()
   }
 
   /**
@@ -68,7 +68,7 @@ export class QualityAnalyzerAgent {
       const testData = await this.loadTestData()
       
       // Analyze quality with improvement logic
-      let analysis = await this.qualityAnalyzer.analyzeQuality(testData, this.options)
+      let analysis = await this.qualityAnalyzer.analyzeTestQuality(testData.testResults, testData.testScenarios)
       
       if (iterationNumber === 2 && previousResult) {
         // Improve analysis in second iteration
@@ -103,30 +103,26 @@ export class QualityAnalyzerAgent {
     try {
       // Load test results
       let testResults = []
-      if (this.options.testResults && fs.existsSync(this.options.testResults)) {
+      if (this.options.testResults && typeof this.options.testResults === 'string' && fs.existsSync(this.options.testResults)) {
         const testResultsContent = fs.readFileSync(this.options.testResults, 'utf-8')
         testResults = JSON.parse(testResultsContent)
+      } else if (Array.isArray(this.options.testResults)) {
+        testResults = this.options.testResults
       }
-
+      
       // Load test scenarios
       let testScenarios = []
-      if (this.options.testScenarios && fs.existsSync(this.options.testScenarios)) {
+      if (this.options.testScenarios && typeof this.options.testScenarios === 'string' && fs.existsSync(this.options.testScenarios)) {
         const testScenariosContent = fs.readFileSync(this.options.testScenarios, 'utf-8')
         testScenarios = JSON.parse(testScenariosContent)
+      } else if (Array.isArray(this.options.testScenarios)) {
+        testScenarios = this.options.testScenarios
       }
-
-      return {
-        testResults,
-        testScenarios,
-        timestamp: new Date().toISOString()
-      }
+      
+      return { testResults, testScenarios }
     } catch (error) {
-      console.error('Error loading test data:', error)
-      return {
-        testResults: [],
-        testScenarios: [],
-        timestamp: new Date().toISOString()
-      }
+      console.error('❌ Error loading test data:', error)
+      return { testResults: [], testScenarios: [] }
     }
   }
 
@@ -287,8 +283,8 @@ export class QualityAnalyzerAgent {
     
     // Bonus for consistent execution
     const executionTimes = testResults.map((r: any) => r.executionTime || 0)
-    const avgExecutionTime = executionTimes.reduce((sum, time) => sum + time, 0) / executionTimes.length
-    const timeConsistency = executionTimes.filter(time => 
+    const avgExecutionTime = executionTimes.reduce((sum: number, time: number) => sum + time, 0) / executionTimes.length
+    const timeConsistency = executionTimes.filter((time: number) => 
       Math.abs(time - avgExecutionTime) < avgExecutionTime * 0.5
     ).length / executionTimes.length
     
@@ -580,10 +576,8 @@ export class QualityAnalyzerAgent {
       }
     }
 
-    // Save reports
-    await this.reportGenerator.saveReport(report)
-    await this.reportGenerator.generateMarkdownSummary(report)
-    await this.reportGenerator.generateMetricsReport(report)
+    // Generate reports
+    await this.reportGenerator.generateQualityReport(report, this.options.outputPath)
 
     return report
   }
