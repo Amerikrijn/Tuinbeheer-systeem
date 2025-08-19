@@ -131,11 +131,10 @@ class CodeFixerAgent {
             case 'security':
             case 'quality':
                 if (issue.message.includes('console.log')) {
-                    // Simple fix: comment out the console.log
-                    before = 'console.log';
-                    after = '// console.log';
+                    // Simple fix: replace entire line
+                    before = issue.code;
+                    after = '  // ' + issue.code.trim() + ' // Removed for security';
                     description = 'Commented out console.log for security';
-                    console.log(`🔧 Demo fix: before="${before}", after="${after}"`);
                 }
                 else if (issue.message.includes('TODO')) {
                     before = issue.code;
