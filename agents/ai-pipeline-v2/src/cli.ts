@@ -3,6 +3,7 @@
 import { Command } from 'commander'
 import { AIPipeline } from './pipeline'
 import { PipelineConfig } from './types'
+import { OpenAIProvider, AnthropicProvider } from './core/providers'
 import * as fs from 'fs'
 import * as path from 'path'
 import chalk from 'chalk'
@@ -109,12 +110,7 @@ async function loadConfiguration(configPath?: string): Promise<PipelineConfig> {
         id: 'issue-collector',
         name: 'Issue Collector',
         description: 'Finds code issues and problems',
-        provider: {
-          name: 'OpenAI GPT-4',
-          type: 'openai',
-          config: {},
-          isAvailable: true
-        },
+        provider: new OpenAIProvider(),
         enabled: true,
         config: {}
       },
@@ -122,12 +118,7 @@ async function loadConfiguration(configPath?: string): Promise<PipelineConfig> {
         id: 'test-generator',
         name: 'Test Generator',
         description: 'Generates test cases for issues',
-        provider: {
-          name: 'Anthropic Claude',
-          type: 'anthropic',
-          config: {},
-          isAvailable: false
-        },
+        provider: new AnthropicProvider(),
         enabled: false,
         config: {}
       },
@@ -135,12 +126,7 @@ async function loadConfiguration(configPath?: string): Promise<PipelineConfig> {
         id: 'code-fixer',
         name: 'Code Fixer',
         description: 'Fixes identified code issues',
-        provider: {
-          name: 'GitHub Copilot',
-          type: 'github-copilot',
-          config: {},
-          isAvailable: false
-        },
+        provider: new OpenAIProvider(),
         enabled: false,
         config: {}
       },
@@ -148,12 +134,7 @@ async function loadConfiguration(configPath?: string): Promise<PipelineConfig> {
         id: 'quality-validator',
         name: 'Quality Validator',
         description: 'Validates fixes and assesses quality',
-        provider: {
-          name: 'OpenAI GPT-4',
-          type: 'openai',
-          config: {},
-          isAvailable: true
-        },
+        provider: new OpenAIProvider(),
         enabled: true,
         config: {}
       }

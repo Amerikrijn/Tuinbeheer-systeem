@@ -44,6 +44,8 @@ agents/*/auto-fix-results/
 # Core dump files
 core
 core.*
+# AI Pipeline core providers (allow this)
+!agents/ai-pipeline-v2/src/core/
 
 # Test artifacts
 test-results/
