@@ -39,6 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const commander_1 = require("commander");
 const pipeline_1 = require("./pipeline");
+const providers_1 = require("./core/providers");
 const fs = __importStar(require("fs"));
 const chalk_1 = __importDefault(require("chalk"));
 const program = new commander_1.Command();
@@ -140,12 +141,7 @@ async function loadConfiguration(configPath) {
                 id: 'issue-collector',
                 name: 'Issue Collector',
                 description: 'Finds code issues and problems',
-                provider: {
-                    name: 'OpenAI GPT-4',
-                    type: 'openai',
-                    config: {},
-                    isAvailable: true
-                },
+                provider: new providers_1.OpenAIProvider(),
                 enabled: true,
                 config: {}
             },
@@ -153,12 +149,7 @@ async function loadConfiguration(configPath) {
                 id: 'test-generator',
                 name: 'Test Generator',
                 description: 'Generates test cases for issues',
-                provider: {
-                    name: 'Anthropic Claude',
-                    type: 'anthropic',
-                    config: {},
-                    isAvailable: false
-                },
+                provider: new providers_1.AnthropicProvider(),
                 enabled: false,
                 config: {}
             },
@@ -166,12 +157,7 @@ async function loadConfiguration(configPath) {
                 id: 'code-fixer',
                 name: 'Code Fixer',
                 description: 'Fixes identified code issues',
-                provider: {
-                    name: 'GitHub Copilot',
-                    type: 'github-copilot',
-                    config: {},
-                    isAvailable: false
-                },
+                provider: new providers_1.OpenAIProvider(),
                 enabled: false,
                 config: {}
             },
@@ -179,12 +165,7 @@ async function loadConfiguration(configPath) {
                 id: 'quality-validator',
                 name: 'Quality Validator',
                 description: 'Validates fixes and assesses quality',
-                provider: {
-                    name: 'OpenAI GPT-4',
-                    type: 'openai',
-                    config: {},
-                    isAvailable: true
-                },
+                provider: new providers_1.OpenAIProvider(),
                 enabled: true,
                 config: {}
             }

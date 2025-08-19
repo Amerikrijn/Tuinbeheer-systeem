@@ -60,6 +60,7 @@ export interface AIProvider {
     type: 'openai' | 'anthropic' | 'github-copilot';
     config: any;
     isAvailable: boolean;
+    callAPI(prompt: string, options?: any): Promise<string>;
 }
 export interface AgentConfig {
     id: string;

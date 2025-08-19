@@ -5,29 +5,37 @@ Een revolutionair systeem dat AI-agents gebruikt om automatisch tests te generer
 
 ## 🚀 Wat We Hebben Gebouwd
 
-### **Multi-Agent Testing Ecosystem**
+### **Multi-Agent Testing Ecosystem v2.0**
 
-Ons systeem bestaat uit **3 intelligente agents** die samenwerken om de kwaliteit van je code drastisch te verbeteren:
+Ons systeem bestaat uit **4 intelligente agents** die samenwerken in een iteratieve pipeline om de kwaliteit van je code drastisch te verbeteren:
 
-#### 1. 🤖 **Test Generator Agent**
-- **Automatische code analyse** voor test scenario identificatie
-- **Intelligente test generatie** op basis van functionaliteit en risico's
-- **Multi-category testing**: Functional, Security, UI, Performance, Edge Cases
+#### 1. 🔍 **Issue Collector Agent**
+- **Automatische code analyse** voor probleem identificatie
+- **Intelligente issue detection** op basis van best practices en patterns
+- **Multi-category issues**: Security, Performance, Quality, TypeScript, ESLint
+- **Risk-based prioritization** van gevonden problemen
+- **Comprehensive reporting** in gestructureerd formaat
+
+#### 2. 🧪 **Test Generator Agent**
+- **Automatische test generatie** voor gevonden issues
+- **Intelligente test strategie** op basis van code functionaliteit
+- **Multi-category testing**: Unit, Integration, E2E, Edge Cases
+- **Coverage-focused** test generation
 - **Risk-based prioritization** van test scenarios
-- **Comprehensive reporting** in JSON en Markdown formaat
 
-#### 2. 🔍 **Quality Analyzer Agent**
-- **Diepgaande kwaliteitsanalyse** van test resultaten
-- **Risk assessment** en mitigatie strategieën
-- **Coverage analysis** met gap identificatie
-- **Performance evaluation** en bottleneck detectie
-- **Actionable improvement suggestions** met prioriteiten
-
-#### 3. 🚀 **Auto-Fix Agent** (Coming Soon)
-- **Automatische bug fixes** op basis van test resultaten
+#### 3. 🔧 **Code Fixer Agent**
+- **Automatische bug fixes** op basis van geïdentificeerde issues
 - **Code quality improvements** implementatie
 - **Security vulnerability remediation**
 - **Performance optimization** suggesties
+- **Pattern-based fallback** fixes
+
+#### 4. ✅ **Quality Validator Agent**
+- **Diepgaande kwaliteitsvalidatie** van fixes en code
+- **Quality scoring** (0-100%) met gedetailleerde feedback
+- **Risk assessment** en mitigatie strategieën
+- **Coverage analysis** met gap identificatie
+- **Iterative improvement** tot gewenste kwaliteit
 
 ## 🎯 Belangrijkste Features
 
@@ -62,13 +70,15 @@ Ons systeem bestaat uit **3 intelligente agents** die samenwerken om de kwalitei
 git clone <your-repo>
 cd <your-repo>
 
-# Installeer dependencies voor alle agents
-cd agents/test-generator && npm install
-cd ../quality-analyzer && npm install
+# Installeer dependencies voor AI Pipeline v2.0
+cd agents/ai-pipeline-v2 && npm install
 
-# Run de demo
+# Run de pipeline
+npm start -- run --target ./src --iterations 3 --quality 85
+
+# Of gebruik het quick-start script
 cd ../..
-./demo-ai-testing-system.sh
+./quick-start-ai-pipeline.sh
 ```
 
 ### **Individuele Agent Uitvoering**
