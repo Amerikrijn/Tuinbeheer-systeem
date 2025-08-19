@@ -116,7 +116,7 @@ class TestGeneratorAgent {
     async generateTestCase(issue) {
         try {
             // Generate AI-powered test case
-            const aiResponse = await this.provider.callAPI(this.buildTestPrompt(issue), { role: 'test-generator' });
+            const aiResponse = await this.provider.generateTests([issue]);
             // Parse AI response
             const parsedTest = this.parseAIResponse(aiResponse, issue);
             if (parsedTest) {

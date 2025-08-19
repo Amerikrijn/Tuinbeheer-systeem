@@ -45,7 +45,7 @@ class AIPipeline {
     constructor(config, openaiApiKey) {
         this.config = config;
         // Alle agents gebruiken dezelfde OpenAI provider
-        const openaiProvider = new openai_provider_1.OpenAIProvider({ apiKey: openaiApiKey });
+        const openaiProvider = new openai_provider_1.OpenAIProvider(openaiApiKey);
         this.issueCollector = new issue_collector_1.IssueCollectorAgent(openaiProvider);
         this.codeFixer = new code_fixer_1.CodeFixerAgent(openaiProvider);
         this.testGenerator = new test_generator_1.TestGeneratorAgent(openaiProvider);
