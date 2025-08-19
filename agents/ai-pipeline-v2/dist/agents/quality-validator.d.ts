@@ -1,11 +1,10 @@
+import { OpenAIProvider } from '../core/providers/openai-provider';
 import { CodeIssue, CodeFix, QualityValidation, AgentResult } from '../types';
 export declare class QualityValidatorAgent {
     private provider;
-    private isDemoMode;
-    constructor(apiKey: string);
+    constructor(openaiProvider: OpenAIProvider);
     run(issues: CodeIssue[], fixes: CodeFix[]): Promise<AgentResult<QualityValidation>>;
     private validateFixes;
-    private validateDemoFix;
     private validateAIFix;
     private calculateQualityScore;
     private calculateRiskScore;

@@ -36,11 +36,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TestGeneratorAgent = void 0;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-const openai_provider_1 = require("../core/providers/openai-provider");
 class TestGeneratorAgent {
-    constructor(apiKey) {
-        this.provider = new openai_provider_1.OpenAIProvider({ apiKey });
-        this.isDemoMode = apiKey === 'demo-mode';
+    constructor(openaiProvider) {
+        this.provider = openaiProvider;
         this.outputDir = './ai-pipeline-tests';
     }
     async run(issues) {
@@ -116,9 +114,6 @@ class TestGeneratorAgent {
         }
     }
     async generateTestCase(issue) {
-        if (this.isDemoMode) {
-            return this.generateDemoTestCase(issue);
-        }
         try {
             // Generate AI-powered test case
             const aiResponse = await this.provider.callAPI(this.buildTestPrompt(issue), { role: 'test-generator' });
@@ -135,68 +130,7 @@ class TestGeneratorAgent {
             return this.generatePatternBasedTest(issue);
         }
     }
-    generateDemoTestCase(issue) {
-        const testId = `demo-test-${issue.id}-${Date.now()}`;
-        let testCode = '';
-        let testName = 'Demo test';
-        let category = 'unit';
-        let priority = 'medium';
-        // Generate demo tests based on issue type
-        switch (issue.category) {
-            case 'security':
-                testCode = `test('${issue.message}', () => {
-  // Security test for: ${issue.message}
-  expect(true).toBe(true);
-});`;
-                testName = `Security: ${issue.message}`;
-                priority = 'high';
-                break;
-            case 'performance':
-                testCode = `test('${issue.message}', () => {
-  // Performance test for: ${issue.message}
-  const start = performance.now();
-  // Test code here
-  const end = performance.now();
-  expect(end - start).toBeLessThan(100); // Should complete within 100ms
-});`;
-                testName = `Performance: ${issue.message}`;
-                priority = 'medium';
-                break;
-            case 'quality':
-                testCode = `test('${issue.message}', () => {
-  // Quality test for: ${issue.message}
-  expect(typeof 'test').toBe('string');
-});`;
-                testName = `Quality: ${issue.message}`;
-                priority = 'low';
-                break;
-            case 'typescript':
-                testCode = `test('${issue.message}', () => {
-  // TypeScript test for: ${issue.message}
-  const value: unknown = 'test';
-  expect(typeof value).toBe('string');
-});`;
-                testName = `TypeScript: ${issue.message}`;
-                priority = 'medium';
-                break;
-            default:
-                testCode = `test('${issue.message}', () => {
-  // General test for: ${issue.message}
-  expect(true).toBe(true);
-});`;
-                testName = `General: ${issue.message}`;
-                priority = 'low';
-        }
-        return {
-            id: testId,
-            name: testName,
-            description: `Demo test for: ${issue.message}`,
-            code: testCode,
-            category,
-            priority,
-            aiProvider: 'demo-mode'
-        };
-    }
+    // Demo test functie verwijderd - alleen echte AI tests
     generatePatternBasedTest(issue) {
         const testId = `pattern-test-${issue.id}-${Date.now()}`;
         let testCode = '';

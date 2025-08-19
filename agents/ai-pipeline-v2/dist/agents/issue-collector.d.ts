@@ -1,9 +1,9 @@
+import { OpenAIProvider } from '../core/providers/openai-provider';
 import { CodeIssue, AgentResult } from '../types';
 export declare class IssueCollectorAgent {
     private provider;
-    private isDemoMode;
     private supportedExtensions;
-    constructor(apiKey: string);
+    constructor(openaiProvider: OpenAIProvider);
     run(targetPath?: string): Promise<AgentResult<CodeIssue[]>>;
     private findCodeFiles;
     private analyzeFile;

@@ -24,7 +24,7 @@ program
   .option('--auto-apply', 'Automatically apply fixes', false)
   .option('--git-integration', 'Enable Git integration', false)
   .option('--config <path>', 'Configuration file path')
-  .option('--demo', 'Run in demo mode without API calls', false)
+  .option('--config <path>', 'Configuration file path')
   .action(async (options) => {
     try {
       console.log(chalk.blue('🚀 AI Pipeline v2.0 Starting...'))
@@ -40,15 +40,10 @@ program
       config.autoApply = options.autoApply
       config.gitIntegration = options.gitIntegration
 
-      // Validate OpenAI API key (unless in demo mode)
-      let openaiApiKey: string = process.env.OPENAI_API_KEY || ''
-      if (!openaiApiKey && !options.demo) {
-        throw new Error('OPENAI_API_KEY environment variable is required (use --demo for demo mode)')
-      }
-      
-      if (options.demo) {
-        openaiApiKey = 'demo-mode'
-        console.log(chalk.yellow('🎭 Running in DEMO mode - no real API calls will be made'))
+      // Validate OpenAI API key
+      const openaiApiKey: string = process.env.OPENAI_API_KEY || ''
+      if (!openaiApiKey) {
+        throw new Error('OPENAI_API_KEY environment variable is required')
       }
 
       // Create and run pipeline

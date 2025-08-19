@@ -6,19 +6,17 @@ import { CodeIssue, AgentResult } from '../types'
 
 export class IssueCollectorAgent {
   private provider: OpenAIProvider
-  private isDemoMode: boolean
   private supportedExtensions = ['.ts', '.js', '.tsx', '.jsx', '.py', '.java', '.go', '.rs']
 
-  constructor(apiKey: string) {
-    this.provider = new OpenAIProvider({ apiKey })
-    this.isDemoMode = apiKey === 'demo-mode'
+  constructor(openaiProvider: OpenAIProvider) {
+    this.provider = openaiProvider
   }
 
   async run(targetPath: string = './src'): Promise<AgentResult<CodeIssue[]>> {
     const startTime = Date.now()
 
     try {
-      if (!this.isDemoMode && !this.provider.isAvailable) {
+      if (!this.provider.isAvailable) {
         throw new Error('OpenAI provider not available')
       }
 
@@ -92,18 +90,13 @@ export class IssueCollectorAgent {
       const content = fs.readFileSync(filePath, 'utf-8')
       const lines = content.split('\n')
       
-      if (this.isDemoMode) {
-        // Use basic analysis in demo mode
-        return this.performBasicAnalysis(filePath, lines)
-      } else {
-        // Analyze with AI
-        const aiResponse = await this.provider.analyzeCode(content, filePath)
-        
-        // Parse AI response
-        const parsedIssues = this.parseAIResponse(aiResponse, filePath, lines)
-        
-        return parsedIssues
-      }
+      // Analyze with AI
+      const aiResponse = await this.provider.analyzeCode(content, filePath)
+      
+      // Parse AI response
+      const parsedIssues = this.parseAIResponse(aiResponse, filePath, lines)
+      
+      return parsedIssues
     } catch (error) {
       console.warn(`Failed to analyze ${filePath}: ${error}`)
       return []

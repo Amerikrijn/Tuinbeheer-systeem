@@ -35,11 +35,9 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.QualityValidatorAgent = void 0;
 const fs = __importStar(require("fs"));
-const openai_provider_1 = require("../core/providers/openai-provider");
 class QualityValidatorAgent {
-    constructor(apiKey) {
-        this.provider = new openai_provider_1.OpenAIProvider({ apiKey });
-        this.isDemoMode = apiKey === 'demo-mode';
+    constructor(openaiProvider) {
+        this.provider = openaiProvider;
     }
     async run(issues, fixes) {
         const startTime = Date.now();
@@ -99,27 +97,14 @@ class QualityValidatorAgent {
         for (const fix of fixes) {
             try {
                 console.log(`✅ Validating fix: ${fix.description}`);
-                if (this.isDemoMode) {
-                    // Demo mode: simulate validation
-                    const isValid = this.validateDemoFix(fix);
-                    if (isValid) {
-                        validatedFixes.push(fix);
-                        console.log(`✅ Fix validated: ${fix.description}`);
-                    }
-                    else {
-                        console.log(`❌ Fix invalid: ${fix.description}`);
-                    }
+                // AI validation
+                const isValid = await this.validateAIFix(fix);
+                if (isValid) {
+                    validatedFixes.push(fix);
+                    console.log(`✅ AI validated fix: ${fix.description}`);
                 }
                 else {
-                    // Production mode: AI validation
-                    const isValid = await this.validateAIFix(fix);
-                    if (isValid) {
-                        validatedFixes.push(fix);
-                        console.log(`✅ AI validated fix: ${fix.description}`);
-                    }
-                    else {
-                        console.log(`❌ AI rejected fix: ${fix.description}`);
-                    }
+                    console.log(`❌ AI rejected fix: ${fix.description}`);
                 }
             }
             catch (error) {
@@ -128,14 +113,7 @@ class QualityValidatorAgent {
         }
         return validatedFixes;
     }
-    validateDemoFix(fix) {
-        // Demo mode validation logic
-        const riskScore = this.calculateRiskScore(fix);
-        const confidenceScore = fix.confidence / 100;
-        // Combine risk and confidence for validation decision
-        const validationScore = (confidenceScore * 0.7) + ((1 - riskScore) * 0.3);
-        return validationScore > 0.6; // 60% threshold
-    }
+    // Demo validation functie verwijderd - alleen echte AI validation
     async validateAIFix(fix) {
         try {
             // Read the file to get context
@@ -168,7 +146,7 @@ Focus on:
         }
         catch (error) {
             console.warn(`AI validation failed: ${error}`);
-            return this.validateDemoFix(fix); // Fallback to demo validation
+            return false; // No fallback, AI validation required
         }
     }
     calculateQualityScore(issues, validatedFixes) {

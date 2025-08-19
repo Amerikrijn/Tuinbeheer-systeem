@@ -1,13 +1,12 @@
+import { OpenAIProvider } from '../core/providers/openai-provider';
 import { CodeIssue, TestSuite, AgentResult } from '../types';
 export declare class TestGeneratorAgent {
     private provider;
-    private isDemoMode;
     private outputDir;
-    constructor(apiKey: string);
+    constructor(openaiProvider: OpenAIProvider);
     run(issues: CodeIssue[]): Promise<AgentResult<TestSuite[]>>;
     private generateTestSuite;
     private generateTestCase;
-    private generateDemoTestCase;
     private generatePatternBasedTest;
     private saveTestSuite;
     private generateTestFileContent;

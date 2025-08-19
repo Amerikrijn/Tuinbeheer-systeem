@@ -37,17 +37,15 @@ exports.IssueCollectorAgent = void 0;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const glob = __importStar(require("glob"));
-const openai_provider_1 = require("../core/providers/openai-provider");
 class IssueCollectorAgent {
-    constructor(apiKey) {
+    constructor(openaiProvider) {
         this.supportedExtensions = ['.ts', '.js', '.tsx', '.jsx', '.py', '.java', '.go', '.rs'];
-        this.provider = new openai_provider_1.OpenAIProvider({ apiKey });
-        this.isDemoMode = apiKey === 'demo-mode';
+        this.provider = openaiProvider;
     }
     async run(targetPath = './src') {
         const startTime = Date.now();
         try {
-            if (!this.isDemoMode && !this.provider.isAvailable) {
+            if (!this.provider.isAvailable) {
                 throw new Error('OpenAI provider not available');
             }
             console.log('🔍 Issue Collector Agent starting...');
@@ -108,17 +106,11 @@ class IssueCollectorAgent {
         try {
             const content = fs.readFileSync(filePath, 'utf-8');
             const lines = content.split('\n');
-            if (this.isDemoMode) {
-                // Use basic analysis in demo mode
-                return this.performBasicAnalysis(filePath, lines);
-            }
-            else {
-                // Analyze with AI
-                const aiResponse = await this.provider.analyzeCode(content, filePath);
-                // Parse AI response
-                const parsedIssues = this.parseAIResponse(aiResponse, filePath, lines);
-                return parsedIssues;
-            }
+            // Analyze with AI
+            const aiResponse = await this.provider.analyzeCode(content, filePath);
+            // Parse AI response
+            const parsedIssues = this.parseAIResponse(aiResponse, filePath, lines);
+            return parsedIssues;
         }
         catch (error) {
             console.warn(`Failed to analyze ${filePath}: ${error}`);

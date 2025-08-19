@@ -2,6 +2,7 @@ import { IssueCollectorAgent } from './agents/issue-collector'
 import { CodeFixerAgent } from './agents/code-fixer'
 import { TestGeneratorAgent } from './agents/test-generator'
 import { QualityValidatorAgent } from './agents/quality-validator'
+import { OpenAIProvider } from './core/providers/openai-provider'
 import { PipelineConfig, PipelineResult, CodeIssue, CodeFix, TestSuite, QualityValidation, AgentResult } from './types'
 import * as fs from 'fs'
 import * as path from 'path'
@@ -16,16 +17,18 @@ export class AIPipeline {
 
   constructor(config: PipelineConfig, openaiApiKey: string) {
     this.config = config
-    this.issueCollector = new IssueCollectorAgent(openaiApiKey)
-    this.codeFixer = new CodeFixerAgent(openaiApiKey)
-    this.testGenerator = new TestGeneratorAgent(openaiApiKey)
-    this.qualityValidator = new QualityValidatorAgent(openaiApiKey)
+    
+    // Alle agents gebruiken dezelfde OpenAI provider
+    const openaiProvider = new OpenAIProvider({ apiKey: openaiApiKey })
+    
+    this.issueCollector = new IssueCollectorAgent(openaiProvider)
+    this.codeFixer = new CodeFixerAgent(openaiProvider)
+    this.testGenerator = new TestGeneratorAgent(openaiProvider)
+    this.qualityValidator = new QualityValidatorAgent(openaiProvider)
+    
     this.results = this.initializeResults()
     
-    // Check if running in demo mode
-    if (openaiApiKey === 'demo-mode') {
-      console.log('🎭 Demo mode enabled - using mock data')
-    }
+    console.log('🚀 AI Pipeline initialized with OpenAI provider')
   }
 
   async run(targetPath: string = './src'): Promise<PipelineResult> {

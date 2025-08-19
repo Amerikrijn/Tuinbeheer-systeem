@@ -5,11 +5,9 @@ import { CodeIssue, CodeFix, QualityValidation, AgentResult } from '../types'
 
 export class QualityValidatorAgent {
   private provider: OpenAIProvider
-  private isDemoMode: boolean
 
-  constructor(apiKey: string) {
-    this.provider = new OpenAIProvider({ apiKey })
-    this.isDemoMode = apiKey === 'demo-mode'
+  constructor(openaiProvider: OpenAIProvider) {
+    this.provider = openaiProvider
   }
 
   async run(issues: CodeIssue[], fixes: CodeFix[]): Promise<AgentResult<QualityValidation>> {
@@ -83,24 +81,13 @@ export class QualityValidatorAgent {
       try {
         console.log(`✅ Validating fix: ${fix.description}`)
         
-        if (this.isDemoMode) {
-          // Demo mode: simulate validation
-          const isValid = this.validateDemoFix(fix)
-          if (isValid) {
-            validatedFixes.push(fix)
-            console.log(`✅ Fix validated: ${fix.description}`)
-          } else {
-            console.log(`❌ Fix invalid: ${fix.description}`)
-          }
+        // AI validation
+        const isValid = await this.validateAIFix(fix)
+        if (isValid) {
+          validatedFixes.push(fix)
+          console.log(`✅ AI validated fix: ${fix.description}`)
         } else {
-          // Production mode: AI validation
-          const isValid = await this.validateAIFix(fix)
-          if (isValid) {
-            validatedFixes.push(fix)
-            console.log(`✅ AI validated fix: ${fix.description}`)
-          } else {
-            console.log(`❌ AI rejected fix: ${fix.description}`)
-          }
+          console.log(`❌ AI rejected fix: ${fix.description}`)
         }
       } catch (error) {
         console.warn(`⚠️ Failed to validate fix: ${error}`)
@@ -110,16 +97,7 @@ export class QualityValidatorAgent {
     return validatedFixes
   }
 
-  private validateDemoFix(fix: CodeFix): boolean {
-    // Demo mode validation logic
-    const riskScore = this.calculateRiskScore(fix)
-    const confidenceScore = fix.confidence / 100
-    
-    // Combine risk and confidence for validation decision
-    const validationScore = (confidenceScore * 0.7) + ((1 - riskScore) * 0.3)
-    
-    return validationScore > 0.6 // 60% threshold
-  }
+  // Demo validation functie verwijderd - alleen echte AI validation
 
   private async validateAIFix(fix: CodeFix): Promise<boolean> {
     try {
@@ -156,7 +134,7 @@ Focus on:
 
     } catch (error) {
       console.warn(`AI validation failed: ${error}`)
-      return this.validateDemoFix(fix) // Fallback to demo validation
+      return false // No fallback, AI validation required
     }
   }
 

@@ -38,20 +38,20 @@ const issue_collector_1 = require("./agents/issue-collector");
 const code_fixer_1 = require("./agents/code-fixer");
 const test_generator_1 = require("./agents/test-generator");
 const quality_validator_1 = require("./agents/quality-validator");
+const openai_provider_1 = require("./core/providers/openai-provider");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 class AIPipeline {
     constructor(config, openaiApiKey) {
         this.config = config;
-        this.issueCollector = new issue_collector_1.IssueCollectorAgent(openaiApiKey);
-        this.codeFixer = new code_fixer_1.CodeFixerAgent(openaiApiKey);
-        this.testGenerator = new test_generator_1.TestGeneratorAgent(openaiApiKey);
-        this.qualityValidator = new quality_validator_1.QualityValidatorAgent(openaiApiKey);
+        // Alle agents gebruiken dezelfde OpenAI provider
+        const openaiProvider = new openai_provider_1.OpenAIProvider({ apiKey: openaiApiKey });
+        this.issueCollector = new issue_collector_1.IssueCollectorAgent(openaiProvider);
+        this.codeFixer = new code_fixer_1.CodeFixerAgent(openaiProvider);
+        this.testGenerator = new test_generator_1.TestGeneratorAgent(openaiProvider);
+        this.qualityValidator = new quality_validator_1.QualityValidatorAgent(openaiProvider);
         this.results = this.initializeResults();
-        // Check if running in demo mode
-        if (openaiApiKey === 'demo-mode') {
-            console.log('🎭 Demo mode enabled - using mock data');
-        }
+        console.log('🚀 AI Pipeline initialized with OpenAI provider');
     }
     async run(targetPath = './src') {
         const startTime = Date.now();

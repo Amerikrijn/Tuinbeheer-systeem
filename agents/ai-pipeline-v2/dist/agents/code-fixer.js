@@ -36,11 +36,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CodeFixerAgent = void 0;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
-const openai_provider_1 = require("../core/providers/openai-provider");
 class CodeFixerAgent {
-    constructor(apiKey) {
-        this.provider = new openai_provider_1.OpenAIProvider({ apiKey });
-        this.isDemoMode = apiKey === 'demo-mode';
+    constructor(openaiProvider) {
+        this.provider = openaiProvider;
         this.backupDir = './ai-pipeline-backups';
     }
     async run(issues) {
@@ -94,9 +92,6 @@ class CodeFixerAgent {
         }
     }
     async generateFix(issue) {
-        if (this.isDemoMode) {
-            return this.generateDemoFix(issue);
-        }
         try {
             // Read the file content
             const fileContent = fs.readFileSync(issue.filePath, 'utf-8');
@@ -120,60 +115,7 @@ class CodeFixerAgent {
             return this.generatePatternBasedFix(issue, '');
         }
     }
-    generateDemoFix(issue) {
-        // Demo mode: generate realistic-looking fixes
-        const fixId = `fix-${issue.id}-${Date.now()}`;
-        let before = issue.code;
-        let after = issue.code;
-        let description = 'Demo fix generated';
-        // Apply demo fixes based on issue type
-        switch (issue.category) {
-            case 'security':
-            case 'quality':
-                if (issue.message.includes('console.log')) {
-                    // Simple fix: replace entire line
-                    before = issue.code;
-                    after = '  // ' + issue.code.trim() + ' // Removed for security';
-                    description = 'Commented out console.log for security';
-                }
-                else if (issue.message.includes('TODO')) {
-                    before = issue.code;
-                    after = issue.code.replace('TODO:', '// TODO:');
-                    description = 'Formatted TODO comment';
-                }
-                break;
-            case 'performance':
-                if (issue.message.includes('var ')) {
-                    before = issue.code;
-                    after = issue.code.replace('var ', 'const ');
-                    description = 'Changed var to const for better performance';
-                }
-                break;
-            case 'typescript':
-                if (issue.message.includes(': any')) {
-                    before = issue.code;
-                    after = issue.code.replace(': any', ': unknown');
-                    description = 'Changed any to unknown for type safety';
-                }
-                break;
-        }
-        return {
-            id: fixId,
-            issueId: issue.id,
-            description,
-            before,
-            after,
-            filePath: issue.filePath,
-            line: issue.line,
-            column: issue.column,
-            risk: 'low',
-            confidence: 85,
-            category: issue.category,
-            aiProvider: 'demo-mode',
-            autoApply: true,
-            timestamp: new Date()
-        };
-    }
+    // Demo fix functie verwijderd - alleen echte AI fixes
     generatePatternBasedFix(issue, problemLine) {
         // Pattern-based fixes as fallback
         const fixId = `pattern-fix-${issue.id}-${Date.now()}`;
