@@ -44,6 +44,8 @@ agents/*/auto-fix-results/
 # Core dump files
 core
 core.*
+# Don't ignore source code directories
+!**/src/core/
 
 # Test artifacts
 test-results/

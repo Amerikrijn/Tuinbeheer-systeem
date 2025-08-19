@@ -85,10 +85,7 @@ export class CodeFixerAgent {
       if (!problemLine) return null
 
       // Generate AI fix
-      const aiResponse = await this.provider.callAPI(
-        this.buildFixPrompt(issue, problemLine, fileContent),
-        { role: 'code-fixer' }
-      )
+      const aiResponse = await this.provider.fixCode([issue])
 
       // Parse AI response
       const parsedFix = this.parseAIResponse(aiResponse, issue, problemLine)

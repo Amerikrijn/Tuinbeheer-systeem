@@ -126,7 +126,7 @@ Focus on:
 - Is the fix safe and maintainable?
 - Are there any unintended side effects?`
 
-      const aiResponse = await this.provider.callAPI(prompt, { role: 'quality-validator' })
+      const aiResponse = await this.provider.validateQuality([fix], [])
       
       // Parse AI response
       const parsed = this.parseAIResponse(aiResponse)
