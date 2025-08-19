@@ -25,6 +25,10 @@ program
   .option('--git-integration', 'Enable Git integration', false)
   .option('--config <path>', 'Configuration file path')
   .option('--ci-mode', 'Run in CI mode without AI analysis', false)
+  .option('--pr-review', 'Enable AI code review for PRs', false)
+  .option('--github-token <token>', 'GitHub token for PR integration')
+  .option('--repo <repo>', 'Repository name (owner/repo)')
+  .option('--pr-number <number>', 'Pull request number')
   .action(async (options) => {
     try {
       console.log(chalk.blue('🚀 AI Pipeline v2.0 Starting...'))
