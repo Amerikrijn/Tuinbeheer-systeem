@@ -87,6 +87,16 @@ class IssueCollectorAgent {
         }
     }
     findCodeFiles(targetPath) {
+        // Check if targetPath is a file or directory
+        if (fs.statSync(targetPath).isFile()) {
+            // Single file
+            const ext = path.extname(targetPath).toLowerCase();
+            if (this.supportedExtensions.includes(ext)) {
+                return [targetPath];
+            }
+            return [];
+        }
+        // Directory - use glob pattern
         const pattern = path.join(targetPath, '**/*');
         const files = glob.sync(pattern, { nodir: true });
         return files.filter(file => {

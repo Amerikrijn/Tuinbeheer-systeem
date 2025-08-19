@@ -35,12 +35,18 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AIPipeline = void 0;
 const issue_collector_1 = require("./agents/issue-collector");
+const code_fixer_1 = require("./agents/code-fixer");
+const test_generator_1 = require("./agents/test-generator");
+const quality_validator_1 = require("./agents/quality-validator");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 class AIPipeline {
     constructor(config, openaiApiKey) {
         this.config = config;
         this.issueCollector = new issue_collector_1.IssueCollectorAgent(openaiApiKey);
+        this.codeFixer = new code_fixer_1.CodeFixerAgent(openaiApiKey);
+        this.testGenerator = new test_generator_1.TestGeneratorAgent(openaiApiKey);
+        this.qualityValidator = new quality_validator_1.QualityValidatorAgent(openaiApiKey);
         this.results = this.initializeResults();
         // Check if running in demo mode
         if (openaiApiKey === 'demo-mode') {
@@ -76,20 +82,36 @@ class AIPipeline {
                 // Step 2: Calculate Quality Score
                 currentQualityScore = this.calculateQualityScore(issues);
                 console.log(`📊 Current quality score: ${currentQualityScore.toFixed(1)}%`);
-                // Step 3: Generate Tests (placeholder for now)
+                // Step 3: Generate Tests
                 console.log('🧪 Step 2: Generating Tests...');
-                const testsGenerated = this.generateTests(issues);
-                totalTestsGenerated += testsGenerated;
-                console.log(`✅ Generated ${testsGenerated} tests`);
-                // Step 4: Fix Code (placeholder for now)
+                const testResult = await this.testGenerator.run(issues);
+                if (testResult.success) {
+                    totalTestsGenerated += testResult.data.length;
+                    console.log(`✅ Generated ${testResult.data.length} test suites`);
+                }
+                else {
+                    console.warn(`⚠️ Test generation failed: ${testResult.error}`);
+                }
+                // Step 4: Fix Code
                 console.log('🔧 Step 3: Fixing Code...');
-                const issuesFixed = this.fixCode(issues);
-                totalIssuesFixed += issuesFixed;
-                console.log(`✅ Fixed ${issuesFixed} issues`);
+                const fixResult = await this.codeFixer.run(issues);
+                if (fixResult.success) {
+                    totalIssuesFixed += fixResult.data.length;
+                    console.log(`✅ Applied ${fixResult.data.length} fixes`);
+                }
+                else {
+                    console.warn(`⚠️ Code fixing failed: ${fixResult.error}`);
+                }
                 // Step 5: Validate Fixes
                 console.log('✅ Step 4: Validating Fixes...');
-                const validationResult = this.validateFixes(issues);
-                console.log(`✅ Validation complete`);
+                const validationResult = await this.qualityValidator.run(issues, fixResult.success ? fixResult.data : []);
+                if (validationResult.success) {
+                    currentQualityScore = validationResult.data.score;
+                    console.log(`✅ Validation complete - Quality Score: ${currentQualityScore.toFixed(1)}%`);
+                }
+                else {
+                    console.warn(`⚠️ Validation failed: ${validationResult.error}`);
+                }
                 // Step 6: Check if we should continue
                 if (currentQualityScore >= this.config.qualityThreshold) {
                     console.log('🎉 Quality threshold reached!');
@@ -194,19 +216,7 @@ class AIPipeline {
         }
         return Math.round((totalScore / maxScore) * 100);
     }
-    generateTests(issues) {
-        // Placeholder: will be implemented with test generator agent
-        return Math.min(issues.length * 2, 10); // Generate up to 2 tests per issue, max 10
-    }
-    fixCode(issues) {
-        // Placeholder: will be implemented with code fixer agent
-        const fixableIssues = issues.filter(issue => issue.fixable);
-        return Math.min(fixableIssues.length, 5); // Fix up to 5 issues per iteration
-    }
-    validateFixes(issues) {
-        // Placeholder: will be implemented with quality validator agent
-        return true;
-    }
+    // These placeholder functions have been replaced with real agent implementations
     async prepareNextIteration(targetPath) {
         // Placeholder: prepare for next iteration
         // This could include:
