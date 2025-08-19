@@ -1,12 +1,17 @@
 {
   "success": true,
-  "iterations": 0,
-  "finalQualityScore": 100,
+  "iterations": 1,
+  "finalQualityScore": 85,
   "issuesFound": 0,
   "issuesFixed": 0,
   "testsGenerated": 0,
-  "executionTime": 3287,
+  "executionTime": 1755614477421,
   "errors": [],
-  "warnings": [],
-  "timestamp": "2025-08-19T06:27:07.480Z"
+  "timestamp": "2025-08-19T14:41:17.421Z",
+  "mode": "ci",
+  "aiProvider": "ci-mode",
+  "targetPath": "../../app",
+  "allIssues": [],
+  "allFixes": [],
+  "allTests": []
 }

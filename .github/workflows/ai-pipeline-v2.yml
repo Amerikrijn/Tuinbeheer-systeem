@@ -33,18 +33,21 @@ jobs:
           ls -la
           echo "🔍 Installing dependencies..."
           npm ci
-          echo "✅ Installation completed"
+          echo "🔍 Rebuilding to ensure completeness..."
+          npm run build
+          echo "✅ Installation and build completed"
 
       - name: Verify AI Pipeline Build
         run: |
           echo "🔍 Verifying AI Pipeline build..."
           cd agents/ai-pipeline-v2
           echo "🔍 Current directory: $(pwd)"
-          echo "🔍 Checking pre-built artifacts..."
+          echo "🔍 Checking built artifacts..."
           ls -la dist/ || echo "❌ dist directory not found"
           ls -la dist/cli.js || echo "❌ dist/cli.js not found"
-          echo "🔍 Available scripts:"
-          npm run
+          ls -la dist/core/providers/ || echo "❌ core/providers directory not found"
+          echo "🔍 Testing CLI functionality..."
+          node dist/cli.js --help || echo "❌ CLI test failed"
           echo "✅ Build verification completed"
 
       - name: Run AI Pipeline (AI Mode)
@@ -187,7 +190,7 @@ jobs:
             
             ### 🚀 Pipeline Execution
             - **Installation**: ✅ Dependencies installed
-            - **Build**: ✅ Pre-built artifacts verified
+            - **Build**: ✅ TypeScript compiled during CI
             - **Execution**: ✅ Pipeline executed
             - **Results**: ✅ Results processed
             

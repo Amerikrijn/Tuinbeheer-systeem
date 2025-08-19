@@ -6,11 +6,13 @@ export declare class AIPipeline {
     private testGenerator;
     private qualityValidator;
     private results;
+    private openaiProvider;
     constructor(config: PipelineConfig, openaiApiKey: string);
     run(targetPath?: string): Promise<PipelineResult>;
-    private initializeResults;
     private calculateQualityScore;
-    private prepareNextIteration;
-    private saveResults;
+    private initializeResults;
+    getResults(): PipelineResult;
+    getOpenAIStatus(): boolean;
+    getProviderName(): string;
 }
 //# sourceMappingURL=pipeline.d.ts.map
