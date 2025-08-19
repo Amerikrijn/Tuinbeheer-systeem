@@ -157,36 +157,71 @@ class AIStandardsAgent {
 
   async runFixingCycles() {
     console.log('🔄 Starting fixing cycles...');
+    console.log(`🎯 Target: ${this.qualityThreshold}% quality in max ${this.maxCycles} cycles`);
     
-    while (this.cycle < this.maxCycles && this.currentQuality < this.qualityThreshold) {
+    // Force at least 3 cycles to run
+    const minCycles = 3;
+    
+    while (this.cycle < this.maxCycles && (this.currentQuality < this.qualityThreshold || this.cycle < minCycles)) {
       this.cycle++;
-      console.log(`\n🔄 Cycle ${this.cycle}/${this.maxCycles}`);
+      console.log(`\n🔄 ===== CYCLE ${this.cycle}/${this.maxCycles} =====`);
+      console.log(`📊 Current Quality: ${this.currentQuality}%`);
       
-      // Step 1: Analyze current code
-      await this.analyzeCode();
-      
-      // Step 2: Find issues
-      await this.findIssues();
-      
-      // Step 3: Generate fixes
-      await this.generateFixes();
-      
-      // Step 4: Apply fixes
-      await this.applyFixes();
-      
-      // Step 5: Test fixes
-      await this.testFixes();
-      
-      // Step 6: Calculate new quality
-      this.currentQuality = this.calculateQuality();
-      
-      console.log(`📊 Quality after cycle ${this.cycle}: ${this.currentQuality}%`);
-      
-      if (this.currentQuality >= this.qualityThreshold) {
-        console.log(`🎯 Target quality (${this.qualityThreshold}%) reached!`);
-        break;
+      try {
+        // Step 1: Analyze current code
+        console.log('🔍 Step 1: Analyzing current code...');
+        await this.analyzeCode();
+        
+        // Step 2: Find issues
+        console.log('🔍 Step 2: Finding issues...');
+        await this.findIssues();
+        
+        // Step 3: Generate fixes
+        console.log('🔧 Step 3: Generating fixes...');
+        await this.generateFixes();
+        
+        // Step 4: Apply fixes
+        console.log('🔧 Step 4: Applying fixes...');
+        await this.applyFixes();
+        
+        // Step 5: Test fixes
+        console.log('🧪 Step 5: Testing fixes...');
+        await this.testFixes();
+        
+        // Step 6: Calculate new quality
+        console.log('📊 Step 6: Calculating new quality...');
+        this.currentQuality = this.calculateQuality();
+        
+        console.log(`📊 Quality after cycle ${this.cycle}: ${this.currentQuality}%`);
+        
+        // Force continue if we haven't reached minimum cycles
+        if (this.cycle < minCycles) {
+          console.log(`🔄 Forcing continuation - minimum ${minCycles} cycles required`);
+          continue;
+        }
+        
+        if (this.currentQuality >= this.qualityThreshold) {
+          console.log(`🎯 Target quality (${this.qualityThreshold}%) reached!`);
+          break;
+        }
+        
+        // Add delay between cycles to show progress
+        console.log('⏳ Waiting 2 seconds before next cycle...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+      } catch (error) {
+        console.log(`❌ Error in cycle ${this.cycle}:`, error.message);
+        console.log('🔄 Continuing to next cycle despite error...');
+        // Continue to next cycle even if this one fails
       }
     }
+    
+    console.log(`\n🏁 Fixing cycles completed!`);
+    console.log(`📊 Final Results:`);
+    console.log(`   - Cycles Run: ${this.cycle}`);
+    console.log(`   - Final Quality: ${this.currentQuality}%`);
+    console.log(`   - Issues Found: ${this.issues.length}`);
+    console.log(`   - Fixes Applied: ${this.fixes.filter(f => f.applied).length}`);
   }
 
   async analyzeCode() {
