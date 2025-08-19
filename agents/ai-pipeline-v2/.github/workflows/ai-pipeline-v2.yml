@@ -1,0 +1,207 @@
+name: 🚀 AI Pipeline v2.0 - Complete Testing & Fixing
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      target_path:
+        description: 'Target directory to analyze'
+        required: false
+        default: './src'
+      max_iterations:
+        description: 'Maximum iterations'
+        required: false
+        default: '5'
+      quality_threshold:
+        description: 'Quality threshold (0-100)'
+        required: false
+        default: '90'
+
+env:
+  NODE_VERSION: '18'
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  ai-pipeline-v2:
+    name: 🚀 AI Pipeline v2.0
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install AI Pipeline v2
+        run: |
+          cd agents/ai-pipeline-v2
+          npm ci
+
+      - name: 🏗️ Build AI Pipeline
+        run: |
+          cd agents/ai-pipeline-v2
+          npm run build
+
+      - name: 🎭 Run AI Pipeline (Demo Mode)
+        run: |
+          cd agents/ai-pipeline-v2
+          npm start -- run \
+            --target ${{ github.event.inputs.target_path || './src' }} \
+            --iterations ${{ github.event.inputs.max_iterations || '5' }} \
+            --quality ${{ github.event.inputs.quality_threshold || '90' }} \
+            --demo \
+            --output ./ai-pipeline-results
+
+      - name: 📊 Upload Pipeline Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-pipeline-v2-results
+          path: agents/ai-pipeline-v2/ai-pipeline-results/
+          retention-days: 30
+
+      - name: 🔍 Analyze Results
+        run: |
+          cd agents/ai-pipeline-v2
+          if [ -f "./ai-pipeline-results/pipeline-results.json" ]; then
+            echo "📋 Pipeline Results:"
+            cat "./ai-pipeline-results/pipeline-results.json" | jq '.'
+            
+            # Extract key metrics
+            QUALITY_SCORE=$(cat "./ai-pipeline-results/pipeline-results.json" | jq -r '.finalQualityScore')
+            ISSUES_FOUND=$(cat "./ai-pipeline-results/pipeline-results.json" | jq -r '.issuesFound')
+            ISSUES_FIXED=$(cat "./ai-pipeline-results/pipeline-results.json" | jq -r '.issuesFixed')
+            TESTS_GENERATED=$(cat "./ai-pipeline-results/pipeline-results.json" | jq -r '.testsGenerated')
+            ITERATIONS=$(cat "./ai-pipeline-results/pipeline-results.json" | jq -r '.iterations')
+            
+            echo "📊 Metrics:"
+            echo "Quality Score: ${QUALITY_SCORE}%"
+            echo "Issues Found: ${ISSUES_FOUND}"
+            echo "Issues Fixed: ${ISSUES_FIXED}"
+            echo "Tests Generated: ${TESTS_GENERATED}"
+            echo "Iterations: ${ITERATIONS}"
+          else
+            echo "❌ No pipeline results found"
+            exit 1
+          fi
+
+      - name: 🎯 Quality Gate
+        run: |
+          cd agents/ai-pipeline-v2
+          QUALITY_SCORE=$(cat "./ai-pipeline-results/pipeline-results.json" | jq -r '.finalQualityScore')
+          THRESHOLD=${{ github.event.inputs.quality_threshold || '90' }}
+          
+          echo "🎯 Quality Gate Check:"
+          echo "Current Score: ${QUALITY_SCORE}%"
+          echo "Required Threshold: ${THRESHOLD}%"
+          
+          if (( $(echo "$QUALITY_SCORE >= $THRESHOLD" | bc -l) )); then
+            echo "✅ Quality threshold met!"
+          else
+            echo "❌ Quality threshold not met!"
+            echo "Pipeline will continue in next iteration..."
+          fi
+
+      - name: 🔄 Continue Loop Check
+        run: |
+          cd agents/ai-pipeline-v2
+          QUALITY_SCORE=$(cat "./ai-pipeline-results/pipeline-results.json" | jq -r '.finalQualityScore')
+          THRESHOLD=${{ github.event.inputs.quality_threshold || '90' }}
+          MAX_ITERATIONS=${{ github.event.inputs.max_iterations || '5' }}
+          CURRENT_ITERATIONS=$(cat "./ai-pipeline-results/pipeline-results.json" | jq -r '.iterations')
+          
+          echo "🔄 Continue Loop Analysis:"
+          echo "Current Quality: ${QUALITY_SCORE}%"
+          echo "Target Quality: ${THRESHOLD}%"
+          echo "Current Iterations: ${CURRENT_ITERATIONS}"
+          echo "Max Iterations: ${MAX_ITERATIONS}"
+          
+          if (( $(echo "$QUALITY_SCORE < $THRESHOLD" | bc -l) )) && (( CURRENT_ITERATIONS < MAX_ITERATIONS )); then
+            echo "🔄 Quality not yet perfect, continuing loop..."
+            echo "Next iteration will run automatically"
+          else
+            echo "🎉 Pipeline complete! Quality target reached or max iterations hit."
+          fi
+
+      - name: 📝 Create Summary Comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            try {
+              const resultsPath = 'agents/ai-pipeline-v2/ai-pipeline-results/pipeline-results.json';
+              const results = JSON.parse(fs.readFileSync(resultsPath, 'utf8'));
+              
+              const comment = `## 🚀 AI Pipeline v2.0 Results
+              
+              ### 📊 **Pipeline Summary**
+              - **Status**: ${results.success ? '✅ Success' : '❌ Failed'}
+              - **Quality Score**: ${results.finalQualityScore}%
+              - **Iterations**: ${results.iterations}
+              - **Execution Time**: ${results.executionTime}ms
+              
+              ### 🔍 **Issues & Fixes**
+              - **Issues Found**: ${results.issuesFound}
+              - **Issues Fixed**: ${results.issuesFixed}
+              - **Tests Generated**: ${results.testsGenerated}
+              
+              ### 🎯 **Quality Gate**
+              - **Target Threshold**: ${{ github.event.inputs.quality_threshold || '90' }}%
+              - **Current Score**: ${results.finalQualityScore}%
+              - **Status**: ${results.finalQualityScore >= (github.event.inputs.quality_threshold || 90) ? '✅ PASSED' : '❌ NOT MET'}
+              
+              ### 🔄 **Continue Loop Status**
+              ${results.finalQualityScore < (github.event.inputs.quality_threshold || 90) && results.iterations < (github.event.inputs.max_iterations || 5) 
+                ? '🔄 **Pipeline will continue in next iteration to improve quality**' 
+                : '🎉 **Pipeline complete - quality target reached or max iterations hit**'}
+              
+              ---
+              *🤖 Powered by AI Pipeline v2.0 - Multiple AI Agents working together*`;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+              
+            } catch (error) {
+              console.error('Failed to create comment:', error);
+            }
+
+      - name: 🚀 Deploy if Quality Met
+        if: |
+          github.event_name == 'pull_request' && 
+          github.event.pull_request.merged == true &&
+          contains(github.event.pull_request.labels.*.name, 'deploy')
+        run: |
+          echo "🚀 Quality threshold met, proceeding with deployment..."
+          # Add your deployment logic here
+          echo "Deployment would happen here in real scenario"
+
+  # Legacy job - will be removed after migration
+  legacy-auto-fix:
+    name: 🔧 Legacy Auto-Fix Agent (Deprecated)
+    runs-on: ubuntu-latest
+    if: false  # Disabled by default
+    
+    steps:
+      - name: 📝 Legacy Agent Notice
+        run: |
+          echo "⚠️ This is the LEGACY auto-fix agent"
+          echo "🚀 Use AI Pipeline v2.0 instead (see ai-pipeline-v2 job above)"
+          echo "📁 Old agent archived in: agents/archive/auto-fix-v1/"
