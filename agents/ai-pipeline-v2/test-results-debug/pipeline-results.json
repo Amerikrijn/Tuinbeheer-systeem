@@ -1,0 +1,11 @@
+{
+  "success": true,
+  "iterations": 1,
+  "finalQualityScore": 85,
+  "issuesFound": 0,
+  "issuesFixed": 0,
+  "testsGenerated": 0,
+  "executionTime": 1755593920872,
+  "errors": [],
+  "timestamp": "2025-08-19T08:58:40.872Z"
+}

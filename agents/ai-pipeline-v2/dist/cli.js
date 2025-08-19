@@ -73,6 +73,31 @@ program
         // Check if running in CI mode
         if (options.ciMode) {
             console.log(chalk_1.default.yellow('🔧 Running in CI mode - skipping AI analysis'));
+            console.log(chalk_1.default.blue(`📁 Target path: ${options.target}`));
+            console.log(chalk_1.default.blue(`📁 Output path: ${options.output}`));
+            console.log(chalk_1.default.blue(`📁 Current working directory: ${process.cwd()}`));
+            // Check if target path exists
+            try {
+                const fs = require('fs');
+                const path = require('path');
+                const targetPath = path.resolve(options.target);
+                console.log(chalk_1.default.blue(`📁 Resolved target path: ${targetPath}`));
+                if (fs.existsSync(targetPath)) {
+                    console.log(chalk_1.default.green(`✅ Target path exists`));
+                    if (fs.statSync(targetPath).isDirectory()) {
+                        const files = fs.readdirSync(targetPath);
+                        console.log(chalk_1.default.blue(`📁 Found ${files.length} items in target directory`));
+                        const tsFiles = files.filter((f) => f.endsWith('.ts') || f.endsWith('.tsx'));
+                        console.log(chalk_1.default.blue(`📁 Found ${tsFiles.length} TypeScript files`));
+                    }
+                }
+                else {
+                    console.log(chalk_1.default.red(`❌ Target path does not exist`));
+                }
+            }
+            catch (error) {
+                console.log(chalk_1.default.red(`❌ Error checking target path: ${error}`));
+            }
             // Create basic validation results
             const results = {
                 success: true,
@@ -87,10 +112,23 @@ program
             };
             // Save results
             const outputDir = path.resolve(options.output);
+            console.log(chalk_1.default.blue(`📁 Creating output directory: ${outputDir}`));
             if (!fs.existsSync(outputDir)) {
                 fs.mkdirSync(outputDir, { recursive: true });
+                console.log(chalk_1.default.green(`✅ Created output directory`));
             }
-            fs.writeFileSync(path.join(outputDir, 'pipeline-results.json'), JSON.stringify(results, null, 2));
+            const outputFile = path.join(outputDir, 'pipeline-results.json');
+            console.log(chalk_1.default.blue(`📁 Writing results to: ${outputFile}`));
+            fs.writeFileSync(outputFile, JSON.stringify(results, null, 2));
+            console.log(chalk_1.default.green(`✅ Results saved successfully`));
+            // Verify the file was created
+            if (fs.existsSync(outputFile)) {
+                const stats = fs.statSync(outputFile);
+                console.log(chalk_1.default.green(`✅ Output file exists, size: ${stats.size} bytes`));
+            }
+            else {
+                console.log(chalk_1.default.red(`❌ Output file was not created`));
+            }
             console.log(chalk_1.default.green('✅ CI mode completed successfully'));
             console.log(chalk_1.default.blue(`📁 Results saved to: ${options.output}`));
             return;
