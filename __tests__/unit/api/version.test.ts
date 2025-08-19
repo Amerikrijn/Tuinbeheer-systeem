@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/version/route';
+import { vi } from 'vitest';
 
 // Mock the version module
-jest.mock('@/lib/version', () => ({
+vi.mock('@/lib/version', () => ({
   APP_VERSION: '2024.12.19.001',
   CACHE_BUST_TIMESTAMP: 1703001600000
 }));

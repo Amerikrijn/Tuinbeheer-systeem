@@ -1,9 +1,10 @@
 import { NextRequest } from 'next/server';
 import { GET, POST } from '@/app/api/health/route';
+import { vi } from 'vitest';
 
 // Mock the os module
-const mockUptime = jest.fn();
-jest.mock('os', () => ({
+const mockUptime = vi.fn();
+vi.mock('os', () => ({
   uptime: mockUptime,
 }));
 
@@ -41,6 +42,16 @@ describe('/api/health', () => {
 
       expect(response.status).toBe(200);
       expect(data.environment).toBe('development');
+    });
+
+    it('should handle test environment correctly', async () => {
+      process.env.NODE_ENV = 'test';
+      const request = new NextRequest('http://localhost:3000/api/health');
+      const response = await GET(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.environment).toBe('test');
     });
 
     it('should return valid timestamp', async () => {
