@@ -1,235 +1,182 @@
-# 🚀 AI Pipeline v2.0
+# 🚀 AI Pipeline v2.0 - AI-Powered Code Quality Pipeline
 
-**AI-Powered Pipeline for Testing, Orchestration, and Code Fixing**
+Een krachtige pipeline die AI agents gebruikt om code te analyseren, testen te genereren, en automatisch te verbeteren.
 
-Een slimme pipeline die meerdere AI agents laat samenwerken om je code te verbeteren tot het perfect is!
+## 🎯 **Wat Het Doet**
 
-## ✨ Features
+- **🔍 Issue Collector** - Vindt code problemen met AI
+- **🔧 Code Fixer** - Genereert en past fixes toe met AI
+- **🧪 Test Generator** - Maakt test cases met AI
+- **✅ Quality Validator** - Valideert fixes en berekent kwaliteit
+- **🔄 Continue Loop** - Blijft verbeteren tot target kwaliteit
 
-### 🤖 **Multiple AI Agents**
-- **Issue Collector** (OpenAI GPT-4) - Vindt code problemen
-- **Test Generator** (Anthropic Claude) - Schrijft tests
-- **Code Fixer** (GitHub Copilot) - Lost problemen op
-- **Quality Validator** (OpenAI GPT-4) - Valideert fixes
+## ⚙️ **Configuratie**
 
-### 🔄 **Continue Loop**
-- Pipeline blijft draaien tot code kwaliteit perfect is
-- Automatische iteraties met kwaliteitsverbetering
-- Intelligente stop criteria
+### **1. Configuratie Bestand**
 
-### 🎯 **Smart Orchestration**
-- Agents werken samen
-- Automatische error handling
-- Progress tracking
-- Resultaten opslaan
+Maak een `config/pipeline-config.yml` bestand aan:
 
-## 🚀 Quick Start
+```yaml
+# LLM Provider
+llm:
+  provider: "openai"        # openai, claude, copilot (toekomst)
+  model: "gpt-4"           # gpt-4, gpt-3.5-turbo
+  api_key: "${OPENAI_API_KEY}"
+  temperature: 0.1          # Laag voor consistente fixes
 
-### **1. Installatie**
-```bash
-cd agents/ai-pipeline-v2
-npm install
+# Kwaliteit Instellingen
+quality:
+  threshold: 85             # Minimale kwaliteit score (0-100)
+  max_iterations: 5         # Maximum verbeterings cycli
+  auto_apply_fixes: true    # Automatisch fixes toepassen
+  require_validation: true  # AI validatie vereist
+
+# Agents Configuratie
+agents:
+  issue_collector:
+    enabled: true
+    focus: ["security", "performance", "quality", "typescript"]
+  
+  code_fixer:
+    enabled: true
+    confidence_threshold: 70  # Alleen fixes met 70%+ vertrouwen
+  
+  test_generator:
+    enabled: true
+    test_framework: "jest"
+  
+  quality_validator:
+    enabled: true
+    validation_mode: "ai"
 ```
 
-### **2. API Keys Instellen**
+### **2. Environment Variables**
+
 ```bash
-export OPENAI_API_KEY="sk-your-openai-key"
-export ANTHROPIC_API_KEY="sk-ant-your-anthropic-key"
-export GITHUB_TOKEN="ghp-your-github-token"
+export OPENAI_API_KEY="your-openai-api-key-here"
 ```
 
-### **3. Pipeline Starten**
+### **3. Pipeline Uitvoeren**
+
 ```bash
 # Basis pipeline
-npm start -- run
+npm start -- run --target ./src
 
 # Met custom instellingen
-npm start -- run --target ./src --iterations 15 --quality 95
-
-# Met auto-apply
-npm start -- run --auto-apply
+npm start -- run \
+  --target ./src \
+  --iterations 10 \
+  --quality 90 \
+  --config ./my-config.yml
 ```
 
-## 📖 Gebruik
+## 🎛️ **Configuratie Opties**
 
-### **Pipeline Commando's**
+### **LLM Providers**
+- **OpenAI** - GPT-4, GPT-3.5-turbo
+- **Claude** - Anthropic Claude (toekomst)
+- **GitHub Copilot** - GitHub Copilot (toekomst)
+
+### **Focus Instellingen**
+- **Security** - Beveiligings issues
+- **Performance** - Performance problemen
+- **Quality** - Code kwaliteit
+- **TypeScript** - Type veiligheid
+
+### **Test Frameworks**
+- **Jest** - JavaScript/TypeScript testing
+- **Mocha** - Flexible testing framework
+- **Vitest** - Fast Vite-based testing
+
+### **Kwaliteit Thresholds**
+- **50-70** - Basis kwaliteit
+- **70-85** - Goede kwaliteit
+- **85-95** - Uitstekende kwaliteit
+- **95+** - Productie-ready
+
+## 🔧 **Pipeline Commando's**
+
 ```bash
 # Pipeline uitvoeren
-ai-pipeline run [options]
+npm start -- run [options]
 
 # Configuratie beheren
-ai-pipeline config --init
-ai-pipeline config --show
+npm start -- config --init      # Maak default config
+npm start -- config --show      # Toon huidige config
+npm start -- config --set key=value
 
-# Agents beheren
-ai-pipeline agents --list
-ai-pipeline agents --status
+# Agent status
+npm start -- agents --list      # Toon beschikbare agents
+npm start -- agents --status    # Check agent status
 ```
 
-### **CLI Opties**
-```bash
-Options:
-  -t, --target <path>        Target directory (default: ./src)
-  -i, --iterations <number>  Maximum iterations (default: 10)
-  -q, --quality <number>     Quality threshold 0-100 (default: 90)
-  -o, --output <path>        Output directory (default: ./ai-pipeline-results)
-  --auto-apply               Automatically apply fixes
-  --git-integration          Enable Git integration
-  --config <path>            Configuration file path
-```
+## 📊 **Resultaten Bekijken**
 
-## 🏗️ Architectuur
-
-### **Pipeline Flow**
-```
-1. 🔍 Issue Collector (OpenAI)
-   ↓
-2. 🧪 Test Generator (Claude)  
-   ↓
-3. 🔧 Code Fixer (Copilot)
-   ↓
-4. ✅ Quality Validator (OpenAI)
-   ↓
-5. 🔄 Repeat until perfect
-```
-
-### **Continue Loop Logica**
-```typescript
-while (qualityScore < threshold && iteration < maxIterations) {
-  // 1. Collect issues
-  // 2. Generate tests
-  // 3. Fix code
-  // 4. Validate fixes
-  // 5. Check quality
-  // 6. Repeat if needed
-}
-```
-
-## ⚙️ Configuratie
-
-### **Default Config**
-```json
-{
-  "agents": [
-    {
-      "id": "issue-collector",
-      "name": "Issue Collector",
-      "enabled": true,
-      "provider": "openai"
-    },
-    {
-      "id": "test-generator", 
-      "name": "Test Generator",
-      "enabled": false,
-      "provider": "anthropic"
-    }
-  ],
-  "maxIterations": 10,
-  "qualityThreshold": 90,
-  "autoApply": false,
-  "gitIntegration": false
-}
-```
-
-### **Configuratie Bestand Maken**
-```bash
-ai-pipeline config --init
-```
-
-## 🔧 Development
-
-### **Scripts**
-```bash
-npm run build          # TypeScript compiler
-npm run dev            # Watch mode
-npm run test           # Run tests
-npm run pipeline       # Run pipeline directly
-```
-
-### **Agent Development**
-```bash
-# Test individuele agents
-npm run agent:issue-collector
-npm run agent:test-generator
-npm run agent:code-fixer
-npm run agent:quality-validator
-```
-
-## 📊 Output
-
-### **Resultaten**
-- **JSON output** in `./ai-pipeline-results/`
-- **Pipeline results** met metrics
-- **Agent results** per agent
-- **Quality scores** per iteratie
-
-### **Voorbeeld Output**
+### **Pipeline Results**
 ```json
 {
   "success": true,
   "iterations": 3,
-  "finalQualityScore": 95.2,
-  "issuesFound": 12,
-  "issuesFixed": 10,
-  "testsGenerated": 8,
+  "finalQualityScore": 87.5,
+  "issuesFound": 24,
+  "issuesFixed": 18,
+  "testsGenerated": 15,
   "executionTime": 45000
 }
 ```
 
-## 🚨 Troubleshooting
+### **Output Bestanden**
+- `ai-pipeline-results/` - Pipeline resultaten
+- `ai-pipeline-tests/` - Gegenereerde test bestanden
+- `ai-pipeline-backups/` - Backups van gewijzigde bestanden
 
-### **Veelvoorkomende Problemen**
+## 🚨 **Troubleshooting**
 
-#### **1. API Key Error**
+### **OpenAI API Key Probleem**
 ```bash
-Error: OPENAI_API_KEY environment variable is required
+❌ OPENAI_API_KEY environment variable is required
+
+# Oplossing:
+export OPENAI_API_KEY="your-key-here"
 ```
-**Oplossing**: Zet je API key in environment
+
+### **Configuratie Probleem**
 ```bash
-export OPENAI_API_KEY="sk-your-key"
+❌ Failed to load config
+
+# Oplossing: Check YAML syntax in config/pipeline-config.yml
 ```
 
-#### **2. Agent Not Available**
+### **Agent Problemen**
 ```bash
-Error: OpenAI provider not available
+❌ Agent not available
+
+# Oplossing: Check agent config in pipeline-config.yml
 ```
-**Oplossing**: Check API key en internet verbinding
 
-#### **3. High API Costs**
-**Oplossing**: 
-- Verlaag `maxIterations`
-- Verhoog `qualityThreshold`
-- Gebruik `--target` voor specifieke directories
+## 🔮 **Toekomstige Features**
 
-## 🔮 Toekomstige Features
+- **Multi-LLM Support** - Verschillende AI providers per agent
+- **Git Integration** - Automatische commits en branches
+- **CI/CD Integration** - GitHub Actions, GitLab CI
+- **Custom Prompts** - Eigen AI prompts per agent
+- **Plugin System** - Uitbreidbare agent architectuur
 
-### **Phase 2: Advanced Agents**
-- **Anthropic Claude** integratie
-- **GitHub Copilot** integratie
-- **Multi-language** support
+## 📚 **Meer Informatie**
 
-### **Phase 3: CI/CD Integration**
-- **GitHub Actions** workflow
-- **GitLab CI** integratie
-- **Jenkins** plugin
+- **Configuratie**: `config/pipeline-config.yml`
+- **Types**: `src/types/index.ts`
+- **Agents**: `src/agents/`
+- **Core**: `src/core/`
 
-### **Phase 4: Machine Learning**
-- **Pattern learning** van fixes
-- **Confidence scoring** verbetering
-- **Auto-optimization** van prompts
-
-## 🤝 Contributing
+## 🤝 **Bijdragen**
 
 1. Fork de repository
-2. Maak feature branch
-3. Commit je changes
-4. Push naar branch
-5. Maak Pull Request
+2. Maak een feature branch
+3. Commit je wijzigingen
+4. Push naar de branch
+5. Open een Pull Request
 
-## 📄 License
+## 📄 **Licentie**
 
-MIT License - zie [LICENSE](LICENSE) voor details
-
----
-
-**Gebouwd met ❤️ door AI Testing System**
+MIT License - zie LICENSE bestand voor details.
