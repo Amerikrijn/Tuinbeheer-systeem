@@ -24,23 +24,46 @@ jobs:
 
       - name: Install AI Pipeline v2
         run: |
+          echo "🔍 Starting installation step..."
           cd agents/ai-pipeline-v2
+          echo "🔍 Current directory: $(pwd)"
+          echo "🔍 Node version: $(node --version)"
+          echo "🔍 NPM version: $(npm --version)"
+          echo "🔍 Checking if directory exists:"
+          ls -la
+          echo "🔍 Installing dependencies..."
           npm ci
+          echo "✅ Installation completed"
 
       - name: Build AI Pipeline
         run: |
+          echo "🔍 Starting build step..."
           cd agents/ai-pipeline-v2
+          echo "🔍 Current directory: $(pwd)"
+          echo "🔍 Available scripts:"
+          npm run
+          echo "🔍 Building AI Pipeline..."
           npm run build
+          echo "🔍 Build completed, checking artifacts..."
+          ls -la dist/ || echo "❌ dist directory not found"
+          ls -la dist/cli.js || echo "❌ dist/cli.js not found"
+          echo "✅ Build step completed"
 
       - name: Run AI Pipeline (CI Mode)
         run: |
+          echo "🔍 Starting execution step..."
           cd agents/ai-pipeline-v2
-          echo "Starting AI Pipeline..."
+          echo "🔍 Current directory: $(pwd)"
+          echo "🔍 Checking target directory access..."
+          ls -la ../../app || echo "❌ Cannot access ../../app"
+          echo "🔍 Starting AI Pipeline..."
           npm start -- run --target ../../app --iterations 1 --quality 80 --ci-mode --output ./ai-pipeline-results || {
-            echo "Pipeline failed, creating fallback results..."
+            echo "❌ Pipeline failed, creating fallback results..."
             mkdir -p ./ai-pipeline-results
             echo '{"success": true, "finalQualityScore": 85, "iterations": 1}' > ./ai-pipeline-results/pipeline-results.json
+            echo "✅ Fallback results created"
           }
+          echo "✅ Execution step completed"
 
       - name: Upload Pipeline Results
         uses: actions/upload-artifact@v4
