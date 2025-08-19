@@ -1,7 +1,7 @@
 #!/bin/bash
 
-echo "🚀 Quick Start: AI Testing Pipeline (2 Iterations)"
-echo "=================================================="
+echo "🚀 Quick Start: AI Pipeline v2.0 (2 Iterations)"
+echo "================================================="
 echo ""
 
 # Colors for output
@@ -14,10 +14,10 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 echo -e "${BLUE}🎯 What This Script Does:${NC}"
-echo "1. 🤖 Start the Pipeline Orchestrator Agent"
-echo "2. 🔄 Execute the CI/CD AI Testing Pipeline with 2 iterations"
+echo "1. 🚀 Start the AI Pipeline v2.0 with 4 AI Agents"
+echo "2. 🔄 Execute the complete AI Pipeline with 2 iterations"
 echo "3. 📊 Show results and improvement tracking"
-echo "4. 🚀 Simulate the CI/CD workflow locally"
+echo "4. 🚀 Simulate the GitHub Actions workflow locally"
 echo "5. 📈 Demonstrate iterative improvement capabilities"
 echo ""
 
@@ -30,228 +30,165 @@ if [ ! -f "package.json" ] || [ ! -d "agents" ]; then
     exit 1
 fi
 
-# Step 1: Check if all agents are ready
-echo -e "${GREEN}🔍 Step 1: Checking AI Agents Status${NC}"
-echo "Verifying all agents are properly set up..."
+# Step 1: Check if AI Pipeline v2.0 is ready
+echo -e "${GREEN}🔍 Step 1: Checking AI Pipeline v2.0 Status${NC}"
+echo "Verifying AI Pipeline v2.0 is properly set up..."
 echo ""
 
-# Check test-generator agent
-if [ -d "agents/test-generator" ] && [ -f "agents/test-generator/package.json" ]; then
-    echo -e "${GREEN}✅ Test Generator Agent: Ready${NC}"
+# Check AI Pipeline v2.0
+if [ -d "agents/ai-pipeline-v2" ] && [ -f "agents/ai-pipeline-v2/package.json" ]; then
+    echo -e "${GREEN}✅ AI Pipeline v2.0: Ready${NC}"
 else
-    echo -e "${RED}❌ Test Generator Agent: Not found or incomplete${NC}"
+    echo -e "${RED}❌ AI Pipeline v2.0: Not found or incomplete${NC}"
     exit 1
 fi
 
-# Check quality-analyzer agent
-if [ -d "agents/quality-analyzer" ] && [ -f "agents/quality-analyzer/package.json" ]; then
-    echo -e "${GREEN}✅ Quality Analyzer Agent: Ready${NC}"
+# Check if AI Pipeline v2.0 is built
+if [ -d "agents/ai-pipeline-v2/dist" ]; then
+    echo -e "${GREEN}✅ AI Pipeline v2.0: Built${NC}"
 else
-    echo -e "${RED}❌ Quality Analyzer Agent: Not found or incomplete${NC}"
-    exit 1
-fi
-
-# Check auto-fix agent
-if [ -d "agents/auto-fix" ] && [ -f "agents/auto-fix/package.json" ]; then
-    echo -e "${GREEN}✅ Auto-Fix Agent: Ready${NC}"
-else
-    echo -e "${RED}❌ Auto-Fix Agent: Not found or incomplete${NC}"
-    exit 1
-fi
-
-# Check pipeline-orchestrator agent
-if [ -d "agents/pipeline-orchestrator" ] && [ -f "agents/pipeline-orchestrator/package.json" ]; then
-    echo -e "${GREEN}✅ Pipeline Orchestrator Agent: Ready${NC}"
-else
-    echo -e "${RED}❌ Pipeline Orchestrator Agent: Not found or incomplete${NC}"
-    exit 1
+    echo -e "${YELLOW}⚠️ AI Pipeline v2.0: Not built, building now...${NC}"
 fi
 
 echo ""
 
-# Step 2: Install dependencies if needed
-echo -e "${GREEN}📦 Step 2: Installing Dependencies${NC}"
-echo "Installing dependencies for all agents..."
+# Step 2: Install dependencies and build if needed
+echo -e "${GREEN}📦 Step 2: Installing Dependencies & Building${NC}"
+echo "Installing dependencies and building AI Pipeline v2.0..."
 echo ""
 
-cd agents/test-generator
+cd agents/ai-pipeline-v2
 if [ ! -d "node_modules" ]; then
-    echo "Installing Test Generator dependencies..."
-    npm install
+    echo "Installing AI Pipeline v2.0 dependencies..."
+    npm ci
 else
-    echo "Test Generator dependencies already installed"
+    echo "AI Pipeline v2.0 dependencies already installed"
 fi
 
-cd ../quality-analyzer
-if [ ! -d "node_modules" ]; then
-    echo "Installing Quality Analyzer dependencies..."
-    npm install
+# Build the pipeline
+if [ ! -d "dist" ]; then
+    echo "Building AI Pipeline v2.0..."
+    npm run build
 else
-    echo "Quality Analyzer dependencies already installed"
-fi
-
-cd ../auto-fix
-if [ ! -d "node_modules" ]; then
-    echo "Installing Auto-Fix dependencies..."
-    npm install
-else
-    echo "Auto-Fix dependencies already installed"
-fi
-
-cd ../pipeline-orchestrator
-if [ ! -d "node_modules" ]; then
-    echo "Installing Pipeline Orchestrator dependencies..."
-    npm install
-else
-    echo "Pipeline Orchestrator dependencies already installed"
+    echo "AI Pipeline v2.0 already built"
 fi
 
 cd ../..
 echo ""
 
 # Step 3: Start the AI Pipeline with 2 Iterations
-echo -e "${GREEN}🚀 Step 3: Starting AI Testing Pipeline (2 Iterations)${NC}"
-echo "Starting the Pipeline Orchestrator Agent..."
+echo -e "${GREEN}🚀 Step 3: Starting AI Pipeline v2.0 (2 Iterations)${NC}"
+echo "Starting the AI Pipeline v2.0 with 4 AI Agents..."
 echo ""
 
-cd agents/pipeline-orchestrator
+echo -e "${CYAN}🚀 Executing AI Pipeline v2.0 with 2 Iterations...${NC}"
+echo "This will run:"
+echo "  1. 🔄 Iteratie 1: Issue collection, test generation, code fixing, quality validation"
+echo "  2. 🔄 Iteratie 2: Improved analysis, better fixes, enhanced quality scoring"
+echo "  3. 📊 Comparison of results and improvement tracking"
+echo "  4. 🎯 Quality gate validation and iteration control"
+echo ""
 
-# Check if config exists
-if [ ! -f "../../.github/ai-pipeline-config.json" ]; then
-    echo -e "${YELLOW}⚠️  AI Pipeline config not found, creating default...${NC}"
-    # The config should already exist from our previous step
-    echo -e "${RED}❌ Error: AI Pipeline config not found${NC}"
-    exit 1
+# Check if OPENAI_API_KEY is set
+if [ -z "$OPENAI_API_KEY" ]; then
+    echo -e "${YELLOW}⚠️ OPENAI_API_KEY not set, running in demo mode...${NC}"
+    echo "Set OPENAI_API_KEY environment variable for full functionality"
+    echo ""
 fi
 
-echo -e "${CYAN}🚀 Executing AI Testing Pipeline with 2 Iterations...${NC}"
-echo "This will run:"
-echo "  1. 🔄 Iteratie 1: Basis test generatie en kwaliteitsanalyse"
-echo "  2. 🔄 Iteratie 2: Verbeterde tests, edge cases, security, performance"
-echo "  3. 📊 Vergelijking van resultaten en verbetering tracking"
-echo "  4. 🎯 Auto-Fix analyse (geen automatische fixes)"
-echo ""
-
 # Execute the pipeline
-npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json --workflow ci-ai-pipeline --execute
+cd agents/ai-pipeline-v2
+echo "Running AI Pipeline v2.0..."
+npm start -- run --target ../../src --iterations 2 --quality 85 --output ../../ai-pipeline-results
 
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✅ AI Testing Pipeline with 2 iterations completed successfully!${NC}"
+    echo -e "${GREEN}✅ AI Pipeline v2.0 with 2 iterations completed successfully!${NC}"
 else
-    echo -e "${RED}❌ AI Testing Pipeline failed!${NC}"
+    echo -e "${RED}❌ AI Pipeline v2.0 failed!${NC}"
     exit 1
 fi
 
 echo ""
 
 # Step 4: Display Results with Iteration Comparison
-echo -e "${GREEN}📊 Step 4: AI Testing Results (2 Iterations)${NC}"
-echo "======================================================"
+echo -e "${GREEN}📊 Step 4: AI Pipeline v2.0 Results (2 Iterations)${NC}"
+echo "============================================================="
 echo ""
 
 cd ../..
 
 # Check for generated results
-if [ -f "agents/test-generator/test-results/test-execution-summary.md" ]; then
-    echo -e "${BLUE}📋 Test Generation Results (2 Iterations):${NC}"
+if [ -f "ai-pipeline-results/pipeline-results.json" ]; then
+    echo -e "${BLUE}📋 AI Pipeline v2.0 Results:${NC}"
     echo "Generated reports:"
-    echo "  - test-execution-report.json (Detailed results with iteration data)"
-    echo "  - test-execution-summary.md (Human-readable summary with improvements)"
-    echo "  - test-coverage-report.json (Coverage metrics per iteration)"
+    echo "  - pipeline-results.json (Complete pipeline results with iteration data)"
+    echo "  - issues/ (Collected code issues per iteration)"
+    echo "  - fixes/ (Applied code fixes per iteration)"
+    echo "  - tests/ (Generated tests per iteration)"
+    echo "  - quality/ (Quality validation results per iteration)"
     echo ""
-fi
-
-if [ -f "agents/quality-analyzer/quality-results/quality-analysis-summary.md" ]; then
-    echo -e "${BLUE}📊 Quality Analysis Results (2 Iterations):${NC}"
-    echo "Generated reports:"
-    echo "  - quality-analysis.json (Detailed analysis with iteration data)"
-    echo "  - quality-analysis-summary.md (Human-readable summary with improvements)"
-    echo "  - quality-metrics.json (Quality metrics per iteration)"
-    echo ""
-fi
-
-if [ -f "agents/auto-fix/auto-fix-results/fix-report-summary.md" ]; then
-    echo -e "${BLUE}🔧 Auto-Fix Analysis Results (2 Iterations):${NC}"
-    echo "Generated reports:"
-    echo "  - fix-report.json (Detailed fix analysis with iteration data)"
-    echo "  - fix-report-summary.md (Human-readable summary with improvements)"
-    echo "  - fix-metrics.json (Fix metrics per iteration)"
-    echo ""
+    
+    # Display key metrics
+    if command -v jq &> /dev/null; then
+        echo -e "${BLUE}📊 Key Metrics:${NC}"
+        QUALITY_SCORE=$(cat "ai-pipeline-results/pipeline-results.json" | jq -r '.finalQualityScore // "N/A"')
+        ISSUES_FOUND=$(cat "ai-pipeline-results/pipeline-results.json" | jq -r '.issuesFound // "N/A"')
+        ISSUES_FIXED=$(cat "ai-pipeline-results/pipeline-results.json" | jq -r '.issuesFixed // "N/A"')
+        TESTS_GENERATED=$(cat "ai-pipeline-results/pipeline-results.json" | jq -r '.testsGenerated // "N/A"')
+        ITERATIONS=$(cat "ai-pipeline-results/pipeline-results.json" | jq -r '.iterations // "N/A"')
+        
+        echo "  - Quality Score: ${QUALITY_SCORE}%"
+        echo "  - Issues Found: ${ISSUES_FOUND}"
+        echo "  - Issues Fixed: ${ISSUES_FIXED}"
+        echo "  - Tests Generated: ${TESTS_GENERATED}"
+        echo "  - Iterations: ${ITERATIONS}"
+    else
+        echo "Install jq for detailed metrics display"
+    fi
+else
+    echo -e "${YELLOW}⚠️ No pipeline results found${NC}"
 fi
 
 # Step 5: Summary with Iteration Benefits
-echo -e "${GREEN}🎯 AI Pipeline Execution Summary (2 Iterations)${NC}"
-echo "========================================================"
+echo -e "${GREEN}🎯 AI Pipeline v2.0 Execution Summary (2 Iterations)${NC}"
+echo "=============================================================="
 
 echo -e "${BLUE}🎯 What We've Accomplished:${NC}"
-echo "✅ Built a complete 4-agent AI testing ecosystem with iterative improvement"
-echo "✅ Test Generator Agent: 2 iterations with enhanced test scenarios"
-echo "✅ Quality Analyzer Agent: 2 iterations with deeper analysis"
-echo "✅ Auto-Fix Agent: 2 iterations with comprehensive fix identification"
-echo "✅ Pipeline Orchestrator: Coordinated all agents with iteration tracking"
+echo "✅ Built a complete 4-agent AI Pipeline v2.0 with iterative improvement"
+echo "✅ Issue Collector Agent: Identified code problems and quality issues"
+echo "✅ Test Generator Agent: Generated comprehensive tests for issues"
+echo "✅ Code Fixer Agent: Applied fixes and improvements"
+echo "✅ Quality Validator Agent: Validated fixes and assessed quality"
 echo "✅ Generated comprehensive reports showing improvements between iterations"
 echo "✅ Demonstrated iterative learning and improvement capabilities"
 echo ""
 
 echo -e "${BLUE}🔄 Iteration Benefits:${NC}"
-echo "• Iteratie 1: Basis functionaliteit en test scenarios"
-echo "• Iteratie 2: Edge cases, security tests, performance tests, advanced analysis"
-echo "• Verbetering tracking: Kwaliteit, performance, en coverage metrics"
-echo "• Trend analysis: Vergelijking tussen iteraties"
-echo "• Advanced recommendations: Op basis van beide iteraties"
+echo "• Iteratie 1: Basis issue detection, test generation, and code fixing"
+echo "• Iteratie 2: Improved analysis, better fixes, enhanced quality scoring"
+echo "• Quality tracking: Score improvement between iterations"
+echo "• Issue resolution: Progressive problem solving"
+echo "• Test coverage: Enhanced test scenarios based on findings"
 echo ""
 
 echo -e "${BLUE}📊 Key Metrics (2 Iterations):${NC}"
-if [ -f "agents/test-generator/test-results/test-execution-report.json" ]; then
-    echo "Test Results:"
-    echo "  - Total scenarios generated: $(jq '.scenarios | length' agents/test-generator/test-results/test-execution-report.json 2>/dev/null || echo 'N/A')"
-    echo "  - Quality improvement: $(jq '.improvementSummary.qualityIncrease // 0' agents/test-generator/test-results/test-execution-report.json 2>/dev/null || echo 'N/A') points"
-    echo "  - Scenario increase: $(jq '.improvementSummary.scenarioIncrease // 0' agents/test-generator/test-results/test-execution-report.json 2>/dev/null || echo 'N/A')"
-fi
-
-if [ -f "agents/quality-analyzer/quality-results/quality-analysis.json" ]; then
-    echo "Quality Analysis:"
-    echo "  - Overall Grade: $(jq -r '.overallGrade' agents/quality-analyzer/quality-results/quality-analysis.json 2>/dev/null || echo 'N/A')"
-    echo "  - Quality Score: $(jq '.qualityScore' agents/quality-analyzer/quality-results/quality-analysis.json 2>/dev/null || echo 'N/A')/100"
-    echo "  - Quality improvement: $(jq '.improvementSummary.qualityIncrease // 0' agents/quality-analyzer/quality-results/quality-analysis.json 2>/dev/null || echo 'N/A') points"
-fi
-
-if [ -f "agents/auto-fix/auto-fix-results/fix-report.json" ]; then
-    echo "Auto-Fix Analysis:"
-    echo "  - Total fixes identified: $(jq '.metrics.totalFixes' agents/auto-fix/auto-fix-results/fix-report.json 2>/dev/null || echo 'N/A')"
-    echo "  - Improvement score: $(jq '.metrics.improvementScore' agents/auto-fix/auto-fix-results/fix-report.json 2>/dev/null || echo 'N/A')/100"
-    echo "  - Score improvement: $(jq '.improvementSummary.scoreIncrease // 0' agents/auto-fix/auto-fix-results/fix-report.json 2>/dev/null || echo 'N/A') points"
-fi
-
-echo ""
-echo -e "${BLUE}🔮 Next Steps & CI/CD Integration:${NC}"
-echo "1. 🚀 Push this to GitHub to trigger the CI/CD pipeline"
-echo "2. 🔄 Both pipelines will run in parallel with 2 iterations each:"
-echo "   - Standard Tests & Build"
-echo "   - AI Testing Pipeline (2 iterations per agent)"
-echo "3. 📊 Results will show iterative improvements in GitHub Actions"
-echo "4. 💬 PR comments will include iteration comparison and improvements"
-echo "5. 🚀 Deploy only happens when both pipelines succeed"
+echo "• Quality Score: Progressive improvement towards target threshold"
+echo "• Issues Resolved: Cumulative problem solving across iterations"
+echo "• Test Coverage: Enhanced testing based on iteration learnings"
+echo "• Performance: Iterative optimization of AI agent performance"
 echo ""
 
-echo -e "${BLUE}📁 Generated Reports Location:${NC}"
-echo "Test Results: $(pwd)/agents/test-generator/test-results/"
-echo "Quality Analysis: $(pwd)/agents/quality-analyzer/quality-results/"
-echo "Auto-Fix Analysis: $(pwd)/agents/auto-fix/auto-fix-results/"
+echo -e "${BLUE}🚀 Next Steps:${NC}"
+echo "1. Review generated reports in ai-pipeline-results/"
+echo "2. Analyze quality improvements between iterations"
+echo "3. Customize pipeline parameters for your specific needs"
+echo "4. Integrate with GitHub Actions for automated execution"
+echo "5. Scale to other projects and codebases"
 echo ""
 
-echo -e "${GREEN}🎉 AI Pipeline with 2 iterations test completed successfully!${NC}"
+echo -e "${GREEN}🎉 AI Pipeline v2.0 Quick Start Completed Successfully!${NC}"
 echo ""
-echo -e "${YELLOW}💡 To explore the iteration results:${NC}"
-echo "  - View test results: cat agents/test-generator/test-results/test-execution-summary.md"
-echo "  - View quality analysis: cat agents/quality-analyzer/quality-results/quality-analysis-summary.md"
-echo "  - View auto-fix analysis: cat agents/auto-fix/auto-fix-results/fix-report-summary.md"
+echo -e "${CYAN}📚 For detailed usage instructions, see: AI-PIPELINE-V2-USAGE.md${NC}"
+echo -e "${CYAN}🔧 For configuration options, run: cd agents/ai-pipeline-v2 && npm start -- --help${NC}"
 echo ""
-echo -e "${YELLOW}🔄 To see iteration improvements:${NC}"
-echo "  - Check improvement summaries in each report"
-echo "  - Compare metrics between iterations"
-echo "  - Review trend analysis and recommendations"
-echo ""
-
-echo -e "${PURPLE}🤖 Your AI Testing Pipeline with 2 iterations is ready for CI/CD!${NC}"
-echo "Push to GitHub to see both pipelines run in parallel with iterative improvements."
+echo "🚀 Ready to revolutionize your code quality with AI! 🤖"
