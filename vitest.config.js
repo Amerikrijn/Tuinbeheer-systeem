@@ -1,12 +1,12 @@
-import { defineConfig } from 'vitest/config';
-import path from 'path';
+const { defineConfig } = require('vitest/config');
+const path = require('path');
 
-export default defineConfig({
+module.exports = defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
-    include: ['{app,components,lib}/**/*.{test,spec}.{ts,tsx}', '__tests__/**/*.{test,spec}.{ts,tsx}'],
+    include: ['{app,components,lib,__tests__}/**/*.{test,spec}.{ts,tsx}', '__tests__/**/*.{test,spec}.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       reportsDirectory: './coverage',
@@ -33,17 +33,5 @@ export default defineConfig({
   },
   esbuild: {
     target: 'node18'
-  },
-  // Fix ES Module issues
-  optimizeDeps: {
-    include: ['vitest']
-  },
-  // Ensure proper module resolution
-  build: {
-    target: 'node18'
-  },
-  // Fix module resolution issues
-  ssr: {
-    noExternal: ['vitest']
   }
 });

@@ -108,7 +108,13 @@ program
                 testsGenerated: 0,
                 executionTime: Date.now(),
                 errors: [],
-                timestamp: new Date()
+                timestamp: new Date(),
+                mode: 'ci',
+                aiProvider: 'ci-mode',
+                targetPath: options.target,
+                allIssues: [],
+                allFixes: [],
+                allTests: []
             };
             // Save results
             const outputDir = path.resolve(options.output);
@@ -138,11 +144,18 @@ program
         if (!openaiApiKey) {
             throw new Error('OPENAI_API_KEY environment variable is required for AI analysis mode');
         }
+        console.log(chalk_1.default.green('✅ OpenAI API key found'));
+        console.log(chalk_1.default.blue(`🎯 Quality threshold: ${config.qualityThreshold}%`));
+        console.log(chalk_1.default.blue(`🔄 Max iterations: ${config.maxIterations}`));
+        console.log(chalk_1.default.blue(`📁 Target: ${options.target}`));
+        console.log('');
         // Create and run pipeline
         const pipeline = new pipeline_1.AIPipeline(config, openaiApiKey);
         const results = await pipeline.run(options.target);
         // Display results
         displayResults(results);
+        // Save results
+        await saveResults(results, options.output);
     }
     catch (error) {
         console.error(chalk_1.default.red('❌ Pipeline failed:'), error);
@@ -223,7 +236,7 @@ async function loadConfiguration(configPath) {
                     config: {},
                     isAvailable: false
                 },
-                enabled: false,
+                enabled: true,
                 config: {}
             },
             {
@@ -231,18 +244,18 @@ async function loadConfiguration(configPath) {
                 name: 'Code Fixer',
                 description: 'Fixes identified code issues',
                 provider: {
-                    name: 'GitHub Copilot',
-                    type: 'github-copilot',
+                    name: 'OpenAI GPT-4',
+                    type: 'openai',
                     config: {},
-                    isAvailable: false
+                    isAvailable: true
                 },
-                enabled: false,
+                enabled: true,
                 config: {}
             },
             {
                 id: 'quality-validator',
                 name: 'Quality Validator',
-                description: 'Validates fixes and assesses quality',
+                description: 'Validates code quality improvements',
                 provider: {
                     name: 'OpenAI GPT-4',
                     type: 'openai',
@@ -262,21 +275,61 @@ async function loadConfiguration(configPath) {
     };
     if (configPath && fs.existsSync(configPath)) {
         try {
-            const fileContent = fs.readFileSync(configPath, 'utf-8');
-            const fileConfig = JSON.parse(fileContent);
-            return { ...defaultConfig, ...fileConfig };
+            const configContent = fs.readFileSync(configPath, 'utf-8');
+            const userConfig = JSON.parse(configContent);
+            return { ...defaultConfig, ...userConfig };
         }
         catch (error) {
-            console.warn(chalk_1.default.yellow(`Failed to load config from ${configPath}, using defaults`));
+            console.warn(chalk_1.default.yellow(`⚠️ Failed to load config from ${configPath}: ${error}`));
         }
     }
     return defaultConfig;
+}
+function displayResults(results) {
+    console.log('');
+    console.log(chalk_1.default.blue('📊 AI Pipeline Results'));
+    console.log('─'.repeat(50));
+    if (results.success) {
+        console.log(chalk_1.default.green(`✅ Status: SUCCESS`));
+        console.log(chalk_1.default.blue(`🎯 Quality Score: ${results.finalQualityScore}/100`));
+        console.log(chalk_1.default.blue(`🔄 Iterations: ${results.iterations}`));
+        console.log(chalk_1.default.blue(`🔍 Issues Found: ${results.issuesFound}`));
+        console.log(chalk_1.default.blue(`🔧 Issues Fixed: ${results.issuesFixed}`));
+        console.log(chalk_1.default.blue(`🧪 Tests Generated: ${results.testsGenerated}`));
+        console.log(chalk_1.default.blue(`⏱️ Execution Time: ${(results.executionTime / 1000).toFixed(2)}s`));
+        console.log(chalk_1.default.blue(`🤖 AI Provider: ${results.aiProvider}`));
+        console.log(chalk_1.default.blue(`🔧 Mode: ${results.mode}`));
+    }
+    else {
+        console.log(chalk_1.default.red(`❌ Status: FAILED`));
+        if (results.errors && results.errors.length > 0) {
+            console.log(chalk_1.default.red(`❌ Errors:`));
+            results.errors.forEach((error) => {
+                console.log(chalk_1.default.red(`   - ${error}`));
+            });
+        }
+    }
+    console.log('');
+}
+async function saveResults(results, outputPath) {
+    try {
+        const outputDir = path.resolve(outputPath);
+        if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+        }
+        const outputFile = path.join(outputDir, 'pipeline-results.json');
+        fs.writeFileSync(outputFile, JSON.stringify(results, null, 2));
+        console.log(chalk_1.default.green(`✅ Results saved to: ${outputFile}`));
+    }
+    catch (error) {
+        console.error(chalk_1.default.red(`❌ Failed to save results: ${error}`));
+    }
 }
 async function initializeConfiguration() {
     const configPath = './ai-pipeline.config.json';
     const config = await loadConfiguration();
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-    console.log(chalk_1.default.green(`✅ Configuration initialized at ${configPath}`));
+    console.log(chalk_1.default.green(`✅ Configuration initialized at: ${configPath}`));
 }
 async function showConfiguration() {
     const config = await loadConfiguration();
@@ -284,47 +337,20 @@ async function showConfiguration() {
     console.log(JSON.stringify(config, null, 2));
 }
 async function setConfiguration(keyValue) {
-    const [key, value] = keyValue.split('=');
-    if (!key || !value) {
-        throw new Error('Invalid format. Use: --set key=value');
-    }
-    console.log(chalk_1.default.yellow(`Setting ${key} = ${value} not yet implemented`));
+    console.log(chalk_1.default.yellow('⚠️ Configuration setting not implemented yet'));
 }
 async function listAgents() {
     const config = await loadConfiguration();
     console.log(chalk_1.default.blue('🤖 Available Agents:'));
-    for (const agent of config.agents) {
-        const status = agent.enabled ? chalk_1.default.green('✅ Enabled') : chalk_1.default.red('❌ Disabled');
-        const provider = chalk_1.default.cyan(agent.provider.name);
-        console.log(`  ${agent.name} (${provider}) - ${status}`);
-        console.log(`    ${agent.description}`);
-    }
+    config.agents.forEach(agent => {
+        const status = agent.enabled ? chalk_1.default.green('✅') : chalk_1.default.red('❌');
+        const provider = agent.provider.isAvailable ? chalk_1.default.green(agent.provider.name) : chalk_1.default.red(agent.provider.name);
+        console.log(`${status} ${agent.name} (${agent.id}) - ${agent.description}`);
+        console.log(`   Provider: ${provider}`);
+    });
 }
 async function checkAgentStatus() {
-    console.log(chalk_1.default.yellow('Agent status check not yet implemented'));
+    console.log(chalk_1.default.yellow('⚠️ Agent status checking not implemented yet'));
 }
-function displayResults(results) {
-    console.log('');
-    console.log(chalk_1.default.green('🎯 Pipeline Results:'));
-    console.log('─'.repeat(50));
-    console.log(`Success: ${results.success ? chalk_1.default.green('✅ Yes') : chalk_1.default.red('❌ No')}`);
-    console.log(`Iterations: ${chalk_1.default.cyan(results.iterations)}`);
-    console.log(`Final Quality: ${chalk_1.default.cyan(results.finalQualityScore.toFixed(1))}%`);
-    console.log(`Issues Found: ${chalk_1.default.cyan(results.issuesFound)}`);
-    console.log(`Issues Fixed: ${chalk_1.default.cyan(results.issuesFixed)}`);
-    console.log(`Tests Generated: ${chalk_1.default.cyan(results.testsGenerated)}`);
-    console.log(`Execution Time: ${chalk_1.default.cyan(results.executionTime)}ms`);
-    if (results.errors.length > 0) {
-        console.log('');
-        console.log(chalk_1.default.red('❌ Errors:'), results.errors);
-    }
-    if (results.warnings.length > 0) {
-        console.log('');
-        console.log(chalk_1.default.yellow('⚠️ Warnings:'), results.warnings);
-    }
-}
-// Run CLI
-if (require.main === module) {
-    program.parse();
-}
+program.parse();
 //# sourceMappingURL=cli.js.map

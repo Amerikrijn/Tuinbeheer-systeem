@@ -1,6 +1,16 @@
+hello
+
 # 🌱 Visual Garden App
 
-**Test CI/CD Pipeline** - Deze wijziging triggert de nieuwe CI/CD pipeline om te testen of alle quality gates werken. Agents zijn toegevoegd en pipeline is geconfigureerd.
+**Test CI/CD Pipeline** - Deze wijziging triggert de nieuwe Main Pipeline om te testen of alle jobs nu correct werken zonder parallel jobs die niets doen!
+
+## 🚀 Nieuwe Pipeline Architectuur:
+- **Foundation Build** (eerst - required)
+- **Preview + Docker Build** (parallel)
+- **Conventional Tests + AI Code Check** (parallel)
+- **Unified Summary** (alles gecombineerd)
+
+**Geen nutteloze parallel jobs meer - alleen wat echt nodig is!** 🎯
 
 # Tuinbeheer Systeem
 
