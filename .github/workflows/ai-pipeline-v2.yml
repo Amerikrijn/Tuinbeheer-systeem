@@ -41,6 +41,9 @@ jobs:
           fi
           echo "✅ OpenAI API Key is configured"
       
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+      
       - name: 🟢 Setup Node
         uses: ./.github/actions/setup-node
         with:

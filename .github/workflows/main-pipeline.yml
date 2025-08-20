@@ -24,6 +24,9 @@ jobs:
     timeout-minutes: 10
     
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
       - name: Setup Node
         uses: ./.github/actions/setup-node
         with:
@@ -107,6 +110,9 @@ jobs:
     timeout-minutes: 8
     
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
       - name: Setup Node
         uses: ./.github/actions/setup-node
         with:
@@ -181,6 +187,9 @@ jobs:
     timeout-minutes: 20
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
       - name: Setup Node
         uses: ./.github/actions/setup-node
         with:
@@ -254,6 +263,9 @@ jobs:
       actions: read
     
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
       - name: Setup Node
         uses: ./.github/actions/setup-node
         with:
@@ -381,6 +393,9 @@ jobs:
     needs: [conventional-tests, security-scan]
     timeout-minutes: 10
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
       - name: Setup Node
         uses: ./.github/actions/setup-node
         with:
@@ -415,6 +430,9 @@ jobs:
     needs: [conventional-tests, security-scan]
     timeout-minutes: 10
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
       - name: Setup Node
         uses: ./.github/actions/setup-node
         with:
