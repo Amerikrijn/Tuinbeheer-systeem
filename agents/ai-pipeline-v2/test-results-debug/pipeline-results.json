@@ -5,7 +5,13 @@
   "issuesFound": 0,
   "issuesFixed": 0,
   "testsGenerated": 0,
-  "executionTime": 1755593920872,
+  "executionTime": 1755635472188,
   "errors": [],
-  "timestamp": "2025-08-19T08:58:40.872Z"
+  "timestamp": "2025-08-19T20:31:12.188Z",
+  "mode": "ci",
+  "aiProvider": "ci-mode",
+  "targetPath": "../../app",
+  "allIssues": [],
+  "allFixes": [],
+  "allTests": []
 }
