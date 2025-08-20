@@ -28,7 +28,7 @@ env:
 jobs:
   ai-pipeline-v2:
     name: 🚀 AI Pipeline v2.0
-    if: ${{ env.OPENAI_API_KEY != '' }}
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     
     steps:
