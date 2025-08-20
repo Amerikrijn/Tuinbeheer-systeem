@@ -37,6 +37,38 @@ export default function NewPlantPage() {
           dialog.setAttribute('data-state', 'closed')
         }
       })
+      
+      // Check for selected flower data from encyclopedia
+      const selectedFlowerData = sessionStorage.getItem('selectedFlowerData')
+      if (selectedFlowerData) {
+        try {
+          const flowerData = JSON.parse(selectedFlowerData)
+          setPlantData(prev => ({
+            ...prev,
+            name: flowerData.name || prev.name,
+            scientificName: flowerData.scientific_name || prev.scientificName,
+            color: flowerData.color || prev.color,
+            height: flowerData.height?.toString() || prev.height,
+            sunExposure: flowerData.sun_preference || prev.sunExposure,
+            wateringFrequency: flowerData.watering_frequency || prev.wateringFrequency,
+            fertilizerSchedule: flowerData.fertilizer_schedule || prev.fertilizerSchedule,
+            careInstructions: flowerData.care_instructions || prev.careInstructions,
+            notes: flowerData.notes || prev.notes,
+            emoji: flowerData.emoji || prev.emoji,
+            isStandardFlower: true
+          }))
+          
+          // Clear the session storage after using it
+          sessionStorage.removeItem('selectedFlowerData')
+          
+          toast({
+            title: "Bloem gegevens geladen",
+            description: `${flowerData.name} gegevens zijn automatisch ingevuld`,
+          })
+        } catch (error) {
+          console.error('Error loading flower data:', error)
+        }
+      }
     }
   }, [])
 

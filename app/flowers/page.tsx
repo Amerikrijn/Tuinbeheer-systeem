@@ -10,90 +10,105 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Search, Flower2, Sun, Droplets, Calendar } from 'lucide-react'
+import { 
+  ArrowLeft, 
+  Search, 
+  Flower2, 
+  Sun, 
+  Droplets, 
+  Calendar,
+  MapPin,
+  Info,
+  Plus,
+  Check
+} from 'lucide-react'
 import { useNavigation } from '@/hooks/use-navigation'
-
-// Import flower data safely
-let DUTCH_FLOWERS: any[] = []
-let FLOWER_CATEGORIES: Record<string, string> = {}
-let searchFlowers: (query: string) => any[] = () => []
-let getFlowersByCategory: (category: string) => any[] = () => []
-
-try {
-  const flowerModule = require('@/lib/dutch-flowers')
-  DUTCH_FLOWERS = flowerModule.DUTCH_FLOWERS || []
-  FLOWER_CATEGORIES = flowerModule.FLOWER_CATEGORIES || {}
-  searchFlowers = flowerModule.searchFlowers || (() => [])
-  getFlowersByCategory = flowerModule.getFlowersByCategory || (() => [])
-} catch (error) {
-  console.error('Error loading flower data:', error)
-}
+import { 
+  FLOWER_DATABASE, 
+  searchFlowers, 
+  getFlowersByCategory,
+  flowerToPlantData,
+  DUTCH_MONTHS,
+  type FlowerTemplate 
+} from '@/lib/flowers-database'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { useToast } from '@/hooks/use-toast'
 
 export default function FlowersPage() {
   const { goBack } = useNavigation()
   const router = useRouter()
+  const { toast } = useToast()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [expandedFlower, setExpandedFlower] = useState<string | null>(null)
+  const [selectedFlower, setSelectedFlower] = useState<FlowerTemplate | null>(null)
+  const [showPlantDialog, setShowPlantDialog] = useState(false)
+
+  const categories = useMemo(() => {
+    const cats = new Set(FLOWER_DATABASE.map(f => f.category))
+    return Array.from(cats).sort()
+  }, [])
 
   const filteredFlowers = useMemo(() => {
-    try {
-      let flowers = DUTCH_FLOWERS || []
-      
-      if (selectedCategory !== 'all' && getFlowersByCategory) {
-        flowers = getFlowersByCategory(selectedCategory)
-      }
-      
-      if (searchTerm && searchFlowers) {
-        flowers = searchFlowers(searchTerm).filter(f => 
-          selectedCategory === 'all' || f.category === selectedCategory
-        )
-      }
-      
-      return flowers
-    } catch (error) {
-      console.error('Error filtering flowers:', error)
-      return []
+    let flowers = FLOWER_DATABASE
+    
+    if (selectedCategory !== 'all') {
+      flowers = getFlowersByCategory(selectedCategory)
     }
+    
+    if (searchTerm) {
+      const searchResults = searchFlowers(searchTerm)
+      flowers = flowers.filter(f => searchResults.includes(f))
+    }
+    
+    return flowers
   }, [searchTerm, selectedCategory])
 
-  const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      'eenjarig': 'bg-pink-100 text-pink-800',
-      'tweejarig': 'bg-purple-100 text-purple-800',
-      'vaste plant': 'bg-green-100 text-green-800',
-      'bol': 'bg-yellow-100 text-yellow-800',
-      'knol': 'bg-orange-100 text-orange-800',
-      'struik': 'bg-blue-100 text-blue-800',
-      'klimplant': 'bg-indigo-100 text-indigo-800',
-      'wilde bloem': 'bg-teal-100 text-teal-800'
+  const getSunIcon = (pref: string) => {
+    switch(pref) {
+      case 'full-sun': return '☀️☀️☀️'
+      case 'partial-sun': return '☀️☀️'
+      case 'shade': return '☀️'
+      default: return pref
     }
-    return colors[category] || 'bg-gray-100 text-gray-800'
   }
 
-  const getSunRequirement = (sun: string) => {
-    const icons: Record<string, string> = {
-      'volle zon': '☀️☀️☀️',
-      'halfschaduw': '☀️☀️',
-      'schaduw': '☀️'
-    }
-    return icons[sun] || sun
+  const getWaterIcon = (days: number) => {
+    if (days <= 2) return '💧💧💧'
+    if (days <= 5) return '💧💧'
+    return '💧'
   }
 
-  const getWaterRequirement = (water: string) => {
-    const icons: Record<string, string> = {
-      'weinig': '💧',
-      'matig': '💧💧',
-      'veel': '💧💧💧'
-    }
-    return icons[water] || water
+  const handleSelectFlower = (flower: FlowerTemplate) => {
+    setSelectedFlower(flower)
+    setShowPlantDialog(true)
   }
 
-  // Check if data is loaded
-  const hasData = DUTCH_FLOWERS && DUTCH_FLOWERS.length > 0
+  const handleAddToGarden = () => {
+    if (selectedFlower) {
+      // Store the selected flower data in sessionStorage
+      const plantData = flowerToPlantData(selectedFlower)
+      sessionStorage.setItem('selectedFlowerData', JSON.stringify(plantData))
+      
+      toast({
+        title: "Bloem geselecteerd",
+        description: `${selectedFlower.name} is klaar om toe te voegen aan je tuin`,
+      })
+      
+      // Navigate to gardens page or plant add page
+      router.push('/gardens')
+    }
+    setShowPlantDialog(false)
+  }
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
+    <div className="container mx-auto p-4 max-w-7xl">
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-4 mb-4">
@@ -110,176 +125,253 @@ export default function FlowersPage() {
           </div>
         </div>
         <p className="text-muted-foreground text-lg leading-relaxed">
-          {hasData 
-            ? `Ontdek ${DUTCH_FLOWERS.length} populaire bloemen voor Nederlandse tuinen`
-            : 'Bloemen informatie laden...'}
+          Selecteer een bloem om automatisch alle gegevens in te vullen bij het toevoegen aan je tuin
         </p>
       </div>
 
-      {hasData ? (
-        <>
-          {/* Search and Filter */}
-          <div className="mb-6 space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Zoek bloemen op naam, kleur of eigenschap..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+      {/* Search and Filter */}
+      <div className="mb-6 space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            type="text"
+            placeholder="Zoek bloemen op naam, kleur of eigenschap..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={selectedCategory === 'all' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedCategory('all')}
+          >
+            Alle ({FLOWER_DATABASE.length})
+          </Button>
+          {categories.map((cat) => {
+            const count = getFlowersByCategory(cat).length
+            return (
+              <Button
+                key={cat}
+                variant={selectedCategory === cat ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedCategory(cat)}
+              >
+                {cat} ({count})
+              </Button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Results count */}
+      <div className="mb-4 text-sm text-muted-foreground">
+        {filteredFlowers.length} bloemen gevonden
+      </div>
+
+      {/* Flowers Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {filteredFlowers.map((flower) => (
+          <Card 
+            key={flower.name}
+            className="hover:shadow-lg transition-all duration-200 cursor-pointer group"
+            onClick={() => handleSelectFlower(flower)}
+          >
+            {/* Image */}
+            <div className="relative h-48 overflow-hidden rounded-t-lg">
+              <img 
+                src={flower.imageUrl} 
+                alt={flower.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               />
+              <div className="absolute top-2 right-2">
+                <Badge className="bg-white/90 text-black">
+                  {flower.emoji} {flower.category}
+                </Badge>
+              </div>
+              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                <h3 className="text-white font-bold text-lg">{flower.name}</h3>
+                <p className="text-white/80 text-sm italic">{flower.scientific_name}</p>
+              </div>
             </div>
             
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedCategory === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedCategory('all')}
+            <CardContent className="p-4 space-y-3">
+              {/* Quick info */}
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-1">
+                  <div 
+                    className="w-4 h-4 rounded-full border-2 border-gray-300"
+                    style={{ backgroundColor: flower.color }}
+                  />
+                  <span>{flower.plant_color}</span>
+                </div>
+                <span className="font-medium">{flower.height} cm</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center gap-1">
+                  <Sun className="h-3 w-3" />
+                  <span>{getSunIcon(flower.sun_preference)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Droplets className="h-3 w-3" />
+                  <span>{getWaterIcon(flower.watering_frequency)}</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-1 text-xs">
+                <Calendar className="h-3 w-3" />
+                <span>{flower.bloom_period}</span>
+              </div>
+              
+              <p className="text-xs text-muted-foreground line-clamp-2">
+                {flower.description}
+              </p>
+              
+              <Button 
+                size="sm" 
+                className="w-full"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleSelectFlower(flower)
+                }}
               >
-                Alle ({DUTCH_FLOWERS.length})
+                <Plus className="h-3 w-3 mr-1" />
+                Selecteer voor tuin
               </Button>
-              {FLOWER_CATEGORIES && Object.entries(FLOWER_CATEGORIES).map(([key, label]) => {
-                const count = getFlowersByCategory ? getFlowersByCategory(key).length : 0
-                return (
-                  <Button
-                    key={key}
-                    variant={selectedCategory === key ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSelectedCategory(key)}
-                  >
-                    {label} ({count})
-                  </Button>
-                )
-              })}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          {/* Results count */}
-          <div className="mb-4 text-sm text-muted-foreground">
-            {filteredFlowers.length} bloemen gevonden
-          </div>
-
-          {/* Flowers Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredFlowers.map((flower) => (
-              <Card 
-                key={flower.id}
-                className="hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => setExpandedFlower(
-                  expandedFlower === flower.id ? null : flower.id
-                )}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-lg">{flower.name}</CardTitle>
-                    <Badge className={getCategoryColor(flower.category)}>
-                      {FLOWER_CATEGORIES[flower.category] || flower.category}
-                    </Badge>
-                  </div>
-                  {flower.latinName && (
-                    <p className="text-sm text-muted-foreground italic">
-                      {flower.latinName}
-                    </p>
-                  )}
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {/* Basic info always visible */}
+      {/* Selection Dialog */}
+      <Dialog open={showPlantDialog} onOpenChange={setShowPlantDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedFlower?.emoji} {selectedFlower?.name} geselecteerd
+            </DialogTitle>
+            <DialogDescription>
+              Deze bloem toevoegen aan je tuin? Alle gegevens worden automatisch ingevuld.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedFlower && (
+            <div className="space-y-4">
+              <img 
+                src={selectedFlower.imageUrl} 
+                alt={selectedFlower.name}
+                className="w-full h-64 object-cover rounded-lg"
+              />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Eigenschappen</h4>
+                  <dl className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Latijnse naam:</dt>
+                      <dd>{selectedFlower.scientific_name}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Hoogte:</dt>
+                      <dd>{selectedFlower.height} cm</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Kleur:</dt>
+                      <dd className="flex items-center gap-1">
+                        <div 
+                          className="w-3 h-3 rounded-full border"
+                          style={{ backgroundColor: selectedFlower.color }}
+                        />
+                        {selectedFlower.plant_color}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Per m²:</dt>
+                      <dd>{selectedFlower.plants_per_sqm} planten</dd>
+                    </div>
+                  </dl>
+                </div>
+                
+                <div>
+                  <h4 className="font-semibold mb-2">Verzorging</h4>
+                  <dl className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Zon:</dt>
+                      <dd>{getSunIcon(selectedFlower.sun_preference)}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Water:</dt>
+                      <dd>Om de {selectedFlower.watering_frequency} dagen</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Grond:</dt>
+                      <dd>{selectedFlower.soilType}</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Bloeitijd:</dt>
+                      <dd>{selectedFlower.bloom_period}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+              
+              <div className="bg-muted p-3 rounded-lg">
+                <h4 className="font-semibold mb-1 text-sm">Verzorgingstips</h4>
+                <p className="text-sm">{selectedFlower.care_instructions}</p>
+              </div>
+              
+              {selectedFlower.companionPlants && selectedFlower.companionPlants.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-2 text-sm">Combineert goed met</h4>
                   <div className="flex flex-wrap gap-2">
-                    {flower.colors && flower.colors.map((color: string, idx: number) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {color}
+                    {selectedFlower.companionPlants.map((plant) => (
+                      <Badge key={plant} variant="secondary">
+                        {plant}
                       </Badge>
                     ))}
                   </div>
-                  
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>{flower.bloomingPeriod}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs">Hoogte: {flower.height}</span>
-                    </div>
-                  </div>
-
-                  {/* Expanded details */}
-                  {expandedFlower === flower.id && (
-                    <div className="pt-3 border-t space-y-2">
-                      <p className="text-sm text-muted-foreground">
-                        {flower.description}
-                      </p>
-                      
-                      <div className="space-y-1 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Sun className="h-3 w-3" />
-                          <span>Zon: {getSunRequirement(flower.sunRequirement)}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Droplets className="h-3 w-3" />
-                          <span>Water: {getWaterRequirement(flower.waterRequirement)}</span>
-                        </div>
-                        <div>
-                          <span className="font-medium">Grond:</span> {flower.soilType}
-                        </div>
-                        {flower.spacing && (
-                          <div>
-                            <span className="font-medium">Plantafstand:</span> {flower.spacing}
-                          </div>
-                        )}
-                      </div>
-
-                      {flower.careTips && (
-                        <div className="pt-2">
-                          <p className="font-medium text-sm mb-1">Verzorgingstips:</p>
-                          <p className="text-sm text-muted-foreground">
-                            {flower.careTips}
-                          </p>
-                        </div>
-                      )}
-
-                      {flower.companionPlants && flower.companionPlants.length > 0 && (
-                        <div className="pt-2">
-                          <p className="font-medium text-sm mb-1">Combineert goed met:</p>
-                          <div className="flex flex-wrap gap-1">
-                            {flower.companionPlants.map((plant: string, idx: number) => (
-                              <Badge key={idx} variant="outline" className="text-xs">
-                                {plant}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Click hint */}
-                  <p className="text-xs text-center text-muted-foreground pt-2">
-                    {expandedFlower === flower.id ? 'Klik om te sluiten' : 'Klik voor meer details'}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* No results */}
-          {filteredFlowers.length === 0 && (
-            <Card className="p-8 text-center">
-              <Flower2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">Geen bloemen gevonden</h3>
-              <p className="text-muted-foreground">
-                Probeer een andere zoekterm of categorie
-              </p>
-            </Card>
+                </div>
+              )}
+              
+              <div>
+                <h4 className="font-semibold mb-2 text-sm">Plant maanden</h4>
+                <div className="flex flex-wrap gap-2">
+                  {selectedFlower.planting_months.map((month) => (
+                    <Badge 
+                      key={month} 
+                      variant="outline"
+                      className="bg-green-50"
+                    >
+                      {DUTCH_MONTHS[month - 1]}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
           )}
-        </>
-      ) : (
-        /* Loading or error state */
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPlantDialog(false)}>
+              Annuleren
+            </Button>
+            <Button onClick={handleAddToGarden}>
+              <Check className="h-4 w-4 mr-2" />
+              Gebruik deze gegevens
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* No results */}
+      {filteredFlowers.length === 0 && (
         <Card className="p-8 text-center">
-          <Flower2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground animate-pulse" />
-          <h3 className="text-lg font-semibold mb-2">Bloemen encyclopedie</h3>
+          <Flower2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">Geen bloemen gevonden</h3>
           <p className="text-muted-foreground">
-            De bloemen informatie wordt geladen...
+            Probeer een andere zoekterm of categorie
           </p>
         </Card>
       )}
