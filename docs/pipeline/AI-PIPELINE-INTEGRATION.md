@@ -65,6 +65,12 @@ npm start -- run --target ../../app --iterations 3 --quality 85 --output ./ai-pi
 npm start -- run --target ../../app --iterations 1 --quality 80 --ci-mode --output ./ai-pipeline-results
 ```
 
+Test vooraf je OpenAI-sleutel met:
+
+```bash
+node ../../scripts/test-openai-key.js
+```
+
 ### **Quality Gates**
 - **Target Threshold**: 85%
 - **Maximum Iterations**: 3 (AI), 1 (CI)

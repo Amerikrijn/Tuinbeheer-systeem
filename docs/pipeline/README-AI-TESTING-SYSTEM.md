@@ -2,6 +2,8 @@
 
 Een revolutionair systeem dat AI-agents gebruikt om automatisch tests te genereren, kwaliteit te analyseren en verbeteringen voor te stellen.
 
+> Stel `OPENAI_API_KEY` in en controleer met `node ../../scripts/test-openai-key.js` voordat je AI-agents draait.
+
 ## 🚀 Wat We Hebben Gebouwd
 
 ### **Multi-Agent Testing Ecosystem**

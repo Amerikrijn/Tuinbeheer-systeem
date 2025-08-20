@@ -4,6 +4,8 @@
 
 Deze pipeline is geoptimaliseerd om **6 AI agents parallel** uit te voeren in plaats van sequentieel. Dit zorgt voor een significante verbetering in uitvoeringstijd en efficiëntie.
 
+> Voor AI-functionaliteit: stel `OPENAI_API_KEY` in en test met `node ../../scripts/test-openai-key.js`.
+
 ## 🔧 Structuur van de Pipeline
 
 ### Jobs in GitHub Actions

@@ -23,14 +23,12 @@
     "code-fixing",
     "orchestration",
     "openai",
-    "anthropic",
     "github-copilot"
   ],
   "author": "AI Testing System",
   "license": "MIT",
   "dependencies": {
     "openai": "^4.20.1",
-    "@anthropic-ai/sdk": "^0.9.1",
     "@octokit/rest": "^20.0.2",
     "simple-git": "^3.22.0",
     "commander": "^11.1.0",

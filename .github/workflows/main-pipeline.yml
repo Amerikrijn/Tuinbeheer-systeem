@@ -13,6 +13,9 @@ permissions:
   issues: write
   actions: read
 
+env:
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
 jobs:
   # Job 1: Foundation Build (Required First)
   foundation-build:
@@ -201,7 +204,7 @@ jobs:
           echo "- **Tests**: unit, integration, critical-endpoints, e2e" >> $GITHUB_STEP_SUMMARY
 
   ai-code-check:
-
+    if: ${{ env.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     name: 🤖 AI Code Check
     needs: [foundation-build]
@@ -219,6 +222,8 @@ jobs:
           node-version: '18'
       - name: Ensure full history
         run: git fetch --prune --unshallow
+      - name: 🔑 Test OpenAI Key
+        run: node scripts/test-openai-key.js
       
       - name: Install AI Standards Agent
         run: |
@@ -332,6 +337,7 @@ jobs:
           fi
 
   ai-security-review:
+    if: ${{ env.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     name: "🔒 AI Security Review"
     needs: [conventional-tests, security-scan]
@@ -345,6 +351,8 @@ jobs:
         run: git fetch --prune --unshallow
       - name: Checkout PR commit
         run: git checkout ${{ github.event.pull_request.head.sha }}
+      - name: 🔑 Test OpenAI Key
+        run: node scripts/test-openai-key.js
       - name: Install deps
         run: npm i --no-fund --no-audit openai @octokit/rest @actions/core
       - name: Run AI Security Review
@@ -363,6 +371,7 @@ jobs:
           path: ai-security-review.md
 
   ai-code-quality-review:
+    if: ${{ env.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     name: "🤖 AI Code Quality Review"
     needs: [conventional-tests, security-scan]
@@ -376,6 +385,8 @@ jobs:
         run: git fetch --prune --unshallow
       - name: Checkout PR commit
         run: git checkout ${{ github.event.pull_request.head.sha }}
+      - name: 🔑 Test OpenAI Key
+        run: node scripts/test-openai-key.js
       - name: Install deps
         run: npm i --no-fund --no-audit openai @octokit/rest @actions/core
       - name: Run AI Code Quality Review

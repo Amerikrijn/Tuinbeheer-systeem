@@ -148,8 +148,13 @@ npm start -- run \
 ```yaml
 # In repository settings > Secrets
 OPENAI_API_KEY: sk-your-openai-key
-ANTHROPIC_API_KEY: sk-ant-your-anthropic-key
 GITHUB_TOKEN: ghp-your-github-token
+```
+
+Test je sleutel lokaal met:
+
+```bash
+node ../../scripts/test-openai-key.js
 ```
 
 ### **3. Workflow Aanpassen**
@@ -176,10 +181,7 @@ GITHUB_TOKEN: ghp-your-github-token
 - ❌ Beperkte functionaliteit
 
 ### **Production Mode (Toekomst):**
-- ✅ Echte AI agents
-- ✅ OpenAI GPT-4 voor issue detection
-- ✅ Anthropic Claude voor test generation
-- ✅ GitHub Copilot voor code fixing
+- ✅ Echte AI agents met OpenAI GPT-4
 - ❌ API keys vereist
 - ❌ Hogere kosten
 
@@ -219,8 +221,6 @@ GITHUB_TOKEN: ghp-your-github-token
 ### **Phase 2: 🚧 In Progress**
 - [ ] Echte AI agents implementeren
 - [ ] OpenAI integratie
-- [ ] Anthropic integratie
-- [ ] GitHub Copilot integratie
 
 ### **Phase 3: 📋 Planned**
 - [ ] Git integration
