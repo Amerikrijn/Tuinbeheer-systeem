@@ -422,12 +422,8 @@ jobs:
     # Aggregates build, test, security, and AI results into one report
     needs:
       - foundation-build
-      - preview-build
-      - docker-build
       - conventional-tests
-      - ai-code-check
-      - ai-security-review
-      - ai-code-quality-review
+      - security-scan
     if: always() && github.event_name == 'pull_request'
     timeout-minutes: 5
     permissions:
@@ -455,6 +451,7 @@ jobs:
         continue-on-error: true
 
       - name: Download AI Results
+        if: ${{ env.OPENAI_API_KEY != '' }}
         uses: actions/download-artifact@v4
         with:
           name: ai-standards-results
