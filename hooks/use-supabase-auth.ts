@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, createContext, useContext } from 'react'
+import React, { useState, useEffect, createContext, useContext, type ReactNode } from 'react'
 import { getSupabaseClient } from '@/lib/supabase'
 import { clearStaleCache } from '@/lib/version'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
@@ -654,6 +654,15 @@ export function useSupabaseAuth(): AuthContextType {
 }
 
 export const SupabaseAuthContext = createContext<AuthContextType | null>(null)
+
+export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
+  const auth = useSupabaseAuth()
+  return React.createElement(
+    SupabaseAuthContext.Provider,
+    { value: auth },
+    children
+  )
+}
 
 export function useAuth(): AuthContextType {
   const context = useContext(SupabaseAuthContext)
