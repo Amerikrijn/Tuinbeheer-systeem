@@ -91,37 +91,17 @@ jobs:
           echo "🐳 Building Docker image..."
           
           # Check if Dockerfile exists
-          if [ -f "dockerfile" ]; then
-            echo "✅ Found dockerfile, building image..."
-            echo "📋 Dockerfile contents:"
-            cat dockerfile
-            echo ""
-            
-            # Build with verbose output and error handling
-            echo "🚀 Starting Docker build..."
-            if docker build -f dockerfile -t app:test . --progress=plain; then
-              echo "✅ Docker build completed successfully"
-              
-              # Show build results
-              echo "📊 Docker build results:"
-              docker images app:test
-              echo "✅ Docker image created successfully"
-            else
-              echo "❌ Docker build failed"
-              echo "🔍 Build error details above"
-              exit 1
-            fi
-          elif [ -f "Dockerfile" ]; then
+          if [ -f "Dockerfile" ]; then
             echo "✅ Found Dockerfile, building image..."
             echo "📋 Dockerfile contents:"
             cat Dockerfile
             echo ""
-            
+
             # Build with verbose output and error handling
             echo "🚀 Starting Docker build..."
             if docker build -t app:test . --progress=plain; then
               echo "✅ Docker build completed successfully"
-              
+
               # Show build results
               echo "📊 Docker build results:"
               docker images app:test
