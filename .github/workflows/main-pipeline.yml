@@ -227,96 +227,63 @@ jobs:
           npm install
           echo "✅ AI Standards Agent dependencies installed"
       
+
       - name: Run AI Code Check
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
           echo "🤖 Starting AI Code Check..."
           echo "🎯 Mission: Find banking standards, analyze code, and auto-fix issues!"
-          
-          # Check if OpenAI API key is available
           if [ -z "$OPENAI_API_KEY" ]; then
             echo "❌ OPENAI_API_KEY not found - cannot run AI analysis"
-            echo "📝 Creating fallback results"
-            mkdir -p ai-standards-results
-            echo '{"success": false, "error": "No OpenAI API key available", "cycles": 0, "finalQuality": 0, "issuesFound": 0, "fixesApplied": 0}' > ai-standards-results/ai-standards-results.json
             exit 1
           fi
-          
-          echo "✅ OpenAI API key found - running AI Code Check"
-          
-          # Run the AI Standards Agent
           cd agents/ai-standards-agent
           echo "🚀 Starting AI Standards Agent..."
           echo "🎯 This will run multiple cycles until 80%+ quality is reached..."
-          
-          # Check if the AI agent file exists
           if [ ! -f "ai-standards-agent.js" ]; then
             echo "❌ AI Standards Agent file not found!"
-            echo "📁 Current directory contents:"
-            ls -la
-            echo "📝 Creating error results"
-            mkdir -p ai-standards-results
-            echo '{"success": false, "error": "AI Standards Agent file not found", "cycles": 0, "finalQuality": 0, "issuesFound": 0, "fixesApplied": 0}' > ai-standards-results/ai-standards-results.json
-            echo "⚠️ Continuing with error results"
-          else
-            echo "✅ AI Standards Agent file found, starting execution..."
-            echo "🤖 Running: node ai-standards-agent.js"
-            
-                      # Run with timeout and detailed logging
-          echo "🤖 Starting AI Standards Agent with 15 minute timeout..."
-          
-          # Create results directory first
+            exit 1
+          fi
           mkdir -p ai-standards-results
-          
-          # Run the agent and capture output
+          echo "🤖 Running: node ai-standards-agent.js"
           if timeout 900 node ai-standards-agent.js > ai-standards-results/agent-output.log 2>&1; then
             echo "✅ AI Standards Agent completed successfully"
-            echo "📊 Checking for results..."
-            
-            # Check if results were generated
-            if [ -f "ai-standards-results/ai-standards-results.json" ]; then
+            if [ -f ai-standards-results/ai-standards-results.json ]; then
               echo "✅ AI results found, showing summary:"
               cat ai-standards-results/ai-standards-results.json
               echo ""
               echo "📋 Last 20 lines of agent output:"
               tail -20 ai-standards-results/agent-output.log
             else
-              echo "⚠️ No AI results found, creating fallback"
-              echo '{"success": true, "cycles": 1, "finalQuality": 75, "issuesFound": 0, "fixesApplied": 0, "note": "Fallback results - check logs for details"}' > ai-standards-results/ai-standards-results.json
+              echo "❌ AI results file missing"
+              exit 1
             fi
           else
             echo "❌ AI Standards Agent failed or timed out"
-            echo "📝 Creating error results"
-            echo '{"success": false, "error": "AI Standards Agent execution failed or timed out", "cycles": 0, "finalQuality": 0, "issuesFound": 0, "fixesApplied": 0}' > ai-standards-results/ai-standards-results.json
-            echo "⚠️ Continuing with error results instead of failing"
-            
-            # Show what we can from the logs
-            if [ -f "ai-standards-results/agent-output.log" ]; then
+            if [ -f ai-standards-results/agent-output.log ]; then
               echo "📋 Last 20 lines of agent output:"
               tail -20 ai-standards-results/agent-output.log
             fi
+            exit 1
           fi
-          fi
-          
           echo "✅ AI Code Check completed successfully"
-          
-          # Upload AI results as artifacts
           echo "📤 Uploading AI results as artifacts..."
-          if [ -d "ai-standards-results" ]; then
+          if [ -d ai-standards-results ]; then
             echo "📁 AI results directory contents:"
             ls -la ai-standards-results/
-            
-            # Upload results as artifacts
             echo "📤 Uploading AI Standards Results..."
             echo "📊 Results summary:"
-            if [ -f "ai-standards-results/ai-standards-results.json" ]; then
+            if [ -f ai-standards-results/ai-standards-results.json ]; then
               cat ai-standards-results/ai-standards-results.json
+            else
+              echo "❌ ai-standards-results.json missing"
+              exit 1
             fi
           else
             echo "⚠️ No AI results directory found"
+            exit 1
           fi
-          
       - name: Upload AI Results
         uses: actions/upload-artifact@v4
         if: always()  # Always upload, even if AI agent fails
