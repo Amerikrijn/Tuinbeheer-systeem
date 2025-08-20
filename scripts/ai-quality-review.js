@@ -1,5 +1,5 @@
 const { Octokit } = require("@octokit/rest");
-
+const fs = require("fs");
 const OpenAI = require("openai");
 const core = require("@actions/core");
 
@@ -55,6 +55,10 @@ async function main() {
   const review = response.output_text.trim();
 
   const body = `<!-- ai-code-quality-review -->\n# 🤖 AI Code Quality Review\n\n${review}`;
+  const outputPath = "ai-code-quality-review.md";
+  fs.writeFileSync(outputPath, body);
+  console.log(`📝 Review written to ${outputPath}`);
+
   await octokit.issues.createComment({
     owner,
     repo,

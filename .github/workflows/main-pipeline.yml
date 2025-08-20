@@ -364,11 +364,72 @@ jobs:
             echo "- **Results**: AI analysis completed (check logs for details)" >> $GITHUB_STEP_SUMMARY
           fi
 
+  ai-security-review:
+    runs-on: ubuntu-latest
+    name: "🔒 AI Security Review"
+    needs: [conventional-tests, security-scan]
+    timeout-minutes: 10
+    steps:
+      - name: Setup Node
+        uses: ./.github/workflows/setup-node.yml
+        with:
+          node-version: 20
+      - name: Fetch full history
+        run: git fetch --prune --unshallow
+      - name: Checkout PR commit
+        run: git checkout ${{ github.event.pull_request.head.sha }}
+      - name: Install deps
+        run: npm i --no-fund --no-audit openai @octokit/rest @actions/core
+      - name: Run AI Security Review
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+          REPO: ${{ github.repository }}
+          FAIL_ON_HIGH: "true"
+        run: node scripts/ai-security-review.js
+      - name: Upload Security Review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-security-review
+          path: ai-security-review.md
+
+  ai-code-quality-review:
+    runs-on: ubuntu-latest
+    name: "🤖 AI Code Quality Review"
+    needs: [conventional-tests, security-scan]
+    timeout-minutes: 10
+    steps:
+      - name: Setup Node
+        uses: ./.github/workflows/setup-node.yml
+        with:
+          node-version: 20
+      - name: Fetch full history
+        run: git fetch --prune --unshallow
+      - name: Checkout PR commit
+        run: git checkout ${{ github.event.pull_request.head.sha }}
+      - name: Install deps
+        run: npm i --no-fund --no-audit openai @octokit/rest @actions/core
+      - name: Run AI Code Quality Review
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}
+          REPO: ${{ github.repository }}
+        run: node scripts/ai-quality-review.js
+      - name: Upload Code Quality Review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-code-quality-review
+          path: ai-code-quality-review.md
+
   # Job 5: Unified Summary (Final Job) - Always runs regardless of other job failures
   unified-summary:
     runs-on: ubuntu-latest
     name: 📋 Unified Summary
-    needs: [foundation-build, preview-build, docker-build, conventional-tests, ai-code-check]
+    needs: [foundation-build, preview-build, docker-build, conventional-tests, ai-code-check, ai-security-review, ai-code-quality-review]
     if: always() && github.event_name == 'pull_request'
     timeout-minutes: 5
     permissions:

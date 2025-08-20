@@ -5,6 +5,7 @@
 // - Optionally fails the job on High-severity findings (FAIL_ON_HIGH)
 
 const { Octokit } = require("@octokit/rest");
+const fs = require("fs");
 const OpenAI = require("openai");
 const core = require("@actions/core");
 
@@ -443,6 +444,8 @@ async function postSecurityReviewComment(body) {
     }
 
     await postSecurityReviewComment(reviewToPost);
+    fs.writeFileSync("ai-security-review.md", reviewToPost);
+    console.log("📝 Security review written to ai-security-review.md");
 
     // 7) Check for critical/high severity issues
     if (String(FAIL_ON_HIGH).toLowerCase() === "true") {
@@ -467,6 +470,8 @@ async function postSecurityReviewComment(body) {
   const msg = `## 🚨 AI Security Review Failed\n\nThe automated security review encountered an error:\n\n\`\`\`\n${String(e?.message || e)}\n\`\`\`\n\nPlease check the GitHub Actions logs for more details.`;
   try { 
     await postSecurityReviewComment(msg);
+    fs.writeFileSync("ai-security-review.md", msg);
+    console.log("📝 Security review error written to ai-security-review.md");
   } catch (commentError) {
     console.error("Failed to post error comment:", commentError.message);
   }
