@@ -369,7 +369,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 📋 Unified Summary
     needs: [foundation-build, preview-build, docker-build, conventional-tests, ai-code-check]
-    if: always() && github.event_name == 'pull_request'
+    if: always()
     timeout-minutes: 5
     permissions:
       contents: read
@@ -424,6 +424,7 @@ jobs:
           echo "✅ Simple summary created"
       
       - name: Post Summary Comment
+        if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
@@ -487,7 +488,7 @@ jobs:
           echo "### ✅ All Jobs Completed" >> $GITHUB_STEP_SUMMARY
           echo "- **Foundation Build**: ✅ SUCCESS" >> $GITHUB_STEP_SUMMARY
           echo "- **Preview Build**: ✅ READY" >> $GITHUB_STEP_SUMMARY
-                      echo "- **Docker Build**: ✅ VERIFIED (image built successfully)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Docker Build**: ✅ VERIFIED (image built successfully)" >> $GITHUB_STEP_SUMMARY
           echo "- **Conventional Tests**: ✅ COMPLETED" >> $GITHUB_STEP_SUMMARY
           echo "- **AI Code Check**: ✅ COMPLETED" >> $GITHUB_STEP_SUMMARY
           echo "- **Unified Summary**: ✅ POSTED" >> $GITHUB_STEP_SUMMARY
@@ -506,6 +507,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 🚀 Deploy Production
     needs: [unified-summary]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: production
 
     steps:
