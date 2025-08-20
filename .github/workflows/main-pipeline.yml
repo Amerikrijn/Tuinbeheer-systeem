@@ -25,7 +25,7 @@ jobs:
     
     steps:
       - name: Setup Node
-        uses: ./.github/workflows/setup-node.yml
+        uses: ./.github/actions/setup-node
         with:
           node-version: '18'
       
@@ -108,7 +108,7 @@ jobs:
     
     steps:
       - name: Setup Node
-        uses: ./.github/workflows/setup-node.yml
+        uses: ./.github/actions/setup-node
         with:
           node-version: '18'
       
@@ -182,7 +182,7 @@ jobs:
 
     steps:
       - name: Setup Node
-        uses: ./.github/workflows/setup-node.yml
+        uses: ./.github/actions/setup-node
         with:
           node-version: '18'
 
@@ -229,7 +229,7 @@ jobs:
     
     steps:
       - name: Setup Node
-        uses: ./.github/workflows/setup-node.yml
+        uses: ./.github/actions/setup-node
         with:
           node-version: '18'
       - name: Ensure full history
@@ -356,7 +356,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Setup Node
-        uses: ./.github/workflows/setup-node.yml
+        uses: ./.github/actions/setup-node
         with:
           node-version: 20
       - name: Fetch full history
@@ -390,7 +390,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Setup Node
-        uses: ./.github/workflows/setup-node.yml
+        uses: ./.github/actions/setup-node
         with:
           node-version: 20
       - name: Fetch full history

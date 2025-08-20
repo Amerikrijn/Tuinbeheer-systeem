@@ -33,7 +33,7 @@ jobs:
     
     steps:
       - name: 🟢 Setup Node
-        uses: ./.github/workflows/setup-node.yml
+        uses: ./.github/actions/setup-node
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: 🔑 Test OpenAI Key
