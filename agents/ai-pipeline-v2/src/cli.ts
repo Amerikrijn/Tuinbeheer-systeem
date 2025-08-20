@@ -252,6 +252,7 @@ async function loadConfiguration(configPath?: string): Promise<PipelineConfig> {
     autoApply: false,
     gitIntegration: false,
     outputPath: './ai-pipeline-results',
+    qualityChecks: ['eslint'],
     logLevel: 'info'
   }
 

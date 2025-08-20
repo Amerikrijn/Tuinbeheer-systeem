@@ -6,6 +6,7 @@ import { OpenAIProvider } from './core/providers/openai-provider'
 import { PipelineConfig, PipelineResult, CodeIssue, CodeFix, TestSuite, QualityValidation, AgentResult } from './types'
 import * as fs from 'fs'
 import * as path from 'path'
+import { QualityCheckRunner } from './quality-checks'
 
 export class AIPipeline {
   private config: PipelineConfig
@@ -15,6 +16,7 @@ export class AIPipeline {
   private qualityValidator: QualityValidatorAgent
   private results: PipelineResult
   private openaiProvider: OpenAIProvider
+  private qualityRunner: QualityCheckRunner
 
   constructor(config: PipelineConfig, openaiApiKey: string) {
     this.config = config
@@ -31,6 +33,7 @@ export class AIPipeline {
     this.codeFixer = new CodeFixerAgent(this.openaiProvider)
     this.testGenerator = new TestGeneratorAgent(this.openaiProvider)
     this.qualityValidator = new QualityValidatorAgent(this.openaiProvider)
+    this.qualityRunner = new QualityCheckRunner(this.config.qualityChecks)
     
     this.results = this.initializeResults()
     
@@ -68,10 +71,23 @@ export class AIPipeline {
         console.log(`🔄 Iteration ${iteration}`)
         console.log('─'.repeat(50))
 
+        // Optional: run configured quality checks before AI analysis
+        let checkIssues: CodeIssue[] = []
+        if (this.config.qualityChecks && this.config.qualityChecks.length > 0) {
+          console.log('🛡️ Step 0: Running quality checks...')
+          checkIssues = await this.qualityRunner.run(targetPath)
+          if (checkIssues.length) {
+            totalIssuesFound += checkIssues.length
+            console.log(`✅ Quality checks found ${checkIssues.length} issues`)
+          } else {
+            console.log('✅ No issues found by quality checks')
+          }
+        }
+
         // Step 1: Collect Issues
         console.log('🔍 Step 1: Collecting Issues...')
         const issueResult = await this.issueCollector.run(targetPath)
-        
+
         if (!issueResult.success) {
           console.warn(`⚠️ Issue collection failed: ${issueResult.error}`)
           // Continue with previous issues if available
@@ -79,9 +95,9 @@ export class AIPipeline {
             throw new Error(`Issue collection failed and no previous issues available: ${issueResult.error}`)
           }
         } else {
-          allIssues = issueResult.data
-          totalIssuesFound += allIssues.length
-          console.log(`✅ Found ${allIssues.length} issues`)
+          allIssues = [...checkIssues, ...issueResult.data]
+          totalIssuesFound += issueResult.data.length
+          console.log(`✅ Found ${issueResult.data.length} issues`)
         }
 
         // Step 2: Calculate Quality Score
