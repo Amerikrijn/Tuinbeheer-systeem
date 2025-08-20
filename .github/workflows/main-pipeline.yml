@@ -397,7 +397,14 @@ jobs:
     runs-on: ubuntu-latest
     name: 📋 Unified Summary
     # Aggregates build, test, security, and AI results into one report
-    needs: [foundation-build, preview-build, docker-build, conventional-tests, ai-code-check, ai-security-review, ai-code-quality-review]
+    needs:
+      - foundation-build
+      - preview-build
+      - docker-build
+      - conventional-tests
+      - ai-code-check
+      - ai-security-review
+      - ai-code-quality-review
     if: always() && github.event_name == 'pull_request'
     timeout-minutes: 5
     permissions:
