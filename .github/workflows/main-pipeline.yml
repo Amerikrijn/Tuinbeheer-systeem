@@ -64,13 +64,11 @@ jobs:
 
       - name: Run npm audit
         id: npm-audit
-        continue-on-error: true
-        run: npm audit --audit-level=high --json > npm-audit-report.json
+        run: npm audit --audit-level=high --json > npm-audit-report.json || true
 
       - name: Run Semgrep
         id: semgrep
-        continue-on-error: true
-        run: semgrep ci --severity=ERROR --json > semgrep-report.json
+        run: semgrep ci --severity=ERROR --json > semgrep-report.json || true
 
       - name: Upload security scan reports
         if: always()
@@ -81,11 +79,25 @@ jobs:
             npm-audit-report.json
             semgrep-report.json
 
-      - name: Fail on security issues
-        if: steps.npm-audit.outcome == 'failure' || steps.semgrep.outcome == 'failure'
+      - name: Analyze security scan results
         run: |
-          echo "High or critical security issues detected"
-          exit 1
+          echo "## 🔐 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          npm_high=$(jq '.metadata.vulnerabilities.high // 0' npm-audit-report.json)
+          npm_critical=$(jq '.metadata.vulnerabilities.critical // 0' npm-audit-report.json)
+          echo "### npm audit" >> $GITHUB_STEP_SUMMARY
+          echo "- High: $npm_high" >> $GITHUB_STEP_SUMMARY
+          echo "- Critical: $npm_critical" >> $GITHUB_STEP_SUMMARY
+          semgrep_high=$(jq '[.results[] | select(.extra.severity == "HIGH" or .extra.severity == "ERROR")] | length' semgrep-report.json)
+          semgrep_critical=$(jq '[.results[] | select(.extra.severity == "CRITICAL")] | length' semgrep-report.json)
+          echo "### Semgrep" >> $GITHUB_STEP_SUMMARY
+          echo "- High: $semgrep_high" >> $GITHUB_STEP_SUMMARY
+          echo "- Critical: $semgrep_critical" >> $GITHUB_STEP_SUMMARY
+          if [ "$npm_high" -gt 0 ] || [ "$npm_critical" -gt 0 ] || [ "$semgrep_high" -gt 0 ] || [ "$semgrep_critical" -gt 0 ]; then
+            echo "High or critical security issues detected" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          else
+            echo "No high or critical security issues detected" >> $GITHUB_STEP_SUMMARY
+          fi
 
   # Job 3: Preview Build + Docker Build (Parallel)
   preview-build:
