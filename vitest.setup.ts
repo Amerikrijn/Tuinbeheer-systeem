@@ -92,33 +92,38 @@ vi.mock('next/font/google', () => ({
 }));
 
 // Mock Supabase
-vi.mock('@/lib/supabase', () => ({
-  getSupabaseClient: vi.fn(() => ({
-    auth: {
-      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-      signInWithPassword: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-      signUp: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
-      signOut: vi.fn().mockResolvedValue({ error: null }),
-      onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: null } }),
-    },
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn().mockResolvedValue({ data: null, error: null }),
-          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+vi.mock('@/lib/supabase', () => {
+  const chain: any = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    insert: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
+    delete: vi.fn().mockReturnThis(),
+    limit: vi.fn().mockReturnThis(),
+    order: vi.fn().mockReturnThis(),
+    range: vi.fn().mockReturnThis(),
+    rpc: vi.fn().mockReturnThis(),
+    then: vi.fn().mockResolvedValue({ data: null, error: null }),
+  };
+  return {
+    getSupabaseClient: vi.fn(() => ({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+        signInWithPassword: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+        signUp: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+        signOut: vi.fn().mockResolvedValue({ error: null }),
+        onAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: null } }),
+      },
+      from: vi.fn(() => chain),
+      storage: {
+        from: vi.fn(() => ({
+          upload: vi.fn().mockResolvedValue({ data: null, error: null }),
+          download: vi.fn().mockResolvedValue({ data: null, error: null }),
+          remove: vi.fn().mockResolvedValue({ data: null, error: null }),
+          list: vi.fn().mockResolvedValue({ data: null, error: null }),
         })),
-        insert: vi.fn().mockResolvedValue({ data: null, error: null }),
-        update: vi.fn().mockResolvedValue({ data: null, error: null }),
-        delete: vi.fn().mockResolvedValue({ data: null, error: null }),
-      })),
+      },
+      rpc: vi.fn().mockReturnValue(chain),
     })),
-    storage: {
-      from: vi.fn(() => ({
-        upload: vi.fn().mockResolvedValue({ data: null, error: null }),
-        download: vi.fn().mockResolvedValue({ data: null, error: null }),
-        remove: vi.fn().mockResolvedValue({ data: null, error: null }),
-        list: vi.fn().mockResolvedValue({ data: null, error: null }),
-      })),
-    },
-  })),
-}));
+  };
+});

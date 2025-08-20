@@ -27,7 +27,7 @@ const CustomFallback = ({ error, reset }: { error: Error; reset: () => void }) =
   </div>
 )
 
-describe.skip('ErrorBoundary', () => {
+describe('ErrorBoundary', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockLocation.href = ''

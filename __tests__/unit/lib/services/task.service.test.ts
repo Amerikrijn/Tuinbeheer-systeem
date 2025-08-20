@@ -56,7 +56,7 @@ jest.mock('@/lib/security/garden-access', () => ({
   filterAccessibleGardens: jest.fn((gardens) => gardens)
 }));
 
-describe.skip('Task Service', () => {
+describe('Task Service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

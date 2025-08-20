@@ -46,7 +46,7 @@ const mockLogClientSecurityEvent = require('@/lib/banking-security').logClientSe
 const mockValidateApiInput = require('@/lib/banking-security').validateApiInput;
 const mockValidateTuinFormData = require('@/lib/validation').validateTuinFormData;
 
-describe.skip('Gardens API Route', () => {
+describe('Gardens API Route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     

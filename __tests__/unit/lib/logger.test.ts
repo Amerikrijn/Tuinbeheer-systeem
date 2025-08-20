@@ -9,7 +9,7 @@ const mockConsole = {
   log: jest.fn(),
 };
 
-describe.skip('Logger', () => {
+describe('Logger', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     Object.assign(console, mockConsole);

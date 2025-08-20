@@ -54,7 +54,7 @@ afterAll(() => {
   console.log = originalConsoleLog;
 });
 
-describe.skip('Version Utilities', () => {
+describe('Version Utilities', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorageMock.store = {};

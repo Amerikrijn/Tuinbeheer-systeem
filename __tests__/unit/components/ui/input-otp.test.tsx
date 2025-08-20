@@ -49,7 +49,7 @@ jest.mock('lucide-react', () => ({
   )
 }));
 
-describe.skip('InputOTP Components', () => {
+describe('InputOTP Components', () => {
   describe('InputOTP', () => {
     it('should render with default props', () => {
       render(<InputOTP />);

@@ -10,7 +10,7 @@ jest.mock('next-themes', () => ({
 
 const mockUseTheme = useTheme as jest.MockedFunction<typeof useTheme>
 
-describe.skip('ThemeToggle', () => {
+describe('ThemeToggle', () => {
   const mockSetTheme = jest.fn()
 
   beforeEach(() => {

@@ -1,5 +1,5 @@
 jest.mock('@/lib/supabase', () => ({
-  supabase: {
+  getSupabaseClient: jest.fn(() => ({
     auth: {
       getUser: jest.fn(),
       signInWithPassword: jest.fn(),
@@ -9,10 +9,11 @@ jest.mock('@/lib/supabase', () => ({
         updateUserById: jest.fn(),
       },
     },
-  },
+  })),
 }));
 
-import { supabase } from '@/lib/supabase';
+import { getSupabaseClient } from '@/lib/supabase';
+const supabase = getSupabaseClient();
 import { passwordChangeManager } from '@/lib/password-change-manager';
 
 describe('PasswordChangeManager', () => {

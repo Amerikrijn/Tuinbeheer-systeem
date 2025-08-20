@@ -1,15 +1,20 @@
 import { DatabaseService } from '@/lib/services/database.service'
-import { supabase } from '@/lib/supabase'
+import { getSupabaseClient } from '@/lib/supabase'
 import * as database from '@/lib/database'
 
 // Mock dependencies
 jest.mock('@/lib/services/database.service')
-jest.mock('@/lib/supabase')
+jest.mock('@/lib/supabase', () => ({
+  getSupabaseClient: jest.fn(() => ({
+    from: jest.fn(),
+  })),
+}))
 
+const supabase = getSupabaseClient()
 const mockDatabaseService = DatabaseService as jest.Mocked<typeof DatabaseService>
-const mockSupabase = supabase as jest.Mocked<typeof supabase>
+const mockSupabase = supabase as any
 
-describe.skip('Database Functions', () => {
+describe('Database Functions', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     jest.spyOn(console, 'log').mockImplementation(() => {})

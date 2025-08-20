@@ -17,7 +17,7 @@ import {
   calculatePlantBedCanvasSize
 } from '@/lib/scaling-constants';
 
-describe.skip('Scaling Constants', () => {
+describe('Scaling Constants', () => {
   describe('Constants', () => {
     it('should have correct base scaling', () => {
       expect(METERS_TO_PIXELS).toBe(80);

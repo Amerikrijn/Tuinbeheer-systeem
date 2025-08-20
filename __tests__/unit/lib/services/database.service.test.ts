@@ -58,7 +58,7 @@ jest.mock('@/lib/logger', () => ({
   }
 }));
 
-describe.skip('Database Service', () => {
+describe('Database Service', () => {
   describe('Error Classes', () => {
     describe('DatabaseError', () => {
       it('should create DatabaseError with message', () => {
