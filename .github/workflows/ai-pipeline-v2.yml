@@ -29,10 +29,18 @@ env:
 jobs:
   ai-pipeline-v2:
     name: 🚀 AI Pipeline v2.0
-    if: ${{ secrets.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     
     steps:
+      - name: 🔑 Check OpenAI API Key
+        run: |
+          if [ -z "${{ secrets.OPENAI_API_KEY }}" ]; then
+            echo "❌ Error: OPENAI_API_KEY secret is not set"
+            echo "Please add the OPENAI_API_KEY secret to your repository settings"
+            exit 1
+          fi
+          echo "✅ OpenAI API Key is configured"
+      
       - name: 🟢 Setup Node
         uses: ./.github/actions/setup-node
         with:
