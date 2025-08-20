@@ -21,17 +21,10 @@ jobs:
     timeout-minutes: 10
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: ./.github/workflows/setup-node.yml
         with:
           node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
       
       - name: Build project
         run: npm run build
@@ -51,17 +44,10 @@ jobs:
     timeout-minutes: 8
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: ./.github/workflows/setup-node.yml
         with:
           node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
       
       - name: Build for preview
         run: npm run build
@@ -132,17 +118,10 @@ jobs:
     timeout-minutes: 20
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: ./.github/workflows/setup-node.yml
         with:
           node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
       
       - name: Run Complete Banking Standards Test Suite
         run: |
@@ -455,19 +434,12 @@ jobs:
       actions: read
     
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: ./.github/workflows/setup-node.yml
         with:
           node-version: '18'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
+      - name: Ensure full history
+        run: git fetch --prune --unshallow
       
       - name: Install AI Standards Agent
         run: |
