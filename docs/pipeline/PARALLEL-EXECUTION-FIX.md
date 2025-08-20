@@ -1,5 +1,7 @@
 # 🔧 Parallel Execution Fix - CI/CD Workflow
 
+# Zorg dat `OPENAI_API_KEY` is ingesteld en test met `node ../../scripts/test-openai-key.js`.
+
 ## 🚨 **Probleem Identificatie**
 
 De parallelle processen in je CI/CD workflow startten niet omdat:

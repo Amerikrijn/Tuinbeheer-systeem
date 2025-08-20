@@ -4,6 +4,8 @@
 
 This document describes the complete CI/CD pipeline architecture that replaces the previous complex, failing workflows. The new pipeline is designed to be **banking standards compliant**, **AI-powered**, and **deployment-ready**.
 
+> Voor AI-gerelateerde jobs: stel `OPENAI_API_KEY` in en valideer met `node ../../scripts/test-openai-key.js`.
+
 ## 🏗️ **Architecture**
 
 ### **Pipeline Flow:**

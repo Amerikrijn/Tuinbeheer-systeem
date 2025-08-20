@@ -2,6 +2,8 @@
 
 ## 📊 HUIDIGE SITUATIE
 
+> Stel `OPENAI_API_KEY` in en test deze met `node ../../scripts/test-openai-key.js`.
+
 ### ✅ WAT ER AL IS GEDAAN:
 1. **Oude workflows uitgeschakeld:**
    - `ai-testing-simple.yml` → `ai-testing-simple.yml.disabled` ✅

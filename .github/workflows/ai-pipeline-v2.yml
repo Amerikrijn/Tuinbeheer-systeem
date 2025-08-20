@@ -23,12 +23,12 @@ on:
 env:
   NODE_VERSION: '18'
   OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   ai-pipeline-v2:
     name: 🚀 AI Pipeline v2.0
+    if: ${{ env.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     
     steps:
@@ -36,6 +36,8 @@ jobs:
         uses: ./.github/workflows/setup-node.yml
         with:
           node-version: ${{ env.NODE_VERSION }}
+      - name: 🔑 Test OpenAI Key
+        run: node scripts/test-openai-key.js
       - name: Fetch full history
         run: git fetch --prune --unshallow
 

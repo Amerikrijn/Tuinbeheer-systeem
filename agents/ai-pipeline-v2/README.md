@@ -19,7 +19,7 @@ Maak een `config/pipeline-config.yml` bestand aan:
 ```yaml
 # LLM Provider
 llm:
-  provider: "openai"        # openai, claude, copilot (toekomst)
+  provider: "openai"        # huidige provider
   model: "gpt-4"           # gpt-4, gpt-3.5-turbo
   api_key: "${OPENAI_API_KEY}"
   temperature: 0.1          # Laag voor consistente fixes
@@ -54,6 +54,9 @@ agents:
 
 ```bash
 export OPENAI_API_KEY="your-openai-api-key-here"
+
+# Test je sleutel
+node ../../scripts/test-openai-key.js
 ```
 
 ### **3. Pipeline Uitvoeren**
@@ -74,8 +77,6 @@ npm start -- run \
 
 ### **LLM Providers**
 - **OpenAI** - GPT-4, GPT-3.5-turbo
-- **Claude** - Anthropic Claude (toekomst)
-- **GitHub Copilot** - GitHub Copilot (toekomst)
 
 ### **Focus Instellingen**
 - **Security** - Beveiligings issues

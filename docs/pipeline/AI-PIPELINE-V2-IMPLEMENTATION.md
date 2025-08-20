@@ -73,6 +73,9 @@ Elke workflow genereert nu automatisch samenvattingen in PRs:
 ```bash
 # Voeg toe aan GitHub Secrets
 OPENAI_API_KEY=your_openai_api_key_here
+
+# Test de sleutel
+node ../../scripts/test-openai-key.js
 ```
 
 ### Pipeline Configuratie
@@ -263,7 +266,7 @@ npm start -- agents --list
 ## 📚 Volgende Stappen
 
 ### Uitbreidingen
-- [ ] Multi-AI provider support (Anthropic, GitHub Copilot)
+- [ ] Multi-AI provider support (GitHub Copilot)
 - [ ] Custom agent development
 - [ ] Advanced test generation
 - [ ] Security scanning integration

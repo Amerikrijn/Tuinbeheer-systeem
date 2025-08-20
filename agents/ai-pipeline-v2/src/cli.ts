@@ -212,10 +212,10 @@ async function loadConfiguration(configPath?: string): Promise<PipelineConfig> {
         name: 'Test Generator',
         description: 'Generates test cases for issues',
         provider: {
-          name: 'Anthropic Claude',
-          type: 'anthropic',
+          name: 'OpenAI GPT-4',
+          type: 'openai',
           config: {},
-          isAvailable: false
+          isAvailable: true
         },
         enabled: true,
         config: {}

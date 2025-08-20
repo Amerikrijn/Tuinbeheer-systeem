@@ -57,7 +57,7 @@ export interface QualityValidation {
 }
 export interface AIProvider {
     name: string;
-    type: 'openai' | 'anthropic' | 'github-copilot';
+    type: 'openai' | 'github-copilot';
     config: any;
     isAvailable: boolean;
 }
