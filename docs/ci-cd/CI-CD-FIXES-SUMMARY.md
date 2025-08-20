@@ -227,7 +227,7 @@ ls -la dist/cli.js || echo "dist/cli.js not found"
 6. `app/api/health/route.ts` - Added NODE_ENV fallback
 7. `.github/workflows/ai-pipeline-v2.yml` - Fixed CLI flags, target path, and shell commands
 8. `.github/workflows/preview-deploy.yml` - Made tests non-blocking
-9. `AI-PIPELINE-MIGRATION-STATUS.md` - Updated status
+9. `docs/pipeline/AI-PIPELINE-MIGRATION-STATUS.md` - Updated status
 10. `CI-CD-FIXES-SUMMARY.md` - This file
 
 ## 📝 **Conclusion**
