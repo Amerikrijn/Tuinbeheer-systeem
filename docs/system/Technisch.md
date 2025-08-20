@@ -6,8 +6,8 @@
 - `SUPABASE_SERVICE_ROLE_KEY` (server‑side secret)
 
 ## Configuratie
-- `lib/config.ts` valideert env (formaat, presence)
-- `lib/supabase.ts` init client (PKCE, persistSession)
+ - `lib/env.ts` valideert env (formaat, presence)
+ - `lib/supabase.ts` init client (PKCE, persistSession)
 
 ## Belangrijke API‑routes
 - `app/api/admin/*`: invite, delete, update‑role, update‑status, reset‑password
