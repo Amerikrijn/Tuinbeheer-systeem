@@ -1,10 +1,10 @@
 name: 🚀 Main Pipeline - Simple & Effective
 on:
   pull_request:
-    branches: [main, develop]
+    branches: ['**']
     types: [opened, synchronize, reopened]
   push:
-    branches: [main, develop]
+    branches: ['**']
   workflow_dispatch:
 
 permissions:
