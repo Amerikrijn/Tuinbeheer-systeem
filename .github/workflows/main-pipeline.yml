@@ -132,10 +132,11 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: Setup Node
-        uses: ./.github/workflows/setup-node.yml
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
+          cache: 'npm'
 
       - name: Create test results directory
         run: mkdir -p test-results
