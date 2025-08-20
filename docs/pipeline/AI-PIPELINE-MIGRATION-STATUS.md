@@ -102,7 +102,7 @@
 ### **Prioriteit 4: Documentatie Bijwerken**
 1. Alle README bestanden bijwerken
 2. Scripts bijwerken naar nieuwe pipeline
-3. CI-CD-SETUP.md bijwerken
+3. [CI-CD-SETUP.md](../ci-cd/CI-CD-SETUP.md) bijwerken
 
 ## 🔄 WORKFLOW TRIGGERS
 

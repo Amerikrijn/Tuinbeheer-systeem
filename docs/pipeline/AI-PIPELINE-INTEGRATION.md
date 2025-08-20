@@ -149,9 +149,9 @@ npm start -- run --target ../../app --iterations 1 --quality 80 --ci-mode --outp
 
 ## 📚 Gerelateerde Documentatie
 
-- [CI-CD-SETUP.md](./CI-CD-SETUP.md) - Originele CI/CD setup
+- [CI-CD-SETUP.md](../ci-cd/CI-CD-SETUP.md) - Originele CI/CD setup
 - [AI-PIPELINE-MIGRATION-STATUS.md](./AI-PIPELINE-MIGRATION-STATUS.md) - Migratie status
-- [agents/ai-pipeline-v2/README.md](./agents/ai-pipeline-v2/README.md) - AI Pipeline details
+- [agents/ai-pipeline-v2/README.md](../../agents/ai-pipeline-v2/README.md) - AI Pipeline details
 
 ---
 
