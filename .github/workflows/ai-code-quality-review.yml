@@ -15,22 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout PR HEAD
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: ./.github/workflows/setup-node.yml
         with:
           node-version: 20
+      - name: Fetch full history
+        run: git fetch --prune --unshallow
+      - name: Checkout PR commit
+        run: git checkout ${{ github.event.pull_request.head.sha }}
 
       - name: Install deps
-        run: |
-          npm init -y >/dev/null 2>&1
-
-          npm i --no-fund --no-audit openai @octokit/rest @actions/core
+        run: npm i --no-fund --no-audit openai @octokit/rest @actions/core
 
       - name: Run AI Code Quality Review
         env:

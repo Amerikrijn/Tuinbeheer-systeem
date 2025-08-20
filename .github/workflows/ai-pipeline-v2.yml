@@ -32,17 +32,12 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
+      - name: 🟢 Setup Node
+        uses: ./.github/workflows/setup-node.yml
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+      - name: Fetch full history
+        run: git fetch --prune --unshallow
 
       - name: 📦 Install AI Pipeline v2
         run: |
