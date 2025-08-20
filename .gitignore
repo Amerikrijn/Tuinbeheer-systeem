@@ -37,7 +37,7 @@ yarn-error.log*
 next-env.d.ts
 
 # AI agent results
-agents/*/test-results/
+agents/*/test-results*/
 agents/*/quality-results/
 agents/*/auto-fix-results/
 
