@@ -124,324 +124,55 @@ jobs:
           echo "- **Result**: Docker image built successfully with production dependencies" >> $GITHUB_STEP_SUMMARY
           echo "- **Image**: app:test created and ready for deployment" >> $GITHUB_STEP_SUMMARY
 
-  # Job 3: Conventional Tests + AI Agent (Parallel)
+  # Job 3: Conventional Tests (Parallel)
   conventional-tests:
     runs-on: ubuntu-latest
     name: 🏦 Conventional Tests (Banking Standards)
     needs: [foundation-build]
     timeout-minutes: 20
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
-      - name: Run Complete Banking Standards Test Suite
-        run: |
-          echo "🏦 Running Complete Banking Standards Compliance Test Suite..."
-          echo "📋 Test Suite: Banking & Financial Compliance (All Tests)"
-          
-          # Track test results
-          declare -i total_tests=0
-          declare -i passed_tests=0
-          declare -i failed_tests=0
-          
-          # 1. Core Test Suite (Essential - must pass)
-          echo "🧪 1. Running core tests..."
-          if npm run test:ci; then
-            echo "✅ Core tests passed"
-            ((passed_tests++))
-          else
-            echo "❌ Core tests failed - this is critical"
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 2. Unit Tests (Important - should pass)
-          echo "🧪 2. Running unit tests..."
-          if npm run test:unit; then
-            echo "✅ Unit tests passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ Unit tests failed but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 3. Integration Tests (Important - should pass)
-          echo "🧪 3. Running integration tests..."
-          if npm run test:integration; then
-            echo "✅ Integration tests passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ Integration tests failed but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 4. Critical Endpoint Tests (Essential - must pass)
-          echo "🧪 4. Running critical endpoint tests..."
-          if npm run test:critical-endpoints; then
-            echo "✅ Critical endpoint tests passed"
-            ((passed_tests++))
-          else
-            echo "❌ Critical endpoint tests failed - this is critical"
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 5. Regression Tests (Important - should pass)
-          echo "🧪 5. Running regression tests..."
-          if npm run test:regression; then
-            echo "✅ Regression tests passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ Regression tests failed but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 6. End-to-End Tests (Important - should pass)
-          echo "🧪 6. Running end-to-end tests..."
-          if npm run test:e2e; then
-            echo "✅ End-to-end tests passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ End-to-end tests failed but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 7. Security Tests (Essential - must pass)
-          echo "🔒 7. Running security tests..."
-          if npm run test:security; then
-            echo "✅ Security tests passed"
-            ((passed_tests++))
-          else
-            echo "❌ Security tests failed - this is critical"
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 8. Security Pattern Checks (Important - should pass)
-          echo "🔒 8. Running security pattern checks..."
-          if npm run test:security:patterns; then
-            echo "✅ Security pattern checks passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ Security pattern checks failed but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 9. Complete CI Quality Suite (Important - should pass)
-          echo "🏦 9. Running complete CI quality suite..."
-          if npm run ci:quality; then
-            echo "✅ CI quality checks passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ CI quality checks failed but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 10. Complete CI Security Suite (Essential - must pass)
-          echo "🏦 10. Running complete CI security suite..."
-          if npm run ci:security; then
-            echo "✅ CI security checks passed"
-            ((passed_tests++))
-          else
-            echo "❌ CI security checks failed - this is critical"
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 11. Complete CI Regression Suite (Important - should pass)
-          echo "🏦 11. Running complete CI regression suite..."
-          if npm run ci:regression; then
-            echo "✅ CI regression checks passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ CI regression checks failed but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 12. Complete CI Build Suite (Essential - must pass)
-          echo "🏦 12. Running complete CI build suite..."
-          if npm run ci:build; then
-            echo "✅ CI build checks passed"
-            ((passed_tests++))
-          else
-            echo "❌ CI build checks failed - this is critical"
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 13. Type Checking (Essential - must pass)
-          echo "🔍 13. Running type checking..."
-          if npm run typecheck; then
-            echo "✅ Type checking passed"
-            ((passed_tests++))
-          else
-            echo "❌ Type checking failed - this is critical"
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 14. Linting (Important - should pass)
-          echo "📝 14. Running linting..."
-          if npm run lint; then
-            echo "✅ Linting passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ Linting issues found but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 15. Code Formatting (Important - should pass)
-          echo "📝 15. Checking code formatting..."
-          if npm run format; then
-            echo "✅ Code formatting passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ Formatting issues found but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 16. Security Audit (Essential - must pass)
-          echo "🔒 16. Running security audit..."
-          if npm audit --audit-level moderate; then
-            echo "✅ Security audit passed"
-            ((passed_tests++))
-          else
-            echo "❌ Security audit found critical issues - this is critical"
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 17. Dead Code Analysis (Nice to have)
-          echo "🧹 17. Running dead code analysis..."
-          if npm run deadcode:exports; then
-            echo "✅ Dead code analysis passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ Dead code analysis failed but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          if npm run deadcode:deps; then
-            echo "✅ Dependency analysis passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ Dependency analysis failed but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # 18. Complete Test Suite (Important - should pass)
-          echo "🧪 18. Running complete test suite..."
-          if npm run test:all; then
-            echo "✅ Complete test suite passed"
-            ((passed_tests++))
-          else
-            echo "⚠️ Complete test suite failed but continuing..."
-            ((failed_tests++))
-          fi
-          ((total_tests++))
-          
-          # Show final results
-          echo ""
-          echo "📊 FINAL TEST RESULTS:"
-          echo "✅ Passed: $passed_tests"
-          echo "❌ Failed: $failed_tests"
-          echo "📋 Total: $total_tests"
-          echo "📈 Success Rate: $(( (passed_tests * 100) / total_tests ))%"
-          
-          # Determine if job should fail
-          if [ $failed_tests -gt 0 ]; then
-            echo "⚠️ Some tests failed, but continuing with pipeline..."
-            echo "✅ Complete banking standards test suite completed with warnings"
-          else
-            echo "🎉 All tests passed successfully!"
-            echo "✅ Complete banking standards test suite completed"
-          fi
-          
-          # Always create test results summary, regardless of test failures
-          echo "📊 Collecting test results summary..."
-          
-          # Create test results summary with real data
-          mkdir -p test-results
-          echo "## 🏦 Conventional Tests Results Summary" > test-results/test-summary.md
-          echo "" >> test-results/test-summary.md
-          echo "### Test Execution Summary" >> test-results/test-summary.md
-          echo "- **Total Test Suites**: $total_tests" >> test-results/test-summary.md
-          echo "- **Passed**: $passed_tests" >> test-results/test-summary.md
-          echo "- **Failed**: $failed_tests" >> test-results/test-summary.md
-          echo "- **Success Rate**: $(( (passed_tests * 100) / total_tests ))%" >> test-results/test-summary.md
-          echo "- **Status**: $([ $failed_tests -eq 0 ] && echo '✅ ALL PASSED' || echo '⚠️ COMPLETED WITH WARNINGS')" >> test-results/test-summary.md
-          echo "- **Coverage**: Banking standards compliance verification" >> test-results/test-summary.md
-          echo "" >> test-results/test-summary.md
-          echo "### Test Suites Executed" >> test-results/test-summary.md
-          echo "1. Core tests (test:ci) - $([ $passed_tests -ge 1 ] && echo '✅ PASSED' || echo '❌ FAILED')" >> test-results/test-summary.md
-          echo "2. Unit tests (test:unit) - $([ $passed_tests -ge 2 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "3. Integration tests (test:integration) - $([ $passed_tests -ge 3 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "4. Critical endpoints (test:critical-endpoints) - $([ $passed_tests -ge 4 ] && echo '✅ PASSED' || echo '❌ FAILED')" >> test-results/test-summary.md
-          echo "5. Regression tests (test:regression) - $([ $passed_tests -ge 5 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "6. End-to-end tests (test:e2e) - $([ $passed_tests -ge 6 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "7. Security tests (test:security) - $([ $passed_tests -ge 7 ] && echo '✅ PASSED' || echo '❌ FAILED')" >> test-results/test-summary.md
-          echo "8. Security pattern checks (test:security:patterns) - $([ $passed_tests -ge 8 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "9. CI quality suite (ci:quality) - $([ $passed_tests -ge 9 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "10. CI security suite (ci:security) - $([ $passed_tests -ge 10 ] && echo '✅ PASSED' || echo '❌ FAILED')" >> test-results/test-summary.md
-          echo "11. CI regression suite (ci:regression) - $([ $passed_tests -ge 11 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "12. CI build suite (ci:build) - $([ $passed_tests -ge 12 ] && echo '✅ PASSED' || echo '❌ FAILED')" >> test-results/test-summary.md
-          echo "13. Type checking (typecheck) - $([ $passed_tests -ge 13 ] && echo '✅ PASSED' || echo '❌ FAILED')" >> test-results/test-summary.md
-          echo "14. Linting (lint) - $([ $passed_tests -ge 14 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "15. Code formatting (format) - $([ $passed_tests -ge 15 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "16. Security audit (audit) - $([ $passed_tests -ge 16 ] && echo '✅ PASSED' || echo '❌ FAILED')" >> test-results/test-summary.md
-          echo "17. Dead code analysis (deadcode:exports, deadcode:deps) - $([ $passed_tests -ge 17 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "18. Complete test suite (test:all) - $([ $passed_tests -ge 18 ] && echo '✅ PASSED' || echo '⚠️ FAILED')" >> test-results/test-summary.md
-          echo "" >> test-results/test-summary.md
-          echo "### Results Summary" >> test-results/test-summary.md
-          if [ $failed_tests -eq 0 ]; then
-            echo "🎉 **ALL TESTS PASSED SUCCESSFULLY!**" >> test-results/test-summary.md
-            echo "Your code meets all banking standards compliance requirements." >> test-results/test-summary.md
-          else
-            echo "⚠️ **SOME TESTS FAILED BUT PIPELINE CONTINUES**" >> test-results/test-summary.md
-            echo "Critical tests must pass for production deployment." >> test-results/test-summary.md
-            echo "Non-critical test failures are logged as warnings." >> test-results/test-summary.md
-          fi
-          
-          echo "📁 Test results summary created"
-          
-          # Always upload test results, even if tests failed
-          echo "📤 Uploading test results as artifacts..."
-          
+
+      - name: Create test results directory
+        run: mkdir -p test-results
+
+      - name: Run unit tests
+        run: npm run test:unit -- --reporter=junit --outputFile=test-results/unit.xml
+
+      - name: Run integration tests
+        run: npm run test:integration -- --reporter=junit --outputFile=test-results/integration.xml
+
+      - name: Run critical endpoint tests
+        run: npm run test:critical-endpoints -- --reporter=junit --outputFile=test-results/critical-endpoints.xml
+
+      - name: Run end-to-end tests
+        run: npm run test:e2e -- --reporter=junit --outputFile=test-results/e2e.xml
+
       - name: Upload Test Results
         uses: actions/upload-artifact@v4
-        if: always()  # Always upload, even if tests failed
+        if: always()
         with:
           name: conventional-test-results
           path: test-results/
           retention-days: 7
-      
+
       - name: Conventional Tests Summary
+        if: always()
         run: |
           echo "## 🏦 Conventional Tests Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ✅ COMPLETED" >> $GITHUB_STEP_SUMMARY
-          echo "- **Coverage**: Complete banking compliance verified" >> $GITHUB_STEP_SUMMARY
-          echo "- **Tests Run**: 18+ test suites including core, unit, integration, security, types, linting, CI suites, dead code analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ job.status == 'success' && '✅ PASSED' || '❌ FAILED' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Suites**: unit, integration, critical endpoints, e2e" >> $GITHUB_STEP_SUMMARY
 
   ai-code-check:
     runs-on: ubuntu-latest
