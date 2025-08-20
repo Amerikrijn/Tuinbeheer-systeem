@@ -141,6 +141,12 @@ graph TD
     M --> N[PR Available for Review]
 ```
 
+## 📋 Unified Report
+
+Na elke pull request-run wordt een gecombineerd rapport gegenereerd.
+Je vindt de resultaten als commentaar in de PR en als artifacts
+`report.html` en `report.json` bij de betreffende GitHub Actions-run.
+
 ## 🚨 Error Handling
 
 ### Test Failures

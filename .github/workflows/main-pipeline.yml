@@ -425,9 +425,7 @@ jobs:
       - preview-build
       - docker-build
       - conventional-tests
-      - ai-code-check
-      - ai-security-review
-      - ai-code-quality-review
+      - security-scan
     if: always() && github.event_name == 'pull_request'
     timeout-minutes: 5
     permissions:
