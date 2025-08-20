@@ -29,7 +29,7 @@ env:
 jobs:
   ai-pipeline-v2:
     name: 🚀 AI Pipeline v2.0
-    if: ${{ env.OPENAI_API_KEY != '' }}
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     
     steps:
@@ -236,9 +236,9 @@ jobs:
 
       - name: 🚀 Deploy if Quality Met
         if: |
-          github.event_name == 'pull_request' && 
-          github.event.pull_request.merged == true &&
-          contains(github.event.pull_request.labels.*.name, 'deploy')
+          github.event_name == 'push' && 
+          github.ref == 'refs/heads/main' &&
+          contains(github.event.head_commit.message, '[deploy]')
         run: |
           echo "🚀 Quality threshold met, proceeding with deployment..."
           # Add your deployment logic here
