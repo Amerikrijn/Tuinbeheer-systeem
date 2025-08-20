@@ -215,6 +215,32 @@ jobs:
           echo "- **Status**: ✅ COMPLETED" >> $GITHUB_STEP_SUMMARY
           echo "- **Tests**: unit, integration, critical-endpoints, e2e" >> $GITHUB_STEP_SUMMARY
 
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
+    name: "🧹 Lint & Type Check"
+    needs: [foundation-build]
+    timeout-minutes: 10
+
+    steps:
+      - name: Setup Node
+        uses: ./.github/actions/setup-node
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run type check
+        run: npm run typecheck
+
+      - name: Lint & Type Check Summary
+        run: |
+          echo "## 🧹 Lint & Type Check Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ✅ COMPLETED" >> $GITHUB_STEP_SUMMARY
+
   ai-code-check:
     if: ${{ secrets.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
@@ -424,6 +450,7 @@ jobs:
       - foundation-build
       - conventional-tests
       - security-scan
+      - lint-and-typecheck
     if: always() && github.event_name == 'pull_request'
     timeout-minutes: 5
     permissions:
