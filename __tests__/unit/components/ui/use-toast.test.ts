@@ -8,7 +8,7 @@ jest.mock('@/components/ui/toast', () => ({
   ToastProps: jest.fn()
 }));
 
-describe.skip('use-toast', () => {
+describe('use-toast', () => {
   beforeEach(() => {
     // Clear any existing timeouts
     jest.clearAllTimers();

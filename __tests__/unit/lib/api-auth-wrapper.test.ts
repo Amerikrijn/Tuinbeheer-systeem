@@ -13,7 +13,7 @@ jest.mock('@/lib/banking-security', () => ({
   logClientSecurityEvent: jest.fn()
 }));
 
-describe.skip('API Auth Wrapper', () => {
+describe('API Auth Wrapper', () => {
   let mockSupabase: any;
   let mockLogClientSecurityEvent: any;
 

@@ -19,7 +19,7 @@ jest.mock('@/lib/logger', () => ({
 const mockSupabase = require('@/lib/supabase').supabase;
 const mockApiLogger = require('@/lib/logger').apiLogger;
 
-describe.skip('Plant Beds API Route', () => {
+describe('Plant Beds API Route', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });

@@ -330,7 +330,7 @@ export function createMockSupabase() {
 jest.mock('@/lib/supabase', () => {
   const { createMockSupabase } = require('@/__tests__/setup/supabase-mock')
   return {
-    supabase: createMockSupabase(),
+    getSupabaseClient: jest.fn(() => createMockSupabase()),
   }
 })
 
