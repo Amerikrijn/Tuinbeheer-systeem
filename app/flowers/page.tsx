@@ -2,6 +2,7 @@
 
 // Force dynamic rendering to prevent SSR issues
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -11,8 +12,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Search, Flower2, Sun, Droplets, Calendar } from 'lucide-react'
 import { useNavigation } from '@/hooks/use-navigation'
-import { DUTCH_FLOWERS, FLOWER_CATEGORIES, searchFlowers, getFlowersByCategory } from '@/lib/dutch-flowers'
-import type { FlowerData } from '@/lib/dutch-flowers'
+
+// Import flower data safely
+let DUTCH_FLOWERS: any[] = []
+let FLOWER_CATEGORIES: Record<string, string> = {}
+let searchFlowers: (query: string) => any[] = () => []
+let getFlowersByCategory: (category: string) => any[] = () => []
+
+try {
+  const flowerModule = require('@/lib/dutch-flowers')
+  DUTCH_FLOWERS = flowerModule.DUTCH_FLOWERS || []
+  FLOWER_CATEGORIES = flowerModule.FLOWER_CATEGORIES || {}
+  searchFlowers = flowerModule.searchFlowers || (() => [])
+  getFlowersByCategory = flowerModule.getFlowersByCategory || (() => [])
+} catch (error) {
+  console.error('Error loading flower data:', error)
+}
 
 export default function FlowersPage() {
   const { goBack } = useNavigation()
@@ -22,19 +37,24 @@ export default function FlowersPage() {
   const [expandedFlower, setExpandedFlower] = useState<string | null>(null)
 
   const filteredFlowers = useMemo(() => {
-    let flowers = DUTCH_FLOWERS
-    
-    if (selectedCategory !== 'all') {
-      flowers = getFlowersByCategory(selectedCategory)
+    try {
+      let flowers = DUTCH_FLOWERS || []
+      
+      if (selectedCategory !== 'all' && getFlowersByCategory) {
+        flowers = getFlowersByCategory(selectedCategory)
+      }
+      
+      if (searchTerm && searchFlowers) {
+        flowers = searchFlowers(searchTerm).filter(f => 
+          selectedCategory === 'all' || f.category === selectedCategory
+        )
+      }
+      
+      return flowers
+    } catch (error) {
+      console.error('Error filtering flowers:', error)
+      return []
     }
-    
-    if (searchTerm) {
-      flowers = searchFlowers(searchTerm).filter(f => 
-        selectedCategory === 'all' || f.category === selectedCategory
-      )
-    }
-    
-    return flowers
   }, [searchTerm, selectedCategory])
 
   const getCategoryColor = (category: string) => {
@@ -69,6 +89,9 @@ export default function FlowersPage() {
     return icons[water] || water
   }
 
+  // Check if data is loaded
+  const hasData = DUTCH_FLOWERS && DUTCH_FLOWERS.length > 0
+
   return (
     <div className="container mx-auto p-4 max-w-6xl">
       {/* Header */}
@@ -87,161 +110,176 @@ export default function FlowersPage() {
           </div>
         </div>
         <p className="text-muted-foreground text-lg leading-relaxed">
-          Ontdek {DUTCH_FLOWERS.length} populaire bloemen voor Nederlandse tuinen
+          {hasData 
+            ? `Ontdek ${DUTCH_FLOWERS.length} populaire bloemen voor Nederlandse tuinen`
+            : 'Bloemen informatie laden...'}
         </p>
       </div>
 
-      {/* Search and Filter */}
-      <div className="mb-6 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            type="text"
-            placeholder="Zoek bloemen op naam, kleur of eigenschap..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant={selectedCategory === 'all' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedCategory('all')}
-          >
-            Alle ({DUTCH_FLOWERS.length})
-          </Button>
-          {Object.entries(FLOWER_CATEGORIES).map(([key, label]) => {
-            const count = getFlowersByCategory(key).length
-            return (
+      {hasData ? (
+        <>
+          {/* Search and Filter */}
+          <div className="mb-6 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Zoek bloemen op naam, kleur of eigenschap..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="flex flex-wrap gap-2">
               <Button
-                key={key}
-                variant={selectedCategory === key ? 'default' : 'outline'}
+                variant={selectedCategory === 'all' ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setSelectedCategory(key)}
+                onClick={() => setSelectedCategory('all')}
               >
-                {label} ({count})
+                Alle ({DUTCH_FLOWERS.length})
               </Button>
-            )
-          })}
-        </div>
-      </div>
+              {FLOWER_CATEGORIES && Object.entries(FLOWER_CATEGORIES).map(([key, label]) => {
+                const count = getFlowersByCategory ? getFlowersByCategory(key).length : 0
+                return (
+                  <Button
+                    key={key}
+                    variant={selectedCategory === key ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setSelectedCategory(key)}
+                  >
+                    {label} ({count})
+                  </Button>
+                )
+              })}
+            </div>
+          </div>
 
-      {/* Results count */}
-      <div className="mb-4 text-sm text-muted-foreground">
-        {filteredFlowers.length} bloemen gevonden
-      </div>
+          {/* Results count */}
+          <div className="mb-4 text-sm text-muted-foreground">
+            {filteredFlowers.length} bloemen gevonden
+          </div>
 
-      {/* Flowers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredFlowers.map((flower) => (
-          <Card 
-            key={flower.id}
-            className="hover:shadow-lg transition-shadow cursor-pointer"
-            onClick={() => setExpandedFlower(
-              expandedFlower === flower.id ? null : flower.id
-            )}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-lg">{flower.name}</CardTitle>
-                <Badge className={getCategoryColor(flower.category)}>
-                  {FLOWER_CATEGORIES[flower.category]}
-                </Badge>
-              </div>
-              {flower.latinName && (
-                <p className="text-sm text-muted-foreground italic">
-                  {flower.latinName}
-                </p>
-              )}
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {/* Basic info always visible */}
-              <div className="flex flex-wrap gap-2">
-                {flower.colors.map((color, idx) => (
-                  <Badge key={idx} variant="secondary" className="text-xs">
-                    {color}
-                  </Badge>
-                ))}
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  <span>{flower.bloomingPeriod}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className="text-xs">Hoogte: {flower.height}</span>
-                </div>
-              </div>
-
-              {/* Expanded details */}
-              {expandedFlower === flower.id && (
-                <div className="pt-3 border-t space-y-2">
-                  <p className="text-sm text-muted-foreground">
-                    {flower.description}
-                  </p>
+          {/* Flowers Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredFlowers.map((flower) => (
+              <Card 
+                key={flower.id}
+                className="hover:shadow-lg transition-shadow cursor-pointer"
+                onClick={() => setExpandedFlower(
+                  expandedFlower === flower.id ? null : flower.id
+                )}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg">{flower.name}</CardTitle>
+                    <Badge className={getCategoryColor(flower.category)}>
+                      {FLOWER_CATEGORIES[flower.category] || flower.category}
+                    </Badge>
+                  </div>
+                  {flower.latinName && (
+                    <p className="text-sm text-muted-foreground italic">
+                      {flower.latinName}
+                    </p>
+                  )}
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* Basic info always visible */}
+                  <div className="flex flex-wrap gap-2">
+                    {flower.colors && flower.colors.map((color: string, idx: number) => (
+                      <Badge key={idx} variant="secondary" className="text-xs">
+                        {color}
+                      </Badge>
+                    ))}
+                  </div>
                   
-                  <div className="space-y-1 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Sun className="h-3 w-3" />
-                      <span>Zon: {getSunRequirement(flower.sunRequirement)}</span>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>{flower.bloomingPeriod}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Droplets className="h-3 w-3" />
-                      <span>Water: {getWaterRequirement(flower.waterRequirement)}</span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs">Hoogte: {flower.height}</span>
                     </div>
-                    <div>
-                      <span className="font-medium">Grond:</span> {flower.soilType}
-                    </div>
-                    {flower.spacing && (
-                      <div>
-                        <span className="font-medium">Plantafstand:</span> {flower.spacing}
-                      </div>
-                    )}
                   </div>
 
-                  {flower.careTips && (
-                    <div className="pt-2">
-                      <p className="font-medium text-sm mb-1">Verzorgingstips:</p>
+                  {/* Expanded details */}
+                  {expandedFlower === flower.id && (
+                    <div className="pt-3 border-t space-y-2">
                       <p className="text-sm text-muted-foreground">
-                        {flower.careTips}
+                        {flower.description}
                       </p>
-                    </div>
-                  )}
-
-                  {flower.companionPlants && flower.companionPlants.length > 0 && (
-                    <div className="pt-2">
-                      <p className="font-medium text-sm mb-1">Combineert goed met:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {flower.companionPlants.map((plant, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {plant}
-                          </Badge>
-                        ))}
+                      
+                      <div className="space-y-1 text-sm">
+                        <div className="flex items-center gap-2">
+                          <Sun className="h-3 w-3" />
+                          <span>Zon: {getSunRequirement(flower.sunRequirement)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Droplets className="h-3 w-3" />
+                          <span>Water: {getWaterRequirement(flower.waterRequirement)}</span>
+                        </div>
+                        <div>
+                          <span className="font-medium">Grond:</span> {flower.soilType}
+                        </div>
+                        {flower.spacing && (
+                          <div>
+                            <span className="font-medium">Plantafstand:</span> {flower.spacing}
+                          </div>
+                        )}
                       </div>
+
+                      {flower.careTips && (
+                        <div className="pt-2">
+                          <p className="font-medium text-sm mb-1">Verzorgingstips:</p>
+                          <p className="text-sm text-muted-foreground">
+                            {flower.careTips}
+                          </p>
+                        </div>
+                      )}
+
+                      {flower.companionPlants && flower.companionPlants.length > 0 && (
+                        <div className="pt-2">
+                          <p className="font-medium text-sm mb-1">Combineert goed met:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {flower.companionPlants.map((plant: string, idx: number) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
+                                {plant}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
-                </div>
-              )}
-              
-              {/* Click hint */}
-              <p className="text-xs text-center text-muted-foreground pt-2">
-                {expandedFlower === flower.id ? 'Klik om te sluiten' : 'Klik voor meer details'}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+                  
+                  {/* Click hint */}
+                  <p className="text-xs text-center text-muted-foreground pt-2">
+                    {expandedFlower === flower.id ? 'Klik om te sluiten' : 'Klik voor meer details'}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-      {/* No results */}
-      {filteredFlowers.length === 0 && (
+          {/* No results */}
+          {filteredFlowers.length === 0 && (
+            <Card className="p-8 text-center">
+              <Flower2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold mb-2">Geen bloemen gevonden</h3>
+              <p className="text-muted-foreground">
+                Probeer een andere zoekterm of categorie
+              </p>
+            </Card>
+          )}
+        </>
+      ) : (
+        /* Loading or error state */
         <Card className="p-8 text-center">
-          <Flower2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          <h3 className="text-lg font-semibold mb-2">Geen bloemen gevonden</h3>
+          <Flower2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground animate-pulse" />
+          <h3 className="text-lg font-semibold mb-2">Bloemen encyclopedie</h3>
           <p className="text-muted-foreground">
-            Probeer een andere zoekterm of categorie
+            De bloemen informatie wordt geladen...
           </p>
         </Card>
       )}
