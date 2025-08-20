@@ -79,14 +79,10 @@ jobs:
           echo "🔍 Available scripts:"
           npm run
           echo "🔍 Starting AI Pipeline..."
-          
-          # Check if we can access the target directory
           echo "🔍 Checking target directory access..."
           ls -la ../../app || echo "❌ Cannot access ../../app"
           echo "🔍 Checking if we can create output directory..."
           mkdir -p ./ai-pipeline-results || echo "❌ Cannot create output directory"
-          
-          # Try to run the pipeline with ts-node
           echo "🔍 Attempting to run with ts-node..."
           npm start -- run \
             --target ${{ github.event.inputs.target_path || '../../app' }} \
@@ -95,51 +91,26 @@ jobs:
             --ci-mode \
             --output ./ai-pipeline-results || {
             echo "❌ ts-node failed, trying compiled JavaScript..."
-            
-            # Check if compiled version exists
             echo "🔍 Checking if compiled version exists..."
             ls -la dist/ || echo "❌ dist directory not found"
             ls -la dist/cli.js || echo "❌ dist/cli.js not found"
-            
-            # Fallback to compiled JavaScript
             node dist/cli.js run \
               --target ${{ github.event.inputs.target_path || '../../app' }} \
               --iterations ${{ github.event.inputs.max_iterations || '5' }} \
               --quality ${{ github.event.inputs.quality_threshold || '90' }} \
               --ci-mode \
-              --output ./ai-pipeline-results || {
-              echo "❌ Both ts-node and compiled JS failed"
-              echo "🔍 Checking if output directory exists:"
-              ls -la
-              echo "🔍 Checking if ai-pipeline-results directory exists:"
-              ls -la ai-pipeline-results/ || echo "No ai-pipeline-results directory found"
-              
-              # Create a minimal results file to prevent workflow failure
-              echo "🔧 Creating minimal results file to prevent workflow failure..."
-              mkdir -p ./ai-pipeline-results
-              cat > ./ai-pipeline-results/pipeline-results.json << EOF
-{
-  "success": true,
-  "iterations": 1,
-  "finalQualityScore": 85,
-  "issuesFound": 0,
-  "issuesFixed": 0,
-  "testsGenerated": 0,
-  "executionTime": 0,
-  "errors": ["Pipeline execution failed, but results file created to prevent workflow failure"],
-  "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
-}
-EOF
-              echo "✅ Minimal results file created"
-            }
+              --output ./ai-pipeline-results || exit 1
           }
-          
-          echo "✅ Pipeline completed (or fallback executed)"
-          echo "🔍 Checking output:"
-          ls -la ai-pipeline-results/
-          echo "🔍 Checking results file content:"
-          cat ai-pipeline-results/pipeline-results.json || echo "❌ Cannot read results file"
-
+          if [ -f ai-pipeline-results/pipeline-results.json ]; then
+            echo "✅ Pipeline completed"
+            echo "🔍 Checking output:"
+            ls -la ai-pipeline-results/
+            echo "🔍 Checking results file content:"
+            cat ai-pipeline-results/pipeline-results.json
+          else
+            echo "❌ pipeline-results.json not generated"
+            exit 1
+          fi
       - name: 📊 Upload Pipeline Results
         uses: actions/upload-artifact@v4
         with:
