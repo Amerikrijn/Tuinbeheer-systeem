@@ -569,7 +569,7 @@ export const DUTCH_FLOWERS: FlowerData[] = [
 ];
 
 // Utility functies
-export const getFlowersByCategory = (category: FlowerData['category']) => {
+export const getFlowersByCategory = (category: string) => {
   return DUTCH_FLOWERS.filter(flower => flower.category === category);
 };
 
@@ -602,13 +602,15 @@ export const searchFlowers = (query: string) => {
   );
 };
 
-export const FLOWER_CATEGORIES = {
+export const FLOWER_CATEGORIES: Record<string, string> = {
   'eenjarig': 'Eenjarige bloemen',
-  'vaste_planten': 'Vaste planten',
-  'bolgewassen': 'Bolgewassen',
-  'struiken': 'Struiken',
-  'klimmers': 'Klimmers',
-  'overig': 'Overig'
+  'tweejarig': 'Tweejarige bloemen',
+  'vaste plant': 'Vaste planten',
+  'bol': 'Bolgewassen',
+  'knol': 'Knolgewassen',
+  'struik': 'Struiken',
+  'klimplant': 'Klimplanten',
+  'wilde bloem': 'Wilde bloemen'
 } as const;
 
 export const FLOWER_COLORS = [

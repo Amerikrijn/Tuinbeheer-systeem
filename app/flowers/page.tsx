@@ -1,5 +1,8 @@
 "use client"
 
+// Force dynamic rendering to prevent SSR issues
+export const dynamic = 'force-dynamic'
+
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -22,7 +25,7 @@ export default function FlowersPage() {
     let flowers = DUTCH_FLOWERS
     
     if (selectedCategory !== 'all') {
-      flowers = getFlowersByCategory(selectedCategory as FlowerData['category'])
+      flowers = getFlowersByCategory(selectedCategory)
     }
     
     if (searchTerm) {
@@ -110,7 +113,7 @@ export default function FlowersPage() {
             Alle ({DUTCH_FLOWERS.length})
           </Button>
           {Object.entries(FLOWER_CATEGORIES).map(([key, label]) => {
-            const count = getFlowersByCategory(key as FlowerData['category']).length
+            const count = getFlowersByCategory(key).length
             return (
               <Button
                 key={key}
