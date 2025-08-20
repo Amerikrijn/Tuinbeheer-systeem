@@ -216,7 +216,7 @@ jobs:
           echo "- **Tests**: unit, integration, critical-endpoints, e2e" >> $GITHUB_STEP_SUMMARY
 
   ai-code-check:
-    if: ${{ env.OPENAI_API_KEY != '' }}
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     name: 🤖 AI Code Check
     needs: [foundation-build]
@@ -349,7 +349,7 @@ jobs:
           fi
 
   ai-security-review:
-    if: ${{ env.OPENAI_API_KEY != '' }}
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     name: "🔒 AI Security Review"
     needs: [conventional-tests, security-scan]
@@ -383,7 +383,7 @@ jobs:
           path: ai-security-review.md
 
   ai-code-quality-review:
-    if: ${{ env.OPENAI_API_KEY != '' }}
+    if: ${{ secrets.OPENAI_API_KEY != '' }}
     runs-on: ubuntu-latest
     name: "🤖 AI Code Quality Review"
     needs: [conventional-tests, security-scan]
@@ -451,7 +451,7 @@ jobs:
         continue-on-error: true
 
       - name: Download AI Results
-        if: ${{ env.OPENAI_API_KEY != '' }}
+        if: ${{ secrets.OPENAI_API_KEY != '' }}
         uses: actions/download-artifact@v4
         with:
           name: ai-standards-results
