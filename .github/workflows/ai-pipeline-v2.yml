@@ -2,9 +2,10 @@ name: 🚀 AI Pipeline v2.0 - Complete Testing & Fixing
 
 on:
   pull_request:
+    branches: ['**']
     types: [opened, synchronize, reopened]
   push:
-    branches: [main, develop]
+    branches: ['**']
   workflow_dispatch:
     inputs:
       target_path:
