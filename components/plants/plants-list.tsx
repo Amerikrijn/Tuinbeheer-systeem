@@ -37,18 +37,28 @@ export function PlantsList() {
       
       const supabase = getSupabaseClient()
       
-      // 🚀 PERFORMANCE: Optimized query with pagination and sorting
+      // 🚀 PERFORMANCE: Use ACTUAL database columns
       const { data, error: fetchError } = await supabase
         .from('plants')
-        .select('id, name, species, planted_date, last_watered, health, garden_id, plant_bed_id')
-        .order('planted_date', { ascending: false })
+        .select('id, name, scientific_name, common_name, plant_bed_id, color, size, position_x, position_y, created_at, updated_at')
+        .order('created_at', { ascending: false })
         .limit(50) // Limit for better performance
       
       if (fetchError) {
         throw new Error(fetchError.message)
       }
       
-      setPlants(data || [])
+      // Map database columns to expected interface
+      const mappedData = (data || []).map(plant => ({
+        ...plant,
+        species: plant.scientific_name || plant.common_name || 'Onbekend',
+        planted_date: plant.created_at, // Use created_at as planted date
+        last_watered: null, // Not tracked in current schema
+        health: 'good' as const, // Default since not tracked
+        garden_id: null // Not directly linked, goes via plant_bed
+      }))
+      
+      setPlants(mappedData)
       
     } catch (err) {
       console.error('❌ ERROR: Failed to fetch plants:', err)
