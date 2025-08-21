@@ -84,6 +84,7 @@ jobs:
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
+        set -euo pipefail
         if [ -z "$OPENAI_API_KEY" ]; then
           echo "OPENAI_API_KEY is required and must be set as a repository secret." >&2
           exit 1
@@ -98,7 +99,12 @@ jobs:
               {role:"user", content:$content}
             ]
           }')
-        curl -sSf https://api.openai.com/v1/chat/completions \
+        curl -sSf \
+          --retry 5 \
+          --retry-delay 2 \
+          --retry-on-http 429,500,502,503,504 \
+          --retry-max-time 120 \
+          https://api.openai.com/v1/chat/completions \
           -H "Authorization: Bearer $OPENAI_API_KEY" \
           -H "Content-Type: application/json" \
           --data "$PAYLOAD" \
