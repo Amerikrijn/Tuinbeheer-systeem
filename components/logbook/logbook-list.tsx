@@ -9,7 +9,6 @@ import { getSupabaseClient } from '@/lib/supabase'
 
 interface LogbookEntry {
   id: string
-  title: string
   content: string
   created_at: string
   garden_id?: string
@@ -38,7 +37,7 @@ export function LogbookList() {
       // 🚀 PERFORMANCE: Optimized query with pagination and sorting
       const { data, error: fetchError } = await supabase
         .from('logbook_entries')
-        .select('id, title, content, created_at, garden_id, updated_at')
+        .select('id, content, created_at, garden_id, updated_at')
         .order('created_at', { ascending: false })
         .limit(20) // Limit for better performance
       
@@ -201,7 +200,9 @@ export function LogbookList() {
           {entries.map((entry) => (
             <Card key={entry.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <CardTitle className="text-lg">{entry.title}</CardTitle>
+                <CardTitle className="text-lg">
+                  {entry.content.substring(0, 50)}{entry.content.length > 50 ? '...' : ''}
+                </CardTitle>
                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                   <Calendar className="w-4 h-4 mr-1" />
                   {new Date(entry.created_at).toLocaleDateString('nl-NL')}

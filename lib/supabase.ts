@@ -68,7 +68,9 @@ const testConnection = async (client: SupabaseClient) => {
   }
   
   // PERFORMANCE: Run in background, don't block app initialization
-  console.log('🔍 DEBUG: Testing database connection in background...')
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 DEBUG: Testing database connection in background...')
+  }
   const start = Date.now()
   
   try {
@@ -82,15 +84,21 @@ const testConnection = async (client: SupabaseClient) => {
     const duration = Date.now() - start
     
     if (error) {
-      console.error('❌ ERROR: Database connection test failed:', error)
-      console.error('❌ ERROR: Connection test took:', duration, 'ms')
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ ERROR: Database connection test failed:', error)
+        console.error('❌ ERROR: Connection test took:', duration, 'ms')
+      }
     } else {
-      console.log('✅ SUCCESS: Database connection test passed in', duration, 'ms')
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ SUCCESS: Database connection test passed in', duration, 'ms')
+      }
     }
   } catch (error) {
     const duration = Date.now() - start
-    console.error('❌ ERROR: Database connection test exception:', error)
-    console.error('❌ ERROR: Connection test took:', duration, 'ms')
+    if (process.env.NODE_ENV === 'development') {
+      console.error('❌ ERROR: Database connection test exception:', error)
+      console.error('❌ ERROR: Connection test took:', duration, 'ms')
+    }
   }
 }
 

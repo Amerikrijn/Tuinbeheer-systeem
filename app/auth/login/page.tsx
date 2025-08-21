@@ -61,7 +61,6 @@ function LoginContent() {
   // 🚀 AUTO-REDIRECT: Redirect to dashboard when user is logged in
   useEffect(() => {
     if (user && !loading) {
-      console.log('🔍 DEBUG: User logged in, redirecting to dashboard:', user.email)
       router.push('/user-dashboard')
     }
   }, [user, loading, router])
@@ -69,7 +68,6 @@ function LoginContent() {
   // 🚨 ERROR HANDLING: Show auth errors
   useEffect(() => {
     if (authError) {
-      console.log('🔍 DEBUG: Auth error detected:', authError)
       setError(authError)
       toast({
         title: "Inloggen mislukt",

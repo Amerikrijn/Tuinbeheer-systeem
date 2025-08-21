@@ -119,7 +119,6 @@ export function useSupabaseAuth(): AuthContextType {
   // Load user profile with caching and optimized database lookup
   const loadUserProfile = async (userId: string): Promise<User> => {
     try {
-      console.log('🔍 DEBUG: loadUserProfile called for userId:', userId)
       
       const supabase = getSupabase()
       const supabaseUser = (await getSupabase().auth.getUser()).data.user
@@ -141,7 +140,6 @@ export function useSupabaseAuth(): AuthContextType {
       let status: string
 
       if (profileError || !userProfile) {
-        console.log('🔍 DEBUG: User profile not found, creating new profile...')
         
         // 🆕 AUTO-CREATE USER PROFILE: If user doesn't exist in database, create them
         try {
@@ -159,7 +157,6 @@ export function useSupabaseAuth(): AuthContextType {
             email_verified: supabaseUser.email_confirmed_at ? true : false
           }
 
-          console.log('🔍 DEBUG: Creating new user profile:', newUserProfile)
           
           const { data: createdProfile, error: createError } = await supabase
             .from('users')
@@ -187,7 +184,6 @@ export function useSupabaseAuth(): AuthContextType {
           status = 'active'
         }
       } else {
-        console.log('🔍 DEBUG: Existing user profile found:', userProfile)
         role = userProfile.role || 'user'
         fullName = userProfile.full_name || fullName
         status = userProfile.status || 'active'
@@ -206,7 +202,6 @@ export function useSupabaseAuth(): AuthContextType {
         force_password_change: userProfile?.force_password_change || false // 🏦 BANKING REQUIREMENT
       }
       
-      console.log('🔍 DEBUG: User object created successfully:', user)
       
       // Cache the user profile for faster subsequent loads
       setCachedUserProfile(user)
@@ -377,19 +372,13 @@ export function useSupabaseAuth(): AuthContextType {
   }, [])
 
   const signIn = async (email: string, password: string): Promise<void> => {
-    console.log('🔍 DEBUG: Starting signIn process for email:', email)
-    console.log('🔍 DEBUG: Current state before signIn:', state)
     
     const startTime = Date.now()
     setState(prev => ({ ...prev, loading: true, error: null }))
-    console.log('🔍 DEBUG: State updated to loading: true')
     
     try {
-      console.log('🔍 DEBUG: Getting Supabase client...')
       const supabase = getSupabase()
-      console.log('🔍 DEBUG: Supabase client obtained successfully')
       
-      console.log('🔍 DEBUG: Calling signInWithPassword...')
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -397,13 +386,6 @@ export function useSupabaseAuth(): AuthContextType {
       })
       
       const duration = Date.now() - startTime
-      console.log('🔍 DEBUG: signInWithPassword completed in', duration, 'ms')
-      console.log('🔍 DEBUG: Auth response:', { 
-        hasData: !!data, 
-        hasError: !!error,
-        user: data?.user?.id,
-        session: !!data?.session
-      })
       
       if (error) {
         console.error('❌ ERROR: SignIn failed:', error)
@@ -425,7 +407,6 @@ export function useSupabaseAuth(): AuthContextType {
         return
       }
 
-      console.log('🔍 DEBUG: User authenticated successfully:', data.user.id)
       
       // 🚀 PERFORMANCE: Update state immediately with basic user info
       const basicUser: User = {
@@ -447,14 +428,12 @@ export function useSupabaseAuth(): AuthContextType {
         session: data.session
       }))
       
-      console.log('🔍 DEBUG: Basic user state set, starting background profile load...')
       
       // 🚀 PERFORMANCE: Load profile and garden access in parallel (non-blocking)
       Promise.all([
         loadUserProfile(data.user.id),
         loadGardenAccess(data.user.id)
       ]).then(([userProfile, gardenAccess]) => {
-        console.log('🔍 DEBUG: Background profile load completed')
         
         // Update state with complete user info
         setState(prev => ({
@@ -478,7 +457,6 @@ export function useSupabaseAuth(): AuthContextType {
   }
 
   const signOut = async (): Promise<void> => {
-    console.log('🔍 DEBUG: Starting signOut process')
     
     // 🚀 PERFORMANCE: Update state immediately to remove spinner
     setState(prev => ({ 
@@ -489,7 +467,6 @@ export function useSupabaseAuth(): AuthContextType {
       error: null
     }))
     
-    console.log('🔍 DEBUG: State cleared immediately, starting background cleanup...')
     
     try {
       // Clear cache immediately
@@ -500,13 +477,11 @@ export function useSupabaseAuth(): AuthContextType {
       
       // Sign out in background
       supabase.auth.signOut().then(() => {
-        console.log('🔍 DEBUG: Background signOut completed')
       }).catch((error) => {
         console.error('❌ ERROR: Background signOut failed:', error)
         // Don't show error to user, state already cleared
       })
       
-      console.log('🔍 DEBUG: SignOut process completed (non-blocking)')
       
     } catch (error) {
       console.error('❌ ERROR: SignOut error:', error)
@@ -579,7 +554,6 @@ export function useSupabaseAuth(): AuthContextType {
   // Load garden access separately after login
   const loadGardenAccess = async (userId: string): Promise<void> => {
     try {
-      console.log('🔍 DEBUG: loadGardenAccess called for userId:', userId)
       
       const supabase = getSupabase()
       const { data: accessData, error: accessError } = await supabase
@@ -594,14 +568,12 @@ export function useSupabaseAuth(): AuthContextType {
       
       if (accessData) {
         const gardenAccess = accessData.map(row => row.garden_id)
-        console.log('🔍 DEBUG: Garden access loaded:', gardenAccess)
         
         setState(prev => ({
           ...prev,
           user: prev.user ? { ...prev.user, garden_access: gardenAccess } : null
         }))
       } else {
-        console.log('🔍 DEBUG: No garden access found for user')
       }
     } catch (error) {
       console.error('❌ ERROR: Garden access loading failed:', error)
