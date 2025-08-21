@@ -495,11 +495,19 @@ jobs:
           path: ./security-results
         continue-on-error: true
 
-      - name: Download AI Results
+      - name: Download AI Code Check Results
         if: ${{ secrets.OPENAI_API_KEY != '' }}
         uses: actions/download-artifact@v4
         with:
-          name: ai-standards-results
+          name: ai-code-check-results
+          path: ./ai-results
+        continue-on-error: true
+
+      - name: Download AI Code Quality Review
+        if: ${{ secrets.OPENAI_API_KEY != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ai-code-quality-review
           path: ./ai-results
         continue-on-error: true
 
