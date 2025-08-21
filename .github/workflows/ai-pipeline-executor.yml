@@ -1,11 +1,11 @@
 name: 🤖 AI Pipeline Executor
 
 on:
-  pull_request:
-    branches: [ main, preview, develop ]
-  push:
-    branches: [ main, preview, develop ]
+  # Allow manual runs only to avoid duplicate PR checks with ci-complete.yml
   workflow_dispatch:
+  # Optionally run on push to main for nightly/periodic analysis (no PR noise)
+  push:
+    branches: [ main ]
 
 permissions:
   contents: read
