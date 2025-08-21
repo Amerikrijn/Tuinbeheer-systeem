@@ -195,27 +195,30 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Prepare test results directory
         run: mkdir -p test-results
 
       - name: Run unit tests
-        run: vitest --reporter=junit --outputFile test-results/unit.xml
+        run: vitest run '__tests__/unit/**/*.{test,spec}.{ts,tsx}' --reporter=junit --outputFile test-results/unit.xml
 
       - name: Run integration tests
-        run: vitest '__tests__/integration/**/*.{test,spec}.{ts,tsx}' --reporter=junit --outputFile test-results/integration.xml
+        run: vitest run '__tests__/integration/**/*.{test,spec}.{ts,tsx}' --reporter=junit --outputFile test-results/integration.xml
 
       - name: Run critical endpoint tests
-        run: vitest '__tests__/components/**/*.{test,spec}.{ts,tsx}' --reporter=junit --outputFile test-results/critical-endpoints.xml
+        run: vitest run '__tests__/components/**/*.{test,spec}.{ts,tsx}' --reporter=junit --outputFile test-results/critical-endpoints.xml
 
       - name: Run end-to-end tests
-        run: vitest --reporter=junit --outputFile test-results/e2e.xml
+        run: vitest run --reporter=junit --outputFile test-results/e2e.xml
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: conventional-test-results
-          path: test-results/
+          path: test-results/*.xml
           retention-days: 7
 
       - name: Conventional Tests Summary
