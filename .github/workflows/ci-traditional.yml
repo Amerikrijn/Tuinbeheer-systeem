@@ -2,9 +2,11 @@ name: CI — Traditional Tests
 
 on:
   pull_request:
-    branches: [ main, preview ]
+
+    branches: [ preview ]
   push:
-    branches: [ main ]
+    branches: [ preview ]
+
   workflow_dispatch:
 
 permissions:
