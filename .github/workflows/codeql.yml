@@ -1,6 +1,10 @@
 name: "CodeQL"
 
 on:
+  pull_request:
+    branches: [ "preview" ]
+  push:
+    branches: [ "preview" ]
   workflow_dispatch:
 
 jobs:

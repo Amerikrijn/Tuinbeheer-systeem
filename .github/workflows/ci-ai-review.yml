@@ -1,6 +1,10 @@
 name: CI — AI Test Review (comment-only)
 
 on:
+  pull_request:
+    branches: [ preview ]
+  push:
+    branches: [ preview ]
   workflow_dispatch:
 
 permissions:
