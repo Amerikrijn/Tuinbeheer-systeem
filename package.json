@@ -142,22 +142,5 @@
     "ts-prune": "^0.10.3",
     "typescript": "^5.8.3",
     "vitest": "^3.2.4"
-    "scripts": {
-  "test:ci": "jest --ci --coverage --runInBand",
-  "lint": "eslint .",
-  "type-check": "tsc -p tsconfig.json --noEmit"
-      "scripts": {
-  "test:ci": "vitest run --coverage",
-  "lint": "eslint .",
-  "type-check": "tsc -p tsconfig.json --noEmit"
-}
-
-}
-
-  },
-  
-}
-
-    ]
   }
 }
