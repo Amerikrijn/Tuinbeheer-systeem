@@ -33,6 +33,13 @@ const customJestConfig = {
     },
   },
 }
+// jest.config.js
+module.exports = {
+  testEnvironment: "node",
+  collectCoverage: true,
+  coverageReporters: ["lcov", "text-summary"],
+  coverageDirectory: "coverage"
+};
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
 module.exports = createJestConfig(customJestConfig)
