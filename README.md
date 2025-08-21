@@ -2,6 +2,8 @@ hello
 
 # 🌱 Visual Garden App
 
+Lees altijd the AI agent rules. Hier staat je standaarden en je gedragsregels. WIJK hiet niet vnaa tenzij de opdracht je dat vertelt
+
 **Test CI/CD Pipeline** - Deze wijziging triggert de nieuwe Main Pipeline om te testen of alle jobs nu correct werken zonder parallel jobs die niets doen!
 
 ## 🚀 Nieuwe Pipeline Architectuur:
