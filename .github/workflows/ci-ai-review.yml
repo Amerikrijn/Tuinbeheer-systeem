@@ -1,8 +1,8 @@
-name: CI — AI Test Review (comment-only)
+name: CI — AI Test Review (Backup)
 
 on:
   pull_request:
-    branches: [ preview ]
+    branches: [ main, preview, develop ]
   workflow_dispatch:
 
 permissions:
@@ -10,13 +10,32 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: ci-ai-${{ github.ref }}
+  group: ci-ai-backup-${{ github.ref }}
   cancel-in-progress: true
 
+# Only run if the complete pipeline is not running
 jobs:
+  check-complete-pipeline:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.check.outputs.should-run }}
+    steps:
+      - name: Check if complete pipeline is running
+        id: check
+        run: |
+          # Check if the complete pipeline workflow is running
+          if gh run list --workflow="CI/CD — Complete Pipeline" --status=in_progress --limit=1 | grep -q "in_progress"; then
+            echo "should-run=false" >> $GITHUB_OUTPUT
+            echo "Complete pipeline is running, skipping AI review backup"
+          else
+            echo "should-run=true" >> $GITHUB_OUTPUT
+            echo "No complete pipeline running, proceeding with AI review backup"
+          fi
+
   ai_review:
+    needs: check-complete-pipeline
+    if: needs.check-complete-pipeline.outputs.should-run == 'true'
     # Run only on PRs within same repo (not forks), so secrets are safe
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
 
     steps:
@@ -95,7 +114,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ai-test-review
+          name: ai-test-review-backup
           path: ai-test-review.md
 
       - name: Comment on PR
