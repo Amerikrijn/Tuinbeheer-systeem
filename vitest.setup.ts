@@ -64,23 +64,30 @@ vi.mock('next/image', () => ({
 }));
 
 // Mock lucide-react icons
+const createIcon = (testId: string, symbol: string) => (props: any) =>
+  React.createElement('div', { 'data-testid': testId, ...props }, symbol);
+
 vi.mock('lucide-react', () => ({
-  Globe: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'globe-icon' }, children: '🌐' })),
-  Sun: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'sun-icon' }, children: '☀️' })),
-  Moon: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'moon-icon' }, children: '🌙' })),
-  Monitor: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'monitor-icon' }, children: '💻' })),
-  Check: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'check-icon' }, children: '✓' })),
-  MoreHorizontal: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'more-horizontal-icon' }, children: '⋯' })),
-  ChevronLeft: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'chevron-left-icon' }, children: '‹' })),
-  ChevronRight: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'chevron-right-icon' }, children: '›' })),
-  ChevronDown: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'chevron-down-icon' }, children: '⌄' })),
-  TreePine: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'tree-pine-icon' }, children: '🌲' })),
-  Loader2: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'loader2-icon' }, children: '⏳' })),
-  X: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'x-icon' }, children: '✕' })),
-  Circle: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'circle-icon' }, children: '○' })),
-  ClipboardList: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'clipboard-list-icon' }, children: '📋' })),
-  BookOpen: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'book-open-icon' }, children: '📖' })),
-  Camera: vi.fn(() => ({ type: 'div', props: { 'data-testid': 'camera-icon' }, children: '📷' })),
+  Globe: createIcon('globe-icon', '🌐'),
+  Sun: createIcon('sun-icon', '☀️'),
+  Moon: createIcon('moon-icon', '🌙'),
+  Monitor: createIcon('monitor-icon', '💻'),
+  Check: createIcon('check-icon', '✓'),
+  MoreHorizontal: createIcon('more-horizontal-icon', '⋯'),
+  ChevronLeft: createIcon('chevron-left-icon', '‹'),
+  ChevronRight: createIcon('chevron-right-icon', '›'),
+  ChevronDown: createIcon('chevron-down-icon', '⌄'),
+  TreePine: createIcon('tree-pine-icon', '🌲'),
+  Loader2: createIcon('loader2-icon', '⏳'),
+  X: createIcon('x-icon', '✕'),
+  Circle: createIcon('circle-icon', '○'),
+  ClipboardList: createIcon('clipboard-list-icon', '📋'),
+  BookOpen: createIcon('book-open-icon', '📖'),
+  Camera: createIcon('camera-icon', '📷'),
+  AlertTriangle: createIcon('alert-triangle-icon', '⚠️'),
+  RefreshCw: createIcon('refresh-cw-icon', '🔄'),
+  Settings: createIcon('settings-icon', '⚙️'),
+  User: createIcon('user-icon', '👤'),
 }));
 
 // Mock next/font/google
