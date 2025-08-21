@@ -148,12 +148,24 @@ async function main(): Promise<void> {
       console.log(`   Total Execution Time: ${result.executionTime}ms`)
       console.log(`   Iterations Completed: ${result.iterationHistory?.length || 1}`)
       
+      if (result.consolidatedTestResults) {
+        console.log('')
+        console.log('🔗 Consolidated Test Results:')
+        console.log(`   Total Tests: ${result.consolidatedTestResults.totalTests}`)
+        console.log(`   AI Tests: ${result.consolidatedTestResults.aiTests.length} sources`)
+        console.log(`   Conventional Tests: ${result.consolidatedTestResults.conventionalTests.length} sources`)
+        console.log(`   Overall Quality Score: ${result.consolidatedTestResults.overallQualityScore.toFixed(2)}/100`)
+        console.log(`   Reports Generated: 3 (JSON, Summary, Executive)`)
+      }
+      
       if (result.improvementSummary) {
         console.log('')
         console.log('📈 Improvement Summary:')
         console.log(`   Success Rate Increase: +${result.improvementSummary.successRateIncrease.toFixed(1)}%`)
         console.log(`   Score Increase: +${result.improvementSummary.scoreIncrease} points`)
         console.log(`   Total Iterations: ${result.improvementSummary.totalIterations}`)
+        console.log(`   Conventional Tests Included: ${result.improvementSummary.conventionalTestsIncluded ? 'Yes' : 'No'}`)
+        console.log(`   Total Tests Consolidated: ${result.improvementSummary.totalTestsConsolidated}`)
       }
       
       return

@@ -84,7 +84,7 @@ jobs:
   ai-pipeline:
     name: 🤖 AI Pipeline
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     
     steps:
       - name: 📥 Checkout code
@@ -128,7 +128,7 @@ jobs:
           # Create AI pipeline results directory
           mkdir -p ai-pipeline-results
           
-          # Run AI pipeline steps
+          # Run AI pipeline steps with proper orchestration
           echo "Step 1: Test Generation Analysis"
           npm run test:coverage > ai-pipeline-results/test-generation.log 2>&1 || true
           
@@ -141,7 +141,13 @@ jobs:
           echo "Step 4: Performance Analysis"
           npm run build > ai-pipeline-results/performance-analysis.log 2>&1 || true
           
-          echo "✅ AI Pipeline completed"
+          echo "Step 5: Execute Full AI Pipeline Orchestrator"
+          cd agents/pipeline-orchestrator
+          npm install || true
+          npx ts-node cli.ts --config ../../.github/ai-pipeline-config.json --workflow ci-ai-pipeline --execute > ../../ai-pipeline-results/orchestrator.log 2>&1 || true
+          cd ../..
+          
+          echo "✅ AI Pipeline completed with full orchestration"
 
       - name: 📊 Generate AI Analysis Report
         run: |
@@ -173,11 +179,17 @@ jobs:
           $(cat ai-pipeline-results/performance-analysis.log | tail -20)
           ```
           
+          ## AI Pipeline Orchestrator Results
+          ```bash
+          $(cat ai-pipeline-results/orchestrator.log | tail -30)
+          ```
+          
           ## Recommendations
           - Review test coverage gaps
           - Address any linting issues
           - Fix security vulnerabilities
           - Optimize build performance
+          - Review AI pipeline orchestration results
           
           EOF
 
@@ -228,7 +240,8 @@ jobs:
   generate-report:
     name: 📊 Generate Final Report
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
+    needs: [traditional-tests, ai-pipeline, build-check]
     if: always()
     
     steps:
@@ -237,6 +250,26 @@ jobs:
 
       - name: 📊 Generate comprehensive report
         run: |
+          # Wait for AI pipeline to complete and consolidate results
+          echo "🔗 Waiting for AI pipeline completion and consolidating results..."
+          
+          # Wait for AI pipeline to finish and generate consolidated report
+          max_wait=300  # 5 minutes max wait
+          wait_time=0
+          while [ $wait_time -lt $max_wait ]; do
+            if [ -f "agents/pipeline-orchestrator/orchestration-results/consolidated-final-report.json" ]; then
+              echo "✅ AI pipeline consolidated final report found!"
+              break
+            fi
+            echo "⏳ Waiting for AI pipeline completion... ($wait_time seconds)"
+            sleep 10
+            wait_time=$((wait_time + 10))
+          done
+          
+          if [ $wait_time -ge $max_wait ]; then
+            echo "⚠️ Timeout waiting for AI pipeline consolidated report"
+          fi
+          
           cat > ci-complete-report.md << 'EOF'
           # 🚀 CI/CD Complete Pipeline Report
           
@@ -261,8 +294,32 @@ jobs:
           ## 🏗️ Build Results
           Build check completed with status: ${{ needs.build-check.result }}
           
+          ## 🔗 Consolidated Results
+          This report is generated after ALL pipeline stages complete, including:
+          - Traditional CI/CD tests and build verification
+          - Complete AI pipeline execution with 2 iterations
+          - Full test result consolidation and analysis
+          - Quality assessment and improvement recommendations
+          
           ## 🎯 Next Steps
           EOF
+          
+          # Check for AI pipeline consolidated final report
+          if [ -f "agents/pipeline-orchestrator/orchestration-results/consolidated-final-summary.md" ]; then
+            echo "" >> ci-complete-report.md
+            echo "## 🔗 AI Pipeline Consolidated Final Report" >> ci-complete-report.md
+            echo "The AI pipeline has generated a comprehensive consolidated report:" >> ci-complete-report.md
+            echo "" >> ci-complete-report.md
+            cat agents/pipeline-orchestrator/orchestration-results/consolidated-final-summary.md >> ci-complete-report.md
+          else
+            echo "" >> ci-complete-report.md
+            echo "## ⚠️ AI Pipeline Report Status" >> ci-complete-report.md
+            echo "AI pipeline consolidated final report not yet available." >> ci-complete-report.md
+            echo "This may indicate the AI pipeline is still running or encountered an issue." >> ci-complete-report.md
+          fi
+          
+          echo "" >> ci-complete-report.md
+          echo "## 📊 Pipeline Completion Status" >> ci-complete-report.md
           
           if [ "${{ needs.traditional-tests.result }}" == "success" ]; then
             echo "- ✅ Traditional tests passed" >> ci-complete-report.md
