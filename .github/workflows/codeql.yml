@@ -79,59 +79,15 @@ jobs:
           head -c 120000 codeql-alerts.json
         } > codeql-openai-prompt.txt
 
-    - name: Generate AI Code Quality summary (with fallback)
+    - name: Generate AI Code Quality summary
       id: openai
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
-        set -e
-
-        generate_fallback() {
-          {
-            echo "# AI Code Quality Summary (Fallback)";
-            echo;
-            echo "OpenAI is not configured or failed. This is an automated summary generated directly from CodeQL alerts.";
-            echo;
-            echo "## Status";
-            echo "- Total alerts: $(jq 'length' codeql-alerts.json 2>/dev/null || echo 0)";
-            echo;
-            echo "## Alerts by severity";
-            jq -r '
-              (sort_by(.rule.severity // "unknown")
-               | group_by(.rule.severity // "unknown")
-               | map({severity: (.[0].rule.severity // "unknown"), count: length})) as $groups
-              | if ($groups | length) == 0 then "- none"
-                else $groups[] | "- \(.severity): \(.count)"
-                end
-            ' codeql-alerts.json 2>/dev/null || echo "- none";
-            echo;
-            echo "## Top files with alerts";
-            jq -r '
-              [ group_by(.most_recent_instance.location.path // "unknown")[]
-                | { path: (.[0].most_recent_instance.location.path // "unknown"), count: length } ]
-              | sort_by(.count) | reverse | .[:10]
-              | if length==0 then "- none"
-                else .[] | "- " + .path + ": " + (.count|tostring) + " alerts"
-                end
-            ' codeql-alerts.json 2>/dev/null || echo "- none";
-            echo;
-            echo "## Sample alerts";
-            jq -r '
-              .[:10]
-              | if length==0 then "No alerts."
-                else .[] | "- [" + ((.rule.severity // "unknown")|tostring) + "] "
-                             + (.rule.id // "unknown") + " — "
-                             + ((.most_recent_instance.location.path // "unknown") + ":" + ((.most_recent_instance.location.start_line // 0)|tostring))
-                end
-            ' codeql-alerts.json 2>/dev/null || echo "No alerts.";
-          } > ai-code-quality-summary.md
-        }
-
-        # If no key, generate fallback summary
+        set -euo pipefail
         if [ -z "$OPENAI_API_KEY" ]; then
-          echo "OPENAI_API_KEY not set; generating fallback summary";
-          generate_fallback
-          exit 0
+          echo "Error: OPENAI_API_KEY not set. Configure repository secret OPENAI_API_KEY." >&2
+          exit 1
         fi
 
         # Build payload for OpenAI
@@ -146,24 +102,21 @@ jobs:
             ]
           }')
 
-        # Call OpenAI; if it fails, fallback
-        if ! curl -sS https://api.openai.com/v1/chat/completions \
+        # Call OpenAI and fail on HTTP errors
+        curl -fsS https://api.openai.com/v1/chat/completions \
           -H "Authorization: Bearer $OPENAI_API_KEY" \
           -H "Content-Type: application/json" \
           --data "$PAYLOAD" \
-          -o openai.out.json; then
-          echo "OpenAI request failed; generating fallback summary";
-          generate_fallback
-          exit 0
-        fi
+          -o openai.out.json
 
         CONTENT=$(jq -r '.choices[0].message.content // empty' openai.out.json 2>/dev/null || true)
         if [ -z "$CONTENT" ]; then
-          echo "OpenAI response empty; generating fallback summary";
-          generate_fallback
-        else
-          echo "$CONTENT" > ai-code-quality-summary.md
+          echo "Error: OpenAI returned empty content" >&2
+          echo "Response:" >&2
+          cat openai.out.json >&2 || true
+          exit 1
         fi
+        echo "$CONTENT" > ai-code-quality-summary.md
 
     - name: Upload CodeQL AI summary artifact
       uses: actions/upload-artifact@v4
