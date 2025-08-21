@@ -4,8 +4,6 @@ on:
   pull_request:
     branches: ['**']
     types: [opened, synchronize, reopened]
-  push:
-    branches: ['**']
   workflow_dispatch:
     inputs:
       target_path:
@@ -43,6 +41,8 @@ jobs:
       
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
       
       - name: 🟢 Setup Node
         uses: ./.github/actions/setup-node
