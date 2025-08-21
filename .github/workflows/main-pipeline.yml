@@ -199,16 +199,16 @@ jobs:
         run: mkdir -p test-results
 
       - name: Run unit tests
-        run: npm run test:unit
+        run: vitest --reporter=junit --outputFile test-results/unit.xml
 
       - name: Run integration tests
-        run: npm run test:integration
+        run: vitest '__tests__/integration/**/*.{test,spec}.{ts,tsx}' --reporter=junit --outputFile test-results/integration.xml
 
       - name: Run critical endpoint tests
-        run: npm run test:critical-endpoints
+        run: vitest '__tests__/components/**/*.{test,spec}.{ts,tsx}' --reporter=junit --outputFile test-results/critical-endpoints.xml
 
       - name: Run end-to-end tests
-        run: npm run test:e2e
+        run: vitest --reporter=junit --outputFile test-results/e2e.xml
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
