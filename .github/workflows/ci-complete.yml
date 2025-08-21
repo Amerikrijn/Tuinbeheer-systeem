@@ -85,7 +85,6 @@ jobs:
     name: 🤖 AI Pipeline
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    needs: traditional-tests
     
     steps:
       - name: 📥 Checkout code
@@ -201,7 +200,6 @@ jobs:
     name: 🏗️ Build Check
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [traditional-tests, ai-pipeline]
     
     steps:
       - name: 📥 Checkout code
@@ -231,7 +229,6 @@ jobs:
     name: 📊 Generate Final Report
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [traditional-tests, ai-pipeline, build-check]
     if: always()
     
     steps:
