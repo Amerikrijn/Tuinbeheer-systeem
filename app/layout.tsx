@@ -7,6 +7,7 @@ import { LanguageProvider } from "@/hooks/use-language"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { ConditionalNavigation } from "@/components/navigation/conditional-navigation" 
 import { SupabaseAuthProvider } from "@/components/auth/supabase-auth-provider"
+import { QueryProvider } from "@/lib/providers/query-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -32,20 +33,22 @@ export default function RootLayout({
     <html lang="nl">
       <body className={inter.className}>
         <ErrorBoundary>
-          <ThemeProvider 
-            attribute="class" 
-            defaultTheme="system" 
-            enableSystem 
-            disableTransitionOnChange
-          >
-            <LanguageProvider>
-              <SupabaseAuthProvider>
-                <ConditionalNavigation />
-                {children}
-                <Toaster />
-              </SupabaseAuthProvider>
-            </LanguageProvider>
-          </ThemeProvider>
+          <QueryProvider>
+            <ThemeProvider 
+              attribute="class" 
+              defaultTheme="system" 
+              enableSystem 
+              disableTransitionOnChange
+            >
+              <LanguageProvider>
+                <SupabaseAuthProvider>
+                  <ConditionalNavigation />
+                  {children}
+                  <Toaster />
+                </SupabaseAuthProvider>
+              </LanguageProvider>
+            </ThemeProvider>
+          </QueryProvider>
         </ErrorBoundary>
       </body>
     </html>

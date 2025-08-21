@@ -59,8 +59,12 @@ const getSupabaseClient = (): SupabaseClient => {
 
     console.log('🔍 DEBUG: Supabase client created successfully')
     
-    // Test connection immediately
-    testConnection(supabaseInstance)
+    // PERFORMANCE: Test connection asynchronously - don't block initialization
+    // This allows the app to load immediately while connection test runs in background
+    if (typeof window !== 'undefined') {
+      // Only test in browser, not during SSR
+      setTimeout(() => testConnection(supabaseInstance), 100)
+    }
     
     return supabaseInstance
   } catch (error) {
@@ -69,16 +73,19 @@ const getSupabaseClient = (): SupabaseClient => {
   }
 }
 
-// Test database connection
+// Test database connection (non-blocking)
 const testConnection = async (client: SupabaseClient) => {
-  console.log('🔍 DEBUG: Testing database connection...')
+  // PERFORMANCE: Run in background, don't block app initialization
+  console.log('🔍 DEBUG: Testing database connection in background...')
   const start = Date.now()
   
   try {
+    // Use simpler query for faster response
     const { data, error } = await client
-      .from('users')
-      .select('count')
+      .from('gardens')
+      .select('id')
       .limit(1)
+      .single()
     
     const duration = Date.now() - start
     
