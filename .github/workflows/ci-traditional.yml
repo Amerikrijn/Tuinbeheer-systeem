@@ -1,0 +1,59 @@
+name: CI — Traditional Tests
+
+on:
+  pull_request:
+    branches: [ main, preview ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-traditional-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Run tests (with coverage)
+        run: npm run test:ci
+        env:
+          CI: true
+
+      # Simpele coverage gate zonder bc; gebruikt alleen awk
+      - name: Enforce coverage threshold (min 30%)
+        run: |
+          if [ ! -f coverage/lcov.info ]; then
+            echo "❌ No coverage report (tests likely failed)"; exit 1
+          fi
+          COVERAGE=$(awk -F: '/^LH:/ {lh+=$2} /^LF:/ {lf+=$2} END { if (lf>0) printf "%.2f", (lh/lf)*100 }' coverage/lcov.info)
+          echo "Line coverage: ${COVERAGE}%"
+          THRESH=30
+          below=$(awk -v c="$COVERAGE" -v t="$THRESH" 'BEGIN{ if (c+0<t+0) print 1; else print 0 }')
+          if [ "$below" -eq 1 ]; then
+            echo "❌ Coverage ${COVERAGE}% < ${THRESH}%"; exit 1
+          fi
+          echo "✅ Coverage OK"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
