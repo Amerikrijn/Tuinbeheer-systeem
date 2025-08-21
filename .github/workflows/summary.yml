@@ -1,0 +1,67 @@
+name: "CI — Summary"
+
+on:
+  pull_request:
+    branches: [ "main", "preview", "develop" ]
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  summarize:
+    name: "📊 Final Summary"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Gather check runs via API
+        id: gather
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          owner_repo="${{ github.repository }}"
+          sha="${{ github.event.pull_request.head.sha || github.sha }}"
+          resp=$(curl -sS -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/$owner_repo/commits/$sha/check-runs?per_page=100")
+          echo "$resp" > check-runs.json
+          # helper to extract status by name
+          extract_status() { jq -r --arg name "$1" '.check_runs[] | select(.name == $name) | .conclusion // .status' check-runs.json | head -n1; }
+          tt_status=$(extract_status "🧪 Traditional Tests")
+          codeql_status=$(extract_status "Analyze")
+          secret_status=$(extract_status "Secret Scan")
+          echo "tt_status=$tt_status" >> $GITHUB_OUTPUT
+          echo "codeql_status=$codeql_status" >> $GITHUB_OUTPUT
+          echo "secret_status=$secret_status" >> $GITHUB_OUTPUT
+
+      - name: Build combined report
+        run: |
+          to_mark() { case "$1" in success) echo "✅";; failure) echo "❌";; cancelled) echo "🚫";; timed_out) echo "⏱️";; queued|in_progress) echo "⏳";; *) echo "ℹ️";; esac; }
+          {
+            echo "# CI Summary"
+            echo
+            echo "Commit: ${{ github.sha }}"
+            echo
+            echo "## Status"
+            echo "- Traditional Tests: $(to_mark "${{ steps.gather.outputs.tt_status }}")  (${{ steps.gather.outputs.tt_status }})"
+            echo "- CodeQL Analyze:    $(to_mark "${{ steps.gather.outputs.codeql_status }}")  (${{ steps.gather.outputs.codeql_status }})"
+            echo "- Secret Scan:       $(to_mark "${{ steps.gather.outputs.secret_status }}")  (${{ steps.gather.outputs.secret_status }})"
+          } > ci-summary.md
+
+      - name: Upload summary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-summary
+          path: ci-summary.md
+          retention-days: 14
+
+      - name: Comment summary on PR
+        if: github.event_name == 'pull_request'
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: ci-summary.md
+          commentTag: ci-summary
+

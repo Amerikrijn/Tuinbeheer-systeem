@@ -1,9 +1,7 @@
 name: 📊 Test Reporting & Coverage
 
 on:
-  # Run on push to main/develop, and allow manual runs. Avoid PR checks duplication.
-  push:
-    branches: [ main, develop ]
+  # Disabled: manual only to avoid running on PR/push
   workflow_dispatch:
 
 permissions:

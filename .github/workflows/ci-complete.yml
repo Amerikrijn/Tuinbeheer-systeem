@@ -1,10 +1,7 @@
 name: CI/CD — Complete Pipeline
 
 on:
-  pull_request:
-    branches: [ main, preview, develop ]
-  push:
-    branches: [ main, preview, develop ]
+  # Disabled: manual only to avoid running on PR/push
   workflow_dispatch:
 
 permissions:
