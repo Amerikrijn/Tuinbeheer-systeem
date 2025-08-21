@@ -76,6 +76,7 @@ export interface PipelineConfig {
     autoApply: boolean;
     gitIntegration: boolean;
     outputPath: string;
+    qualityChecks?: string[];
     logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 export interface PipelineResult {

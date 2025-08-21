@@ -40,6 +40,7 @@ const test_generator_1 = require("./agents/test-generator");
 const quality_validator_1 = require("./agents/quality-validator");
 const openai_provider_1 = require("./core/providers/openai-provider");
 const fs = __importStar(require("fs"));
+const quality_checks_1 = require("./quality-checks");
 class AIPipeline {
     constructor(config, openaiApiKey) {
         this.config = config;
@@ -53,6 +54,7 @@ class AIPipeline {
         this.codeFixer = new code_fixer_1.CodeFixerAgent(this.openaiProvider);
         this.testGenerator = new test_generator_1.TestGeneratorAgent(this.openaiProvider);
         this.qualityValidator = new quality_validator_1.QualityValidatorAgent(this.openaiProvider);
+        this.qualityRunner = new quality_checks_1.QualityCheckRunner(this.config.qualityChecks);
         this.results = this.initializeResults();
         console.log('🚀 AI Pipeline v2.0 initialized');
         console.log(`🤖 OpenAI Provider: ${this.openaiProvider.isAvailable ? '✅ Available' : '❌ Not Available'}`);
@@ -83,6 +85,19 @@ class AIPipeline {
             while (currentQualityScore < this.config.qualityThreshold && iteration <= this.config.maxIterations) {
                 console.log(`🔄 Iteration ${iteration}`);
                 console.log('─'.repeat(50));
+                // Optional: run configured quality checks before AI analysis
+                let checkIssues = [];
+                if (this.config.qualityChecks && this.config.qualityChecks.length > 0) {
+                    console.log('🛡️ Step 0: Running quality checks...');
+                    checkIssues = await this.qualityRunner.run(targetPath);
+                    if (checkIssues.length) {
+                        totalIssuesFound += checkIssues.length;
+                        console.log(`✅ Quality checks found ${checkIssues.length} issues`);
+                    }
+                    else {
+                        console.log('✅ No issues found by quality checks');
+                    }
+                }
                 // Step 1: Collect Issues
                 console.log('🔍 Step 1: Collecting Issues...');
                 const issueResult = await this.issueCollector.run(targetPath);
@@ -94,9 +109,9 @@ class AIPipeline {
                     }
                 }
                 else {
-                    allIssues = issueResult.data;
-                    totalIssuesFound += allIssues.length;
-                    console.log(`✅ Found ${allIssues.length} issues`);
+                    allIssues = [...checkIssues, ...issueResult.data];
+                    totalIssuesFound += issueResult.data.length;
+                    console.log(`✅ Found ${issueResult.data.length} issues`);
                 }
                 // Step 2: Calculate Quality Score
                 currentQualityScore = this.calculateQualityScore(allIssues);

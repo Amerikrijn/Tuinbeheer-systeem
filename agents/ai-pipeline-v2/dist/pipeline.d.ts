@@ -7,6 +7,7 @@ export declare class AIPipeline {
     private qualityValidator;
     private results;
     private openaiProvider;
+    private qualityRunner;
     constructor(config: PipelineConfig, openaiApiKey: string);
     run(targetPath?: string): Promise<PipelineResult>;
     private calculateQualityScore;

@@ -27,9 +27,12 @@ export class AICodeReviewAgent {
     this.openai = new OpenAI({ apiKey: openaiApiKey });
     this.model = "gpt-4o-mini";
     
-    const [owner, repoName] = repo.split("/");
-    this.owner = owner;
-    this.repo = repoName;
+    const parts = repo.split("/");
+    if (parts.length < 2) {
+      throw new Error(`Invalid repository format: ${repo}. Expected format: owner/repo`);
+    }
+    this.owner = parts[0]!;
+    this.repo = parts[1]!;
     this.prNumber = prNumber;
   }
 
