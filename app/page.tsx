@@ -15,9 +15,9 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3 } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
-import { getPlantBeds } from "@/lib/database"
+
 import { uiLogger, AuditLogger } from "@/lib/logger"
-import type { Tuin, PlantvakWithPlants } from "@/lib/types/index"
+import type { Tuin } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-supabase-auth"
@@ -378,62 +378,8 @@ interface GardenCardProps {
 }
 
 function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
-  const [plantBeds, setPlantBeds] = React.useState<PlantvakWithPlants[]>([])
-  const [loadingFlowers, setLoadingFlowers] = React.useState(true)
   const [gardenUsers, setGardenUsers] = React.useState<Array<{ id: string; email: string; full_name?: string }>>([])
   const [loadingUsers, setLoadingUsers] = React.useState(true)
-
-  // Helper function to get emoji based on plant name
-  const getPlantEmoji = (name?: string, storedEmoji?: string): string => {
-    // If plant already has a stored emoji, use it
-    if (storedEmoji && storedEmoji.trim()) {
-      return storedEmoji
-    }
-    
-    const plantName = (name || '').toLowerCase()
-    
-    // Exacte matches voor eenjarige bloemen
-    if (plantName.includes('zinnia')) return '🌻'
-    if (plantName.includes('marigold') || plantName.includes('tagetes')) return '🌼'
-    if (plantName.includes('impatiens')) return '🌸'
-    if (plantName.includes('ageratum')) return '🌸'
-    if (plantName.includes('salvia')) return '🌺'
-    if (plantName.includes('verbena')) return '🌸'
-    if (plantName.includes('lobelia')) return '🌸'
-    if (plantName.includes('alyssum')) return '🤍'
-    if (plantName.includes('cosmos')) return '🌸'
-    if (plantName.includes('petunia')) return '🌺'
-    if (plantName.includes('begonia')) return '🌸'
-    if (plantName.includes('viooltje') || plantName.includes('viola')) return '🌸'
-    if (plantName.includes('stiefmoedje') || plantName.includes('pansy')) return '🌸'
-    if (plantName.includes('snapdragon') || plantName.includes('leeuwenbek')) return '🌸'
-    if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
-    if (plantName.includes('calendula') || plantName.includes('goudsbloem')) return '🌼'
-    if (plantName.includes('nicotiana') || plantName.includes('siertabak')) return '🤍'
-    if (plantName.includes('cleome') || plantName.includes('spinnenbloem')) return '🌸'
-    if (plantName.includes('celosia') || plantName.includes('hanekam')) return '🌺'
-    
-    // Default fallback
-    return '🌸'
-  }
-
-  // Load plant beds and flowers for preview
-  React.useEffect(() => {
-    const loadFlowers = async () => {
-      try {
-        setLoadingFlowers(true)
-        const beds = await getPlantBeds(garden.id)
-        setPlantBeds(beds as PlantvakWithPlants[])
-      } catch (error) {
-        uiLogger.error('Error loading flowers for garden preview', error as Error, { gardenId: garden.id })
-        setPlantBeds([])
-      } finally {
-        setLoadingFlowers(false)
-      }
-    }
-
-    loadFlowers()
-  }, [garden.id])
 
   // Load users with access to this garden
   React.useEffect(() => {
@@ -465,16 +411,6 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
 
     loadGardenUsers()
   }, [garden.id])
-
-  // Get all unique flowers from all plant beds
-  const allFlowers = React.useMemo(() => {
-    const flowers = plantBeds.flatMap(bed => bed.plants || [])
-    // Remove duplicates based on name and get first 6 for preview
-    const uniqueFlowers = flowers.filter((flower, index, arr) => 
-      arr.findIndex(f => f.name.toLowerCase() === flower.name.toLowerCase()) === index
-    ).slice(0, 6)
-    return uniqueFlowers
-  }, [plantBeds])
 
   const formatDate = (dateString: string) => {
     try {
@@ -524,52 +460,6 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
               {garden.description}
             </p>
           )}
-
-          {/* Flower Preview Section */}
-          <div className={isListView ? "mb-2" : "mb-4"}>
-            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-card-foreground">Planten in deze tuin:</span>
-              <span className="text-xs text-muted-foreground">
-                                  {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} planten
-              </span>
-            </div>
-            
-            {loadingFlowers ? (
-              <div className="flex gap-1">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
-                ))}
-              </div>
-            ) : allFlowers.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {allFlowers.map((flower, index) => (
-                  <div
-                    key={`${flower.id}-${index}`}
-                    className="flex items-center gap-1 bg-green-50 border border-green-200 rounded-lg px-2 py-1"
-                    title={flower.name}
-                  >
-                    <span className="text-sm">
-                      {getPlantEmoji(flower.name, flower.emoji)}
-                    </span>
-                    <span className="text-xs font-medium text-green-800 truncate max-w-16">
-                      {flower.name}
-                    </span>
-                  </div>
-                ))}
-                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-                  <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
-                    <span className="text-xs text-gray-600">
-                      +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-xs text-gray-500 italic">
-                Nog geen bloemen geplant
-              </div>
-            )}
-          </div>
 
           {/* Users with access section */}
           <div className={isListView ? "mb-2" : "mb-4"}>

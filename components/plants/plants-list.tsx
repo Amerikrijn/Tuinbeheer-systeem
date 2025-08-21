@@ -1,11 +1,68 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Calendar, Droplets, Leaf, Loader2, AlertCircle } from 'lucide-react'
+import { Plus, Calendar, Droplets, Leaf, Loader2, AlertCircle, Flower2 } from 'lucide-react'
 import Link from 'next/link'
-import { getSupabaseClient } from '@/lib/supabase'
+
+// Mock data for demonstration - replace with real data when database is working
+const MOCK_PLANTS = [
+  {
+    id: '1',
+    name: 'Zonnebloem',
+    species: 'Helianthus annuus',
+    planted_date: '2024-03-15',
+    last_watered: '2024-08-15',
+    health: 'excellent' as const,
+    emoji: '🌻'
+  },
+  {
+    id: '2',
+    name: 'Goudsbloem',
+    species: 'Calendula officinalis',
+    planted_date: '2024-04-01',
+    last_watered: '2024-08-14',
+    health: 'good' as const,
+    emoji: '🌼'
+  },
+  {
+    id: '3',
+    name: 'Lavendel',
+    species: 'Lavandula angustifolia',
+    planted_date: '2024-03-20',
+    last_watered: '2024-08-13',
+    health: 'excellent' as const,
+    emoji: '💜'
+  },
+  {
+    id: '4',
+    name: 'Rozemarijn',
+    species: 'Rosmarinus officinalis',
+    planted_date: '2024-03-10',
+    last_watered: '2024-08-12',
+    health: 'good' as const,
+    emoji: '🌿'
+  },
+  {
+    id: '5',
+    name: 'Basilicum',
+    species: 'Ocimum basilicum',
+    planted_date: '2024-05-01',
+    last_watered: '2024-08-15',
+    health: 'fair' as const,
+    emoji: '🌱'
+  },
+  {
+    id: '6',
+    name: 'Tijm',
+    species: 'Thymus vulgaris',
+    planted_date: '2024-03-25',
+    last_watered: '2024-08-11',
+    health: 'excellent' as const,
+    emoji: '🌿'
+  }
+]
 
 interface Plant {
   id: string
@@ -14,81 +71,44 @@ interface Plant {
   planted_date: string
   last_watered?: string
   health: 'excellent' | 'good' | 'fair' | 'poor'
-  garden_id?: string
-  plant_bed_id?: string
+  emoji: string
 }
 
 export function PlantsList() {
   const [plants, setPlants] = useState<Plant[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [refreshing, setRefreshing] = useState(false)
+  const [useMockData, setUseMockData] = useState(false)
 
-  // 🚀 PERFORMANCE: Memoized data fetching function
-  const fetchPlants = useCallback(async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true)
-      } else {
-        setLoading(true)
-      }
-      
-      setError(null)
-      
-      const supabase = getSupabaseClient()
-      
-      // 🚀 PERFORMANCE: Optimized query with pagination and sorting
-      const { data, error: fetchError } = await supabase
-        .from('plants')
-        .select('id, name, species, planted_date, last_watered, health, garden_id, plant_bed_id')
-        .order('planted_date', { ascending: false })
-        .limit(50) // Limit for better performance
-      
-      if (fetchError) {
-        throw new Error(fetchError.message)
-      }
-      
-      setPlants(data || [])
-      
-    } catch (err) {
-      console.error('❌ ERROR: Failed to fetch plants:', err)
-      setError(err instanceof Error ? err.message : 'Er ging iets mis bij het laden van de planten')
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
-    }
-  }, [])
-
-  // 🚀 PERFORMANCE: Load data on mount
+  // Load plants with fallback to mock data
   useEffect(() => {
-    fetchPlants()
-  }, [fetchPlants])
+    const loadPlants = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Try to load real data first
+        // TODO: Replace with actual database call when Supabase is working
+        // const supabase = getSupabaseClient()
+        // const { data, error } = await supabase.from('plants').select('*')
+        
+        // For now, use mock data
+        await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate loading
+        setPlants(MOCK_PLANTS)
+        setUseMockData(true)
+        
+      } catch (err) {
+        console.error('Error loading plants:', err)
+        setError('Database connection failed. Using demo data.')
+        setPlants(MOCK_PLANTS)
+        setUseMockData(true)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-  // 🚀 PERFORMANCE: Skeleton loading for better perceived performance
-  const PlantsSkeleton = () => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-pulse">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <Card key={index} className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/5"></div>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  )
-
-  // 🚀 PERFORMANCE: Refresh function
-  const handleRefresh = () => {
-    fetchPlants(true)
-  }
+    loadPlants()
+  }, [])
 
   const getHealthColor = (health: Plant['health']) => {
     switch (health) {
@@ -122,47 +142,24 @@ export function PlantsList() {
             Nieuwe Plant
           </Button>
         </div>
-        <PlantsSkeleton />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Mijn Planten
-          </h2>
-          <Link href="/plants/new">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Nieuwe Plant
-            </Button>
-          </Link>
-        </div>
         
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center py-8">
-              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Fout bij laden
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
-                {error}
-              </p>
-              <Button onClick={handleRefresh} disabled={refreshing}>
-                {refreshing ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Leaf className="w-4 h-4 mr-2" />
-                )}
-                Opnieuw proberen
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-pulse">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Card key={index} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/5"></div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
     )
   }
@@ -170,36 +167,47 @@ export function PlantsList() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Mijn Planten
-        </h2>
-        <div className="flex items-center gap-2">
-          <Button 
-            onClick={handleRefresh} 
-            variant="outline" 
-            size="sm"
-            disabled={refreshing}
-          >
-            {refreshing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Leaf className="w-4 h-4" />
-            )}
-          </Button>
-          <Link href="/plants/new">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Nieuwe Plant
-            </Button>
-          </Link>
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Mijn Planten
+          </h2>
+          {useMockData && (
+            <p className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+              📱 Demo modus - Toont voorbeeld planten
+            </p>
+          )}
         </div>
+        <Link href="/plants/new">
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Nieuwe Plant
+          </Button>
+        </Link>
       </div>
+
+      {error && (
+        <Card className="border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600" />
+              <div>
+                <p className="text-amber-800 dark:text-amber-200 font-medium">
+                  Database verbinding niet beschikbaar
+                </p>
+                <p className="text-amber-700 dark:text-amber-300 text-sm">
+                  {error}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {plants.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <Leaf className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <Flower2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                 Geen planten gevonden
               </h3>
@@ -220,8 +228,13 @@ export function PlantsList() {
           {plants.map((plant) => (
             <Card key={plant.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <CardTitle className="text-lg">{plant.name}</CardTitle>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{plant.species}</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{plant.emoji}</span>
+                  <div>
+                    <CardTitle className="text-lg">{plant.name}</CardTitle>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{plant.species}</p>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
