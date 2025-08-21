@@ -3,6 +3,8 @@ name: "Security — Code Quality"
 on:
   pull_request:
     branches: [ "main", "preview", "develop" ]
+  pull_request_target:
+    branches: [ "main", "preview", "develop" ]
   push:
     branches: [ "main", "preview", "develop" ]
   workflow_dispatch:
@@ -17,15 +19,20 @@ jobs:
       security-events: write
       pull-requests: write
     steps:
-    - name: Checkout repository
+    - name: Checkout repository (safe)
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        persist-credentials: false
+        fetch-depth: 2
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: javascript
 
-    - name: Autobuild
+    - name: Autobuild (skip on pull_request_target)
+      if: github.event_name != 'pull_request_target'
       uses: github/codeql-action/autobuild@v3
 
     - name: Perform CodeQL Analysis
@@ -33,7 +40,7 @@ jobs:
       with:
         category: "/language:javascript"
 
-    - name: Install jq and gh
+    - name: Install jq
       run: |
         sudo apt-get update && sudo apt-get install -y jq
 
@@ -107,7 +114,7 @@ jobs:
         retention-days: 30
 
     - name: Comment AI Code Quality summary on PR
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
       uses: thollander/actions-comment-pull-request@v2
       with:
         filePath: ai-code-quality-summary.md
