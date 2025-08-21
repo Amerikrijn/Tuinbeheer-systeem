@@ -12,22 +12,13 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 let supabaseInstance: SupabaseClient | null = null
 
 const getSupabaseClient = (): SupabaseClient => {
-  console.log('🔍 DEBUG: getSupabaseClient called')
-  
   if (supabaseInstance) {
-    console.log('🔍 DEBUG: Returning existing supabase instance')
     return supabaseInstance
   }
 
   // Use environment variables only
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  console.log('🔍 DEBUG: Environment check:', {
-    url: supabaseUrl ? '✅ Set' : '❌ Missing',
-    key: supabaseAnonKey ? '✅ Set' : '❌ Missing',
-    nodeEnv: process.env.NODE_ENV
-  })
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error('❌ ERROR: Missing Supabase environment variables:', {
@@ -36,8 +27,6 @@ const getSupabaseClient = (): SupabaseClient => {
     })
     throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.')
   }
-
-  console.log('🔍 DEBUG: Initializing Supabase client with URL:', supabaseUrl)
 
   try {
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
@@ -56,13 +45,11 @@ const getSupabaseClient = (): SupabaseClient => {
         schema: 'public'
       }
     })
-
-    console.log('🔍 DEBUG: Supabase client created successfully')
     
     // PERFORMANCE: Test connection asynchronously - don't block initialization
     // This allows the app to load immediately while connection test runs in background
-    if (typeof window !== 'undefined') {
-      // Only test in browser, not during SSR
+    if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
+      // Only test in browser during development, not during SSR or production
       setTimeout(() => testConnection(supabaseInstance), 100)
     }
     
@@ -75,6 +62,11 @@ const getSupabaseClient = (): SupabaseClient => {
 
 // Test database connection (non-blocking)
 const testConnection = async (client: SupabaseClient) => {
+  // PERFORMANCE: Skip connection test in production for faster loads
+  if (process.env.NODE_ENV === 'production') {
+    return
+  }
+  
   // PERFORMANCE: Run in background, don't block app initialization
   console.log('🔍 DEBUG: Testing database connection in background...')
   const start = Date.now()

@@ -6,7 +6,6 @@ function isMissingRelation(err: { code?: string } | null): boolean {
 
 // Garden functions
 export async function getGardens(): Promise<any[]> {
-  console.log("Fetching gardens...")
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("gardens")
@@ -23,7 +22,6 @@ export async function getGardens(): Promise<any[]> {
     return []
   }
 
-  console.log("Gardens fetched successfully:", data?.length || 0)
   return data || []
 }
 
@@ -77,7 +75,6 @@ export async function createGarden(garden: {
   established_date?: string
   notes?: string
 }): Promise<any | null> {
-  console.log("Creating garden with data:", garden)
 
   // Test if table exists first
   const supabase = getSupabaseClient();
@@ -91,7 +88,6 @@ export async function createGarden(garden: {
     throw testError
   }
 
-  console.log("Table exists, proceeding with insert...")
 
   // INSERT … RETURNING * (single round-trip)
   const { data, error } = await supabase
@@ -118,12 +114,10 @@ export async function createGarden(garden: {
     throw error
   }
 
-  console.log("Garden created successfully:", data.id)
   return data
 }
 
 export async function updateGarden(id: string, updates: Partial<Garden>): Promise<Garden | null> {
-  console.log("Updating garden:", id, "with:", updates)
 
   const { data, error } = await supabase
     .from("gardens")
@@ -141,12 +135,10 @@ export async function updateGarden(id: string, updates: Partial<Garden>): Promis
     throw error
   }
 
-  console.log("Garden updated successfully")
   return data
 }
 
 export async function deleteGarden(id: string): Promise<boolean> {
-  console.log("Deleting garden:", id)
 
   const { error } = await supabase
     .from("gardens")
@@ -161,13 +153,11 @@ export async function deleteGarden(id: string): Promise<boolean> {
     throw error
   }
 
-  console.log("Garden deleted successfully")
   return true
 }
 
 // Plant Bed functions
 export async function getPlantBeds(gardenId?: string): Promise<PlantBed[]> {
-  console.log("Fetching plant beds for garden:", gardenId || "all")
 
   const supabase = getSupabaseClient()
   let query = supabase
@@ -190,12 +180,10 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBed[]> {
     return []
   }
 
-  console.log("Plant beds fetched successfully:", data?.length || 0)
   return data || []
 }
 
 export async function getPlantBed(id: string): Promise<PlantBed | null> {
-  console.log("Fetching plant bed:", id)
 
   const { data, error } = await supabase
     .from("plant_beds")
@@ -233,7 +221,6 @@ export async function createPlantBed(plantBed: {
   soil_type?: string
   sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
 }): Promise<PlantBed | null> {
-  console.log("Creating plant bed with data:", plantBed)
 
   const { data, error } = await supabase
     .from("plant_beds")
@@ -252,12 +239,10 @@ export async function createPlantBed(plantBed: {
     throw error
   }
 
-  console.log("Plant bed created successfully:", data.id)
   return data
 }
 
 export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Promise<PlantBed | null> {
-  console.log("Updating plant bed:", id, "with:", updates)
 
   const { data, error } = await supabase
     .from("plant_beds")
@@ -275,12 +260,10 @@ export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Pr
     throw error
   }
 
-  console.log("Plant bed updated successfully")
   return data
 }
 
 export async function deletePlantBed(id: string): Promise<boolean> {
-  console.log("Deleting plant bed:", id)
 
   const { error } = await supabase
     .from("plant_beds")
@@ -295,13 +278,11 @@ export async function deletePlantBed(id: string): Promise<boolean> {
     throw error
   }
 
-  console.log("Plant bed deleted successfully")
   return true
 }
 
 // Plant functions
 export async function getPlants(plantBedId?: string): Promise<Plant[]> {
-  console.log("Fetching plants for plant bed:", plantBedId || "all")
 
   let query = supabase
     .from("plants")
@@ -323,12 +304,10 @@ export async function getPlants(plantBedId?: string): Promise<Plant[]> {
     return []
   }
 
-  console.log("Plants fetched successfully:", data?.length || 0)
   return data || []
 }
 
 export async function getPlant(id: string): Promise<Plant | null> {
-  console.log("Fetching plant:", id)
 
   const { data, error } = await supabase
     .from("plants")
@@ -369,7 +348,6 @@ export async function createPlant(plant: {
   notes?: string
   image_url?: string
 }): Promise<Plant | null> {
-  console.log("Creating plant with data:", plant)
 
   const { data, error } = await supabase
     .from("plants")
@@ -387,12 +365,10 @@ export async function createPlant(plant: {
     throw error
   }
 
-  console.log("Plant created successfully:", data.id)
   return data
 }
 
 export async function updatePlant(id: string, updates: Partial<Plant>): Promise<Plant | null> {
-  console.log("Updating plant:", id, "with:", updates)
 
   const { data, error } = await supabase
     .from("plants")
@@ -410,12 +386,10 @@ export async function updatePlant(id: string, updates: Partial<Plant>): Promise<
     throw error
   }
 
-  console.log("Plant updated successfully")
   return data
 }
 
 export async function deletePlant(id: string): Promise<boolean> {
-  console.log("Deleting plant:", id)
 
   const { error } = await supabase
     .from("plants")
@@ -430,13 +404,11 @@ export async function deletePlant(id: string): Promise<boolean> {
     throw error
   }
 
-  console.log("Plant deleted successfully")
   return true
 }
 
 // Combined queries
 export async function getPlantBedsWithPlants(gardenId?: string): Promise<PlantBedWithPlants[]> {
-  console.log("Fetching plant beds with plants for garden:", gardenId || "all")
 
   let query = supabase
     .from("plant_beds")
@@ -461,7 +433,6 @@ export async function getPlantBedsWithPlants(gardenId?: string): Promise<PlantBe
     return []
   }
 
-  console.log("Plant beds with plants fetched successfully:", data?.length || 0)
   return data || []
 }
 
