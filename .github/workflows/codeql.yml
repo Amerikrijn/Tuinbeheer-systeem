@@ -1,10 +1,12 @@
-name: "CodeQL"
+name: "Security — Code Quality"
 
 on:
   pull_request:
-    branches: [ "preview" ]
+    branches: [ "main", "preview", "develop" ]
+  pull_request_target:
+    branches: [ "main", "preview", "develop" ]
   push:
-    branches: [ "preview" ]
+    branches: [ "main", "preview", "develop" ]
   workflow_dispatch:
 
 jobs:
@@ -15,25 +17,105 @@ jobs:
       actions: read
       contents: read
       security-events: write
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'javascript' ]
-
+      pull-requests: write
     steps:
-    - name: Checkout repository
+    - name: Checkout repository (safe)
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        persist-credentials: false
+        fetch-depth: 2
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: ${{ matrix.language }}
+        languages: javascript
 
-    - name: Autobuild
+    - name: Autobuild (skip on pull_request_target)
+      if: github.event_name != 'pull_request_target'
       uses: github/codeql-action/autobuild@v3
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:
-        category: "/language:${{matrix.language}}"
+        category: "/language:javascript"
+
+    - name: Install jq
+      run: |
+        sudo apt-get update && sudo apt-get install -y jq
+
+    - name: Collect CodeQL alerts as JSON
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -e
+        REPO="${{ github.repository }}"
+        PAGE=1
+        echo "[]" > codeql-alerts.json
+        while true; do
+          RESP=$(curl -sS -H "Authorization: Bearer $GITHUB_TOKEN" \
+                       -H "Accept: application/vnd.github+json" \
+                       "https://api.github.com/repos/$REPO/code-scanning/alerts?per_page=100&page=$PAGE")
+          COUNT=$(echo "$RESP" | jq 'length')
+          if [ "$COUNT" -eq 0 ]; then break; fi
+          jq -s '.[0] + .[1]' codeql-alerts.json <(echo "$RESP") > codeql-alerts.tmp && mv codeql-alerts.tmp codeql-alerts.json
+          PAGE=$((PAGE+1))
+        done
+        echo "Collected $(jq 'length' codeql-alerts.json) alerts"
+
+    - name: Build prompt for OpenAI from alerts
+      run: |
+        {
+          echo "You are a senior security/code-quality engineer. Analyze these CodeQL alerts."
+          echo "Return a concise markdown report with:"
+          echo "- Top risks grouped by severity"
+          echo "- Exact files and categories"
+          echo "- Concrete fix advice and references"
+          echo "- Quick wins to reduce alerts"
+          echo
+          echo "Repo: ${{ github.repository }} | Commit: ${{ github.sha }}"
+          echo
+          echo "Alerts JSON (truncated to 120k chars):"
+          head -c 120000 codeql-alerts.json
+        } > codeql-openai-prompt.txt
+
+    - name: Call OpenAI to generate Code Quality summary
+      id: openai
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        if [ -z "$OPENAI_API_KEY" ]; then
+          echo "OPENAI_API_KEY not set; writing fallback summary";
+          echo "# AI Code Quality Summary\n\nOpenAI key not configured. Please set repository secret OPENAI_API_KEY." > ai-code-quality-summary.md
+          exit 0
+        fi
+        PAYLOAD=$(jq -n \
+          --arg content "$(< codeql-openai-prompt.txt)" \
+          '{
+            model: "gpt-4o-mini",
+            temperature: 0,
+            messages: [
+              {role:"system", content:"You write precise, actionable security/code-quality reports."},
+              {role:"user", content:$content}
+            ]
+          }')
+        curl -sS https://api.openai.com/v1/chat/completions \
+          -H "Authorization: Bearer $OPENAI_API_KEY" \
+          -H "Content-Type: application/json" \
+          --data "$PAYLOAD" \
+          -o openai.out.json
+        jq -r '.choices[0].message.content // "No content returned by OpenAI."' openai.out.json > ai-code-quality-summary.md
+
+    - name: Upload CodeQL AI summary artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ai-code-quality-summary
+        path: ai-code-quality-summary.md
+        retention-days: 30
+
+    - name: Comment AI Code Quality summary on PR
+      if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+      uses: thollander/actions-comment-pull-request@v2
+      with:
+        filePath: ai-code-quality-summary.md
+        commentTag: ai-code-quality
