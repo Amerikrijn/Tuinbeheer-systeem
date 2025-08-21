@@ -10,6 +10,7 @@ import { getSupabaseClient } from '@/lib/supabase'
 interface LogbookEntry {
   id: string
   content: string
+  notes?: string  // For backward compatibility
   created_at: string
   garden_id?: string
   updated_at: string
@@ -35,9 +36,10 @@ export function LogbookList() {
       const supabase = getSupabaseClient()
       
       // 🚀 PERFORMANCE: Optimized query with pagination and sorting
+      // Support both 'content' and 'notes' columns for compatibility
       const { data, error: fetchError } = await supabase
         .from('logbook_entries')
-        .select('id, content, created_at, garden_id, updated_at')
+        .select('id, content, notes, created_at, garden_id, updated_at')
         .order('created_at', { ascending: false })
         .limit(20) // Limit for better performance
       
@@ -45,7 +47,12 @@ export function LogbookList() {
         throw new Error(fetchError.message)
       }
       
-      setEntries(data || [])
+      // Map notes to content for backward compatibility
+      const mappedData = (data || []).map(entry => ({
+        ...entry,
+        content: entry.content || entry.notes || ''
+      }))
+      setEntries(mappedData)
       
     } catch (err) {
       console.error('❌ ERROR: Failed to fetch logbook entries:', err)
