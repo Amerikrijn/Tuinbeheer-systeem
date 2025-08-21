@@ -114,6 +114,7 @@ jobs:
     name: 📊 Generate Final Report
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    needs: [traditional-tests, build-check]
     if: always()
     
     steps:
