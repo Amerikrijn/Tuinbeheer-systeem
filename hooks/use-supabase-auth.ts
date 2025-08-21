@@ -53,7 +53,8 @@ const getSupabase = () => {
     return getSupabaseClient()
   } catch (error) {
     console.error('Failed to initialize Supabase client:', error)
-    throw new Error('Authentication service unavailable')
+    // Return null instead of throwing, so we can handle it gracefully
+    return null
   }
 }
 
@@ -116,13 +117,65 @@ export function useSupabaseAuth(): AuthContextType {
     error: null
   })
 
+  // Check if Supabase is available
+  const [supabaseAvailable, setSupabaseAvailable] = useState<boolean>(true)
+
+  useEffect(() => {
+    try {
+      const supabase = getSupabase()
+      setSupabaseAvailable(!!supabase)
+      
+      if (!supabase) {
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          error: 'Supabase service is not available. Please check your configuration.'
+        }))
+        return
+      }
+    } catch (error) {
+      setSupabaseAvailable(false)
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: 'Failed to initialize authentication service.'
+      }))
+      return
+    }
+  }, [])
+
+  // If Supabase is not available, return a fallback auth context
+  if (!supabaseAvailable) {
+    return {
+      user: null,
+      session: null,
+      loading: false,
+      error: 'Authentication service unavailable',
+      signIn: async () => { throw new Error('Authentication service unavailable') },
+      signOut: async () => { throw new Error('Authentication service unavailable') },
+      signUp: async () => { throw new Error('Authentication service unavailable') },
+      resetPassword: async () => { throw new Error('Authentication service unavailable') },
+      hasPermission: () => false,
+      isAdmin: () => false,
+      hasGardenAccess: () => false,
+      getAccessibleGardens: () => [],
+      refreshUser: async () => { throw new Error('Authentication service unavailable') },
+      forceRefreshUser: async () => { throw new Error('Authentication service unavailable') },
+      loadGardenAccess: async () => { throw new Error('Authentication service unavailable') }
+    }
+  }
+
   // Load user profile with caching and optimized database lookup
   const loadUserProfile = async (userId: string): Promise<User> => {
     try {
       console.log('🔍 DEBUG: loadUserProfile called for userId:', userId)
       
       const supabase = getSupabase()
-      const supabaseUser = (await getSupabase().auth.getUser()).data.user
+      if (!supabase) {
+        throw new Error('Supabase client not available')
+      }
+      
+      const supabaseUser = (await supabase.auth.getUser()).data.user
       
       if (!supabaseUser) {
         throw new Error('No authenticated user found')

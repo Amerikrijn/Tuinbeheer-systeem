@@ -3,13 +3,29 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 // ========================================
 // SUPABASE CLIENT CONFIGURATION
 // ========================================
-// Using environment variables only
+// Environment variable loading with better Vercel support
 // Production: Set in Vercel environment variables
 // Development: Must be set in .env.local
 // ========================================
 
 // Singleton pattern to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
+
+// Better environment variable loading
+const getEnvironmentVariables = () => {
+  // Try multiple ways to get environment variables
+  const supabaseUrl = 
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    (typeof window !== 'undefined' ? window.__ENV__?.NEXT_PUBLIC_SUPABASE_URL : undefined)
+    
+  const supabaseAnonKey = 
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    (typeof window !== 'undefined' ? window.__ENV__?.NEXT_PUBLIC_SUPABASE_ANON_KEY : undefined)
+
+  return { supabaseUrl, supabaseAnonKey }
+}
 
 const getSupabaseClient = (): SupabaseClient => {
   console.log('🔍 DEBUG: getSupabaseClient called')
@@ -19,22 +35,30 @@ const getSupabaseClient = (): SupabaseClient => {
     return supabaseInstance
   }
 
-  // Use environment variables only
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  // Get environment variables with better fallback support
+  const { supabaseUrl, supabaseAnonKey } = getEnvironmentVariables()
 
   console.log('🔍 DEBUG: Environment check:', {
     url: supabaseUrl ? '✅ Set' : '❌ Missing',
     key: supabaseAnonKey ? '✅ Set' : '❌ Missing',
-    nodeEnv: process.env.NODE_ENV
+    nodeEnv: process.env.NODE_ENV,
+    isVercel: !!process.env.VERCEL,
+    vercelEnv: process.env.VERCEL_ENV
   })
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('❌ ERROR: Missing Supabase environment variables:', {
-      url: supabaseUrl ? 'Set' : 'Missing',
-      key: supabaseAnonKey ? 'Set' : 'Missing'
-    })
-    throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.')
+    // In development, show helpful error
+    if (process.env.NODE_ENV === 'development') {
+      console.error('❌ ERROR: Missing Supabase environment variables:', {
+        url: supabaseUrl ? 'Set' : 'Missing',
+        key: supabaseAnonKey ? 'Set' : 'Missing'
+      })
+      throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env.local file.')
+    } else {
+      // In production (Vercel), this should not happen if variables are set correctly
+      console.error('❌ ERROR: Missing Supabase environment variables in production')
+      throw new Error('Supabase configuration error. Please check Vercel environment variables.')
+    }
   }
 
   console.log('🔍 DEBUG: Initializing Supabase client with URL:', supabaseUrl)
@@ -59,8 +83,10 @@ const getSupabaseClient = (): SupabaseClient => {
 
     console.log('🔍 DEBUG: Supabase client created successfully')
     
-    // Test connection immediately
-    testConnection(supabaseInstance)
+    // Test connection immediately (but don't fail if test fails)
+    testConnection(supabaseInstance).catch(error => {
+      console.warn('⚠️ WARNING: Initial connection test failed, but client created:', error)
+    })
     
     return supabaseInstance
   } catch (error) {
@@ -106,8 +132,10 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     return supabaseAdminInstance
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const { supabaseUrl } = getEnvironmentVariables()
+  const serviceRoleKey = 
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    (typeof window !== 'undefined' ? window.__ENV__?.SUPABASE_SERVICE_ROLE_KEY : undefined)
   
   console.log('🔍 DEBUG: Admin environment check:', {
     url: supabaseUrl ? '✅ Set' : '❌ Missing',
@@ -139,7 +167,9 @@ const getSupabaseAdminClient = (): SupabaseClient => {
     console.log('🔍 DEBUG: Supabase admin client created successfully')
     
     // Test admin connection
-    testAdminConnection(supabaseAdminInstance)
+    testAdminConnection(supabaseAdminInstance).catch(error => {
+      console.warn('⚠️ WARNING: Admin connection test failed, but client created:', error)
+    })
     
     return supabaseAdminInstance
   } catch (error) {
@@ -185,3 +215,14 @@ export const VISUAL_GARDEN_CONSTANTS = {
     PLANT_BED: '#8B4513'
   }
 } as const
+
+// Type declaration for window.__ENV__ (if needed)
+declare global {
+  interface Window {
+    __ENV__?: {
+      NEXT_PUBLIC_SUPABASE_URL?: string
+      NEXT_PUBLIC_SUPABASE_ANON_KEY?: string
+      SUPABASE_SERVICE_ROLE_KEY?: string
+    }
+  }
+}
