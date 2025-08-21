@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { TreePine, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
+import { TreePine, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2, Database } from 'lucide-react'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { useToast } from '@/hooks/use-toast'
 import { Suspense } from 'react'
@@ -21,32 +21,55 @@ function LoginContent() {
   const searchParams = useSearchParams()
   
   let auth
+  let authError = null
+  
   try {
     auth = useAuth()
   } catch (error) {
-    // If auth fails, show a fallback UI
+    console.error('Auth hook failed:', error)
+    authError = error instanceof Error ? error.message : 'Authentication service unavailable'
+  }
+  
+  // If auth fails, show a fallback UI
+  if (authError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4">
         <div className="w-full max-w-md space-y-6 text-center">
           <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full">
-              <TreePine className="w-8 h-8 text-white" />
+            <div className="flex items-center justify-center w-16 h-16 bg-red-600 dark:bg-red-700 rounded-full">
+              <Database className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Tuinbeheer Systeem</h1>
-          <p className="text-gray-600 dark:text-gray-300">Systeem wordt geladen...</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            Herlaad pagina
-          </button>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Database Verbinding Mislukt</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
+            De database verbinding is momenteel niet beschikbaar. Dit kan komen door:
+          </p>
+          <div className="text-left bg-white dark:bg-gray-800 rounded-lg p-4 border text-sm">
+            <ul className="space-y-2 text-gray-600 dark:text-gray-400">
+              <li>• Supabase credentials zijn niet ingesteld</li>
+              <li>• Database is niet beschikbaar</li>
+              <li>• Netwerk verbinding problemen</li>
+            </ul>
+          </div>
+          <div className="space-y-3">
+            <button 
+              onClick={() => window.location.reload()} 
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+              Probeer opnieuw
+            </button>
+            <Link href="/test-database">
+              <Button variant="outline" className="w-full">
+                Test Database Verbinding
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     )
   }
   
-  const { signIn, loading, user, error: authError } = auth
+  const { signIn, loading, user, error: authHookError } = auth
   const { toast } = useToast()
   
   const [formData, setFormData] = useState({
@@ -68,16 +91,16 @@ function LoginContent() {
 
   // 🚨 ERROR HANDLING: Show auth errors
   useEffect(() => {
-    if (authError) {
-      console.log('🔍 DEBUG: Auth error detected:', authError)
-      setError(authError)
+    if (authHookError) {
+      console.log('🔍 DEBUG: Auth error detected:', authHookError)
+      setError(authHookError)
       toast({
         title: "Inloggen mislukt",
-        description: authError,
+        description: authHookError,
         variant: "destructive"
       })
     }
-  }, [authError, toast])
+  }, [authHookError, toast])
 
   // Handle password change success message
   useEffect(() => {

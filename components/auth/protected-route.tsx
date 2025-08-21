@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import dynamic from 'next/dynamic'
 import { Button } from '@/components/ui/button'
-import { TreePine } from 'lucide-react'
+import { TreePine, Database, AlertCircle } from 'lucide-react'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -18,7 +18,9 @@ function ProtectedRouteComponent({
   requireAdmin = false, 
   allowedRoles 
 }: ProtectedRouteProps) {
-  const { user, loading } = useAuth()
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [user, setUser] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const [timeoutReached, setTimeoutReached] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -28,6 +30,63 @@ function ProtectedRouteComponent({
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // Try to get auth with error handling
+  useEffect(() => {
+    let auth
+    try {
+      auth = useAuth()
+      setUser(auth.user)
+      setLoading(auth.loading)
+    } catch (error) {
+      console.error('Auth hook failed:', error)
+      setAuthError(error instanceof Error ? error.message : 'Authentication service unavailable')
+      setLoading(false)
+    }
+  }, [])
+
+  // Show database connection error if auth fails
+  if (authError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center max-w-md mx-auto p-6">
+          <div className="bg-card rounded-lg shadow-lg p-8">
+            <div className="flex justify-center mb-4">
+              <div className="flex items-center justify-center w-16 h-16 bg-red-600 dark:bg-red-700 rounded-full">
+                <Database className="w-8 h-8 text-white" />
+              </div>
+            </div>
+            <h2 className="text-2xl font-bold text-foreground mb-4">Database Verbinding Mislukt</h2>
+            <p className="text-muted-foreground mb-6">
+              De authenticatie service is momenteel niet beschikbaar. Dit kan komen door database verbindingsproblemen.
+            </p>
+            <div className="space-y-3">
+              <Button 
+                onClick={() => window.location.reload()}
+                className="w-full"
+              >
+                Probeer opnieuw
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => router.push('/test-database')}
+                className="w-full"
+              >
+                Test Database Verbinding
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => router.push('/plants')}
+                className="w-full"
+              >
+                Bekijk Demo Planten
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // Reduced timeout for better UX
   useEffect(() => {

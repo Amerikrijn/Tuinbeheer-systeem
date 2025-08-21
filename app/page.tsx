@@ -547,6 +547,38 @@ function RoleBasedHomeContent() {
   const { user, isAdmin } = useAuth()
   const router = useRouter()
 
+  // Check if auth is working
+  if (!user && !isAdmin) {
+    // Show fallback UI when auth is not working
+    return (
+      <div className="container mx-auto p-4 max-w-4xl">
+        <div className="text-center py-12">
+          <div className="flex justify-center mb-4">
+            <div className="flex items-center justify-center w-16 h-16 bg-amber-600 dark:bg-amber-700 rounded-full">
+              <AlertCircle className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            Database Verbinding Vereist
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
+            Om de tuinbeheer functionaliteit te gebruiken, moet eerst de database verbinding worden ingesteld.
+          </p>
+          <div className="space-y-3">
+            <Link href="/test-database">
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                Test Database Verbinding
+              </Button>
+            </Link>
+            <div className="text-sm text-gray-500">
+              <p>Of ga naar de <Link href="/plants" className="text-blue-600 hover:underline">planten pagina</Link> om de demo modus te zien</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   if (isAdmin()) {
     return <HomePageContent />
   } else {
