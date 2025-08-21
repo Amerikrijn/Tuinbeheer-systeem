@@ -1,7 +1,7 @@
 name: 🚀 AI Pipeline v2.0 - Complete Testing & Fixing
 
 on:
-  pull_request:
+  pull_request_target:
     branches: ['**']
     types: [opened, synchronize, reopened]
   push:
@@ -41,8 +41,10 @@ jobs:
           fi
           echo "✅ OpenAI API Key is configured"
       
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+      - name: 📥 Checkout PR code
+        uses: actions/checkout@v3
+        with:
+          ref: refs/pull/${{ github.event.number }}/merge
       
       - name: 🟢 Setup Node
         uses: ./.github/actions/setup-node
