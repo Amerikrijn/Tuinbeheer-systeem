@@ -1,0 +1,106 @@
+name: CI — AI Test Review (comment-only)
+
+on:
+  pull_request:
+    branches: [ main, preview ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ci-ai-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ai_review:
+    # Alleen draaien op PRs binnen dezelfde repo (geen forks i.v.m. secrets)
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install tools
+        run: |
+          sudo apt-get update && sudo apt-get install -y jq
+          npm ci
+
+      - name: Compute diff (against base)
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth=1 || true
+          git diff --unified=0 origin/${{ github.base_ref }}... > diff.patch || true
+          wc -l diff.patch || true
+
+      - name: Try tests to get coverage (best effort)
+        run: npm run test:ci || true
+        env:
+          CI: true
+
+      - name: Build prompt
+        run: |
+          {
+            echo "You are a senior JavaScript test engineer."
+            echo "Task: propose minimal, deterministic Jest tests for changed code."
+            echo "Rules: NO code writes, NO commits. Return a markdown report with:"
+            echo "- What to test (units and behaviors)"
+            echo "- Concrete test names"
+            echo "- Example Jest snippets (no external deps),"
+            echo "- Coverage gaps found from lcov (if present)."
+            echo ""
+            echo "Changed diff (truncated to 200k chars):"
+            head -c 200000 diff.patch || true
+            echo ""
+            echo "Coverage lcov.info (first 200 lines):"
+            head -n 200 coverage/lcov.info || true
+          } > prompt.txt
+
+      - name: Call OpenAI (if key exists)
+        id: llm
+        if: ${{ secrets.OPENAI_API_KEY != '' }}
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          curl -sS https://api.openai.com/v1/chat/completions \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d @- > ai.json <<'JSON'
+          {
+            "model": "gpt-4o-mini",
+            "temperature": 0,
+            "messages": [
+              {"role":"system","content":"You write crystal-clear, minimal Jest tests and explain coverage gaps."},
+              {"role":"user","content": 'PLACEHOLDER'}
+            ]
+          }
+JSON
+          # inject prompt safely
+          jq --arg content "$(cat prompt.txt)" '.messages[1].content = $content' ai.json | sponge ai.json
+          # Re-send with the injected prompt
+          curl -sS https://api.openai.com/v1/chat/completions \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d @ai.json > ai.out.json
+          jq -r '.choices[0].message.content // "AI did not return content."' ai.out.json > ai-test-review.md
+
+      - name: Fallback when no OpenAI key
+        if: ${{ steps.llm.outcome == 'skipped' }}
+        run: |
+          echo "Set OPENAI_API_KEY secret to enable AI review." > ai-test-review.md
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-test-review
+          path: ai-test-review.md
+
+      - name: Comment on PR
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: ai-test-review.md
