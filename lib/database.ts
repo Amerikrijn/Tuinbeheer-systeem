@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "./supabase"
+import type { Garden, PlantBed, Plant, PlantBedWithPlants } from "./types"
 
 function isMissingRelation(err: { code?: string } | null): boolean {
   return !!err && err.code === "42P01"
@@ -125,6 +126,7 @@ export async function createGarden(garden: {
 export async function updateGarden(id: string, updates: Partial<Garden>): Promise<Garden | null> {
   console.log("Updating garden:", id, "with:", updates)
 
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("gardens")
     .update({
@@ -197,6 +199,7 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBed[]> {
 export async function getPlantBed(id: string): Promise<PlantBed | null> {
   console.log("Fetching plant bed:", id)
 
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("plant_beds")
     .select("*")
@@ -235,6 +238,7 @@ export async function createPlantBed(plantBed: {
 }): Promise<PlantBed | null> {
   console.log("Creating plant bed with data:", plantBed)
 
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("plant_beds")
     .insert({
@@ -259,6 +263,7 @@ export async function createPlantBed(plantBed: {
 export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Promise<PlantBed | null> {
   console.log("Updating plant bed:", id, "with:", updates)
 
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("plant_beds")
     .update({
@@ -282,6 +287,7 @@ export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Pr
 export async function deletePlantBed(id: string): Promise<boolean> {
   console.log("Deleting plant bed:", id)
 
+  const supabase = getSupabaseClient()
   const { error } = await supabase
     .from("plant_beds")
     .update({
@@ -303,6 +309,7 @@ export async function deletePlantBed(id: string): Promise<boolean> {
 export async function getPlants(plantBedId?: string): Promise<Plant[]> {
   console.log("Fetching plants for plant bed:", plantBedId || "all")
 
+  const supabase = getSupabaseClient()
   let query = supabase
     .from("plants")
     .select("*")
@@ -330,6 +337,7 @@ export async function getPlants(plantBedId?: string): Promise<Plant[]> {
 export async function getPlant(id: string): Promise<Plant | null> {
   console.log("Fetching plant:", id)
 
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("plants")
     .select("*")
@@ -371,6 +379,7 @@ export async function createPlant(plant: {
 }): Promise<Plant | null> {
   console.log("Creating plant with data:", plant)
 
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("plants")
     .insert({
@@ -394,6 +403,7 @@ export async function createPlant(plant: {
 export async function updatePlant(id: string, updates: Partial<Plant>): Promise<Plant | null> {
   console.log("Updating plant:", id, "with:", updates)
 
+  const supabase = getSupabaseClient()
   const { data, error } = await supabase
     .from("plants")
     .update({
@@ -417,6 +427,7 @@ export async function updatePlant(id: string, updates: Partial<Plant>): Promise<
 export async function deletePlant(id: string): Promise<boolean> {
   console.log("Deleting plant:", id)
 
+  const supabase = getSupabaseClient()
   const { error } = await supabase
     .from("plants")
     .update({
@@ -438,6 +449,7 @@ export async function deletePlant(id: string): Promise<boolean> {
 export async function getPlantBedsWithPlants(gardenId?: string): Promise<PlantBedWithPlants[]> {
   console.log("Fetching plant beds with plants for garden:", gardenId || "all")
 
+  const supabase = getSupabaseClient()
   let query = supabase
     .from("plant_beds")
     .select(`
