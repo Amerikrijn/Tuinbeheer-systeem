@@ -147,6 +147,12 @@
     "*.{ts,tsx,js,jsx}": [
       "eslint --fix",
       "prettier --write"
+      "scripts": {
+  "test:ci": "jest --ci --coverage --runInBand",
+  "lint": "eslint .",
+  "type-check": "tsc -p tsconfig.json --noEmit"
+}
+
     ]
   }
 }
