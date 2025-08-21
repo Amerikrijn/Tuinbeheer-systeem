@@ -22,7 +22,7 @@ jobs:
     - name: Checkout repository (safe)
       uses: actions/checkout@v4
       with:
-        ref: ${{ github.event.pull_request.head.sha || github.sha }}
+        ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.base.sha || (github.event.pull_request.head.sha || github.sha) }}
         persist-credentials: false
         fetch-depth: 2
 
@@ -80,6 +80,7 @@ jobs:
         } > codeql-openai-prompt.txt
 
     - name: Generate AI Code Quality summary
+      if: ${{ github.event_name == 'pull_request_target' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
       id: openai
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
