@@ -15,9 +15,9 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3 } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
-import { getPlantBeds } from "@/lib/database"
+import { getPlantBedsWithPlants } from "@/lib/database"
 import { uiLogger, AuditLogger } from "@/lib/logger"
-import type { Tuin, PlantvakWithPlants } from "@/lib/types/index"
+import type { Tuin, PlantBedWithPlants } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-supabase-auth"
@@ -378,7 +378,7 @@ interface GardenCardProps {
 }
 
 function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
-  const [plantBeds, setPlantBeds] = React.useState<PlantvakWithPlants[]>([])
+  const [plantBeds, setPlantBeds] = React.useState<PlantBedWithPlants[]>([])
   const [loadingFlowers, setLoadingFlowers] = React.useState(true)
   const [gardenUsers, setGardenUsers] = React.useState<Array<{ id: string; email: string; full_name?: string }>>([])
   const [loadingUsers, setLoadingUsers] = React.useState(true)
@@ -422,8 +422,8 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
     const loadFlowers = async () => {
       try {
         setLoadingFlowers(true)
-        const beds = await getPlantBeds(garden.id)
-        setPlantBeds(beds as PlantvakWithPlants[])
+        const beds = await getPlantBedsWithPlants(garden.id)
+        setPlantBeds(beds)
       } catch (error) {
         uiLogger.error('Error loading flowers for garden preview', error as Error, { gardenId: garden.id })
         setPlantBeds([])

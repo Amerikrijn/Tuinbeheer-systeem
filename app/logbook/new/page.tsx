@@ -14,16 +14,16 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Calendar, Camera, Upload, X, Loader2 } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
-import { getPlantBeds, getPlantBed } from "@/lib/database"
+import { getPlantBedsWithPlants, getPlantBed } from "@/lib/database"
 import { uploadImage, type UploadResult } from "@/lib/storage"
 import { uiLogger } from "@/lib/logger"
-import type { LogbookEntryFormData, Plant, PlantvakWithPlants } from "@/lib/types/index"
+import type { LogbookEntryFormData, Plant, PlantBedWithPlants } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
 
 interface NewLogbookPageState {
-  plantBeds: PlantvakWithPlants[]
+  plantBeds: PlantBedWithPlants[]
   plants: Plant[]
   loading: boolean
   submitting: boolean
@@ -62,7 +62,7 @@ function NewLogbookPageContent() {
       setState(prev => ({ ...prev, loading: true, error: null }))
       
       // Load plant beds
-      const plantBeds = await getPlantBeds(gardenId)
+      const plantBeds = await getPlantBedsWithPlants(gardenId)
 
       // Load plants if a plant bed is selected
       let plants: Plant[] = []
@@ -75,7 +75,7 @@ function NewLogbookPageContent() {
 
       setState(prev => ({
         ...prev,
-        plantBeds: (plantBeds || []) as PlantvakWithBloemen[],
+        plantBeds: plantBeds || [],
         plants,
         loading: false
       }))

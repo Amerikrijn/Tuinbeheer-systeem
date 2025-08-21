@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ArrowLeft, TreePine, Plus, Search, Eye, Leaf, Sun, MapPin, Grid3X3, BookOpen } from "lucide-react"
-import { getGarden, getPlantBeds } from "@/lib/database"
+import { getGarden, getPlantBedsWithPlants } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 
@@ -29,7 +29,7 @@ export default function PlantBedsPage() {
         setLoading(true)
         const [gardenData, plantBedsData] = await Promise.all([
           getGarden(params.id as string),
-          getPlantBeds(params.id as string),
+          getPlantBedsWithPlants(params.id as string),
         ])
         setGarden(gardenData)
         setPlantBeds(plantBedsData)
@@ -188,7 +188,7 @@ export default function PlantBedsPage() {
                           )}
                         </div>
                       </div>
-                      <div className={`w-3 h-3 rounded-full border-2 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 shadow-gray-200'}`}></div>
+                      <div className={`w-3 h-3 rounded-full border-2 ${(bed.plants?.length || 0) > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 shadow-gray-200'}`}></div>
                     </div>
                     
                     <div className="space-y-2 text-sm text-gray-600 mb-4">
@@ -200,7 +200,7 @@ export default function PlantBedsPage() {
                       )}
                       <div className="flex justify-between">
                         <span>Planten:</span>
-                        <span>{bed.plants.length}</span>
+                        <span>{bed.plants?.length || 0}</span>
                       </div>
                       {bed.soil_type && (
                         <div className="flex justify-between">
@@ -220,15 +220,15 @@ export default function PlantBedsPage() {
                     </div>
 
                     {/* Show flower emojis preview */}
-                    {bed.plants.length > 0 && (
+                    {(bed.plants?.length || 0) > 0 && (
                       <div className="flex items-center gap-1 flex-wrap mb-4">
-                        {bed.plants.slice(0, 6).map((plant, index) => (
+                        {(bed.plants || []).slice(0, 6).map((plant, index) => (
                           <span key={index} className="text-lg" title={plant.name}>
                             {plant.emoji || '🌸'}
                           </span>
                         ))}
-                        {bed.plants.length > 6 && (
-                          <span className="text-xs text-gray-500 ml-1">+{bed.plants.length - 6}</span>
+                        {(bed.plants?.length || 0) > 6 && (
+                          <span className="text-xs text-gray-500 ml-1">+{(bed.plants?.length || 0) - 6}</span>
                         )}
                       </div>
                     )}
@@ -241,7 +241,7 @@ export default function PlantBedsPage() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-gray-900 truncate">{bed.name}</h3>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                          <span>{bed.plants.length} planten</span>
+                          <span>{bed.plants?.length || 0} planten</span>
                           {bed.size && <span>Grootte: {bed.size}</span>}
                           {bed.sun_exposure && (
                             <div className="flex items-center gap-1">
@@ -250,21 +250,21 @@ export default function PlantBedsPage() {
                             </div>
                           )}
                         </div>
-                        {bed.plants.length > 0 && (
+                        {(bed.plants?.length || 0) > 0 && (
                           <div className="flex items-center gap-1 mt-2">
-                            {bed.plants.slice(0, 4).map((plant, index) => (
+                            {(bed.plants || []).slice(0, 4).map((plant, index) => (
                               <span key={index} className="text-sm" title={plant.name}>
                                 {plant.emoji || '🌸'}
                               </span>
                             ))}
-                            {bed.plants.length > 4 && (
-                              <span className="text-xs text-gray-500 ml-1">+{bed.plants.length - 4}</span>
+                            {(bed.plants?.length || 0) > 4 && (
+                              <span className="text-xs text-gray-500 ml-1">+{(bed.plants?.length || 0) - 4}</span>
                             )}
                           </div>
                         )}
                       </div>
                     </div>
-                    <div className={`w-3 h-3 rounded-full border-2 ml-3 flex-shrink-0 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 shadow-gray-200'}`}></div>
+                    <div className={`w-3 h-3 rounded-full border-2 ml-3 flex-shrink-0 ${(bed.plants?.length || 0) > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 shadow-gray-200'}`}></div>
                   </div>
                 )}
 
@@ -357,7 +357,7 @@ export default function PlantBedsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {plantBeds.reduce((sum, bed) => sum + Math.max(1, bed.plants.length), 0)}
+                  {plantBeds.reduce((sum, bed) => sum + Math.max(1, bed.plants?.length || 0), 0)}
                 </div>
                 <div className="text-sm text-gray-600">Totaal Planten</div>
               </div>

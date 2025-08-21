@@ -12,13 +12,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
-import { getPlantBeds } from "@/lib/database"
+import { getPlantBedsWithPlants } from "@/lib/database"
 import { uploadImage, type UploadResult } from "@/lib/storage"
-import type { LogbookEntryWithDetails, PlantvakWithPlants } from "@/lib/types/index"
+import type { LogbookEntryWithDetails, PlantBedWithPlants } from "@/lib/types/index"
 
 interface EditLogbookState {
   entry: LogbookEntryWithDetails | null
-  plantBeds: PlantvakWithPlants[]
+  plantBeds: PlantBedWithPlants[]
   loading: boolean
   saving: boolean
   error: string | null
@@ -72,7 +72,7 @@ export default function EditLogbookPage() {
         const entry = entryResponse.data
         
         // Load plant beds
-        const plantBeds = await getPlantBeds(entry.garden_id)
+        const plantBeds = await getPlantBedsWithPlants(entry.garden_id)
 
         // Set form data
         setFormData({
@@ -86,7 +86,7 @@ export default function EditLogbookPage() {
         setState(prev => ({
           ...prev,
           entry,
-          plantBeds: plantBeds as PlantvakWithPlants[],
+          plantBeds: plantBeds,
           loading: false,
         }))
 

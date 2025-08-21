@@ -28,7 +28,7 @@ import {
   Cloud,
   Trash2,
 } from "lucide-react"
-import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
+import { getGarden, getPlantBedsWithPlants, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS, 
@@ -129,7 +129,7 @@ export default function GardenDetailPage() {
         setLoading(true)
         const [gardenData, plantBedsData] = await Promise.all([
           getGarden(params.id as string),
-          getPlantBeds(params.id as string),
+          getPlantBedsWithPlants(params.id as string),
         ])
         console.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
         setGarden(gardenData)
@@ -717,7 +717,7 @@ export default function GardenDetailPage() {
                               containerWidth={bedWidth}
                               containerHeight={bedHeight}
                             />
-                            {bed.plants.length === 0 && (
+                            {(bed.plants?.length || 0) === 0 && (
                               <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
                                 🌱 Leeg plantvak
                               </div>
@@ -737,7 +737,7 @@ export default function GardenDetailPage() {
                         <div className="mt-1 text-center">
                           <div className="text-xs text-gray-600 font-medium">{bed.name}</div>
                           <div className="text-xs text-gray-500">
-                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {bed.plants.length} 🌸
+                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {bed.plants?.length || 0} 🌸
                           </div>
                         </div>
                       </div>
@@ -828,15 +828,15 @@ export default function GardenDetailPage() {
                           </div>
                         )}
                         <div>
-                          {bed.plants.length} bloemen
+                          {bed.plants?.length || 0} bloemen
                         </div>
                       </div>
                       
                       {/* Flower preview in plant bed list */}
-                      {bed.plants.length > 0 && (
+                      {(bed.plants?.length || 0) > 0 && (
                         <div className="mt-2">
                           <div className="flex flex-wrap gap-1">
-                            {bed.plants.slice(0, 4).map((flower, index) => (
+                            {(bed.plants || []).slice(0, 4).map((flower, index) => (
                               <div
                                 key={`${flower.id}-${index}`}
                                 className="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-1"
@@ -857,10 +857,10 @@ export default function GardenDetailPage() {
                                 )}
                               </div>
                             ))}
-                            {bed.plants.length > 4 && (
+                            {(bed.plants?.length || 0) > 4 && (
                               <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
                                 <span className="text-xs text-gray-600">
-                                  +{bed.plants.length - 4}
+                                  +{(bed.plants?.length || 0) - 4}
                                 </span>
                               </div>
                             )}
@@ -869,7 +869,7 @@ export default function GardenDetailPage() {
                       )}
                     </div>
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      {bed.plants.length > 0 ? 'Beplant' : 'Leeg'}
+                      {(bed.plants?.length || 0) > 0 ? 'Beplant' : 'Leeg'}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -921,7 +921,7 @@ export default function GardenDetailPage() {
                   </span>
                 </div>
                 <div className="text-sm text-red-700">
-                  {plantBeds.find(bed => bed.id === deletingBedId)?.plants.length || 0} bloemen zullen ook worden verwijderd
+                  {plantBeds.find(bed => bed.id === deletingBedId)?.plants?.length || 0} bloemen zullen ook worden verwijderd
                 </div>
               </div>
             </div>
