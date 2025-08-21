@@ -36,21 +36,24 @@ export function LogbookList() {
       const supabase = getSupabaseClient()
       
       // 🚀 PERFORMANCE: Optimized query with pagination and sorting
-      // Support both 'content' and 'notes' columns for compatibility
+      // Use the ACTUAL database columns: notes, entry_date (not content, created_at)
       const { data, error: fetchError } = await supabase
         .from('logbook_entries')
-        .select('id, content, notes, created_at, garden_id, updated_at')
-        .order('created_at', { ascending: false })
+        .select('id, notes, entry_date, plant_bed_id, plant_id, photo_url, created_at, updated_at')
+        .order('entry_date', { ascending: false })
         .limit(20) // Limit for better performance
       
       if (fetchError) {
         throw new Error(fetchError.message)
       }
       
-      // Map notes to content for backward compatibility
+      // Map database columns to expected interface
       const mappedData = (data || []).map(entry => ({
-        ...entry,
-        content: entry.content || entry.notes || ''
+        id: entry.id,
+        content: entry.notes || '', // Map 'notes' to 'content'
+        created_at: entry.entry_date || entry.created_at, // Use entry_date
+        garden_id: entry.plant_bed_id, // Map plant_bed_id as fallback
+        updated_at: entry.updated_at
       }))
       setEntries(mappedData)
       
