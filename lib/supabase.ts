@@ -11,6 +11,28 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 // Singleton pattern to prevent multiple instances
 let supabaseInstance: SupabaseClient | null = null
 
+// Mock client for when Supabase is not configured
+const createMockClient = (): SupabaseClient => {
+  console.warn('⚠️ WARNING: Using mock Supabase client - environment variables not configured')
+  
+  // Create a mock client that won't crash the app
+  const mockClient = {
+    from: () => ({
+      select: () => ({
+        order: () => ({
+          limit: () => Promise.resolve({ data: [], error: null })
+        })
+      })
+    }),
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      signOut: () => Promise.resolve({ error: null })
+    }
+  } as any
+  
+  return mockClient
+}
+
 const getSupabaseClient = (): SupabaseClient => {
   console.log('🔍 DEBUG: getSupabaseClient called')
   
@@ -29,12 +51,12 @@ const getSupabaseClient = (): SupabaseClient => {
     nodeEnv: process.env.NODE_ENV
   })
 
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error('❌ ERROR: Missing Supabase environment variables:', {
-      url: supabaseUrl ? 'Set' : 'Missing',
-      key: supabaseAnonKey ? 'Set' : 'Missing'
-    })
-    throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.')
+  // Check if environment variables are properly configured (not placeholder values)
+  if (!supabaseUrl || !supabaseAnonKey || 
+      supabaseUrl === 'https://jouw-project.supabase.co' || 
+      supabaseAnonKey === 'jouw_echte_anon_key_hier') {
+    console.warn('⚠️ WARNING: Supabase environment variables not properly configured, using mock client')
+    return createMockClient()
   }
 
   console.log('🔍 DEBUG: Initializing Supabase client with URL:', supabaseUrl)
@@ -65,7 +87,8 @@ const getSupabaseClient = (): SupabaseClient => {
     return supabaseInstance
   } catch (error) {
     console.error('❌ ERROR: Failed to create Supabase client:', error)
-    throw error
+    console.warn('⚠️ WARNING: Falling back to mock client due to initialization error')
+    return createMockClient()
   }
 }
 
