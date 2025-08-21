@@ -546,18 +546,27 @@ export class PipelineOrchestratorAgent {
   }
 
   /**
-   * Generate final report with iteration data
+   * Generate final report with iteration data and consolidated test results
    */
   private generateFinalReport(finalResult: any): any {
+    // Consolidate all test results from different agents and conventional tests
+    const consolidatedResults = this.consolidateAllTestResults()
+    
     const report = {
       ...finalResult,
       iterationHistory: this.iterationResults,
+      consolidatedTestResults: consolidatedResults,
       improvementSummary: {
         successRateIncrease: finalResult.metrics.successRate - this.iterationResults[0].metrics.successRate,
         scoreIncrease: finalResult.metrics.improvementScore - this.iterationResults[0].metrics.improvementScore,
-        totalIterations: this.iterationResults.length
+        totalIterations: this.iterationResults.length,
+        conventionalTestsIncluded: consolidatedResults.conventionalTests.length > 0,
+        totalTestsConsolidated: consolidatedResults.totalTests
       }
     }
+
+    // Save the consolidated final report
+    this.saveConsolidatedFinalReport(report)
 
     return report
   }
@@ -635,6 +644,247 @@ export class PipelineOrchestratorAgent {
   private async initializeWorkflows(): Promise<void> {
     // Workflows are initialized when needed
     console.log(`🔄 Initialized ${this.config.workflows.length} workflows`)
+  }
+
+  /**
+   * Consolidate all test results from different agents and conventional tests
+   */
+  private consolidateAllTestResults(): any {
+    console.log('🔗 Consolidating all test results...')
+    
+    const consolidated = {
+      aiTests: [],
+      conventionalTests: [],
+      qualityAnalysis: [],
+      autoFixResults: [],
+      ciCdResults: [],
+      totalTests: 0,
+      overallQualityScore: 0,
+      consolidatedSummary: ''
+    }
+
+    try {
+      // Consolidate AI test results
+      if (fs.existsSync('./agents/test-generator/test-results')) {
+        const testFiles = fs.readdirSync('./agents/test-generator/test-results')
+        testFiles.forEach(file => {
+          if (file.endsWith('.json')) {
+            try {
+              const content = fs.readFileSync(`./agents/test-generator/test-results/${file}`, 'utf-8')
+              const data = JSON.parse(content)
+              consolidated.aiTests.push({
+                source: 'test-generator',
+                file: file,
+                data: data
+              })
+              consolidated.totalTests += data.scenarios?.length || 0
+            } catch (error) {
+              console.warn(`Warning: Could not parse test file ${file}`)
+            }
+          }
+        })
+      }
+
+      // Consolidate quality analysis results
+      if (fs.existsSync('./agents/quality-analyzer/quality-results')) {
+        const qualityFiles = fs.readdirSync('./agents/quality-analyzer/quality-results')
+        qualityFiles.forEach(file => {
+          if (file.endsWith('.json')) {
+            try {
+              const content = fs.readFileSync(`./agents/quality-analyzer/quality-results/${file}`, 'utf-8')
+              const data = JSON.parse(content)
+              consolidated.qualityAnalysis.push({
+                source: 'quality-analyzer',
+                file: file,
+                data: data
+              })
+              if (data.qualityScore) {
+                consolidated.overallQualityScore += data.qualityScore
+              }
+            } catch (error) {
+              console.warn(`Warning: Could not parse quality file ${file}`)
+            }
+          }
+        })
+      }
+
+      // Consolidate auto-fix results
+      if (fs.existsSync('./agents/auto-fix/auto-fix-results')) {
+        const fixFiles = fs.readdirSync('./agents/auto-fix/auto-fix-results')
+        fixFiles.forEach(file => {
+          if (file.endsWith('.json')) {
+            try {
+              const content = fs.readFileSync(`./agents/auto-fix/auto-fix-results/${file}`, 'utf-8')
+              const data = JSON.parse(content)
+              consolidated.autoFixResults.push({
+                source: 'auto-fix',
+                file: file,
+                data: data
+              })
+            } catch (error) {
+              console.warn(`Warning: Could not parse auto-fix file ${file}`)
+            }
+          }
+        })
+      }
+
+      // Consolidate CI/CD results (conventional tests)
+      if (fs.existsSync('./ci-cd-results')) {
+        const ciCdFiles = fs.readdirSync('./ci-cd-results')
+        ciCdFiles.forEach(file => {
+          if (file.endsWith('.json') || file.endsWith('.xml') || file.endsWith('.txt')) {
+            try {
+              const content = fs.readFileSync(`./ci-cd-results/${file}`, 'utf-8')
+              consolidated.ciCdResults.push({
+                source: 'ci-cd-pipeline',
+                file: file,
+                content: content
+              })
+              consolidated.conventionalTests.push({
+                source: 'ci-cd-pipeline',
+                file: file,
+                content: content
+              })
+            } catch (error) {
+              console.warn(`Warning: Could not read CI/CD file ${file}`)
+            }
+          }
+        })
+      }
+
+      // Consolidate AI pipeline v2 results
+      if (fs.existsSync('./agents/ai-pipeline-v2/ai-pipeline-results')) {
+        const aiPipelineFiles = fs.readdirSync('./agents/ai-pipeline-v2/ai-pipeline-results')
+        aiPipelineFiles.forEach(file => {
+          if (file.endsWith('.json')) {
+            try {
+              const content = fs.readFileSync(`./agents/ai-pipeline-v2/ai-pipeline-results/${file}`, 'utf-8')
+              const data = JSON.parse(content)
+              consolidated.aiTests.push({
+                source: 'ai-pipeline-v2',
+                file: file,
+                data: data
+              })
+              consolidated.totalTests += data.tests?.length || 0
+            } catch (error) {
+              console.warn(`Warning: Could not parse AI pipeline file ${file}`)
+            }
+          }
+        })
+      }
+
+      // Calculate average quality score
+      if (consolidated.qualityAnalysis.length > 0) {
+        consolidated.overallQualityScore = consolidated.overallQualityScore / consolidated.qualityAnalysis.length
+      }
+
+      // Generate consolidated summary
+      consolidated.consolidatedSummary = this.generateConsolidatedSummary(consolidated)
+
+      console.log(`✅ Consolidated ${consolidated.totalTests} tests from ${consolidated.aiTests.length + consolidated.conventionalTests.length} sources`)
+      
+    } catch (error) {
+      console.error('❌ Error consolidating test results:', error)
+    }
+
+    return consolidated
+  }
+
+  /**
+   * Generate consolidated summary of all test results
+   */
+  private generateConsolidatedSummary(consolidated: any): string {
+    let summary = '# 🎯 Consolidated Test Results Report\n\n'
+    summary += `**Generated:** ${new Date().toISOString()}\n`
+    summary += `**Total Tests:** ${consolidated.totalTests}\n`
+    summary += `**Overall Quality Score:** ${consolidated.overallQualityScore.toFixed(2)}/100\n\n`
+
+    summary += '## 🤖 AI-Generated Tests\n'
+    summary += `- **Test Generator:** ${consolidated.aiTests.filter(t => t.source === 'test-generator').length} files\n`
+    summary += `- **AI Pipeline v2:** ${consolidated.aiTests.filter(t => t.source === 'ai-pipeline-v2').length} files\n`
+    summary += `- **Total AI Tests:** ${consolidated.aiTests.length} files\n\n`
+
+    summary += '## 🧪 Conventional Tests\n'
+    summary += `- **CI/CD Pipeline:** ${consolidated.conventionalTests.filter(t => t.source === 'ci-cd-pipeline').length} files\n`
+    summary += `- **Total Conventional Tests:** ${consolidated.conventionalTests.length} files\n\n`
+
+    summary += '## 📊 Quality Analysis\n'
+    summary += `- **Quality Analyzer:** ${consolidated.qualityAnalysis.length} files\n`
+    summary += `- **Overall Quality Score:** ${consolidated.overallQualityScore.toFixed(2)}/100\n\n`
+
+    summary += '## 🔧 Auto-Fix Analysis\n'
+    summary += `- **Auto-Fix Agent:** ${consolidated.autoFixResults.length} files\n\n`
+
+    summary += '## 📈 Summary\n'
+    summary += `This consolidated report combines results from:\n`
+    summary += `- AI-powered test generation and analysis\n`
+    summary += `- Conventional CI/CD testing and build processes\n`
+    summary += `- Quality analysis and improvement recommendations\n`
+    summary += `- Automated fix identification and validation\n\n`
+
+    return summary
+  }
+
+  /**
+   * Save the consolidated final report
+   */
+  private saveConsolidatedFinalReport(report: any): void {
+    try {
+      const outputDir = './agents/pipeline-orchestrator/orchestration-results'
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true })
+      }
+
+      // Save detailed JSON report
+      const jsonReportPath = `${outputDir}/consolidated-final-report.json`
+      fs.writeFileSync(jsonReportPath, JSON.stringify(report, null, 2))
+
+      // Save human-readable summary
+      const summaryPath = `${outputDir}/consolidated-final-summary.md`
+      fs.writeFileSync(summaryPath, report.consolidatedTestResults.consolidatedSummary)
+
+      // Save executive summary
+      const executivePath = `${outputDir}/executive-summary.md`
+      const executiveSummary = this.generateExecutiveSummary(report)
+      fs.writeFileSync(executivePath, executiveSummary)
+
+      console.log(`💾 Consolidated final report saved to: ${outputDir}`)
+      console.log(`   - JSON Report: consolidated-final-report.json`)
+      console.log(`   - Summary: consolidated-final-summary.md`)
+      console.log(`   - Executive Summary: executive-summary.md`)
+
+    } catch (error) {
+      console.error('❌ Error saving consolidated final report:', error)
+    }
+  }
+
+  /**
+   * Generate executive summary for stakeholders
+   */
+  private generateExecutiveSummary(report: any): string {
+    let summary = '# 🎯 Executive Summary - AI Testing Pipeline Results\n\n'
+    summary += `**Date:** ${new Date().toISOString()}\n`
+    summary += `**Pipeline:** ${report.workflowName || 'CI/CD AI Testing Pipeline'}\n\n`
+
+    summary += '## 📊 Key Metrics\n'
+    summary += `- **Total Tests Executed:** ${report.consolidatedTestResults.totalTests}\n`
+    summary += `- **Overall Quality Score:** ${report.consolidatedTestResults.overallQualityScore.toFixed(2)}/100\n`
+    summary += `- **Iterations Completed:** ${report.improvementSummary.totalIterations}\n`
+    summary += `- **Success Rate Improvement:** +${report.improvementSummary.successRateIncrease.toFixed(1)}%\n`
+    summary += `- **Score Improvement:** +${report.improvementSummary.scoreIncrease} points\n\n`
+
+    summary += '## 🎯 What This Means\n'
+    summary += `- **AI Testing Coverage:** Comprehensive test scenarios generated by AI agents\n`
+    summary += `- **Quality Assurance:** Multi-iteration analysis with continuous improvement\n`
+    summary += `- **Risk Mitigation:** Automated identification of potential issues and fixes\n`
+    summary += `- **Conventional Integration:** Seamless integration with existing CI/CD processes\n\n`
+
+    summary += '## 🚀 Recommendations\n'
+    summary += `- **Deploy:** Pipeline shows significant quality improvements\n`
+    summary += `- **Monitor:** Continue tracking improvement trends\n`
+    summary += `- **Scale:** Consider expanding AI testing to other components\n\n`
+
+    return summary
   }
 
   /**

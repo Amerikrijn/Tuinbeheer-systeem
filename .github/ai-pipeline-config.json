@@ -218,17 +218,19 @@
         },
         {
           "id": "pipeline-orchestration",
-          "name": "Pipeline Orchestration",
+          "name": "Pipeline Orchestration & Final Report",
           "agentId": "pipeline-orchestrator",
-          "order": 1,
+          "order": 3,
           "required": true,
           "config": {
             "workflowId": "ci-ai-pipeline",
-            "parallel": true,
+            "parallel": false,
             "maxIterations": 2,
+            "consolidateAllTests": true,
+            "includeConventionalTests": true,
             "outputPath": "./agents/pipeline-orchestrator/orchestration-results"
           },
-          "dependencies": [],
+          "dependencies": ["test-generation", "quality-analysis", "auto-fixing", "ci-cd-execution", "ai-pipeline-execution"],
           "timeout": 300000,
           "retryPolicy": {
             "maxRetries": 2,
@@ -247,14 +249,15 @@
           "id": "ci-cd-execution",
           "name": "CI/CD Execution",
           "agentId": "ci-cd-pipeline",
-          "order": 1,
+          "order": 2,
           "required": true,
           "config": {
             "buildCommand": "npm run build",
             "testCommand": "npm test",
+            "includeConventionalTests": true,
             "outputPath": "./ci-cd-results"
           },
-          "dependencies": [],
+          "dependencies": ["test-generation", "quality-analysis", "auto-fixing"],
           "timeout": 300000,
           "retryPolicy": {
             "maxRetries": 2,
@@ -273,15 +276,16 @@
           "id": "ai-pipeline-execution",
           "name": "AI Pipeline Execution",
           "agentId": "ai-pipeline-v2",
-          "order": 1,
+          "order": 2,
           "required": true,
           "config": {
             "target": "./app",
             "iterations": 3,
             "quality": 85,
+            "includeConventionalTests": true,
             "outputPath": "./agents/ai-pipeline-v2/ai-pipeline-results"
           },
-          "dependencies": [],
+          "dependencies": ["test-generation", "quality-analysis", "auto-fixing"],
           "timeout": 300000,
           "retryPolicy": {
             "maxRetries": 2,

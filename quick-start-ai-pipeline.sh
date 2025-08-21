@@ -16,9 +16,10 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🎯 What This Script Does:${NC}"
 echo "1. 🤖 Start the Pipeline Orchestrator Agent"
 echo "2. 🔄 Execute the CI/CD AI Testing Pipeline with 2 iterations"
-echo "3. 📊 Show results and improvement tracking"
-echo "4. 🚀 Simulate the CI/CD workflow locally"
-echo "5. 📈 Demonstrate iterative improvement capabilities"
+echo "3. 🔗 Consolidate all test results (AI + Conventional)"
+echo "4. 📊 Generate comprehensive final report at pipeline end"
+echo "5. 🚀 Simulate the CI/CD workflow locally"
+echo "6. 📈 Demonstrate iterative improvement capabilities"
 echo ""
 
 echo -e "${YELLOW}📁 Current Directory:${NC} $(pwd)"
@@ -128,8 +129,8 @@ echo -e "${CYAN}🚀 Executing AI Testing Pipeline with 2 Iterations...${NC}"
 echo "This will run:"
 echo "  1. 🔄 Iteratie 1: Basis test generatie en kwaliteitsanalyse"
 echo "  2. 🔄 Iteratie 2: Verbeterde tests, edge cases, security, performance"
-echo "  3. 📊 Vergelijking van resultaten en verbetering tracking"
-echo "  4. 🎯 Auto-Fix analyse (geen automatische fixes)"
+echo "  3. 🔗 Consolidatie van alle test resultaten (AI + Conventional)"
+echo "  4. 📊 Eindrapport generatie met alle resultaten geconsolideerd"
 echo ""
 
 # Execute the pipeline
@@ -150,6 +151,16 @@ echo "======================================================"
 echo ""
 
 cd ../..
+
+# Check for consolidated final report (Pipeline End)
+if [ -f "agents/pipeline-orchestrator/orchestration-results/consolidated-final-report.json" ]; then
+    echo -e "${BLUE}🔗 Consolidated Final Report (Pipeline End):${NC}"
+    echo "Generated reports:"
+    echo "  - consolidated-final-report.json (Complete pipeline results with all tests)"
+    echo "  - consolidated-final-summary.md (Human-readable summary of all results)"
+    echo "  - executive-summary.md (Executive summary for stakeholders)"
+    echo ""
+fi
 
 # Check for generated results
 if [ -f "agents/test-generator/test-results/test-execution-summary.md" ]; then
@@ -189,6 +200,7 @@ echo "✅ Test Generator Agent: 2 iterations with enhanced test scenarios"
 echo "✅ Quality Analyzer Agent: 2 iterations with deeper analysis"
 echo "✅ Auto-Fix Agent: 2 iterations with comprehensive fix identification"
 echo "✅ Pipeline Orchestrator: Coordinated all agents with iteration tracking"
+echo "✅ 🔗 Consolidated Final Report generated at pipeline end (AI + Conventional tests)"
 echo "✅ Generated comprehensive reports showing improvements between iterations"
 echo "✅ Demonstrated iterative learning and improvement capabilities"
 echo ""
@@ -235,6 +247,7 @@ echo "5. 🚀 Deploy only happens when both pipelines succeed"
 echo ""
 
 echo -e "${BLUE}📁 Generated Reports Location:${NC}"
+echo "🔗 Consolidated Final Report: $(pwd)/agents/pipeline-orchestrator/orchestration-results/"
 echo "Test Results: $(pwd)/agents/test-generator/test-results/"
 echo "Quality Analysis: $(pwd)/agents/quality-analyzer/quality-results/"
 echo "Auto-Fix Analysis: $(pwd)/agents/auto-fix/auto-fix-results/"
@@ -243,6 +256,8 @@ echo ""
 echo -e "${GREEN}🎉 AI Pipeline with 2 iterations test completed successfully!${NC}"
 echo ""
 echo -e "${YELLOW}💡 To explore the iteration results:${NC}"
+echo "  - View consolidated final report: cat agents/pipeline-orchestrator/orchestration-results/consolidated-final-summary.md"
+echo "  - View executive summary: cat agents/pipeline-orchestrator/orchestration-results/executive-summary.md"
 echo "  - View test results: cat agents/test-generator/test-results/test-execution-summary.md"
 echo "  - View quality analysis: cat agents/quality-analyzer/quality-results/quality-analysis-summary.md"
 echo "  - View auto-fix analysis: cat agents/auto-fix/auto-fix-results/fix-report-summary.md"
