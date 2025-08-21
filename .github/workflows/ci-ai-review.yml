@@ -1,106 +1,124 @@
-name: CI — AI Test Review (comment-only)
+# DISABLED - This workflow is replaced by ai-pipeline-executor.yml
+# name: CI — AI Test Review (Backup)
 
-on:
-  pull_request:
-    branches: [ preview ]
-  push:
-    branches: [ preview ]
-  workflow_dispatch:
+# on:
+#   pull_request:
+#     branches: [ main, preview, develop ]
+#   workflow_dispatch:
 
-permissions:
-  contents: read
-  pull-requests: write
+# permissions:
+#   contents: read
+#   pull-requests: write
 
-concurrency:
-  group: ci-ai-${{ github.ref }}
-  cancel-in-progress: true
+# concurrency:
+#   group: ci-ai-backup-${{ github.ref }}
+#   cancel-in-progress: true
 
-jobs:
-  ai_review:
-    # Run only on PRs within same repo (not forks), so secrets are safe
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
-    runs-on: ubuntu-latest
+# # Only run if the complete pipeline is not running
+# jobs:
+#   check-complete-pipeline:
+#     runs-on: ubuntu-latest
+#     outputs:
+#       should-run: ${{ steps.check.outputs.should-run }}
+#     steps:
+#       - name: Check if complete pipeline is running
+#         id: check
+#         run: |
+#           # Check if the complete pipeline workflow is running
+#           if gh run list --workflow="CI/CD — Complete Pipeline" --status=in_progress --limit=1 | grep -q "in_progress"; then
+#             echo "should-run=false" >> $GITHUB_OUTPUT
+#             echo "Complete pipeline is running, skipping AI review backup"
+#           else
+#             echo "should-run=true" >> $GITHUB_OUTPUT
+#             echo "No complete pipeline running, proceeding with AI review backup"
+#           fi
 
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+#   ai_review:
+#     needs: check-complete-pipeline
+#     if: needs.check-complete-pipeline.outputs.should-run == 'true'
+#     # Run only on PRs within same repo (not forks), so secrets are safe
+#     runs-on: ubuntu-latest
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
+#     steps:
+#       - uses: actions/checkout@v4
+#         with:
+#           fetch-depth: 0
 
-      - name: Install tools
-        run: |
-          sudo apt-get update && sudo apt-get install -y jq
-          npm ci
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: 20
+#           cache: 'npm'
 
-      - name: Compute diff (against base)
-        run: |
-          git fetch origin "${{ github.base_ref }}" --depth=1 || true
-          git diff --unified=0 "origin/${{ github.base_ref }}"... > diff.patch || true
-          echo "Diff lines: $(wc -l < diff.patch || echo 0)"
+#       - name: Install tools
+#         run: |
+#           sudo apt-get update && sudo apt-get install -y jq
+#           npm ci
 
-      - name: Try tests to get coverage (best effort)
-        run: npm run test:ci || true
-        env:
-          CI: true
+#       - name: Compute diff (against base)
+#         run: |
+#           git fetch origin "${{ github.base_ref }}" --depth=1 || true
+#           git diff --unified=0 "origin/${{ github.base_ref }}"... > diff.patch || true
+#           echo "Diff lines: $(wc -l < diff.patch || echo 0)"
 
-      - name: Build prompt
-        run: |
-          {
-            echo "You are a senior JavaScript/TypeScript test engineer."
-            echo "Task: propose minimal, deterministic Jest tests for changed code."
-            echo "Rules: NO code writes, NO commits. Return a markdown report with:"
-            echo "- What to test (units and behaviors)"
-            echo "- Concrete test names"
-            echo "- Example Jest snippets (no external deps)"
-            echo "- Coverage gaps found from lcov (if present)"
-            echo ""
-            echo "Changed diff (truncated to 200k chars):"
-            head -c 200000 diff.patch || true
-            echo ""
-            echo "Coverage lcov.info (first 200 lines):"
-            head -n 200 coverage/lcov.info || true
-          } > prompt.txt
+#       - name: Try tests to get coverage (best effort)
+#         run: npm run test:ci || true
+#         env:
+#           CI: true
 
-      - name: Call OpenAI (if key exists)
-        id: call_llm
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-          if [ -z "$OPENAI_API_KEY" ]; then
-            echo "Set OPENAI_API_KEY secret to enable AI review." > ai-test-review.md
-            exit 0
-          fi
+#       - name: Build prompt
+#         run: |
+#           {
+#             echo "You are a senior JavaScript/TypeScript test engineer."
+#             echo "Task: propose minimal, deterministic Jest tests for changed code."
+#             echo "Rules: NO code writes, NO commits. Return a markdown report with:"
+#             echo "- What to test (units and behaviors)"
+#             echo "- Concrete test names"
+#             echo "- Example Jest snippets (no external deps)"
+#             echo "- Coverage gaps found from lcov (if present)"
+#           echo ""
+#           echo "Changed diff (truncated to 200k chars):"
+#           head -c 200000 diff.patch || true
+#           echo ""
+#           echo "Coverage lcov.info (first 200 lines):"
+#           head -n 200 coverage/lcov.info || true
+#         } > prompt.txt
 
-          # Build JSON payload safely with jq
-          PAYLOAD=$(jq -n \
-            --arg prompt "$(< prompt.txt)" \
-            '{
-              model: "gpt-4o-mini",
-              temperature: 0,
-              messages: [
-                {role:"system", content:"You write crystal-clear, minimal Jest tests and explain coverage gaps."},
-                {role:"user",   content:$prompt}
-              ]
-            }')
+#       - name: Call OpenAI (if key exists)
+#         id: call_llm
+#         env:
+#           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+#         run: |
+#           if [ -z "$OPENAI_API_KEY" ]; then
+#             echo "Set OPENAI_API_KEY secret to enable AI review." > ai-test-review.md
+#             exit 0
+#           fi
 
-          curl -sS https://api.openai.com/v1/chat/completions \
-            -H "Authorization: Bearer '"$OPENAI_API_KEY"'" \
-            -H "Content-Type: application/json" \
-            --data "$PAYLOAD" \
-            -o ai.out.json
+#           # Build JSON payload safely with jq
+#           PAYLOAD=$(jq -n \
+#             --arg prompt "$(< prompt.txt)" \
+#             '{
+#               model: "gpt-4o-mini",
+#               temperature: 0,
+#             messages: [
+#               {role:"system", content:"You write crystal-clear, minimal Jest tests and explain coverage gaps."},
+#               {role:"user",   content:$prompt}
+#             ]
+#           }')
 
-          jq -r '.choices[0].message.content // "AI did not return content."' ai.out.json > ai-test-review.md
+#           curl -sS https://api.openai.com/v1/chat/completions \
+#             -H "Authorization: Bearer '"$OPENAI_API_KEY"'" \
+#             -H "Content-Type: application/json" \
+#             --data "$PAYLOAD" \
+#             -o ai.out.json
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ai-test-review
-          path: ai-test-review.md
+#           jq -r '.choices[0].message.content // "AI did not return content."' ai.out.json > ai-test-review.md
 
-      - name: Comment on PR
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          filePath: ai-test-review.md
+#       - uses: actions/upload-artifact@v4
+#         with:
+#           name: ai-test-review-backup
+#           path: ai-test-review.md
+
+#       - name: Comment on PR
+#         uses: thollander/actions-comment-pull-request@v2
+#         with:
+#           filePath: ai-test-review.md
