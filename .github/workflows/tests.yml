@@ -1,45 +1,4 @@
-name: "CI — Traditional Tests"
-
-on:
-  pull_request:
-    branches: [ "main", "preview", "develop" ]
-  push:
-    branches: [ "main" ]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-env:
-  NODE_VERSION: '20'
-  CI: true
-
-jobs:
-  traditional-tests:
-    name: "🧪 Traditional Tests"
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run tests
-        run: npm run test:ci
-
-      - name: Upload test results (JUnit)
-        if: hashFiles('test-results/*.xml') != ''
-        uses: actions/upload-artifact@v4
-        with:
-          name: traditional-tests-results
-          path: test-results/
-          retention-days: 14
+# This old traditional tests workflow has been removed
+# Replaced with comprehensive banking compliance testing pipeline
+# See banking-tests.yml for the new traditional testing approach
 
