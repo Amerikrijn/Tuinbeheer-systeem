@@ -88,7 +88,9 @@ jobs:
       run: |
         set -euo pipefail
         if [ -z "$OPENAI_API_KEY" ]; then
-          echo "Error: OPENAI_API_KEY not set. Configure repository secret OPENAI_API_KEY." >&2
+
+          echo "OPENAI_API_KEY is required and must be set as a repository secret." >&2
+
           exit 1
         fi
 
@@ -104,8 +106,12 @@ jobs:
             ]
           }')
 
-        # Call OpenAI and fail on HTTP errors
-        curl -fsS https://api.openai.com/v1/chat/completions \
+        curl -sSf \
+          --retry 5 \
+          --retry-delay 2 \
+          --retry-on-http 429,500,502,503,504 \
+          --retry-max-time 120 \
+
           -H "Authorization: Bearer $OPENAI_API_KEY" \
           -H "Content-Type: application/json" \
           --data "$PAYLOAD" \
