@@ -177,6 +177,36 @@ jobs:
             --outputFile=test-results/lib.xml \
             --coverage || echo "⚠️ Lib tests failed (expected - missing mocks)"
 
+      - name: Generate detailed test analysis report
+        run: |
+          echo "Generating detailed test analysis report..."
+          
+          # Run our custom test analysis script
+          node scripts/fix-test-analysis.js test-results/all-tests.xml
+          
+          # Generate pipeline status report
+          node scripts/generate-pipeline-status.js
+          
+          # Also generate a summary for the pipeline
+          echo "## 🧪 Test Execution Summary" > test-results/pipeline-summary.md
+          echo "" >> test-results/pipeline-summary.md
+          echo "**Date**: $(date)" >> test-results/pipeline-summary.md
+          echo "**Commit**: ${{ github.sha }}" >> test-results/pipeline-summary.md
+          echo "**Branch**: ${{ github.ref_name }}" >> test-results/pipeline-summary.md
+          echo "" >> test-results/pipeline-summary.md
+          
+          # Extract test statistics from the analysis
+          if [ -f "test-analysis-fixed-summary.json" ]; then
+            echo "**Total Tests**: $(jq -r '.totalTests' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
+            echo "**Success Rate**: $(jq -r '.totalSuccess' test-analysis-fixed-summary.json)/$(jq -r '.totalTests' test-analysis-fixed-summary.json) ($(echo "scale=1; $(jq -r '.totalSuccess' test-analysis-fixed-summary.json) * 100 / $(jq -r '.totalTests' test-analysis-fixed-summary.json)" | bc)% success)" >> test-results/pipeline-summary.md
+            echo "**Critical Failures**: $(jq -r '.criticalFailures' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
+            echo "**High Priority Failures**: $(jq -r '.highPriorityFailures' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
+            echo "**Medium Priority Failures**: $(jq -r '.mediumPriorityFailures' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
+          fi
+          
+          echo "" >> test-results/pipeline-summary.md
+          echo "**Note**: Check the detailed test analysis report for complete breakdown." >> test-results/pipeline-summary.md
+
       - name: Generate test summary
         run: |
           echo "Generating test execution summary..."
@@ -209,6 +239,9 @@ jobs:
           path: |
             test-results/
             coverage/
+            test-analysis-fixed-summary.json
+            pipeline-status-report.md
+            github-summary.md
           retention-days: 30
 
   # Security and Compliance
@@ -292,10 +325,59 @@ jobs:
           # Check for test result files
           if [ -d "test-artifacts/test-results" ]; then
             echo "✅ Test execution completed successfully"
-            echo "- All 127 test files were processed"
+            echo "- All test files were processed"
             echo "- Coverage reports generated"
             echo "- JUnit reports available"
             echo "" >> test-summary.md
+            
+            # Check for detailed analysis
+            if [ -f "test-artifacts/test-analysis-fixed-summary.json" ]; then
+              echo "## 📊 Detailed Test Analysis" >> test-summary.md
+              echo "" >> test-summary.md
+              
+              # Extract key metrics
+              total_tests=$(jq -r '.totalTests' test-artifacts/test-analysis-fixed-summary.json)
+              total_success=$(jq -r '.totalSuccess' test-artifacts/test-analysis-fixed-summary.json)
+              total_failures=$(jq -r '.totalFailures' test-artifacts/test-analysis-fixed-summary.json)
+              critical_failures=$(jq -r '.criticalFailures' test-artifacts/test-analysis-fixed-summary.json)
+              high_priority=$(jq -r '.highPriorityFailures' test-artifacts/test-analysis-fixed-summary.json)
+              medium_priority=$(jq -r '.mediumPriorityFailures' test-artifacts/test-analysis-fixed-summary.json)
+              
+              echo "### 📈 Test Statistics" >> test-summary.md
+              echo "- **Total Tests**: $total_tests" >> test-summary.md
+              echo "- **Success Rate**: $total_success/$total_tests ($(echo "scale=1; $total_success * 100 / $total_tests" | bc)% success)" >> test-summary.md
+              echo "- **Total Failures**: $total_failures" >> test-summary.md
+              echo "" >> test-summary.md
+              
+              echo "### 🚨 Priority Breakdown" >> test-summary.md
+              echo "- **🔥 Critical Failures**: $critical_failures tests (direct fixen)" >> test-summary.md
+              echo "- **⚠️ High Priority**: $high_priority tests (binnen 1 week)" >> test-summary.md
+              echo "- **🔧 Medium Priority**: $medium_priority tests (binnen 2 weken)" >> test-summary.md
+              echo "" >> test-summary.md
+              
+              # Show critical failures
+              if [ "$critical_failures" -gt 0 ]; then
+                echo "### 🚨 Critical Failures (Direct Fixen)" >> test-summary.md
+                jq -r '.recommendations.critical[] | "- " + .name + ": " + .failures + " failures"' test-artifacts/test-analysis-fixed-summary.json >> test-summary.md
+                echo "" >> test-summary.md
+              fi
+              
+              # Show high priority failures
+              if [ "$high_priority" -gt 0 ]; then
+                echo "### ⚠️ High Priority Failures (Binnen 1 Week)" >> test-summary.md
+                jq -r '.recommendations.high[] | "- " + .name + ": " + .failures + " failures (" + (.successRate | tostring) + "% success)"' test-artifacts/test-analysis-fixed-summary.json
+                echo "" >> test-summary.md
+              fi
+              
+              # Show unexpected successes
+              unexpected_count=$(jq -r '.unexpectedSuccesses' test-artifacts/test-analysis-fixed-summary.json)
+              if [ "$unexpected_count" -gt 0 ]; then
+                echo "### 🎯 Onverwachte Successes (Controleren)" >> test-summary.md
+                echo "Deze tests slagen maar mogelijk te oppervlakkig:" >> test-summary.md
+                jq -r '.recommendations.unexpected[] | "- " + .name + ": " + .tests + " tests"' test-artifacts/test-analysis-fixed-summary.json >> test-summary.md
+                echo "" >> test-summary.md
+              fi
+            fi
             
             # Check for summary file
             if [ -f "test-artifacts/test-results/summary.txt" ]; then
@@ -364,10 +446,19 @@ jobs:
           echo "" >> test-summary.md
           echo "## 🔧 Next Steps for Test Quality" >> test-summary.md
           echo "To improve test success rate:" >> test-summary.md
-          echo "1. **Add data-testid attributes** to UI components" >> test-summary.md
-          echo "2. **Create proper test mocks** for database dependencies" >> test-summary.md
-          echo "3. **Set up test environment** with required services" >> test-summary.md
-          echo "4. **Fix component test setup** for failing tests" >> test-summary.md
+          echo "1. **Fix Critical Failures**: Address the $critical_failures critical test failures first" >> test-summary.md
+          echo "2. **Fix High Priority**: Address the $high_priority high priority failures within 1 week" >> test-summary.md
+          echo "3. **Add data-testid attributes** to UI components" >> test-summary.md
+          echo "4. **Create proper test mocks** for database dependencies" >> test-summary.md
+          echo "5. **Set up test environment** with required services" >> test-summary.md
+          echo "6. **Fix component test setup** for failing tests" >> test-summary.md
+
+      - name: Generate GitHub Actions Summary
+        if: always()
+        run: |
+          if [ -f "github-summary.md" ]; then
+            cat github-summary.md >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload test summary
         uses: actions/upload-artifact@v4
@@ -376,7 +467,7 @@ jobs:
           path: test-summary.md
           retention-days: 30
 
-      - name: Comment on PR
+      - name: Comment on PR with detailed test report
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
