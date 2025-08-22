@@ -128,7 +128,9 @@ jobs:
       run: |
         set -euo pipefail
         if [ -z "$OPENAI_API_KEY" ]; then
-          echo "Error: OPENAI_API_KEY not set. Configure repository secret OPENAI_API_KEY." >&2
+
+          echo "OPENAI_API_KEY is required and must be set as a repository secret." >&2
+
           exit 1
         fi
 
@@ -143,6 +145,7 @@ jobs:
               {role:"user", content:$content}
             ]
           }')
+
 
         openai_post_with_retry() {
           data="$1"
@@ -174,6 +177,7 @@ jobs:
         }
 
         openai_post_with_retry "$PAYLOAD"
+
 
         CONTENT=$(jq -r '.choices[0].message.content // empty' openai.out.json 2>/dev/null || true)
         if [ -z "$CONTENT" ]; then
