@@ -1,0 +1,412 @@
+{
+  "timestamp": "2025-08-22T11:45:27.026Z",
+  "totalTests": 1464,
+  "totalSuccess": 1151,
+  "totalFailures": 313,
+  "totalErrors": 0,
+  "totalTime": 63.674427326,
+  "testSuites": 128,
+  "criticalFailures": 20,
+  "highPriorityFailures": 12,
+  "mediumPriorityFailures": 15,
+  "successfulSuites": 81,
+  "unexpectedSuccesses": 34,
+  "categories": {
+    "UI Components": {
+      "total": 738,
+      "failures": 156,
+      "suites": 53
+    },
+    "Hooks": {
+      "total": 30,
+      "failures": 0,
+      "suites": 6
+    },
+    "Unit Tests": {
+      "total": 619,
+      "failures": 149,
+      "suites": 53
+    },
+    "Integration Tests": {
+      "total": 20,
+      "failures": 7,
+      "suites": 7
+    },
+    "API Tests": {
+      "total": 0,
+      "failures": 0,
+      "suites": 0
+    },
+    "Core Components": {
+      "total": 22,
+      "failures": 1,
+      "suites": 5
+    },
+    "Other": {
+      "total": 35,
+      "failures": 0,
+      "suites": 4
+    }
+  },
+  "recommendations": {
+    "critical": [
+      {
+        "name": "__tests__/unit/api/gardens-simple.test.ts",
+        "failures": 3
+      },
+      {
+        "name": "__tests__/unit/api/plant-beds-simple.test.ts",
+        "failures": 3
+      },
+      {
+        "name": "__tests__/unit/api/storage-ensure-bucket-simple.test.ts",
+        "failures": 3
+      },
+      {
+        "name": "__tests__/unit/app/error.test.tsx",
+        "failures": 11
+      },
+      {
+        "name": "__tests__/unit/app/global-error.test.tsx",
+        "failures": 15
+      },
+      {
+        "name": "__tests__/unit/app/not-found.test.tsx",
+        "failures": 6
+      },
+      {
+        "name": "__tests__/unit/lib/api-auth-wrapper.test.ts",
+        "failures": 8
+      },
+      {
+        "name": "__tests__/unit/lib/database.test.ts",
+        "failures": 14
+      },
+      {
+        "name": "__tests__/integration/api/admin-users.test.ts",
+        "failures": 1
+      },
+      {
+        "name": "__tests__/integration/api/gardens.test.ts",
+        "failures": 4
+      },
+      {
+        "name": "__tests__/integration/api/plant-beds.test.ts",
+        "failures": 1
+      },
+      {
+        "name": "__tests__/unit/components/navigation.test.tsx",
+        "failures": 2
+      },
+      {
+        "name": "__tests__/unit/components/plant-photo-gallery.test.tsx",
+        "failures": 12
+      },
+      {
+        "name": "__tests__/unit/components/theme-toggle.test.tsx",
+        "failures": 16
+      },
+      {
+        "name": "__tests__/unit/lib/services/task.service.test.ts",
+        "failures": 8
+      },
+      {
+        "name": "__tests__/unit/components/ui/label.test.tsx",
+        "failures": 4
+      },
+      {
+        "name": "__tests__/unit/components/ui/toggle-group.test.tsx",
+        "failures": 16
+      },
+      {
+        "name": "__tests__/unit/components/ui/use-toast.test.ts",
+        "failures": 1
+      },
+      {
+        "name": "__tests__/unit/app/api/gardens/route.test.ts",
+        "failures": 1
+      },
+      {
+        "name": "__tests__/unit/app/api/plant-beds/route.test.ts",
+        "failures": 1
+      }
+    ],
+    "high": [
+      {
+        "name": "__tests__/unit/components/ui/separator.test.tsx",
+        "failures": 11,
+        "successRate": 8.333333333333332
+      },
+      {
+        "name": "__tests__/unit/components/ui/toggle.test.tsx",
+        "failures": 7,
+        "successRate": 12.5
+      },
+      {
+        "name": "__tests__/unit/components/ui/radio-group.test.tsx",
+        "failures": 18,
+        "successRate": 18.181818181818183
+      },
+      {
+        "name": "__tests__/unit/components/ui/resizable.test.tsx",
+        "failures": 8,
+        "successRate": 20
+      },
+      {
+        "name": "__tests__/unit/components/ui/switch.test.tsx",
+        "failures": 4,
+        "successRate": 20
+      },
+      {
+        "name": "__tests__/unit/lib/logger.test.ts",
+        "failures": 20,
+        "successRate": 23.076923076923077
+      },
+      {
+        "name": "__tests__/unit/components/ui/avatar.test.tsx",
+        "failures": 10,
+        "successRate": 28.57142857142857
+      },
+      {
+        "name": "__tests__/unit/components/ui/input-otp.test.tsx",
+        "failures": 19,
+        "successRate": 29.629629629629626
+      },
+      {
+        "name": "__tests__/unit/lib/storage.test.ts",
+        "failures": 11,
+        "successRate": 31.25
+      },
+      {
+        "name": "__tests__/unit/components/ui/accordion.test.tsx",
+        "failures": 8,
+        "successRate": 33.33333333333333
+      },
+      {
+        "name": "__tests__/unit/components/ui/aspect-ratio.test.tsx",
+        "failures": 2,
+        "successRate": 33.33333333333333
+      },
+      {
+        "name": "__tests__/unit/components/ui/tabs.test.tsx",
+        "failures": 18,
+        "successRate": 33.33333333333333
+      }
+    ],
+    "medium": [
+      {
+        "name": "__tests__/components/theme-toggle.test.tsx",
+        "failures": 1,
+        "successRate": 50
+      },
+      {
+        "name": "__tests__/unit/api/health.test.ts",
+        "failures": 2,
+        "successRate": 60
+      },
+      {
+        "name": "__tests__/unit/lib/password-change-manager.test.ts",
+        "failures": 2,
+        "successRate": 60
+      },
+      {
+        "name": "__tests__/components/ui/pagination.test.tsx",
+        "failures": 14,
+        "successRate": 61.111111111111114
+      },
+      {
+        "name": "__tests__/unit/lib/version.test.ts",
+        "failures": 4,
+        "successRate": 66.66666666666666
+      },
+      {
+        "name": "__tests__/components/ui/breadcrumb.test.tsx",
+        "failures": 10,
+        "successRate": 74.35897435897436
+      },
+      {
+        "name": "__tests__/unit/lib/banking-security.test.ts",
+        "failures": 2,
+        "successRate": 75
+      },
+      {
+        "name": "__tests__/integration/api/health.test.ts",
+        "failures": 1,
+        "successRate": 75
+      },
+      {
+        "name": "__tests__/unit/components/real-components.test.tsx",
+        "failures": 1,
+        "successRate": 75
+      },
+      {
+        "name": "__tests__/components/ui/tabs.test.tsx",
+        "failures": 3,
+        "successRate": 82.35294117647058
+      },
+      {
+        "name": "__tests__/unit/components/ui/checkbox.test.tsx",
+        "failures": 1,
+        "successRate": 87.5
+      },
+      {
+        "name": "__tests__/components/ui/switch.test.tsx",
+        "failures": 1,
+        "successRate": 88.88888888888889
+      },
+      {
+        "name": "__tests__/unit/lib/services/database.service.test.ts",
+        "failures": 2,
+        "successRate": 89.47368421052632
+      },
+      {
+        "name": "__tests__/unit/lib/scaling-constants.test.ts",
+        "failures": 2,
+        "successRate": 92
+      },
+      {
+        "name": "__tests__/components/ui/navigation-menu.test.tsx",
+        "failures": 1,
+        "successRate": 95.65217391304348
+      }
+    ],
+    "unexpected": [
+      {
+        "name": "__tests__/components/LoginForm.test.tsx",
+        "tests": 13
+      },
+      {
+        "name": "__tests__/hooks/use-supabase-auth.test.ts",
+        "tests": 14
+      },
+      {
+        "name": "__tests__/lib/banking-security.test.ts",
+        "tests": 13
+      },
+      {
+        "name": "__tests__/components/ui/alert.test.tsx",
+        "tests": 19
+      },
+      {
+        "name": "__tests__/components/ui/button.test.tsx",
+        "tests": 17
+      },
+      {
+        "name": "__tests__/components/ui/card.test.tsx",
+        "tests": 27
+      },
+      {
+        "name": "__tests__/components/ui/table.test.tsx",
+        "tests": 27
+      },
+      {
+        "name": "__tests__/unit/api/status.test.ts",
+        "tests": 7
+      },
+      {
+        "name": "__tests__/unit/api/version.test.ts",
+        "tests": 5
+      },
+      {
+        "name": "__tests__/unit/app/simple-app.test.tsx",
+        "tests": 11
+      },
+      {
+        "name": "__tests__/unit/lib/design-tokens.test.ts",
+        "tests": 38
+      },
+      {
+        "name": "__tests__/unit/lib/dutch-flowers.test.ts",
+        "tests": 27
+      },
+      {
+        "name": "__tests__/unit/lib/errors.test.ts",
+        "tests": 26
+      },
+      {
+        "name": "__tests__/unit/lib/full-translations.test.ts",
+        "tests": 20
+      },
+      {
+        "name": "__tests__/unit/lib/simple-lib.test.ts",
+        "tests": 16
+      },
+      {
+        "name": "__tests__/unit/lib/translations.test.ts",
+        "tests": 15
+      },
+      {
+        "name": "__tests__/unit/lib/validation.test.ts",
+        "tests": 17
+      },
+      {
+        "name": "__tests__/integration/api/change-password.test.ts",
+        "tests": 4
+      },
+      {
+        "name": "__tests__/integration/api/status.test.ts",
+        "tests": 4
+      },
+      {
+        "name": "__tests__/integration/api/version.test.ts",
+        "tests": 2
+      },
+      {
+        "name": "__tests__/unit/components/error-boundary.test.tsx",
+        "tests": 11
+      },
+      {
+        "name": "__tests__/unit/components/loading-skeleton.test.tsx",
+        "tests": 12
+      },
+      {
+        "name": "__tests__/unit/lib/security/garden-access.test.ts",
+        "tests": 33
+      },
+      {
+        "name": "__tests__/unit/lib/services/simple-services.test.ts",
+        "tests": 11
+      },
+      {
+        "name": "__tests__/unit/lib/types/index.test.ts",
+        "tests": 23
+      },
+      {
+        "name": "__tests__/unit/lib/types/tasks.test.ts",
+        "tests": 27
+      },
+      {
+        "name": "__tests__/unit/lib/validation/index.test.ts",
+        "tests": 36
+      },
+      {
+        "name": "__tests__/unit/components/ui/card.test.tsx",
+        "tests": 16
+      },
+      {
+        "name": "__tests__/unit/components/ui/input.test.tsx",
+        "tests": 33
+      },
+      {
+        "name": "__tests__/unit/components/ui/select.test.tsx",
+        "tests": 38
+      },
+      {
+        "name": "__tests__/unit/components/ui/simple-components.test.tsx",
+        "tests": 16
+      },
+      {
+        "name": "__tests__/unit/components/ui/simple-pages.test.tsx",
+        "tests": 36
+      },
+      {
+        "name": "__tests__/unit/components/ui/table.test.tsx",
+        "tests": 41
+      },
+      {
+        "name": "__tests__/unit/components/ui/textarea.test.tsx",
+        "tests": 40
+      }
+    ]
+  }
+}
