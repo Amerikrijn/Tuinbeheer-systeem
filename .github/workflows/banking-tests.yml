@@ -473,14 +473,48 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const summary = fs.readFileSync('test-summary.md', 'utf8');
             
-            await github.rest.issues.createComment({
+            // Try to read the enhanced test report first
+            let reportContent = '';
+            if (fs.existsSync('test-results/detailed-report.md')) {
+              reportContent = fs.readFileSync('test-results/detailed-report.md', 'utf8');
+            } else if (fs.existsSync('test-summary.md')) {
+              reportContent = fs.readFileSync('test-summary.md', 'utf8');
+            } else {
+              reportContent = '## 🧪 Test Execution Summary\n\n⚠️ Detailed test report not available. Check the workflow logs for more information.';
+            }
+            
+            // Find existing test report comment and update it, or create new one
+            const { data: comments } = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: summary
             });
+            
+            const existingComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              (comment.body.includes('PROFESSIONAL TEST REPORT') || comment.body.includes('Test Execution Summary'))
+            );
+            
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                comment_id: existingComment.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: reportContent
+              });
+              console.log('✅ Updated existing test report comment');
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: reportContent
+              });
+              console.log('✅ Created new test report comment');
+            }
 
       - name: Final pipeline status
         run: |
