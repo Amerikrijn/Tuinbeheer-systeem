@@ -17,7 +17,6 @@ jobs:
   analyze:
     name: ${{ github.event_name == 'pull_request' && 'Analyze PR code (safe, no repo perms)' || github.event_name == 'pull_request_target' && 'Publish analysis results (privileged)' || 'Analyze (push/dispatch)' }}
     runs-on: ubuntu-latest
-    environment: ci-ai
     permissions:
       actions: read
       contents: read
@@ -121,19 +120,12 @@ jobs:
         } > codeql-openai-prompt.txt
 
     - name: Generate AI Code Quality summary
-      if: ${{ github.event_name == 'pull_request_target' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+      if: ${{ (github.event_name == 'pull_request_target' || github.event_name == 'push' || github.event_name == 'workflow_dispatch') && secrets.OPENAI_API_KEY != '' }}
       id: openai
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
         set -euo pipefail
-        if [ -z "$OPENAI_API_KEY" ]; then
-
-          echo "OPENAI_API_KEY is required and must be set as a repository secret." >&2
-
-          exit 1
-        fi
-
         # Build payload for OpenAI
         PAYLOAD=$(jq -n \
           --arg content "$(< codeql-openai-prompt.txt)" \
