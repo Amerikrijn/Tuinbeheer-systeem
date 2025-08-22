@@ -1,6 +1,8 @@
-import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import GlobalError from '@/app/global-error'
+
+// Mock Next.js navigation
+const mockReset = jest.fn()
 
 // Mock window.location
 const mockLocation = {
@@ -12,46 +14,50 @@ Object.defineProperty(window, 'location', {
   writable: true
 })
 
-describe('GlobalError Component', () => {
-  const mockError = {
-    message: 'Global test error message',
-    digest: 'global-error-123',
-    name: 'GlobalTestError',
-    stack: 'Global error stack trace'
-  }
+// Mock process.env
+const originalEnv = process.env
 
-  const mockReset = jest.fn()
+describe('GlobalError component', () => {
+  const mockError = {
+    message: 'Test global error message',
+    digest: 'test-global-digest-123',
+    name: 'TestGlobalError',
+    stack: 'Test global stack trace'
+  }
 
   beforeEach(() => {
     jest.clearAllMocks()
     mockLocation.href = ''
-    mockLocation.reload.mockClear()
+    process.env = { ...originalEnv }
   })
 
-  it('renders global error component with error message', () => {
+  afterAll(() => {
+    process.env = originalEnv
+  })
+
+  it('renders global error page with correct title and description', () => {
     render(<GlobalError error={mockError} reset={mockReset} />)
     
     expect(screen.getByText('Tuinbeheer Systeem - Fout')).toBeInTheDocument()
     expect(screen.getByText('Er is een onverwachte fout opgetreden')).toBeInTheDocument()
-    expect(screen.getByText('Global test error message')).toBeInTheDocument()
   })
 
-  it('displays error digest when available', () => {
+  it('displays error message and digest', () => {
     render(<GlobalError error={mockError} reset={mockReset} />)
     
-    expect(screen.getByText('Error ID: global-error-123')).toBeInTheDocument()
+    expect(screen.getByText('Foutdetails:')).toBeInTheDocument()
+    expect(screen.getByText('Test global error message')).toBeInTheDocument()
+    expect(screen.getByText('Error ID: test-global-digest-123')).toBeInTheDocument()
   })
 
-  it('shows default error message when no message is provided', () => {
+  it('displays fallback error message when no error message is provided', () => {
     const errorWithoutMessage = { ...mockError, message: '' }
     render(<GlobalError error={errorWithoutMessage} reset={mockReset} />)
     
-    // There are multiple elements with this text, so use getAllByText
-    const elements = screen.getAllByText('Er is een onverwachte fout opgetreden')
-    expect(elements).toHaveLength(2)
+    expect(screen.getByText('Er is een onverwachte fout opgetreden')).toBeInTheDocument()
   })
 
-  it('displays helpful instructions', () => {
+  it('displays helpful instructions for users', () => {
     render(<GlobalError error={mockError} reset={mockReset} />)
     
     expect(screen.getByText('Wat kunt u doen:')).toBeInTheDocument()
@@ -97,58 +103,56 @@ describe('GlobalError Component', () => {
     expect(mockLocation.href).toBe('/')
   })
 
-  it('shows stack trace in development mode', () => {
-    // Mock NODE_ENV to development
-    const originalEnv = process.env.NODE_ENV
+  it('displays stack trace in development environment', () => {
     process.env.NODE_ENV = 'development'
-    
     render(<GlobalError error={mockError} reset={mockReset} />)
     
     expect(screen.getByText('Stack trace (development only)')).toBeInTheDocument()
-    expect(screen.getByText('Global error stack trace')).toBeInTheDocument()
-    
-    // Restore original env
-    process.env.NODE_ENV = originalEnv
+    expect(screen.getByText('Test global stack trace')).toBeInTheDocument()
   })
 
-  it('hides stack trace in production mode', () => {
-    // Mock NODE_ENV to production
-    const originalEnv = process.env.NODE_ENV
+  it('does not display stack trace in production environment', () => {
     process.env.NODE_ENV = 'production'
-    
     render(<GlobalError error={mockError} reset={mockReset} />)
     
     expect(screen.queryByText('Stack trace (development only)')).not.toBeInTheDocument()
-    expect(screen.queryByText('Global error stack trace')).not.toBeInTheDocument()
-    
-    // Restore original env
-    process.env.NODE_ENV = originalEnv
+    expect(screen.queryByText('Test global stack trace')).not.toBeInTheDocument()
   })
 
   it('handles error without digest gracefully', () => {
-    const errorWithoutDigest = { ...mockError }
-    delete errorWithoutDigest.digest
-    
+    const errorWithoutDigest = { ...mockError, digest: undefined }
     render(<GlobalError error={errorWithoutDigest} reset={mockReset} />)
     
     expect(screen.queryByText(/Error ID:/)).not.toBeInTheDocument()
   })
 
-  it('renders with correct styling classes', () => {
+  it('applies correct styling classes', () => {
     render(<GlobalError error={mockError} reset={mockReset} />)
     
-    const errorDetailsBox = screen.getByText('Foutdetails:').closest('.bg-red-50')
-    expect(errorDetailsBox).toBeInTheDocument()
+    const errorDetails = screen.getByText('Foutdetails:').closest('.bg-red-50')
+    expect(errorDetails).toBeInTheDocument()
     
-    const instructionsBox = screen.getByText('Wat kunt u doen:').closest('.bg-yellow-50')
-    expect(instructionsBox).toBeInTheDocument()
+    const instructions = screen.getByText('Wat kunt u doen:').closest('.bg-yellow-50')
+    expect(instructions).toBeInTheDocument()
     
-    const technicalInfoBox = screen.getByText('Technische informatie:').closest('.bg-blue-50')
-    expect(technicalInfoBox).toBeInTheDocument()
+    const technicalInfo = screen.getByText('Technische informatie:').closest('.bg-blue-50')
+    expect(technicalInfo).toBeInTheDocument()
   })
 
-  it('displays current timestamp', () => {
-    const mockDate = new Date('2024-01-15T10:30:00')
+  it('renders buttons with correct styling', () => {
+    render(<GlobalError error={mockError} reset={mockReset} />)
+    
+    const retryButton = screen.getByText('Opnieuw Proberen')
+    const refreshButton = screen.getByText('Pagina Vernieuwen')
+    const homeButton = screen.getByText('Hoofdpagina')
+    
+    expect(retryButton).toHaveClass('bg-green-600', 'hover:bg-green-700')
+    expect(refreshButton).toHaveClass('bg-blue-600', 'hover:bg-blue-700')
+    expect(homeButton).toHaveClass('bg-gray-600', 'hover:bg-gray-700')
+  })
+
+  it('displays current timestamp in technical information', () => {
+    const mockDate = new Date('2024-01-01T12:00:00Z')
     jest.spyOn(global, 'Date').mockImplementation(() => mockDate as any)
     
     render(<GlobalError error={mockError} reset={mockReset} />)
@@ -158,21 +162,37 @@ describe('GlobalError Component', () => {
     jest.restoreAllMocks()
   })
 
-  it('detects browser environment correctly', () => {
+  it('displays platform information correctly', () => {
     render(<GlobalError error={mockError} reset={mockReset} />)
     
     expect(screen.getByText(/Platform: Browser/)).toBeInTheDocument()
   })
 
-  it('renders with minimal error object', () => {
-    const minimalError = {
-      message: 'Minimal global error',
-      name: 'MinimalGlobalError'
-    }
+  it('displays environment information', () => {
+    process.env.NODE_ENV = 'test'
+    render(<GlobalError error={mockError} reset={mockReset} />)
     
-    render(<GlobalError error={minimalError} reset={mockReset} />)
+    expect(screen.getByText(/Omgeving: test/)).toBeInTheDocument()
+  })
+
+  it('handles empty error object gracefully', () => {
+    const emptyError = {} as Error
+    render(<GlobalError error={emptyError} reset={mockReset} />)
     
-    expect(screen.getByText('Minimal global error')).toBeInTheDocument()
+    expect(screen.getByText('Er is een onverwachte fout opgetreden')).toBeInTheDocument()
     expect(screen.queryByText(/Error ID:/)).not.toBeInTheDocument()
+  })
+
+  it('renders all required icons', () => {
+    render(<GlobalError error={mockError} reset={mockReset} />)
+    
+    // Check if TreePine icon is present
+    const treePineIcon = document.querySelector('svg')
+    expect(treePineIcon).toBeInTheDocument()
+    
+    // Check if other icons are present in buttons
+    expect(screen.getByText('Opnieuw Proberen').querySelector('svg')).toBeInTheDocument()
+    expect(screen.getByText('Pagina Vernieuwen').querySelector('svg')).toBeInTheDocument()
+    expect(screen.getByText('Hoofdpagina').querySelector('svg')).toBeInTheDocument()
   })
 })
