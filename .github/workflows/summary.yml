@@ -37,7 +37,8 @@ jobs:
 
           attempts=0
           max_attempts=60 # ~10 minutes at 10s intervals
-          required_checks=("🧪 Traditional Tests" "Analyze" "Secret Scan")
+          # Accept both legacy and new functional names
+          required_checks=("🧪 Traditional Tests" "Analyze" "Analyze PR code (safe, no repo perms)" "Publish analysis results (privileged)" "Secret Scan")
 
           while true; do
             resp=$(curl -sS -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" \
@@ -47,7 +48,7 @@ jobs:
             all_completed=true
             for name in "${required_checks[@]}"; do
               status=$(jq -r --arg n "$name" '.check_runs[] | select(.name == $n) | .status' check-runs.json | head -n1)
-              if [ -z "$status" ] || [ "$status" != "completed" ]; then
+              if [ -n "$status" ] && [ "$status" != "completed" ]; then
                 all_completed=false
               fi
             done
@@ -66,7 +67,14 @@ jobs:
 
           extract_conclusion() { jq -r --arg name "$1" '.check_runs[] | select(.name == $name) | .conclusion // .status' check-runs.json | head -n1; }
           tt_status=$(extract_conclusion "🧪 Traditional Tests")
-          codeql_status=$(extract_conclusion "Analyze")
+          # Prefer new names, fallback to legacy
+          codeql_status=$(extract_conclusion "Publish analysis results (privileged)")
+          if [ -z "$codeql_status" ] || [ "$codeql_status" == "null" ]; then
+            codeql_status=$(extract_conclusion "Analyze PR code (safe, no repo perms)")
+          fi
+          if [ -z "$codeql_status" ] || [ "$codeql_status" == "null" ]; then
+            codeql_status=$(extract_conclusion "Analyze")
+          fi
           secret_status=$(extract_conclusion "Secret Scan")
           echo "tt_status=$tt_status" >> $GITHUB_OUTPUT
           echo "codeql_status=$codeql_status" >> $GITHUB_OUTPUT
