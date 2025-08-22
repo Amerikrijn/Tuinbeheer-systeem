@@ -1,61 +1,79 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import Loading from '@/app/loading';
+import { render, screen } from '@testing-library/react'
+import Loading from '@/app/loading'
 
-describe('Loading Component', () => {
-  it('should render loading page with correct content', () => {
-    render(<Loading />);
+describe('Loading component', () => {
+  it('renders loading page with correct content', () => {
+    render(<Loading />)
+    
+    expect(screen.getByText('Laden...')).toBeInTheDocument()
+    expect(screen.getByText('Een moment geduld alstublieft')).toBeInTheDocument()
+  })
 
-    // Check loading text
-    expect(screen.getByText('Laden...')).toBeInTheDocument();
-    expect(screen.getByText('Een moment geduld alstublieft')).toBeInTheDocument();
-  });
+  it('displays loading spinner icon', () => {
+    render(<Loading />)
+    
+    const spinnerIcon = document.querySelector('.animate-spin')
+    expect(spinnerIcon).toBeInTheDocument()
+    expect(spinnerIcon).toHaveClass('h-12', 'w-12', 'text-green-600')
+  })
 
-  it('should have proper heading structure', () => {
-    render(<Loading />);
+  it('applies correct styling classes', () => {
+    render(<Loading />)
+    
+    const container = screen.getByText('Laden...').closest('.min-h-screen')
+    expect(container).toHaveClass('flex', 'items-center', 'justify-center')
+    expect(container).toHaveClass('bg-gradient-to-br', 'from-green-50', 'to-blue-50')
+  })
 
-    // Check that the loading heading is properly structured
-    expect(screen.getByRole('heading', { name: 'Laden...' })).toBeInTheDocument();
-  });
+  it('centers content properly', () => {
+    render(<Loading />)
+    
+    const contentContainer = screen.getByText('Laden...').closest('.text-center')
+    expect(contentContainer).toHaveClass('space-y-4')
+  })
 
-  it('should display loading spinner icon', () => {
-    render(<Loading />);
+  it('renders with proper heading structure', () => {
+    render(<Loading />)
+    
+    const heading = screen.getByRole('heading', { level: 2 })
+    expect(heading).toBeInTheDocument()
+    expect(heading).toHaveTextContent('Laden...')
+    expect(heading).toHaveClass('text-xl', 'font-semibold', 'text-gray-700')
+  })
 
-    // Check that the Loader2 icon is present with correct classes
-    const spinner = document.querySelector('.h-12.w-12.animate-spin.text-green-600');
-    expect(spinner).toBeInTheDocument();
-  });
+  it('displays descriptive text with correct styling', () => {
+    render(<Loading />)
+    
+    const description = screen.getByText('Een moment geduld alstublieft')
+    expect(description).toHaveClass('text-gray-500')
+  })
 
-  it('should have proper styling classes', () => {
-    render(<Loading />);
+  it('has proper accessibility attributes', () => {
+    render(<Loading />)
+    
+    // Check if the component has proper semantic structure
+    expect(screen.getByRole('heading')).toBeInTheDocument()
+    expect(screen.getByText('Een moment geduld alstublieft')).toBeInTheDocument()
+  })
 
-    // Check that the main container has proper classes
-    const container = document.querySelector('.min-h-screen.flex.items-center.justify-center.bg-gradient-to-br.from-green-50.to-blue-50');
-    expect(container).toBeInTheDocument();
+  it('renders with full screen height', () => {
+    render(<Loading />)
+    
+    const fullScreenContainer = document.querySelector('.min-h-screen')
+    expect(fullScreenContainer).toBeInTheDocument()
+  })
 
-    // Check that the content container has proper classes
-    const contentContainer = document.querySelector('.text-center.space-y-4');
-    expect(contentContainer).toBeInTheDocument();
-  });
+  it('applies gradient background correctly', () => {
+    render(<Loading />)
+    
+    const gradientContainer = document.querySelector('.bg-gradient-to-br.from-green-50.to-blue-50')
+    expect(gradientContainer).toBeInTheDocument()
+  })
 
-  it('should have proper text colors', () => {
-    render(<Loading />);
-
-    // Check that the heading has the correct text color class
-    const heading = document.querySelector('.text-xl.font-semibold.text-gray-700');
-    expect(heading).toBeInTheDocument();
-
-    // Check that the description has the correct text color class
-    const description = document.querySelector('.text-gray-500');
-    expect(description).toBeInTheDocument();
-  });
-
-  it('should be centered on the screen', () => {
-    render(<Loading />);
-
-    // Check that the component uses flexbox centering
-    const container = document.querySelector('.flex.items-center.justify-center');
-    expect(container).toBeInTheDocument();
-  });
-});
+  it('displays loading text in Dutch', () => {
+    render(<Loading />)
+    
+    expect(screen.getByText('Laden...')).toBeInTheDocument()
+    expect(screen.getByText('Een moment geduld alstublieft')).toBeInTheDocument()
+  })
+})

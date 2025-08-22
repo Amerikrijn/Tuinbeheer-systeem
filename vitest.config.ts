@@ -20,10 +20,10 @@ export default defineConfig({
         '**/__mocks__/**',
         '**/*.stories.{ts,tsx}'
       ],
-      lines: 70,
-      functions: 70,
-      branches: 60,
-      statements: 70
+      lines: 80,
+      functions: 80,
+      branches: 70,
+      statements: 80
     }
   },
   resolve: {
