@@ -10,6 +10,12 @@ interface SupabaseAuthProviderProps {
   children: React.ReactNode
 }
 
+// Mounts the activity timeout logic within the auth context
+function ActivityTimeoutMount() {
+  useActivityTimeout()
+  return null
+}
+
 export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   const [authError, setAuthError] = React.useState<Error | null>(null)
   
@@ -26,9 +32,6 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   
   const pathname = usePathname()
   
-  // Initialize activity timeout for automatic logout
-  useActivityTimeout()
-
   // If there's an auth error, just render children without auth
   if (authError) {
     return <>{children}</>
@@ -53,6 +56,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   if (needsPasswordChange && !isAuthPage && !isPasswordChangePage) {
     return (
       <SupabaseAuthContext.Provider value={auth}>
+        <ActivityTimeoutMount />
         <ForcePasswordChange 
           user={auth.user} 
           onPasswordChanged={async () => {
@@ -68,6 +72,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
 
   return (
     <SupabaseAuthContext.Provider value={auth}>
+      <ActivityTimeoutMount />
       {children}
     </SupabaseAuthContext.Provider>
   )

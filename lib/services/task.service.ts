@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '@/lib/supabase'
+import type { WeeklyCalendar, TaskCalendarDay } from '@/lib/types/tasks'
 
 export interface Task {
   id: string
@@ -308,6 +309,7 @@ export class TaskService {
 
   static async getTasksForPlantBed(plantBedId: string): Promise<{ data: TaskWithPlantInfo[]; error: string | null }> {
     try {
+      const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('tasks')
         .select(`
@@ -365,6 +367,7 @@ export class TaskService {
   // Additional methods for task management
   static async createTask(taskData: Record<string, unknown>): Promise<{ data: Task | null; error: string | null }> {
     try {
+      const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('tasks')
         .insert(taskData)
@@ -381,6 +384,7 @@ export class TaskService {
 
   static async updateTask(taskId: string, updateData: Record<string, unknown>): Promise<{ data: Task | null; error: string | null }> {
     try {
+      const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('tasks')
         .update(updateData)
@@ -398,6 +402,7 @@ export class TaskService {
 
   static async deleteTask(taskId: string): Promise<{ error: string | null }> {
     try {
+      const supabase = getSupabaseClient()
       const { error } = await supabase
         .from('tasks')
         .delete()
@@ -416,6 +421,7 @@ export class TaskService {
       const weekEnd = new Date(weekStart)
       weekEnd.setDate(weekEnd.getDate() + 6)
 
+      const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('tasks')
         .select(`
@@ -434,12 +440,35 @@ export class TaskService {
         week_number: this.getWeekNumber(new Date(task.due_date))
       }))
 
+      // Build days[]
+      const days: TaskCalendarDay[] = []
+      for (let i = 0; i < 7; i++) {
+        const dayDate = new Date(weekStart)
+        dayDate.setDate(weekStart.getDate() + i)
+        const iso = dayDate.toISOString().split('T')[0]
+        const tasksForDay = transformedData.filter(t => t.due_date === iso)
+        const todayIso = new Date().toISOString().split('T')[0]
+        days.push({
+          date: iso,
+          day_of_week: dayDate.getDay(),
+          day_name: dayDate.toLocaleDateString('nl-NL', { weekday: 'long' }),
+          is_today: iso === todayIso,
+          is_weekend: [0,6].includes(dayDate.getDay()),
+          tasks: tasksForDay,
+          task_count: tasksForDay.length,
+          overdue_count: tasksForDay.filter(t => !t.completed && t.due_date < todayIso).length,
+          completed_count: tasksForDay.filter(t => t.completed).length,
+        })
+      }
+
       const calendarData: WeeklyCalendar = {
         week_start: weekStart.toISOString().split('T')[0],
         week_end: weekEnd.toISOString().split('T')[0],
         week_number: this.getWeekNumber(weekStart),
         year: weekStart.getFullYear(),
+        days,
         total_tasks: transformedData.length,
+        completed_tasks: transformedData.filter(t => t.completed).length,
         overdue_tasks: transformedData.filter(t => new Date(t.due_date) < new Date() && !t.completed).length,
         today_tasks: transformedData.filter(t => t.due_date === new Date().toISOString().split('T')[0] && !t.completed).length,
         upcoming_tasks: transformedData.filter(t => new Date(t.due_date) > new Date() && !t.completed).length
@@ -448,7 +477,21 @@ export class TaskService {
       return { data: calendarData, error: null }
     } catch {
       // Secure error handling for banking standards - no console logging in production
-      return { data: null, error: 'Failed to fetch weekly calendar' }
+      // Fallback empty calendar
+      const start = new Date(weekStart)
+      const end = new Date(weekStart); end.setDate(end.getDate() + 6)
+      return { data: {
+        week_start: start.toISOString().split('T')[0],
+        week_end: end.toISOString().split('T')[0],
+        week_number: this.getWeekNumber(start),
+        year: start.getFullYear(),
+        days: [],
+        total_tasks: 0,
+        completed_tasks: 0,
+        overdue_tasks: 0,
+        today_tasks: 0,
+        upcoming_tasks: 0,
+      }, error: 'Failed to fetch weekly calendar' }
     }
   }
 }

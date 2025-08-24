@@ -142,18 +142,14 @@ function LoginContent() {
     setIsSubmitting(true)
     try {
       await signIn(formData.email, formData.password)
-      
-      // 🏦 NEW ARCHITECTURE: Password change is handled by auth provider
-      // If user needs password change, the auth provider will show ForcePasswordChange
-      // No need for manual checks and redirects here
-      
+
       toast({
         title: "Inloggen gelukt",
         description: "Welkom terug!",
       })
-      
-      // 🚀 AUTO-REDIRECT: Redirect will happen automatically via useEffect
-      // No manual redirect needed - the useEffect will handle it
+
+      // Navigate immediately after successful sign-in to avoid hanging UI
+      router.push('/user-dashboard')
       
     } catch (error) {
       // Log error only in development for security
@@ -165,6 +161,8 @@ function LoginContent() {
         description: error instanceof Error ? error.message : 'Er is een fout opgetreden',
         variant: "destructive",
       })
+    } finally {
+      // Always clear the local submitting spinner
       setIsSubmitting(false)
     }
   }
@@ -263,9 +261,9 @@ function LoginContent() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isSubmitting || loading}
+                disabled={isSubmitting}
               >
-                {isSubmitting || loading ? (
+                {isSubmitting ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Inloggen...

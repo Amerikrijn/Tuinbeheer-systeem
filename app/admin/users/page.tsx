@@ -69,6 +69,7 @@ function AdminUsersPageContent() {
       setUsers(usersData.users || [])
       
       // Load gardens
+      const supabase = getSupabaseClient()
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
         .select('id, name, description, is_active')

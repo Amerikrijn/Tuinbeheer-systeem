@@ -28,7 +28,7 @@ import {
   Cloud,
   Trash2,
 } from "lucide-react"
-import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
+import { getGarden, getPlantBedsWithPlants, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS, 
@@ -129,7 +129,7 @@ export default function GardenDetailPage() {
         setLoading(true)
         const [gardenData, plantBedsData] = await Promise.all([
           getGarden(params.id as string),
-          getPlantBeds(params.id as string),
+          getPlantBedsWithPlants(params.id as string),
         ])
         console.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
         setGarden(gardenData)
@@ -737,7 +737,7 @@ export default function GardenDetailPage() {
                         <div className="mt-1 text-center">
                           <div className="text-xs text-gray-600 font-medium">{bed.name}</div>
                           <div className="text-xs text-gray-500">
-                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {bed.plants.length} 🌸
+                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {(bed.plants?.length ?? 0)} 🌸
                           </div>
                         </div>
                       </div>
@@ -878,7 +878,7 @@ export default function GardenDetailPage() {
                     <p className="text-gray-600 mb-4">{bed.description}</p>
                   )}
                   <div className="flex gap-2">
-                    <Link href={`/gardens/${garden.id}/plantvak-view/${bed.id}`}>
+                    <Link href={`/gardens/${garden.id}`}>
                       <Button className="bg-green-600 hover:bg-green-700">
                         Plantvak Beheren
                       </Button>

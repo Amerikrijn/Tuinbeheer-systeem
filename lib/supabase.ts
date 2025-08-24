@@ -12,10 +12,14 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 let supabaseInstance: SupabaseClient | null = null
 
 const getSupabaseClient = (): SupabaseClient => {
-  console.log('🔍 DEBUG: getSupabaseClient called')
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 DEBUG: getSupabaseClient called')
+  }
   
   if (supabaseInstance) {
-    console.log('🔍 DEBUG: Returning existing supabase instance')
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 DEBUG: Returning existing supabase instance')
+    }
     return supabaseInstance
   }
 
@@ -23,11 +27,13 @@ const getSupabaseClient = (): SupabaseClient => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  console.log('🔍 DEBUG: Environment check:', {
-    url: supabaseUrl ? '✅ Set' : '❌ Missing',
-    key: supabaseAnonKey ? '✅ Set' : '❌ Missing',
-    nodeEnv: process.env.NODE_ENV
-  })
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 DEBUG: Environment check:', {
+      url: supabaseUrl ? '✅ Set' : '❌ Missing',
+      key: supabaseAnonKey ? '✅ Set' : '❌ Missing',
+      nodeEnv: process.env.NODE_ENV
+    })
+  }
 
   if (!supabaseUrl || !supabaseAnonKey) {
     console.error('❌ ERROR: Missing Supabase environment variables:', {
@@ -37,7 +43,9 @@ const getSupabaseClient = (): SupabaseClient => {
     throw new Error('Missing Supabase environment variables. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.')
   }
 
-  console.log('🔍 DEBUG: Initializing Supabase client with URL:', supabaseUrl)
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 DEBUG: Initializing Supabase client with URL:', supabaseUrl)
+  }
 
   try {
     supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
@@ -57,10 +65,14 @@ const getSupabaseClient = (): SupabaseClient => {
       }
     })
 
-    console.log('🔍 DEBUG: Supabase client created successfully')
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 DEBUG: Supabase client created successfully')
+    }
     
-    // Test connection immediately
-    testConnection(supabaseInstance)
+    // In development, test connection only on the server to avoid client overhead
+    if (process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
+      void testConnection(supabaseInstance)
+    }
     
     return supabaseInstance
   } catch (error) {
@@ -99,20 +111,26 @@ const testConnection = async (client: SupabaseClient) => {
 let supabaseAdminInstance: SupabaseClient | null = null
 
 const getSupabaseAdminClient = (): SupabaseClient => {
-  console.log('🔍 DEBUG: getSupabaseAdminClient called')
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 DEBUG: getSupabaseAdminClient called')
+  }
   
   if (supabaseAdminInstance) {
-    console.log('🔍 DEBUG: Returning existing supabase admin instance')
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 DEBUG: Returning existing supabase admin instance')
+    }
     return supabaseAdminInstance
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   
-  console.log('🔍 DEBUG: Admin environment check:', {
-    url: supabaseUrl ? '✅ Set' : '❌ Missing',
-    serviceKey: serviceRoleKey ? '✅ Set' : '❌ Missing'
-  })
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔍 DEBUG: Admin environment check:', {
+      url: supabaseUrl ? '✅ Set' : '❌ Missing',
+      serviceKey: serviceRoleKey ? '✅ Set' : '❌ Missing'
+    })
+  }
   
   if (!supabaseUrl || !serviceRoleKey) {
     console.error('❌ ERROR: Missing Supabase admin environment variables')
@@ -136,10 +154,14 @@ const getSupabaseAdminClient = (): SupabaseClient => {
       }
     })
 
-    console.log('🔍 DEBUG: Supabase admin client created successfully')
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 DEBUG: Supabase admin client created successfully')
+    }
     
-    // Test admin connection
-    testAdminConnection(supabaseAdminInstance)
+    // Only test admin connection on the server in development
+    if (process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
+      void testAdminConnection(supabaseAdminInstance)
+    }
     
     return supabaseAdminInstance
   } catch (error) {
