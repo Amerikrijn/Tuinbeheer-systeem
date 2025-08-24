@@ -886,7 +886,7 @@ export default function GardenDetailPage() {
                     <p className="text-gray-600 mb-4">{bed.description}</p>
                   )}
                   <div className="flex gap-2">
-                    <Link href={`/gardens/${garden.id}`}>
+                    <Link href={`/gardens/${garden.id}?bedId=${bed.id}`}>
                       <Button className="bg-green-600 hover:bg-green-700">
                         Plantvak Beheren
                       </Button>
