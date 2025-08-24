@@ -301,10 +301,17 @@ export function useSupabaseAuth(): AuthContextType {
       console.log('🔍 DEBUG: Calling signInWithPassword...')
       
       const normalizedEmail = email.trim().toLowerCase()
-      const { data, error } = await supabase.auth.signInWithPassword({
+
+      const signInCall = supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password
       })
+      const signInTimeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('LOGIN_TIMEOUT')), 10000)
+      })
+
+      const result = await Promise.race([signInCall, signInTimeout]) as { data: any; error: any }
+      const { data, error } = result
       
       const duration = Date.now() - startTime
       console.log('🔍 DEBUG: signInWithPassword completed in', duration, 'ms')
@@ -321,7 +328,7 @@ export function useSupabaseAuth(): AuthContextType {
         return
       }
 
-      if (!data.user) {
+      if (!data?.user) {
         console.error('❌ ERROR: No user data returned')
         setState(prev => ({ ...prev, loading: false, error: 'No user data returned' }))
         return
@@ -367,7 +374,8 @@ export function useSupabaseAuth(): AuthContextType {
     } catch (error) {
       const duration = Date.now() - startTime
       console.error('❌ ERROR: SignIn exception after', duration, 'ms:', error)
-      setState(prev => ({ ...prev, loading: false, error: error instanceof Error ? error.message : 'An unexpected error occurred' }))
+      const message = error instanceof Error ? (error.message === 'LOGIN_TIMEOUT' ? 'Login timeout. Probeer het later opnieuw.' : error.message) : 'An unexpected error occurred'
+      setState(prev => ({ ...prev, loading: false, error: message }))
     }
   }
 
