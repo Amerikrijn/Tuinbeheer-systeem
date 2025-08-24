@@ -20,73 +20,54 @@ function ProtectedRouteComponent({
 }: ProtectedRouteProps) {
   const { user, loading } = useAuth()
   const router = useRouter()
-  const [timeoutReached, setTimeoutReached] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [authChecked, setAuthChecked] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
 
   // Ensure component is mounted on client-side
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Reduced timeout for better UX
   useEffect(() => {
-    if (!loading && !user && mounted) {
-      const timeout = setTimeout(() => {
-        setTimeoutReached(true)
-      }, 5000) // Reduced from 10000ms
-
-      return () => clearTimeout(timeout)
-    }
-  }, [loading, user, mounted])
-
-  useEffect(() => {
-    // Only run checks after component is mounted
     if (!mounted) return
-    
-    // If timeout reached, force redirect to login
-    if (timeoutReached) {
-      router.push('/auth/login')
+
+    // If not loading and no user, redirect to login once
+    if (!loading && !user && !redirecting) {
+      setRedirecting(true)
+      router.replace('/auth/login')
       return
     }
-    
-    if (!loading) {
-      // No user - redirect to login
-      if (!user) {
-        router.push('/auth/login')
-        return
-      }
 
+    if (!loading && user) {
       // 🏦 BANKING SECURITY: Access control check
       const hasAccess = user && user.status === 'active'
-      
-      if (!hasAccess) {
-        router.push('/auth/login')
+      if (!hasAccess && !redirecting) {
+        setRedirecting(true)
+        router.replace('/auth/login')
         return
       }
 
-      // 🏦 NEW ARCHITECTURE: Password change is now handled by auth provider
-      // No need for temp_password checks here - the auth provider will show
-      // ForcePasswordChange component if needed based on force_password_change flag
-
       // Check admin requirement
-      if (requireAdmin && user.role !== 'admin') {
-        router.push('/')
+      if (requireAdmin && user.role !== 'admin' && !redirecting) {
+        setRedirecting(true)
+        router.replace('/')
         return
       }
 
       // Check allowed roles
-      if (allowedRoles && !allowedRoles.includes(user.role as 'admin' | 'user')) {
-        router.push('/')
+      if (allowedRoles && !allowedRoles.includes(user.role as 'admin' | 'user') && !redirecting) {
+        setRedirecting(true)
+        router.replace('/')
         return
       }
 
       setAuthChecked(true)
     }
-  }, [user, loading, requireAdmin, allowedRoles, router, timeoutReached, mounted])
+  }, [user, loading, requireAdmin, allowedRoles, router, mounted, redirecting])
 
-  // Show loading during SSR, mounting, or auth loading (but only briefly)
-  if (!mounted || (loading && !user) || !authChecked) {
+  // While mounting or redirecting, render minimal fallback (no infinite spinner)
+  if (!mounted || redirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -97,7 +78,7 @@ function ProtectedRouteComponent({
     )
   }
 
-  if (loading) {
+  if (loading && !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -120,14 +101,14 @@ function ProtectedRouteComponent({
             </p>
             <div className="space-y-3">
               <Button 
-                onClick={() => router.push('/auth/login')}
+                onClick={() => router.replace('/auth/login')}
                 className="w-full"
               >
                 Inloggen
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => router.push('/')}
+                onClick={() => router.replace('/')}
                 className="w-full"
               >
                 Terug naar home
@@ -139,7 +120,7 @@ function ProtectedRouteComponent({
     )
   }
 
-  if (loading) {
+  if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
