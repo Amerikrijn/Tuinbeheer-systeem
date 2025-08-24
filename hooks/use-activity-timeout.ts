@@ -56,7 +56,7 @@ export function useActivityTimeout() {
       })
       router.push('/auth/login')
     } catch (error) {
-      // Console logging removed for banking standards.error('Auto logout failed:', error)
+      console.error('Auto logout failed:', error)
     }
   }, [signOut, toast, router])
 

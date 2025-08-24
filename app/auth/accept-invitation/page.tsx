@@ -1,43 +1,51 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2, CheckCircle, AlertCircle, Eye, EyeOff, Lock } from 'lucide-react'
+import { Loader2, CheckCircle, XCircle, Eye, EyeOff, UserCheck, Shield, Clock } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
+// Simplified invitation interface for Supabase auth flow
 interface InvitationData {
   id: string
   email: string
   full_name: string
   role: 'admin' | 'user'
+  invited_by: string
   expires_at: string
 }
 
-export default function AcceptInvitationPage() {
-  const searchParams = useSearchParams()
+interface AcceptInvitationFormData {
+  password: string
+  confirmPassword: string
+}
+
+function AcceptInvitationContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { toast } = useToast()
-  
-  const [invitation, setInvitation] = useState<InvitationData | null>(null)
+
   const [loading, setLoading] = useState(true)
   const [accepting, setAccepting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  
+  const [invitation, setInvitation] = useState<InvitationData | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [formData, setFormData] = useState({
+  
+  const [formData, setFormData] = useState<AcceptInvitationFormData>({
     password: '',
     confirmPassword: ''
   })
-  const [showPasswords, setShowPasswords] = useState({
-    password: false,
-    confirmPassword: false
-  })
 
-  // Get invitation data from URL parameters
+  // Supabase auth confirmation parameters
   const accessToken = searchParams.get('access_token')
   const refreshToken = searchParams.get('refresh_token')
   const type = searchParams.get('type')
@@ -45,51 +53,66 @@ export default function AcceptInvitationPage() {
   const error_description = searchParams.get('error_description')
 
   useEffect(() => {
-    async function verifyInvitation() {
-      if (!accessToken || !refreshToken) {
-        setError('Ontbrekende uitnodigingsgegevens')
+    handleInvitationConfirmation()
+  }, [accessToken, refreshToken, type, error_param])
+
+  const handleInvitationConfirmation = async () => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Handle OAuth errors first
+      if (error_param) {
+        throw new Error(error_description || `OAuth error: ${error_param}`)
+      }
+
+      // Check for valid invitation confirmation
+      if (type !== 'invite' || !accessToken || !refreshToken) {
+        setError('Ongeldige uitnodigingslink. Vraag een nieuwe uitnodiging aan.')
         setLoading(false)
         return
       }
 
-      try {
-        // Verify the invitation with Supabase
-        const supabase = getSupabaseClient();
-        const { data: invitationData, error } = await supabase.auth.verifyOtp({
-          token: accessToken,
-          type: 'invite',
-          email: invitation?.email || ''
-        })
+      // Set the session with tokens from URL
+      const { data, error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken
+      })
 
-        if (error) {
-          throw error
-        }
-
-        if (invitationData?.user) {
-          setInvitation({
-            id: invitationData.user.id,
-            email: invitationData.user.email!,
-            full_name: invitationData.user.user_metadata?.full_name || '',
-            role: invitationData.user.user_metadata?.role || 'user',
-            expires_at: new Date().toISOString()
-          })
-        }
-        
-        toast({
-          title: "Uitnodiging gevalideerd",
-          description: "Je kunt nu je wachtwoord instellen",
-        })
-        
-      } catch (error) {
-        // Secure error handling for banking standards
-        setError(error instanceof Error ? error.message : 'Er is een fout opgetreden bij het verifiëren van de uitnodiging')
-      } finally {
-        setLoading(false)
+      if (sessionError) {
+        throw sessionError
       }
-    }
 
-    verifyInvitation()
-  }, [accessToken, refreshToken, type, error_param, error_description, toast])
+      if (!data.user) {
+        throw new Error('Geen gebruiker gevonden voor deze uitnodiging')
+      }
+
+      // Create invitation data from user metadata
+      const invitationData: InvitationData = {
+        id: data.user.id,
+        email: data.user.email!,
+        full_name: data.user.user_metadata?.full_name || '',
+        role: data.user.user_metadata?.role || 'user',
+        invited_by: data.user.user_metadata?.invited_by || 'admin',
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
+      }
+
+      setInvitation(invitationData)
+      
+      toast({
+        title: "Uitnodiging gevalideerd",
+        description: "Je kunt nu je wachtwoord instellen",
+      })
+      
+    } catch (error) {
+      console.error('Invitation confirmation error:', error)
+      setError(error instanceof Error ? error.message : 'Er is een fout opgetreden bij het verifiëren van de uitnodiging')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+
 
   const validatePassword = (password: string): string[] => {
     const errors: string[] = []
@@ -149,7 +172,6 @@ export default function AcceptInvitationPage() {
     setAccepting(true)
 
     try {
-      const supabase = getSupabaseClient();
       // Update user password and complete the invitation
       const { error: updateError } = await supabase.auth.updateUser({
         password: formData.password,
@@ -178,180 +200,338 @@ export default function AcceptInvitationPage() {
           })
 
         if (profileError && !profileError.message.includes('duplicate')) {
-          // Secure error handling for banking standards
+          console.error('Profile creation error:', profileError)
           // Don't fail the whole process for profile errors
         }
       }
 
       toast({
-        title: "Uitnodiging geaccepteerd",
-        description: "Je account is succesvol aangemaakt",
+        title: "Uitnodiging geaccepteerd!",
+        description: "Je account is aangemaakt. Je wordt doorgestuurd naar het inlogscherm.",
       })
 
-      // Redirect to dashboard
-      router.push('/user-dashboard')
+      // Sign out to force fresh login
+      await supabase.auth.signOut()
+
+      // Redirect to login after short delay
+      setTimeout(() => {
+        router.push('/auth/login?message=account-created')
+      }, 2000)
       
     } catch (error) {
-      // Secure error handling for banking standards
-      const errorMessage = error instanceof Error ? error.message : 'Er is een fout opgetreden bij het accepteren van de uitnodiging'
+      console.error('Accept invitation error:', error)
       toast({
-        title: "Fout",
-        description: errorMessage,
+        title: "Fout bij accepteren uitnodiging",
+        description: error instanceof Error ? error.message : "Er is een onbekende fout opgetreden",
         variant: "destructive"
       })
-    } finally {
       setAccepting(false)
     }
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+  const getPasswordStrengthColor = (password: string) => {
+    const errors = validatePassword(password)
+    if (password.length === 0) return 'bg-gray-200'
+    if (errors.length > 3) return 'bg-red-500'
+    if (errors.length > 1) return 'bg-yellow-500'
+    if (errors.length === 1) return 'bg-blue-500'
+    return 'bg-green-500'
+  }
+
+  const getPasswordStrengthText = (password: string) => {
+    const errors = validatePassword(password)
+    if (password.length === 0) return ''
+    if (errors.length > 3) return 'Zwak'
+    if (errors.length > 1) return 'Matig'
+    if (errors.length === 1) return 'Goed'
+    return 'Sterk'
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
-        <div className="flex items-center gap-2">
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span>Uitnodiging verifiëren...</span>
-        </div>
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
         <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <CardTitle className="text-red-600">Uitnodiging Ongeldig</CardTitle>
-            <CardDescription>
-              Er is een probleem met je uitnodiging
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-            <Button 
-              onClick={() => router.push('/auth/login')}
-              className="w-full mt-4"
-            >
-              Terug naar Login
-            </Button>
+          <CardContent className="flex flex-col items-center justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-green-600 mb-4" />
+            <p className="text-gray-600">Uitnodiging verifiëren...</p>
           </CardContent>
         </Card>
       </div>
     )
   }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-600 rounded-full">
-              <CheckCircle className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">Uitnodiging Accepteren</h1>
-          <p className="text-gray-600 mt-2">
-            Welkom {invitation?.full_name}! Stel je wachtwoord in om je account te activeren
-          </p>
-        </div>
-
-        {/* Password Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Nieuw Wachtwoord</CardTitle>
-            <CardDescription>
-              Kies een sterk wachtwoord dat voldoet aan de security requirements
+  if (error || !invitation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <XCircle className="h-12 w-12 text-red-500 mx-auto mb-2" />
+            <CardTitle className="text-red-700">Ongeldige Uitnodiging</CardTitle>
+            <CardDescription className="text-red-600">
+              {error || 'Deze uitnodiging is niet geldig of verlopen'}
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="space-y-4">
+              <Alert className="border-red-200 bg-red-50">
+                <XCircle className="h-4 w-4 text-red-500" />
+                <AlertDescription className="text-red-700">
+                  Mogelijke oorzaken:
+                  <ul className="list-disc list-inside mt-2 space-y-1">
+                    <li>De uitnodiging is verlopen (na 72 uur)</li>
+                    <li>De uitnodiging is al gebruikt</li>
+                    <li>De uitnodiging is ingetrokken</li>
+                    <li>De link is beschadigd</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+              
+              <div className="flex flex-col space-y-2">
+                <Button asChild variant="outline">
+                  <Link href="/auth/login">
+                    Naar Inloggen
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost">
+                  <Link href="/">
+                    Naar Homepage
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const isExpired = false // Supabase handles expiry automatically
+  const hoursUntilExpiry = 24 // Standard 24 hour expiry
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
+          <CardTitle className="text-green-700">Uitnodiging Accepteren</CardTitle>
+          <CardDescription>
+            Welkom! Je bent uitgenodigd voor het tuinbeheer systeem.
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          {/* Invitation Details */}
+          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Email:</span>
+                <span className="font-medium">{invitation.email}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Naam:</span>
+                <span className="font-medium">{invitation.full_name}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Rol:</span>
+                <div className="flex items-center space-x-1">
+                  {invitation.role === 'admin' ? (
+                    <Shield className="h-4 w-4 text-purple-500" />
+                  ) : (
+                    <UserCheck className="h-4 w-4 text-blue-500" />
+                  )}
+                  <span className="font-medium capitalize">{invitation.role}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Verloopt:</span>
+                <div className="flex items-center space-x-1">
+                  <Clock className="h-4 w-4 text-orange-500" />
+                  <span className="font-medium">
+                    {hoursUntilExpiry > 0 ? `${hoursUntilExpiry} uur` : 'Binnenkort'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {isExpired ? (
+            <Alert className="border-red-200 bg-red-50">
+              <XCircle className="h-4 w-4 text-red-500" />
+              <AlertDescription className="text-red-700">
+                Deze uitnodiging is verlopen. Neem contact op met een administrator voor een nieuwe uitnodiging.
+              </AlertDescription>
+            </Alert>
+          ) : (
             <form onSubmit={handleAcceptInvitation} className="space-y-4">
               {/* Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="password">Wachtwoord</Label>
+                <Label htmlFor="password">Wachtwoord *</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     id="password"
-                    type={showPasswords.password ? 'text' : 'password'}
-                    placeholder="••••••••"
+                    type={showPassword ? "text" : "password"}
                     value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                    className="pl-10 pr-10"
-                    disabled={accepting}
+                    onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Kies een sterk wachtwoord"
                     required
+                    className="pr-10"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPasswords(prev => ({ ...prev, password: !prev.password }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    disabled={accepting}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPasswords.password ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500">
-                  Minimaal 8 karakters, met hoofdletter, kleine letter, cijfer en speciaal teken
-                </p>
+                
+                {/* Password Strength Indicator */}
+                {formData.password && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span>Wachtwoord sterkte:</span>
+                      <span className={`font-medium ${
+                        getPasswordStrengthText(formData.password) === 'Sterk' ? 'text-green-600' :
+                        getPasswordStrengthText(formData.password) === 'Goed' ? 'text-blue-600' :
+                        getPasswordStrengthText(formData.password) === 'Matig' ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`}>
+                        {getPasswordStrengthText(formData.password)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(formData.password)}`}
+                        style={{ 
+                          width: `${Math.max(20, 100 - (validatePassword(formData.password).length * 20))}%` 
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Confirm Password Field */}
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Bevestig Wachtwoord</Label>
+                <Label htmlFor="confirmPassword">Bevestig Wachtwoord *</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
                     id="confirmPassword"
-                    type={showPasswords.confirmPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
+                    type={showConfirmPassword ? "text" : "password"}
                     value={formData.confirmPassword}
-                    onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className="pl-10 pr-10"
-                    disabled={accepting}
+                    onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                    placeholder="Herhaal je wachtwoord"
                     required
+                    className="pr-10"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPasswords(prev => ({ ...prev, confirmPassword: !prev.confirmPassword }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    disabled={accepting}
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPasswords.confirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                
+                {/* Password Match Indicator */}
+                {formData.confirmPassword && (
+                  <div className="flex items-center space-x-2 text-xs">
+                    {formData.password === formData.confirmPassword ? (
+                      <>
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        <span className="text-green-600">Wachtwoorden komen overeen</span>
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 text-red-500" />
+                        <span className="text-red-600">Wachtwoorden komen niet overeen</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Password Requirements */}
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                <p className="text-sm font-medium text-blue-700 mb-2">Wachtwoord vereisten:</p>
+                <ul className="text-xs text-blue-600 space-y-1">
+                  <li className="flex items-center space-x-2">
+                    <div className={`w-2 h-2 rounded-full ${formData.password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span>Minimaal 8 karakters</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <div className={`w-2 h-2 rounded-full ${/[A-Z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span>Minimaal 1 hoofdletter</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <div className={`w-2 h-2 rounded-full ${/[a-z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span>Minimaal 1 kleine letter</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <div className={`w-2 h-2 rounded-full ${/[0-9]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span>Minimaal 1 cijfer</span>
+                  </li>
+                  <li className="flex items-center space-x-2">
+                    <div className={`w-2 h-2 rounded-full ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\?]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <span>Minimaal 1 speciaal teken</span>
+                  </li>
+                </ul>
               </div>
 
               {/* Submit Button */}
-              <Button
-                type="submit"
+              <Button 
+                type="submit" 
                 className="w-full"
-                disabled={accepting}
+                disabled={accepting || !formData.password || !formData.confirmPassword || formData.password !== formData.confirmPassword}
               >
                 {accepting ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Account activeren...
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Uitnodiging Accepteren...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <CheckCircle className="h-4 w-4 mr-2" />
                     Uitnodiging Accepteren
                   </>
                 )}
               </Button>
             </form>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+
+          {/* Footer Links */}
+          <div className="text-center space-y-2">
+            <p className="text-xs text-gray-500">
+              Heb je al een account?{' '}
+              <Link href="/auth/login" className="text-green-600 hover:underline">
+                Inloggen
+              </Link>
+            </p>
+            <p className="text-xs text-gray-400">
+              Door je account aan te maken ga je akkoord met onze voorwaarden.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
+  )
+}
+
+export default function AcceptInvitationPage() {
+  return (
+    <Suspense 
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+          <Card className="w-full max-w-md">
+            <CardContent className="flex flex-col items-center justify-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin text-green-600 mb-4" />
+              <p className="text-gray-600">Pagina laden...</p>
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <AcceptInvitationContent />
+    </Suspense>
   )
 }

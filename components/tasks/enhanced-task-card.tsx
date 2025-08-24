@@ -15,7 +15,9 @@ import {
   Droplets,
   Scissors,
   Flower2,
-  Bug
+  Bug,
+  AlertCircle,
+  Zap
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 

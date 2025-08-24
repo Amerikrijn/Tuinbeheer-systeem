@@ -13,17 +13,15 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-      // Log the error only in development for security
-  if (process.env.NODE_ENV === 'development') {
-    // Console logging removed for banking standards.error('Application error:', error)
-  }
+    // Log the error to the console
+    console.error('Application error:', error)
   }, [error])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-6">
       <div className="container max-w-2xl">
         <div className="text-center mb-8">
-          <TreePine data-testid="tree-pine-icon" className="h-16 w-16 text-green-600 mx-auto mb-4" />
+          <TreePine className="h-16 w-16 text-green-600 mx-auto mb-4" />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Tuinbeheer Systeem
           </h1>
@@ -33,7 +31,7 @@ export default function Error({
         <Card className="border-red-200 bg-red-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-800">
-              <AlertCircle data-testid="alert-circle-icon" className="h-5 w-5" />
+              <AlertCircle className="h-5 w-5" />
               Er is een fout opgetreden
             </CardTitle>
           </CardHeader>
@@ -65,7 +63,7 @@ export default function Error({
                 onClick={reset}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
-                <RefreshCw data-testid="refresh-cw-icon" className="h-4 w-4 mr-2" />
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Probeer Opnieuw
               </Button>
               <Button
@@ -73,7 +71,7 @@ export default function Error({
                 onClick={() => window.location.href = '/'}
                 className="flex-1"
               >
-                <Home data-testid="home-icon" className="h-4 w-4 mr-2" />
+                <Home className="h-4 w-4 mr-2" />
                 Naar Hoofdpagina
               </Button>
             </div>

@@ -7,7 +7,7 @@
 
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Edit, Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 interface User {
   id: string
@@ -57,31 +57,6 @@ export function EditUserDialog({
     gardenAccess: [] as string[]
   })
 
-  const loadUserGardenAccess = useCallback(async (userId: string) => {
-    try {
-      const supabase = getSupabaseClient();
-      const { data: accessData, error } = await supabase
-        .from('user_garden_access')
-        .select('garden_id')
-        .eq('user_id', userId)
-      
-      if (!error && accessData) {
-        const currentGardenAccess = accessData.map(row => row.garden_id)
-        setEditForm(prev => ({
-          ...prev,
-          gardenAccess: currentGardenAccess
-        }))
-      }
-    } catch (error) {
-      // Console logging removed for banking standards.error('Error loading user garden access:', error)
-      toast({
-        title: "Waarschuwing",
-        description: "Kon huidige tuin toegang niet laden",
-        variant: "destructive"
-      })
-    }
-  }, [toast])
-
   // Load user data when dialog opens
   useEffect(() => {
     if (user && isOpen) {
@@ -96,7 +71,31 @@ export function EditUserDialog({
         loadUserGardenAccess(user.id)
       }
     }
-  }, [user, isOpen, loadUserGardenAccess])
+  }, [user, isOpen])
+
+  const loadUserGardenAccess = async (userId: string) => {
+    try {
+      const { data: accessData, error } = await supabase
+        .from('user_garden_access')
+        .select('garden_id')
+        .eq('user_id', userId)
+      
+      if (!error && accessData) {
+        const currentGardenAccess = accessData.map(row => row.garden_id)
+        setEditForm(prev => ({
+          ...prev,
+          gardenAccess: currentGardenAccess
+        }))
+      }
+    } catch (error) {
+      console.error('Error loading user garden access:', error)
+      toast({
+        title: "Waarschuwing",
+        description: "Kon huidige tuin toegang niet laden",
+        variant: "destructive"
+      })
+    }
+  }
 
   const handleClose = () => {
     if (!editing) {
@@ -145,12 +144,11 @@ export function EditUserDialog({
       onUserUpdated()
       onClose()
       
-    } catch (error: unknown) {
-      // Console logging removed for banking standards.error('Error updating user:', error)
-      const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet bijwerken"
+    } catch (error: any) {
+      console.error('Error updating user:', error)
       toast({
         title: "Bijwerken mislukt",
-        description: errorMessage,
+        description: error.message || "Kon gebruiker niet bijwerken",
         variant: "destructive"
       })
     } finally {

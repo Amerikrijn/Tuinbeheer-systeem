@@ -1,94 +1,118 @@
+/**
+ * SECURITY UTILITIES FOR GARDEN ACCESS CONTROL
+ * 
+ * These utilities ensure that users can NEVER access data from gardens
+ * they don't have permission for. This is a critical security layer.
+ */
+
 export interface User {
   id: string
   email: string
-  role: 'user' | 'admin'
-  garden_access?: string[] | null
+  role: 'admin' | 'user'
+  garden_access: string[]
 }
 
-export function validateGardenAccess(user: User | null | undefined, gardenId: string): boolean {
+/**
+ * Validates if a user has access to a specific garden
+ * SECURITY: This is a critical function - never allow bypass
+ */
+export function validateGardenAccess(user: User | null, gardenId: string): boolean {
   if (!user) {
     console.error('🚨 SECURITY VIOLATION: validateGardenAccess called without user')
     return false
   }
 
+  // Admin has access to all gardens
   if (user.role === 'admin') {
     console.log('✅ SECURITY: Admin access granted for garden:', gardenId)
     return true
   }
 
-  const access = user.garden_access
-  if (!access || !access.includes(gardenId)) {
+  // Check if user has specific access to this garden
+  const hasAccess = user.garden_access?.includes(gardenId) || false
+  
+  if (!hasAccess) {
     console.error('🚨 SECURITY VIOLATION: User attempted to access unauthorized garden:', {
       user: user.email,
       requestedGarden: gardenId,
-      allowedGardens: access ?? undefined,
+      allowedGardens: user.garden_access
     })
-    return false
+  } else {
+    console.log('✅ SECURITY: User access granted for garden:', { user: user.email, garden: gardenId })
   }
 
-  console.log('✅ SECURITY: User access granted for garden:', {
-    user: user.email,
-    garden: gardenId,
-  })
-  return true
+  return hasAccess
 }
 
-export function validateMultipleGardenAccess(user: User | null | undefined, gardenIds: string[]): boolean {
+/**
+ * Validates if a user has access to multiple gardens
+ * SECURITY: All gardens must be accessible or function returns false
+ */
+export function validateMultipleGardenAccess(user: User | null, gardenIds: string[]): boolean {
   if (!user) {
     console.error('🚨 SECURITY VIOLATION: validateMultipleGardenAccess called without user')
     return false
   }
 
+  // Admin has access to all gardens
   if (user.role === 'admin') {
     return true
   }
 
-  const access = user.garden_access || []
-  const unauthorized = gardenIds.filter((id) => !access.includes(id))
-  if (unauthorized.length > 0) {
-    console.error('🚨 SECURITY VIOLATION: User attempted to access unauthorized gardens:', {
-      user: user.email,
-      requestedGardens: gardenIds,
-      unauthorizedGardens: unauthorized,
-      allowedGardens: access,
-    })
-    return false
+  // Check each garden individually
+  for (const gardenId of gardenIds) {
+    if (!validateGardenAccess(user, gardenId)) {
+      return false
+    }
   }
 
   return true
 }
 
-export function filterAccessibleGardens(user: User | null | undefined, gardenIds: string[]): string[] {
+/**
+ * Filters garden IDs to only those the user has access to
+ * SECURITY: Returns empty array if user has no access
+ */
+export function filterAccessibleGardens(user: User | null, gardenIds: string[]): string[] {
   if (!user) {
     console.error('🚨 SECURITY VIOLATION: filterAccessibleGardens called without user')
     return []
   }
 
+  // Admin has access to all gardens
   if (user.role === 'admin') {
     return gardenIds
   }
 
-  const access = user.garden_access || []
-  const accessible = gardenIds.filter((id) => access.includes(id))
+  // Filter to only accessible gardens
+  const accessibleGardens = gardenIds.filter(gardenId => 
+    user.garden_access?.includes(gardenId) || false
+  )
+
   console.log('🔍 SECURITY: Filtered gardens for user:', {
     user: user.email,
     requested: gardenIds,
-    accessible,
-    userAccess: access,
+    accessible: accessibleGardens,
+    userAccess: user.garden_access
   })
-  return accessible
+
+  return accessibleGardens
 }
 
-export function getUserAccessibleGardens(user: User | null | undefined): string[] {
+/**
+ * Gets all gardens a user has access to
+ * SECURITY: Returns empty array for users with no access (not null/undefined)
+ */
+export function getUserAccessibleGardens(user: User | null): string[] {
   if (!user) {
     console.warn('⚠️ SECURITY: getUserAccessibleGardens called without user')
     return []
   }
 
   if (user.role === 'admin') {
+    // For admin, return empty array which means "all gardens" in our system
     return []
   }
 
   return user.garden_access || []
 }
-

@@ -17,14 +17,14 @@ import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds, getPlantBed } from "@/lib/database"
 import { uploadImage, type UploadResult } from "@/lib/storage"
 import { uiLogger } from "@/lib/logger"
-import type { LogbookEntryFormData, Plant, PlantvakWithPlants } from "@/lib/types/index"
+import type { LogbookEntryFormData, Plantvak, Bloem, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
 
 interface NewLogbookPageState {
-  plantBeds: PlantvakWithPlants[]
-  plants: Plant[]
+  plantBeds: PlantvakWithBloemen[]
+  plants: Bloem[]
   loading: boolean
   submitting: boolean
   uploadingPhoto: boolean
@@ -62,10 +62,10 @@ function NewLogbookPageContent() {
       setState(prev => ({ ...prev, loading: true, error: null }))
       
       // Load plant beds
-      const plantBeds = await getPlantBeds(gardenId)
+      const plantBeds = await getPlantBeds()
 
       // Load plants if a plant bed is selected
-      let plants: Plant[] = []
+      let plants: Bloem[] = []
       if (state.formData.plant_bed_id) {
         const plantBedWithPlants = await getPlantBed(state.formData.plant_bed_id)
         if (plantBedWithPlants && plantBedWithPlants.plants) {
@@ -119,7 +119,7 @@ function NewLogbookPageContent() {
   // Initial load
   React.useEffect(() => {
     loadData()
-  }, [loadData])
+  }, [])
 
   // Load plants when plant bed ID changes
   React.useEffect(() => {
@@ -210,10 +210,7 @@ function NewLogbookPageContent() {
       })
 
     } catch (error) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        // Console logging removed for banking standards.error('Photo upload error:', error)
-      }
+      console.error('Photo upload error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo'
       setState(prev => ({ ...prev, uploadingPhoto: false }))
       

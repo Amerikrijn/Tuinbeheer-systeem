@@ -1,9 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { useParams } from "next/navigation"
-import { useNavigation } from "@/hooks/use-navigation"
-import { useViewPreference } from "@/hooks/use-view-preference"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -56,14 +54,14 @@ interface PlantBedPosition {
 }
 
 export default function GardenDetailPage() {
-  const { goBack, navigateTo } = useNavigation()
-  const { isVisualView, toggleView, isInitialized } = useViewPreference()
+  const router = useRouter()
   const params = useParams()
   // toast removed - no more notifications
   const [garden, setGarden] = useState<Garden | null>(null)
   const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])
   const [loading, setLoading] = useState(true)
   const [scale, setScale] = useState(1)
+  const [showVisualView, setShowVisualView] = useState(true)
   const [selectedBed, setSelectedBed] = useState<string | null>(null)
   
   // Enhanced drag state for better plant bed editing
@@ -166,7 +164,7 @@ export default function GardenDetailPage() {
         }
         
         // Process plant beds to ensure they have correct visual dimensions
-        const processedBeds = await Promise.all(plantBedsData.map(async (bed: any) => {
+        const processedBeds = await Promise.all(plantBedsData.map(async bed => {
           let visualWidth = bed.visual_width
           let visualHeight = bed.visual_height
           
@@ -458,8 +456,8 @@ export default function GardenDetailPage() {
     setIsDragMode(false)
     setSelectedBed(null)
     
-    navigateTo(`/gardens/${garden?.id}/plantvak-view/${bedId}`)
-  }, [navigateTo, garden])
+    router.push(`/gardens/${garden?.id}/plantvak-view/${bedId}`)
+  }, [router, garden])
 
   // Handle drag move - unified for mouse and touch with improved boundaries
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
@@ -520,7 +518,7 @@ export default function GardenDetailPage() {
           name: flowerType.name,
           color: flowerType.color,
           emoji: flowerType.emoji,
-          status: 'gezond' as const,
+          status: 'healthy' as const,
           position_x: 0, // Will be positioned by FlowerVisualization
           position_y: 0,
           visual_width: 24,
@@ -874,7 +872,11 @@ export default function GardenDetailPage() {
         soil_type: newPlantBed.soil_type,
       })
 
+      // Generate a unique ID for the plant bed (max 10 chars)
+      const plantBedId = `${Date.now().toString(36).slice(-4)}${Math.random().toString(36).substr(2, 4)}`
+      
       const plantBed = await createPlantBed({
+        id: plantBedId,
         garden_id: garden.id,
         name: newPlantBed.name,
         size: sizeString,
@@ -987,7 +989,7 @@ export default function GardenDetailPage() {
           <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
           <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
-          <Button onClick={() => navigateTo("/gardens")} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={() => router.push("/gardens")} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar Tuinen
           </Button>
@@ -997,54 +999,54 @@ export default function GardenDetailPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-4">
-      {/* Compact Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div className="flex items-center gap-3">
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
-            onClick={goBack}
-            className="flex items-center gap-1 px-2"
+            onClick={() => router.push("/gardens")}
+            className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
             Terug
           </Button>
           <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <TreePine className="h-6 w-6 text-green-600" />
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <TreePine className="h-8 w-8 text-green-600" />
               {garden.name}
             </h1>
             {(garden.total_area || (garden.length && garden.width)) && (
-              <p className="text-xs text-gray-600">
-                {garden.length}m × {garden.width}m • {garden.total_area || 
-                  (garden.length && garden.width && 
-                    `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
-                  )
-                }
+              <p className="text-gray-600">
+                <span className="text-sm font-medium text-green-600">
+                  • Afmetingen: {garden.length}m × {garden.width}m • Oppervlakte: {garden.total_area || 
+                    (garden.length && garden.width && 
+                      `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
+                    )
+                  }
+                </span>
               </p>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => setIsEditingGarden(true)}
-            className="px-2"
           >
-            <Edit className="h-4 w-4 mr-1" />
-            Bewerken
+            <Edit className="h-4 w-4 mr-2" />
+            Tuin Bewerken
           </Button>
           
           <Button
-            variant={isVisualView ? "default" : "outline"}
+            variant={showVisualView ? "default" : "outline"}
             size="sm"
-            onClick={toggleView}
-            className="px-2"
+            onClick={() => setShowVisualView(!showVisualView)}
           >
-            <Grid3X3 className="h-4 w-4 mr-1" />
-            {isVisualView ? "Lijst" : "Visueel"}
+            <Grid3X3 className="h-4 w-4 mr-2" />
+            {showVisualView ? "Lijst Weergave" : "Visuele Weergave"}
           </Button>
           
           <Dialog open={isAddingPlantBed} onOpenChange={(open) => {
@@ -1062,9 +1064,9 @@ export default function GardenDetailPage() {
             setIsAddingPlantBed(open)
           }}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="px-2">
-                <Plus className="h-4 w-4 mr-1" />
-                Toevoegen
+              <Button variant="outline" size="sm">
+                <Plus className="h-4 w-4 mr-2" />
+                Plantvak Toevoegen
               </Button>
             </DialogTrigger>
             <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
@@ -1191,7 +1193,7 @@ export default function GardenDetailPage() {
         </div>
       </div>
 
-      {isVisualView ? (
+      {showVisualView ? (
         /* Visual Garden Layout */
         <Card>
           <CardHeader>
@@ -1269,6 +1271,9 @@ export default function GardenDetailPage() {
                     bedWidth = dims.width
                     bedHeight = dims.height
                     
+                    console.log(`🎯 RENDERING ${bed.name}: ${bed.size} -> ${bedWidth}px x ${bedHeight}px (stored: ${bed.visual_width}x${bed.visual_height})`)
+                  } else {
+                    console.log("⚠️ Plantvak zonder size:", bed.name, "using default 2x2m")
                   }
 
                   return (
@@ -1300,16 +1305,17 @@ export default function GardenDetailPage() {
                         onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                         onClick={(e) => handlePlantBedClick(e, bed.id)}
                       >
-                        <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 ${
-                          isSelected ? 'bg-blue-100 border-blue-300' : ''
-                        }`}>
-                          {/* Top corner elements */}
-                          <div className="flex items-start justify-between">
-                            {bed.sun_exposure && (
-                              <div className="bg-white/90 p-1 rounded shadow-sm">
-                                {getSunExposureIcon(bed.sun_exposure)}
-                              </div>
-                            )}
+                      <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 ${
+                        isSelected ? 'bg-blue-100 border-blue-300' : ''
+                      }`}>
+                        {/* Top corner elements - positioned absolutely to not take space */}
+                        <div className="absolute top-2 left-2 right-2 flex items-start justify-between z-10 pointer-events-none">
+                          {bed.sun_exposure && (
+                            <div className="bg-white/90 p-1 rounded shadow-sm pointer-events-auto">
+                              {getSunExposureIcon(bed.sun_exposure)}
+                            </div>
+                          )}
+                          <div className="flex gap-2">
                             {isDragging && (
                               <div className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded shadow-sm animate-bounce">
                                 🖱️ Verplaatsen
@@ -1321,105 +1327,122 @@ export default function GardenDetailPage() {
                               </div>
                             )}
                           </div>
+                        </div>
 
-                          {/* Main area for plants/flowers - full height for flowers */}
-                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden border-2 border-dashed border-gray-300 rounded-lg bg-gradient-to-br from-green-25 to-green-50">
-                            {/* Plantvak visual indicator */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent pointer-events-none"></div>
-                            
-                            {/* Flower Visualization System */}
-                            <FlowerVisualization 
-                              plantBed={bed}
-                              plants={bed.plants}
-                              containerWidth={bedWidth}
-                              containerHeight={bedHeight}
-                            />
-                            {bed.plants.length === 0 && (
-                              <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
-                                🌱 Leeg plantvak
-                              </div>
-                            )}
-                            
-                            {/* Corner decorations to emphasize the plant bed area */}
-                            <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none"></div>
-                            <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none"></div>
-                            <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none"></div>
-                            <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none"></div>
-                          </div>
-
-
+                        {/* Main area for plants/flowers - full container for flowers */}
+                        <div className="w-full h-full flex items-center justify-center relative overflow-hidden border-2 border-dashed border-gray-300 rounded-lg bg-gradient-to-br from-green-25 to-green-50">
+                          {/* Plantvak visual indicator */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent pointer-events-none"></div>
                           
-                          {isSelected && (
-                            <>
-                              <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
-                                Geselecteerd
-                              </div>
-                              {/* Rotation handle - improved */}
-                              <div
-                                className="absolute -top-2 -left-2 w-8 h-8 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center cursor-grab text-sm font-bold shadow-xl border-2 border-white z-20"
-                                onMouseDown={(e) => {
-                                  e.stopPropagation()
-                                  e.preventDefault()
-                                  if (!canvasRef.current) return
-                                  
-                                  const canvas = canvasRef.current
-                                  const rect = canvas.getBoundingClientRect()
-                                  const mouseX = (e.clientX - rect.left) / scale
-                                  const mouseY = (e.clientY - rect.top) / scale
-                                  
-                                  const bedWidth = bed.visual_width || metersToPixels(2)
-                                  const bedHeight = bed.visual_height || metersToPixels(2)
-                                  const centerX = (bed.position_x || 100) + bedWidth / 2
-                                  const centerY = (bed.position_y || 100) + bedHeight / 2
-                                  
-                                  const startAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
-                                  setRotationStartAngle(startAngle)
-                                  setRotatingBed(bed.id)
-                                  setIsRotateMode(true)
-                                  
-                                  // Stop any dragging when rotating
-                                  setDraggedBed(null)
-                                  setIsDragMode(false)
-                                }}
-                                onTouchStart={(e) => {
-                                  e.stopPropagation()
-                                  e.preventDefault()
-                                  if (!canvasRef.current) return
-                                  
-                                  const touch = e.touches[0]
-                                  const canvas = canvasRef.current
-                                  const rect = canvas.getBoundingClientRect()
-                                  const touchX = (touch.clientX - rect.left) / scale
-                                  const touchY = (touch.clientY - rect.top) / scale
-                                  
-                                  const bedWidth = bed.visual_width || metersToPixels(2)
-                                  const bedHeight = bed.visual_height || metersToPixels(2)
-                                  const centerX = (bed.position_x || 100) + bedWidth / 2
-                                  const centerY = (bed.position_y || 100) + bedHeight / 2
-                                  
-                                  const startAngle = calculateAngle(centerX, centerY, touchX, touchY)
-                                  setRotationStartAngle(startAngle)
-                                  setRotatingBed(bed.id)
-                                  setIsRotateMode(true)
-                                  
-                                  // Stop any dragging when rotating
-                                  setDraggedBed(null)
-                                  setIsDragMode(false)
-                                }}
-                              >
-                                🔄
-                              </div>
-                            </>
+                          {/* Flower Visualization System - now uses full container */}
+                          <FlowerVisualization 
+                            plantBed={bed}
+                            plants={bed.plants}
+                            containerWidth={bedWidth}
+                            containerHeight={bedHeight}
+                          />
+                          {bed.plants.length === 0 && (
+                            <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
+                              🌱 Leeg plantvak
+                            </div>
                           )}
-                          <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
+                          
+                          {/* Corner decorations to emphasize the plant bed area */}
+                          <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none"></div>
+                          <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none"></div>
+                          <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none"></div>
+                          <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none"></div>
                         </div>
                         
-                        {/* Plantvak info onder het vak */}
-                        <div className="mt-1 text-center">
-                          <div className="text-xs text-gray-600 font-medium">{bed.name}</div>
-                          <div className="text-xs text-gray-500">
-                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {bed.plants.length} 🌸
-                          </div>
+                        {isSelected && (
+                          <>
+                            <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
+                              Geselecteerd
+                            </div>
+                            {/* Rotation handle - improved */}
+                            <div
+                              className="absolute -top-2 -left-2 w-8 h-8 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center cursor-grab text-sm font-bold shadow-xl border-2 border-white z-20"
+                              onMouseDown={(e) => {
+                                e.stopPropagation()
+                                e.preventDefault()
+                                if (!canvasRef.current) return
+                                
+                                const canvas = canvasRef.current
+                                const rect = canvas.getBoundingClientRect()
+                                const mouseX = (e.clientX - rect.left) / scale
+                                const mouseY = (e.clientY - rect.top) / scale
+                                
+                                const bedWidth = bed.visual_width || metersToPixels(2)
+                                const bedHeight = bed.visual_height || metersToPixels(2)
+                                const centerX = (bed.position_x || 100) + bedWidth / 2
+                                const centerY = (bed.position_y || 100) + bedHeight / 2
+                                
+                                const startAngle = calculateAngle(centerX, centerY, mouseX, mouseY)
+                                setRotationStartAngle(startAngle)
+                                setRotatingBed(bed.id)
+                                setIsRotateMode(true)
+                                
+                                // Stop any dragging when rotating
+                                setDraggedBed(null)
+                                setIsDragMode(false)
+                              }}
+                              onTouchStart={(e) => {
+                                e.stopPropagation()
+                                e.preventDefault()
+                                if (!canvasRef.current) return
+                                
+                                const touch = e.touches[0]
+                                const canvas = canvasRef.current
+                                const rect = canvas.getBoundingClientRect()
+                                const touchX = (touch.clientX - rect.left) / scale
+                                const touchY = (touch.clientY - rect.top) / scale
+                                
+                                const bedWidth = bed.visual_width || metersToPixels(2)
+                                const bedHeight = bed.visual_height || metersToPixels(2)
+                                const centerX = (bed.position_x || 100) + bedWidth / 2
+                                const centerY = (bed.position_y || 100) + bedHeight / 2
+                                
+                                const startAngle = calculateAngle(centerX, centerY, touchX, touchY)
+                                setRotationStartAngle(startAngle)
+                                setRotatingBed(bed.id)
+                                setIsRotateMode(true)
+                                
+                                // Stop any dragging when rotating
+                                setDraggedBed(null)
+                                setIsDragMode(false)
+                              }}
+                            >
+                              🔄
+                            </div>
+                          </>
+                        )}
+                        <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
+                      </div>
+                      
+                      {/* Plantvak informatie onder het plantvak */}
+                      <div 
+                        className="mt-2 bg-white/95 rounded-lg p-2 shadow-md border border-gray-300 space-y-1 backdrop-blur-sm"
+                        style={{
+                          width: bedWidth,
+                          transform: `rotate(${bed.rotation || 0}deg)`,
+                          transformOrigin: 'center top',
+                        }}
+                      >
+                        {/* Plant bed name */}
+                        <div className="text-sm font-bold text-gray-900 truncate flex items-center gap-2">
+                          <span className="w-3 h-3 rounded-full bg-green-500"></span>
+                          {bed.name}
+                        </div>
+                        
+                        {/* Dimensions and plant count */}
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-gray-700 font-semibold bg-gray-100 px-2 py-1 rounded">
+                            📏 {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`}
+                          </span>
+                          <span className="text-gray-600 flex items-center gap-1 bg-green-50 px-2 py-1 rounded font-medium">
+                            <span>🌸</span>
+                            <span>{bed.plants.length}</span>
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1444,6 +1467,7 @@ export default function GardenDetailPage() {
                   </div>
                 )}
               </div>
+            </div>
             </div>
             <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
               <p>💡 <strong>Tip:</strong> Selecteer plantvak → oranje handvat slepen = roteren</p>
@@ -1520,42 +1544,6 @@ export default function GardenDetailPage() {
                           {bed.plants.length} bloemen
                         </div>
                       </div>
-                      
-                      {/* Flower preview in plant bed list */}
-                      {bed.plants.length > 0 && (
-                        <div className="mt-2">
-                          <div className="flex flex-wrap gap-1">
-                            {bed.plants.slice(0, 4).map((flower, index) => (
-                              <div
-                                key={`${flower.id}-${index}`}
-                                className="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-1"
-                                title={`${flower.name}${flower.color ? ` - ${flower.color}` : ''}`}
-                              >
-                                <span className="text-sm">
-                                  {flower.emoji || '🌸'}
-                                </span>
-                                <span className="text-xs font-medium text-purple-800 truncate max-w-20">
-                                  {flower.name}
-                                </span>
-                                {flower.color && (
-                                  <div
-                                    className="w-2 h-2 rounded-full border border-gray-300 ml-1"
-                                    style={{ backgroundColor: flower.color }}
-                                    title={flower.color}
-                                  />
-                                )}
-                              </div>
-                            ))}
-                            {bed.plants.length > 4 && (
-                              <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
-                                <span className="text-xs text-gray-600">
-                                  +{bed.plants.length - 4}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </div>
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
                       {bed.plants.length > 0 ? 'Beplant' : 'Leeg'}
@@ -1748,141 +1736,6 @@ export default function GardenDetailPage() {
               disabled={!gardenForm.name || !gardenForm.length || !gardenForm.width}
             >
               Opslaan
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Plant Bed Dialog */}
-      <Dialog open={isAddingPlantBed} onOpenChange={setIsAddingPlantBed}>
-        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>🌱 Nieuw Plantvak Toevoegen</DialogTitle>
-            <DialogDescription>
-              Voeg een nieuw plantvak toe aan je tuin.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="plantvak-name" className="block text-sm font-medium text-gray-700 mb-1">
-                Plantvak Naam *
-              </label>
-              <Input
-                id="plantvak-name"
-                value={newPlantBed.name}
-                onChange={(e) => setNewPlantBed(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Bijv. Voortuin, Kruidentuin"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="plantvak-length" className="block text-sm font-medium text-gray-700 mb-1">
-                  Lengte (m) *
-                </label>
-                <Input
-                  id="plantvak-length"
-                  type="number"
-                  step="0.1"
-                  min="0.5"
-                  value={newPlantBed.length}
-                  onChange={(e) => setNewPlantBed(prev => ({ ...prev, length: e.target.value }))}
-                  placeholder="2.0"
-                />
-              </div>
-              <div>
-                <label htmlFor="plantvak-width" className="block text-sm font-medium text-gray-700 mb-1">
-                  Breedte (m) *
-                </label>
-                <Input
-                  id="plantvak-width"
-                  type="number"
-                  step="0.1"
-                  min="0.5"
-                  value={newPlantBed.width}
-                  onChange={(e) => setNewPlantBed(prev => ({ ...prev, width: e.target.value }))}
-                  placeholder="1.0"
-                />
-              </div>
-            </div>
-
-            {newPlantBed.length && newPlantBed.width && (
-              <div className="text-sm text-green-600 font-medium">
-                📐 Oppervlakte: {(parseFloat(newPlantBed.length) * parseFloat(newPlantBed.width)).toFixed(1)} m²
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="plantvak-sun" className="block text-sm font-medium text-gray-700 mb-1">
-                Zonligging
-              </label>
-              <Select value={newPlantBed.sun_exposure} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
-                setNewPlantBed(prev => ({ ...prev, sun_exposure: value }))
-              }>
-                <SelectTrigger>
-                  <SelectValue placeholder="Kies zonligging" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full-sun">
-                    <div className="flex items-center gap-2">
-                      <Sun className="h-4 w-4 text-yellow-500" />
-                      <span>Volle zon</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="partial-sun">
-                    <div className="flex items-center gap-2">
-                      <CloudSun className="h-4 w-4 text-yellow-400" />
-                      <span>Gedeeltelijke zon</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="shade">
-                    <div className="flex items-center gap-2">
-                      <Cloud className="h-4 w-4 text-gray-500" />
-                      <span>Schaduw</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label htmlFor="plantvak-description" className="block text-sm font-medium text-gray-700 mb-1">
-                Beschrijving (optioneel)
-              </label>
-              <Textarea
-                id="plantvak-description"
-                value={newPlantBed.description}
-                onChange={(e) => setNewPlantBed(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Beschrijf dit plantvak..."
-                rows={3}
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end space-x-2 mt-6">
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsAddingPlantBed(false)
-                setNewPlantBed({
-                  name: '',
-                  length: '',
-                  width: '',
-                  description: '',
-                  sun_exposure: 'full-sun',
-                  soil_type: ''
-                })
-              }}
-            >
-              Annuleren
-            </Button>
-            <Button
-              onClick={addPlantBed}
-              disabled={!newPlantBed.name || !newPlantBed.length || !newPlantBed.width}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Plantvak Toevoegen
             </Button>
           </div>
         </DialogContent>

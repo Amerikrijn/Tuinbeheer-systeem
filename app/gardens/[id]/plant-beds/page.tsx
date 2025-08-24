@@ -8,8 +8,10 @@ import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, TreePine, Plus, Search, Eye, Leaf, Sun, MapPin, Grid3X3, BookOpen } from "lucide-react"
-import { getGarden, getPlantBedsWithPlants } from "@/lib/database"
+import { getGarden, getPlantBeds } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 
@@ -29,12 +31,12 @@ export default function PlantBedsPage() {
         setLoading(true)
         const [gardenData, plantBedsData] = await Promise.all([
           getGarden(params.id as string),
-          getPlantBedsWithPlants(params.id as string),
+          getPlantBeds(params.id as string),
         ])
         setGarden(gardenData)
         setPlantBeds(plantBedsData)
       } catch (error) {
-        // Console logging removed for banking standards.error("Error loading data:", error)
+        console.error("Error loading data:", error)
         toast({
           title: "Fout",
           description: "Kon gegevens niet laden.",
@@ -188,7 +190,7 @@ export default function PlantBedsPage() {
                           )}
                         </div>
                       </div>
-                      <div className={`w-3 h-3 rounded-full border-2 ${(bed.plants?.length ?? 0) > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 shadow-gray-200'}`}></div>
+                      <div className={`w-3 h-3 rounded-full border-2 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 shadow-gray-200'}`}></div>
                     </div>
                     
                     <div className="space-y-2 text-sm text-gray-600 mb-4">
@@ -199,8 +201,8 @@ export default function PlantBedsPage() {
                         </div>
                       )}
                       <div className="flex justify-between">
-                        <span>Planten:</span>
-                        <span>{bed.plants?.length ?? 0}</span>
+                        <span>Bloemen:</span>
+                        <span>{bed.plants.length}</span>
                       </div>
                       {bed.soil_type && (
                         <div className="flex justify-between">
@@ -220,15 +222,15 @@ export default function PlantBedsPage() {
                     </div>
 
                     {/* Show flower emojis preview */}
-                    {(bed.plants?.length ?? 0) > 0 && (
+                    {bed.plants.length > 0 && (
                       <div className="flex items-center gap-1 flex-wrap mb-4">
-                        {bed.plants!.slice(0, 6).map((plant: any, index: number) => (
+                        {bed.plants.slice(0, 6).map((plant, index) => (
                           <span key={index} className="text-lg" title={plant.name}>
                             {plant.emoji || '🌸'}
                           </span>
                         ))}
-                        {(bed.plants!.length > 6) && (
-                          <span className="text-xs text-gray-500 ml-1">+{bed.plants!.length - 6}</span>
+                        {bed.plants.length > 6 && (
+                          <span className="text-xs text-gray-500 ml-1">+{bed.plants.length - 6}</span>
                         )}
                       </div>
                     )}
@@ -241,7 +243,7 @@ export default function PlantBedsPage() {
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-gray-900 truncate">{bed.name}</h3>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                          <span>{bed.plants?.length ?? 0} planten</span>
+                          <span>{bed.plants.length} bloemen</span>
                           {bed.size && <span>Grootte: {bed.size}</span>}
                           {bed.sun_exposure && (
                             <div className="flex items-center gap-1">
@@ -250,15 +252,15 @@ export default function PlantBedsPage() {
                             </div>
                           )}
                         </div>
-                        {(bed.plants?.length ?? 0) > 0 && (
+                        {bed.plants.length > 0 && (
                           <div className="flex items-center gap-1 mt-2">
-                            {bed.plants!.slice(0, 4).map((plant: any, index: number) => (
+                            {bed.plants.slice(0, 4).map((plant, index) => (
                               <span key={index} className="text-sm" title={plant.name}>
                                 {plant.emoji || '🌸'}
                               </span>
                             ))}
-                            {(bed.plants!.length > 4) && (
-                              <span className="text-xs text-gray-500 ml-1">+{bed.plants!.length - 4}</span>
+                            {bed.plants.length > 4 && (
+                              <span className="text-xs text-gray-500 ml-1">+{bed.plants.length - 4}</span>
                             )}
                           </div>
                         )}
@@ -273,7 +275,7 @@ export default function PlantBedsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => navigateTo(`/gardens/${garden.id}`)}
+                      onClick={() => navigateTo(`/gardens/${garden.id}/plantvak-view/${bed.id}`)}
                       className="flex-1"
                     >
                       <Eye className="h-4 w-4 mr-1" />
@@ -293,7 +295,7 @@ export default function PlantBedsPage() {
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => navigateTo(`/gardens/${garden.id}`)}
+                      onClick={() => navigateTo(`/gardens/${garden.id}/plantvak-view/${bed.id}`)}
                       className="px-2 h-7"
                     >
                       <Eye className="h-3 w-3" />
@@ -326,6 +328,12 @@ export default function PlantBedsPage() {
           </p>
           {!searchTerm && (
             <div className="flex gap-2 justify-center">
+              <Link href="/plant-beds/new">
+                <Button className="bg-green-600 hover:bg-green-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Plantvak Toevoegen
+                </Button>
+              </Link>
               <Link href={`/gardens/${garden.id}/plant-beds/new`}>
                 <Button className="bg-green-600 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
@@ -351,9 +359,9 @@ export default function PlantBedsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {plantBeds.reduce((sum, bed) => sum + Math.max(1, (bed.plants?.length ?? 0)), 0)}
+                  {plantBeds.reduce((sum, bed) => sum + Math.max(1, bed.plants.length), 0)}
                 </div>
-                <div className="text-sm text-gray-600">Totaal Planten</div>
+                <div className="text-sm text-gray-600">Totaal Bloemen</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-purple-600">

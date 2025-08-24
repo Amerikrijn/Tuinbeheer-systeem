@@ -111,12 +111,11 @@ export function CreateUserDialog({
       onUserCreated(result.user.tempPassword)
       onClose()
       
-    } catch (error: unknown) {
-      // Console logging removed for banking standards.error('Error creating user:', error)
-      const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet aanmaken"
+    } catch (error: any) {
+      console.error('Error creating user:', error)
       toast({
         title: "Aanmaken mislukt",
-        description: errorMessage,
+        description: error.message || "Kon gebruiker niet aanmaken",
         variant: "destructive"
       })
     } finally {

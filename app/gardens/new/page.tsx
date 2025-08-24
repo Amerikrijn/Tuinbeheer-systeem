@@ -150,7 +150,7 @@ export default function NewGardenPage() {
         router.push("/gardens")
       }
     } catch (err) {
-      // Console logging removed for banking standards.error("Supabase createGarden error:", JSON.stringify(err, null, 2))
+      console.error("Supabase createGarden error:", JSON.stringify(err, null, 2))
       toast({
         title: "Fout",
         description: "Er ging iets mis bij het aanmaken van de tuin.",

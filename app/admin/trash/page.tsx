@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { RotateCcw, Trash2, Loader2, AlertTriangle, ArrowLeft } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
@@ -41,7 +41,7 @@ function TrashPageContent() {
       setDeletedUsers(data.deletedUsers || [])
       
     } catch (error) {
-      // Secure error handling for banking standards - no console logging in production
+      console.error('Error loading deleted users:', error)
       toast({
         title: "Fout bij laden",
         description: "Kon verwijderde gebruikers niet laden",
@@ -90,7 +90,7 @@ function TrashPageContent() {
       loadDeletedUsers()
 
     } catch (error: unknown) {
-      // Secure error handling for banking standards - no console logging in production
+      console.error('Error restoring user:', error)
       const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet herstellen"
       toast({
         title: "Herstellen mislukt",
@@ -142,7 +142,7 @@ function TrashPageContent() {
       loadDeletedUsers()
 
     } catch (error: unknown) {
-      // Secure error handling for banking standards - no console logging in production
+      console.error('Error permanently deleting user:', error)
       const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet permanent verwijderen"
       toast({
         title: "Permanent verwijderen mislukt",

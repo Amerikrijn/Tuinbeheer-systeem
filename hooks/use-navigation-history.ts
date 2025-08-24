@@ -14,7 +14,7 @@ export function useNavigationHistory() {
         window.history.back()
         return
       } catch (e) {
-        // Console logging removed for banking standards.log('Browser back navigation failed, using fallback')
+        console.log('Browser back navigation failed, using fallback')
       }
     }
     

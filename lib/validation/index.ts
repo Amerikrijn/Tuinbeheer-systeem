@@ -1,7 +1,7 @@
 import type { 
   TuinFormData, 
   PlantvakFormData, 
-  PlantFormData, 
+  BloemFormData, 
   ValidationError, 
   ValidationResult 
 } from '../types/index'
@@ -42,13 +42,13 @@ const MESSAGES = {
 }
 
 // Validation helper functions
-function isRequired(value: unknown): boolean {
+function isRequired(value: any): boolean {
   if (value === null || value === undefined) return false
   if (typeof value === 'string' && value.trim() === '') return false
   return true
 }
 
-export function validateRequired(value: unknown): boolean {
+export function validateRequired(value: any): boolean {
   return isRequired(value)
 }
 
@@ -85,7 +85,7 @@ function isValidLength(value: string, min?: number, max?: number): boolean {
 
 // Sanitization function
 export function sanitizeInput(
-  input: unknown, 
+  input: any, 
   options: {
     allowedTags?: string[]
     maxLength?: number
@@ -127,7 +127,7 @@ class Validator {
     this.errors.push({ field, message })
   }
 
-  validateRequired(field: string, value: unknown, message?: string): void {
+  validateRequired(field: string, value: any, message?: string): void {
     if (!isRequired(value)) {
       this.addError(field, message || MESSAGES.REQUIRED)
     }
@@ -278,12 +278,12 @@ export function validatePlantvakFormData(data: Partial<PlantvakFormData>): Valid
   const validator = new Validator()
 
   validator.validateString('id', data.id || '', { required: true })
-  // name field validation removed - will be auto-generated based on letter_code
+  validator.validateString('name', data.name || '', { required: true, maxLength: 100 })
   validator.validateString('location', data.location || '', { required: true, maxLength: 200 })
   validator.validateString('size', data.size || '', { required: true })
   validator.validateString('soilType', data.soilType || '', { required: true })
   
-  validator.validateOption('sunExposure', data.sunExposure as string, ['full-sun', 'partial-sun', 'shade'], true)
+  validator.validateOption('sunExposure', data.sunExposure as any, ['full-sun', 'partial-sun', 'shade'], true)
 
   // Validate size format
   if (data.size && !PATTERNS.SIZE_FORMAT.test(data.size)) {
@@ -293,7 +293,7 @@ export function validatePlantvakFormData(data: Partial<PlantvakFormData>): Valid
   return validator.getResult()
 }
 
-export function validatePlantFormData(data: Partial<PlantFormData>): ValidationResult {
+export function validateBloemFormData(data: Partial<BloemFormData>): ValidationResult {
   const validator = new Validator()
 
   // Required fields validation
@@ -362,7 +362,7 @@ export function validatePlantFormData(data: Partial<PlantFormData>): ValidationR
   }
 
   // Status validation
-  validator.validateOption('status', data.status as string, [
+  validator.validateOption('status', data.status as any, [
     'gezond', 'aandacht_nodig', 'ziek', 'dood', 'geoogst'
   ], true)
 

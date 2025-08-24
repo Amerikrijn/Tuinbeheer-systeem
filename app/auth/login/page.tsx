@@ -11,42 +11,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Separator } from '@/components/ui/separator'
 import { TreePine, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { useToast } from '@/hooks/use-toast'
+import { supabase } from '@/lib/supabase'
 import { Suspense } from 'react'
 
 function LoginContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  
-  let auth
-  try {
-    auth = useAuth()
-  } catch (error) {
-    // If auth fails, show a fallback UI
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4">
-        <div className="w-full max-w-md space-y-6 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full">
-              <TreePine className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Tuinbeheer Systeem</h1>
-          <p className="text-gray-600 dark:text-gray-300">Systeem wordt geladen...</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
-            Herlaad pagina
-          </button>
-        </div>
-      </div>
-    )
-  }
-  
-  const { signIn, loading, user, error: authError } = auth
+  const { signIn, loading } = useAuth()
   const { toast } = useToast()
   
   const [formData, setFormData] = useState({
@@ -57,27 +32,6 @@ function LoginContent() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
-
-  // 🚀 AUTO-REDIRECT: Redirect to dashboard when user is logged in
-  useEffect(() => {
-    if (user && !loading) {
-      console.log('🔍 DEBUG: User logged in, redirecting to dashboard:', user.email)
-      router.push('/user-dashboard')
-    }
-  }, [user, loading, router])
-
-  // 🚨 ERROR HANDLING: Show auth errors
-  useEffect(() => {
-    if (authError) {
-      console.log('🔍 DEBUG: Auth error detected:', authError)
-      setError(authError)
-      toast({
-        title: "Inloggen mislukt",
-        description: authError,
-        variant: "destructive"
-      })
-    }
-  }, [authError, toast])
 
   // Handle password change success message
   useEffect(() => {
@@ -142,27 +96,26 @@ function LoginContent() {
     setIsSubmitting(true)
     try {
       await signIn(formData.email, formData.password)
-
+      
+      // 🏦 NEW ARCHITECTURE: Password change is handled by auth provider
+      // If user needs password change, the auth provider will show ForcePasswordChange
+      // No need for manual checks and redirects here
+      
       toast({
         title: "Inloggen gelukt",
         description: "Welkom terug!",
       })
-
-      // Navigate immediately after successful sign-in to avoid hanging UI
-      router.push('/user-dashboard')
+      
+      // Redirect will happen automatically via router or auth provider
+      router.push('/')
       
     } catch (error) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        // Console logging removed for banking standards.error('Login error details:', error)
-      }
+      console.error('Login error details:', error)
       toast({
         title: "Inloggen mislukt",
         description: error instanceof Error ? error.message : 'Er is een fout opgetreden',
         variant: "destructive",
       })
-    } finally {
-      // Always clear the local submitting spinner
       setIsSubmitting(false)
     }
   }
@@ -247,23 +200,13 @@ function LoginContent() {
                 )}
               </div>
 
-              {/* Error Display */}
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
-
               {/* Submit Button */}
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isSubmitting}
+                disabled={isSubmitting || loading}
               >
-                {isSubmitting ? (
+                {isSubmitting || loading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Inloggen...
@@ -304,18 +247,10 @@ export default function LoginPage() {
   return (
     <Suspense 
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-          <div className="w-full max-w-md space-y-6 text-center">
-            <div className="flex justify-center mb-4">
-              <div className="flex items-center justify-center w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full">
-                <TreePine className="w-8 h-8 text-white" />
-              </div>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Tuinbeheer Systeem</h1>
-            <div className="flex items-center justify-center gap-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span className="text-gray-600 dark:text-gray-300">Systeem wordt geladen...</span>
-            </div>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Laden...</span>
           </div>
         </div>
       }

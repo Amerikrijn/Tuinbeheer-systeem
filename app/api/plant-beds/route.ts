@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { apiLogger } from '@/lib/logger';
 
 // Force dynamic rendering since this route handles query parameters
@@ -68,7 +68,6 @@ export async function GET(request: NextRequest) {
     
     const gardenId = request.nextUrl.searchParams.get('garden_id');
 
-    const supabase = getSupabaseClient()
     let query = supabase
       .from('plant_beds')
       .select('*')

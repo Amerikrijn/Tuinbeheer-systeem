@@ -1,4 +1,4 @@
-import { getSupabaseClient } from './supabase'
+import { supabase } from './supabase'
 
 export async function ensureBucketExists(bucket: string = 'plant-images', isPublic: boolean = true): Promise<boolean> {
   try {
@@ -29,7 +29,6 @@ export interface UploadResult {
  */
 export async function uploadImage(file: File, folder: string = 'plants'): Promise<UploadResult> {
   try {
-    const supabase = getSupabaseClient()
     // Validate file type
     if (!file.type.startsWith('image/')) {
       return {
@@ -57,7 +56,7 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
     const filePath = `${folder}/${fileName}`
 
     // Upload file to storage
-    const { error } = await supabase.storage
+    const { data, error } = await supabase.storage
       .from('plant-images')
       .upload(filePath, file, {
         cacheControl: '3600',
@@ -65,7 +64,7 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
       })
 
     if (error) {
-      // Console logging removed for banking standards.error('Storage upload error:', error)
+      console.error('Storage upload error:', error)
       return {
         success: false,
         error: error.message
@@ -81,8 +80,8 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
       success: true,
       url: publicUrl
     }
-  } catch {
-    // Console logging removed for banking standards.error('Upload error:', error)
+  } catch (error) {
+    console.error('Upload error:', error)
     return {
       success: false,
       error: 'Failed to upload image'
@@ -97,7 +96,6 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
  */
 export async function deleteImage(url: string): Promise<boolean> {
   try {
-    const supabase = getSupabaseClient()
     // Extract file path from URL
     const urlParts = url.split('/plant-images/')
     if (urlParts.length < 2) {
@@ -111,13 +109,13 @@ export async function deleteImage(url: string): Promise<boolean> {
       .remove([filePath])
 
     if (error) {
-      // Console logging removed for banking standards.error('Storage delete error:', error)
+      console.error('Storage delete error:', error)
       return false
     }
 
     return true
-  } catch {
-    // Console logging removed for banking standards.error('Delete error:', error)
+  } catch (error) {
+    console.error('Delete error:', error)
     return false
   }
 }

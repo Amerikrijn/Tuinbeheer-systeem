@@ -10,15 +10,16 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Save, Upload, X, Image as ImageIcon } from "lucide-react"
+import { ArrowLeft, Calendar, Save, Upload, X, Image as ImageIcon } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uploadImage, type UploadResult } from "@/lib/storage"
-import type { LogbookEntryWithDetails, PlantvakWithPlants } from "@/lib/types/index"
+import type { LogbookEntryWithDetails, PlantvakWithBloemen } from "@/lib/types/index"
+import { format } from "date-fns"
 
 interface EditLogbookState {
   entry: LogbookEntryWithDetails | null
-  plantBeds: PlantvakWithPlants[]
+  plantBeds: PlantvakWithBloemen[]
   loading: boolean
   saving: boolean
   error: string | null
@@ -86,7 +87,7 @@ export default function EditLogbookPage() {
         setState(prev => ({
           ...prev,
           entry,
-          plantBeds: plantBeds as PlantvakWithPlants[],
+          plantBeds: plantBeds as PlantvakWithBloemen[],
           loading: false,
         }))
 
@@ -189,7 +190,7 @@ export default function EditLogbookPage() {
       })
 
     } catch (error) {
-      // Console logging removed for banking standards.error('Photo upload error:', error)
+      console.error('Photo upload error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo'
       toast({
         title: "Fout bij uploaden",

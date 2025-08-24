@@ -1,9 +1,20 @@
+import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdminClient } from '@/lib/supabase'
+
+// Server-side admin client with service role key
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseAdminClient()
     const { userId, currentPassword, newPassword } = await request.json()
 
     // Validate input
@@ -23,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Banking-compliant: Verify user exists and validate current password
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId)
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)
     
     if (userError || !userData.user) {
       return NextResponse.json(
@@ -36,7 +47,7 @@ export async function POST(request: NextRequest) {
     // No need to verify current password as this is a security-mandated change
 
     // Update password using admin client (more reliable)
-    const { error: updateError } = await supabase.auth.admin.updateUserById(
+    const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
       userId,
       { password: newPassword }
     )
@@ -50,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Clear force_password_change flag using admin client
-    const { error: profileError } = await supabase
+    const { error: profileError } = await supabaseAdmin
       .from('users')
       .update({ 
         force_password_change: false,

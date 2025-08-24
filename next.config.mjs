@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // output: 'standalone', // Commented out for Vercel compatibility
+  output: 'standalone',
   
   typescript: {
     ignoreBuildErrors: true,

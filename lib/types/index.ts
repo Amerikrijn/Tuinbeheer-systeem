@@ -27,8 +27,8 @@ export interface Tuin {
 export interface Plantvak {
   id: string
   garden_id: string
-  name: string // Auto-generated based on letter_code
-  letter_code: string // Required unique letter code (A, B, C, etc.) for plantvak identification
+  name: string
+  letter_code?: string // Unique letter code (A, B, C, etc.) for plantvak identification
   location?: string
   size?: string
   soil_type?: string
@@ -49,7 +49,7 @@ export interface Plantvak {
   visual_updated_at?: string
 }
 
-export interface Plant {
+export interface Bloem {
   id: string
   plant_bed_id: string
   name: string
@@ -103,7 +103,7 @@ export interface LogbookEntryWithDetails extends LogbookEntry {
   plant_scientific_name?: string
   plant_variety?: string
   is_completed_task?: boolean // Flag to identify completed tasks as logbook entries
-  original_task?: Record<string, unknown> // Store the original task data if this is a completed task
+  original_task?: any // Store the original task data if this is a completed task
 }
 
 // Form Data Types
@@ -121,7 +121,7 @@ export interface TuinFormData {
 
 export interface PlantvakFormData {
   id: string
-  // name field removed - will be auto-generated based on letter_code
+  name: string
   location: string
   size: string
   soilType: string
@@ -129,7 +129,7 @@ export interface PlantvakFormData {
   description: string
 }
 
-export interface PlantFormData {
+export interface BloemFormData {
   name: string
   latin_name?: string
   scientific_name?: string
@@ -158,12 +158,12 @@ export interface LogbookEntryFormData {
 }
 
 // Composite Types
-export interface PlantvakWithPlants extends Plantvak {
-  plants: Plant[]
+export interface PlantvakWithBloemen extends Plantvak {
+  plants: Bloem[]
 }
 
 export interface TuinWithPlantvakken extends Tuin {
-  plant_beds: PlantvakWithPlants[]
+  plant_beds: PlantvakWithBloemen[]
 }
 
 // Visual Garden Types
@@ -248,7 +248,7 @@ export interface DatabaseOperation {
   type: 'create' | 'update' | 'delete'
   table: 'gardens' | 'plant_beds' | 'plants' | 'logbook_entries'
   id?: string
-  data?: Record<string, unknown>
+  data?: any
 }
 
 // Task Types
@@ -291,7 +291,7 @@ export interface User {
 }
 
 // Additional Types
-export interface PlantWithPosition extends Plant {
+export interface PlantWithPosition extends Bloem {
   position_x: number
   position_y: number
   visual_width: number
@@ -302,6 +302,8 @@ export interface PlantWithPosition extends Plant {
 // Legacy type aliases for backward compatibility
 export type Garden = Tuin
 export type PlantBed = Plantvak
+export type Plant = Bloem
 export type PlantBedFormData = PlantvakFormData
-export type PlantBedWithPlants = PlantvakWithPlants
+export type PlantFormData = BloemFormData
+export type PlantBedWithPlants = PlantvakWithBloemen
 export type PlantBedPosition = PlantvakPosition

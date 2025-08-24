@@ -8,22 +8,25 @@ import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useViewPreference } from "@/hooks/use-view-preference"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3 } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger, AuditLogger } from "@/lib/logger"
-import type { Tuin, PlantvakWithPlants } from "@/lib/types/index"
+import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/hooks/use-supabase-auth"
 import { ProtectedRoute } from "@/components/auth/protected-route"
-import { getSupabaseClient } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase"
+import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/task-sorting"
 import { WeeklyTaskList } from "@/components/tasks/weekly-task-list"
+import { SimpleTasksView } from "@/components/user/simple-tasks-view"
 import { getUserFriendlyErrorMessage } from "@/lib/errors"
 
 interface HomePageState {
@@ -54,15 +57,8 @@ function HomePageContent() {
     hasMore: false,
   })
 
-  // In-flight guard to prevent concurrent loads
-  const isFetchingRef = React.useRef(false)
-
   // Load gardens with proper error handling and logging (memoized for performance)
   const loadGardens = React.useCallback(async (page = 1, searchTerm = "", append = false) => {
-    if (isFetchingRef.current) {
-      return
-    }
-    isFetchingRef.current = true
     const operationId = `loadGardens-${Date.now()}`
     
     try {
@@ -137,8 +133,6 @@ function HomePageContent() {
         description: getUserFriendlyErrorMessage(errorMessage),
         variant: "destructive",
       })
-    } finally {
-      isFetchingRef.current = false
     }
   }, [toast])
 
@@ -387,9 +381,9 @@ interface GardenCardProps {
 }
 
 function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
-  const [plantBeds, setPlantBeds] = React.useState<PlantvakWithPlants[]>([])
+  const [plantBeds, setPlantBeds] = React.useState<PlantvakWithBloemen[]>([])
   const [loadingFlowers, setLoadingFlowers] = React.useState(true)
-  const [gardenUsers, setGardenUsers] = React.useState<Array<{ id: string; email: string; full_name?: string }>>([])
+  const [gardenUsers, setGardenUsers] = React.useState<any[]>([])
   const [loadingUsers, setLoadingUsers] = React.useState(true)
 
   // Helper function to get emoji based on plant name
@@ -432,7 +426,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
       try {
         setLoadingFlowers(true)
         const beds = await getPlantBeds(garden.id)
-        setPlantBeds(beds as PlantvakWithPlants[])
+        setPlantBeds(beds as PlantvakWithBloemen[])
       } catch (error) {
         uiLogger.error('Error loading flowers for garden preview', error as Error, { gardenId: garden.id })
         setPlantBeds([])
@@ -449,7 +443,6 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
     const loadGardenUsers = async () => {
       try {
         setLoadingUsers(true)
-        const supabase = getSupabaseClient()
         const { data: users, error } = await supabase
           .from('user_garden_access')
           .select(`
@@ -537,9 +530,9 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
           {/* Flower Preview Section */}
           <div className={isListView ? "mb-2" : "mb-4"}>
             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-card-foreground">Planten in deze tuin:</span>
+              <span className="text-sm font-medium text-card-foreground">Bloemen in deze tuin:</span>
               <span className="text-xs text-muted-foreground">
-                                  {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} planten
+                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} bloemen
               </span>
             </div>
             

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { 
   BulkUpdatePositionsRequest, 
   PlantBedWithPosition,
@@ -11,40 +11,90 @@ import {
 // VALIDATION HELPERS
 // ===================================================================
 
-interface BulkPositionData {
-  positions: Array<{
-    id: string;
-    position_x: number;
-    position_y: number;
-    visual_width?: number;
-    visual_height?: number;
-    rotation?: number;
-    z_index?: number;
-    color_code?: string;
-  }>;
-}
-
-function validateBulkPositionRequest(data: BulkPositionData): { isValid: boolean; errors: string[] } {
+function validateBulkPositionRequest(data: any): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
   
-  // Basic validation for performance
-  if (!data.positions?.length || data.positions.length > 100) {
-    errors.push('positions must be an array with 1-100 items');
+  // Check if positions array exists
+  if (!data.positions || !Array.isArray(data.positions)) {
+    errors.push('positions must be an array');
     return { isValid: false, errors };
   }
   
-  // Simplified validation for performance
-  for (const position of data.positions) {
-    if (!position.id || typeof position.position_x !== 'number' || typeof position.position_y !== 'number') {
-      errors.push('Each position must have id, position_x, and position_y');
-      break; // Early exit for performance
+  // Check if array is not empty
+  if (data.positions.length === 0) {
+    errors.push('positions array cannot be empty');
+    return { isValid: false, errors };
+  }
+  
+  // Check if array is not too large
+  if (data.positions.length > 100) {
+    errors.push('positions array cannot have more than 100 items');
+    return { isValid: false, errors };
+  }
+  
+  // Validate each position
+  data.positions.forEach((position: any, index: number) => {
+    const prefix = `positions[${index}]`;
+    
+    // Required fields
+    if (!position.id || typeof position.id !== 'string') {
+      errors.push(`${prefix}.id is required and must be a string`);
     }
     
-    if (position.position_x < 0 || position.position_y < 0) {
-      errors.push('Positions must be non-negative');
-      break;
+    if (typeof position.position_x !== 'number') {
+      errors.push(`${prefix}.position_x must be a number`);
     }
-  }
+    
+    if (typeof position.position_y !== 'number') {
+      errors.push(`${prefix}.position_y must be a number`);
+    }
+    
+    // Range validation
+    if (position.position_x < 0) {
+      errors.push(`${prefix}.position_x must be non-negative`);
+    }
+    
+    if (position.position_y < 0) {
+      errors.push(`${prefix}.position_y must be non-negative`);
+    }
+    
+    // Optional fields validation
+    if (position.visual_width !== undefined) {
+      if (typeof position.visual_width !== 'number' || position.visual_width <= 0) {
+        errors.push(`${prefix}.visual_width must be a positive number`);
+      }
+      if (position.visual_width > VISUAL_GARDEN_CONSTANTS.MAX_PLANT_BED_SIZE) {
+        errors.push(`${prefix}.visual_width cannot exceed ${VISUAL_GARDEN_CONSTANTS.MAX_PLANT_BED_SIZE}`);
+      }
+    }
+    
+    if (position.visual_height !== undefined) {
+      if (typeof position.visual_height !== 'number' || position.visual_height <= 0) {
+        errors.push(`${prefix}.visual_height must be a positive number`);
+      }
+      if (position.visual_height > VISUAL_GARDEN_CONSTANTS.MAX_PLANT_BED_SIZE) {
+        errors.push(`${prefix}.visual_height cannot exceed ${VISUAL_GARDEN_CONSTANTS.MAX_PLANT_BED_SIZE}`);
+      }
+    }
+    
+    if (position.rotation !== undefined) {
+      if (typeof position.rotation !== 'number' || position.rotation < -180 || position.rotation > 180) {
+        errors.push(`${prefix}.rotation must be a number between -180 and 180`);
+      }
+    }
+    
+    if (position.z_index !== undefined) {
+      if (typeof position.z_index !== 'number' || position.z_index < 0) {
+        errors.push(`${prefix}.z_index must be a non-negative number`);
+      }
+    }
+    
+    if (position.color_code !== undefined) {
+      if (typeof position.color_code !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(position.color_code)) {
+        errors.push(`${prefix}.color_code must be a valid hex color (e.g., #22c55e)`);
+      }
+    }
+  });
   
   return { isValid: errors.length === 0, errors };
 }
@@ -67,10 +117,7 @@ async function checkBulkCollisions(
       .eq('garden_id', gardenId);
     
     if (error) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching current plant beds:', error);
-      }
+      console.error('Error fetching current plant beds:', error);
       return { hasCollision: false, conflicts: [] };
     }
     
@@ -86,7 +133,7 @@ async function checkBulkCollisions(
     });
     
     // Update positions with new values
-    positions.forEach((pos: { id: string; position_x: number; position_y: number; visual_width?: number; visual_height?: number }) => {
+    positions.forEach(pos => {
       const currentPos = currentPositions.get(pos.id);
       if (currentPos) {
         currentPositions.set(pos.id, {
@@ -119,10 +166,7 @@ async function checkBulkCollisions(
     return { hasCollision: conflicts.length > 0, conflicts };
     
   } catch (error) {
-    // Log error only in development for security
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Bulk collision check error:', error);
-    }
+    console.error('Bulk collision check error:', error);
     return { hasCollision: false, conflicts: [] };
   }
 }
@@ -146,10 +190,7 @@ async function checkBulkCanvasBoundaries(
       .single();
     
     if (error || !garden) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Error fetching garden:', error);
-      }
+      console.error('Error fetching garden:', error);
       return { allWithinBounds: false, violations: ['Garden not found'] };
     }
     
@@ -157,7 +198,7 @@ async function checkBulkCanvasBoundaries(
     const canvasHeight = garden.canvas_height ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_CANVAS_HEIGHT;
     
     // Check each position
-    positions.forEach((pos: { id: string; position_x: number; position_y: number; visual_width?: number; visual_height?: number }) => {
+    positions.forEach(pos => {
       const width = pos.visual_width ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE;
       const height = pos.visual_height ?? VISUAL_GARDEN_CONSTANTS.DEFAULT_PLANT_BED_SIZE;
       
@@ -173,10 +214,7 @@ async function checkBulkCanvasBoundaries(
     return { allWithinBounds: violations.length === 0, violations };
     
   } catch (error) {
-    // Log error only in development for security
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Bulk canvas boundaries check error:', error);
-    }
+    console.error('Bulk canvas boundaries check error:', error);
     return { allWithinBounds: false, violations: ['Canvas boundaries check failed'] };
   }
 }
@@ -209,10 +247,7 @@ export async function GET(
       .order('created_at', { ascending: true });
     
     if (error) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Database error:', error);
-      }
+      console.error('Database error:', error);
       return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
         data: null,
         error: 'Failed to fetch plant beds',
@@ -227,10 +262,7 @@ export async function GET(
     });
     
   } catch (error) {
-    // Log error only in development for security
-    if (process.env.NODE_ENV === 'development') {
-      console.error('GET positions error:', error);
-    }
+    console.error('GET positions error:', error);
     return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
       data: null,
       error: 'Internal server error',
@@ -272,7 +304,7 @@ export async function PUT(
     }
     
     // Verify all plant beds belong to this garden
-    const plantBedIds = body.positions.map((pos) => pos.id);
+    const plantBedIds = body.positions.map((pos: any) => pos.id);
     const { data: existingPlantBeds, error: fetchError } = await supabase
       .from('plant_beds')
       .select('id, garden_id')
@@ -328,16 +360,7 @@ export async function PUT(
     for (let i = 0; i < body.positions.length; i += batchSize) {
       const batch = body.positions.slice(i, i + batchSize);
       
-      for (const position of batch as Array<{
-        id: string;
-        position_x: number;
-        position_y: number;
-        visual_width?: number;
-        visual_height?: number;
-        rotation?: number;
-        z_index?: number;
-        color_code?: string;
-      }>) {
+      for (const position of batch) {
         const updateData = {
           position_x: position.position_x,
           position_y: position.position_y,
@@ -363,10 +386,7 @@ export async function PUT(
           .single();
         
         if (updateError) {
-          // Log error only in development for security
-          if (process.env.NODE_ENV === 'development') {
-            console.error(`Update error for plant bed ${position.id}:`, updateError);
-          }
+          console.error(`Update error for plant bed ${position.id}:`, updateError);
           return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
             data: null,
             error: `Failed to update plant bed ${position.id}`,
@@ -387,10 +407,7 @@ export async function PUT(
     });
     
   } catch (error) {
-    // Log error only in development for security
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Bulk position update error:', error);
-    }
+    console.error('Bulk position update error:', error);
     return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
       data: null,
       error: 'Internal server error',
@@ -432,7 +449,7 @@ export async function PATCH(
     }
     
     // Get current plant bed data
-    const plantBedIds = body.positions.map((pos) => pos.id);
+    const plantBedIds = body.positions.map((pos: any) => pos.id);
     const { data: currentPlantBeds, error: fetchError } = await supabase
       .from('plant_beds')
       .select('*')
@@ -440,10 +457,7 @@ export async function PATCH(
       .eq('garden_id', gardenId);
     
     if (fetchError) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Database fetch error:', fetchError);
-      }
+      console.error('Database fetch error:', fetchError);
       return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
         data: null,
         error: 'Failed to fetch current plant beds',
@@ -468,16 +482,7 @@ export async function PATCH(
     }
     
     // Build complete position data for validation
-    const completePositions = body.positions.map((pos: {
-      id: string;
-      position_x: number;
-      position_y: number;
-      visual_width?: number;
-      visual_height?: number;
-      rotation?: number;
-      z_index?: number;
-      color_code?: string;
-    }) => {
+    const completePositions = body.positions.map((pos: any) => {
       const current = currentDataMap.get(pos.id);
       return {
         id: pos.id,
@@ -514,17 +519,8 @@ export async function PATCH(
     // Perform partial bulk update
     const updatedPlantBeds: PlantBedWithPosition[] = [];
     
-    for (const position of body.positions as Array<{
-      id: string;
-      position_x?: number;
-      position_y?: number;
-      visual_width?: number;
-      visual_height?: number;
-      rotation?: number;
-      z_index?: number;
-      color_code?: string;
-    }>) {
-      const updateData: Record<string, unknown> = {};
+    for (const position of body.positions) {
+      const updateData: any = {};
       
       // Only include fields that are provided
       if (position.position_x !== undefined) updateData.position_x = position.position_x;
@@ -542,17 +538,14 @@ export async function PATCH(
         .select('*')
         .single();
       
-              if (updateError) {
-          // Log error only in development for security
-          if (process.env.NODE_ENV === 'development') {
-            console.error(`Update error for plant bed ${position.id}:`, updateError);
-          }
-          return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
-            data: null,
-            error: `Failed to update plant bed ${position.id}`,
-            success: false
-          }, { status: 500 });
-        }
+      if (updateError) {
+        console.error(`Update error for plant bed ${position.id}:`, updateError);
+        return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
+          data: null,
+          error: `Failed to update plant bed ${position.id}`,
+          success: false
+        }, { status: 500 });
+      }
       
       if (updated) {
         updatedPlantBeds.push(updated as PlantBedWithPosition);
@@ -566,10 +559,7 @@ export async function PATCH(
     });
     
   } catch (error) {
-    // Log error only in development for security
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Bulk partial position update error:', error);
-    }
+    console.error('Bulk partial position update error:', error);
     return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
       data: null,
       error: 'Internal server error',
