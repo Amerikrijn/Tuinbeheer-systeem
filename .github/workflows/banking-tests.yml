@@ -479,12 +479,14 @@ jobs:
           script: |
             const fs = require('fs');
             
-            // Prefer enriched report from our runner
+            // Prefer enriched report from artifacts (runner output)
             let reportContent = '';
-            if (fs.existsSync('test-results/test-report.md')) {
+            if (fs.existsSync('test-artifacts/test-results/test-report.md')) {
+              reportContent = fs.readFileSync('test-artifacts/test-results/test-report.md', 'utf8');
+            } else if (fs.existsSync('test-results/test-report.md')) {
               reportContent = fs.readFileSync('test-results/test-report.md', 'utf8');
-            } else if (fs.existsSync('test-results/detailed-report.md')) {
-              reportContent = fs.readFileSync('test-results/detailed-report.md', 'utf8');
+            } else if (fs.existsSync('test-artifacts/test-results/detailed-report.md')) {
+              reportContent = fs.readFileSync('test-artifacts/test-results/detailed-report.md', 'utf8');
             } else if (fs.existsSync('test-summary.md')) {
               reportContent = fs.readFileSync('test-summary.md', 'utf8');
             } else {
