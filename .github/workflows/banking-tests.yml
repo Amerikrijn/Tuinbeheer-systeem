@@ -479,9 +479,11 @@ jobs:
           script: |
             const fs = require('fs');
             
-            // Try to read the enhanced test report first
+            // Prefer enriched report from our runner
             let reportContent = '';
-            if (fs.existsSync('test-results/detailed-report.md')) {
+            if (fs.existsSync('test-results/test-report.md')) {
+              reportContent = fs.readFileSync('test-results/test-report.md', 'utf8');
+            } else if (fs.existsSync('test-results/detailed-report.md')) {
               reportContent = fs.readFileSync('test-results/detailed-report.md', 'utf8');
             } else if (fs.existsSync('test-summary.md')) {
               reportContent = fs.readFileSync('test-summary.md', 'utf8');
