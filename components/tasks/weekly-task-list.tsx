@@ -63,7 +63,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     setError(null)
     
     try {
-      const { data, error } = await TaskService.getWeeklyCalendar(weekStart, user)
+      const { data, error } = await TaskService.getWeeklyCalendar(weekStart)
       
       if (error) {
         setError(error)

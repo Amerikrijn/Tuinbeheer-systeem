@@ -1,4 +1,5 @@
 import { getSupabaseClient } from '@/lib/supabase'
+import type { WeeklyCalendar, TaskCalendarDay } from '@/lib/types/tasks'
 
 export interface Task {
   id: string
