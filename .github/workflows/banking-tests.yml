@@ -486,6 +486,8 @@ jobs:
             } else if (fs.existsSync('test-results/test-report.md')) {
               // Fallback when artifact aggregation step did not run
               reportContent = fs.readFileSync('test-results/test-report.md', 'utf8');
+            } else if (fs.existsSync('test-artifacts/test-results/detailed-report.md')) {
+              reportContent = fs.readFileSync('test-artifacts/test-results/detailed-report.md', 'utf8');
             } else if (fs.existsSync('test-artifacts/test-results/all-tests.xml')) {
               // As last resort, generate a minimal summary directly from JUnit
               const xml = fs.readFileSync('test-artifacts/test-results/all-tests.xml', 'utf8');
@@ -494,9 +496,6 @@ jobs:
                 const tests = header[1], fails = header[2], errs = header[3], secs = header[4];
                 reportContent = `# 🏦 Traditional Banking System Test Report\n\n**Total Tests**: ${tests}\n**Failed**: ${fails}\n**Errors**: ${errs}\n**Duration**: ${parseFloat(secs).toFixed(2)}s\n\n<!-- TRADITIONAL_BANKING_TEST_REPORT -->`;
               }
-            }
-            } else if (fs.existsSync('test-artifacts/test-results/detailed-report.md')) {
-              reportContent = fs.readFileSync('test-artifacts/test-results/detailed-report.md', 'utf8');
             } else if (fs.existsSync('test-summary.md')) {
               reportContent = fs.readFileSync('test-summary.md', 'utf8');
             } else {
