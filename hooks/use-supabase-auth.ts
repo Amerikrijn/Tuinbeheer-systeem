@@ -302,16 +302,30 @@ export function useSupabaseAuth(): AuthContextType {
       
       const normalizedEmail = email.trim().toLowerCase()
 
-      const signInCall = supabase.auth.signInWithPassword({
-        email: normalizedEmail,
-        password
-      })
-      const signInTimeout = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('LOGIN_TIMEOUT')), 10000)
-      })
+      const attempt = async (timeoutMs: number) => {
+        const signInCall = supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password
+        })
+        const signInTimeout = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('LOGIN_TIMEOUT')), timeoutMs)
+        })
+        return await Promise.race([signInCall, signInTimeout]) as { data: any; error: any }
+      }
 
-      const result = await Promise.race([signInCall, signInTimeout]) as { data: any; error: any }
-      const { data, error } = result
+      let data: any | null = null
+      let error: any | null = null
+
+      // Eerste poging met ruimere timeout
+      try {
+        const res = await attempt(25000)
+        data = res.data; error = res.error
+      } catch (e) {
+        console.warn('⚠️ WARN: First signIn attempt failed:', e)
+        // Tweede poging met nog iets ruimere timeout
+        const res2 = await attempt(35000)
+        data = res2.data; error = res2.error
+      }
       
       const duration = Date.now() - startTime
       console.log('🔍 DEBUG: signInWithPassword completed in', duration, 'ms')
@@ -324,7 +338,7 @@ export function useSupabaseAuth(): AuthContextType {
       
       if (error) {
         console.error('❌ ERROR: SignIn failed:', error)
-        setState(prev => ({ ...prev, loading: false, error: error.message }))
+        setState(prev => ({ ...prev, loading: false, error: error.message || 'Login failed' }))
         return
       }
 
