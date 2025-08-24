@@ -491,6 +491,11 @@ jobs:
               reportContent = '## 🧪 Test Execution Summary\n\n⚠️ Detailed test report not available. Check the workflow logs for more information.';
             }
             
+            const marker = '<!-- TRADITIONAL_BANKING_TEST_REPORT -->';
+            if (!reportContent.includes(marker)) {
+              reportContent += `\n\n${marker}`;
+            }
+            
             // Find existing test report comment and update it, or create new one
             const { data: comments } = await github.rest.issues.listComments({
               issue_number: context.issue.number,
@@ -500,7 +505,7 @@ jobs:
             
             const existingComment = comments.find(comment => 
               comment.user.type === 'Bot' && 
-              (comment.body.includes('PROFESSIONAL TEST REPORT') || comment.body.includes('Test Execution Summary'))
+              comment.body.includes('<!-- TRADITIONAL_BANKING_TEST_REPORT -->')
             );
             
             if (existingComment) {
