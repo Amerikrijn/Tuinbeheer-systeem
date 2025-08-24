@@ -56,39 +56,64 @@ function AdminUsersPageContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [passwordCopied, setPasswordCopied] = useState(false)
 
+  // Helper: fetch with timeout
+  const fetchWithTimeout = async (input: RequestInfo | URL, init?: RequestInit, ms = 10000) => {
+    const controller = new AbortController()
+    const id = setTimeout(() => controller.abort(), ms)
+    try {
+      const res = await fetch(input, { ...init, signal: controller.signal })
+      return res
+    } finally {
+      clearTimeout(id)
+    }
+  }
+
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
       
-      // Load users using API
-      const usersResponse = await fetch('/api/admin/users')
+      // Load users using API with timeout
+      let usersResponse: Response
+      try {
+        usersResponse = await fetchWithTimeout('/api/admin/users', {}, 10000)
+      } catch (err) {
+        toast({
+          title: 'Traag of geen antwoord',
+          description: 'Kon gebruikers niet laden (timeout). Probeer opnieuw.',
+          variant: 'destructive'
+        })
+        setUsers([])
+        return
+      }
+
       if (!usersResponse.ok) {
-        throw new Error('Failed to load users')
+        const maybeJson = await usersResponse.json().catch(() => ({ error: 'Failed to load users' }))
+        throw new Error(maybeJson.error || 'Failed to load users')
       }
       const usersData = await usersResponse.json()
       setUsers(usersData.users || [])
       
-      // Load gardens
-      const supabase = getSupabaseClient()
-      const { data: gardensData, error: gardensError } = await supabase
-        .from('gardens')
-        .select('id, name, description, is_active')
-        .eq('is_active', true)
-        .order('name')
-      
-      if (gardensError) {
-        // Secure error handling for banking standards - no console logging in production
-        setGardens([])
-      } else {
+      // Load gardens with a soft timeout (fallback to empty)
+      try {
+        const supabase = getSupabaseClient()
+        const gardensPromise = supabase
+          .from('gardens')
+          .select('id, name, description, is_active')
+          .eq('is_active', true)
+          .order('name')
+
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('GARDENS_TIMEOUT')), 10000))
+        const { data: gardensData } = (await Promise.race([gardensPromise, timeoutPromise])) as { data: Garden[] }
         setGardens(gardensData || [])
+      } catch (gardensError) {
+        setGardens([])
       }
       
     } catch (error) {
-      // Secure error handling for banking standards - no console logging in production
       toast({
-        title: "Fout bij laden",
-        description: "Kon gebruikers niet laden",
-        variant: "destructive"
+        title: 'Fout bij laden',
+        description: error instanceof Error ? error.message : 'Kon gebruikers niet laden',
+        variant: 'destructive'
       })
     } finally {
       setLoading(false)
@@ -128,19 +153,18 @@ function AdminUsersPageContent() {
       setIsPasswordResetDialogOpen(true)
       
       toast({
-        title: "Wachtwoord gereset",
+        title: 'Wachtwoord gereset',
         description: `Nieuw tijdelijk wachtwoord ingesteld voor ${result.user.fullName}`,
       })
 
       loadData()
       
     } catch (error: unknown) {
-      // Secure error handling for banking standards - no console logging in production
-      const errorMessage = error instanceof Error ? error.message : "Kon wachtwoord niet resetten"
+      const errorMessage = error instanceof Error ? error.message : 'Kon wachtwoord niet resetten'
       toast({
-        title: "Reset mislukt",
+        title: 'Reset mislukt',
         description: errorMessage,
-        variant: "destructive"
+        variant: 'destructive'
       })
     } finally {
       setResetting(false)
@@ -164,19 +188,18 @@ function AdminUsersPageContent() {
       }
 
       toast({
-        title: "Gebruiker verwijderd",
-        description: "Gebruiker is verplaatst naar de prullenbak",
+        title: 'Gebruiker verwijderd',
+        description: 'Gebruiker is verplaatst naar de prullenbak',
       })
 
       loadData()
       
     } catch (error: unknown) {
-      // Secure error handling for banking standards - no console logging in production
-      const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet verwijderen"
+      const errorMessage = error instanceof Error ? error.message : 'Kon gebruiker niet verwijderen'
       toast({
-        title: "Verwijderen mislukt",
+        title: 'Verwijderen mislukt',
         description: errorMessage,
-        variant: "destructive"
+        variant: 'destructive'
       })
     }
   }
