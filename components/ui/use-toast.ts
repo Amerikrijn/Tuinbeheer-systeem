@@ -142,7 +142,7 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
-function toast({ ...props }: Toast): string {
+function toast({ ...props }: Toast): { id: string; update: (props: ToasterToast) => void; dismiss: () => void } {
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -164,7 +164,7 @@ function toast({ ...props }: Toast): string {
     },
   })
 
-  return id
+  return { id, update, dismiss }
 }
 
 function useToast() {
@@ -183,7 +183,7 @@ function useToast() {
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId: toastId as string | undefined }),
+    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
 
