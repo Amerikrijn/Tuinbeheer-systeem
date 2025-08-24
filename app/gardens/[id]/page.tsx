@@ -40,6 +40,7 @@ import {
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { FlowerVisualization } from "@/components/flower-visualization"
+import { useSearchParams } from "next/navigation"
 
 // PlantBedPosition interface removed - not used in simplified version
 
@@ -47,6 +48,7 @@ export default function GardenDetailPage() {
   const { goBack, navigateTo } = useNavigation()
   const { isVisualView, toggleView } = useViewPreference()
   const params = useParams()
+  const searchParams = useSearchParams()
   const [garden, setGarden] = useState<Garden | null>(null)
   const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])
   const [loading, setLoading] = useState(true)
@@ -193,6 +195,12 @@ export default function GardenDetailPage() {
         }))
         
         setPlantBeds(processedBeds)
+
+        // Apply selection from query param if present
+        const initialBedId = searchParams?.get('bedId')
+        if (initialBedId) {
+          setSelectedBed(initialBedId)
+        }
       } catch (error) {
         console.error("Error loading data:", error)
         setGarden(null)
@@ -205,7 +213,7 @@ export default function GardenDetailPage() {
     if (params.id) {
       loadData()
     }
-  }, [params.id])
+  }, [params.id, searchParams])
 
   // Convert dimensions from string (e.g., "2m x 1.5m" or "2 x 1.5") to pixels
   const getDimensionsFromSize = (size: string) => {
@@ -691,7 +699,7 @@ export default function GardenDetailPage() {
                           transformOrigin: 'center center',
                         }}
                         onClick={() => setSelectedBed(bed.id)}
-                        onDoubleClick={() => navigateTo(`/gardens/${garden?.id}/plantvak-view/${bed.id}`)}
+                        onDoubleClick={() => navigateTo(`/gardens/${garden?.id}?bedId=${bed.id}`)}
                       >
                         <div className={`w-full h-full rounded-lg bg-green-50 border border-gray-200 group-hover:bg-green-100 transition-colors relative ${
                           isSelected ? 'bg-blue-100 border-blue-300' : ''

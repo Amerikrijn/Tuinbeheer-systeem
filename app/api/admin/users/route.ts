@@ -3,6 +3,7 @@ import { getSupabaseAdminClient } from '@/lib/supabase'
 
 // Force dynamic rendering since this route handles query parameters
 export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs'
 
 // Secure password generator
 function generateSecurePassword(): string {

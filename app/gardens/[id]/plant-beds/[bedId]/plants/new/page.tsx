@@ -176,7 +176,7 @@ export default function NewPlantPage() {
         description: `Plant "${plantData.name}" is succesvol toegevoegd aan ${plantBed.name}.`,
       })
       
-      router.push(`/gardens/${garden?.id}/plantvak-view/${plantBed.id}`)
+      router.push(`/gardens/${garden?.id}?bedId=${plantBed.id}`)
     } catch (error) {
       // Console logging removed for banking standards.error('Error creating plant:', error)
       toast({
@@ -230,7 +230,7 @@ export default function NewPlantPage() {
     <div className="container mx-auto p-6 max-w-4xl">
       {/* Back button */}
       <Button asChild variant="ghost" className="mb-6">
-        <Link href={`/gardens/${garden.id}/plantvak-view/${plantBed.id}`}>
+        <Link href={`/gardens/${garden.id}?bedId=${plantBed.id}`}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Terug naar plantvak
         </Link>
