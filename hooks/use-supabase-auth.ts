@@ -298,10 +298,20 @@ export function useSupabaseAuth(): AuthContextType {
       const supabase = getSupabase()
       console.log('🔍 DEBUG: Supabase client obtained successfully')
       
+      // Ensure any existing session is fully cleared before attempting a fresh login
+      try {
+        const { data: current } = await supabase.auth.getSession()
+        if (current?.session) {
+          console.log('🔍 DEBUG: Existing session found, signing out before new sign-in')
+          await supabase.auth.signOut()
+        }
+      } catch {}
+      
       console.log('🔍 DEBUG: Calling signInWithPassword...')
       
+      const normalizedEmail = email.trim().toLowerCase()
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalizedEmail,
         password
       })
       
@@ -331,7 +341,7 @@ export function useSupabaseAuth(): AuthContextType {
       // Update state immediately with basic user info and cache it
       const basicUser: User = {
         id: data.user.id,
-        email: data.user.email || '',
+        email: data.user.email || normalizedEmail,
         full_name: data.user.user_metadata?.full_name || 'User',
         role: 'user',
         status: 'active',
@@ -381,8 +391,8 @@ export function useSupabaseAuth(): AuthContextType {
     try {
       clearCachedUserProfile()
       const supabase = getSupabase()
-      supabase.auth.signOut().catch(() => {})
-      console.log('🔍 DEBUG: SignOut process completed (non-blocking)')
+      await supabase.auth.signOut().catch(() => {})
+      console.log('🔍 DEBUG: SignOut process completed (awaited)')
       
     } catch (error) {
       console.error('❌ ERROR: SignOut error:', error)
