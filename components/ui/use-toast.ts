@@ -164,14 +164,10 @@ function toast({ ...props }: Toast): string {
     },
   })
 
-  return {
-    id: id,
-    dismiss,
-    update,
-  }
+  return id
 }
 
-function name(): void {t() {
+function useToast() {
   const [state, setState] = React.useState<State>(memoryState)
 
   React.useEffect(() => {
@@ -182,12 +178,12 @@ function name(): void {t() {
         listeners.splice(index, 1)
       }
     }
-  }, [state])
+  }, [])
 
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
+    dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId: toastId as string | undefined }),
   }
 }
 
