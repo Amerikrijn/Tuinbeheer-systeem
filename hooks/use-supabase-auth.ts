@@ -298,15 +298,6 @@ export function useSupabaseAuth(): AuthContextType {
       const supabase = getSupabase()
       console.log('🔍 DEBUG: Supabase client obtained successfully')
       
-      // Ensure any existing session is fully cleared before attempting a fresh login
-      try {
-        const { data: current } = await supabase.auth.getSession()
-        if (current?.session) {
-          console.log('🔍 DEBUG: Existing session found, signing out before new sign-in')
-          await supabase.auth.signOut()
-        }
-      } catch {}
-      
       console.log('🔍 DEBUG: Calling signInWithPassword...')
       
       const normalizedEmail = email.trim().toLowerCase()
