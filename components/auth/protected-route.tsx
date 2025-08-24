@@ -29,6 +29,18 @@ function ProtectedRouteComponent({
     setMounted(true)
   }, [])
 
+  // Safety redirect: if still loading without user after 2s, go to login
+  useEffect(() => {
+    if (!mounted || redirecting || user) return
+    const timer = setTimeout(() => {
+      if (!user && !redirecting) {
+        setRedirecting(true)
+        router.replace('/auth/login')
+      }
+    }, 2000)
+    return () => clearTimeout(timer)
+  }, [mounted, redirecting, user, router])
+
   useEffect(() => {
     if (!mounted) return
 
