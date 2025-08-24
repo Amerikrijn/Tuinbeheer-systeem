@@ -9,8 +9,7 @@ import { getSupabaseClient } from '@/lib/supabase'
 
 interface LogbookEntry {
   id: string
-  title: string
-  content: string
+  notes: string
   created_at: string
   garden_id?: string
   updated_at: string
@@ -38,7 +37,7 @@ export function LogbookList() {
       // 🚀 PERFORMANCE: Optimized query with pagination and sorting
       const { data, error: fetchError } = await supabase
         .from('logbook_entries')
-        .select('id, title, content, created_at, garden_id, updated_at')
+        .select('id, notes, created_at, garden_id, updated_at')
         .order('created_at', { ascending: false })
         .limit(20) // Limit for better performance
       
@@ -46,7 +45,7 @@ export function LogbookList() {
         throw new Error(fetchError.message)
       }
       
-      setEntries(data || [])
+      setEntries((data as LogbookEntry[]) || [])
       
     } catch (err) {
       console.error('❌ ERROR: Failed to fetch logbook entries:', err)
@@ -201,7 +200,7 @@ export function LogbookList() {
           {entries.map((entry) => (
             <Card key={entry.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <CardTitle className="text-lg">{entry.title}</CardTitle>
+                <CardTitle className="text-lg">{entry.notes ? (entry.notes.length > 50 ? entry.notes.slice(0, 50) + '…' : entry.notes) : 'Logboek entry'}</CardTitle>
                 <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                   <Calendar className="w-4 h-4 mr-1" />
                   {new Date(entry.created_at).toLocaleDateString('nl-NL')}
@@ -209,7 +208,7 @@ export function LogbookList() {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 dark:text-gray-300 line-clamp-3">
-                  {entry.content}
+                  {entry.notes}
                 </p>
                 <div className="mt-4">
                   <Link href={`/logbook/${entry.id}`}>
