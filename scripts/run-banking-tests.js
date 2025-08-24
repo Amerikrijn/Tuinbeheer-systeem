@@ -117,6 +117,102 @@ function runCommand(command, options = {}) {
   });
 }
 
+// --- New helpers: aggregate artifacts + parse junit/coverage ---
+async function runAggregateArtifacts({ withCoverage, silent } = { withCoverage: false, silent: false }) {
+  try {
+    const junitOut = path.join(CONFIG.testResultsDir, 'ci.xml');
+    const parts = ['npx', 'vitest', 'run', '--reporter=junit', `--outputFile ${junitOut}`];
+    if (withCoverage) parts.push('--coverage');
+    const cmd = parts.join(' ');
+    log(`Running aggregate Vitest for artifacts: ${cmd}`);
+    await runCommand(cmd, { silent });
+    log('Aggregate JUnit (and coverage if enabled) generated', 'success');
+  } catch (e) {
+    log(`Failed to generate aggregate artifacts: ${e.stderr || e.error || e.code}`, 'warning');
+  }
+}
+
+function parseJUnitResults(xmlPath) {
+  const result = {
+    found: false,
+    totals: { tests: 0, failures: 0, errors: 0, skipped: 0, passed: 0, passRate: 0, timeSec: 0 },
+    topFailures: { critical: [], high: [], medium: [] },
+    suites: []
+  };
+  try {
+    if (!fs.existsSync(xmlPath)) return result;
+    const content = fs.readFileSync(xmlPath, 'utf8');
+    result.found = true;
+
+    const header = content.match(/<testsuites[^>]*tests="(\d+)"[^>]*failures="(\d+)"[^>]*errors="(\d+)"[^>]*time="([^"]+)"/);
+
+    // Parse each <testsuite ...> opening tag and extract attributes safely
+    const suites = [];
+    const openTagRegex = /<testsuite\b[^>]*>/g;
+    let tagMatch;
+    while ((tagMatch = openTagRegex.exec(content)) !== null) {
+      const tag = tagMatch[0];
+      const attrMap = {};
+      for (const m of tag.matchAll(/(\w+)="([^"]*)"/g)) {
+        attrMap[m[1]] = m[2];
+      }
+      const name = attrMap.name || '';
+      if (name === 'vitest tests' || name === 'cursor') continue; // skip header/hostname
+      const tests = parseInt(attrMap.tests || '0', 10);
+      const failures = parseInt(attrMap.failures || '0', 10);
+      const errors = parseInt(attrMap.errors || '0', 10);
+      const skipped = parseInt(attrMap.skipped || '0', 10);
+      const time = parseFloat(attrMap.time || '0');
+      const success = tests - failures - errors - skipped;
+      const successRate = tests > 0 ? (success / tests) * 100 : 0;
+      suites.push({ name, tests, failures, errors, skipped, time, successRate });
+    }
+
+    // Totals
+    let tests = 0, failures = 0, errors = 0, skipped = 0, timeSec = 0;
+    suites.forEach(s => { tests += s.tests; failures += s.failures; errors += s.errors; skipped += s.skipped; timeSec += s.time; });
+    if (header) {
+      // Prefer header totals if present for tests/failures/errors/time
+      tests = parseInt(header[1], 10);
+      failures = parseInt(header[2], 10);
+      errors = parseInt(header[3], 10);
+      timeSec = parseFloat(header[4]);
+    }
+    const passed = tests - failures - errors - skipped;
+    const passRate = tests > 0 ? (passed / tests) * 100 : 0;
+
+    result.totals = { tests, failures, errors, skipped, passed, passRate, timeSec };
+
+    // Top failures
+    const sortedByFailureRate = suites
+      .filter(s => s.tests > 0)
+      .sort((a, b) => (b.failures / b.tests) - (a.failures / a.tests));
+
+    const critical = sortedByFailureRate.filter(s => s.failures === s.tests && s.tests > 0).slice(0, 10);
+    const high = sortedByFailureRate.filter(s => s.failures > 0 && s.failures < s.tests && (s.failures / s.tests) > 0.5).slice(0, 10);
+    const medium = sortedByFailureRate.filter(s => s.failures > 0 && (s.failures / s.tests) <= 0.5).slice(0, 10);
+
+    result.topFailures = { critical, high, medium };
+    result.suites = suites;
+  } catch (e) {
+    log(`Failed to parse JUnit: ${e.message}`, 'warning');
+  }
+  return result;
+}
+
+function readCoverageSummaryIfAny() {
+  try {
+    const coverageSummaryPath = path.join(CONFIG.coverageDir, 'coverage-summary.json');
+    if (fs.existsSync(coverageSummaryPath)) {
+      const coverageData = JSON.parse(fs.readFileSync(coverageSummaryPath, 'utf8'));
+      return coverageData.total;
+    }
+  } catch (e) {
+    log('Could not read coverage data', 'warning');
+  }
+  return null;
+}
+
 async function runTestSuite(suite) {
   log(`Starting ${suite.name} tests...`);
   
@@ -177,29 +273,32 @@ function generateTestReport(results) {
       successRate: 0
     },
     suites: results,
-    coverage: null
+    coverage: null,
+    artifacts: {
+      junit: path.join(CONFIG.testResultsDir, 'ci.xml'),
+      coverageDir: CONFIG.coverageDir
+    },
+    junit: null,
   };
   
   report.summary.successRate = Math.round((report.summary.passed / report.summary.total) * 100);
   
-  // Generate coverage summary if available
-  if (options.coverage && fs.existsSync(CONFIG.coverageDir)) {
-    try {
-      const coverageSummaryPath = path.join(CONFIG.coverageDir, 'coverage-summary.json');
-      if (fs.existsSync(coverageSummaryPath)) {
-        const coverageData = JSON.parse(fs.readFileSync(coverageSummaryPath, 'utf8'));
-        report.coverage = coverageData.total;
-      }
-    } catch (error) {
-      log('Could not read coverage data', 'warning');
-    }
+  // Attach coverage summary if available
+  const cov = readCoverageSummaryIfAny();
+  if (cov) {
+    report.coverage = cov;
+  }
+
+  // Attach parsed JUnit totals and top failures if available
+  const junitParsed = parseJUnitResults(report.artifacts.junit);
+  if (junitParsed.found) {
+    report.junit = junitParsed;
   }
   
-  // Write report to file
+  // Write JSON + Markdown reports
   const reportPath = path.join(CONFIG.testResultsDir, 'test-report.json');
   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
   
-  // Generate human-readable report
   const markdownReport = generateMarkdownReport(report);
   const markdownPath = path.join(CONFIG.testResultsDir, 'test-report.md');
   fs.writeFileSync(markdownPath, markdownReport);
@@ -211,15 +310,27 @@ function generateTestReport(results) {
 }
 
 function generateMarkdownReport(report) {
-  let markdown = `# 🏦 Traditional Banking System Test Report\n\n`;
+  let markdown = `# 🏦 Traditional Banking System Test Report - Complete Coverage\n\n`;
   markdown += `**Generated**: ${new Date(report.timestamp).toLocaleString()}\n\n`;
   markdown += `**Important**: This pipeline uses NO AI tools - only traditional testing approaches!\n\n`;
   
-  markdown += `## 📊 Summary\n\n`;
+  markdown += `## 📊 Suite Summary\n\n`;
   markdown += `- **Total Test Suites**: ${report.summary.total}\n`;
   markdown += `- **Passed**: ${report.summary.passed} ✅\n`;
   markdown += `- **Failed**: ${report.summary.failed} ❌\n`;
   markdown += `- **Success Rate**: ${report.summary.successRate}%\n\n`;
+
+  if (report.junit) {
+    const j = report.junit.totals;
+    markdown += `## 🧪 Test Execution Summary (Artifacts)\n\n`;
+    markdown += `- **Total Tests**: ${j.tests}\n`;
+    markdown += `- **Passed**: ${j.passed}\n`;
+    markdown += `- **Failed**: ${j.failures}\n`;
+    markdown += `- **Errors**: ${j.errors}\n`;
+    markdown += `- **Skipped**: ${j.skipped}\n`;
+    markdown += `- **Pass Rate**: ${j.passRate.toFixed(2)}%\n`;
+    markdown += `- **Duration**: ${j.timeSec.toFixed(2)}s\n\n`;
+  }
   
   if (report.coverage) {
     markdown += `## 🎯 Coverage\n\n`;
@@ -227,33 +338,59 @@ function generateMarkdownReport(report) {
     markdown += `- **Functions**: ${report.coverage.functions.pct}%\n`;
     markdown += `- **Branches**: ${report.coverage.branches.pct}%\n`;
     markdown += `- **Statements**: ${report.coverage.statements.pct}%\n\n`;
+  } else {
+    markdown += `> Coverage artifacts not found. Enable coverage to generate \
+(try: \
+\`node scripts/run-banking-tests.js --ci --coverage --report\`).\n\n`;
   }
-  
-  markdown += `## 🧪 Test Suite Results\n\n`;
-  
-  report.suites.forEach(suite => {
-    const status = suite.success ? '✅' : '❌';
-    const duration = suite.duration ? ` (${suite.duration}ms)` : '';
-    markdown += `- **${suite.name}**: ${status} ${suite.success ? 'PASSED' : 'FAILED'}${duration}\n`;
-    
-    if (!suite.success && suite.error) {
-      markdown += `  - Error: ${suite.error}\n`;
+
+  if (report.junit) {
+    const { critical, high, medium } = report.junit.topFailures;
+    markdown += `## 🚨 Top Failures\n\n`;
+    markdown += `### 🔥 Kritiek (100% failure)\n`;
+    if (critical.length) {
+      critical.forEach(s => { markdown += `- ❌ ${s.name}: ${s.failures}/${s.tests} failures\n`; });
+    } else {
+      markdown += `- ✅ Geen kritieke failures\n`;
     }
-  });
-  
-  markdown += `\n## 🔒 Traditional Banking Compliance Status\n\n`;
-  markdown += `- **Security Audit**: ${report.summary.failed === 0 ? '✅ PASSED' : '❌ FAILED'}\n`;
+    markdown += `\n### ⚠️ Hoog (>50% failure)\n`;
+    if (high.length) {
+      high.forEach(s => { markdown += `- ⚠️ ${s.name}: ${s.failures}/${s.tests} failures (${s.successRate.toFixed(1)}% success)\n`; });
+    } else {
+      markdown += `- ✅ Geen hoge prioriteit failures\n`;
+    }
+    markdown += `\n### 🔧 Matig (1-50% failure)\n`;
+    if (medium.length) {
+      medium.forEach(s => { markdown += `- 🔧 ${s.name}: ${s.failures}/${s.tests} failures (${s.successRate.toFixed(1)}% success)\n`; });
+    } else {
+      markdown += `- ✅ Geen matige prioriteit failures\n`;
+    }
+    markdown += `\n`;
+  }
+
+  markdown += `## 📦 Artifacts\n\n`;
+  markdown += `- **JUnit**: ${report.artifacts.junit}\n`;
+  markdown += `- **Coverage dir**: ${report.artifacts.coverageDir} (lcov, html, summary)\n\n`;
+
+  markdown += `## 🔒 Traditional Banking Compliance Status\n\n`;
+  markdown += `- **Security Audit**: ${report.summary.failed === 0 ? '✅ PASSED' : '⚠️ WITH FAILURES'}\n`;
   markdown += `- **Code Quality**: ${report.summary.successRate >= CONFIG.coverageThreshold ? '✅ MAINTAINED' : '⚠️ NEEDS ATTENTION'}\n`;
   markdown += `- **Test Coverage**: ${report.coverage && report.coverage.lines.pct >= CONFIG.coverageThreshold ? '✅ ADEQUATE' : '⚠️ BELOW THRESHOLD'}\n`;
   markdown += `- **AI-Free**: ✅ NO AI tools used - Traditional approach only\n\n`;
-  
+
   markdown += `## 📋 Next Steps\n\n`;
-  if (report.summary.failed === 0) {
-    markdown += `🎉 **All tests passed!** The system is ready for deployment.\n`;
-  } else {
-    markdown += `⚠️ **Some tests failed!** Review and fix the failing tests before deployment.\n`;
+  if (report.junit) {
+    const failedCount = report.junit.totals.failures;
+    if (failedCount > 0) {
+      markdown += `- Fix critical failures first (see Top Failures)\n`;
+      markdown += `- Address high priority failures within 1 week\n`;
+      markdown += `- Add data-testid to UI components where missing\n`;
+      markdown += `- Create proper mocks for database and external deps\n`;
+    } else {
+      markdown += `- 🎉 All tests passed! Ready for deployment.\n`;
+    }
   }
-  
+
   return markdown;
 }
 
@@ -310,6 +447,11 @@ async function main() {
     const results = options.parallel ? 
       await runTestsInParallel() : 
       await runTestsSequentially();
+
+    // Ensure aggregate artifacts (JUnit + optional coverage) exist for reporting
+    if (options.report || options.ci) {
+      await runAggregateArtifacts({ withCoverage: options.coverage, silent: options.ci });
+    }
     
     // Generate report if requested
     let report;
