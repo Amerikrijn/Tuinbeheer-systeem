@@ -213,6 +213,22 @@ function readCoverageSummaryIfAny() {
   return null;
 }
 
+function resolveJUnitPath() {
+  try {
+    const preferred = path.join(CONFIG.testResultsDir, 'ci.xml');
+    if (fs.existsSync(preferred)) return preferred;
+    const fallback = path.join(CONFIG.testResultsDir, 'all-tests.xml');
+    if (fs.existsSync(fallback)) return fallback;
+    if (fs.existsSync(CONFIG.testResultsDir)) {
+      const files = fs.readdirSync(CONFIG.testResultsDir)
+        .filter(f => f.toLowerCase().endsWith('.xml'))
+        .map(f => path.join(CONFIG.testResultsDir, f));
+      if (files.length > 0) return files[0];
+    }
+  } catch (_) {}
+  return path.join(CONFIG.testResultsDir, 'ci.xml');
+}
+
 async function runTestSuite(suite) {
   log(`Starting ${suite.name} tests...`);
   
@@ -275,7 +291,7 @@ function generateTestReport(results) {
     suites: results,
     coverage: null,
     artifacts: {
-      junit: path.join(CONFIG.testResultsDir, 'ci.xml'),
+      junit: resolveJUnitPath(),
       coverageDir: CONFIG.coverageDir
     },
     junit: null,
