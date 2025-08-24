@@ -207,6 +207,11 @@ jobs:
           echo "" >> test-results/pipeline-summary.md
           echo "**Note**: Check the detailed test analysis report for complete breakdown." >> test-results/pipeline-summary.md
 
+      - name: Generate enriched markdown report (JUnit + Top Failures)
+        run: |
+          # Produce test-results/test-report.md + test-results/ci.xml using our enhanced runner
+          node scripts/run-banking-tests.js --ci --report || true
+
       - name: Generate test summary
         run: |
           echo "Generating test execution summary..."
@@ -365,7 +370,7 @@ jobs:
               # Show high priority failures
               if [ "$high_priority" -gt 0 ]; then
                 echo "### ⚠️ High Priority Failures (Binnen 1 Week)" >> test-summary.md
-                jq -r '.recommendations.high[] | "- " + .name + ": " + .failures + " failures (" + (.successRate | tostring) + "% success)"' test-artifacts/test-analysis-fixed-summary.json
+                jq -r '.recommendations.high[] | "- " + .name + ": " + (.failures|tostring) + " failures (" + ((.successRate*100|floor)/100|tostring) + "% success)"' test-artifacts/test-analysis-fixed-summary.json >> test-summary.md
                 echo "" >> test-summary.md
               fi
               
@@ -474,14 +479,32 @@ jobs:
           script: |
             const fs = require('fs');
             
-            // Try to read the enhanced test report first
+            // Prefer enriched report from artifacts (runner output)
             let reportContent = '';
-            if (fs.existsSync('test-results/detailed-report.md')) {
-              reportContent = fs.readFileSync('test-results/detailed-report.md', 'utf8');
+            if (fs.existsSync('test-artifacts/test-results/test-report.md')) {
+              reportContent = fs.readFileSync('test-artifacts/test-results/test-report.md', 'utf8');
+            } else if (fs.existsSync('test-results/test-report.md')) {
+              // Fallback when artifact aggregation step did not run
+              reportContent = fs.readFileSync('test-results/test-report.md', 'utf8');
+            } else if (fs.existsSync('test-artifacts/test-results/detailed-report.md')) {
+              reportContent = fs.readFileSync('test-artifacts/test-results/detailed-report.md', 'utf8');
+            } else if (fs.existsSync('test-artifacts/test-results/all-tests.xml')) {
+              // As last resort, generate a minimal summary directly from JUnit
+              const xml = fs.readFileSync('test-artifacts/test-results/all-tests.xml', 'utf8');
+              const header = xml.match(/<testsuites[^>]*tests=\"(\\d+)\"[^>]*failures=\"(\\d+)\"[^>]*errors=\"(\\d+)\"[^>]*time=\"([^\"]+)\"/);
+              if (header) {
+                const tests = header[1], fails = header[2], errs = header[3], secs = header[4];
+                reportContent = `# 🏦 Traditional Banking System Test Report\n\n**Total Tests**: ${tests}\n**Failed**: ${fails}\n**Errors**: ${errs}\n**Duration**: ${parseFloat(secs).toFixed(2)}s\n\n<!-- TRADITIONAL_BANKING_TEST_REPORT -->`;
+              }
             } else if (fs.existsSync('test-summary.md')) {
               reportContent = fs.readFileSync('test-summary.md', 'utf8');
             } else {
               reportContent = '## 🧪 Test Execution Summary\n\n⚠️ Detailed test report not available. Check the workflow logs for more information.';
+            }
+            
+            const marker = '<!-- TRADITIONAL_BANKING_TEST_REPORT -->';
+            if (!reportContent.includes(marker)) {
+              reportContent += `\n\n${marker}`;
             }
             
             // Find existing test report comment and update it, or create new one
@@ -493,7 +516,7 @@ jobs:
             
             const existingComment = comments.find(comment => 
               comment.user.type === 'Bot' && 
-              (comment.body.includes('PROFESSIONAL TEST REPORT') || comment.body.includes('Test Execution Summary'))
+              comment.body.includes('<!-- TRADITIONAL_BANKING_TEST_REPORT -->')
             );
             
             if (existingComment) {
