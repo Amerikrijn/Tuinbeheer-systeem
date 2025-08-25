@@ -54,8 +54,15 @@ function HomePageContent() {
     hasMore: false,
   })
 
+  // In-flight guard to prevent concurrent loads
+  const isFetchingRef = React.useRef(false)
+
   // Load gardens with proper error handling and logging (memoized for performance)
   const loadGardens = React.useCallback(async (page = 1, searchTerm = "", append = false) => {
+    if (isFetchingRef.current) {
+      return
+    }
+    isFetchingRef.current = true
     const operationId = `loadGardens-${Date.now()}`
     
     try {
@@ -130,6 +137,8 @@ function HomePageContent() {
         description: getUserFriendlyErrorMessage(errorMessage),
         variant: "destructive",
       })
+    } finally {
+      isFetchingRef.current = false
     }
   }, [toast])
 

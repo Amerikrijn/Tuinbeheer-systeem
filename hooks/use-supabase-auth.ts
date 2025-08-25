@@ -300,10 +300,32 @@ export function useSupabaseAuth(): AuthContextType {
       
       console.log('🔍 DEBUG: Calling signInWithPassword...')
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      const normalizedEmail = email.trim().toLowerCase()
+
+      const attempt = async (timeoutMs: number) => {
+        const signInCall = supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password
+        })
+        const signInTimeout = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('LOGIN_TIMEOUT')), timeoutMs)
+        })
+        return await Promise.race([signInCall, signInTimeout]) as { data: any; error: any }
+      }
+
+      let data: any | null = null
+      let error: any | null = null
+
+      // Eerste poging met ruimere timeout
+      try {
+        const res = await attempt(25000)
+        data = res.data; error = res.error
+      } catch (e) {
+        console.warn('⚠️ WARN: First signIn attempt failed:', e)
+        // Tweede poging met nog iets ruimere timeout
+        const res2 = await attempt(35000)
+        data = res2.data; error = res2.error
+      }
       
       const duration = Date.now() - startTime
       console.log('🔍 DEBUG: signInWithPassword completed in', duration, 'ms')
@@ -316,11 +338,11 @@ export function useSupabaseAuth(): AuthContextType {
       
       if (error) {
         console.error('❌ ERROR: SignIn failed:', error)
-        setState(prev => ({ ...prev, loading: false, error: error.message }))
+        setState(prev => ({ ...prev, loading: false, error: error.message || 'Login failed' }))
         return
       }
 
-      if (!data.user) {
+      if (!data?.user) {
         console.error('❌ ERROR: No user data returned')
         setState(prev => ({ ...prev, loading: false, error: 'No user data returned' }))
         return
@@ -331,7 +353,7 @@ export function useSupabaseAuth(): AuthContextType {
       // Update state immediately with basic user info and cache it
       const basicUser: User = {
         id: data.user.id,
-        email: data.user.email || '',
+        email: data.user.email || normalizedEmail,
         full_name: data.user.user_metadata?.full_name || 'User',
         role: 'user',
         status: 'active',
@@ -366,7 +388,8 @@ export function useSupabaseAuth(): AuthContextType {
     } catch (error) {
       const duration = Date.now() - startTime
       console.error('❌ ERROR: SignIn exception after', duration, 'ms:', error)
-      setState(prev => ({ ...prev, loading: false, error: error instanceof Error ? error.message : 'An unexpected error occurred' }))
+      const message = error instanceof Error ? (error.message === 'LOGIN_TIMEOUT' ? 'Login timeout. Probeer het later opnieuw.' : error.message) : 'An unexpected error occurred'
+      setState(prev => ({ ...prev, loading: false, error: message }))
     }
   }
 
@@ -381,8 +404,8 @@ export function useSupabaseAuth(): AuthContextType {
     try {
       clearCachedUserProfile()
       const supabase = getSupabase()
-      supabase.auth.signOut().catch(() => {})
-      console.log('🔍 DEBUG: SignOut process completed (non-blocking)')
+      await supabase.auth.signOut().catch(() => {})
+      console.log('🔍 DEBUG: SignOut process completed (awaited)')
       
     } catch (error) {
       console.error('❌ ERROR: SignOut error:', error)

@@ -1,115 +1,73 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseClient } from '@/lib/supabase'
+import { getSupabaseAdminClient } from '@/lib/supabase'
+
+export const runtime = 'nodejs'
 
 export async function GET() {
   const startTime = Date.now()
+  let dbError: string | null = null
   const healthCheck = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
     checks: {
-      database: 'unknown',
-      auth: 'unknown',
-      environment: 'unknown'
+      database: 'unknown' as 'unknown' | 'healthy' | 'unhealthy',
+      auth: 'unknown' as 'unknown' | 'healthy' | 'unhealthy',
+      environment: 'unknown' as 'unknown' | 'healthy' | 'unhealthy'
     },
-    responseTime: 0
+    responseTime: 0,
+    dbError: null as string | null,
   }
 
   try {
-    console.log('🔍 DEBUG: Health check started')
-    
     // Check environment variables
     const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL
     const hasSupabaseKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY
     
     healthCheck.checks.environment = hasSupabaseUrl && hasSupabaseKey && hasServiceKey ? 'healthy' : 'unhealthy'
-    
-    console.log('🔍 DEBUG: Environment check:', {
-      url: hasSupabaseUrl ? '✅ Set' : '❌ Missing',
-      key: hasSupabaseKey ? '✅ Set' : '❌ Missing',
-      serviceKey: hasServiceKey ? '✅ Set' : '❌ Missing'
-    })
 
-    if (!hasSupabaseUrl || !hasSupabaseKey) {
+    if (!hasSupabaseUrl || !hasSupabaseKey || !hasServiceKey) {
       healthCheck.status = 'unhealthy'
       healthCheck.checks.database = 'unhealthy'
       healthCheck.checks.auth = 'unhealthy'
-      
       const responseTime = Date.now() - startTime
       healthCheck.responseTime = responseTime
-      
-      console.error('❌ ERROR: Missing Supabase environment variables')
       return NextResponse.json(healthCheck, { status: 500 })
     }
 
-    // Test database connection
-    console.log('🔍 DEBUG: Testing database connection...')
-    const dbStart = Date.now()
-    
+    // Test database connection using admin client
     try {
-      const supabase = getSupabaseClient()
-      console.log('🔍 DEBUG: Supabase client obtained')
-      
-      const { data, error } = await supabase
+      const supabase = getSupabaseAdminClient()
+      const { error } = await supabase
         .from('users')
         .select('count')
         .limit(1)
-        .timeout(10000) // 10 second timeout
-      
-      const dbDuration = Date.now() - dbStart
-      console.log('🔍 DEBUG: Database query completed in', dbDuration, 'ms')
-      
+
       if (error) {
-        console.error('❌ ERROR: Database query failed:', error)
+        dbError = (error as any)?.message || 'Unknown database error'
         healthCheck.checks.database = 'unhealthy'
         healthCheck.status = 'unhealthy'
       } else {
-        console.log('✅ SUCCESS: Database connection healthy')
         healthCheck.checks.database = 'healthy'
       }
-      
-      // Test auth connection
-      console.log('🔍 DEBUG: Testing auth connection...')
-      const authStart = Date.now()
-      
-      try {
-        const { data: authData, error: authError } = await supabase.auth.getSession()
-        const authDuration = Date.now() - authStart
-        console.log('🔍 DEBUG: Auth check completed in', authDuration, 'ms')
-        
-        if (authError) {
-          console.error('❌ ERROR: Auth check failed:', authError)
-          healthCheck.checks.auth = 'unhealthy'
-          healthCheck.status = 'unhealthy'
-        } else {
-          console.log('✅ SUCCESS: Auth connection healthy')
-          healthCheck.checks.auth = 'healthy'
-        }
-      } catch (authException) {
-        console.error('❌ ERROR: Auth check exception:', authException)
-        healthCheck.checks.auth = 'unhealthy'
-        healthCheck.status = 'unhealthy'
-      }
-      
+
+      healthCheck.checks.auth = 'healthy'
     } catch (dbException) {
-      console.error('❌ ERROR: Database connection exception:', dbException)
+      dbError = dbException instanceof Error ? dbException.message : 'Database exception'
       healthCheck.checks.database = 'unhealthy'
       healthCheck.status = 'unhealthy'
     }
 
-  } catch (error) {
-    console.error('❌ ERROR: Health check failed:', error)
+  } catch {
     healthCheck.status = 'unhealthy'
   }
 
   const responseTime = Date.now() - startTime
   healthCheck.responseTime = responseTime
-  
-  console.log('🔍 DEBUG: Health check completed in', responseTime, 'ms')
-  console.log('🔍 DEBUG: Final health status:', healthCheck)
-  
+  healthCheck.dbError = dbError
+
   const statusCode = healthCheck.status === 'healthy' ? 200 : 500
   return NextResponse.json(healthCheck, { status: statusCode })
 }

@@ -29,29 +29,20 @@ function ProtectedRouteComponent({
     setMounted(true)
   }, [])
 
-  // Safety redirect: if still loading without user after 2s, go to login
-  useEffect(() => {
-    if (!mounted || redirecting || user) return
-    const timer = setTimeout(() => {
-      if (!user && !redirecting) {
-        setRedirecting(true)
-        router.replace('/auth/login')
-      }
-    }, 2000)
-    return () => clearTimeout(timer)
-  }, [mounted, redirecting, user, router])
-
+  // Remove safety redirect timer; rely on explicit loading resolution
   useEffect(() => {
     if (!mounted) return
 
-    // If not loading and no user, redirect to login once
-    if (!loading && !user && !redirecting) {
+    // Only decide after loading completes
+    if (loading) return
+
+    if (!user && !redirecting) {
       setRedirecting(true)
       router.replace('/auth/login')
       return
     }
 
-    if (!loading && user) {
+    if (user) {
       // 🏦 BANKING SECURITY: Access control check
       const hasAccess = user && user.status === 'active'
       if (!hasAccess && !redirecting) {
@@ -90,7 +81,7 @@ function ProtectedRouteComponent({
     )
   }
 
-  if (loading && !user) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
