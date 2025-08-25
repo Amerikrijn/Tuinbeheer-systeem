@@ -41,6 +41,13 @@ function validateStandards() {
     }
   }
 
+  if (config.checks?.vitestConfigPresent) {
+    const vitestCfg = path.join(process.cwd(), 'vitest.config.ts');
+    if (!fs.existsSync(vitestCfg)) {
+      errors.push('Vitest configuratie ontbreekt (vitest.config.ts)');
+    }
+  }
+
   if (Array.isArray(config.checks?.rlsPolicyFiles)) {
     const missingRls = config.checks.rlsPolicyFiles.filter((p) => !fs.existsSync(path.join(process.cwd(), p)));
     if (missingRls.length) {

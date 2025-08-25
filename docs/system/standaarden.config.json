@@ -11,7 +11,8 @@
     "docs/system/Opschoonrapport.md"
   ],
   "checks": {
-    "jestConfigPresent": true,
+    "jestConfigPresent": false,
+    "vitestConfigPresent": true,
     "coverageThresholdMin": 80,
     "rlsPolicyFiles": []
   }
