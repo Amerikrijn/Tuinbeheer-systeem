@@ -1,6 +1,7 @@
 "use client"
 
 // Force dynamic rendering to prevent SSR issues with auth
+// Code reverted to preview 92d8448 state
 export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
