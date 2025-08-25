@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 console.log('🚀 Starting custom Next.js build for Vercel...');
+// 🔧 Build validation updated for Vitest instead of Jest
 
 // Set environment variables
 process.env.SKIP_ENV_VALIDATION = '1';
