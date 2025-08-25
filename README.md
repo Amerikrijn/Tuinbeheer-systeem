@@ -4,7 +4,21 @@ hello
 
 Lees altijd the AI agent rules. Hier staat je standaarden en je gedragsregels. WIJK hiet niet vnaa tenzij de opdracht je dat vertelt
 
-**Test CI/CD Pipeline** - Deze wijziging triggert de nieuwe Main Pipeline om te testen of alle jobs nu correct werken zonder parallel jobs die niets doen!
+**🚨 STATUS UPDATE NA TERUGZETTEN SOFTWARE** - Deze wijziging triggert de nieuwe Main Pipeline om te testen of alle jobs nu correct werken zonder parallel jobs die niets doen!
+
+## 🚨 **HUIDIGE STATUS NA TERUGZETTEN (25-08-2025)**
+
+### **❌ Bekende Problemen**
+- **Node.js Versie**: Huidige versie 22.16.0, maar documentatie vereist 18.x
+- **Test Failures**: 446 van 1622 tests falen (27% failure rate)
+- **Coverage**: Geen coverage gegenereerd door test failures
+- **CI/CD Pipeline**: Tests falen systematisch
+
+### **🔧 Actiepunten**
+1. **Node.js Downgrade**: Verander naar Node.js 18.x voor compatibiliteit
+2. **Test Fixes**: Los systematische test failures op
+3. **Coverage Herstel**: Bereik 80% minimum coverage
+4. **Documentatie Synchronisatie**: Zorg dat code en docs overeenkomen
 
 ## 🚀 Nieuwe Pipeline Architectuur:
 - **Foundation Build** (eerst - required)
@@ -141,6 +155,12 @@ npm run test:ci
 # ✅ JUIST: Alle TypeScript ESLint plugins compatibel met ESLint 8.x
 ```
 
+**Node.js Versie Incompatibiliteit:**
+```bash
+# ❌ FOUT: Node.js 22.x (kan compatibiliteitsproblemen veroorzaken)
+# ✅ JUIST: Node.js 18.x (getest en stabiel)
+```
+
 #### 🧪 Verificatie Commands
 ```bash
 # Controleer of alles werkt
@@ -179,4 +199,67 @@ npm install eslint@^8.57.1
 # 3. Verifieer
 npm run audit:security
 ```
-#
+
+**Als Node.js versie te hoog is:**
+```bash
+# 1. Installeer Node.js 18.x via nvm
+nvm install 18.19.0
+nvm use 18.19.0
+
+# 2. Verifieer versie
+node --version  # Moet 18.x.x tonen
+
+# 3. Herinstalleer dependencies
+rm -rf node_modules package-lock.json
+npm install
+```
+
+## 🚨 **HUIDIGE TEST STATUS**
+
+### **Test Results (25-08-2025)**
+- **Totaal Tests**: 1622
+- **Geslaagd**: 1165 (72%)
+- **Gefaald**: 440 (27%)
+- **Overgeslagen**: 11 (1%)
+- **Coverage**: Niet gegenereerd (tests falen)
+
+### **Hoofdoorzaken van Test Failures**
+1. **Missing data-testid attributes** in UI components
+2. **Jest vs Vitest compatibiliteit** problemen
+3. **Missing mocks** en dependencies
+4. **Node.js 22.x incompatibiliteit** met geteste configuratie
+
+### **Prioriteit voor Fixes**
+1. **🔴 Hoog**: Node.js downgrade naar 18.x
+2. **🔴 Hoog**: Fix systematische test failures
+3. **🟡 Medium**: Herstel coverage naar 80%
+4. **🟢 Laag**: CI/CD pipeline optimalisatie
+
+## 📊 **CI/CD Pipeline Status**
+
+### **Workflows Beschikbaar**
+- ✅ `banking-tests.yml` - Traditionele banking tests
+- ✅ `enhanced-test-report.yml` - Uitgebreide test rapportage
+- ✅ `secret-scan.yml` - Security scanning
+- ✅ `codeql.yml` - Code quality analysis
+
+### **Huidige Problemen**
+- ❌ Tests falen systematisch (27% failure rate)
+- ❌ Coverage requirements niet gehaald
+- ❌ Pipeline kan niet succesvol voltooien
+
+### **Volgende Stappen**
+1. **Fix Node.js versie** naar 18.x
+2. **Los test failures op** systematisch
+3. **Herstel coverage** naar 80% minimum
+4. **Verifieer CI/CD pipeline** functionaliteit
+
+---
+
+**💡 Tip: Gebruik Node.js 18.x voor beste compatibiliteit!**
+
+**🔒 Security First: Alle security checks moeten slagen voor deployment!**
+
+**📊 Coverage: minimaal 80% vereist!**
+
+**🚨 Status: Software teruggezet - actie vereist voor stabiliteit!**

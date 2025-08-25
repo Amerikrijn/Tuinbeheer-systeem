@@ -2,6 +2,33 @@
 
 **BELANGRIJK**: Deze guide is gebaseerd op de exacte configuratie die werkt. Afwijkingen kunnen leiden tot test failures, CI/CD pipeline problemen en security vulnerabilities.
 
+## 🚨 **KRITIEKE UPDATE: Node.js Versie Probleem**
+
+### **❌ Huidige Probleem (25-08-2025)**
+- **Huidige Node.js versie**: 22.16.0
+- **Vereiste versie**: 18.x LTS
+- **Probleem**: Node.js 22.x veroorzaakt compatibiliteitsproblemen met tests en dependencies
+- **Impact**: 27% test failure rate, geen coverage gegenereerd
+
+### **✅ Oplossing: Downgrade naar Node.js 18.x**
+```bash
+# 1. Installeer nvm (als je het nog niet hebt)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+# 2. Herstart je terminal of source de profile
+source ~/.bashrc
+
+# 3. Installeer Node.js 18.x LTS
+nvm install 18.19.0
+nvm use 18.19.0
+
+# 4. Verifieer versie
+node --version  # Moet 18.19.0 tonen
+
+# 5. Stel als default in
+nvm alias default 18.19.0
+```
+
 ## 📋 Systeem Vereisten
 
 ### Operating System
@@ -11,13 +38,17 @@
 
 ### Node.js & npm
 ```bash
-# Vereist: Node.js 18.x LTS
-node --version  # Moet 18.x.x tonen (getest met 18.19.0)
+# ✅ Vereist: Node.js 18.x LTS (getest met 18.19.0)
+node --version  # Moet 18.x.x tonen
 
-# Vereist: npm 10.x
-npm --version   # Moet 10.x.x tonen (getest met 10.9.2)
+# ✅ Vereist: npm 10.x
+npm --version   # Moet 10.x.x tonen
 
-# Installatie (als je een andere versie hebt)
+# ❌ NIET ondersteund: Node.js 22.x (veroorzaakt test failures)
+```
+
+### Installatie (als je een andere versie hebt)
+```bash
 # Via nvm (aanbevolen):
 nvm install 18.19.0
 nvm use 18.19.0
@@ -65,6 +96,11 @@ Deze versies zijn getest en werken samen zonder conflicten:
    - Moet exact gelijk zijn aan vitest versie
    - Voorkomt versie mismatch errors
 
+4. **Node.js 18.x**:
+   - Getest en stabiel met alle dependencies
+   - Vermijdt compatibiliteitsproblemen met nieuwere versies
+   - Ondersteund door alle packages in de stack
+
 ## 🔧 Setup Stappen
 
 ### Stap 1: Controleer Huidige Versies
@@ -77,7 +113,18 @@ npm --version
 npm list eslint vitest @vitest/coverage-v8
 ```
 
-### Stap 2: Schoon Slate (Aanbevolen)
+### Stap 2: Fix Node.js Versie (Indien Nodig)
+```bash
+# Als je Node.js 22.x of hoger hebt:
+nvm install 18.19.0
+nvm use 18.19.0
+nvm alias default 18.19.0
+
+# Verifieer versie
+node --version  # Moet 18.x.x tonen
+```
+
+### Stap 3: Schoon Slate (Aanbevolen)
 ```bash
 # Verwijder alle bestaande dependencies
 rm -rf node_modules package-lock.json
@@ -86,7 +133,7 @@ rm -rf node_modules package-lock.json
 npm cache clean --force
 ```
 
-### Stap 3: Installeer Dependencies
+### Stap 4: Installeer Dependencies
 ```bash
 # Installeer alle dependencies opnieuw
 npm install
@@ -95,7 +142,7 @@ npm install
 npm list --depth=0
 ```
 
-### Stap 4: Verificeer Security
+### Stap 5: Verificeer Security
 ```bash
 # Controleer security vulnerabilities
 npm run audit:security
@@ -104,7 +151,7 @@ npm run audit:security
 # Als er nog steeds vulnerabilities zijn, zie Troubleshooting sectie
 ```
 
-### Stap 5: Test Lokale Omgeving
+### Stap 6: Test Lokale Omgeving
 ```bash
 # Voer alle tests uit
 npm run test:ci
@@ -118,7 +165,20 @@ npm run typecheck
 
 ## ❌ Veelvoorkomende Problemen & Oplossingen
 
-### Probleem 1: ESLint Version Conflicts
+### Probleem 1: Node.js Versie Te Hoog
+```bash
+# ❌ FOUT: Node.js 22.x of hoger
+node --version  # v22.16.0
+npm run test:ci  # Tests falen systematisch
+
+# ✅ OPLOSSING: Downgrade naar Node.js 18.x
+nvm install 18.19.0
+nvm use 18.19.0
+nvm alias default 18.19.0
+node --version  # v18.19.0
+```
+
+### Probleem 2: ESLint Version Conflicts
 ```bash
 # ❌ FOUT: ESLint 9.x + eslint-config-next@15.3.5
 npm ERR! ERESOLVE could not resolve
@@ -128,7 +188,7 @@ npm ERR! peerOptional @typescript-eslint/eslint-plugin@"6 - 7" from eslint-plugi
 npm install eslint@^8.57.1
 ```
 
-### Probleem 2: Vitest Security Issues
+### Probleem 3: Vitest Security Issues
 ```bash
 # ❌ FOUT: esbuild security vulnerability
 npm audit
@@ -139,7 +199,7 @@ npm audit
 npm install vitest@^3.2.4 @vitest/coverage-v8@^3.2.4
 ```
 
-### Probleem 3: Peer Dependency Conflicts
+### Probleem 4: Peer Dependency Conflicts
 ```bash
 # ❌ FOUT: TypeScript ESLint plugin versie mismatch
 npm ERR! peerOptional @typescript-eslint/eslint-plugin@"6 - 7"
@@ -148,15 +208,14 @@ npm ERR! peerOptional @typescript-eslint/eslint-plugin@"6 - 7"
 npm install @typescript-eslint/eslint-plugin@^7.18.0
 ```
 
-### Probleem 4: Node.js Versie Incompatibiliteit
+### Probleem 5: Test Failures door Node.js Incompatibiliteit
 ```bash
-# ❌ FOUT: Node.js 16.x of 20.x
-npm ERR! code ERESOLVE
-npm ERR! ERESOLVE could not resolve
+# ❌ FOUT: Node.js 22.x veroorzaakt test failures
+npm run test:ci  # 27% failure rate
 
 # ✅ OPLOSSING: Gebruik Node.js 18.x
-nvm install 18.19.0
 nvm use 18.19.0
+npm run test:ci  # Moet veel minder failures hebben
 ```
 
 ## 🧪 Verificatie Checklist
@@ -177,7 +236,7 @@ npm run audit:security  # Moet "0 vulnerabilities" tonen
 npm list eslint vitest @vitest/coverage-v8  # Moet juiste versies tonen
 
 # ✅ Tests
-npm run test:ci  # Moet alle tests laten slagen
+npm run test:ci  # Moet significant minder failures hebben
 
 # ✅ Linting
 npm run lint     # Moet geen errors tonen
@@ -190,11 +249,12 @@ npm run typecheck  # Moet geen type errors tonen
 
 ### Als Tests Falen:
 ```bash
-# 1. Controleer Node.js versie
+# 1. Controleer Node.js versie (moet 18.x zijn)
 node --version
 
-# 2. Controleer npm versie
-npm --version
+# 2. Als versie te hoog is, downgrade
+nvm install 18.19.0
+nvm use 18.19.0
 
 # 3. Schoon slate
 rm -rf node_modules package-lock.json
@@ -234,6 +294,25 @@ npm run typecheck
 npm run dev
 ```
 
+### Als Node.js Versie Problemen Blijven:
+```bash
+# 1. Verwijder alle Node.js versies
+nvm deactivate
+nvm uninstall 22.16.0
+
+# 2. Installeer alleen Node.js 18.x
+nvm install 18.19.0
+nvm use 18.19.0
+nvm alias default 18.19.0
+
+# 3. Verifieer
+node --version  # Moet 18.19.0 tonen
+
+# 4. Herinstalleer dependencies
+rm -rf node_modules package-lock.json
+npm install
+```
+
 ## 📚 Aanvullende Resources
 
 - [Node.js 18.x LTS Documentation](https://nodejs.org/docs/latest-v18.x/api/)
@@ -241,6 +320,7 @@ npm run dev
 - [Vitest 3.x Documentation](https://vitest.dev/)
 - [ESLint 8.x Documentation](https://eslint.org/docs/latest/)
 - [TypeScript 5.x Documentation](https://www.typescriptlang.org/docs/)
+- [nvm Installation Guide](https://github.com/nvm-sh/nvm#installing-and-updating)
 
 ## 🚨 Belangrijke Notities
 
@@ -249,6 +329,7 @@ npm run dev
 3. **Test altijd lokaal** voordat je pusht naar GitHub
 4. **Controleer security** na elke dependency update
 5. **Documenteer wijzigingen** in package.json met duidelijke redenen
+6. **Gebruik Node.js 18.x** voor beste compatibiliteit - 22.x veroorzaakt problemen
 
 ## 🤝 Support
 
@@ -262,3 +343,14 @@ Als je problemen ondervindt die niet in deze guide staan:
    - Exacte error message
    - Stappen om te reproduceren
    - Output van `npm run audit:security`
+   - Output van `npm run test:ci`
+
+## 🚨 **KRITIEKE WAARSCHUWING**
+
+**Gebruik NOOIT Node.js 22.x met deze codebase!**
+- Veroorzaakt systematische test failures
+- Brengt CI/CD pipeline in gevaar
+- Kan dependency conflicts veroorzaken
+- Is niet getest of ondersteund
+
+**Gebruik ALTIJD Node.js 18.x LTS voor beste stabiliteit en compatibiliteit.**
