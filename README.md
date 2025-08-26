@@ -2,7 +2,7 @@ hello
 
 # 🌱 Visual Garden App
 
-Lees altijd the AI agent rules. Hier staat je standaarden en je gedragsregels. WIJK hiet niet vnaa tenzij de opdracht je dat vertelt
+Lees altijd de [AI Agent Rules](docs/ai-agent/RULES.md). Hier staan je standaarden en gedragsregels. WIJK HIER NIET VANAF tenzij de opdracht je dat vertelt.
 
 **🚨 STATUS UPDATE NA TERUGZETTEN SOFTWARE** - Deze wijziging triggert de nieuwe Main Pipeline om te testen of alle jobs nu correct werken zonder parallel jobs die niets doen!
 
@@ -39,6 +39,11 @@ Een modern tuinbeheer systeem gebouwd met Next.js, TypeScript en Supabase.
 Dit gaat beter
 
 ## 📚 Documentatie
+
+### 🧠 AI Agent Rules (VERPLICHT)
+- [`docs/ai-agent/README.md`](docs/ai-agent/README.md) - **VERPLICHT**: Centrale hub voor alle AI agent regels
+- [`docs/ai-agent/RULES.md`](docs/ai-agent/RULES.md) - **VERPLICHT**: Hoofdbestand met uitgangspunten en gedragsregels
+- Deze regels zijn niet-negocieerbaar en moeten bij elke wijziging worden gevolgd
 
 ### 🛠️ Lokale Ontwikkelomgeving
 - [`docs/SETUP.md`](docs/SETUP.md) - **VERPLICHT**: Complete setup guide voor alle omgevingen
