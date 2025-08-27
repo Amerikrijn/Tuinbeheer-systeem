@@ -53,7 +53,8 @@ export class PlantvakService {
         .from('plant_beds')
         .select('*')
         .eq('garden_id', gardenId)
-        .eq('is_active', true)
+        // Verwijder is_active filter voor letter code check
+        // We willen ALLE plantvakken zien voor unieke letters
         .order('letter_code', { ascending: true });
 
       if (error) throw error;
@@ -85,9 +86,17 @@ export class PlantvakService {
       
       // Get existing letter codes for this garden
       const existingPlantvakken = await this.getByGarden(plantvakData.garden_id);
-      console.log('📊 Existing plantvakken:', existingPlantvakken);
+      console.log('📊 Existing plantvakken count:', existingPlantvakken.length);
+      console.log('📊 Existing plantvakken details:', existingPlantvakken.map(p => ({
+        id: p.id,
+        name: p.name,
+        letter_code: p.letter_code,
+        is_active: p.is_active
+      })));
       
-      const existingCodes = existingPlantvakken.map(p => p.letter_code).filter(Boolean);
+      const existingCodes = existingPlantvakken
+        .map(p => p.letter_code || p.name) // Fallback naar name als letter_code null is
+        .filter(Boolean);
       console.log('🔤 Existing letter codes:', existingCodes);
       
       // Generate next available letter code
