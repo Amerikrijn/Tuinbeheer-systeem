@@ -255,12 +255,27 @@ export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Pr
 }
 
 export async function deletePlantBed(id: string): Promise<void> {
-  const { error } = await supabase.from("plant_beds").update({ is_active: false }).eq("id", id)
+  console.log("🗑️ Attempting to delete plant bed with ID:", id)
+  
+  const { data, error } = await supabase
+    .from("plant_beds")
+    .update({ is_active: false })
+    .eq("id", id)
+    .select()
+    .single()
 
   if (error) {
-    console.error("Error deleting plant bed:", error)
+    console.error("❌ Error deleting plant bed:", error)
+    console.error("Error details:", {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    })
     throw error
   }
+  
+  console.log("✅ Plant bed soft-deleted successfully:", data)
 }
 
 // Plant functions
