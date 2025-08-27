@@ -79,17 +79,17 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
 
   if (loading) {
     return (
-      <Card className={`${className} border-2 border-green-200 bg-green-50/30`}>
+      <Card className={`${className} border-2 border-green-200 dark:border-green-700 bg-green-50/30 dark:bg-green-950/30`}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-800">
-            <Camera className="w-5 h-5 text-blue-600" />
+          <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+            <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             Foto's van {plantName}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="aspect-square bg-green-100 rounded-lg animate-pulse" />
+              <div key={i} className="aspect-square bg-green-100 dark:bg-green-900/30 rounded-lg animate-pulse" />
             ))}
           </div>
         </CardContent>
@@ -99,10 +99,10 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
 
   if (error) {
     return (
-      <Card className={`${className} border-2 border-green-200 bg-green-50/30`}>
+      <Card className={`${className} border-2 border-green-200 dark:border-green-700 bg-green-50/30 dark:bg-green-950/30`}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-800">
-            <Camera className="w-5 h-5 text-blue-600" />
+          <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+            <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             Foto's van {plantName}
           </CardTitle>
         </CardHeader>
@@ -125,10 +125,10 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
 
   if (!photoData || photoData.photos.length === 0) {
     return (
-      <Card className={`${className} border-2 border-green-200 bg-green-50/30`}>
+      <Card className={`${className} border-2 border-green-200 dark:border-green-700 bg-green-50/30 dark:bg-green-950/30`}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-green-800">
-            <Camera className="w-5 h-5 text-blue-600" />
+          <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+            <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             Foto's van {plantName}
           </CardTitle>
         </CardHeader>
@@ -155,11 +155,11 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
 
   return (
     <>
-      <Card className={`${className} border-2 border-green-200 bg-green-50/30`}>
+      <Card className={`${className} border-2 border-green-200 dark:border-green-700 bg-green-50/30 dark:bg-green-950/30`}>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-green-800">
-              <Camera className="w-5 h-5 text-blue-600" />
+            <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+              <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               Foto's van {plantName}
             </CardTitle>
             
@@ -168,21 +168,21 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
               <Button
                 variant="outline"
                 size="sm"
-                className="border-green-300 hover:bg-green-100"
+                className="border-green-300 dark:border-green-600 hover:bg-green-100 dark:hover:bg-green-900/30"
                 onClick={() => navigateYear('prev')}
                 disabled={currentYear <= 2020}
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
               
-              <Badge variant="outline" className="px-3 py-1 border-green-300 bg-green-100 text-green-800">
+              <Badge variant="outline" className="px-3 py-1 border-green-300 dark:border-green-600 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
                 {currentYear}
               </Badge>
               
               <Button
                 variant="outline"
                 size="sm"
-                className="border-green-300 hover:bg-green-100"
+                className="border-green-300 dark:border-green-600 hover:bg-green-100 dark:hover:bg-green-900/30"
                 onClick={() => navigateYear('next')}
                 disabled={currentYear >= new Date().getFullYear()}
               >
@@ -191,10 +191,10 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
             </div>
           </div>
           
-          <div className="flex items-center gap-2 text-sm text-green-700">
+          <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-300">
             <span>{photoData.totalCount} foto's dit jaar</span>
             {photoData.hasMorePhotos && (
-              <Badge variant="secondary" className="text-xs bg-green-200 text-green-800">
+              <Badge variant="secondary" className="text-xs bg-green-200 dark:bg-green-800 text-green-800 dark:text-green-200">
                 +{photoData.totalCount - 12} meer
               </Badge>
             )}
@@ -255,8 +255,8 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
       <Dialog open={showPhotoDialog} onOpenChange={setShowPhotoDialog}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-green-800">
-              <Camera className="w-5 h-5 text-blue-600" />
+            <DialogTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
+              <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               Foto van {plantName}
             </DialogTitle>
           </DialogHeader>
@@ -275,7 +275,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
                 <Button
                   variant="outline"
                   size="sm"
-                  className="absolute top-2 right-2 bg-white/90 hover:bg-white border-green-300"
+                  className="absolute top-2 right-2 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 border-green-300 dark:border-green-600"
                   onClick={() => setShowPhotoDialog(false)}
                 >
                   <X className="w-4 h-4" />
@@ -286,36 +286,36 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-green-600" />
-                    <span className="font-medium text-green-800">Datum:</span>
-                    <span className="text-green-700">{formatPhotoDate(selectedPhoto.entry_date)}</span>
+                    <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
+                    <span className="font-medium text-green-800 dark:text-green-200">Datum:</span>
+                    <span className="text-green-700 dark:text-green-300">{formatPhotoDate(selectedPhoto.entry_date)}</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-blue-500" />
-                    <span className="font-medium text-green-800">Locatie:</span>
-                    <span className="text-green-700">{selectedPhoto.plant_bed_name}</span>
+                    <MapPin className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                    <span className="font-medium text-green-800 dark:text-green-200">Locatie:</span>
+                    <span className="text-green-700 dark:text-green-300">{selectedPhoto.plant_bed_name}</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <Leaf className="w-4 h-4 text-green-500" />
-                    <span className="font-medium text-green-800">Plant:</span>
-                    <span className="text-green-700">{selectedPhoto.plant_name || plantName}</span>
+                    <Leaf className="w-4 h-4 text-green-500 dark:text-green-400" />
+                    <span className="font-medium text-green-800 dark:text-green-200">Plant:</span>
+                    <span className="text-green-700 dark:text-green-300">{selectedPhoto.plant_name || plantName}</span>
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <div>
-                    <span className="font-medium text-green-800">Notities:</span>
-                    <p className="text-green-700 mt-1 bg-green-50 p-2 rounded">
+                    <span className="font-medium text-green-800 dark:text-green-200">Notities:</span>
+                    <p className="text-green-700 dark:text-green-300 mt-1 bg-green-50 dark:bg-green-950/30 p-2 rounded">
                       {selectedPhoto.notes || 'Geen notities toegevoegd'}
                     </p>
                   </div>
                   
                   {selectedPhoto.plant_variety && (
                     <div>
-                      <span className="font-medium text-green-800">Variëteit:</span>
-                      <p className="text-green-700 mt-1 bg-green-50 p-2 rounded">
+                      <span className="font-medium text-green-800 dark:text-green-200">Variëteit:</span>
+                      <p className="text-green-700 dark:text-green-300 mt-1 bg-green-50 dark:bg-green-950/30 p-2 rounded">
                         {selectedPhoto.plant_variety}
                       </p>
                     </div>

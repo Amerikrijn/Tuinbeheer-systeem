@@ -220,9 +220,9 @@ export default function PlantDetailPage() {
         {/* Plant Details */}
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Info */}
-          <Card className="border-2 border-green-200 bg-green-50/30">
+          <Card className="border-2 border-green-200 dark:border-green-700 bg-green-50/30 dark:bg-green-950/30">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-green-800">
+              <CardTitle className="flex items-center gap-2 text-green-800 dark:text-green-200">
                 <Leaf className="w-5 h-5" />
                 Basis Bloemgegevens
               </CardTitle>
@@ -230,8 +230,8 @@ export default function PlantDetailPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Bloemnaam</label>
-                  <p className="text-lg font-semibold flex items-center gap-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Bloemnaam</label>
+                  <p className="text-lg font-semibold flex items-center gap-2 text-gray-900 dark:text-gray-100">
                     {plant.emoji && <span className="text-xl">{plant.emoji}</span>}
                     {plant.name}
                   </p>
@@ -239,23 +239,23 @@ export default function PlantDetailPage() {
                 
                 {plant.color && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Kleur</label>
-                    <p className="text-lg font-medium text-gray-900">{plant.color}</p>
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Kleur</label>
+                    <p className="text-lg font-medium text-gray-900 dark:text-gray-100">{plant.color}</p>
                   </div>
                 )}
 
                 {plant.height && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Hoogte</label>
-                    <p className="text-lg font-medium text-gray-900">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Hoogte</label>
+                    <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
                       {plant.height} cm
                     </p>
                   </div>
                 )}
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Locatie</label>
-                  <p className="text-gray-900">{plant.plant_beds?.name} • {plant.plant_beds?.gardens?.name}</p>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Locatie</label>
+                  <p className="text-gray-900 dark:text-gray-100">{plant.plant_beds?.name} • {plant.plant_beds?.gardens?.name}</p>
                 </div>
               </div>
             </CardContent>
@@ -266,7 +266,7 @@ export default function PlantDetailPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span className="w-5 h-5 text-blue-600">🔬</span>
+                  <span className="w-5 h-5 text-blue-600 dark:text-blue-400">🔬</span>
                   Wetenschappelijke Informatie
                 </CardTitle>
               </CardHeader>
@@ -274,15 +274,15 @@ export default function PlantDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {plant.scientific_name && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Wetenschappelijke naam</label>
-                      <p className="text-gray-900 italic">{plant.scientific_name}</p>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Wetenschappelijke naam</label>
+                      <p className="text-gray-900 dark:text-gray-100 italic">{plant.scientific_name}</p>
                     </div>
                   )}
 
                   {plant.variety && (
                     <div className={plant.scientific_name ? "md:col-span-1" : "md:col-span-2"}>
-                      <label className="text-sm font-medium text-gray-700">Variëteit</label>
-                      <p className="text-gray-900">{plant.variety}</p>
+                      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Variëteit</label>
+                      <p className="text-gray-900 dark:text-gray-100">{plant.variety}</p>
                     </div>
                   )}
                 </div>
@@ -295,7 +295,7 @@ export default function PlantDetailPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Sun className="w-5 h-5 text-orange-600" />
+                  <Sun className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                   Groei Informatie
                 </CardTitle>
               </CardHeader>
@@ -305,18 +305,18 @@ export default function PlantDetailPage() {
                     <div className="flex items-center gap-3">
                       {getSunIcon(plant.sun_preference)}
                       <div>
-                        <p className="text-sm text-gray-600">Zonvoorkeur</p>
-                        <p className="font-medium text-gray-900">{getSunLabel(plant.sun_preference)}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Zonvoorkeur</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{getSunLabel(plant.sun_preference)}</p>
                       </div>
                     </div>
                   )}
 
                   {plant.plants_per_sqm && (
                     <div className="flex items-center gap-3">
-                      <Users className="w-5 h-5 text-green-500" />
+                      <Users className="w-5 h-5 text-green-500 dark:text-green-400" />
                       <div>
-                        <p className="text-sm text-gray-600">Planten per m²</p>
-                        <p className="font-medium text-gray-900">{plant.plants_per_sqm} stuks</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Planten per m²</p>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{plant.plants_per_sqm} stuks</p>
                       </div>
                     </div>
                   )}
@@ -324,22 +324,22 @@ export default function PlantDetailPage() {
                   {(plant.planting_date || plant.expected_harvest_date) && (
                     <div className="md:col-span-2">
                       <div className="flex items-center gap-3 mb-2">
-                        <Calendar className="w-5 h-5 text-blue-500" />
-                        <p className="text-sm font-medium text-gray-700">Planning</p>
+                        <Calendar className="w-5 h-5 text-blue-500 dark:text-blue-400" />
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Planning</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-8">
                         {plant.planting_date && (
                           <div>
-                            <p className="text-sm text-gray-600">Plantdatum</p>
-                            <p className="font-medium text-gray-900">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Plantdatum</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
                               {new Date(plant.planting_date).toLocaleDateString('nl-NL')}
                             </p>
                           </div>
                         )}
                         {plant.expected_harvest_date && (
                           <div>
-                            <p className="text-sm text-gray-600">Verwachte bloeitijd</p>
-                            <p className="font-medium text-gray-900">
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Verwachte bloeitijd</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">
                               {new Date(plant.expected_harvest_date).toLocaleDateString('nl-NL')}
                             </p>
                           </div>
@@ -357,37 +357,37 @@ export default function PlantDetailPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <span className="w-5 h-5 text-green-600">🌿</span>
+                  <span className="w-5 h-5 text-green-600 dark:text-green-400">🌿</span>
                   Verzorging
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {plant.care_instructions && (
                   <div>
-                    <h4 className="font-medium mb-2 text-gray-700">Verzorgingsinstructies</h4>
-                    <p className="text-gray-900 bg-gray-50 p-3 rounded-md">{plant.care_instructions}</p>
+                    <h4 className="font-medium mb-2 text-gray-700 dark:text-gray-300">Verzorgingsinstructies</h4>
+                    <p className="text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 p-3 rounded-md">{plant.care_instructions}</p>
                   </div>
                 )}
                 
                 {(plant.watering_frequency || plant.fertilizer_schedule) && (
                   <div>
-                    <h4 className="font-medium mb-3 text-gray-700">Verzorgingsschema</h4>
+                    <h4 className="font-medium mb-3 text-gray-700 dark:text-gray-300">Verzorgingsschema</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {plant.watering_frequency && (
-                        <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-md">
-                          <span className="text-blue-600">💧</span>
+                        <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-950/30 p-3 rounded-md">
+                          <span className="text-blue-600 dark:text-blue-400">💧</span>
                           <div>
-                            <p className="text-sm text-gray-600">Water frequentie</p>
-                            <p className="font-medium text-gray-900">Elke {plant.watering_frequency} dagen</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Water frequentie</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">Elke {plant.watering_frequency} dagen</p>
                           </div>
                         </div>
                       )}
                       {plant.fertilizer_schedule && (
-                        <div className="flex items-center gap-3 bg-green-50 p-3 rounded-md">
-                          <span className="text-green-600">🧪</span>
+                        <div className="flex items-center gap-3 bg-green-50 dark:bg-green-950/30 p-3 rounded-md">
+                          <span className="text-green-600 dark:text-green-400">🧪</span>
                           <div>
-                            <p className="text-sm text-gray-600">Bemesting</p>
-                            <p className="font-medium text-gray-900">{plant.fertilizer_schedule}</p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">Bemesting</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{plant.fertilizer_schedule}</p>
                           </div>
                         </div>
                       )}
@@ -397,8 +397,8 @@ export default function PlantDetailPage() {
                 
                 {plant.notes && (
                   <div>
-                    <h4 className="font-medium mb-2 text-gray-700">Opmerkingen</h4>
-                    <p className="text-gray-900 bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400">{plant.notes}</p>
+                    <h4 className="font-medium mb-2 text-gray-700 dark:text-gray-300">Opmerkingen</h4>
+                    <p className="text-gray-900 dark:text-gray-100 bg-yellow-50 dark:bg-yellow-950/30 p-3 rounded-md border-l-4 border-yellow-400 dark:border-yellow-600">{plant.notes}</p>
                   </div>
                 )}
               </CardContent>
@@ -435,20 +435,20 @@ export default function PlantDetailPage() {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Actieve taken</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Actieve taken</span>
                   <Badge variant="secondary">{activeTasks.length}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Vandaag</span>
-                  <Badge className="bg-orange-100 text-orange-800">{todayTasks.length}</Badge>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Vandaag</span>
+                  <Badge className="bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-200">{todayTasks.length}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Verlopen</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Verlopen</span>
                   <Badge variant="destructive">{overdueTasks.length}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Afgerond</span>
-                  <Badge className="bg-green-100 text-green-800">{completedTasks.length}</Badge>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">Afgerond</span>
+                  <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">{completedTasks.length}</Badge>
                 </div>
               </div>
             </CardContent>
@@ -468,12 +468,12 @@ export default function PlantDetailPage() {
                   const isToday = task.due_date === new Date().toISOString().split('T')[0]
                   
                   return (
-                    <div key={task.id} className="border rounded-lg p-3 space-y-2">
+                    <div key={task.id} className="border border-border rounded-lg p-3 space-y-2">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
                           <span className="text-sm">{taskTypeConfig?.icon || '📝'}</span>
                           <div className="flex-1">
-                            <p className="font-medium text-sm">{task.title}</p>
+                            <p className="font-medium text-sm text-foreground">{task.title}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <Badge 
                                 variant={isOverdue ? "destructive" : isToday ? "default" : "secondary"}
@@ -518,9 +518,9 @@ export default function PlantDetailPage() {
           {tasks.length === 0 && (
             <Card>
               <CardContent className="p-6 text-center">
-                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="font-medium text-gray-900 mb-2">Nog geen taken</h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <Calendar className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+                <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Nog geen taken</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Voeg je eerste taak toe voor deze bloem.
                 </p>
                 <Button

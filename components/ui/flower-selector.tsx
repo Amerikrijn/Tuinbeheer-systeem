@@ -130,7 +130,7 @@ export function FlowerSelector({
             onClick={() => setIsOpen(!isOpen)}
           >
             <div className="flex items-center gap-2">
-              <Leaf className="h-4 w-4 text-green-600" />
+              <Leaf className="h-4 w-4 text-green-600 dark:text-green-400" />
               <div className="text-left">
                 <div className="font-medium">{selectedFlower.name}</div>
                 {selectedFlower.scientificName && (
@@ -145,11 +145,11 @@ export function FlowerSelector({
           
           {/* Flower details */}
           {showDetails && (
-            <Card className="mt-2 border-green-200">
+            <Card className="mt-2 border-green-200 dark:border-green-700">
               <CardContent className="p-3">
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3 text-blue-500" />
+                    <Calendar className="h-3 w-3 text-blue-500 dark:text-blue-400" />
                     <span className="text-gray-600">Bloei:</span>
                     <span className="font-medium">{selectedFlower.bloeiperiode}</span>
                   </div>
@@ -174,7 +174,7 @@ export function FlowerSelector({
                       {FLOWER_CATEGORIES[selectedFlower.category]}
                     </Badge>
                     {selectedFlower.popular && (
-                      <Badge variant="outline" className="ml-1 text-xs bg-green-50 text-green-700">
+                      <Badge variant="outline" className="ml-1 text-xs bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300">
                         Populair
                       </Badge>
                     )}
@@ -246,8 +246,8 @@ export function FlowerSelector({
 
             {/* Popular flowers (when no search) */}
             {!searchQuery && showPopularFirst && (
-              <div className="p-3 border-b bg-green-50">
-                <h4 className="text-sm font-medium text-green-800 mb-2">Populaire bloemen</h4>
+              <div className="p-3 border-b bg-green-50 dark:bg-green-950/30">
+                <h4 className="text-sm font-medium text-green-800 dark:text-green-200 mb-2">Populaire bloemen</h4>
                 <div className="grid grid-cols-2 gap-1">
                   {popularFlowers.map((flower) => (
                     <Button
@@ -257,7 +257,7 @@ export function FlowerSelector({
                       className="justify-start h-8 text-xs"
                       onClick={() => handleFlowerSelect(flower)}
                     >
-                      <Leaf className="h-3 w-3 mr-1 text-green-600" />
+                                              <Leaf className="h-3 w-3 mr-1 text-green-600 dark:text-green-400" />
                       {flower.name}
                     </Button>
                   ))}
@@ -276,18 +276,18 @@ export function FlowerSelector({
                   <Button
                     key={flower.name}
                     variant="ghost"
-                    className="w-full justify-start p-3 h-auto hover:bg-green-50 border-b border-gray-100"
+                                            className="w-full justify-start p-3 h-auto hover:bg-green-50 dark:hover:bg-green-950/30 border-b border-gray-100 dark:border-gray-700"
                     onClick={() => handleFlowerSelect(flower)}
                   >
                     <div className="flex items-center gap-3 w-full">
-                      <Leaf className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                              <Leaf className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
                       <div className="text-left flex-1">
                         <div className="font-medium flex items-center gap-2">
                           {flower.name}
                           {flower.popular && (
-                            <Badge variant="secondary" className="px-1 py-0 text-xs bg-green-100 text-green-700">
-                              Populair
-                            </Badge>
+                                                      <Badge variant="secondary" className="px-1 py-0 text-xs bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300">
+                            Populair
+                          </Badge>
                           )}
                         </div>
                         {flower.scientificName && (

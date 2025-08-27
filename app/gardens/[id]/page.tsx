@@ -1765,7 +1765,7 @@ export default function GardenDetailPage() {
           
           <div className="space-y-4">
             <div>
-              <label htmlFor="plantvak-name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="plantvak-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Plantvak Naam *
               </label>
               <Input
@@ -1778,7 +1778,7 @@ export default function GardenDetailPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="plantvak-length" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="plantvak-length" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Lengte (m) *
                 </label>
                 <Input
@@ -1792,7 +1792,7 @@ export default function GardenDetailPage() {
                 />
               </div>
               <div>
-                <label htmlFor="plantvak-width" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="plantvak-width" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Breedte (m) *
                 </label>
                 <Input
@@ -1808,13 +1808,13 @@ export default function GardenDetailPage() {
             </div>
 
             {newPlantBed.length && newPlantBed.width && (
-              <div className="text-sm text-green-600 font-medium">
+              <div className="text-sm text-green-600 dark:text-green-400 font-medium">
                 📐 Oppervlakte: {(parseFloat(newPlantBed.length) * parseFloat(newPlantBed.width)).toFixed(1)} m²
               </div>
             )}
 
             <div>
-              <label htmlFor="plantvak-sun" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="plantvak-sun" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Zonligging
               </label>
               <Select value={newPlantBed.sun_exposure} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
@@ -1826,19 +1826,19 @@ export default function GardenDetailPage() {
                 <SelectContent>
                   <SelectItem value="full-sun">
                     <div className="flex items-center gap-2">
-                      <Sun className="h-4 w-4 text-yellow-500" />
+                      <Sun className="h-4 w-4 text-yellow-500 dark:text-yellow-400" />
                       <span>Volle zon</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="partial-sun">
                     <div className="flex items-center gap-2">
-                      <CloudSun className="h-4 w-4 text-yellow-400" />
+                      <CloudSun className="h-4 w-4 text-yellow-400 dark:text-yellow-300" />
                       <span>Gedeeltelijke zon</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="shade">
                     <div className="flex items-center gap-2">
-                      <Cloud className="h-4 w-4 text-gray-500" />
+                      <Cloud className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                       <span>Schaduw</span>
                     </div>
                   </SelectItem>
@@ -1847,7 +1847,7 @@ export default function GardenDetailPage() {
             </div>
 
             <div>
-              <label htmlFor="plantvak-description" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="plantvak-description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Beschrijving (optioneel)
               </label>
               <Textarea
