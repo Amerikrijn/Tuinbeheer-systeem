@@ -128,7 +128,7 @@ export default function NewPlantBedPage() {
 
     // Location is now optional - removed validation
     
-    if (!newPlantBed.size.trim()) {
+    if (!newPlantBed.size || !newPlantBed.size.trim()) {
       newErrors.size = "Grootte is verplicht"
     }
     if (!newPlantBed.soilType || newPlantBed.soilType === "") {
@@ -469,7 +469,7 @@ export default function NewPlantBedPage() {
                   <Button
                     type="submit" 
                     disabled={loading}
-                    className="bg-green-600 hover:bg-green-700"
+                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
                   >
                     {loading ? "Aanmaken..." : "Plantvak Aanmaken"}
                   </Button>
@@ -482,6 +482,14 @@ export default function NewPlantBedPage() {
                   >
                     Reset Formulier
                   </Button>
+                  
+                  {/* Debug info */}
+                  <div className="text-xs text-gray-500 ml-4 flex items-center">
+                    Loading: {loading ? "true" : "false"} | 
+                    Size: {newPlantBed.size ? "✓" : "✗"} |
+                    Soil: {newPlantBed.soilType ? "✓" : "✗"} |
+                    Sun: {newPlantBed.sunExposure ? "✓" : "✗"}
+                  </div>
                 </div>
               </form>
             </CardContent>
