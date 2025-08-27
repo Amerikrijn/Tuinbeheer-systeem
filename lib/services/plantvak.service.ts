@@ -109,6 +109,7 @@ export class PlantvakService {
         soil_type: plantvakData.soil_type,
         sun_exposure: plantvakData.sun_exposure,
         description: plantvakData.description,
+        season_year: new Date().getFullYear(), // Add current year
         is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
