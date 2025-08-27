@@ -8,17 +8,19 @@ import { useNavigation } from '@/hooks/use-navigation'
 import { WeeklyTaskList } from '@/components/tasks/weekly-task-list'
 import { AddTaskForm } from '@/components/tasks/add-task-form'
 import { TaskDetailsDialog } from '@/components/tasks/task-details-dialog'
-import type { WeeklyTask } from '@/lib/types/tasks'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Calendar, ArrowLeft } from "lucide-react"
+import { Calendar, Plus, ArrowLeft } from "lucide-react"
+import Link from "next/link"
 import { ProtectedRoute } from "@/components/auth/protected-route"
+import { UserRestrictedRoute } from "@/components/auth/user-restricted-route"
 
 function TasksPageContent() {
   const { goBack } = useNavigation()
   const [showAddTask, setShowAddTask] = useState(false)
   const [selectedPlantId, setSelectedPlantId] = useState<string | undefined>()
   const [refreshKey, setRefreshKey] = useState(0)
-  const [selectedTask, setSelectedTask] = useState<WeeklyTask | null>(null)
+  const [selectedTask, setSelectedTask] = useState<any>(null)
   const [showTaskDialog, setShowTaskDialog] = useState(false)
 
   const handleTaskAdd = (plantId?: string) => {

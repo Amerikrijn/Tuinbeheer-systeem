@@ -8,10 +8,8 @@ export default function PlantBedPlantsRedirectPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Redirect to the garden page with selected bed via query param
-    if (params.id && params.bedId) {
-      router.replace(`/gardens/${params.id}?bedId=${params.bedId}`)
-    }
+    // Redirect to the visual plantvak-view instead of showing a list
+    router.replace(`/gardens/${params.id}/plantvak-view/${params.bedId}`)
   }, [params.id, params.bedId, router])
 
   // Show loading while redirecting

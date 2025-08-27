@@ -11,6 +11,8 @@ import { ArrowLeft, Leaf } from "lucide-react"
 import { getGarden, getPlantBed, createPlant } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { AddTaskForm } from '@/components/tasks/add-task-form'
+import { TaskService } from '@/lib/services/task.service'
+import type { TaskWithPlantInfo } from '@/lib/types/tasks'
 
 export default function NewPlantPage() {
   const router = useRouter()
@@ -51,7 +53,7 @@ export default function NewPlantPage() {
         setGarden(gardenData)
         setPlantBed(plantBedData)
       } catch (error) {
-        // Console logging removed for banking standards.error('Error loading data:', error)
+        console.error('Error loading data:', error)
         toast({
           title: "Fout bij laden",
           description: "Kon de gegevens niet laden. Probeer het opnieuw.",
@@ -70,9 +72,9 @@ export default function NewPlantPage() {
 
     // Required fields
     if (!data.name.trim()) {
-              newErrors.name = "Plantnaam is verplicht"
+      newErrors.name = "Bloemnaam is verplicht"
     } else if (data.name.length > 100) {
-              newErrors.name = "Plantnaam mag maximaal 100 karakters bevatten"
+      newErrors.name = "Bloemnaam mag maximaal 100 karakters bevatten"
     }
 
     if (!data.color.trim()) {
@@ -176,9 +178,9 @@ export default function NewPlantPage() {
         description: `Plant "${plantData.name}" is succesvol toegevoegd aan ${plantBed.name}.`,
       })
       
-      router.push(`/gardens/${garden?.id}?bedId=${plantBed.id}`)
+      router.push(`/gardens/${garden?.id}/plantvak-view/${plantBed.id}`)
     } catch (error) {
-      // Console logging removed for banking standards.error('Error creating plant:', error)
+      console.error('Error creating plant:', error)
       toast({
         title: "Fout bij toevoegen",
         description: "Er ging iets mis bij het toevoegen van de plant. Probeer het opnieuw.",
@@ -230,7 +232,7 @@ export default function NewPlantPage() {
     <div className="container mx-auto p-6 max-w-4xl">
       {/* Back button */}
       <Button asChild variant="ghost" className="mb-6">
-        <Link href={`/gardens/${garden.id}?bedId=${plantBed.id}`}>
+        <Link href={`/gardens/${garden.id}/plantvak-view/${plantBed.id}`}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Terug naar plantvak
         </Link>
@@ -240,7 +242,7 @@ export default function NewPlantPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
           <Leaf className="h-8 w-8 text-green-600" />
-          Nieuwe Plant Toevoegen
+          Nieuwe Bloem Toevoegen
         </h1>
         <div className="text-gray-600">
           <p><strong>Tuin:</strong> {garden.name}</p>
@@ -251,7 +253,7 @@ export default function NewPlantPage() {
       {/* Plant Form */}
       <Card>
         <CardHeader>
-                      <CardTitle>Plant Details</CardTitle>
+          <CardTitle>Bloem Details</CardTitle>
         </CardHeader>
         <CardContent>
           <PlantForm
@@ -260,7 +262,7 @@ export default function NewPlantPage() {
             onChange={setPlantData}
             onSubmit={handleSubmit}
             onReset={handleReset}
-                          submitLabel="Plant toevoegen"
+            submitLabel="Bloem toevoegen"
             isSubmitting={loading}
             showAdvanced={true}
           />

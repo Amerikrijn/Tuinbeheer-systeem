@@ -11,7 +11,7 @@ import { passwordChangeManager, type PasswordValidation } from '@/lib/auth/passw
 import { useAuth } from '@/hooks/use-supabase-auth'
 
 interface ForcePasswordChangeProps {
-  user: { id: string; email: string; full_name?: string }
+  user: any
   onPasswordChanged: () => void
 }
 
@@ -83,14 +83,14 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
           await signOut()
           router.push('/auth/login?message=password-changed')
         } catch (error) {
-          // Console logging removed for banking standards.error('Logout error:', error)
+          console.error('Logout error:', error)
           // Fallback: force redirect anyway
           window.location.href = '/auth/login?message=password-changed'
         }
       }, 1500)
 
-    } catch (error: unknown) {
-      // Console logging removed for banking standards.error('Password change error:', error)
+    } catch (error: any) {
+      console.error('Password change error:', error)
       setError('System error. Please try again or contact support.')
     } finally {
       setLoading(false)

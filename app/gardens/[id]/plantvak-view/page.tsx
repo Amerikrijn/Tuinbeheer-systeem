@@ -1,23 +1,20 @@
 "use client"
 
 import { useEffect } from "react"
-import { useRouter, useParams, useSearchParams } from "next/navigation"
+import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Leaf } from "lucide-react"
 
 export default function PlantvakViewRedirectPage() {
   const router = useRouter()
   const params = useParams()
-  const searchParams = useSearchParams()
 
   useEffect(() => {
     // Redirect to the garden page since this route is deprecated
     if (params.id) {
-      const bedId = searchParams?.get('bedId')
-      const target = bedId ? `/gardens/${params.id}?bedId=${bedId}` : `/gardens/${params.id}`
-      router.replace(target)
+      router.replace(`/gardens/${params.id}`)
     }
-  }, [router, params.id, searchParams])
+  }, [router, params.id])
 
   return (
     <div className="container mx-auto p-6">

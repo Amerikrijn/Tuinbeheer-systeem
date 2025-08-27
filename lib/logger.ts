@@ -1,249 +1,263 @@
 /**
- * Banking-Grade Logging System
- * Voldoet aan Nederlandse banking standards voor audit trails
+ * Banking-Standard Logging System
+ * Compatible with Next.js Edge Runtime and Browser Environment
  */
 
-export interface LogLevel {
-  ERROR: 'error';
-  WARN: 'warn';
-  INFO: 'info';
-  DEBUG: 'debug';
+// Log levels following banking standards
+const LOG_LEVELS = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  debug: 3,
+  trace: 4,
 }
 
-export const LOG_LEVELS: LogLevel = {
-  ERROR: 'error',
-  WARN: 'warn',
-  INFO: 'info',
-  DEBUG: 'debug'
-};
-
-export interface LogEntry {
-  timestamp: string;
-  level: string;
-  message: string;
-  context?: Record<string, any>;
-  userId?: string;
-  requestId?: string;
-  ip?: string;
+type LogLevel = keyof typeof LOG_LEVELS
+type LogEntry = {
+  timestamp: string
+  level: string
+  message: string
+  context?: string
+  correlationId?: string
+  metadata?: Record<string, any>
+  error?: {
+    name: string
+    message: string
+    stack?: string
+  }
 }
 
-class Logger {
-  private logLevel: string;
+// Simple console-based logger for Next.js compatibility
+class NextJSLogger {
+  private level: LogLevel
+  private service: string
+  private version: string
 
-  constructor() {
-    this.logLevel = process.env.LOG_LEVEL || 'info';
+  constructor(options: { level?: LogLevel; service?: string; version?: string } = {}) {
+    this.level = options.level || (process.env.NODE_ENV === 'production' ? 'info' : 'debug')
+    this.service = options.service || 'tuinbeheer-systeem'
+    this.version = options.version || '0.1.0'
   }
 
-  private shouldLog(level: string): boolean {
-    const levels = ['debug', 'info', 'warn', 'error'];
-    const currentLevel = levels.indexOf(this.logLevel);
-    const messageLevel = levels.indexOf(level);
-    // Always allow debug logging for tests
-    if (process.env.NODE_ENV === 'test') {
-      return true;
+  private shouldLog(level: LogLevel): boolean {
+    return LOG_LEVELS[level] <= LOG_LEVELS[this.level]
+  }
+
+  private getCorrelationId(): string | undefined {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      return window.sessionStorage.getItem('correlationId') || undefined
     }
-    return messageLevel >= currentLevel;
+    return undefined
   }
 
-  private formatMessage(level: string, message: string, context?: Record<string, any>): string {
-    const logEntry: LogEntry = {
+  private formatLogEntry(level: LogLevel, message: string, metadata?: Record<string, any>): LogEntry {
+    return {
       timestamp: new Date().toISOString(),
       level: level.toUpperCase(),
-      message: message,
-      ...(context && { context })
-    };
-    return JSON.stringify(logEntry);
+      message,
+      correlationId: this.getCorrelationId(),
+      ...metadata,
+    }
   }
 
-  private log(level: string, message: string, context?: Record<string, any>): void {
-    if (!this.shouldLog(level)) return;
+  private output(level: LogLevel, entry: LogEntry): void {
+    if (!this.shouldLog(level)) return
 
-    const formattedMessage = this.formatMessage(level, message, context);
-    
+    const logString = JSON.stringify(entry, null, process.env.NODE_ENV === 'development' ? 2 : 0)
+
     switch (level) {
       case 'error':
-        console.error(formattedMessage);
-        break;
+        console.error(logString)
+        break
       case 'warn':
-        console.warn(formattedMessage);
-        break;
+        console.warn(logString)
+        break
       case 'info':
-        console.info(formattedMessage);
-        break;
+        console.info(logString)
+        break
       case 'debug':
-        console.log(formattedMessage);
-        break;
-      default:
-        console.log(formattedMessage);
+      case 'trace':
+        console.log(logString)
+        break
     }
   }
 
-  error(message: string, context?: Record<string, any>): void {
-    this.log('error', message, context);
+  log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
+    const entry = this.formatLogEntry(level, message, {
+      service: this.service,
+      version: this.version,
+      ...metadata,
+    })
+    this.output(level, entry)
   }
 
-  warn(message: string, context?: Record<string, any>): void {
-    this.log('warn', message, context);
+  error(message: string, error?: Error, metadata?: Record<string, any>): void {
+    this.log('error', message, {
+      error: error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      } : undefined,
+      ...metadata,
+    })
   }
 
-  info(message: string, context?: Record<string, any>): void {
-    this.log('info', message, context);
+  warn(message: string, metadata?: Record<string, any>): void {
+    this.log('warn', message, metadata)
   }
 
-  debug(message: string, context?: Record<string, any>): void {
-    this.log('debug', message, context);
+  info(message: string, metadata?: Record<string, any>): void {
+    this.log('info', message, metadata)
+  }
+
+  debug(message: string, metadata?: Record<string, any>): void {
+    this.log('debug', message, metadata)
+  }
+
+  trace(message: string, metadata?: Record<string, any>): void {
+    this.log('trace', message, metadata)
   }
 }
 
-// AppLogger class for application-specific logging
-export class AppLogger extends Logger {
-  private appName: string;
+// Create logger instance
+const logger = new NextJSLogger({
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  service: 'tuinbeheer-systeem',
+  version: process.env.npm_package_version || '0.1.0',
+})
 
-  constructor(appName: string) {
-    super();
-    this.appName = appName;
-  }
-
-  // Override the formatMessage method to include app context
-  protected formatMessage(level: LogLevel, message: string, context?: Record<string, unknown>): string {
-    const logEntry: LogEntry & { appName?: string } = {
+// Banking-standard audit logging
+export class AuditLogger {
+  static logUserAction(
+    userId: string | null,
+    action: string,
+    resource: string,
+    resourceId?: string,
+    metadata?: Record<string, any>
+  ): void {
+    logger.info('User action', {
+      category: 'AUDIT',
+      userId: userId || 'anonymous',
+      action,
+      resource,
+      resourceId,
+      metadata: metadata || {},
       timestamp: new Date().toISOString(),
-      level: level.toUpperCase(),
-      message: message,
-      ...(context && { context }),
-      appName: this.appName
-    };
-    return JSON.stringify(logEntry);
+    })
+  }
+
+  static logSecurityEvent(
+    event: string,
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL',
+    details: Record<string, any>
+  ): void {
+    logger.warn('Security event', {
+      category: 'SECURITY',
+      event,
+      severity,
+      details,
+      timestamp: new Date().toISOString(),
+    })
+  }
+
+  static logDataAccess(
+    userId: string | null,
+    operation: 'READ' | 'CREATE' | 'UPDATE' | 'DELETE',
+    table: string,
+    recordId?: string,
+    conditions?: Record<string, any>
+  ): void {
+    logger.info('Data access', {
+      category: 'DATA_ACCESS',
+      userId: userId || 'system',
+      operation,
+      table,
+      recordId,
+      conditions: conditions || {},
+      timestamp: new Date().toISOString(),
+    })
   }
 }
 
-// PerformanceLogger class for performance monitoring
+// Application logger with contextual information
+export class AppLogger {
+  private context: string
+
+  constructor(context: string) {
+    this.context = context
+  }
+
+  private log(level: LogLevel, message: string, metadata?: Record<string, any>): void {
+    logger.log(level, message, {
+      context: this.context,
+      ...metadata,
+    })
+  }
+
+  error(message: string, error?: Error, metadata?: Record<string, any>): void {
+    logger.error(message, error, {
+      context: this.context,
+      ...metadata,
+    })
+  }
+
+  warn(message: string, metadata?: Record<string, any>): void {
+    this.log('warn', message, metadata)
+  }
+
+  info(message: string, metadata?: Record<string, any>): void {
+    this.log('info', message, metadata)
+  }
+
+  debug(message: string, metadata?: Record<string, any>): void {
+    this.log('debug', message, metadata)
+  }
+
+  trace(message: string, metadata?: Record<string, any>): void {
+    this.log('trace', message, metadata)
+  }
+}
+
+// Performance monitoring
 export class PerformanceLogger {
-  private static timers: Map<string, number> = new Map();
-  private static readonly SLOW_OPERATION_THRESHOLD = 5000; // 5 seconds
+  private static timers = new Map<string, number>()
 
   static startTimer(operationId: string): void {
-    this.timers.set(operationId, Date.now());
+    this.timers.set(operationId, Date.now())
   }
 
-  static endTimer(operationId: string, operationName: string, context?: Record<string, any>): number {
-    const startTime = this.timers.get(operationId);
-    if (!startTime) {
-      console.warn(`Timer not found for operation: ${operationId}`);
-      return 0;
-    }
-
-    const duration = Date.now() - startTime;
-    this.timers.delete(operationId);
-
-    // Log performance data
-    const logEntry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level: 'INFO',
-      message: `Performance: ${operationName} completed`,
-      context: {
-        operationId,
-        operationName,
-        durationMs: duration,
-        category: duration > this.SLOW_OPERATION_THRESHOLD ? 'PERFORMANCE_ALERT' : 'PERFORMANCE',
-        ...context
+  static endTimer(operationId: string, operation: string, metadata?: Record<string, any>): void {
+    const startTime = this.timers.get(operationId)
+    if (startTime) {
+      const duration = Date.now() - startTime
+      this.timers.delete(operationId)
+      
+      logger.info('Performance metric', {
+        category: 'PERFORMANCE',
+        operation,
+        duration,
+        metadata: metadata || {},
+        timestamp: new Date().toISOString(),
+      })
+      
+      // Alert on slow operations (>5 seconds)
+      if (duration > 5000) {
+        logger.warn('Slow operation detected', {
+          category: 'PERFORMANCE_ALERT',
+          operation,
+          duration,
+          metadata: metadata || {},
+        })
       }
-    };
-
-    if (duration > this.SLOW_OPERATION_THRESHOLD) {
-      console.warn(JSON.stringify(logEntry));
-    } else {
-      console.info(JSON.stringify(logEntry));
     }
-
-    return duration;
   }
 }
 
-// AuditLogger class for audit trail logging
-export class AuditLogger {
-  static logDataAccess(userId: string | null, action: string, resource: string, resourceId: string, context?: Record<string, any>): void {
-    const logEntry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level: 'INFO',
-      message: `Data access: ${action} on ${resource}`,
-      context: {
-        userId,
-        action,
-        resource,
-        resourceId,
-        category: 'DATA_ACCESS',
-        ...context
-      }
-    };
-    console.info(JSON.stringify(logEntry));
-  }
+// Pre-configured loggers for different contexts
+export const errorBoundaryLogger = new AppLogger('ErrorBoundary')
+export const databaseLogger = new AppLogger('Database')
+export const apiLogger = new AppLogger('API')
+export const uiLogger = new AppLogger('UI')
 
-  static logSecurityEvent(eventType: string, severity: string, details: Record<string, any>): void {
-    const logEntry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level: severity === 'HIGH' ? 'WARN' : 'INFO',
-      message: `Security event: ${eventType}`,
-      context: {
-        eventType,
-        severity,
-        ...details,
-        category: 'SECURITY'
-      }
-    };
-
-    if (severity === 'HIGH') {
-      console.warn(JSON.stringify(logEntry));
-    } else {
-      console.info(JSON.stringify(logEntry));
-    }
-  }
-
-  static logUserAction(userId: string | null, action: string, module: string, sessionId: string, context?: Record<string, any>): void {
-    const logEntry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level: 'INFO',
-      message: `User action: ${action} in ${module}`,
-      context: {
-        userId,
-        action,
-        module,
-        sessionId,
-        category: 'AUDIT',
-        ...context
-      }
-    };
-    console.info(JSON.stringify(logEntry));
-  }
-}
-
-// Create logger instances
-export const logger = new Logger();
-export const apiLogger = new Logger();
-export const securityLogger = new Logger();
-export const databaseLogger = new Logger();
-export const uiLogger = new Logger(); // For UI components
-
-// Legacy logger names for compatibility (removed to avoid conflicts)
-
-// Specialized logging functions
-export const logSecurityEvent = (event: string, details: Record<string, any>): void => {
-  securityLogger.info(`SECURITY: ${event}`, details);
-};
-
-export const logDatabaseOperation = (operation: string, details: Record<string, any>): void => {
-  databaseLogger.info(`DATABASE: ${operation}`, details);
-};
-
-export const logApiRequest = (method: string, path: string, userId?: string): void => {
-  apiLogger.info(`API: ${method} ${path}`, { userId, timestamp: new Date().toISOString() });
-};
-
-export const logApiError = (method: string, path: string, error: any, userId?: string): void => {
-  apiLogger.error(`API ERROR: ${method} ${path}`, { 
-    error: error.message, 
-    stack: error.stack,
-    userId,
-    timestamp: new Date().toISOString()
-  });
-};
+export { logger }
+export default logger

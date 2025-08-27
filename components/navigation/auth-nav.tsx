@@ -18,7 +18,7 @@ export function AuthNavigation() {
       await signOut()
       router.push('/auth/login')
     } catch (error) {
-      // Console logging removed for banking standards.error('Sign out failed:', error)
+      console.error('Sign out failed:', error)
     }
   }
 

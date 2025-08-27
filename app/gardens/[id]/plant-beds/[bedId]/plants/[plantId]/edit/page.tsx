@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { PlantForm, PlantFormData, PlantFormErrors, createInitialPlantFormData } from "@/components/ui/plant-form"
 import { useToast } from "@/hooks/use-toast"
-import { ArrowLeft, Leaf, Trash2 } from "lucide-react"
+import { ArrowLeft, Leaf, Save, Trash2 } from "lucide-react"
 import { getPlant, updatePlant, deletePlant } from "@/lib/database"
 import type { Plant } from "@/lib/supabase"
 import { AddTaskForm } from '@/components/tasks/add-task-form'
@@ -59,7 +59,7 @@ export default function EditPlantPage() {
           })
         }
       } catch (error) {
-        // Console logging removed for banking standards.error('Error loading plant:', error)
+        console.error('Error loading plant:', error)
         toast({
           title: "Fout bij laden",
           description: "Kon de plant gegevens niet laden.",
@@ -79,7 +79,7 @@ export default function EditPlantPage() {
           setTasks(tasksData)
         }
       } catch (error) {
-        // Console logging removed for banking standards.error('Error loading tasks:', error)
+        console.error('Error loading tasks:', error)
       }
     }
 
@@ -94,9 +94,9 @@ export default function EditPlantPage() {
 
     // Required fields
     if (!data.name.trim()) {
-              newErrors.name = "Plantnaam is verplicht"
+      newErrors.name = "Bloemnaam is verplicht"
     } else if (data.name.length > 100) {
-              newErrors.name = "Plantnaam mag maximaal 100 karakters bevatten"
+      newErrors.name = "Bloemnaam mag maximaal 100 karakters bevatten"
     }
 
     if (!data.color.trim()) {
@@ -194,9 +194,9 @@ export default function EditPlantPage() {
         description: `Plant "${plantData.name}" is succesvol bijgewerkt.`,
       })
 
-      router.push(`/gardens/${params.id}?bedId=${params.bedId}`)
+      router.push(`/gardens/${params.id}/plantvak-view/${params.bedId}`)
     } catch (error) {
-      // Console logging removed for banking standards.error('Error updating plant:', error)
+      console.error('Error updating plant:', error)
       toast({
         title: "Fout bij bijwerken",
         description: "Er ging iets mis bij het bijwerken van de plant.",
@@ -224,9 +224,9 @@ export default function EditPlantPage() {
         description: `Plant "${plant.name}" is succesvol verwijderd.`,
       })
 
-      router.push(`/gardens/${params.id}?bedId=${params.bedId}`)
+      router.push(`/gardens/${params.id}/plantvak-view/${params.bedId}`)
     } catch (error) {
-      // Console logging removed for banking standards.error('Error deleting plant:', error)
+      console.error('Error deleting plant:', error)
       toast({
         title: "Fout bij verwijderen",
         description: "Er ging iets mis bij het verwijderen van de plant.",
@@ -248,7 +248,7 @@ export default function EditPlantPage() {
           setTasks(tasksData)
         }
       } catch (error) {
-        // Console logging removed for banking standards.error('Error loading tasks:', error)
+        console.error('Error loading tasks:', error)
       }
     }
     loadTasks()
@@ -277,7 +277,7 @@ export default function EditPlantPage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Plant niet gevonden</h2>
           <p className="text-gray-600 mb-6">De opgevraagde plant bestaat niet of is verwijderd.</p>
           <Button asChild>
-            <Link href={`/gardens/${params.id}?bedId=${params.bedId}`}>
+            <Link href={`/gardens/${params.id}/plantvak-view/${params.bedId}`}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Terug naar plantvak
             </Link>
@@ -291,7 +291,7 @@ export default function EditPlantPage() {
     <div className="container mx-auto p-6 max-w-4xl">
       {/* Back button */}
       <Button asChild variant="ghost" className="mb-6">
-        <Link href={`/gardens/${params.id}?bedId=${params.bedId}`}>
+        <Link href={`/gardens/${params.id}/plantvak-view/${params.bedId}`}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Terug naar plantvak
         </Link>
@@ -301,7 +301,7 @@ export default function EditPlantPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
           <Leaf className="h-8 w-8 text-green-600" />
-          Plant Bewerken
+          Bloem Bewerken
         </h1>
         <div className="text-gray-600">
           <p>{plant.name}</p>
@@ -313,7 +313,7 @@ export default function EditPlantPage() {
         <div className="lg:col-span-2">
                       <Card>
               <CardHeader>
-                <CardTitle>Plant Details</CardTitle>
+                <CardTitle>Bloem Details</CardTitle>
               </CardHeader>
             <CardContent>
               <PlantForm

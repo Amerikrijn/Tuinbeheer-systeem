@@ -29,15 +29,11 @@ const SECURITY_PATTERNS = {
   },
   sqlInjection: {
     patterns: [
-      // Look for actual SQL injection patterns, not Supabase query builder
-      /SELECT.*\$\{[^}]+\}.*FROM/gi,
-      /INSERT.*\$\{[^}]+\}.*INTO/gi,
-      /UPDATE.*\$\{[^}]+\}.*SET/gi,
-      /DELETE.*\$\{[^}]+\}.*FROM/gi,
+      /SELECT.*\$\{[^}]+\}/gi,
+      /INSERT.*\$\{[^}]+\}/gi,
+      /UPDATE.*\$\{[^}]+\}/gi,
+      /DELETE.*\$\{[^}]+\}/gi,
       /WHERE.*\$\{[^}]+\}/gi,
-      // Look for raw SQL queries that might be vulnerable
-      /executeQuery\s*\(\s*`[^`]*\$\{[^}]+\}[^`]*`/gi,
-      /query\s*\(\s*`[^`]*\$\{[^}]+\}[^`]*`/gi,
     ],
     description: 'Potential SQL injection patterns',
     critical: true
@@ -117,11 +113,6 @@ function scanFile(filePath) {
       config.patterns.forEach(pattern => {
         const matches = content.match(pattern);
         if (matches) {
-          // Skip SQL injection warnings for Supabase query builder files
-          if (key === 'sqlInjection' && isSupabaseQueryBuilder(content)) {
-            return; // Use return instead of continue in forEach
-          }
-          
           issues.push({
             type: key,
             description: config.description,
@@ -138,39 +129,6 @@ function scanFile(filePath) {
     console.warn(`⚠️  Warning: Could not read file ${filePath}: ${error.message}`);
     return [];
   }
-}
-
-/**
- * Check if a file uses Supabase query builder (safe from SQL injection)
- */
-function isSupabaseQueryBuilder(content) {
-  // Look for Supabase query builder patterns
-  const supabasePatterns = [
-    /\.from\(/gi,
-    /\.select\(/gi,
-    /\.insert\(/gi,
-    /\.update\(/gi,
-    /\.delete\(/gi,
-    /\.eq\(/gi,
-    /\.neq\(/gi,
-    /\.gt\(/gi,
-    /\.lt\(/gi,
-    /\.gte\(/gi,
-    /\.lte\(/gi,
-    /\.like\(/gi,
-    /\.ilike\(/gi,
-    /\.in\(/gi,
-    /\.not\(/gi,
-    /\.or\(/gi,
-    /\.and\(/gi,
-    /\.order\(/gi,
-    /\.limit\(/gi,
-    /\.range\(/gi,
-    /supabase/gi,
-    /supabaseAdmin/gi
-  ];
-  
-  return supabasePatterns.some(pattern => pattern.test(content));
 }
 
 /**

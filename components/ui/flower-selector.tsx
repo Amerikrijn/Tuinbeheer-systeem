@@ -5,14 +5,16 @@ import { Search, ChevronDown, Leaf, Palette, Calendar, Info } from 'lucide-react
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   DUTCH_FLOWERS, 
   FlowerData, 
   getPopularFlowers, 
+  getFlowersByCategory, 
   searchFlowers,
-  FLOWER_CATEGORIES 
+  FLOWER_CATEGORIES,
+  FLOWER_COLORS 
 } from '@/lib/dutch-flowers';
 
 interface FlowerSelectorProps {

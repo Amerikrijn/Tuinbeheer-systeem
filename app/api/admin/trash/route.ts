@@ -1,201 +1,113 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getSupabaseAdminClient } from '@/lib/supabase'
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
-export const dynamic = 'force-dynamic'
-export const runtime = 'nodejs'
+// Force dynamic rendering since this route handles query parameters
+export const dynamic = 'force-dynamic';
 
-function localAuditLog(action: string, details: Record<string, unknown>) {
-  // Use structured logging instead of console.log for production
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`🔒 ADMIN AUDIT: ${action}`, {
-      timestamp: new Date().toISOString(),
-      action,
-      details
-    })
-  }
+// 🏦 BANKING-GRADE: Validate required environment variables
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('NEXT_PUBLIC_SUPABASE_URL is required')
 }
 
-// GET - List deleted users and plantvakken
-export async function GET(request: NextRequest) {
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('🚨 CRITICAL: SUPABASE_SERVICE_ROLE_KEY not found in environment variables')
+  console.error('This API requires service role access for admin operations')
+}
+
+// Banking-grade admin client with service role
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+  {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  }
+)
+
+function localAuditLog(action: string, details: any) {
+  console.log(`🔒 ADMIN AUDIT: ${action}`, {
+    timestamp: new Date().toISOString(),
+    action,
+    details
+  })
+}
+
+// GET - List deleted users
+export async function GET() {
   try {
-    const supabase = getSupabaseAdminClient()
-    const type = request.nextUrl.searchParams.get('type') || 'all';
-    
-    let result: any = {};
-    
-    if (type === 'users' || type === 'all') {
-      const { data: deletedUsers, error: userError } = await supabase
-        .from('users')
-        .select('id, email, full_name, role, updated_at')
-        .eq('is_active', false)
-        .order('updated_at', { ascending: false })
+    const { data: deletedUsers, error } = await supabaseAdmin
+      .from('users')
+      .select('id, email, full_name, role, updated_at')
+      .eq('is_active', false)
+      .order('updated_at', { ascending: false })
 
-      if (userError) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Deleted users fetch error:', userError)
-        }
-        return NextResponse.json({ error: 'Failed to fetch deleted users' }, { status: 500 })
-      }
-      
-      result.deletedUsers = deletedUsers;
-    }
-    
-    if (type === 'plantvakken' || type === 'all') {
-      const { data: deletedPlantvakken, error: plantvakError } = await supabase
-        .from('deleted_plantvakken')
-        .select('*')
-        .order('deleted_at', { ascending: false })
-
-      if (plantvakError) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Deleted plantvakken fetch error:', plantvakError)
-        }
-        return NextResponse.json({ error: 'Failed to fetch deleted plantvakken' }, { status: 500 })
-      }
-      
-      result.deletedPlantvakken = deletedPlantvakken;
+    if (error) {
+      console.error('Deleted users fetch error:', error)
+      return NextResponse.json({ error: 'Failed to fetch deleted users' }, { status: 500 })
     }
 
-    localAuditLog('LIST_DELETED_ITEMS', { 
-      type, 
-      userCount: result.deletedUsers?.length || 0,
-      plantvakCount: result.deletedPlantvakken?.length || 0
-    })
+    localAuditLog('LIST_DELETED_USERS', { count: deletedUsers.length })
 
-    return NextResponse.json(result)
+    return NextResponse.json({ deletedUsers })
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('GET trash error:', error)
-    }
+    console.error('GET trash error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
-// PUT - Restore user or plantvak
+// PUT - Restore user
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = getSupabaseAdminClient()
-    const { userId, plantvakId, type } = await request.json()
+    const { userId } = await request.json()
 
-    if (type === 'plantvak') {
-      if (!plantvakId) {
-        return NextResponse.json({ error: 'Plantvak ID is required' }, { status: 400 })
-      }
-
-      // Get deleted plantvak details
-      const { data: plantvakData, error: plantvakError } = await supabase
-        .from('deleted_plantvakken')
-        .select('*')
-        .eq('original_id', plantvakId)
-        .single()
-
-      if (plantvakError || !plantvakData) {
-        return NextResponse.json({ error: 'Deleted plantvak not found' }, { status: 404 })
-      }
-
-      // Check if the letter code is still available in the garden
-      const { data: existingPlantvak, error: checkError } = await supabase
-        .from('plant_beds')
-        .select('id')
-        .eq('garden_id', plantvakData.garden_id)
-        .eq('letter_code', plantvakData.letter_code)
-        .eq('is_active', true)
-        .single()
-
-      if (existingPlantvak) {
-        return NextResponse.json({ 
-          error: 'Cannot restore plantvak - letter code already in use' 
-        }, { status: 409 })
-      }
-
-      // Restore plantvak
-      const { error: restoreError } = await supabase
-        .from('plant_beds')
-        .update({
-          is_active: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', plantvakData.original_id)
-
-      if (restoreError) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('Plantvak restore failed:', restoreError)
-        }
-        return NextResponse.json(
-          { error: 'Restore failed' },
-          { status: 500 }
-        )
-      }
-
-      // Remove from deleted_plantvakken table
-      await supabase
-        .from('deleted_plantvakken')
-        .delete()
-        .eq('original_id', plantvakId)
-
-      localAuditLog('RESTORE_PLANTVAK', { 
-        letterCode: plantvakData.letter_code, 
-        plantvakId: plantvakId 
-      })
-
-      return NextResponse.json({
-        success: true,
-        plantvak: plantvakData,
-        message: 'Plantvak restored successfully.'
-      })
-    } else {
-      // Original user restore logic
-      if (!userId) {
-        return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
-      }
-
-      // Get deleted user details
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .select('id, email, full_name, role')
-        .eq('id', userId)
-        .eq('is_active', false)
-        .single()
-
-      if (userError || !userData) {
-        return NextResponse.json({ error: 'Deleted user not found' }, { status: 404 })
-      }
-
-      // Restore user
-      const { error: restoreError } = await supabase
-        .from('users')
-        .update({
-          is_active: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', userId)
-
-      if (restoreError) {
-        if (process.env.NODE_ENV === 'development') {
-          console.error('User restore failed:', restoreError)
-        }
-        return NextResponse.json(
-          { error: 'Restore failed' },
-          { status: 500 }
-        )
-      }
-
-      localAuditLog('RESTORE_USER', { 
-        email: userData.email, 
-        userId: userId 
-      })
-
-      return NextResponse.json({
-        success: true,
-        user: userData,
-        message: 'User restored successfully.'
-      })
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
+
+    // Get deleted user details
+    const { data: userData, error: userError } = await supabaseAdmin
+      .from('users')
+      .select('id, email, full_name, role')
+      .eq('id', userId)
+      .eq('is_active', false)
+      .single()
+
+    if (userError || !userData) {
+      return NextResponse.json({ error: 'Deleted user not found' }, { status: 404 })
+    }
+
+    // Restore user
+    const { error: restoreError } = await supabaseAdmin
+      .from('users')
+      .update({
+        is_active: true,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+
+    if (restoreError) {
+      console.error('User restore failed:', restoreError)
+      return NextResponse.json(
+        { error: `Restore failed: ${restoreError.message}` },
+        { status: 500 }
+      )
+    }
+
+    localAuditLog('RESTORE_USER', { 
+      email: userData.email, 
+      userId: userId 
+    })
+
+    return NextResponse.json({
+      success: true,
+      user: userData,
+      message: 'User restored successfully.'
+    })
 
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('PUT trash error:', error)
-    }
+    console.error('PUT trash error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -210,7 +122,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Get deleted user details
-    const { data: userData, error: userError } = await supabase
+    const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
       .select('id, email, full_name')
       .eq('id', userId)
@@ -225,7 +137,7 @@ export async function DELETE(request: NextRequest) {
     const dependencies = []
 
     // Check user_garden_access
-    const { data: gardenAccess } = await supabase
+    const { data: gardenAccess } = await supabaseAdmin
       .from('user_garden_access')
       .select('id')
       .eq('user_id', userId)
@@ -236,7 +148,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Check tasks
-    const { data: tasks } = await supabase
+    const { data: tasks } = await supabaseAdmin
       .from('tasks')
       .select('id')
       .eq('user_id', userId)
@@ -247,7 +159,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Check logbook entries
-    const { data: logbook } = await supabase
+    const { data: logbook } = await supabaseAdmin
       .from('logbook_entries')
       .select('id')
       .eq('user_id', userId)
@@ -267,26 +179,22 @@ export async function DELETE(request: NextRequest) {
 
     // Only proceed if no dependencies (rare case)
     // Delete from auth first
-    const supabase = getSupabaseAdminClient()
-    const { error: authError } = await supabase.auth.admin.deleteUser(userId)
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
     if (authError) {
       console.warn('Auth deletion warning:', authError)
       // Continue anyway - auth user might not exist
     }
 
     // Delete from database
-    const { error: dbError } = await supabase
+    const { error: dbError } = await supabaseAdmin
       .from('users')
       .delete()
       .eq('id', userId)
 
     if (dbError) {
-      // Log error for debugging but don't expose details to client
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Database deletion failed:', dbError)
-      }
+      console.error('Database deletion failed:', dbError)
       return NextResponse.json(
-        { error: 'Database deletion failed' },
+        { error: `Database deletion failed: ${dbError.message}` },
         { status: 500 }
       )
     }
@@ -302,10 +210,7 @@ export async function DELETE(request: NextRequest) {
     })
 
   } catch (error) {
-    // Log error for debugging but don't expose details to client
-    if (process.env.NODE_ENV === 'development') {
-      console.error('DELETE trash error:', error)
-    }
+    console.error('DELETE trash error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

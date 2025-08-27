@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { TreePine, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 
 interface ResetPasswordFormData {
@@ -64,7 +64,6 @@ function ResetPasswordContent() {
         }
 
         // Set the session with the tokens from the URL
-        const supabase = getSupabaseClient();
         const { data, error: sessionError } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken
@@ -86,10 +85,7 @@ function ResetPasswordContent() {
         })
 
       } catch (error) {
-        // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        // Console logging removed for banking standards.error('Token validation error:', error)
-      }
+        console.error('Token validation error:', error)
         setTokenError(error instanceof Error ? error.message : 'Onbekende fout bij validatie')
         setIsValidToken(false)
       } finally {
@@ -154,7 +150,6 @@ function ResetPasswordContent() {
 
     setIsSubmitting(true)
     try {
-      const supabase = getSupabaseClient();
       // Update password using the authenticated session
       const { error: updateError } = await supabase.auth.updateUser({
         password: formData.password
@@ -178,10 +173,7 @@ function ResetPasswordContent() {
       }, 1500)
       
     } catch (error) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        // Console logging removed for banking standards.error('Password reset error:', error)
-      }
+      console.error('Password reset error:', error)
       toast({
         title: "Wachtwoord wijzigen mislukt",
         description: error instanceof Error ? error.message : 'Er is een fout opgetreden',

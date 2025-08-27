@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { TreePine, Lock, Eye, EyeOff, AlertCircle, Loader2, CheckCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { useToast } from '@/hooks/use-toast'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 export default function ChangePasswordPage() {
   const router = useRouter()
@@ -41,7 +41,6 @@ export default function ChangePasswordPage() {
       }
 
       // Get user metadata from Supabase auth
-      const supabase = getSupabaseClient();
       const { data: { user: authUser } } = await supabase.auth.getUser()
       
       if (authUser?.user_metadata?.temp_password) {
@@ -94,7 +93,6 @@ export default function ChangePasswordPage() {
     setIsSubmitting(true)
     try {
       // Update password in Supabase Auth
-      const supabase = getSupabaseClient();
       const { error: updateError } = await supabase.auth.updateUser({
         password: formData.newPassword,
         data: {
@@ -131,7 +129,7 @@ export default function ChangePasswordPage() {
       await signOut()
       router.push('/auth/login')
     } catch (error) {
-      // Console logging removed for banking standards
+      console.error('Logout error:', error)
     }
   }
 

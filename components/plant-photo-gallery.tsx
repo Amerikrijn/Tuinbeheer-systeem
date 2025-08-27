@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -10,7 +10,6 @@ import { LogbookService } from "@/lib/services/database.service"
 import type { LogbookEntryWithDetails } from "@/lib/types/index"
 import { format, parseISO } from "date-fns"
 import { nl } from "date-fns/locale"
-import { logger } from "@/lib/logger"
 
 interface PlantPhotoGalleryProps {
   plantId: string
@@ -33,7 +32,11 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear())
 
   // Load photos for the plant
-  const loadPlantPhotos = useCallback(async () => {
+  useEffect(() => {
+    loadPlantPhotos()
+  }, [plantId, currentYear])
+
+  const loadPlantPhotos = async () => {
     setLoading(true)
     setError(null)
     
@@ -48,16 +51,10 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
       setPhotoData(result.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Er ging iets mis')
-      logger.error('Operation failed: fetch plant photos')
     } finally {
       setLoading(false)
     }
-  }, [plantId, currentYear])
-
-  // Load photos for the plant
-  useEffect(() => {
-    loadPlantPhotos()
-  }, [plantId, currentYear, loadPlantPhotos])
+  }
 
   const handlePhotoClick = (photo: LogbookEntryWithDetails) => {
     setSelectedPhoto(photo)
@@ -145,7 +142,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
               className="bg-green-600 hover:bg-green-700 text-white border-green-600 mt-3"
               onClick={() => {
                 // TODO: Navigate to logbook new entry form
-                // Console logging removed for banking standards.log('Navigate to new logbook entry')
+                console.log('Navigate to new logbook entry')
               }}
             >
               Eerste foto toevoegen
@@ -244,7 +241,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
                 className="bg-green-600 hover:bg-green-700 text-white border-green-600"
                 onClick={() => {
                   // TODO: Navigate to logbook with plant filter
-                  // Console logging removed for banking standards.log('Navigate to logbook with plant filter')
+                  console.log('Navigate to logbook with plant filter')
                 }}
               >
                 Alle {photoData.totalCount} foto's bekijken

@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/use-supabase-auth'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useToast } from '@/hooks/use-toast'
-import { Plus, MoreHorizontal, Edit, UserCheck, Loader2, Key, Trash2, Copy, Check } from 'lucide-react'
+import { Plus, MoreHorizontal, Edit, UserCheck, UserX, TreePine, Loader2, Key, Trash2, Copy, Check } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { CreateUserDialog } from '@/components/admin/create-user-dialog'
 import { EditUserDialog } from '@/components/admin/edit-user-dialog'
@@ -56,75 +56,49 @@ function AdminUsersPageContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [passwordCopied, setPasswordCopied] = useState(false)
 
-  // Helper: fetch with timeout
-  const fetchWithTimeout = async (input: RequestInfo | URL, init?: RequestInit, ms = 10000) => {
-    const controller = new AbortController()
-    const id = setTimeout(() => controller.abort(), ms)
-    try {
-      const res = await fetch(input, { ...init, signal: controller.signal })
-      return res
-    } finally {
-      clearTimeout(id)
-    }
-  }
-
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true)
-      
-      // Load users using API with timeout
-      let usersResponse: Response
-      try {
-        usersResponse = await fetchWithTimeout('/api/admin/users', {}, 10000)
-      } catch (err) {
-        toast({
-          title: 'Traag of geen antwoord',
-          description: 'Kon gebruikers niet laden (timeout). Probeer opnieuw.',
-          variant: 'destructive'
-        })
-        setUsers([])
-        return
-      }
-
-      if (!usersResponse.ok) {
-        const maybeJson = await usersResponse.json().catch(() => ({ error: 'Failed to load users' }))
-        throw new Error(maybeJson.error || 'Failed to load users')
-      }
-      const usersData = await usersResponse.json()
-      setUsers(usersData.users || [])
-      
-      // Load gardens with a soft timeout (fallback to empty)
-      try {
-        const supabase = getSupabaseClient()
-        const gardensPromise = supabase
-          .from('gardens')
-          .select('id, name, description, is_active')
-          .eq('is_active', true)
-          .order('name')
-
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('GARDENS_TIMEOUT')), 10000))
-        const { data: gardensData } = (await Promise.race([gardensPromise, timeoutPromise])) as { data: Garden[] }
-        setGardens(gardensData || [])
-      } catch (gardensError) {
-        setGardens([])
-      }
-      
-    } catch (error) {
-      toast({
-        title: 'Fout bij laden',
-        description: error instanceof Error ? error.message : 'Kon gebruikers niet laden',
-        variant: 'destructive'
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [toast])
-
   useEffect(() => {
     if (currentUser && isAdmin()) {
       loadData()
     }
-  }, [currentUser, isAdmin, loadData])
+  }, [currentUser])
+
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      
+      // Load users using API
+      const usersResponse = await fetch('/api/admin/users')
+      if (!usersResponse.ok) {
+        throw new Error('Failed to load users')
+      }
+      const usersData = await usersResponse.json()
+      setUsers(usersData.users || [])
+      
+      // Load gardens
+      const { data: gardensData, error: gardensError } = await supabase
+        .from('gardens')
+        .select('id, name, description, is_active')
+        .eq('is_active', true)
+        .order('name')
+      
+      if (gardensError) {
+        console.error('Gardens loading error:', gardensError)
+        setGardens([])
+      } else {
+        setGardens(gardensData || [])
+      }
+      
+    } catch (error) {
+      console.error('Error loading data:', error)
+      toast({
+        title: "Fout bij laden",
+        description: "Kon gebruikers niet laden",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleResetPassword = async (user: User) => {
     setSelectedUser(user)
@@ -153,18 +127,18 @@ function AdminUsersPageContent() {
       setIsPasswordResetDialogOpen(true)
       
       toast({
-        title: 'Wachtwoord gereset',
+        title: "Wachtwoord gereset",
         description: `Nieuw tijdelijk wachtwoord ingesteld voor ${result.user.fullName}`,
       })
 
       loadData()
       
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Kon wachtwoord niet resetten'
+    } catch (error: any) {
+      console.error('Error resetting password:', error)
       toast({
-        title: 'Reset mislukt',
-        description: errorMessage,
-        variant: 'destructive'
+        title: "Reset mislukt",
+        description: error.message || "Kon wachtwoord niet resetten",
+        variant: "destructive"
       })
     } finally {
       setResetting(false)
@@ -188,18 +162,18 @@ function AdminUsersPageContent() {
       }
 
       toast({
-        title: 'Gebruiker verwijderd',
-        description: 'Gebruiker is verplaatst naar de prullenbak',
+        title: "Gebruiker verwijderd",
+        description: "Gebruiker is verplaatst naar de prullenbak",
       })
 
       loadData()
       
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Kon gebruiker niet verwijderen'
+    } catch (error: any) {
+      console.error('Error deleting user:', error)
       toast({
-        title: 'Verwijderen mislukt',
-        description: errorMessage,
-        variant: 'destructive'
+        title: "Verwijderen mislukt",
+        description: error.message || "Kon gebruiker niet verwijderen",
+        variant: "destructive"
       })
     }
   }

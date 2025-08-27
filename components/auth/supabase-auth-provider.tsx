@@ -10,32 +10,12 @@ interface SupabaseAuthProviderProps {
   children: React.ReactNode
 }
 
-// Mounts the activity timeout logic within the auth context
-function ActivityTimeoutMount() {
-  useActivityTimeout()
-  return null
-}
-
 export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
-  const [authError, setAuthError] = React.useState<Error | null>(null)
-  
-  let auth
-  try {
-    auth = useSupabaseAuth()
-  } catch (error) {
-    if (error instanceof Error) {
-      setAuthError(error)
-    }
-    // Return children without auth if there's an error
-    return <>{children}</>
-  }
-  
+  const auth = useSupabaseAuth()
   const pathname = usePathname()
   
-  // If there's an auth error, just render children without auth
-  if (authError) {
-    return <>{children}</>
-  }
+  // Initialize activity timeout for automatic logout
+  useActivityTimeout()
 
   // 🏦 BANKING SECURITY: Check if user needs password change
   // More robust check to prevent infinite loops
@@ -56,13 +36,12 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
   if (needsPasswordChange && !isAuthPage && !isPasswordChangePage) {
     return (
       <SupabaseAuthContext.Provider value={auth}>
-        <ActivityTimeoutMount />
         <ForcePasswordChange 
           user={auth.user} 
           onPasswordChanged={async () => {
             // 🏦 NEW: After password change, force refresh user profile
             // This should update the auth.user object and remove force_password_change flag
-            // Console logging removed for banking standards.log('🏦 Password change completed, refreshing auth state...')
+            console.log('🏦 Password change completed, refreshing auth state...')
             await auth.forceRefreshUser()
           }} 
         />
@@ -72,7 +51,6 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
 
   return (
     <SupabaseAuthContext.Provider value={auth}>
-      <ActivityTimeoutMount />
       {children}
     </SupabaseAuthContext.Provider>
   )

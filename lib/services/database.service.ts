@@ -1,7 +1,11 @@
-import { getSupabaseClient } from '../supabase'
+import { supabase } from '../supabase'
 import { databaseLogger, AuditLogger, PerformanceLogger } from '../logger'
 import type { 
-  Tuin,
+  Tuin, 
+  Plantvak, 
+  Bloem, 
+  PlantvakWithBloemen, 
+  TuinWithPlantvakken,
   LogbookEntry,
   LogbookEntryWithDetails,
   LogbookEntryFormData,
@@ -22,7 +26,7 @@ export class DatabaseError extends Error {
   constructor(
     message: string,
     public code?: string,
-    public details?: unknown,
+    public details?: any,
     public originalError?: Error
   ) {
     super(message)
@@ -34,7 +38,7 @@ export class ValidationError extends Error {
   constructor(
     message: string,
     public field?: string,
-    public value?: unknown
+    public value?: any
   ) {
     super(message)
     this.name = 'ValidationError'
@@ -48,19 +52,11 @@ export class NotFoundError extends Error {
   }
 }
 
-// Connection validation with retry logic (banking compliant)
+// Connection validation with retry logic
 async function validateConnection(retries = 3): Promise<void> {
-    const supabase = getSupabaseClient()
-  // Temporarily disabled to fix login performance issues
-  // TODO: Re-enable when database performance is improved
-  return;
-  
-  // Original code commented out:
-  /*
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      // Use a faster, lighter query for connection validation
-      const { error } = await supabase.from('gardens').select('id').limit(1)
+      const { error } = await supabase.from('gardens').select('count').limit(1)
       if (!error) {
         databaseLogger.debug('Database connection validated successfully', { attempt })
         return
@@ -74,12 +70,11 @@ async function validateConnection(retries = 3): Promise<void> {
       await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
     } catch (error) {
       if (attempt === retries) {
-        databaseLogger.error('Unable to connect to database', error as Error)
+        databaseLogger.error('Unable to connect to database', error as Error, { attempts: retries })
         throw new DatabaseError('Unable to connect to database', 'CONNECTION_ERROR', error)
       }
     }
   }
-  */
 }
 
 // Generic response wrapper with logging
@@ -87,7 +82,7 @@ function createResponse<T>(
   data: T | null, 
   error: string | null = null,
   operation?: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, any>
 ): ApiResponse<T> {
   const response = {
     data,
@@ -97,7 +92,7 @@ function createResponse<T>(
   
   if (operation) {
     if (error) {
-      databaseLogger.error(`Operation failed: ${operation}`)
+      databaseLogger.error(`Operation failed: ${operation}`, undefined, { error, metadata })
     } else {
       databaseLogger.debug(`Operation successful: ${operation}`, { metadata })
     }
@@ -140,13 +135,11 @@ export class TuinService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      // Skip connection validation for now to avoid timeout issues
-      // await validateConnection()
+      await validateConnection()
       
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
       
       // Build query
-      const supabase = getSupabaseClient();
       let query = supabase
         .from(this.RESOURCE_NAME)
         .select('*', { count: 'exact' })
@@ -207,10 +200,8 @@ export class TuinService {
     
     try {
       validateId(id, 'Garden')
-      // Skip connection validation for now to avoid timeout issues
-      // await validateConnection()
+      await validateConnection()
       
-      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from(this.RESOURCE_NAME)
         .select('*')
@@ -584,7 +575,7 @@ export class LogbookService {
       } else {
         // SECURITY: If no garden filter is provided, this could be a security issue
         // We should log this and potentially block the request
-        // Console logging removed for banking standards.warn('⚠️ SECURITY WARNING: LogbookService.getAll called without garden filtering')
+        console.warn('⚠️ SECURITY WARNING: LogbookService.getAll called without garden filtering')
         // For now, we'll allow it for admin users, but this should be reviewed
       }
       if (filters?.limit) {
@@ -738,7 +729,7 @@ export class LogbookService {
         throw new NotFoundError('Logbook entry', id)
       }
 
-      const updateData: Record<string, unknown> = {}
+      const updateData: Record<string, any> = {}
       
       if (formData.notes !== undefined) {
         if (!formData.notes.trim()) {
@@ -1011,7 +1002,7 @@ export class LogbookService {
       PerformanceLogger.endTimer(operationId, 'logbook-getPlantPhotos', { error: true })
       
       if (error instanceof DatabaseError) {
-        databaseLogger.error('Database error in LogbookService.getPlantPhotos')
+        databaseLogger.error('Database error in LogbookService.getPlantPhotos', error, { plantId, year, operationId })
         return createResponse({
           photos: [],
           totalCount: 0,
@@ -1019,7 +1010,7 @@ export class LogbookService {
         }, error.message, 'fetch plant photos')
       }
       
-      databaseLogger.error('Unexpected error in LogbookService.getPlantPhotos')
+      databaseLogger.error('Unexpected error in LogbookService.getPlantPhotos', error as Error, { plantId, year, operationId })
       return createResponse({
         photos: [],
         totalCount: 0,
@@ -1033,5 +1024,5 @@ export class LogbookService {
 export const DatabaseService = {
   Tuin: TuinService,
   Logbook: LogbookService,
-  // TODO: Add PlantvakService and PlantService following the same pattern
+  // TODO: Add PlantvakService and BloemService following the same pattern
 }

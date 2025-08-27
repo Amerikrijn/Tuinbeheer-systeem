@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useToast } from '@/hooks/use-toast'
 import { RotateCcw, Trash2, Loader2, AlertTriangle, ArrowLeft } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
@@ -28,7 +28,13 @@ function TrashPageContent() {
   const [restoring, setRestoring] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
 
-  const loadDeletedUsers = useCallback(async () => {
+  useEffect(() => {
+    if (currentUser && isAdmin()) {
+      loadDeletedUsers()
+    }
+  }, [currentUser])
+
+  const loadDeletedUsers = async () => {
     try {
       setLoading(true)
       
@@ -41,7 +47,7 @@ function TrashPageContent() {
       setDeletedUsers(data.deletedUsers || [])
       
     } catch (error) {
-      // Secure error handling for banking standards - no console logging in production
+      console.error('Error loading deleted users:', error)
       toast({
         title: "Fout bij laden",
         description: "Kon verwijderde gebruikers niet laden",
@@ -50,13 +56,7 @@ function TrashPageContent() {
     } finally {
       setLoading(false)
     }
-  }, [toast])
-
-  useEffect(() => {
-    if (currentUser && isAdmin()) {
-      loadDeletedUsers()
-    }
-  }, [currentUser, isAdmin, loadDeletedUsers])
+  }
 
   const handleRestoreUser = async (user: DeletedUser) => {
     if (!confirm(`Weet je zeker dat je ${user.full_name || user.email} wilt herstellen?`)) {
@@ -89,12 +89,11 @@ function TrashPageContent() {
 
       loadDeletedUsers()
 
-    } catch (error: unknown) {
-      // Secure error handling for banking standards - no console logging in production
-      const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet herstellen"
+    } catch (error: any) {
+      console.error('Error restoring user:', error)
       toast({
         title: "Herstellen mislukt",
-        description: errorMessage,
+        description: error.message || "Kon gebruiker niet herstellen",
         variant: "destructive"
       })
     } finally {
@@ -141,12 +140,11 @@ function TrashPageContent() {
 
       loadDeletedUsers()
 
-    } catch (error: unknown) {
-      // Secure error handling for banking standards - no console logging in production
-      const errorMessage = error instanceof Error ? error.message : "Kon gebruiker niet permanent verwijderen"
+    } catch (error: any) {
+      console.error('Error permanently deleting user:', error)
       toast({
         title: "Permanent verwijderen mislukt",
-        description: errorMessage,
+        description: error.message || "Kon gebruiker niet permanent verwijderen",
         variant: "destructive"
       })
     } finally {

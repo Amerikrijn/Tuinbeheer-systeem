@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSupabaseClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
+import { requireAuthenticationQuick } from '@/lib/api-auth-wrapper';
 import { logClientSecurityEvent } from '@/lib/banking-security';
 import { 
   UpdatePositionRequest, 
@@ -12,17 +13,7 @@ import {
 // VALIDATION HELPERS
 // ===================================================================
 
-interface PositionRequestData {
-  position_x: number;
-  position_y: number;
-  visual_width?: number;
-  visual_height?: number;
-  rotation?: number;
-  z_index?: number;
-  color_code?: string;
-}
-
-function validatePositionRequest(data: PositionRequestData): { isValid: boolean; errors: string[] } {
+function validatePositionRequest(data: any): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   // Required fields
@@ -94,7 +85,6 @@ async function checkCollision(
   visual_height: number
 ): Promise<boolean> {
   try {
-    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .rpc('check_plant_bed_collision', {
         p_garden_id: gardenId,
@@ -106,19 +96,13 @@ async function checkCollision(
       });
     
     if (error) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Collision check error:', error);
-      }
+      console.error('Collision check error:', error);
       return false; // Allow movement if check fails
     }
     
     return data === true;
   } catch (error) {
-    // Log error only in development for security
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Collision check exception:', error);
-    }
+    console.error('Collision check exception:', error);
     return false; // Allow movement if check fails
   }
 }
@@ -135,7 +119,6 @@ async function checkCanvasBoundaries(
   visual_height: number
 ): Promise<boolean> {
   try {
-    const supabase = getSupabaseClient()
     const { data, error } = await supabase
       .rpc('check_canvas_boundaries', {
         p_garden_id: gardenId,
@@ -146,19 +129,13 @@ async function checkCanvasBoundaries(
       });
     
     if (error) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Canvas boundaries check error:', error);
-      }
+      console.error('Canvas boundaries check error:', error);
       return false;
     }
     
     return data === true;
   } catch (error) {
-    // Log error only in development for security
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Canvas boundaries check exception:', error);
-    }
+    console.error('Canvas boundaries check exception:', error);
     return false;
   }
 }
@@ -183,7 +160,6 @@ export async function GET(
     }
     
     // Get plant bed with position data
-    const supabase = getSupabaseClient()
     const { data: plantBed, error } = await supabase
       .from('plant_beds')
       .select(`
@@ -194,10 +170,7 @@ export async function GET(
       .single();
     
     if (error) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Database error:', error);
-      }
+      console.error('Database error:', error);
       return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
         data: null,
         error: 'Failed to fetch plant bed',
@@ -225,10 +198,7 @@ export async function GET(
       await logClientSecurityEvent('API_POSITION_GET_ERROR', 'HIGH', false, error instanceof Error ? error.message : 'Unknown error');
     } catch (logError) {
       // Fallback: If logging fails, still handle the error gracefully
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Logging failed, original error:', error);
-      }
+      console.error('Logging failed, original error:', error);
     }
     return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
       data: null,
@@ -271,7 +241,6 @@ export async function PUT(
     }
     
     // Get current plant bed data
-    const supabase = getSupabaseClient()
     const { data: currentPlantBed, error: fetchError } = await supabase
       .from('plant_beds')
       .select('*')
@@ -341,10 +310,7 @@ export async function PUT(
       .single();
     
     if (updateError) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Database update error:', updateError);
-      }
+      console.error('Database update error:', updateError);
       return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
         data: null,
         error: 'Failed to update plant bed position',
@@ -359,10 +325,7 @@ export async function PUT(
     });
     
   } catch (error) {
-    // Log error only in development for security
-    if (process.env.NODE_ENV === 'development') {
-      console.error('PUT position error:', error);
-    }
+    console.error('PUT position error:', error);
     return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
       data: null,
       error: 'Internal server error',
@@ -490,10 +453,7 @@ export async function PATCH(
       .single();
     
     if (updateError) {
-      // Log error only in development for security
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Database update error:', updateError);
-      }
+      console.error('Database update error:', updateError);
       return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
         data: null,
         error: 'Failed to update plant bed position',
@@ -508,10 +468,7 @@ export async function PATCH(
     });
     
   } catch (error) {
-    // Log error only in development for security
-    if (process.env.NODE_ENV === 'development') {
-      console.error('PATCH position error:', error);
-    }
+    console.error('PATCH position error:', error);
     return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
       data: null,
       error: 'Internal server error',

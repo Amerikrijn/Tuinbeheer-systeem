@@ -6,10 +6,11 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Plus } from "lucide-react"
+import { Calendar, Plus, X } from "lucide-react"
 import { TaskService } from "@/lib/services/task.service"
-import { getSupabaseClient } from "@/lib/supabase"
+import { supabase } from "@/lib/supabase"
 import type { CreateTaskData } from "@/lib/types/tasks"
 import { TASK_TYPE_CONFIGS, PRIORITY_CONFIGS } from "@/lib/types/tasks"
 
@@ -75,7 +76,6 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
 
   const loadPlants = async () => {
     try {
-      const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('plants')
         .select(`
@@ -91,16 +91,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
         .order('name')
 
       if (error) throw error
-      setPlants((data as Array<{
-        id: string;
-        name: string;
-        plant_beds?: {
-          name?: string;
-          gardens?: {
-            name?: string;
-          };
-        };
-      }>)?.map(plant => ({
+      setPlants((data as any[])?.map(plant => ({
         id: plant.id,
         name: plant.name,
         plant_beds: {
@@ -111,13 +102,12 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
         }
       })) || [])
     } catch (error) {
-      // Console logging removed for banking standards.error('Error loading plants:', error)
+      console.error('Error loading plants:', error)
     }
   }
 
   const loadPlantBeds = async () => {
     try {
-      const supabase = getSupabaseClient()
       const { data, error } = await supabase
         .from('plant_beds')
         .select(`
@@ -130,13 +120,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
         .order('name')
 
       if (error) throw error
-      setPlantBeds((data as Array<{
-        id: string;
-        name: string;
-        gardens?: {
-          name?: string;
-        };
-      }>)?.map(bed => ({
+      setPlantBeds((data as any[])?.map(bed => ({
         id: bed.id,
         name: bed.name,
         gardens: {
@@ -144,7 +128,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
         }
       })) || [])
     } catch (error) {
-      // Console logging removed for banking standards.error('Error loading plant beds:', error)
+      console.error('Error loading plant beds:', error)
     }
   }
 
@@ -161,7 +145,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
       const { error } = await TaskService.createTask(formData)
       
       if (error) {
-        // Console logging removed for banking standards.error('Error creating task:', error)
+        console.error('Error creating task:', error)
         return
       }
 
@@ -180,7 +164,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
       onTaskAdded()
       onClose()
     } catch (error) {
-      // Console logging removed for banking standards.error('Error creating task:', error)
+      console.error('Error creating task:', error)
     } finally {
       setLoading(false)
     }

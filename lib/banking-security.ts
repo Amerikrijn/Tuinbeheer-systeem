@@ -1,292 +1,516 @@
 /**
  * Nederlandse Banking Security Helper Library
  * Automatische security compliance voor alle code wijzigingen
- *
+ * 
  * Deze library wordt automatisch gebruikt door .cursor-rules
  * Elke functie voldoet aan Nederlandse banking standards
  */
 
-import { getSupabaseClient } from './supabase';
+import { supabase } from './supabase';
+
+// ===================================================================
+// SECURITY EVENT LOGGING (CLIENT-SIDE)
+// ===================================================================
+
+export interface SecurityEvent {
+  action: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  success: boolean;
+  errorMessage?: string;
+  executionTimeMs?: number;
+  metadata?: Record<string, any>;
+}
 
 /**
- * Security Event Logging
- * Logt alle security-gerelateerde events voor audit trail
+ * Log security events from client-side
+ * Automatically called by all banking-compliant functions
  */
 export async function logClientSecurityEvent(
   action: string,
-  severity: string,
-  success: boolean,
-  userId?: string,
+  severity: SecurityEvent['severity'] = 'MEDIUM',
+  success: boolean = true,
   errorMessage?: string,
   executionTimeMs?: number,
-  newValues?: any
+  metadata?: Record<string, any>
 ): Promise<void> {
   try {
-    const supabase = getSupabaseClient()
+    // Get current user for audit trail
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // Call server-side logging function
     const { error } = await supabase.rpc('log_security_event', {
-      p_user_id: userId,
+      p_user_id: user?.id || null,
       p_action: action,
       p_severity: severity,
       p_success: success,
       p_error_message: errorMessage,
       p_execution_time_ms: executionTimeMs,
-      p_new_values: newValues
+      p_new_values: metadata ? JSON.stringify(metadata) : null
     });
-
+    
     if (error) {
-      logger.error('Security event logging failed: Database error')
+      console.error('Failed to log security event:', error);
     }
   } catch (err) {
-    console.error('Security event logging error:', err);
+    // Silent fail for logging - don't break user experience
+    console.warn('Security logging failed:', err);
   }
 }
 
-/**
- * Input Validation & Sanitization
- * Valideert en sanitized alle user input volgens banking standards
- */
-export function validateInput(input: any, maxLength: number = 1000, allowHtml: boolean = false): boolean {
-  // Handle null and undefined
-  if (input === null || input === undefined) {
-    return true;
-  }
+// ===================================================================
+// INPUT VALIDATION (CLIENT-SIDE)
+// ===================================================================
 
-  // Must be string
+/**
+ * Banking-grade input validation
+ * Prevents SQL injection, XSS, and path traversal attacks
+ */
+export function validateInput(
+  input: string | null | undefined,
+  maxLength: number = 1000,
+  allowHtml: boolean = false
+): boolean {
+  if (input === null || input === undefined) {
+    return true; // NULL values are allowed
+  }
+  
   if (typeof input !== 'string') {
     return false;
   }
-
-  // Check length
+  
+  // Length validation
   if (input.length > maxLength) {
+    logClientSecurityEvent(
+      'CLIENT_INPUT_LENGTH_EXCEEDED',
+      'HIGH',
+      false,
+      `Input length ${input.length} exceeds maximum ${maxLength}`
+    );
     return false;
   }
-
-  // Check for SQL injection patterns
-  const sqlPatterns = [
-    /union\s+select/i,
-    /drop\s+table/i,
-    /delete\s+from/i,
-    /insert\s+into/i,
-    /update\s+set/i,
-    /exec\s*\(/i,
-    /eval\s*\(/i,
-    /<script/i
-  ];
-
-  for (const pattern of sqlPatterns) {
-    if (pattern.test(input)) {
+  
+  // SQL injection patterns
+  const sqlPatterns = /(union|select|insert|update|delete|drop|create|alter|exec|script|xp_|sp_)[\s\(]/i;
+  if (sqlPatterns.test(input)) {
+    logClientSecurityEvent(
+      'CLIENT_SQL_INJECTION_ATTEMPT',
+      'CRITICAL',
+      false,
+      'Potential SQL injection detected'
+    );
+    return false;
+  }
+  
+  // XSS patterns (if HTML not allowed)
+  if (!allowHtml) {
+    const xssPatterns = /(<[^>]*script|javascript:|on\w+\s*=|data:text\/html)/i;
+    if (xssPatterns.test(input)) {
+      logClientSecurityEvent(
+        'CLIENT_XSS_ATTEMPT',
+        'HIGH',
+        false,
+        'Potential XSS attempt detected'
+      );
       return false;
     }
   }
-
-  // Check for HTML if not allowed
-  if (!allowHtml && /<[^>]*>/.test(input)) {
+  
+  // Path traversal patterns
+  const pathTraversalPatterns = /(\.\.|%2e%2e|\.\.\/|\.\.\\)/i;
+  if (pathTraversalPatterns.test(input)) {
+    logClientSecurityEvent(
+      'CLIENT_PATH_TRAVERSAL_ATTEMPT',
+      'HIGH',
+      false,
+      'Potential path traversal detected'
+    );
     return false;
   }
-
+  
   return true;
 }
 
-export function validateApiInput(data: any, schema: Record<string, any>): {
-  isValid: boolean;
-  errors: string[];
-  sanitizedData: any;
-} {
-  const errors: string[] = [];
-  const sanitizedData: any = {};
-
-  for (const [key, rules] of Object.entries(schema)) {
-    const value = data[key];
-
-    // Required field check
-    if (rules.required && (value === undefined || value === null || value === '')) {
-      errors.push(`${key} is verplicht`);
-      continue;
-    }
-
-    // Type validation
-    if (value !== undefined && value !== null) {
-      if (rules.type === 'string' && typeof value !== 'string') {
-        errors.push(`${key} moet een string zijn`);
-        continue;
+/**
+ * Validate API request body according to banking standards
+ */
+export function validateApiInput(body: any): boolean {
+  if (!body || typeof body !== 'object') {
+    return false;
+  }
+  
+  // Recursively validate all string fields
+  for (const [key, value] of Object.entries(body)) {
+    if (typeof value === 'string') {
+      if (!validateInput(value, 10000, false)) {
+        return false;
       }
-      if (rules.type === 'number' && typeof value !== 'number') {
-        errors.push(`${key} moet een nummer zijn`);
-        continue;
-      }
-      if (rules.type === 'boolean' && typeof value !== 'boolean') {
-        errors.push(`${key} moet een boolean zijn`);
-        continue;
-      }
-
-      // String sanitization
-      if (rules.type === 'string' && typeof value === 'string') {
-        let sanitized = value.trim();
-        
-        // Remove potentially dangerous characters
-        sanitized = sanitized.replace(/[<>]/g, '');
-        
-        // Length validation
-        if (rules.minLength && sanitized.length < rules.minLength) {
-          errors.push(`${key} moet minimaal ${rules.minLength} karakters bevatten`);
+    } else if (Array.isArray(value)) {
+      for (const item of value) {
+        if (typeof item === 'string' && !validateInput(item, 1000, false)) {
+          return false;
         }
-        if (rules.maxLength && sanitized.length > rules.maxLength) {
-          errors.push(`${key} mag maximaal ${rules.maxLength} karakters bevatten`);
-        }
-
-        sanitizedData[key] = sanitized;
-      } else {
-        sanitizedData[key] = value;
+      }
+    } else if (value && typeof value === 'object') {
+      if (!validateApiInput(value)) {
+        return false;
       }
     }
   }
+  
+  return true;
+}
 
-  return {
-    isValid: errors.length === 0,
-    errors,
-    sanitizedData
-  };
+// ===================================================================
+// AUTHENTICATION & AUTHORIZATION
+// ===================================================================
+
+/**
+ * Banking-grade authentication check
+ * Returns user or throws secure error
+ */
+export async function requireAuthentication(): Promise<any> {
+  const startTime = Date.now();
+  
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error || !user) {
+      await logClientSecurityEvent(
+        'AUTH_REQUIRED_FAILED',
+        'HIGH',
+        false,
+        'Authentication required but user not authenticated',
+        Date.now() - startTime
+      );
+      throw new Error('Authentication required');
+    }
+    
+    await logClientSecurityEvent(
+      'AUTH_CHECK_SUCCESS',
+      'LOW',
+      true,
+      undefined,
+      Date.now() - startTime
+    );
+    
+    return user;
+  } catch (error) {
+    await logClientSecurityEvent(
+      'AUTH_CHECK_ERROR',
+      'HIGH',
+      false,
+      error instanceof Error ? error.message : 'Unknown auth error',
+      Date.now() - startTime
+    );
+    throw error;
+  }
 }
 
 /**
- * Access Control Validation
- * Controleert of gebruiker toegang heeft tot specifieke data
+ * Check if user has specific permission
  */
-export async function validateAccess(
+export async function checkPermission(
   userId: string,
-  resourceType: string,
-  resourceId: string
+  permission: string
 ): Promise<boolean> {
+  const startTime = Date.now();
+  
   try {
-    // Check user permissions in database
     const { data, error } = await supabase
       .from('user_permissions')
-      .select('permission_level')
+      .select('permission')
       .eq('user_id', userId)
-      .eq('resource_type', resourceType)
-      .eq('resource_id', resourceId)
+      .eq('permission', permission)
       .single();
-
-    if (error || !data) {
-      return false;
-    }
-
-    return data.permission_level >= 1; // Minimum read access
-  } catch (err) {
-    console.error('Access validation error:', err);
+    
+    const hasPermission = !error && !!data;
+    
+    await logClientSecurityEvent(
+      'PERMISSION_CHECK',
+      hasPermission ? 'LOW' : 'MEDIUM',
+      hasPermission,
+      hasPermission ? undefined : `Permission denied: ${permission}`,
+      Date.now() - startTime,
+      { userId, permission }
+    );
+    
+    return hasPermission;
+  } catch (error) {
+    await logClientSecurityEvent(
+      'PERMISSION_CHECK_ERROR',
+      'HIGH',
+      false,
+      error instanceof Error ? error.message : 'Permission check failed',
+      Date.now() - startTime
+    );
     return false;
   }
 }
 
 /**
- * Data Hashing
- * Hasht gevoelige data voor veilige opslag
+ * Require specific permission or throw error
  */
-export async function hashSensitiveData(data: string): Promise<string> {
-  // In productie zou je een sterke hashing library gebruiken
-  // Dit is een vereenvoudigde versie voor demonstratie
-  const encoder = new TextEncoder();
-  const dataBuffer = encoder.encode(data);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
-/**
- * Audit Trail Creation
- * Maakt audit trail entries voor alle data wijzigingen
- */
-export async function createAuditTrail(
-  action: string,
-  resourceType: string,
-  resourceId: string,
+export async function requirePermission(
   userId: string,
-  changes: Record<string, any>
+  permission: string
 ): Promise<void> {
-  try {
-    const { error } = await supabase
-      .from('audit_trail')
-      .insert({
-        action,
-        resource_type: resourceType,
-        resource_id: resourceId,
-        user_id: userId,
-        changes: changes,
-        timestamp: new Date().toISOString(),
-        ip_address: 'server-side'
-      });
+  const hasPermission = await checkPermission(userId, permission);
+  
+  if (!hasPermission) {
+    throw new Error(`Insufficient permissions: ${permission}`);
+  }
+}
 
-    if (error) {
-      console.error('Audit trail creation failed:', error);
+// ===================================================================
+// SECURE API CALLS
+// ===================================================================
+
+/**
+ * Banking-grade API call wrapper
+ * Automatically handles auth, validation, and error logging
+ */
+export async function secureApiCall<T = any>(
+  endpoint: string,
+  options: RequestInit & {
+    requireAuth?: boolean;
+    validateInput?: boolean;
+    requiredPermission?: string;
+  } = {}
+): Promise<T> {
+  const startTime = Date.now();
+  const { requireAuth = true, validateInput: shouldValidate = true, requiredPermission, ...fetchOptions } = options;
+  
+  try {
+    let user = null;
+    
+    // Authentication check
+    if (requireAuth) {
+      user = await requireAuthentication();
     }
-  } catch (err) {
-    console.error('Audit trail creation error:', err);
+    
+    // Permission check
+    if (requiredPermission && user) {
+      await requirePermission(user.id, requiredPermission);
+    }
+    
+    // Input validation
+    if (shouldValidate && fetchOptions.body) {
+      const body = typeof fetchOptions.body === 'string' 
+        ? JSON.parse(fetchOptions.body)
+        : fetchOptions.body;
+      
+      if (!validateApiInput(body)) {
+        throw new Error('Invalid input data');
+      }
+    }
+    
+    // Make API call
+    const response = await fetch(endpoint, {
+      ...fetchOptions,
+      headers: {
+        'Content-Type': 'application/json',
+        ...fetchOptions.headers,
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    
+    // Success logging
+    await logClientSecurityEvent(
+      'SECURE_API_CALL_SUCCESS',
+      'LOW',
+      true,
+      undefined,
+      Date.now() - startTime,
+      { endpoint, method: fetchOptions.method || 'GET' }
+    );
+    
+    return data;
+    
+  } catch (error) {
+    // Error logging
+    await logClientSecurityEvent(
+      'SECURE_API_CALL_ERROR',
+      'HIGH',
+      false,
+      error instanceof Error ? error.message : 'Unknown API error',
+      Date.now() - startTime,
+      { endpoint, method: fetchOptions.method || 'GET' }
+    );
+    
+    throw error;
+  }
+}
+
+// ===================================================================
+// ERROR HANDLING
+// ===================================================================
+
+/**
+ * Banking-grade error handler
+ * Logs errors securely without exposing sensitive data
+ */
+export function handleSecureError(
+  error: Error | unknown,
+  context: string,
+  severity: SecurityEvent['severity'] = 'HIGH'
+): string {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+  const sanitizedMessage = sanitizeErrorMessage(errorMessage);
+  
+  // Log the error
+  logClientSecurityEvent(
+    `ERROR_${context.toUpperCase()}`,
+    severity,
+    false,
+    sanitizedMessage
+  );
+  
+  // Return user-friendly message
+  return getUserFriendlyErrorMessage(sanitizedMessage);
+}
+
+/**
+ * Sanitize error messages to prevent information disclosure
+ */
+function sanitizeErrorMessage(message: string): string {
+  // Remove potential sensitive information
+  return message
+    .replace(/password/gi, '[REDACTED]')
+    .replace(/token/gi, '[REDACTED]')
+    .replace(/key/gi, '[REDACTED]')
+    .replace(/secret/gi, '[REDACTED]')
+    .replace(/\b\d{4,}\b/g, '[REDACTED]') // Remove potential IDs
+    .substring(0, 500); // Limit length
+}
+
+/**
+ * Get user-friendly error messages
+ */
+function getUserFriendlyErrorMessage(error: string): string {
+  if (error.includes('Authentication')) {
+    return 'Please log in to continue.';
+  }
+  if (error.includes('Permission') || error.includes('Forbidden')) {
+    return 'You don\'t have permission to perform this action.';
+  }
+  if (error.includes('Validation') || error.includes('Invalid')) {
+    return 'Please check your input and try again.';
+  }
+  if (error.includes('Network') || error.includes('fetch')) {
+    return 'Connection problem. Please try again.';
+  }
+  
+  return 'Something went wrong. Please try again or contact support.';
+}
+
+// ===================================================================
+// DEPLOYMENT SAFETY
+// ===================================================================
+
+/**
+ * Check if feature is enabled (feature flags for safe deployment)
+ */
+export function isFeatureEnabled(featureName: string): boolean {
+  // In production, this would check a feature flag service
+  // For now, return true for all features
+  return true;
+}
+
+/**
+ * Safe deployment wrapper
+ * Gracefully handles feature rollouts
+ */
+export function withFeatureFlag<T>(
+  featureName: string,
+  enabledComponent: T,
+  fallbackComponent: T
+): T {
+  return isFeatureEnabled(featureName) ? enabledComponent : fallbackComponent;
+}
+
+// ===================================================================
+// PERFORMANCE MONITORING
+// ===================================================================
+
+/**
+ * Performance monitoring for banking compliance
+ */
+export class PerformanceMonitor {
+  private startTime: number;
+  private operation: string;
+  
+  constructor(operation: string) {
+    this.operation = operation;
+    this.startTime = Date.now();
+  }
+  
+  async end(success: boolean = true, error?: string): Promise<void> {
+    const duration = Date.now() - this.startTime;
+    
+    await logClientSecurityEvent(
+      `PERFORMANCE_${this.operation.toUpperCase()}`,
+      duration > 5000 ? 'HIGH' : 'LOW', // Alert on slow operations
+      success,
+      error,
+      duration
+    );
   }
 }
 
 /**
- * Security Headers
- * Genereert security headers voor API responses
+ * Monitor function performance
  */
-export function getSecurityHeaders(): Record<string, string> {
-  return {
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
-    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
-  };
+export function withPerformanceMonitoring<T extends (...args: any[]) => any>(
+  fn: T,
+  operationName: string
+): T {
+  return (async (...args: Parameters<T>) => {
+    const monitor = new PerformanceMonitor(operationName);
+    
+    try {
+      const result = await fn(...args);
+      await monitor.end(true);
+      return result;
+    } catch (error) {
+      await monitor.end(false, error instanceof Error ? error.message : 'Unknown error');
+      throw error;
+    }
+  }) as T;
 }
 
-/**
- * Rate Limiting Helper
- * Controleert of gebruiker te veel requests doet
- */
-export async function checkRateLimit(
-  userId: string,
-  action: string,
-  maxRequests: number = 100,
-  timeWindow: number = 60000 // 1 minuut
-): Promise<boolean> {
-  try {
-    const now = Date.now();
-    const windowStart = now - timeWindow;
+// ===================================================================
+// EXPORT ALL BANKING SECURITY UTILITIES
+// ===================================================================
 
-    const { data, error } = await supabase
-      .from('rate_limits')
-      .select('request_count')
-      .eq('user_id', userId)
-      .eq('action', action)
-      .gte('timestamp', new Date(windowStart).toISOString())
-      .single();
-
-    if (error || !data) {
-      // Eerste request voor deze gebruiker/actie
-      await supabase
-        .from('rate_limits')
-        .insert({
-          user_id: userId,
-          action,
-          request_count: 1,
-          timestamp: new Date().toISOString()
-        });
-      return true;
-    }
-
-    if (data.request_count >= maxRequests) {
-      return false; // Rate limit exceeded
-    }
-
-    // Update request count
-    await supabase
-      .from('rate_limits')
-      .update({ request_count: data.request_count + 1 })
-      .eq('user_id', userId)
-      .eq('action', action);
-
-    return true;
-  } catch (err) {
-    console.error('Rate limit check error:', err);
-    return true; // In case of error, allow request
-  }
-}
+export default {
+  // Logging
+  logClientSecurityEvent,
+  
+  // Validation
+  validateInput,
+  validateApiInput,
+  
+  // Authentication & Authorization
+  requireAuthentication,
+  checkPermission,
+  requirePermission,
+  
+  // API Calls
+  secureApiCall,
+  
+  // Error Handling
+  handleSecureError,
+  
+  // Deployment Safety
+  isFeatureEnabled,
+  withFeatureFlag,
+  
+  // Performance Monitoring
+  PerformanceMonitor,
+  withPerformanceMonitoring,
+};

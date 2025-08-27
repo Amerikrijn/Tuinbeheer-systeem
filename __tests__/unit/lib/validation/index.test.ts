@@ -1,7 +1,7 @@
 import {
   validateTuinFormData,
   validatePlantvakFormData,
-  validatePlantFormData,
+  validateBloemFormData,
   validateEmail,
   validatePhoneNumber,
   validateDate,
@@ -145,62 +145,82 @@ describe('Validation Functions', () => {
   })
 
   describe('validatePlantvakFormData', () => {
-    const validData: PlantvakFormData = {
-      id: 'bed-1',
-      // name field removed - will be auto-generated based on letter_code
-      location: 'North side',
-      size: '2x3m',
-      soilType: 'sandy',
-      sunExposure: 'partial-sun',
-      description: 'A plant bed for vegetables'
-    }
+    it('should validate valid plant bed data', () => {
+      const validData = {
+        id: 'test-id',
+        name: 'Test Bed',
+        location: 'North Side',
+        size: '2x3m',
+        soilType: 'clay',
+        sunExposure: 'full-sun' as const,
+        description: 'A test plant bed',
+      }
 
-    const invalidData: PlantvakFormData = {
-      id: '',
-      // name field removed - will be auto-generated based on letter_code
-      location: '',
-      size: '',
-      soilType: '',
-      sunExposure: 'partial-sun',
-      description: 'A plant bed for vegetables'
-    }
-
-    it('should validate valid plantvak data', () => {
       const result = validatePlantvakFormData(validData)
+
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
     })
 
-    it('should reject invalid plantvak data', () => {
+    it('should validate required fields', () => {
+      const invalidData = {
+        id: '',
+        name: '',
+        location: '',
+        size: '',
+        soilType: '',
+        sunExposure: 'full-sun' as const,
+        description: '',
+      }
+
       const result = validatePlantvakFormData(invalidData)
+
       expect(result.isValid).toBe(false)
-      expect(result.errors).toHaveLength(4) // id, location, size, soilType are required
+      expect(result.errors.length).toBeGreaterThan(0)
+      expect(result.errors.some(e => e.field === 'name')).toBe(true)
+      expect(result.errors.some(e => e.field === 'location')).toBe(true)
+      expect(result.errors.some(e => e.field === 'size')).toBe(true)
     })
 
-    it('should reject invalid sun exposure', () => {
+    it('should validate sun exposure options', () => {
       const invalidSunExposure = {
-        ...validData,
-        sunExposure: 'invalid-sun' as any
+        id: 'test-id',
+        name: 'Test Bed',
+        location: 'North Side',
+        size: '2x3m',
+        soilType: 'clay',
+        sunExposure: 'invalid-exposure' as any,
+        description: 'A test plant bed',
       }
+
       const result = validatePlantvakFormData(invalidSunExposure)
+
       expect(result.isValid).toBe(false)
-      expect(result.errors).toHaveLength(1)
-      expect(result.errors[0].field).toBe('sunExposure')
+      expect(result.errors).toContainEqual({
+        field: 'sunExposure',
+        message: 'Moet een van de volgende zijn: full-sun, partial-sun, shade',
+      })
     })
 
-    it('should reject invalid size format', () => {
+    it('should validate size format', () => {
       const invalidSize = {
-        ...validData,
-        size: 'invalid-size'
+        id: 'test-id',
+        name: 'Test Bed',
+        location: 'North Side',
+        size: 'invalid-size',
+        soilType: 'clay',
+        sunExposure: 'full-sun' as const,
+        description: 'A test plant bed',
       }
+
       const result = validatePlantvakFormData(invalidSize)
+
       expect(result.isValid).toBe(false)
-      expect(result.errors).toHaveLength(1)
-      expect(result.errors[0].field).toBe('size')
+      expect(result.errors.some(e => e.field === 'size')).toBe(true)
     })
   })
 
-  describe('validatePlantFormData', () => {
+  describe('validateBloemFormData', () => {
     it('should validate valid plant data', () => {
       const validData = {
         name: 'Rose',
@@ -217,7 +237,7 @@ describe('Validation Functions', () => {
         fertilizer_schedule: 'Monthly',
       }
 
-      const result = validatePlantFormData(validData)
+      const result = validateBloemFormData(validData)
 
       expect(result.isValid).toBe(true)
       expect(result.errors).toHaveLength(0)
@@ -229,7 +249,7 @@ describe('Validation Functions', () => {
         status: 'gezond' as const,
       }
 
-      const result = validatePlantFormData(invalidData)
+      const result = validateBloemFormData(invalidData)
 
       expect(result.isValid).toBe(false)
       expect(result.errors).toContainEqual({
@@ -245,7 +265,7 @@ describe('Validation Functions', () => {
         height: 50
       }
 
-      const result = validatePlantFormData(invalidData)
+      const result = validateBloemFormData(invalidData)
 
       expect(result.isValid).toBe(false)
       expect(result.errors).toContainEqual({
@@ -261,7 +281,7 @@ describe('Validation Functions', () => {
         height: -10
       }
 
-      const negativeResult = validatePlantFormData(negativeData)
+      const negativeResult = validateBloemFormData(negativeData)
 
       expect(negativeResult.isValid).toBe(false)
       expect(negativeResult.errors).toContainEqual({
@@ -275,10 +295,10 @@ describe('Validation Functions', () => {
         name: 'Test Plant',
         color: 'red',
         height: 50,
-        status: 'invalid-status' as any
+        status: 'invalid-status'
       }
 
-      const result = validatePlantFormData(invalidData)
+      const result = validateBloemFormData(invalidData)
 
       expect(result.isValid).toBe(false)
       expect(result.errors).toContainEqual({
@@ -295,7 +315,7 @@ describe('Validation Functions', () => {
         status: 'gezond' as const,
       }
 
-      const result = validatePlantFormData(invalidDates)
+      const result = validateBloemFormData(invalidDates)
 
       expect(result.isValid).toBe(false)
       expect(result.errors.some(e => e.field === 'planting_date')).toBe(true)

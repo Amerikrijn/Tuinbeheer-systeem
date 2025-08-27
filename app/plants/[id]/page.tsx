@@ -6,14 +6,15 @@ import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { AddTaskForm } from '@/components/tasks/add-task-form'
 import { TaskService } from '@/lib/services/task.service'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import type { TaskWithPlantInfo } from '@/lib/types/tasks'
-import type { Plant } from '@/lib/types/index'
+import type { Bloem } from '@/lib/types/index'
 import { PlantPhotoGallery } from '@/components/plant-photo-gallery'
 
-interface PlantWithBeds extends Plant {
+interface PlantWithBeds extends Bloem {
   plant_beds?: {
     name: string
     sun_exposure?: string
@@ -29,10 +30,13 @@ import {
   Sun, 
   CloudSun, 
   Cloud, 
+  Ruler, 
+  Palette, 
   Users, 
   Calendar,
   Plus,
   CheckCircle2,
+  Clock,
   AlertCircle,
   Edit
 } from "lucide-react"
@@ -56,7 +60,6 @@ export default function PlantDetailPage() {
 
   const loadPlantData = async () => {
     try {
-      const supabase = getSupabaseClient();
       const { data, error } = await supabase
         .from('plants')
         .select(`
@@ -76,7 +79,7 @@ export default function PlantDetailPage() {
       if (error) throw error
       setPlant(data)
     } catch (error) {
-      // Console logging removed for banking standards.error('Error loading plant:', error)
+      console.error('Error loading plant:', error)
     } finally {
       setLoading(false)
     }
@@ -88,7 +91,7 @@ export default function PlantDetailPage() {
       if (error) throw new Error(error)
       setTasks(data)
     } catch (error) {
-      // Console logging removed for banking standards.error('Error loading plant tasks:', error)
+      console.error('Error loading plant tasks:', error)
     }
   }
 
@@ -98,7 +101,7 @@ export default function PlantDetailPage() {
       if (error) throw new Error(error)
       setRefreshKey(prev => prev + 1)
     } catch (error) {
-      // Console logging removed for banking standards.error('Error updating task:', error)
+      console.error('Error updating task:', error)
     }
   }
 
@@ -160,8 +163,8 @@ export default function PlantDetailPage() {
         <Card>
           <CardContent className="p-8 text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Plant niet gevonden</h3>
-                          <p className="text-gray-600 mb-4">De plant die je zoekt bestaat niet of is verwijderd.</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Bloem niet gevonden</h3>
+            <p className="text-gray-600 mb-4">De bloem die je zoekt bestaat niet of is verwijderd.</p>
             <Button asChild>
               <Link href="/">Terug naar overzicht</Link>
             </Button>
@@ -221,13 +224,13 @@ export default function PlantDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-800">
                 <Leaf className="w-5 h-5" />
-                Basis Plantgegevens
+                Basis Bloemgegevens
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Plantnaam</label>
+                  <label className="text-sm font-medium text-gray-700">Bloemnaam</label>
                   <p className="text-lg font-semibold flex items-center gap-2">
                     {plant.emoji && <span className="text-xl">{plant.emoji}</span>}
                     {plant.name}

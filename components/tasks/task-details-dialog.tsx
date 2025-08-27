@@ -90,7 +90,7 @@ export function TaskDetailsDialog({
       setIsEditing(false)
       onTaskUpdated?.()
     } catch (error) {
-      // Console logging removed for banking standards.error('Error updating task:', error)
+      console.error('Error updating task:', error)
       toast({
         title: "Fout bij bijwerken",
         description: error instanceof Error ? error.message : "Er ging iets mis bij het bijwerken van de taak.",
@@ -124,7 +124,7 @@ export function TaskDetailsDialog({
       onTaskDeleted?.()
       onClose()
     } catch (error) {
-      // Console logging removed for banking standards.error('Error deleting task:', error)
+      console.error('Error deleting task:', error)
       toast({
         title: "Fout bij verwijderen",
         description: error instanceof Error ? error.message : "Er ging iets mis bij het verwijderen van de taak.",
@@ -155,7 +155,7 @@ export function TaskDetailsDialog({
 
       onTaskUpdated?.()
     } catch (error) {
-      // Console logging removed for banking standards.error('Error toggling task completion:', error)
+      console.error('Error toggling task completion:', error)
       toast({
         title: "Fout",
         description: error instanceof Error ? error.message : "Er ging iets mis.",
@@ -350,7 +350,7 @@ export function TaskDetailsDialog({
                   <Label htmlFor="task_type">Type Taak</Label>
                   <Select 
                     value={formData.task_type} 
-                    onValueChange={(value: 'watering' | 'fertilizing' | 'pruning' | 'harvesting' | 'planting' | 'pest_control' | 'general') => 
+                    onValueChange={(value: any) => 
                       setFormData(prev => ({ ...prev, task_type: value }))
                     }
                     disabled={isLoading}

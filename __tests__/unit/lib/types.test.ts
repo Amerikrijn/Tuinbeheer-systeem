@@ -1,133 +1,236 @@
-import { PlantBedFormData, PlantFormData, PlantBedPosition } from '@/lib/types';
+import type { 
+  Task, 
+  TaskWithPlantInfo, 
+  User, 
+  PlantWithPosition,
+  PlantBedWithPlants,
+  Tuin,
+  Plantvak,
+  Bloem
+} from '@/lib/types/index'
 
 describe('Type Definitions', () => {
-  describe('PlantBedFormData', () => {
+  describe('Task Interface', () => {
     it('should have correct structure', () => {
-      const plantBed: PlantBedFormData = {
+      const task: Task = {
+        id: '1',
+        title: 'Test Task',
+        description: 'A test task',
+        due_date: '2024-12-31',
+        completed: false,
+        priority: 'high',
+        task_type: 'watering',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      }
+
+      expect(task.id).toBe('1')
+      expect(task.title).toBe('Test Task')
+      expect(task.description).toBe('A test task')
+      expect(task.due_date).toBe('2024-12-31')
+      expect(task.completed).toBe(false)
+      expect(task.priority).toBe('high')
+      expect(task.task_type).toBe('watering')
+      expect(task.created_at).toBe('2024-01-01T00:00:00Z')
+      expect(task.updated_at).toBe('2024-01-01T00:00:00Z')
+    })
+
+    it('should allow optional fields', () => {
+      const minimalTask: Task = {
+        id: '1',
+        title: 'Minimal Task',
+        description: undefined,
+        due_date: undefined,
+        completed: false,
+        priority: 'medium',
+        task_type: 'fertilizing',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      }
+
+      expect(minimalTask.description).toBeUndefined()
+      expect(minimalTask.due_date).toBeUndefined()
+    })
+  })
+
+  describe('TaskWithPlantInfo Interface', () => {
+    it('should extend Task with plant information', () => {
+      const taskWithPlant: TaskWithPlantInfo = {
+        id: '1',
+        title: 'Plant Task',
+        description: 'A task for plants',
+        due_date: '2024-12-31',
+        completed: false,
+        priority: 'high',
+        task_type: 'watering',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+        plants: [
+          {
+            id: 'plant-1',
+            name: 'Test Plant',
+            species: 'Test Species',
+            variety: 'Test Variety',
+            planting_date: '2024-01-01',
+            expected_harvest_date: '2024-06-01',
+            notes: 'A test plant',
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-01T00:00:00Z'
+          }
+        ]
+      }
+
+      expect(taskWithPlant.plants).toHaveLength(1)
+      expect(taskWithPlant.plants[0].name).toBe('Test Plant')
+    })
+  })
+
+  describe('User Interface', () => {
+    it('should have correct structure', () => {
+      const user: User = {
+        id: 'user-1',
+        email: 'test@example.com',
+        full_name: 'Test User',
+        role: 'user',
+        is_active: true,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      }
+
+      expect(user.id).toBe('user-1')
+      expect(user.email).toBe('test@example.com')
+      expect(user.full_name).toBe('Test User')
+      expect(user.role).toBe('user')
+      expect(user.is_active).toBe(true)
+    })
+  })
+
+  describe('PlantWithPosition Interface', () => {
+    it('should have correct structure', () => {
+      const plantWithPosition: PlantWithPosition = {
+        id: 'plant-1',
+        name: 'Test Plant',
+        species: 'Test Species',
+        variety: 'Test Variety',
+        planting_date: '2024-01-01',
+        expected_harvest_date: '2024-06-01',
+        notes: 'A test plant',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+        position_x: 100,
+        position_y: 200,
+        visual_width: 50,
+        visual_height: 50,
+        rotation: 0,
+        z_index: 1,
+        color_code: '#FF0000',
+        visual_updated_at: '2024-01-01T00:00:00Z'
+      }
+
+      expect(plantWithPosition.position_x).toBe(100)
+      expect(plantWithPosition.position_y).toBe(200)
+      expect(plantWithPosition.visual_width).toBe(50)
+      expect(plantWithPosition.visual_height).toBe(50)
+      expect(plantWithPosition.rotation).toBe(0)
+      expect(plantWithPosition.z_index).toBe(1)
+      expect(plantWithPosition.color_code).toBe('#FF0000')
+    })
+  })
+
+  describe('PlantBedWithPlants Interface', () => {
+    it('should have correct structure', () => {
+      const plantBedWithPlants: PlantBedWithPlants = {
         id: 'bed-1',
         name: 'Test Bed',
-        location: 'Backyard',
-        size: '2x4m',
-        soilType: 'Loamy',
-        sunExposure: 'full-sun',
-        description: 'A test plant bed'
-      };
+        description: 'A test plant bed',
+        garden_id: 'garden-1',
+        position_x: 100,
+        position_y: 200,
+        visual_width: 200,
+        visual_height: 150,
+        rotation: 0,
+        z_index: 1,
+        color_code: '#00FF00',
+        visual_updated_at: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+        plants: [
+          {
+            id: 'plant-1',
+            name: 'Test Plant',
+            species: 'Test Species',
+            variety: 'Test Variety',
+            planting_date: '2024-01-01',
+            expected_harvest_date: '2024-06-01',
+            notes: 'A test plant',
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-01T00:00:00Z'
+          }
+        ]
+      }
 
-      expect(plantBed.id).toBe('bed-1');
-      expect(plantBed.name).toBe('Test Bed');
-      expect(plantBed.location).toBe('Backyard');
-      expect(plantBed.size).toBe('2x4m');
-      expect(plantBed.soilType).toBe('Loamy');
-      expect(plantBed.sunExposure).toBe('full-sun');
-      expect(plantBed.description).toBe('A test plant bed');
-    });
+      expect(plantBedWithPlants.name).toBe('Test Bed')
+      expect(plantBedWithPlants.garden_id).toBe('garden-1')
+      expect(plantBedWithPlants.plants).toHaveLength(1)
+    })
+  })
 
-    it('should accept valid sun exposure values', () => {
-      const validExposures: PlantBedFormData['sunExposure'][] = ['full-sun', 'partial-sun', 'shade'];
-      
-      validExposures.forEach(exposure => {
-        const plantBed: PlantBedFormData = {
-          id: 'bed-1',
-          name: 'Test Bed',
-          location: 'Backyard',
-          size: '2x4m',
-          soilType: 'Loamy',
-          sunExposure: exposure,
-          description: 'A test plant bed'
-        };
-        
-        expect(plantBed.sunExposure).toBe(exposure);
-      });
-    });
-  });
-
-  describe('PlantFormData', () => {
-    it('should have correct structure with required fields', () => {
-      const plant: PlantFormData = {
-        name: 'Tomato',
-        status: 'gezond'
-      };
-
-      expect(plant.name).toBe('Tomato');
-      expect(plant.status).toBe('gezond');
-    });
-
-    it('should accept optional fields', () => {
-      const plant: PlantFormData = {
-        name: 'Tomato',
-        scientificName: 'Solanum lycopersicum',
-        variety: 'Cherry',
-        color: 'Red',
-        height: 60,
-        plantingDate: '2024-03-01',
-        expectedHarvestDate: '2024-07-01',
-        status: 'gezond',
-        notes: 'Growing well',
-        careInstructions: 'Water daily',
-        wateringFrequency: 1,
-        fertilizerSchedule: 'Weekly'
-      };
-
-      expect(plant.scientificName).toBe('Solanum lycopersicum');
-      expect(plant.variety).toBe('Cherry');
-      expect(plant.color).toBe('Red');
-      expect(plant.height).toBe(60);
-      expect(plant.plantingDate).toBe('2024-03-01');
-      expect(plant.expectedHarvestDate).toBe('2024-07-01');
-      expect(plant.notes).toBe('Growing well');
-      expect(plant.careInstructions).toBe('Water daily');
-      expect(plant.wateringFrequency).toBe(1);
-      expect(plant.fertilizerSchedule).toBe('Weekly');
-    });
-
-    it('should accept valid status values', () => {
-      const validStatuses: PlantFormData['status'][] = ['gezond', 'aandacht_nodig', 'ziek', 'dood', 'geoogst'];
-      
-      validStatuses.forEach(status => {
-        const plant: PlantFormData = {
-          name: 'Test Plant',
-          status: status
-        };
-        
-        expect(plant.status).toBe(status);
-      });
-    });
-  });
-
-  describe('PlantBedPosition', () => {
+  describe('Tuin Interface', () => {
     it('should have correct structure', () => {
-      const position: PlantBedPosition = {
-        id: 'pos-1',
-        x: 10,
-        y: 20,
-        width: 100,
-        height: 50,
-        rotation: 45
-      };
+      const tuin: Tuin = {
+        id: 'garden-1',
+        name: 'Test Garden',
+        description: 'A test garden',
+        location: 'Test Location',
+        garden_type: 'vegetable',
+        total_area: '100m²',
+        season_year: 2024,
+        is_active: true,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      }
 
-      expect(position.id).toBe('pos-1');
-      expect(position.x).toBe(10);
-      expect(position.y).toBe(20);
-      expect(position.width).toBe(100);
-      expect(position.height).toBe(50);
-      expect(position.rotation).toBe(45);
-    });
+      expect(tuin.name).toBe('Test Garden')
+      expect(tuin.location).toBe('Test Location')
+      expect(tuin.garden_type).toBe('vegetable')
+      expect(tuin.total_area).toBe('100m²')
+      expect(tuin.season_year).toBe(2024)
+    })
+  })
 
-    it('should accept numeric values for coordinates and dimensions', () => {
-      const position: PlantBedPosition = {
-        id: 'pos-1',
-        x: 0,
-        y: 0,
-        width: 1.5,
-        height: 2.5,
-        rotation: 0
-      };
+  describe('Plantvak Interface', () => {
+    it('should have correct structure', () => {
+      const plantvak: Plantvak = {
+        id: 'bed-1',
+        name: 'Test Bed',
+        description: 'A test plant bed',
+        garden_id: 'garden-1',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      }
 
-      expect(typeof position.x).toBe('number');
-      expect(typeof position.y).toBe('number');
-      expect(typeof position.width).toBe('number');
-      expect(typeof position.height).toBe('number');
-      expect(typeof position.rotation).toBe('number');
-    });
-  });
-});
+      expect(plantvak.name).toBe('Test Bed')
+      expect(plantvak.garden_id).toBe('garden-1')
+    })
+  })
+
+  describe('Bloem Interface', () => {
+    it('should have correct structure', () => {
+      const bloem: Bloem = {
+        id: 'plant-1',
+        name: 'Test Plant',
+        species: 'Test Species',
+        variety: 'Test Variety',
+        planting_date: '2024-01-01',
+        expected_harvest_date: '2024-06-01',
+        notes: 'A test plant',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z'
+      }
+
+      expect(bloem.name).toBe('Test Plant')
+      expect(bloem.species).toBe('Test Species')
+      expect(bloem.variety).toBe('Test Variety')
+    })
+  })
+})

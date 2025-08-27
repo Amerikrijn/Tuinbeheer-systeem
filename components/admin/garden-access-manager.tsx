@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { TreePine, Loader2 } from 'lucide-react'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 
 interface Garden {
@@ -35,12 +36,17 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
   const [saving, setSaving] = useState(false)
 
   // Load available gardens and user's current access
-  const loadGardensAndAccess = useCallback(async () => {
+  useEffect(() => {
+    if (isOpen && user) {
+      loadGardensAndAccess()
+    }
+  }, [isOpen, user])
+
+  const loadGardensAndAccess = async () => {
     if (!user) return
     
     setLoading(true)
     try {
-      const supabase = getSupabaseClient();
       // Load only active gardens (exclude soft-deleted ones)
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
@@ -68,7 +74,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
       setUserGardenAccess(currentAccess)
 
     } catch (error) {
-      // Console logging removed for banking standards.error('Error loading gardens and access:', error)
+      console.error('Error loading gardens and access:', error)
       toast({
         title: "Fout bij laden",
         description: "Kon tuinen en toegang niet laden",
@@ -77,14 +83,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
     } finally {
       setLoading(false)
     }
-  }, [user, toast])
-
-  // Load available gardens and user's current access
-  useEffect(() => {
-    if (isOpen && user) {
-      loadGardensAndAccess()
-    }
-  }, [isOpen, user, loadGardensAndAccess])
+  }
 
   const toggleGardenAccess = (gardenId: string) => {
     setUserGardenAccess(prev => 
@@ -99,7 +98,6 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
 
     setSaving(true)
     try {
-      const supabase = getSupabaseClient();
       // First, remove all existing access for this user
       const { error: deleteError } = await supabase
         .from('user_garden_access')
@@ -137,7 +135,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
       onClose()
 
     } catch (error) {
-      // Console logging removed for banking standards.error('Error saving garden access:', error)
+      console.error('Error saving garden access:', error)
       toast({
         title: "Fout bij opslaan",
         description: "Kon tuin toegang niet bijwerken",

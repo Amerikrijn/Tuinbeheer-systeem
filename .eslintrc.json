@@ -1,40 +1,12 @@
 {
-  "extends": [
-    "next/core-web-vitals",
-    "eslint:recommended"
-  ],
-  "plugins": ["unused-imports"],
-  "env": {
-    "browser": true,
-    "es2021": true,
-    "node": true,
-    "jest": true
-  },
-  "globals": {
-    "vi": "readonly",
-    "expect": "readonly",
-    "describe": "readonly",
-    "it": "readonly",
-    "beforeEach": "readonly",
-    "afterEach": "readonly",
-    "beforeAll": "readonly",
-    "afterAll": "readonly",
-    "React": "readonly",
-    "NodeJS": "readonly",
-    "EventListener": "readonly"
-  },
+  "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
-    "no-unused-vars": "warn",
-    "unused-imports/no-unused-imports": "warn",
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
     "react/no-unescaped-entities": "off",
     "@next/next/no-img-element": "off",
     "react-hooks/exhaustive-deps": "warn",
-    "no-undef": "warn",
-    "no-redeclare": "warn",
-    "no-prototype-builtins": "warn",
-    "no-useless-escape": "warn",
-    "no-useless-catch": "warn",
-    "no-dupe-else-if": "warn",
-    "no-mixed-spaces-and-tabs": "warn"
+    "@typescript-eslint/no-require-imports": "off",
+    "import/no-anonymous-default-export": "off"
   }
 }
