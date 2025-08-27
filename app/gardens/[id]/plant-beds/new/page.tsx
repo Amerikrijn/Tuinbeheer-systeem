@@ -70,30 +70,15 @@ export default function NewPlantBedPage() {
         const existingPlantvakken = await PlantvakService.getByGarden(gardenId)
         setExistingPlantvakken(existingPlantvakken)
         
-        const existingCodes = existingPlantvakken.map(p => p.letter_code).filter(Boolean)
-        
-        // Generate next available letter code
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        let nextCode = 'A'
-        
-        for (const letter of alphabet) {
-          if (!existingCodes.includes(letter)) {
-            nextCode = letter
-            break
-          }
-        }
-        
-        // If all letters are used, start with A1, A2, etc.
-        if (nextCode === 'A' && existingCodes.includes('A')) {
-          let counter = 1
-          while (existingCodes.includes(`A${counter}`)) {
-            counter++
-          }
-          nextCode = `A${counter}`
-        }
+        // Generate next available letter code using the service
+        const nextCode = PlantvakService.generateNextLetterCode(
+          existingPlantvakken.map(p => p.letter_code).filter(Boolean)
+        )
         
         setNextLetterCode(nextCode)
         console.log('🔤 Next letter code calculated:', nextCode)
+        console.log('📊 Existing plantvakken:', existingPlantvakken)
+        console.log('🔤 Existing letter codes:', existingPlantvakken.map(p => p.letter_code).filter(Boolean))
       } catch (error) {
         console.error('Error loading garden:', error)
         toast({
@@ -129,6 +114,8 @@ export default function NewPlantBedPage() {
       newErrors.sunExposure = "Zonligging is verplicht"
     }
 
+    // No need to validate name - it's automatically assigned
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -144,7 +131,6 @@ export default function NewPlantBedPage() {
       // Log the exact data being sent
       const plantvakData = {
         garden_id: gardenId,
-        name: nextLetterCode, // Use the calculated letter code as the name
         location: newPlantBed.location,
         size: newPlantBed.size,
         soil_type: newPlantBed.soilType,
@@ -162,7 +148,7 @@ export default function NewPlantBedPage() {
         console.log('✅ Plantvak created successfully:', plantBed)
         toast({
           title: "Plantvak aangemaakt!",
-          description: `Plantvak "${plantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code}.`,
+          description: `Plantvak "${plantBed.letter_code}" is succesvol aangemaakt!`,
         })
 
         // Show additional success message with letter code
@@ -206,6 +192,7 @@ export default function NewPlantBedPage() {
       description: "",
     })
     setErrors({})
+    // Note: nextLetterCode will be recalculated automatically
   }
 
   if (isLoading) {
@@ -252,7 +239,7 @@ export default function NewPlantBedPage() {
               <Plus className="h-7 w-7 text-green-600" />
               Nieuw Plantvak Toevoegen
             </h1>
-            <p className="text-muted-foreground">Voeg een nieuw plantvak toe aan {garden.name}</p>
+            <p className="text-muted-foreground">Voeg een nieuw plantvak toe aan {garden.name} (automatische letter: {nextLetterCode})</p>
           </div>
         </div>
       </div>
@@ -263,7 +250,7 @@ export default function NewPlantBedPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Leaf className="h-5 w-5 text-green-600" />
-                Plantvak Informatie
+                Plantvak Informatie (Letter: {nextLetterCode})
               </CardTitle>
             </CardHeader>
 
@@ -276,12 +263,12 @@ export default function NewPlantBedPage() {
                       {nextLetterCode}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-blue-900 text-xl mb-2">Automatische Plantvak Naam</h4>
+                      <h4 className="font-bold text-blue-900 text-xl mb-2">Automatische Plantvak Letter</h4>
                       <p className="text-blue-700 mb-3">
-                        Dit plantvak krijgt <strong>automatisch</strong> de naam <strong className="text-2xl">{nextLetterCode}</strong>.
+                        Dit plantvak krijgt <strong>automatisch</strong> de letter <strong className="text-2xl">{nextLetterCode}</strong>.
                       </p>
                       <p className="text-blue-600 text-sm">
-                        De letter code wordt automatisch de naam van het plantvak.
+                        De letter wordt automatisch toegewezen en is uniek binnen deze tuin.
                       </p>
                       
                       {/* Show existing plantvakken */}
@@ -293,6 +280,7 @@ export default function NewPlantBedPage() {
                               <span 
                                 key={plantvak.id}
                                 className="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-800 text-sm font-bold rounded-full border-2 border-green-300"
+                                title={`Plantvak ${plantvak.letter_code || '?'} - ${plantvak.location || 'Geen locatie'}`}
                               >
                                 {plantvak.letter_code || '?'}
                               </span>
@@ -432,7 +420,7 @@ export default function NewPlantBedPage() {
 
                 <div className="flex gap-3">
                   <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700">
-                    {loading ? "Opslaan…" : "Plantvak Aanmaken"}
+                    {loading ? "Opslaan…" : `Plantvak ${nextLetterCode} Aanmaken`}
                   </Button>
                   <Button type="reset" variant="outline" disabled={loading} onClick={handleReset}>
                     Reset Formulier
@@ -467,6 +455,11 @@ export default function NewPlantBedPage() {
                   <li>Logische volgorde</li>
                   <li>Gemakkelijk te onthouden</li>
                 </ul>
+              </div>
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded">
+                <p className="text-green-800 text-sm">
+                  <strong>Let op:</strong> De letter wordt automatisch toegewezen en kan niet handmatig worden gewijzigd.
+                </p>
               </div>
             </CardContent>
           </Card>

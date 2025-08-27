@@ -12,6 +12,11 @@ export class PlantvakService {
    * Generate next available letter code for a garden
    */
   static generateNextLetterCode(existingCodes: string[]): string {
+    // If no existing codes, start with A
+    if (!existingCodes || existingCodes.length === 0) {
+      return 'A';
+    }
+    
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     
     // Try single letters first (A, B, C, etc.)
@@ -42,7 +47,7 @@ export class PlantvakService {
         .select('*')
         .eq('garden_id', gardenId)
         .eq('is_active', true)
-        .order('letter_code', { ascending: true });
+        .order('created_at', { ascending: true }); // Order by creation date instead of letter_code
 
       if (error) throw error;
       return data || [];
@@ -88,10 +93,10 @@ export class PlantvakService {
       console.log('🆔 Generated unique ID:', uniqueId);
       
       // Create new plantvak with letter code and ID
-      // Use the letter code as the name if no name is provided
+      // Always use the letter code as the name for consistency
       const newPlantvak = {
         id: uniqueId,
-        name: plantvakData.name || nextLetterCode, // Use provided name or letter code
+        name: nextLetterCode, // Always use the letter code as the name
         ...plantvakData,
         letter_code: nextLetterCode,
         is_active: true,
