@@ -94,69 +94,19 @@ export class PlantvakService {
       const nextLetterCode = this.generateNextLetterCode(existingCodes.filter(Boolean) as string[]);
       console.log('✨ Next letter code:', nextLetterCode);
       
-      // Generate a UUID for the ID (v4 UUID format)
-      const generateUUID = () => {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-          const r = Math.random() * 16 | 0;
-          const v = c === 'x' ? r : (r & 0x3 | 0x8);
-          return v.toString(16);
-        });
-      };
-      
-      // Create new plantvak with letter code as both name and letter_code
+      // SIMPELE VERSIE - alleen de absolute minimum velden
       const newPlantvak: any = {
-        id: generateUUID(), // Generate UUID for ID
         garden_id: plantvakData.garden_id,
-        name: nextLetterCode, // Always use letter code as name
-        letter_code: nextLetterCode
+        name: nextLetterCode // Alleen garden_id en name, de rest laat de database doen
       };
-      
-      // Only add optional fields if they have values
-      if (plantvakData.location) {
-        newPlantvak.location = plantvakData.location;
-      }
-      if (plantvakData.size) {
-        newPlantvak.size = plantvakData.size;
-      }
-      if (plantvakData.soil_type) {
-        newPlantvak.soil_type = plantvakData.soil_type;
-      }
-      if (plantvakData.sun_exposure) {
-        newPlantvak.sun_exposure = plantvakData.sun_exposure;
-      }
-      if (plantvakData.description) {
-        newPlantvak.description = plantvakData.description;
-      }
-      
-      // Try to add season_year - if it fails, we'll try without it
-      try {
-        newPlantvak.season_year = new Date().getFullYear();
-      } catch (e) {
-        console.log('⚠️ Could not add season_year, continuing without it');
-      }
       
       console.log('📝 Inserting new plantvak:', JSON.stringify(newPlantvak, null, 2));
 
-      let { data, error } = await supabase
+      const { data, error } = await supabase
         .from('plant_beds')
         .insert(newPlantvak)
         .select()
         .single();
-
-      // If error and we have season_year, try without it
-      if (error && newPlantvak.season_year) {
-        console.log('⚠️ Insert failed with season_year, retrying without it...');
-        delete newPlantvak.season_year;
-        
-        const retryResult = await supabase
-          .from('plant_beds')
-          .insert(newPlantvak)
-          .select()
-          .single();
-          
-        data = retryResult.data;
-        error = retryResult.error;
-      }
 
       if (error) {
         console.error('❌ Supabase error:', error);
