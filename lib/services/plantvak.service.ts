@@ -94,13 +94,21 @@ export class PlantvakService {
       const nextLetterCode = this.generateNextLetterCode(existingCodes.filter(Boolean) as string[]);
       console.log('✨ Next letter code:', nextLetterCode);
       
+      // Generate a UUID for the ID (v4 UUID format)
+      const generateUUID = () => {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+      };
+      
       // Create new plantvak with letter code as both name and letter_code
-      // Let Supabase generate the ID and timestamps automatically
       const newPlantvak: any = {
+        id: generateUUID(), // Generate UUID for ID
         garden_id: plantvakData.garden_id,
         name: nextLetterCode, // Always use letter code as name
         letter_code: nextLetterCode
-        // Remove is_active - let database use default value
       };
       
       // Only add optional fields if they have values
