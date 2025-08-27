@@ -99,21 +99,36 @@ export class PlantvakService {
       console.log('🆔 Generated unique ID:', uniqueId);
       
       // Create new plantvak with letter code as both name and letter_code
-      const newPlantvak = {
+      const newPlantvak: any = {
         id: uniqueId,
         garden_id: plantvakData.garden_id,
         name: nextLetterCode, // Always use letter code as name
         letter_code: nextLetterCode,
-        location: plantvakData.location,
-        size: plantvakData.size,
-        soil_type: plantvakData.soil_type,
-        sun_exposure: plantvakData.sun_exposure,
-        description: plantvakData.description,
-        season_year: new Date().getFullYear(), // Add current year
         is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
+      
+      // Only add optional fields if they have values
+      if (plantvakData.location) {
+        newPlantvak.location = plantvakData.location;
+      }
+      if (plantvakData.size) {
+        newPlantvak.size = plantvakData.size;
+      }
+      if (plantvakData.soil_type) {
+        newPlantvak.soil_type = plantvakData.soil_type;
+      }
+      if (plantvakData.sun_exposure) {
+        newPlantvak.sun_exposure = plantvakData.sun_exposure;
+      }
+      if (plantvakData.description) {
+        newPlantvak.description = plantvakData.description;
+      }
+      
+      // Add season_year only if the column exists in the database
+      // This prevents errors if the column doesn't exist
+      newPlantvak.season_year = new Date().getFullYear();
       
       console.log('📝 Inserting new plantvak:', JSON.stringify(newPlantvak, null, 2));
 
