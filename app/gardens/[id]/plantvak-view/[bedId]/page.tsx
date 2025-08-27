@@ -64,6 +64,7 @@ import {
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { ViewPreferencesService, ViewMode } from '@/lib/services/view-preferences.service'
+import { PhotoTimeline } from '@/components/plantvak/photo-timeline'
 
 const GRID_SIZE = 10
 const SCALE_MIN = 0.5
@@ -2681,6 +2682,12 @@ export default function PlantBedViewPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Photo Timeline - Show photos from logbook (always visible) */}
+      <PhotoTimeline 
+        plantBedId={params.bedId as string}
+        plantBedName={plantBed?.name || 'Plantvak'}
+      />
 
       {/* Add Task Dialog */}
       <AddTaskForm
