@@ -267,12 +267,8 @@ export default function NewPlantBedPage() {
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
               <Plus className="h-7 w-7 text-green-600" />
-              Nieuw Plantvak Toevoegen (v3 - DEBUG VERSIE)
+              Nieuw Plantvak Toevoegen (v2)
             </h1>
-            <div className="bg-blue-100 border-2 border-blue-500 p-4 rounded-lg mt-2">
-              <p className="text-blue-800 font-bold">⚠️ DEBUG MODE ACTIEF - Versie 3</p>
-              <p className="text-blue-700">Als je dit ziet, is de nieuwe deployment actief!</p>
-            </div>
             <p className="text-muted-foreground">Voeg een nieuw plantvak toe aan {garden.name}</p>
           </div>
         </div>
