@@ -94,13 +94,9 @@ export class PlantvakService {
       const nextLetterCode = this.generateNextLetterCode(existingCodes.filter(Boolean) as string[]);
       console.log('✨ Next letter code:', nextLetterCode);
       
-      // Generate a unique ID for the plantvak
-      const uniqueId = `plantvak-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      console.log('🆔 Generated unique ID:', uniqueId);
-      
       // Create new plantvak with letter code as both name and letter_code
+      // Let Supabase generate the ID automatically
       const newPlantvak: any = {
-        id: uniqueId,
         garden_id: plantvakData.garden_id,
         name: nextLetterCode, // Always use letter code as name
         letter_code: nextLetterCode,
