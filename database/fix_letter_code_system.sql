@@ -15,7 +15,8 @@ BEGIN
     END IF;
 END $$;
 
--- Step 2: Clear all existing plant beds to start fresh
+-- Step 2: Clear all existing plant beds to start fresh with letter codes
+-- This ensures no conflicts with existing names
 DELETE FROM plant_beds;
 
 -- Step 3: Add unique constraint for garden_id + letter_code

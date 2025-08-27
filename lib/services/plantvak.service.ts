@@ -11,7 +11,7 @@ export class PlantvakService {
   /**
    * Generate next available letter code for a garden
    */
-  private static generateNextLetterCode(existingCodes: string[]): string {
+  static generateNextLetterCode(existingCodes: string[]): string {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     
     // Try single letters first (A, B, C, etc.)

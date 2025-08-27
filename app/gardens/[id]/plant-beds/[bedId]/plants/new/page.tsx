@@ -175,7 +175,7 @@ export default function NewPlantPage() {
       
       toast({
         title: "Plant toegevoegd!",
-        description: `Plant "${plantData.name}" is succesvol toegevoegd aan ${plantBed.name}.`,
+        description: `Plant "${plantData.name}" is succesvol toegevoegd aan ${plantBed.letter_code || plantBed.name}.`,
       })
       
       router.push(`/gardens/${garden?.id}/plantvak-view/${plantBed.id}`)
@@ -246,7 +246,7 @@ export default function NewPlantPage() {
         </h1>
         <div className="text-gray-600">
           <p><strong>Tuin:</strong> {garden.name}</p>
-          <p><strong>Plantvak:</strong> {plantBed.name}</p>
+                          <p><strong>Plantvak:</strong> {plantBed.letter_code || plantBed.name}</p>
         </div>
       </div>
 

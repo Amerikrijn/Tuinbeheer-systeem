@@ -535,7 +535,7 @@ function NewLogbookPageContent() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="font-medium text-gray-900 mb-2">Preview</h3>
                   <div className="text-sm text-gray-600 space-y-1">
-                    <p><strong>Plantvak:</strong> {selectedPlantBed.name}</p>
+                    <p><strong>Plantvak:</strong> {selectedPlantBed.letter_code || selectedPlantBed.name}</p>
                     {selectedPlant && (
                       <p><strong>Plant:</strong> {selectedPlant.name}
                         {selectedPlant.variety && ` (${selectedPlant.variety})`}

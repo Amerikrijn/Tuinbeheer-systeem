@@ -868,7 +868,7 @@ export default function PlantBedViewPage() {
     if (plantBed) {
       const dimensions = parseDimensions(plantBed.size || '')
       setPlantBedForm({
-        name: plantBed.name,
+        name: plantBed.letter_code || plantBed.name,
         length: dimensions.length,
         width: dimensions.width,
         description: plantBed.description || '',
@@ -1565,7 +1565,7 @@ export default function PlantBedViewPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <Flower className="h-8 w-8 text-pink-600" />
-              {plantBed.name}
+              {plantBed.letter_code || plantBed.name}
             </h1>
 
           </div>
@@ -1784,7 +1784,7 @@ export default function PlantBedViewPage() {
                 onBlur={(e) => {
                   // Restore original name if field is empty on blur
                   if (e.target.value.trim().length === 0 && plantBed?.name) {
-                    setPlantBedForm(prev => ({ ...prev, name: plantBed.name }))
+                    setPlantBedForm(prev => ({ ...prev, name: plantBed.letter_code || plantBed.name }))
         // Removed toast notification
                   }
                 }}
