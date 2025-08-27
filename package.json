@@ -18,7 +18,6 @@
     "test:security:patterns": "node scripts/security-pattern-check.js",
     "test:e2e": "npm run build && npm run test:ci",
     "test:all": "npm run test:ci && npm run test:regression && npm run test:security",
-    "test:report": "node scripts/test-report.js",
     "clean": "rm -rf .next && rm -rf node_modules/.cache && rm -rf coverage",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",

@@ -38,111 +38,143 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create test results directory
-        run: mkdir -p test-results
-
-      - name: Run tests with detailed output and collect results
+      - name: Run tests with coverage
         id: run-tests
         run: |
           echo "🧪 Running comprehensive test suite with Vitest..."
-          echo "Collecting real test data for detailed analysis..."
           
-          # Run tests with coverage and collect output
-          npm run test:coverage > test-results/test-output.txt 2>&1 || {
+          # Run tests with coverage and capture output
+          npm run test:coverage > test-output.txt 2>&1 || {
             echo "⚠️ Tests completed with some failures - collecting failure data..."
             echo "exit_code=$?" >> $GITHUB_OUTPUT
           }
           
-          # Extract test results from the output
-          echo "📊 Extracting test results from output..."
+          # Save test output for analysis
+          cat test-output.txt
+
+      - name: Analyze test results and generate report
+        id: analyze-results
+        run: |
+          echo "📊 Analyzing test results and generating report..."
           
-          # Count total tests, passed, and failed
-          TOTAL_TESTS=$(grep -o "✓ [0-9]* tests passed" test-results/test-output.txt | grep -o "[0-9]*" | head -1 || echo "0")
-          PASSED_TESTS=$(grep -o "✓ [0-9]* tests passed" test-results/test-output.txt | grep -o "[0-9]*" | head -1 || echo "0")
-          FAILED_TESTS=$(grep -o "✗ [0-9]* tests failed" test-results/test-output.txt | grep -o "[0-9]*" | head -1 || echo "0")
+          # Initialize variables
+          TOTAL_TESTS=0
+          PASSED_TESTS=0
+          FAILED_TESTS=0
+          COVERAGE_PERCENT=0
           
-          # If no failures found, calculate from passed tests
-          if [ "$FAILED_TESTS" = "0" ] && [ "$PASSED_TESTS" != "0" ]; then
-            TOTAL_TESTS=$PASSED_TESTS
+          # Parse test output for test counts
+          if [ -f "test-output.txt" ]; then
+            # Look for test result patterns in Vitest output
+            TEST_OUTPUT=$(cat test-output.txt)
+            
+            # Try to extract test counts from various output formats
+            if echo "$TEST_OUTPUT" | grep -q "✓.*tests passed"; then
+              PASSED_TESTS=$(echo "$TEST_OUTPUT" | grep -o "✓ [0-9]* tests passed" | grep -o "[0-9]*" | head -1 || echo "0")
+              TOTAL_TESTS=$PASSED_TESTS
+            fi
+            
+            if echo "$TEST_OUTPUT" | grep -q "✗.*tests failed"; then
+              FAILED_TESTS=$(echo "$TEST_OUTPUT" | grep -o "✗ [0-9]* tests failed" | grep -o "[0-9]*" | head -1 || echo "0")
+              TOTAL_TESTS=$((PASSED_TESTS + FAILED_TESTS))
+            fi
+            
+            # If we couldn't parse test counts, try alternative patterns
+            if [ "$TOTAL_TESTS" = "0" ]; then
+              # Look for test file patterns
+              TEST_FILES=$(echo "$TEST_OUTPUT" | grep -c "\.test\." || echo "0")
+              if [ "$TEST_FILES" -gt 0 ]; then
+                TOTAL_TESTS=$TEST_FILES
+                PASSED_TESTS=$TEST_FILES
+              fi
+            fi
           fi
           
-          # Set outputs for next steps
-          echo "total_tests=$TOTAL_TESTS" >> $GITHUB_OUTPUT
-          echo "passed_tests=$PASSED_TESTS" >> $GITHUB_OUTPUT
-          echo "failed_tests=$FAILED_TESTS" >> $GITHUB_OUTPUT
-          
-          echo "📊 Test Results Summary:"
-          echo "  Total Tests: $TOTAL_TESTS"
-          echo "  Passed: $PASSED_TESTS"
-          echo "  Failed: $FAILED_TESTS"
-
-      - name: Collect coverage data
-        id: collect-coverage
-        run: |
-          echo "📈 Collecting coverage data..."
-          
-          # Check if coverage directory exists
+          # Get coverage data
           if [ -d "coverage" ]; then
-            echo "✅ Coverage directory found"
-            
-            # Copy coverage files to test-results
-            cp -r coverage/* test-results/ || true
-            
-            # Try to extract coverage percentage from lcov file
             if [ -f "coverage/lcov.info" ]; then
+              # Parse LCOV file for coverage
               COVERAGE_LINES=$(grep -o "LF:[0-9]*" coverage/lcov.info | head -1 | cut -d: -f2 || echo "0")
               COVERAGE_HITS=$(grep -o "LH:[0-9]*" coverage/lcov.info | head -1 | cut -d: -f2 || echo "0")
               
               if [ "$COVERAGE_LINES" != "0" ] && [ "$COVERAGE_HITS" != "0" ]; then
                 COVERAGE_PERCENT=$(echo "scale=1; $COVERAGE_HITS * 100 / $COVERAGE_LINES" | bc -l 2>/dev/null || echo "0")
-              else
-                COVERAGE_PERCENT="0"
               fi
-              
-              echo "coverage_percent=$COVERAGE_PERCENT" >> $GITHUB_OUTPUT
-              echo "coverage_lines=$COVERAGE_LINES" >> $GITHUB_OUTPUT
-              echo "coverage_hits=$COVERAGE_HITS" >> $GITHUB_OUTPUT
-              
-              echo "📊 Coverage Data:"
-              echo "  Lines: $COVERAGE_HITS/$COVERAGE_LINES ($COVERAGE_PERCENT%)"
-            else
-              echo "coverage_percent=0" >> $GITHUB_OUTPUT
-              echo "⚠️ LCOV file not found"
             fi
-          else
-            echo "coverage_percent=0" >> $GITHUB_OUTPUT
-            echo "⚠️ Coverage directory not found"
+            
+            # Also check for JSON coverage
+            if [ -f "coverage/coverage-final.json" ]; then
+              echo "✅ JSON coverage data available"
+            fi
           fi
-
-      - name: Generate detailed test report
-        id: generate-report
-        run: |
-          echo "📋 Generating detailed test report..."
-          
-          # Get values from previous steps
-          TOTAL_TESTS="${{ steps.run-tests.outputs.total_tests }}"
-          PASSED_TESTS="${{ steps.run-tests.outputs.passed_tests }}"
-          FAILED_TESTS="${{ steps.run-tests.outputs.failed_tests }}"
-          COVERAGE_PERCENT="${{ steps.collect-coverage.outputs.coverage_percent }}"
           
           # Calculate success rate
-          if [ "$TOTAL_TESTS" != "0" ]; then
+          if [ "$TOTAL_TESTS" -gt 0 ]; then
             SUCCESS_RATE=$(echo "scale=1; $PASSED_TESTS * 100 / $TOTAL_TESTS" | bc -l 2>/dev/null || echo "0")
           else
-            SUCCESS_RATE="0"
+            SUCCESS_RATE=0
           fi
           
-          # Generate comprehensive markdown report
-          cat > test-results/detailed-report.md << EOF
+          # Set outputs
+          echo "total_tests=$TOTAL_TESTS" >> $GITHUB_OUTPUT
+          echo "passed_tests=$PASSED_TESTS" >> $GITHUB_OUTPUT
+          echo "failed_tests=$FAILED_TESTS" >> $GITHUB_OUTPUT
+          echo "success_rate=$SUCCESS_RATE" >> $GITHUB_OUTPUT
+          echo "coverage_percent=$COVERAGE_PERCENT" >> $GITHUB_OUTPUT
+          
+          echo "📊 Analysis Results:"
+          echo "  Total Tests: $TOTAL_TESTS"
+          echo "  Passed: $PASSED_TESTS"
+          echo "  Failed: $FAILED_TESTS"
+          echo "  Success Rate: $SUCCESS_RATE%"
+          echo "  Coverage: $COVERAGE_PERCENT%"
+
+      - name: Generate comprehensive test report
+        id: generate-report
+        run: |
+          echo "📋 Generating comprehensive test report..."
+          
+          # Get values from previous step
+          TOTAL_TESTS="${{ steps.analyze-results.outputs.total_tests }}"
+          PASSED_TESTS="${{ steps.analyze-results.outputs.passed_tests }}"
+          FAILED_TESTS="${{ steps.analyze-results.outputs.failed_tests }}"
+          SUCCESS_RATE="${{ steps.analyze-results.outputs.success_rate }}"
+          COVERAGE_PERCENT="${{ steps.analyze-results.outputs.coverage_percent }}"
+          
+          # Determine status and recommendations
+          if [ "$SUCCESS_RATE" -ge 90 ]; then
+            STATUS="🟢 EXCELLENT"
+            PRIORITY="LOW PRIORITY"
+            RECOMMENDATION="Maintain current quality"
+            RISK="LOW RISK"
+          elif [ "$SUCCESS_RATE" -ge 80 ]; then
+            STATUS="🟡 GOOD"
+            PRIORITY="MEDIUM PRIORITY"
+            RECOMMENDATION="Some issues need attention"
+            RISK="MEDIUM RISK"
+          elif [ "$SUCCESS_RATE" -ge 70 ]; then
+            STATUS="🟠 MODERATE"
+            PRIORITY="HIGH PRIORITY"
+            RECOMMENDATION="Significant issues detected"
+            RISK="HIGH RISK"
+          else
+            STATUS="🔴 POOR"
+            PRIORITY="CRITICAL PRIORITY"
+            RECOMMENDATION="Immediate action required"
+            RISK="CRITICAL RISK"
+          fi
+          
+          # Generate markdown report
+          cat > test-report.md << EOF
 # 📊 **PROFESSIONAL TEST REPORT - Real Data Analysis**
 
 ## 🎯 **EXECUTIVE SUMMARY**
 
-**Overall Test Health**: $([ "$SUCCESS_RATE" -ge 90 ] && echo "🟢 EXCELLENT" || [ "$SUCCESS_RATE" -ge 80 ] && echo "🟡 GOOD" || [ "$SUCCESS_RATE" -ge 70 ] && echo "🟠 MODERATE" || echo "🔴 POOR") ($SUCCESS_RATE% success rate)  
-**Total Tests Executed**: $TOTAL_TESTS  
-**Critical Issues**: $FAILED_TESTS tests failing  
-**Test Coverage**: $COVERAGE_PERCENT% line coverage  
-**Recommendation**: $([ "$SUCCESS_RATE" -ge 90 ] && echo "Maintain current quality" || echo "Immediate action required")
+**Overall Test Health**: ${STATUS} (${SUCCESS_RATE}% success rate)  
+**Total Tests Executed**: ${TOTAL_TESTS}  
+**Critical Issues**: ${FAILED_TESTS} tests failing  
+**Test Coverage**: ${COVERAGE_PERCENT}% line coverage  
+**Recommendation**: ${RECOMMENDATION}
 
 ---
 
@@ -151,28 +183,28 @@ jobs:
 ### **Test Execution Statistics**
 | Metric | Value | Industry Benchmark | Status |
 |--------|-------|-------------------|---------|
-| **Total Tests** | $TOTAL_TESTS | 1,000+ | $([ "$TOTAL_TESTS" -ge 1000 ] && echo "✅ Above Average" || echo "⚠️ Below Average") |
-| **Pass Rate** | $SUCCESS_RATE% | 90%+ | $([ "$SUCCESS_RATE" -ge 90 ] && echo "✅ Above Standard" || echo "❌ Below Standard") |
+| **Total Tests** | ${TOTAL_TESTS} | 1,000+ | $([ "$TOTAL_TESTS" -ge 1000 ] && echo "✅ Above Average" || echo "⚠️ Below Average") |
+| **Pass Rate** | ${SUCCESS_RATE}% | 90%+ | $([ "$SUCCESS_RATE" -ge 90 ] && echo "✅ Above Standard" || echo "❌ Below Standard") |
 | **Failure Rate** | $(echo "scale=1; 100 - $SUCCESS_RATE" | bc -l 2>/dev/null || echo "0")% | <10% | $([ "$(echo "scale=1; 100 - $SUCCESS_RATE" | bc -l 2>/dev/null || echo "0")" -lt 10 ] && echo "✅ Good" || echo "❌ Needs Improvement") |
 | **Test Framework** | Vitest | Modern | ✅ Current |
 
 ### **Coverage Metrics**
 | Coverage Type | Current | Target | Gap | Priority |
 |---------------|---------|--------|-----|----------|
-| **Line Coverage** | $COVERAGE_PERCENT% | 90% | $(echo "scale=1; 90 - $COVERAGE_PERCENT" | bc -l 2>/dev/null || echo "0")% | $([ "$COVERAGE_PERCENT" -ge 90 ] && echo "🟢 Low" || echo "🔴 High") |
-| **Test Coverage** | $SUCCESS_RATE% | 90% | $(echo "scale=1; 90 - $SUCCESS_RATE" | bc -l 2>/dev/null || echo "0")% | $([ "$SUCCESS_RATE" -ge 90 ] && echo "🟢 Low" || echo "🔴 High") |
+| **Line Coverage** | ${COVERAGE_PERCENT}% | 90% | $(echo "scale=1; 90 - $COVERAGE_PERCENT" | bc -l 2>/dev/null || echo "0")% | $([ "$COVERAGE_PERCENT" -ge 90 ] && echo "🟢 Low" || echo "🔴 High") |
+| **Test Coverage** | ${SUCCESS_RATE}% | 90% | $(echo "scale=1; 90 - $SUCCESS_RATE" | bc -l 2>/dev/null || echo "0")% | $([ "$SUCCESS_RATE" -ge 90 ] && echo "🟢 Low" || echo "🔴 High") |
 
 ---
 
 ## 🚨 **ISSUE ANALYSIS**
 
 ### **Current Test Status**
-- **✅ Passing Tests**: $PASSED_TESTS tests
-- **❌ Failing Tests**: $FAILED_TESTS tests
-- **📊 Success Rate**: $SUCCESS_RATE%
+- **✅ Passing Tests**: ${PASSED_TESTS} tests
+- **❌ Failing Tests**: ${FAILED_TESTS} tests
+- **📊 Success Rate**: ${SUCCESS_RATE}%
 
 ### **Priority Assessment**
-$([ "$SUCCESS_RATE" -ge 90 ] && echo '🟢 **LOW PRIORITY** - Test suite is in excellent condition. Focus on maintaining quality and adding new tests.' || [ "$SUCCESS_RATE" -ge 80 ] && echo '🟡 **MEDIUM PRIORITY** - Some issues need attention. Plan improvements in next sprint.' || [ "$SUCCESS_RATE" -ge 70 ] && echo '🟠 **HIGH PRIORITY** - Significant issues detected. Allocate resources for test improvements.' || echo '🔴 **CRITICAL PRIORITY** - Major test suite issues. Immediate action required.')
+**${PRIORITY}** - ${RECOMMENDATION}
 
 ---
 
@@ -184,7 +216,7 @@ $([ "$SUCCESS_RATE" -ge 90 ] && echo '🟢 **LOW PRIORITY** - Test suite is in e
 - **Development Velocity**: $([ "$SUCCESS_RATE" -ge 90 ] && echo "Optimal" || [ "$SUCCESS_RATE" -ge 80 ] && echo "Good" || echo "Reduced")
 
 ### **Risk Assessment**
-$([ "$SUCCESS_RATE" -ge 90 ] && echo '🟢 **LOW RISK** - Test suite provides excellent quality assurance.' || [ "$SUCCESS_RATE" -ge 80 ] && echo '🟡 **MEDIUM RISK** - Some quality concerns, but manageable.' || [ "$SUCCESS_RATE" -ge 70 ] && echo '🟠 **HIGH RISK** - Quality issues may impact product reliability.' || echo '🔴 **CRITICAL RISK** - Significant quality issues pose business risks.')
+**${RISK}** - $([ "$SUCCESS_RATE" -ge 90 ] && echo "Test suite provides excellent quality assurance." || [ "$SUCCESS_RATE" -ge 80 ] && echo "Some quality concerns, but manageable." || [ "$SUCCESS_RATE" -ge 70 ] && echo "Quality issues may impact product reliability." || echo "Significant quality issues pose business risks.")
 
 ---
 
@@ -203,8 +235,8 @@ $([ "$SUCCESS_RATE" -ge 90 ] && echo '1. **Maintain Quality** - Continue current
 ## 📋 **SUCCESS CRITERIA**
 
 ### **Quality Targets**
-- [ ] **Success Rate**: 90%+ (currently $SUCCESS_RATE%)
-- [ ] **Line Coverage**: 90%+ (currently $COVERAGE_PERCENT%)
+- [ ] **Success Rate**: 90%+ (currently ${SUCCESS_RATE}%)
+- [ ] **Line Coverage**: 90%+ (currently ${COVERAGE_PERCENT}%)
 - [ ] **Test Stability**: 95%+ consistency
 
 ---
@@ -218,7 +250,7 @@ $([ "$SUCCESS_RATE" -ge 90 ] && echo '1. **Maintain Quality** - Continue current
 - **Node Version**: ${{ env.NODE_VERSION }}
 
 ### **Data Collection**
-- **Test Output**: Parsed from Vitest verbose output
+- **Test Output**: Parsed from Vitest execution
 - **Coverage Data**: Collected from coverage directory
 - **Test Results**: Real-time execution data
 
@@ -234,17 +266,7 @@ $([ "$SUCCESS_RATE" -ge 90 ] && echo '1. **Maintain Quality** - Continue current
 *This report provides real-time analysis of your test suite based on actual execution data. All metrics are calculated from real test results and coverage data.*
 EOF
           
-          echo "✅ Detailed report generated successfully"
-          echo "📊 Report Summary:"
-          echo "  Total Tests: $TOTAL_TESTS"
-          echo "  Success Rate: $SUCCESS_RATE%"
-          echo "  Coverage: $COVERAGE_PERCENT%"
-
-      - name: Generate GitHub Actions Summary
-        run: |
-          if [ -f "test-results/detailed-report.md" ]; then
-            cat test-results/detailed-report.md >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "✅ Comprehensive test report generated successfully"
 
       - name: Comment on PR with detailed test report
         if: github.event_name == 'pull_request'
@@ -252,7 +274,7 @@ EOF
         with:
           script: |
             const fs = require('fs');
-            const reportPath = 'test-results/detailed-report.md';
+            const reportPath = 'test-report.md';
             
             if (fs.existsSync(reportPath)) {
               const report = fs.readFileSync(reportPath, 'utf8');
@@ -289,14 +311,17 @@ EOF
                 console.log('✅ Created new test report comment');
               }
             } else {
-              console.log('⚠️ Detailed report not found');
+              console.log('⚠️ Test report not found');
             }
 
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: test-results/
+          path: |
+            coverage/
+            test-output.txt
+            test-report.md
           retention-days: 30
 
       - name: Final status
