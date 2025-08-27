@@ -121,13 +121,20 @@ export default function NewPlantBedPage() {
     if (!newPlantBed.size.trim()) {
       newErrors.size = "Grootte is verplicht"
     }
-    if (!newPlantBed.soilType) {
+    if (!newPlantBed.soilType || newPlantBed.soilType === "") {
       newErrors.soilType = "Bodemtype is verplicht"
     }
-    if (!newPlantBed.sunExposure) {
+    if (!newPlantBed.sunExposure || newPlantBed.sunExposure === "") {
       newErrors.sunExposure = "Zonligging is verplicht"
     }
 
+    console.log("🔍 Validation errors:", newErrors)
+    console.log("🔍 Form values during validation:", {
+      size: newPlantBed.size,
+      soilType: newPlantBed.soilType,
+      sunExposure: newPlantBed.sunExposure
+    })
+    
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -135,8 +142,20 @@ export default function NewPlantBedPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!validateForm()) return
-
+    console.log("🔍 Form submitted, current state:", {
+      size: newPlantBed.size,
+      soilType: newPlantBed.soilType,
+      sunExposure: newPlantBed.sunExposure,
+      location: newPlantBed.location,
+      description: newPlantBed.description
+    })
+    
+    if (!validateForm()) {
+      console.log("❌ Form validation failed")
+      return
+    }
+    
+    console.log("✅ Form validation passed")
     setLoading(true)
 
     try {
@@ -426,7 +445,12 @@ export default function NewPlantBedPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700">
+                  <Button 
+                    type="submit" 
+                    disabled={loading} 
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => console.log("🔍 Button clicked, loading state:", loading)}
+                  >
                     {loading ? "Opslaan…" : "Plantvak Aanmaken"}
                   </Button>
                   <Button type="reset" variant="outline" disabled={loading} onClick={handleReset}>
