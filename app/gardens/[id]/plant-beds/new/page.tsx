@@ -116,9 +116,8 @@ export default function NewPlantBedPage() {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
-    if (!newPlantBed.location.trim()) {
-      newErrors.location = "Locatie is verplicht"
-    }
+    // Location is now optional - removed validation
+    
     if (!newPlantBed.size.trim()) {
       newErrors.size = "Grootte is verplicht"
     }
@@ -311,7 +310,7 @@ export default function NewPlantBedPage() {
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="location">Locatie *</Label>
+                    <Label htmlFor="location">Locatie (optioneel)</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
@@ -321,12 +320,9 @@ export default function NewPlantBedPage() {
                         onChange={(e) =>
                           setNewPlantBed((p) => ({ ...p, location: e.target.value }))
                         }
-                        className={`pl-10 ${errors.location ? "border-red-500" : ""}`}
+                        className="pl-10"
                       />
                     </div>
-                    {errors.location && (
-                      <p className="text-sm text-red-500">{errors.location}</p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
