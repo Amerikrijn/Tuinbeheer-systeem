@@ -53,7 +53,8 @@ export class PlantvakService {
         .from('plant_beds')
         .select('*')
         .eq('garden_id', gardenId)
-        .eq('is_active', true)
+        // Verwijder is_active filter voor letter code check
+        // We willen ALLE plantvakken zien voor unieke letters
         .order('letter_code', { ascending: true });
 
       if (error) throw error;
@@ -85,34 +86,32 @@ export class PlantvakService {
       
       // Get existing letter codes for this garden
       const existingPlantvakken = await this.getByGarden(plantvakData.garden_id);
-      console.log('📊 Existing plantvakken:', existingPlantvakken);
+      console.log('📊 Existing plantvakken count:', existingPlantvakken.length);
+      console.log('📊 Existing plantvakken details:', existingPlantvakken.map(p => ({
+        id: p.id,
+        name: p.name,
+        letter_code: p.letter_code,
+        is_active: p.is_active
+      })));
       
-      const existingCodes = existingPlantvakken.map(p => p.letter_code).filter(Boolean);
+      const existingCodes = existingPlantvakken
+        .map(p => p.letter_code || p.name) // Fallback naar name als letter_code null is
+        .filter(Boolean);
       console.log('🔤 Existing letter codes:', existingCodes);
       
       // Generate next available letter code
       const nextLetterCode = this.generateNextLetterCode(existingCodes.filter(Boolean) as string[]);
       console.log('✨ Next letter code:', nextLetterCode);
       
-      // Generate a unique ID for the plantvak
-      const uniqueId = `plantvak-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      console.log('🆔 Generated unique ID:', uniqueId);
-      
-      // Create new plantvak with letter code as both name and letter_code
+      // WERKENDE VERSIE - gebaseerd op database tests
+      // Database genereert automatisch: id, timestamps, defaults
       const newPlantvak: any = {
-        id: uniqueId,
         garden_id: plantvakData.garden_id,
-        name: nextLetterCode, // Always use letter code as name
-        letter_code: nextLetterCode,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        name: nextLetterCode,  // Bijv. "E", "F", etc.
+        letter_code: nextLetterCode  // BELANGRIJK: moet zelfde zijn als name voor de constraint
       };
       
-      // Only add optional fields if they have values
-      if (plantvakData.location) {
-        newPlantvak.location = plantvakData.location;
-      }
+      // Voeg optionele velden toe als ze aanwezig zijn
       if (plantvakData.size) {
         newPlantvak.size = plantvakData.size;
       }
@@ -125,10 +124,9 @@ export class PlantvakService {
       if (plantvakData.description) {
         newPlantvak.description = plantvakData.description;
       }
-      
-      // Add season_year only if the column exists in the database
-      // This prevents errors if the column doesn't exist
-      newPlantvak.season_year = new Date().getFullYear();
+      if (plantvakData.location) {
+        newPlantvak.location = plantvakData.location;
+      }
       
       console.log('📝 Inserting new plantvak:', JSON.stringify(newPlantvak, null, 2));
 

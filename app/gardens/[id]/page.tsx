@@ -32,7 +32,8 @@ import {
   Trash2,
   Move,
 } from "lucide-react"
-import { getGarden, getPlantBeds, createPlantBed, updatePlantBed, deletePlantBed } from "@/lib/database"
+import { getGarden, getPlantBeds, updatePlantBed, deletePlantBed } from "@/lib/database"
+import { PlantvakService } from "@/lib/services/plantvak.service"
 import type { Garden, PlantBedWithPlants, PlantWithPosition, Plant } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS, 
@@ -139,7 +140,7 @@ export default function GardenDetailPage() {
     width: '', // in meters
     description: '',
     sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
-    soil_type: ''
+    soil_type: 'gemengd' // Default bodemtype
   })
 
   useEffect(() => {
@@ -871,12 +872,13 @@ export default function GardenDetailPage() {
         soil_type: newPlantBed.soil_type,
       })
 
-      const plantBed = await createPlantBed({
+      // Gebruik PlantvakService voor automatische letter toewijzing
+      const plantBed = await PlantvakService.create({
         garden_id: garden.id,
         size: sizeString,
         description: newPlantBed.description?.trim() || undefined,
         sun_exposure: newPlantBed.sun_exposure,
-        soil_type: newPlantBed.soil_type?.trim() || undefined,
+        soil_type: newPlantBed.soil_type?.trim() || 'gemengd', // Default soil type
       })
 
       if (plantBed) {
@@ -1758,10 +1760,20 @@ export default function GardenDetailPage() {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg mb-4">
-              <p className="text-blue-800 font-medium">
-                ℹ️ Dit plantvak krijgt automatisch een letter toegewezen (A, B, C, enz.)
-              </p>
+            <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-lg mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-green-500 text-white text-xl font-bold rounded-full flex items-center justify-center">
+                  ?
+                </div>
+                <div>
+                  <p className="text-green-800 font-semibold">
+                    Automatische Naamgeving
+                  </p>
+                  <p className="text-green-700 text-sm">
+                    Dit plantvak krijgt automatisch een letter toegewezen (A, B, C, enz.)
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -1801,37 +1813,59 @@ export default function GardenDetailPage() {
               </div>
             )}
 
-            <div>
-              <label htmlFor="plantvak-sun" className="block text-sm font-medium text-gray-700 mb-1">
-                Zonligging
-              </label>
-              <Select value={newPlantBed.sun_exposure} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
-                setNewPlantBed(prev => ({ ...prev, sun_exposure: value }))
-              }>
-                <SelectTrigger>
-                  <SelectValue placeholder="Kies zonligging" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full-sun">
-                    <div className="flex items-center gap-2">
-                      <Sun className="h-4 w-4 text-yellow-500" />
-                      <span>Volle zon</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="partial-sun">
-                    <div className="flex items-center gap-2">
-                      <CloudSun className="h-4 w-4 text-yellow-400" />
-                      <span>Gedeeltelijke zon</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="shade">
-                    <div className="flex items-center gap-2">
-                      <Cloud className="h-4 w-4 text-gray-500" />
-                      <span>Schaduw</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="plantvak-soil" className="block text-sm font-medium text-gray-700 mb-1">
+                  Bodemtype *
+                </label>
+                <Select value={newPlantBed.soil_type} onValueChange={(value) => 
+                  setNewPlantBed(prev => ({ ...prev, soil_type: value }))
+                }>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Kies bodemtype" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="klei">Klei</SelectItem>
+                    <SelectItem value="zand">Zand</SelectItem>
+                    <SelectItem value="leem">Leem</SelectItem>
+                    <SelectItem value="veen">Veen</SelectItem>
+                    <SelectItem value="gemengd">Gemengd</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label htmlFor="plantvak-sun" className="block text-sm font-medium text-gray-700 mb-1">
+                  Zonligging *
+                </label>
+                <Select value={newPlantBed.sun_exposure} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
+                  setNewPlantBed(prev => ({ ...prev, sun_exposure: value }))
+                }>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Kies zonligging" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full-sun">
+                      <div className="flex items-center gap-2">
+                        <Sun className="h-4 w-4 text-yellow-500" />
+                        <span>Volle zon</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="partial-sun">
+                      <div className="flex items-center gap-2">
+                        <CloudSun className="h-4 w-4 text-yellow-400" />
+                        <span>Halfschaduw</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="shade">
+                      <div className="flex items-center gap-2">
+                        <Cloud className="h-4 w-4 text-gray-500" />
+                        <span>Schaduw</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div>
@@ -1858,7 +1892,7 @@ export default function GardenDetailPage() {
                   width: '',
                   description: '',
                   sun_exposure: 'full-sun',
-                  soil_type: ''
+                  soil_type: 'gemengd'
                 })
               }}
             >
@@ -1866,7 +1900,8 @@ export default function GardenDetailPage() {
             </Button>
             <Button
               onClick={addPlantBed}
-              disabled={!newPlantBed.name || !newPlantBed.length || !newPlantBed.width}
+              disabled={!newPlantBed.length || !newPlantBed.width || !newPlantBed.soil_type || !newPlantBed.sun_exposure}
+              className="bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               <Plus className="h-4 w-4 mr-2" />
               Plantvak Toevoegen
