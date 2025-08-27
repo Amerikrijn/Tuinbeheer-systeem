@@ -10,10 +10,20 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, TreePine, Plus, Search, Eye, Leaf, Sun, MapPin, Grid3X3, BookOpen } from "lucide-react"
-import { getGarden, getPlantBeds } from "@/lib/database"
+import { ArrowLeft, TreePine, Plus, Search, Eye, Leaf, Sun, MapPin, Grid3X3, BookOpen, Trash2 } from "lucide-react"
+import { getGarden, getPlantBeds, deletePlantBed } from "@/lib/database"
 import type { Garden, PlantBedWithPlants } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function PlantBedsPage() {
   const { goBack, navigateTo } = useNavigation()
@@ -24,6 +34,8 @@ export default function PlantBedsPage() {
   const [plantBeds, setPlantBeds] = useState<PlantBedWithPlants[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [plantBedToDelete, setPlantBedToDelete] = useState<PlantBedWithPlants | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
@@ -56,6 +68,37 @@ export default function PlantBedsPage() {
       bed.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       bed.id.toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  const handleDeleteClick = (bed: PlantBedWithPlants) => {
+    setPlantBedToDelete(bed)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!plantBedToDelete) return
+
+    try {
+      await deletePlantBed(plantBedToDelete.id)
+      
+      // Remove from local state
+      setPlantBeds(prev => prev.filter(bed => bed.id !== plantBedToDelete.id))
+      
+      toast({
+        title: "Plantvak verwijderd",
+        description: `Plantvak ${plantBedToDelete.letter_code || plantBedToDelete.name} is succesvol verwijderd.`,
+      })
+    } catch (error) {
+      console.error("Error deleting plant bed:", error)
+      toast({
+        title: "Fout",
+        description: "Kon het plantvak niet verwijderen.",
+        variant: "destructive",
+      })
+    } finally {
+      setDeleteDialogOpen(false)
+      setPlantBedToDelete(null)
+    }
+  }
 
   const getSunExposureIcon = (exposure: string) => {
     switch (exposure) {
@@ -299,6 +342,14 @@ export default function PlantBedsPage() {
                     >
                       <BookOpen className="h-4 w-4" />
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteClick(bed)}
+                      title="Plantvak verwijderen"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 ) : (
                   <div className="flex gap-1 justify-end mt-3 pt-2 border-t border-gray-100">
@@ -318,6 +369,15 @@ export default function PlantBedsPage() {
                       title="Logboek entry toevoegen"
                     >
                       <BookOpen className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDeleteClick(bed)}
+                      className="px-2 h-7"
+                      title="Plantvak verwijderen"
+                    >
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
                 )}
@@ -389,6 +449,33 @@ export default function PlantBedsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Plantvak verwijderen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Weet je zeker dat je plantvak <strong>{plantBedToDelete?.letter_code || plantBedToDelete?.name}</strong> wilt verwijderen?
+              {plantBedToDelete?.plants && plantBedToDelete.plants.length > 0 && (
+                <span className="block mt-2 text-red-600">
+                  Let op: Dit plantvak bevat {plantBedToDelete.plants.length} plant{plantBedToDelete.plants.length === 1 ? '' : 'en'}. 
+                  Deze zullen ook worden verwijderd.
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

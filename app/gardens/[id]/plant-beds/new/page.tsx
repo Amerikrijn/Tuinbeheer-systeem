@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
-import { ArrowLeft, Leaf, Plus, Sun, MapPin, Ruler, Droplets, Hash } from "lucide-react"
+import { ArrowLeft, Leaf, Plus, Sun, MapPin, Ruler, Droplets } from "lucide-react"
 import { PlantvakService } from "@/lib/services/plantvak.service"
 import { getGarden } from "@/lib/database"
 import type { Tuin } from "@/lib/types/index"
@@ -59,6 +59,31 @@ export default function NewPlantBedPage() {
     description: "",
   })
 
+  // Generate next letter code using the same logic as PlantvakService
+  const generateNextLetterCode = (existingCodes: string[]): string => {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    
+    // Try single letters first (A, B, C, etc.)
+    for (const letter of alphabet) {
+      if (!existingCodes.includes(letter)) {
+        return letter
+      }
+    }
+    
+    // If all single letters are used, try double letters (AA, AB, AC, etc.)
+    for (const firstLetter of alphabet) {
+      for (const secondLetter of alphabet) {
+        const code = `${firstLetter}${secondLetter}`
+        if (!existingCodes.includes(code)) {
+          return code
+        }
+      }
+    }
+    
+    // Fallback
+    return `X${Date.now()}`
+  }
+
   // Load garden data and calculate next letter code
   useEffect(() => {
     const loadGardenAndCalculateLetter = async () => {
@@ -70,27 +95,12 @@ export default function NewPlantBedPage() {
         const existingPlantvakken = await PlantvakService.getByGarden(gardenId)
         setExistingPlantvakken(existingPlantvakken)
         
-        const existingCodes = existingPlantvakken.map(p => p.letter_code).filter(Boolean)
+        const existingCodes = existingPlantvakken
+          .map(p => p.letter_code || p.name)
+          .filter(Boolean) as string[]
         
         // Generate next available letter code
-        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        let nextCode = 'A'
-        
-        for (const letter of alphabet) {
-          if (!existingCodes.includes(letter)) {
-            nextCode = letter
-            break
-          }
-        }
-        
-        // If all letters are used, start with A1, A2, etc.
-        if (nextCode === 'A' && existingCodes.includes('A')) {
-          let counter = 1
-          while (existingCodes.includes(`A${counter}`)) {
-            counter++
-          }
-          nextCode = `A${counter}`
-        }
+        const nextCode = generateNextLetterCode(existingCodes)
         
         setNextLetterCode(nextCode)
         console.log('🔤 Next letter code calculated:', nextCode)
@@ -267,7 +277,7 @@ export default function NewPlantBedPage() {
           <div>
             <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
               <Plus className="h-7 w-7 text-green-600" />
-              Nieuw Plantvak Toevoegen (v2)
+              Nieuw Plantvak Toevoegen
             </h1>
             <p className="text-muted-foreground">Voeg een nieuw plantvak toe aan {garden.name}</p>
           </div>
@@ -289,16 +299,16 @@ export default function NewPlantBedPage() {
                 {/* Automatic Letter Code Assignment - Prominent Display */}
                 <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-blue-100 text-blue-800 text-3xl font-bold rounded-full flex items-center justify-center border-4 border-blue-300">
+                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 text-white text-4xl font-bold rounded-full flex items-center justify-center shadow-lg border-4 border-white">
                       {nextLetterCode}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-bold text-blue-900 text-xl mb-2">Automatische Plantvak Naam</h4>
-                      <p className="text-blue-700 mb-3">
-                        Dit plantvak krijgt <strong>automatisch</strong> de naam <strong className="text-2xl">{nextLetterCode}</strong>.
+                      <h4 className="font-bold text-gray-800 text-xl mb-1">Automatische Naamgeving</h4>
+                      <p className="text-gray-700 text-lg mb-2">
+                        Dit plantvak krijgt automatisch de naam: <strong className="text-green-700 text-2xl">Plantvak {nextLetterCode}</strong>
                       </p>
-                      <p className="text-blue-600 text-sm">
-                        De letter code wordt automatisch de naam van het plantvak.
+                      <p className="text-gray-600 text-sm">
+                        Geen handmatige invoer nodig - het systeem wijst automatisch letters toe.
                       </p>
                       
                       {/* Show existing plantvakken */}
@@ -306,12 +316,23 @@ export default function NewPlantBedPage() {
                         <div className="mt-3">
                           <p className="text-sm text-blue-600 mb-2">Bestaande plantvakken in deze tuin:</p>
                           <div className="flex flex-wrap gap-2">
-                            {existingPlantvakken.map((plantvak, index) => (
+                            {existingPlantvakken
+                              .sort((a, b) => {
+                                const aCode = a.letter_code || a.name || ''
+                                const bCode = b.letter_code || b.name || ''
+                                // Sort single letters first, then double letters
+                                if (aCode.length !== bCode.length) {
+                                  return aCode.length - bCode.length
+                                }
+                                return aCode.localeCompare(bCode)
+                              })
+                              .map((plantvak) => (
                               <span 
                                 key={plantvak.id}
-                                className="inline-flex items-center justify-center w-8 h-8 bg-green-100 text-green-800 text-sm font-bold rounded-full border-2 border-green-300"
+                                className="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 bg-green-100 text-green-800 text-sm font-bold rounded-full border-2 border-green-300"
+                                title={`Plantvak ${plantvak.letter_code || plantvak.name}`}
                               >
-                                {plantvak.letter_code || '?'}
+                                {plantvak.letter_code || plantvak.name || '?'}
                               </span>
                             ))}
                           </div>
@@ -445,37 +466,22 @@ export default function NewPlantBedPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <button 
+                  <Button
                     type="submit" 
-                    disabled={loading} 
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={() => console.log("🔍 Button clicked, loading state:", loading)}
+                    disabled={loading}
+                    className="bg-green-600 hover:bg-green-700"
                   >
-                    {loading ? "Opslaan…" : "Plantvak Aanmaken"}
-                  </button>
+                    {loading ? "Aanmaken..." : "Plantvak Aanmaken"}
+                  </Button>
                   
-                  {/* DEBUG: Test button that bypasses form submit */}
-                  <button 
-                    type="button"
-                    onClick={(e) => {
-                      console.log("🧪 TEST BUTTON CLICKED");
-                      console.log("Current form state:", newPlantBed);
-                      console.log("Loading state:", loading);
-                      handleSubmit(e as any);
-                    }}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                  >
-                    TEST Submit
-                  </button>
-                  
-                  <button 
+                  <Button
                     type="button" 
+                    variant="outline"
                     disabled={loading} 
                     onClick={handleReset}
-                    className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Reset Formulier
-                  </button>
+                  </Button>
                 </div>
               </form>
             </CardContent>
@@ -495,7 +501,7 @@ export default function NewPlantBedPage() {
                   <li>Tweede plantvak → <strong>B</strong></li>
                   <li>Derde plantvak → <strong>C</strong></li>
                   <li>Enzovoort...</li>
-                  <li>Na Z → <strong>A1, A2, A3...</strong></li>
+                  <li>Na Z → <strong>AA, AB, AC...</strong></li>
                 </ul>
               </div>
               <div>
