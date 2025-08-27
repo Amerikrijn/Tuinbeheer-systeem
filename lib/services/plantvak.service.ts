@@ -95,14 +95,12 @@ export class PlantvakService {
       console.log('✨ Next letter code:', nextLetterCode);
       
       // Create new plantvak with letter code as both name and letter_code
-      // Let Supabase generate the ID automatically
+      // Let Supabase generate the ID and timestamps automatically
       const newPlantvak: any = {
         garden_id: plantvakData.garden_id,
         name: nextLetterCode, // Always use letter code as name
-        letter_code: nextLetterCode,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        letter_code: nextLetterCode
+        // Remove is_active - let database use default value
       };
       
       // Only add optional fields if they have values
@@ -122,17 +120,35 @@ export class PlantvakService {
         newPlantvak.description = plantvakData.description;
       }
       
-      // Add season_year only if the column exists in the database
-      // This prevents errors if the column doesn't exist
-      newPlantvak.season_year = new Date().getFullYear();
+      // Try to add season_year - if it fails, we'll try without it
+      try {
+        newPlantvak.season_year = new Date().getFullYear();
+      } catch (e) {
+        console.log('⚠️ Could not add season_year, continuing without it');
+      }
       
       console.log('📝 Inserting new plantvak:', JSON.stringify(newPlantvak, null, 2));
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('plant_beds')
         .insert(newPlantvak)
         .select()
         .single();
+
+      // If error and we have season_year, try without it
+      if (error && newPlantvak.season_year) {
+        console.log('⚠️ Insert failed with season_year, retrying without it...');
+        delete newPlantvak.season_year;
+        
+        const retryResult = await supabase
+          .from('plant_beds')
+          .insert(newPlantvak)
+          .select()
+          .single();
+          
+        data = retryResult.data;
+        error = retryResult.error;
+      }
 
       if (error) {
         console.error('❌ Supabase error:', error);
