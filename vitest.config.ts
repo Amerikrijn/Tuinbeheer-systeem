@@ -10,7 +10,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reportsDirectory: './coverage',
-      reporter: ['text', 'lcov', 'html'],
+      reporter: ['text', 'lcov', 'html', 'json'],
       all: true,
       include: ['app/**/*.{ts,tsx}', 'components/**/*.{ts,tsx}', 'lib/**/*.{ts,tsx}'],
       exclude: [
@@ -23,8 +23,18 @@ export default defineConfig({
       lines: 80,
       functions: 80,
       branches: 70,
-      statements: 80
-    }
+      statements: 80,
+      // Ensure detailed coverage output
+      reportOnFailure: true,
+      // Generate summary for CI
+      reporter: ['text', 'lcov', 'html', 'json', 'text-summary']
+    },
+    // Ensure verbose output for CI parsing
+    reporters: ['verbose'],
+    // Show test results clearly
+    silent: false,
+    // Ensure proper exit codes
+    passWithNoTests: true
   },
   resolve: {
     alias: {

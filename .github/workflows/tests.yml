@@ -1,4 +1,53 @@
-# This old traditional tests workflow has been removed
-# Replaced with comprehensive banking compliance testing pipeline
-# See banking-tests.yml for the new traditional testing approach
+name: Tests
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Run tests with coverage
+        run: npm run test:coverage
+      - name: Generate test summary
+        run: |
+          echo "## 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Extract test results from coverage output
+          if [ -d "coverage" ]; then
+            echo "✅ **Coverage Report Generated**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Try to get coverage summary
+            if [ -f "coverage/lcov.info" ]; then
+              COVERAGE_LINES=$(grep -o "LF:[0-9]*" coverage/lcov.info | head -1 | cut -d: -f2 || echo "0")
+              COVERAGE_HITS=$(grep -o "LH:[0-9]*" coverage/lcov.info | head -1 | cut -d: -f2 || echo "0")
+              
+              if [ "$COVERAGE_LINES" != "0" ] && [ "$COVERAGE_HITS" != "0" ]; then
+                COVERAGE_PERCENT=$(echo "scale=1; $COVERAGE_HITS * 100 / $COVERAGE_LINES" | bc -l 2>/dev/null || echo "0")
+                echo "📊 **Coverage**: $COVERAGE_PERCENT% ($COVERAGE_HITS/$COVERAGE_LINES lines)" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "📊 **Coverage**: Data not available" >> $GITHUB_STEP_SUMMARY
+              fi
+            fi
+            
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "📁 **Coverage Files**: Available in coverage/ directory" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Coverage**: No coverage data generated" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔍 **Test Framework**: Vitest" >> $GITHUB_STEP_SUMMARY
+          echo "📋 **Test Script**: npm run test:coverage" >> $GITHUB_STEP_SUMMARY
 
