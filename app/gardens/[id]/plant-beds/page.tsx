@@ -184,7 +184,12 @@ export default function PlantBedsPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">🌱</span>
                         <div>
-                          <h3 className="font-medium text-gray-900">{bed.name}</h3>
+                          <h3 className="font-medium text-gray-900">
+                            <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 font-bold rounded-full mr-2">
+                              {bed.letter_code || bed.name}
+                            </span>
+                            Plantvak {bed.letter_code || bed.name}
+                          </h3>
                           {bed.location && (
                             <p className="text-sm text-gray-500">{bed.location}</p>
                           )}
@@ -241,7 +246,12 @@ export default function PlantBedsPage() {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <span className="text-xl">🌱</span>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 truncate">{bed.name}</h3>
+                        <h3 className="font-medium text-gray-900 truncate">
+                          <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 text-sm font-bold rounded-full mr-2">
+                            {bed.letter_code || bed.name}
+                          </span>
+                          Plantvak {bed.letter_code || bed.name}
+                        </h3>
                         <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                           <span>{bed.plants.length} bloemen</span>
                           {bed.size && <span>Grootte: {bed.size}</span>}

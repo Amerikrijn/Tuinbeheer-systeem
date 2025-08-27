@@ -21,15 +21,27 @@ export class PlantvakService {
       }
     }
     
-    // If all letters are used, start with A1, A2, etc.
-    let counter = 1;
-    while (true) {
-      const code = `A${counter}`;
+    // If all single letters are used, try double letters (AA, AB, AC, etc.)
+    for (const firstLetter of alphabet) {
+      for (const secondLetter of alphabet) {
+        const code = `${firstLetter}${secondLetter}`;
+        if (!existingCodes.includes(code)) {
+          return code;
+        }
+      }
+    }
+    
+    // If all double letters are also used (very unlikely), start with AAA, AAB, etc.
+    // But limit to prevent infinite loops
+    for (let i = 0; i < 1000; i++) {
+      const code = `A${i + 1}`;
       if (!existingCodes.includes(code)) {
         return code;
       }
-      counter++;
     }
+    
+    // Fallback - should never reach here
+    return `X${Date.now()}`;
   }
 
   /**
@@ -57,7 +69,6 @@ export class PlantvakService {
    */
   static async create(plantvakData: {
     garden_id: string;
-    name?: string;
     location?: string;
     size?: string;
     soil_type?: string;
@@ -87,13 +98,17 @@ export class PlantvakService {
       const uniqueId = `plantvak-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       console.log('🆔 Generated unique ID:', uniqueId);
       
-      // Create new plantvak with letter code and ID
-      // Use the letter code as the name if no name is provided
+      // Create new plantvak with letter code as both name and letter_code
       const newPlantvak = {
         id: uniqueId,
-        name: plantvakData.name || nextLetterCode, // Use provided name or letter code
-        ...plantvakData,
+        garden_id: plantvakData.garden_id,
+        name: nextLetterCode, // Always use letter code as name
         letter_code: nextLetterCode,
+        location: plantvakData.location,
+        size: plantvakData.size,
+        soil_type: plantvakData.soil_type,
+        sun_exposure: plantvakData.sun_exposure,
+        description: plantvakData.description,
         is_active: true,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()

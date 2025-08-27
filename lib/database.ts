@@ -211,7 +211,6 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
 
 export async function createPlantBed(plantBed: {
   garden_id: string
-  name: string
   location?: string
   size?: string
   soil_type?: string
@@ -224,7 +223,6 @@ export async function createPlantBed(plantBed: {
     // Use the new PlantvakService for automatic letter code assignment
     const result = await PlantvakService.create({
       garden_id: plantBed.garden_id,
-      name: plantBed.name,
       location: plantBed.location,
       size: plantBed.size,
       soil_type: plantBed.soil_type,

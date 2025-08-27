@@ -135,7 +135,6 @@ export default function GardenDetailPage() {
 
   // New plant bed form state with length and width
   const [newPlantBed, setNewPlantBed] = useState({
-    name: '',
     length: '', // in meters
     width: '', // in meters
     description: '',
@@ -792,11 +791,10 @@ export default function GardenDetailPage() {
   const addPlantBed = async () => {
     console.log("🔍 Adding plant bed:", { garden: garden?.id, newPlantBed })
     
-    if (!garden || !newPlantBed.name || !newPlantBed.length || !newPlantBed.width) {
+    if (!garden || !newPlantBed.length || !newPlantBed.width) {
       console.log("❌ Validation failed:", { 
         garden: !!garden, 
         gardenId: garden?.id,
-        name: newPlantBed.name, 
         length: newPlantBed.length, 
         width: newPlantBed.width 
       })
@@ -867,7 +865,6 @@ export default function GardenDetailPage() {
       
       console.log("📝 Creating plant bed with data:", {
         garden_id: garden.id,
-        name: newPlantBed.name,
         size: sizeString,
         description: newPlantBed.description,
         sun_exposure: newPlantBed.sun_exposure,
@@ -876,7 +873,6 @@ export default function GardenDetailPage() {
 
       const plantBed = await createPlantBed({
         garden_id: garden.id,
-        name: newPlantBed.name,
         size: sizeString,
         description: newPlantBed.description?.trim() || undefined,
         sun_exposure: newPlantBed.sun_exposure,
@@ -912,7 +908,6 @@ export default function GardenDetailPage() {
           setPlantBeds(prev => [...prev, bedWithPlants])
           setIsAddingPlantBed(false)
           setNewPlantBed({
-            name: '',
             length: '',
             width: '',
             description: '',
@@ -1051,7 +1046,6 @@ export default function GardenDetailPage() {
             if (open) {
               // Reset form when dialog opens
               setNewPlantBed({
-                name: '',
                 length: '',
                 width: '',
                 description: '',
@@ -1764,16 +1758,10 @@ export default function GardenDetailPage() {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div>
-              <label htmlFor="plantvak-name" className="block text-sm font-medium text-gray-700 mb-1">
-                Plantvak Naam *
-              </label>
-              <Input
-                id="plantvak-name"
-                value={newPlantBed.name}
-                onChange={(e) => setNewPlantBed(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Bijv. Voortuin, Kruidentuin"
-              />
+            <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-lg mb-4">
+              <p className="text-blue-800 font-medium">
+                ℹ️ Dit plantvak krijgt automatisch een letter toegewezen (A, B, C, enz.)
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -1866,7 +1854,6 @@ export default function GardenDetailPage() {
               onClick={() => {
                 setIsAddingPlantBed(false)
                 setNewPlantBed({
-                  name: '',
                   length: '',
                   width: '',
                   description: '',

@@ -144,7 +144,6 @@ export default function NewPlantBedPage() {
       // Log the exact data being sent
       const plantvakData = {
         garden_id: gardenId,
-        name: nextLetterCode, // Use the calculated letter code as the name
         location: newPlantBed.location,
         size: newPlantBed.size,
         soil_type: newPlantBed.soilType,
