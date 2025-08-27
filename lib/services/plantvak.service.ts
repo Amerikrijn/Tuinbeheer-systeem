@@ -94,11 +94,30 @@ export class PlantvakService {
       const nextLetterCode = this.generateNextLetterCode(existingCodes.filter(Boolean) as string[]);
       console.log('✨ Next letter code:', nextLetterCode);
       
-      // SIMPELE VERSIE - alleen de absolute minimum velden
+      // WERKENDE VERSIE - gebaseerd op database tests
+      // Database genereert automatisch: id, timestamps, defaults
       const newPlantvak: any = {
         garden_id: plantvakData.garden_id,
-        name: nextLetterCode // Alleen garden_id en name, de rest laat de database doen
+        name: nextLetterCode,  // Bijv. "E", "F", etc.
+        letter_code: nextLetterCode  // BELANGRIJK: moet zelfde zijn als name voor de constraint
       };
+      
+      // Voeg optionele velden toe als ze aanwezig zijn
+      if (plantvakData.size) {
+        newPlantvak.size = plantvakData.size;
+      }
+      if (plantvakData.soil_type) {
+        newPlantvak.soil_type = plantvakData.soil_type;
+      }
+      if (plantvakData.sun_exposure) {
+        newPlantvak.sun_exposure = plantvakData.sun_exposure;
+      }
+      if (plantvakData.description) {
+        newPlantvak.description = plantvakData.description;
+      }
+      if (plantvakData.location) {
+        newPlantvak.location = plantvakData.location;
+      }
       
       console.log('📝 Inserting new plantvak:', JSON.stringify(newPlantvak, null, 2));
 
