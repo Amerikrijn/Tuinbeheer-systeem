@@ -197,6 +197,62 @@ export default function NewPlantBedPage() {
     }
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    // Validate required fields
+    const newErrors: Record<string, string> = {}
+    if (!newPlantBed.location.trim()) newErrors.location = "Locatie is verplicht"
+    if (!newPlantBed.size.trim()) newErrors.size = "Grootte is verplicht"
+    if (!newPlantBed.soilType) newErrors.soilType = "Bodemtype is verplicht"
+    if (!newPlantBed.sunExposure) newErrors.sunExposure = "Zonligging is verplicht"
+    
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      return
+    }
+    
+    setLoading(true)
+    setErrors({})
+    
+    try {
+      console.log('🚀 Creating new plantvak with data:', newPlantBed)
+      
+      const newPlantvak = await PlantvakService.create({
+        garden_id: gardenId,
+        location: newPlantBed.location.trim(),
+        size: newPlantBed.size.trim(),
+        soil_type: newPlantBed.soilType,
+        sun_exposure: newPlantBed.sunExposure as 'full-sun' | 'partial-sun' | 'shade',
+        description: newPlantBed.description.trim() || undefined
+      })
+      
+      if (newPlantvak) {
+        toast({
+          title: "Plantvak aangemaakt!",
+          description: `Plantvak "${newPlantvak.name}" is succesvol aangemaakt met letter code ${newPlantvak.letter_code}.`,
+        })
+        
+        // Redirect to plant beds page
+        router.push(`/gardens/${gardenId}/plant-beds`)
+      } else {
+        throw new Error('Failed to create plantvak')
+      }
+    } catch (error) {
+      console.error('❌ Error creating plantvak:', error)
+      
+      const errorMessage = error instanceof Error ? error.message : 'Onbekende fout bij aanmaken plantvak'
+      
+      toast({
+        title: "Fout bij aanmaken",
+        description: errorMessage,
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleReset = () => {
     setNewPlantBed({
       location: "",

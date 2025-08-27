@@ -235,7 +235,7 @@ export default function EditLogbookPage() {
     return (
       <div className="container mx-auto px-4 py-8 safe-area-px">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             Entry niet gevonden
           </h2>
           <p className="text-gray-600 mb-6">

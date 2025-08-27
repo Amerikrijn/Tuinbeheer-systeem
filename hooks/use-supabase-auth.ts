@@ -134,7 +134,7 @@ export function useSupabaseAuth(): AuthContextType {
     try {
       // 🏦 IMPROVED: Better timeout with progressive fallback
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 15000) // Increased for production stability
+        setTimeout(() => reject(new Error('Database lookup timeout')), 5000) // Reduced for better UX
       })
 
       // 🏦 BANKING-GRADE: Case-insensitive email lookup with timeout
@@ -337,7 +337,7 @@ export function useSupabaseAuth(): AuthContextType {
         loading: false,
         error: prev.user ? null : 'Loading timeout - please refresh page'
       }))
-    }, 8000) // Reduced from 10000ms
+    }, 3000) // Further reduced for better UX
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
