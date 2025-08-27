@@ -490,116 +490,17 @@ export default function GardenDetailPage() {
     setHasChanges(true)
   }, [draggedBed, dragOffset, scale, plantBeds, CANVAS_WIDTH, CANVAS_HEIGHT])
 
-  // Create sample flowers for a new plant bed
+  // Create sample flowers for a new plant bed - DISABLED
   const createSampleFlowers = useCallback(async (plantBedId: string, length: number, width: number): Promise<Plant[]> => {
-    try {
-      // Determine number of sample flowers based on size
-      const area = length * width
-      let flowerCount = 1
-      if (area > 4) flowerCount = 2
-      if (area > 8) flowerCount = 3
-      if (area > 15) flowerCount = 4
-      
-      const sampleFlowerTypes = [
-        { name: 'Roos', color: '#FF69B4', emoji: '🌹' },
-        { name: 'Tulp', color: '#FF4500', emoji: '🌷' },
-        { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
-        { name: 'Lavendel', color: '#9370DB', emoji: '🪻' },
-      ]
-      
-      const createdFlowers: Plant[] = []
-      
-      for (let i = 0; i < flowerCount; i++) {
-        const flowerType = sampleFlowerTypes[i % sampleFlowerTypes.length]
-        
-        // Create a sample flower (this would normally use createVisualPlant)
-        // For now, we'll create a mock flower object
-        const mockFlower: Plant = {
-          id: `sample-${plantBedId}-${i}`,
-          plant_bed_id: plantBedId,
-          name: flowerType.name,
-          color: flowerType.color,
-          emoji: flowerType.emoji,
-          status: 'gezond' as const,
-          position_x: 0, // Will be positioned by FlowerVisualization
-          position_y: 0,
-          visual_width: 24,
-          visual_height: 24,
-          is_custom: false,
-          category: flowerType.name,
-          notes: 'Sample flower',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }
-        
-        createdFlowers.push(mockFlower)
-      }
-      
-      return createdFlowers
-    } catch (error) {
-      console.error("Error creating sample flowers:", error)
-      return []
-    }
+    // Functionality disabled - no automatic flowers are added
+    return []
   }, [])
 
-  // Check if plant bed needs more flowers and add them
+  // Check if plant bed needs more flowers and add them - DISABLED
   const checkAndAddMoreFlowers = useCallback(async (bed: PlantBedWithPlants) => {
-    try {
-      if (!bed.size) {
-        console.log(`⚠️ Bed ${bed.name} has no size, skipping flower check`)
-        return
-      }
-      
-      const dimensions = parsePlantBedDimensions(bed.size)
-      if (!dimensions) {
-        console.log(`⚠️ Could not parse dimensions for bed ${bed.name}: ${bed.size}`)
-        return
-      }
-      
-      const area = dimensions.lengthMeters * dimensions.widthMeters
-      const currentFlowerCount = bed.plants.length
-      
-      // Calculate desired flower count based on area (more generous)
-      let desiredFlowerCount = Math.max(1, Math.floor(area / 2)) // 1 flower per 2m²
-      if (area > 2) desiredFlowerCount = Math.max(2, Math.floor(area / 1.5))
-      if (area > 6) desiredFlowerCount = Math.max(3, Math.floor(area / 1.2))
-      if (area > 12) desiredFlowerCount = Math.max(4, Math.floor(area))
-      
-      console.log(`🌸 Bed ${bed.name}: ${area.toFixed(1)}m² → wants ${desiredFlowerCount} flowers, has ${currentFlowerCount}`)
-      
-      // Add more flowers if needed
-      if (desiredFlowerCount > currentFlowerCount) {
-        const flowersToAdd = desiredFlowerCount - currentFlowerCount
-        const newFlowers = await createSampleFlowers(bed.id, dimensions.lengthMeters, dimensions.widthMeters)
-        
-        // Take only the additional flowers we need
-        const additionalFlowers = newFlowers.slice(0, flowersToAdd).map((flower, index) => ({
-          ...flower,
-          id: `auto-${bed.id}-${currentFlowerCount + index}-${Date.now()}`,
-          name: `${flower.name} ${currentFlowerCount + index + 1}` // Make names unique
-        }))
-        
-        if (additionalFlowers.length > 0) {
-          // Update the plant bed with new flowers
-          setPlantBeds(prev => prev.map(plantBed => {
-            if (plantBed.id === bed.id) {
-              return {
-                ...plantBed,
-                plants: [...plantBed.plants, ...additionalFlowers]
-              }
-            }
-            return plantBed
-          }))
-          
-          console.log(`✅ Added ${additionalFlowers.length} flowers to ${bed.name}`)
-          
-        // Removed toast notification
-        }
-      }
-    } catch (error) {
-      console.error("Error adding more flowers:", error)
-    }
-  }, [createSampleFlowers])
+    // Functionality disabled - no automatic flowers are added
+    return
+  }, [])
 
   // Handle mouse up (end drag or resize) with auto-save
   const handleMouseUp = useCallback(async () => {
@@ -892,9 +793,7 @@ export default function GardenDetailPage() {
         })
 
         if (updatedBed) {
-          // Create sample flowers for the new plant bed
-          const sampleFlowers = await createSampleFlowers(plantBed.id, length, width)
-          
+          // No default flowers - start with empty plant bed
           const bedWithPlants: PlantBedWithPlants = {
             ...updatedBed,
             position_x: updatedBed.position_x ?? newX,
@@ -905,7 +804,7 @@ export default function GardenDetailPage() {
             z_index: updatedBed.z_index ?? 0,
             color_code: updatedBed.color_code ?? '',
             visual_updated_at: updatedBed.visual_updated_at ?? new Date().toISOString(),
-            plants: sampleFlowers
+            plants: []  // Start with no flowers
           }
           setPlantBeds(prev => [...prev, bedWithPlants])
           setIsAddingPlantBed(false)
