@@ -173,7 +173,7 @@ export default function NewPlantBedPage() {
           })
         }, 1000)
         
-        router.push(`/gardens/${gardenId}/plant-beds/${plantBed.id}`)
+        router.push(`/gardens/${gardenId}/plantvak-view/${plantBed.id}`)
       } else {
         console.error('❌ PlantvakService.create returned null')
         throw new Error('Failed to create plantvak - service returned null')
@@ -187,76 +187,6 @@ export default function NewPlantBedPage() {
           name: (err as any).name
         })
       }
-      toast({
-        title: "Fout",
-        description: "Er ging iets mis bij het aanmaken van het plantvak.",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {}
-
-    if (!newPlantBed.location.trim()) {
-      newErrors.location = "Locatie is verplicht"
-    }
-    if (!newPlantBed.size.trim()) {
-      newErrors.size = "Grootte is verplicht"
-    }
-    if (!newPlantBed.soilType) {
-      newErrors.soilType = "Bodemtype is verplicht"
-    }
-    if (!newPlantBed.sunExposure) {
-      newErrors.sunExposure = "Zonligging is verplicht"
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateForm()) return
-
-    setLoading(true)
-
-    try {
-      console.log('🚀 Creating new plantvak with data:', newPlantBed)
-      
-      const plantBed = await PlantvakService.create({
-        garden_id: gardenId,
-        location: newPlantBed.location.trim(),
-        size: newPlantBed.size.trim(),
-        soil_type: newPlantBed.soilType,
-        sun_exposure: newPlantBed.sunExposure as 'full-sun' | 'partial-sun' | 'shade',
-        description: newPlantBed.description.trim() || undefined
-      })
-
-      if (plantBed) {
-        toast({
-          title: "Plantvak aangemaakt!",
-          description: `Plantvak "${plantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code || '?'}.`,
-        })
-
-        // Show additional success message with letter code
-        setTimeout(() => {
-          toast({
-            title: `Letter Code: ${plantBed.letter_code}`,
-            description: `Je kunt nu plantvak ${plantBed.letter_code} gebruiken om taken toe te voegen en bloemen te planten.`,
-          })
-        }, 1000)
-        
-        // Redirect to the specific plantvak page (like the original)
-        router.push(`/gardens/${gardenId}/plantvak-view/${plantBed.id}`)
-      } else {
-        throw new Error('Failed to create plantvak')
-      }
-    } catch (err) {
-      console.error("Error creating plant bed:", err)
       toast({
         title: "Fout",
         description: "Er ging iets mis bij het aanmaken van het plantvak.",
