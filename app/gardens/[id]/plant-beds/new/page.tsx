@@ -15,7 +15,6 @@ import { useGarden } from "@/hooks/use-garden"
 import { PlantvakService } from "@/lib/services/plantvak.service"
 
 interface NewPlantBed {
-  name: string
   location: string
   size: string
   soilType: string
@@ -44,7 +43,6 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const [newPlantBed, setNewPlantBed] = useState<NewPlantBed>({
-    name: "",
     location: "",
     size: "",
     soilType: "",
@@ -57,12 +55,6 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
-    if (!newPlantBed.name.trim()) {
-      newErrors.name = "Naam is verplicht"
-    }
-    if (!newPlantBed.location.trim()) {
-      newErrors.location = "Locatie is verplicht"
-    }
     if (!newPlantBed.size.trim()) {
       newErrors.size = "Grootte is verplicht"
     }
@@ -87,8 +79,7 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
     try {
       const plantBed = await PlantvakService.create({
         garden_id: garden!.id,
-        name: newPlantBed.name,
-        location: newPlantBed.location,
+        location: newPlantBed.location.trim() || undefined,
         size: newPlantBed.size,
         soil_type: newPlantBed.soilType,
         sun_exposure: newPlantBed.sunExposure as "full-sun" | "partial-sun" | "shade",
@@ -98,7 +89,7 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
       if (plantBed) {
         toast({
           title: "Plantvak aangemaakt!",
-          description: `Plantvak "${newPlantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code || '?'}.`,
+          description: `Plantvak "${plantBed.letter_code}" is succesvol aangemaakt met letter code ${plantBed.letter_code || '?'}.`,
         })
 
         // Show additional success message with letter code
@@ -109,7 +100,7 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
           })
         }, 1000)
         
-        router.push(`/gardens/${garden!.id}/plant-beds/${plantBed.id}`)
+        router.push(`/gardens/${garden!.id}/plantvak-view/${plantBed.id}`)
       } else {
         throw new Error('Failed to create plantvak')
       }
@@ -127,7 +118,6 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
 
   const handleReset = () => {
     setNewPlantBed({
-      name: "",
       location: "",
       size: "",
       soilType: "",
@@ -200,23 +190,7 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Naam *</Label>
-                    <Input
-                      id="name"
-                      placeholder="Bijv. Noordwest hoek, Moestuin 1"
-                      value={newPlantBed.name}
-                      onChange={(e) =>
-                        setNewPlantBed((p) => ({ ...p, name: e.target.value }))
-                      }
-                      className={errors.name ? "border-red-500" : ""}
-                    />
-                    {errors.name && (
-                      <p className="text-sm text-red-500">{errors.name}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Locatie *</Label>
+                    <Label htmlFor="location">Locatie</Label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                       <Input
@@ -226,12 +200,10 @@ export default function NewPlantBedPage({ params }: { params: { id: string } }) 
                         onChange={(e) =>
                           setNewPlantBed((p) => ({ ...p, location: e.target.value }))
                         }
-                        className={`pl-10 ${errors.location ? "border-red-500" : ""}`}
+                        className="pl-10"
                       />
                     </div>
-                    {errors.location && (
-                      <p className="text-sm text-red-500">{errors.location}</p>
-                    )}
+
                   </div>
 
                   <div className="space-y-2">
