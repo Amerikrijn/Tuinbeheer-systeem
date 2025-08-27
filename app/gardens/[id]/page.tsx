@@ -88,6 +88,75 @@ export default function GardenDetailPage() {
   })
   const canvasRef = useRef<HTMLDivElement>(null)
 
+  // Add plant bed function
+  const addPlantBed = async () => {
+    if (!garden || !newPlantBed.length || !newPlantBed.width) {
+      console.error('Missing required fields for plant bed')
+      return
+    }
+
+    try {
+      const plantBedData = {
+        garden_id: garden.id,
+        location: `Lengte: ${newPlantBed.length}m, Breedte: ${newPlantBed.width}m`,
+        size: `${newPlantBed.length}x${newPlantBed.width}m`,
+        soil_type: newPlantBed.soil_type || 'gemengd',
+        sun_exposure: newPlantBed.sun_exposure,
+        description: newPlantBed.description
+      }
+
+      console.log('🌱 Creating plant bed with data:', plantBedData)
+      
+      // Use the PlantvakService for automatic letter code assignment
+      const { PlantvakService } = await import('@/lib/services/plantvak.service')
+      const result = await PlantvakService.create(plantBedData)
+      
+      if (result) {
+        console.log('✅ Plant bed created successfully with letter code:', result.letter_code)
+        
+        // Close dialog and reset form
+        setIsAddingPlantBed(false)
+        setNewPlantBed({
+          length: '',
+          width: '',
+          description: '',
+          sun_exposure: 'full-sun',
+          soil_type: ''
+        })
+        
+        // Reload plant beds to get updated data
+        const updatedPlantBeds = await getPlantBeds(garden.id)
+        setPlantBeds(updatedPlantBeds)
+        
+        // Recalculate next letter
+        const existingCodes = updatedPlantBeds.map(bed => bed.letter_code).filter(Boolean)
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        let nextCode = 'A'
+        
+        for (const letter of alphabet) {
+          if (!existingCodes.includes(letter)) {
+            nextCode = letter
+            break
+          }
+        }
+        
+        if (nextCode === 'A' && existingCodes.includes('A')) {
+          let counter = 1
+          while (existingCodes.includes(`A${counter}`)) {
+            counter++
+          }
+          nextCode = `A${counter}`
+        }
+        
+        setNextPlantBedLetter(nextCode)
+      } else {
+        console.error('❌ Failed to create plant bed')
+      }
+    } catch (error) {
+      console.error('❌ Error creating plant bed:', error)
+    }
+  }
+
   // Calculate canvas size based on garden dimensions
   const getCanvasSize = () => {
     if (!garden?.length || !garden?.width) {
@@ -135,13 +204,15 @@ export default function GardenDetailPage() {
 
   // New plant bed form state with length and width
   const [newPlantBed, setNewPlantBed] = useState({
-    name: '',
     length: '', // in meters
     width: '', // in meters
     description: '',
     sun_exposure: 'full-sun' as 'full-sun' | 'partial-sun' | 'shade',
     soil_type: ''
   })
+
+  // Calculate next available letter for plant beds
+  const [nextPlantBedLetter, setNextPlantBedLetter] = useState<string>('A')
 
   useEffect(() => {
     const loadData = async () => {
@@ -164,6 +235,30 @@ export default function GardenDetailPage() {
             description: gardenData.description || ''
           })
         }
+        
+        // Calculate next available letter for plant beds
+        const existingCodes = plantBedsData.map(bed => bed.letter_code).filter(Boolean)
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        let nextCode = 'A'
+        
+        for (const letter of alphabet) {
+          if (!existingCodes.includes(letter)) {
+            nextCode = letter
+            break
+          }
+        }
+        
+        // If all letters are used, start with A1, A2, etc.
+        if (nextCode === 'A' && existingCodes.includes('A')) {
+          let counter = 1
+          while (existingCodes.includes(`A${counter}`)) {
+            counter++
+          }
+          nextCode = `A${counter}`
+        }
+        
+        setNextPlantBedLetter(nextCode)
+        console.log('🔤 Next plant bed letter calculated:', nextCode, 'Existing codes:', existingCodes)
         
         // Process plant beds to ensure they have correct visual dimensions
         const processedBeds = await Promise.all(plantBedsData.map(async (bed: any) => {
@@ -1764,16 +1859,19 @@ export default function GardenDetailPage() {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div>
-              <label htmlFor="plantvak-name" className="block text-sm font-medium text-gray-700 mb-1">
-                Plantvak Naam *
-              </label>
-              <Input
-                id="plantvak-name"
-                value={newPlantBed.name}
-                onChange={(e) => setNewPlantBed(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="Bijv. Voortuin, Kruidentuin"
-              />
+            {/* Automatic Letter Code Assignment */}
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-100 text-blue-800 text-2xl font-bold rounded-full flex items-center justify-center border-4 border-blue-300">
+                  {nextPlantBedLetter}
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-bold text-blue-900 text-lg mb-1">Automatische Plantvak Letter</h4>
+                  <p className="text-blue-700 text-sm">
+                    Dit plantvak krijgt <strong>automatisch</strong> de letter <strong className="text-xl">{nextPlantBedLetter}</strong>.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -1866,23 +1964,23 @@ export default function GardenDetailPage() {
               onClick={() => {
                 setIsAddingPlantBed(false)
                 setNewPlantBed({
-                  name: '',
                   length: '',
                   width: '',
                   description: '',
                   sun_exposure: 'full-sun',
                   soil_type: ''
                 })
+                // Note: nextPlantBedLetter will be recalculated automatically
               }}
             >
               Annuleren
             </Button>
             <Button
               onClick={addPlantBed}
-              disabled={!newPlantBed.name || !newPlantBed.length || !newPlantBed.width}
+              disabled={!newPlantBed.length || !newPlantBed.width}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Plantvak Toevoegen
+              Plantvak {nextPlantBedLetter} Toevoegen
             </Button>
           </div>
         </DialogContent>
