@@ -173,7 +173,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
             <BookOpen className="h-12 w-12 mx-auto mb-2" />
             <h2 className="text-xl font-semibold">Fout bij laden logboek entry</h2>
           </div>
-          <p className="text-gray-600 mb-4">{state.error}</p>
+          <p className="text-muted-foreground mb-4">{state.error}</p>
           <div className="flex gap-2 justify-center">
             <Button onClick={loadEntry} variant="outline">
               Opnieuw proberen
@@ -194,11 +194,11 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
     return (
       <div className="container mx-auto px-4 py-8 safe-area-px">
         <div className="max-w-4xl mx-auto text-center">
-          <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <BookOpen className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Logboek entry niet gevonden
           </h2>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             De opgevraagde logboek entry bestaat niet of is verwijderd.
           </p>
           <Button asChild>
@@ -226,7 +226,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
         {/* Header - more compact */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-bold text-foreground">
               Logboek Entry
             </h1>
             
@@ -252,7 +252,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
           </div>
           
           {/* Compact metadata header */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
               <span className="font-medium">{formatDate(state.entry.entry_date)}</span>
@@ -272,7 +272,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                   {state.entry.plant_variety && ` (${state.entry.plant_variety})`}
                 </span>
                 {state.entry.plant_scientific_name && (
-                  <span className="italic text-xs text-gray-500 ml-1">
+                  <span className="italic text-xs text-muted-foreground ml-1">
                     {state.entry.plant_scientific_name}
                   </span>
                 )}
@@ -288,7 +288,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
           {state.entry.photo_url && (
             <Card>
               <CardContent className="p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Camera className="h-5 w-5" />
                   Foto
                 </h2>
@@ -312,9 +312,9 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
           {/* Description section - prominent display */}
           <Card>
             <CardContent className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Beschrijving</h2>
-              <div className="bg-gray-50 rounded-lg p-6 border-l-4 border-l-blue-500">
-                <p className="text-lg text-gray-900 leading-relaxed whitespace-pre-wrap font-medium">
+              <h2 className="text-xl font-semibold text-foreground mb-4">Beschrijving</h2>
+              <div className="bg-muted rounded-lg p-6 border-l-4 border-l-blue-500">
+                <p className="text-lg text-foreground leading-relaxed whitespace-pre-wrap font-medium">
                   {state.entry.notes}
                 </p>
               </div>
@@ -368,7 +368,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                     <MapPin className="w-4 h-4 text-blue-500" />
                     <span>{state.entry.plant_bed_name}</span>
                   </div>
-                  <div className="mt-1 text-gray-600">
+                  <div className="mt-1 text-muted-foreground">
                     📍 {state.entry.garden_name}
                   </div>
                 </div>
@@ -381,12 +381,12 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                       <span>{state.entry.plant_name}</span>
                     </div>
                     {state.entry.plant_variety && (
-                      <div className="text-gray-600 text-xs mt-1">
+                      <div className="text-muted-foreground text-xs mt-1">
                         Variëteit: {state.entry.plant_variety}
                       </div>
                     )}
                     {state.entry.plant_scientific_name && (
-                      <div className="text-gray-500 text-xs mt-1 italic">
+                      <div className="text-muted-foreground text-xs mt-1 italic">
                         {state.entry.plant_scientific_name}
                       </div>
                     )}
@@ -415,7 +415,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
               <CardHeader>
                 <CardTitle className="text-lg">Systeem Info</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm text-gray-600">
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
                 <div>
                   <span className="font-medium">Aangemaakt:</span>
                   <div className="text-xs mt-1">

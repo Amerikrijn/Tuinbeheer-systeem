@@ -276,8 +276,8 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           {/* Header with Logbook button - always visible */}
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Mijn Taken</h1>
-              <p className="text-gray-600 mt-1">Laden...</p>
+              <h1 className="text-2xl font-bold text-foreground">Mijn Taken</h1>
+              <p className="text-muted-foreground mt-1">Laden...</p>
             </div>
             <Button 
               onClick={() => router.push('/logbook')}
@@ -304,9 +304,9 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
         {/* Header with Logbook button */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Mijn Taken</h1>
+            <h1 className="text-2xl font-bold text-foreground">Mijn Taken</h1>
             {gardenNames.length > 0 && (
-              <p className="text-gray-600 mt-1">{gardenNames.join(', ')}</p>
+              <p className="text-muted-foreground mt-1">{gardenNames.join(', ')}</p>
             )}
           </div>
           <Button 
@@ -356,7 +356,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           </CardHeader>
           <CardContent>
             {tasks.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
+              <div className="text-center py-12 text-muted-foreground">
                 <Calendar className="w-16 h-16 mx-auto mb-4 opacity-30" />
                 <h3 className="text-lg font-medium mb-2">Geen taken deze week</h3>
                 <p>Je hebt geen openstaande taken voor deze periode.</p>
@@ -390,12 +390,12 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
                       
                       {/* Show task type if no description */}
                       {!task.description && task.task_type && (
-                        <p className="text-sm text-gray-700 mb-2 capitalize">
+                        <p className="text-sm text-foreground mb-2 capitalize">
                           Type: {task.task_type}
                         </p>
                       )}
                       
-                      <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>
                           Deadline: {task.due_date ? new Date(task.due_date).toLocaleDateString('nl-NL') : 'Geen deadline'}
                         </span>

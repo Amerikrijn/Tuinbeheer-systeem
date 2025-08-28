@@ -154,7 +154,7 @@ export function PlantForm({
         <CardContent className="space-y-6">
           {/* Plant Name with suggestions */}
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+            <Label htmlFor="name" className="text-sm font-medium text-foreground flex items-center gap-1">
               Bloemnaam
               <span className="text-red-500">*</span>
             </Label>
@@ -174,7 +174,7 @@ export function PlantForm({
               
               {/* Suggestions dropdown */}
               {showSuggestions && (
-                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
+                <div className="absolute z-20 w-full mt-1 bg-background border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-auto">
                   {STANDARD_FLOWERS
                     .filter(flower => 
                       flower.name.toLowerCase().includes(data.name.toLowerCase())
@@ -189,14 +189,14 @@ export function PlantForm({
                         <span className="text-xl">{flower.emoji}</span>
                         <div>
                           <span className="font-medium">{flower.name}</span>
-                          <div className="text-xs text-gray-500">Standaard bloem</div>
+                          <div className="text-xs text-muted-foreground">Standaard bloem</div>
                         </div>
                       </div>
                     ))}
                   {data.name && !STANDARD_FLOWERS.some(f => 
                     f.name.toLowerCase().includes(data.name.toLowerCase())
                   ) && (
-                    <div className="px-4 py-3 text-gray-500 text-sm border-b border-gray-100">
+                    <div className="px-4 py-3 text-muted-foreground text-sm border-b border-gray-100">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{DEFAULT_FLOWER_EMOJI}</span>
                         <span>"{data.name}" als nieuwe bloem</span>
@@ -216,7 +216,7 @@ export function PlantForm({
 
           {/* Color */}
           <div className="space-y-2">
-            <Label htmlFor="color" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+            <Label htmlFor="color" className="text-sm font-medium text-foreground flex items-center gap-1">
               Kleur
               <span className="text-red-500">*</span>
             </Label>
@@ -239,7 +239,7 @@ export function PlantForm({
 
           {/* Height */}
           <div className="space-y-2">
-            <Label htmlFor="height" className="text-sm font-medium text-gray-900 flex items-center gap-1">
+            <Label htmlFor="height" className="text-sm font-medium text-foreground flex items-center gap-1">
               Hoogte (cm)
               <span className="text-red-500">*</span>
             </Label>
@@ -273,10 +273,10 @@ export function PlantForm({
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Settings className="h-5 w-5 text-gray-600" />
+                    <Settings className="h-5 w-5 text-muted-foreground" />
                     <CardTitle className="text-gray-800">
                       Aanvullende Informatie
-                      <span className="text-sm font-normal text-gray-600 ml-2">(optioneel)</span>
+                      <span className="text-sm font-normal text-muted-foreground ml-2">(optioneel)</span>
                     </CardTitle>
                     {filledOptionalFields > 0 && (
                       <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
@@ -285,13 +285,13 @@ export function PlantForm({
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-muted-foreground">
                       {isAdvancedOpen ? 'Inklappen' : 'Uitklappen'}
                     </span>
                     {isAdvancedOpen ? (
-                      <ChevronUp className="h-5 w-5 text-gray-600" />
+                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
                     ) : (
-                      <ChevronDown className="h-5 w-5 text-gray-600" />
+                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
                     )}
                   </div>
                 </div>
@@ -305,8 +305,8 @@ export function PlantForm({
                 {/* Scientific Information Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                    <Info className="h-4 w-4 text-gray-600" />
-                    <h4 className="font-medium text-gray-900">Wetenschappelijke Informatie</h4>
+                    <Info className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="font-medium text-foreground">Wetenschappelijke Informatie</h4>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -342,8 +342,8 @@ export function PlantForm({
                 {/* Growing Information Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                    <Flower className="h-4 w-4 text-gray-600" />
-                    <h4 className="font-medium text-gray-900">Groei Informatie</h4>
+                    <Flower className="h-4 w-4 text-muted-foreground" />
+                    <h4 className="font-medium text-foreground">Groei Informatie</h4>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -389,8 +389,8 @@ export function PlantForm({
                 {/* Planning Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                    <span className="h-4 w-4 text-gray-600">📅</span>
-                    <h4 className="font-medium text-gray-900">Planning & Status</h4>
+                    <span className="h-4 w-4 text-muted-foreground">📅</span>
+                    <h4 className="font-medium text-foreground">Planning & Status</h4>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -447,8 +447,8 @@ export function PlantForm({
                 {/* Care Instructions Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                    <span className="h-4 w-4 text-gray-600">🌿</span>
-                    <h4 className="font-medium text-gray-900">Verzorging</h4>
+                    <span className="h-4 w-4 text-muted-foreground">🌿</span>
+                    <h4 className="font-medium text-foreground">Verzorging</h4>
                   </div>
                   <div className="space-y-4">
                     <div className="space-y-2">

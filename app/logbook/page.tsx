@@ -772,7 +772,7 @@ function LogbookPageContent() {
                             <span className="text-sm">
                               {entry.plant_name}
                               {entry.plant_variety && (
-                                <span className="text-gray-500 ml-1">({entry.plant_variety})</span>
+                                <span className="text-muted-foreground ml-1">({entry.plant_variety})</span>
                               )}
                             </span>
                           </div>

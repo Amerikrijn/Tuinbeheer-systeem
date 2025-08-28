@@ -190,7 +190,7 @@ function ResetPasswordContent() {
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-green-600 mb-4" />
-            <p className="text-gray-600">Reset link valideren...</p>
+            <p className="text-muted-foreground">Reset link valideren...</p>
           </CardContent>
         </Card>
       </div>
@@ -254,8 +254,8 @@ function ResetPasswordContent() {
               <TreePine className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Nieuw Wachtwoord Instellen</h1>
-          <p className="text-gray-600 mt-2">Kies een sterk wachtwoord voor je account</p>
+          <h1 className="text-2xl font-bold text-foreground">Nieuw Wachtwoord Instellen</h1>
+          <p className="text-muted-foreground mt-2">Kies een sterk wachtwoord voor je account</p>
         </div>
 
         {/* Success Alert */}
@@ -294,7 +294,7 @@ function ResetPasswordContent() {
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, password: !prev.password }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
                     {showPasswords.password ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -306,7 +306,7 @@ function ResetPasswordContent() {
                     {errors.password}
                   </p>
                 )}
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Minimaal 8 karakters, met hoofdletter, kleine letter en cijfer
                 </p>
               </div>
@@ -329,7 +329,7 @@ function ResetPasswordContent() {
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
                     {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -346,7 +346,7 @@ function ResetPasswordContent() {
               {/* Password Strength Indicator */}
               {formData.password && (
                 <div className="space-y-2">
-                  <div className="text-xs text-gray-600">Wachtwoord sterkte:</div>
+                  <div className="text-xs text-muted-foreground">Wachtwoord sterkte:</div>
                   <div className="space-y-1">
                     {[
                       { test: formData.password.length >= 8, label: 'Minimaal 8 karakters' },
@@ -356,7 +356,7 @@ function ResetPasswordContent() {
                     ].map((requirement, index) => (
                       <div key={index} className="flex items-center space-x-2 text-xs">
                         <div className={`w-2 h-2 rounded-full ${requirement.test ? 'bg-green-500' : 'bg-gray-300'}`} />
-                        <span className={requirement.test ? 'text-green-600' : 'text-gray-500'}>
+                        <span className={requirement.test ? 'text-green-600' : 'text-muted-foreground'}>
                           {requirement.label}
                         </span>
                       </div>
@@ -409,7 +409,7 @@ export default function ResetPasswordPage() {
           <Card className="w-full max-w-md">
             <CardContent className="flex flex-col items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-green-600 mb-4" />
-              <p className="text-gray-600">Pagina laden...</p>
+              <p className="text-muted-foreground">Pagina laden...</p>
             </CardContent>
           </Card>
         </div>

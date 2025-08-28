@@ -109,8 +109,8 @@ export default function PlantDetailPage() {
     switch (preference) {
       case 'full-sun': return <Sun className="w-4 h-4 text-yellow-500" />
       case 'partial-sun': return <CloudSun className="w-4 h-4 text-orange-500" />
-      case 'shade': return <Cloud className="w-4 h-4 text-gray-500" />
-      default: return <CloudSun className="w-4 h-4 text-gray-400" />
+      case 'shade': return <Cloud className="w-4 h-4 text-muted-foreground" />
+      default: return <CloudSun className="w-4 h-4 text-muted-foreground/50" />
     }
   }
 
@@ -128,9 +128,9 @@ export default function PlantDetailPage() {
       case 'gezond': return 'bg-green-100 text-green-800'
       case 'aandacht_nodig': return 'bg-yellow-100 text-yellow-800'
       case 'ziek': return 'bg-red-100 text-red-800'
-      case 'dood': return 'bg-gray-100 text-gray-800'
+      case 'dood': return 'bg-muted text-muted-foreground'
       case 'geoogst': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+      default: return 'bg-muted text-muted-foreground'
     }
   }
 
@@ -163,8 +163,8 @@ export default function PlantDetailPage() {
         <Card>
           <CardContent className="p-8 text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Bloem niet gevonden</h3>
-            <p className="text-gray-600 mb-4">De bloem die je zoekt bestaat niet of is verwijderd.</p>
+            <h3 className="text-lg font-medium text-foreground mb-2">Bloem niet gevonden</h3>
+            <p className="text-muted-foreground mb-4">De bloem die je zoekt bestaat niet of is verwijderd.</p>
             <Button asChild>
               <Link href="/">Terug naar overzicht</Link>
             </Button>
@@ -199,7 +199,7 @@ export default function PlantDetailPage() {
             
             <div className="flex items-center gap-2">
               <Leaf className="w-6 h-6 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900">{plant.name}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{plant.name}</h1>
               <Badge className={getStatusColor(plant.status)}>
                 {getStatusLabel(plant.status)}
               </Badge>
@@ -230,7 +230,7 @@ export default function PlantDetailPage() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Bloemnaam</label>
+                  <label className="text-sm font-medium text-foreground">Bloemnaam</label>
                   <p className="text-lg font-semibold flex items-center gap-2">
                     {plant.emoji && <span className="text-xl">{plant.emoji}</span>}
                     {plant.name}
@@ -239,23 +239,23 @@ export default function PlantDetailPage() {
                 
                 {plant.color && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Kleur</label>
-                    <p className="text-lg font-medium text-gray-900">{plant.color}</p>
+                    <label className="text-sm font-medium text-foreground">Kleur</label>
+                    <p className="text-lg font-medium text-foreground">{plant.color}</p>
                   </div>
                 )}
 
                 {plant.height && (
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Hoogte</label>
-                    <p className="text-lg font-medium text-gray-900">
+                    <label className="text-sm font-medium text-foreground">Hoogte</label>
+                    <p className="text-lg font-medium text-foreground">
                       {plant.height} cm
                     </p>
                   </div>
                 )}
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Locatie</label>
-                  <p className="text-gray-900">{plant.plant_beds?.name} • {plant.plant_beds?.gardens?.name}</p>
+                  <label className="text-sm font-medium text-foreground">Locatie</label>
+                  <p className="text-foreground">{plant.plant_beds?.name} • {plant.plant_beds?.gardens?.name}</p>
                 </div>
               </div>
             </CardContent>
@@ -274,15 +274,15 @@ export default function PlantDetailPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {plant.scientific_name && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Wetenschappelijke naam</label>
-                      <p className="text-gray-900 italic">{plant.scientific_name}</p>
+                      <label className="text-sm font-medium text-foreground">Wetenschappelijke naam</label>
+                      <p className="text-foreground italic">{plant.scientific_name}</p>
                     </div>
                   )}
 
                   {plant.variety && (
                     <div className={plant.scientific_name ? "md:col-span-1" : "md:col-span-2"}>
-                      <label className="text-sm font-medium text-gray-700">Variëteit</label>
-                      <p className="text-gray-900">{plant.variety}</p>
+                      <label className="text-sm font-medium text-foreground">Variëteit</label>
+                      <p className="text-foreground">{plant.variety}</p>
                     </div>
                   )}
                 </div>
@@ -305,8 +305,8 @@ export default function PlantDetailPage() {
                     <div className="flex items-center gap-3">
                       {getSunIcon(plant.sun_preference)}
                       <div>
-                        <p className="text-sm text-gray-600">Zonvoorkeur</p>
-                        <p className="font-medium text-gray-900">{getSunLabel(plant.sun_preference)}</p>
+                        <p className="text-sm text-muted-foreground">Zonvoorkeur</p>
+                        <p className="font-medium text-foreground">{getSunLabel(plant.sun_preference)}</p>
                       </div>
                     </div>
                   )}
@@ -315,8 +315,8 @@ export default function PlantDetailPage() {
                     <div className="flex items-center gap-3">
                       <Users className="w-5 h-5 text-green-500" />
                       <div>
-                        <p className="text-sm text-gray-600">Planten per m²</p>
-                        <p className="font-medium text-gray-900">{plant.plants_per_sqm} stuks</p>
+                        <p className="text-sm text-muted-foreground">Planten per m²</p>
+                        <p className="font-medium text-foreground">{plant.plants_per_sqm} stuks</p>
                       </div>
                     </div>
                   )}
@@ -325,21 +325,21 @@ export default function PlantDetailPage() {
                     <div className="md:col-span-2">
                       <div className="flex items-center gap-3 mb-2">
                         <Calendar className="w-5 h-5 text-blue-500" />
-                        <p className="text-sm font-medium text-gray-700">Planning</p>
+                        <p className="text-sm font-medium text-foreground">Planning</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-8">
                         {plant.planting_date && (
                           <div>
-                            <p className="text-sm text-gray-600">Plantdatum</p>
-                            <p className="font-medium text-gray-900">
+                            <p className="text-sm text-muted-foreground">Plantdatum</p>
+                            <p className="font-medium text-foreground">
                               {new Date(plant.planting_date).toLocaleDateString('nl-NL')}
                             </p>
                           </div>
                         )}
                         {plant.expected_harvest_date && (
                           <div>
-                            <p className="text-sm text-gray-600">Verwachte bloeitijd</p>
-                            <p className="font-medium text-gray-900">
+                            <p className="text-sm text-muted-foreground">Verwachte bloeitijd</p>
+                            <p className="font-medium text-foreground">
                               {new Date(plant.expected_harvest_date).toLocaleDateString('nl-NL')}
                             </p>
                           </div>
@@ -364,21 +364,21 @@ export default function PlantDetailPage() {
               <CardContent className="space-y-4">
                 {plant.care_instructions && (
                   <div>
-                    <h4 className="font-medium mb-2 text-gray-700">Verzorgingsinstructies</h4>
-                    <p className="text-gray-900 bg-gray-50 p-3 rounded-md">{plant.care_instructions}</p>
+                    <h4 className="font-medium mb-2 text-foreground">Verzorgingsinstructies</h4>
+                    <p className="text-foreground bg-muted p-3 rounded-md">{plant.care_instructions}</p>
                   </div>
                 )}
                 
                 {(plant.watering_frequency || plant.fertilizer_schedule) && (
                   <div>
-                    <h4 className="font-medium mb-3 text-gray-700">Verzorgingsschema</h4>
+                    <h4 className="font-medium mb-3 text-foreground">Verzorgingsschema</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {plant.watering_frequency && (
                         <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-md">
                           <span className="text-blue-600">💧</span>
                           <div>
-                            <p className="text-sm text-gray-600">Water frequentie</p>
-                            <p className="font-medium text-gray-900">Elke {plant.watering_frequency} dagen</p>
+                            <p className="text-sm text-muted-foreground">Water frequentie</p>
+                            <p className="font-medium text-foreground">Elke {plant.watering_frequency} dagen</p>
                           </div>
                         </div>
                       )}
@@ -386,8 +386,8 @@ export default function PlantDetailPage() {
                         <div className="flex items-center gap-3 bg-green-50 p-3 rounded-md">
                           <span className="text-green-600">🧪</span>
                           <div>
-                            <p className="text-sm text-gray-600">Bemesting</p>
-                            <p className="font-medium text-gray-900">{plant.fertilizer_schedule}</p>
+                            <p className="text-sm text-muted-foreground">Bemesting</p>
+                            <p className="font-medium text-foreground">{plant.fertilizer_schedule}</p>
                           </div>
                         </div>
                       )}
@@ -397,8 +397,8 @@ export default function PlantDetailPage() {
                 
                 {plant.notes && (
                   <div>
-                    <h4 className="font-medium mb-2 text-gray-700">Opmerkingen</h4>
-                    <p className="text-gray-900 bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400">{plant.notes}</p>
+                    <h4 className="font-medium mb-2 text-foreground">Opmerkingen</h4>
+                    <p className="text-foreground bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400">{plant.notes}</p>
                   </div>
                 )}
               </CardContent>
@@ -435,19 +435,19 @@ export default function PlantDetailPage() {
             <CardContent>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Actieve taken</span>
+                  <span className="text-sm text-muted-foreground">Actieve taken</span>
                   <Badge variant="secondary">{activeTasks.length}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Vandaag</span>
+                  <span className="text-sm text-muted-foreground">Vandaag</span>
                   <Badge className="bg-orange-100 text-orange-800">{todayTasks.length}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Verlopen</span>
+                  <span className="text-sm text-muted-foreground">Verlopen</span>
                   <Badge variant="destructive">{overdueTasks.length}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Afgerond</span>
+                  <span className="text-sm text-muted-foreground">Afgerond</span>
                   <Badge className="bg-green-100 text-green-800">{completedTasks.length}</Badge>
                 </div>
               </div>
@@ -518,9 +518,9 @@ export default function PlantDetailPage() {
           {tasks.length === 0 && (
             <Card>
               <CardContent className="p-6 text-center">
-                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="font-medium text-gray-900 mb-2">Nog geen taken</h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <Calendar className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="font-medium text-foreground mb-2">Nog geen taken</h3>
+                <p className="text-sm text-muted-foreground mb-4">
                   Voeg je eerste taak toe voor deze bloem.
                 </p>
                 <Button

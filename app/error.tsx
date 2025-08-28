@@ -18,39 +18,39 @@ export default function Error({
   }, [error])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 flex items-center justify-center p-6">
       <div className="container max-w-2xl">
         <div className="text-center mb-8">
           <TreePine className="h-16 w-16 text-green-600 mx-auto mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Tuinbeheer Systeem
           </h1>
-          <p className="text-gray-600">Garden Management System</p>
+          <p className="text-muted-foreground">Garden Management System</p>
         </div>
 
-        <Card className="border-red-200 bg-red-50">
+        <Card className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-800">
+            <CardTitle className="flex items-center gap-2 text-red-800 dark:text-red-200">
               <AlertCircle className="h-5 w-5" />
               Er is een fout opgetreden
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="bg-card p-4 rounded-lg border border-destructive/20">
-              <p className="text-red-700 font-medium mb-2">Foutmelding:</p>
-              <p className="text-sm text-red-600 font-mono bg-red-50 p-2 rounded">
+              <p className="text-red-700 dark:text-red-300 font-medium mb-2">Foutmelding:</p>
+              <p className="text-sm text-red-600 dark:text-red-400 font-mono bg-red-50 dark:bg-red-950/30 p-2 rounded">
                 {error.message || 'Er is een onverwachte fout opgetreden'}
               </p>
               {error.digest && (
-                <p className="text-xs text-red-500 mt-2">
+                <p className="text-xs text-red-500 dark:text-red-400 mt-2">
                   Error ID: {error.digest}
                 </p>
               )}
             </div>
 
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-              <h3 className="font-semibold mb-2 text-yellow-800">Wat kunt u doen:</h3>
-              <ul className="text-sm text-yellow-700 space-y-1">
+            <div className="bg-yellow-50 dark:bg-yellow-950/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-900">
+              <h3 className="font-semibold mb-2 text-yellow-800 dark:text-yellow-200">Wat kunt u doen:</h3>
+              <ul className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
                 <li>• Probeer de pagina te vernieuwen</li>
                 <li>• Controleer uw internetverbinding</li>
                 <li>• Wacht een moment en probeer het opnieuw</li>
@@ -77,7 +77,7 @@ export default function Error({
             </div>
 
             <div className="text-center">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Als dit probleem blijft bestaan, neem dan contact op met de systeembeheerder.
               </p>
             </div>

@@ -856,7 +856,7 @@ export default function GardenDetailPage() {
     switch (exposure) {
       case 'full-sun': return <Sun className="h-4 w-4 text-yellow-500" />
       case 'partial-sun': return <CloudSun className="h-4 w-4 text-orange-500" />
-      case 'shade': return <Cloud className="h-4 w-4 text-gray-500" />
+      case 'shade': return <Cloud className="h-4 w-4 text-muted-foreground" />
       default: return <Sun className="h-4 w-4 text-yellow-500" />
     }
   }
@@ -880,9 +880,9 @@ export default function GardenDetailPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
-          <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
-          <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
+          <TreePine className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
+          <p className="text-muted-foreground mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
           <Button onClick={() => navigateTo("/gardens")} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar Tuinen
@@ -912,7 +912,7 @@ export default function GardenDetailPage() {
               {garden.name}
             </h1>
             {(garden.total_area || (garden.length && garden.width)) && (
-              <p className="text-xs text-gray-600">
+              <p className="text-xs text-muted-foreground">
                 {garden.length}m × {garden.width}m • {garden.total_area || 
                   (garden.length && garden.width && 
                     `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
@@ -1039,7 +1039,7 @@ export default function GardenDetailPage() {
                       </SelectItem>
                       <SelectItem value="shade">
                         <div className="flex items-center gap-2">
-                          <Cloud className="h-4 w-4 text-gray-500" />
+                          <Cloud className="h-4 w-4 text-muted-foreground" />
                           Schaduw
                         </div>
                       </SelectItem>
@@ -1201,7 +1201,7 @@ export default function GardenDetailPage() {
                           {/* Top corner elements */}
                           <div className="flex items-start justify-between">
                             {bed.sun_exposure && (
-                              <div className="bg-white/90 p-1 rounded shadow-sm">
+                              <div className="bg-background/90 p-1 rounded shadow-sm">
                                 {getSunExposureIcon(bed.sun_exposure)}
                               </div>
                             )}
@@ -1230,7 +1230,7 @@ export default function GardenDetailPage() {
                               containerHeight={bedHeight}
                             />
                             {bed.plants.length === 0 && (
-                              <div className="text-gray-500 text-sm font-medium bg-white/80 px-3 py-2 rounded-lg border border-gray-300 shadow-sm">
+                              <div className="text-muted-foreground text-sm font-medium bg-background/80 px-3 py-2 rounded-lg border border-border shadow-sm">
                                 🌱 Leeg plantvak
                               </div>
                             )}
@@ -1311,8 +1311,8 @@ export default function GardenDetailPage() {
                         
                         {/* Plantvak info onder het vak */}
                         <div className="mt-1 text-center">
-                          <div className="text-xs text-gray-600 font-medium">{bed.name}</div>
-                          <div className="text-xs text-gray-500">
+                          <div className="text-xs text-muted-foreground font-medium">{bed.name}</div>
+                          <div className="text-xs text-muted-foreground">
                             {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {bed.plants.length} 🌸
                           </div>
                         </div>
@@ -1324,10 +1324,10 @@ export default function GardenDetailPage() {
                 {/* Empty State */}
                 {plantBeds.length === 0 && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center bg-white/80 p-8 rounded-lg border-2 border-dashed border-gray-300">
-                      <Leaf className="h-20 w-20 mx-auto text-gray-400 mb-4" />
-                      <h3 className="text-xl font-medium text-gray-900 mb-2">Nog geen plantvakken</h3>
-                      <p className="text-gray-600 mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
+                    <div className="text-center bg-background/80 p-8 rounded-lg border-2 border-dashed border-border">
+                      <Leaf className="h-20 w-20 mx-auto text-muted-foreground/50 mb-4" />
+                      <h3 className="text-xl font-medium text-foreground mb-2">Nog geen plantvakken</h3>
+                      <p className="text-muted-foreground mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
                       <Button 
                         className="bg-green-600 hover:bg-green-700"
                         onClick={() => setIsAddingPlantBed(true)}
@@ -1340,7 +1340,7 @@ export default function GardenDetailPage() {
                 )}
               </div>
             </div>
-            <div className="mt-4 text-sm text-gray-600 flex items-center justify-between">
+            <div className="mt-4 text-sm text-muted-foreground flex items-center justify-between">
               <p>💡 <strong>Tip:</strong> Selecteer plantvak → oranje handvat slepen = roteren</p>
               <div className="flex items-center gap-4">
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
@@ -1377,11 +1377,11 @@ export default function GardenDetailPage() {
         plantBeds.length === 0 ? (
           <Card className="text-center py-12">
             <CardContent>
-              <Leaf className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-gray-600 mb-2">
+              <Leaf className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
+              <h3 className="text-xl font-medium text-muted-foreground mb-2">
                 Nog geen plantvakken
               </h3>
-              <p className="text-gray-500 mb-6">
+              <p className="text-muted-foreground mb-6">
                 Voeg je eerste plantvak toe om bloemen te kunnen planten.
               </p>
               <Button 
@@ -1404,7 +1404,7 @@ export default function GardenDetailPage() {
                         {bed.name}
                         {bed.sun_exposure && getSunExposureIcon(bed.sun_exposure)}
                       </CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                         {bed.size && (
                           <div className="flex items-center gap-1">
                             <Leaf className="h-4 w-4" />
@@ -1443,7 +1443,7 @@ export default function GardenDetailPage() {
                             ))}
                             {bed.plants.length > 4 && (
                               <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
-                                <span className="text-xs text-gray-600">
+                                <span className="text-xs text-muted-foreground">
                                   +{bed.plants.length - 4}
                                 </span>
                               </div>
@@ -1459,7 +1459,7 @@ export default function GardenDetailPage() {
                 </CardHeader>
                 <CardContent className="pt-0">
                   {bed.description && (
-                    <p className="text-gray-600 mb-4">{bed.description}</p>
+                    <p className="text-muted-foreground mb-4">{bed.description}</p>
                   )}
                   <div className="flex gap-2">
                     <Link href={`/gardens/${garden.id}/plantvak-view/${bed.id}`}>
@@ -1535,7 +1535,7 @@ export default function GardenDetailPage() {
           
           <div className="space-y-4">
             <div>
-              <label htmlFor="garden-name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="garden-name" className="block text-sm font-medium text-foreground mb-1">
                 Tuin Naam
               </label>
               <Input
@@ -1548,7 +1548,7 @@ export default function GardenDetailPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="garden-length" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="garden-length" className="block text-sm font-medium text-foreground mb-1">
                   Lengte (m)
                 </label>
                 <Input
@@ -1562,7 +1562,7 @@ export default function GardenDetailPage() {
                 />
               </div>
               <div>
-                <label htmlFor="garden-width" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="garden-width" className="block text-sm font-medium text-foreground mb-1">
                   Breedte (m)
                 </label>
                 <Input
@@ -1618,7 +1618,7 @@ export default function GardenDetailPage() {
             )}
 
             <div>
-              <label htmlFor="garden-description" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="garden-description" className="block text-sm font-medium text-foreground mb-1">
                 Beschrijving (optioneel)
               </label>
               <Textarea
@@ -1677,7 +1677,7 @@ export default function GardenDetailPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="plantvak-length" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="plantvak-length" className="block text-sm font-medium text-foreground mb-1">
                   Lengte (m) *
                 </label>
                 <Input
@@ -1691,7 +1691,7 @@ export default function GardenDetailPage() {
                 />
               </div>
               <div>
-                <label htmlFor="plantvak-width" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="plantvak-width" className="block text-sm font-medium text-foreground mb-1">
                   Breedte (m) *
                 </label>
                 <Input
@@ -1714,7 +1714,7 @@ export default function GardenDetailPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="plantvak-soil" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="plantvak-soil" className="block text-sm font-medium text-foreground mb-1">
                   Bodemtype *
                 </label>
                 <Select value={newPlantBed.soil_type} onValueChange={(value) => 
@@ -1734,7 +1734,7 @@ export default function GardenDetailPage() {
               </div>
               
               <div>
-                <label htmlFor="plantvak-sun" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="plantvak-sun" className="block text-sm font-medium text-foreground mb-1">
                   Zonligging *
                 </label>
                 <Select value={newPlantBed.sun_exposure} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
@@ -1758,7 +1758,7 @@ export default function GardenDetailPage() {
                     </SelectItem>
                     <SelectItem value="shade">
                       <div className="flex items-center gap-2">
-                        <Cloud className="h-4 w-4 text-gray-500" />
+                        <Cloud className="h-4 w-4 text-muted-foreground" />
                         <span>Schaduw</span>
                       </div>
                     </SelectItem>
@@ -1768,7 +1768,7 @@ export default function GardenDetailPage() {
             </div>
 
             <div>
-              <label htmlFor="plantvak-description" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="plantvak-description" className="block text-sm font-medium text-foreground mb-1">
                 Beschrijving (optioneel)
               </label>
               <Textarea

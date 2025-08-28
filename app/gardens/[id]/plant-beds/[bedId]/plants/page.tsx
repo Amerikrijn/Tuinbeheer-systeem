@@ -17,7 +17,7 @@ export default function PlantBedPlantsRedirectPage() {
     <div className="container mx-auto p-6">
       <div className="text-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Doorverwijzen naar plantvak...</p>
+        <p className="text-muted-foreground">Doorverwijzen naar plantvak...</p>
       </div>
     </div>
   )
