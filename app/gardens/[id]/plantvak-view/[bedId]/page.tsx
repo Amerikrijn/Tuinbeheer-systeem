@@ -81,7 +81,7 @@ const STANDARD_PLANTS = [
   { name: 'Salvia', color: '#DC143C', emoji: '🌺' },
   { name: 'Verbena', color: '#9370DB', emoji: '🌸' },
   { name: 'Lobelia', color: '#4169E1', emoji: '🌸' },
-  { name: 'Alyssum', color: '#FFFFFF', emoji: '🤍' },
+  { name: 'Alyssum', color: '#F8F8FF', emoji: '🤍' },
   { name: 'Cosmos', color: '#FFB6C1', emoji: '🌸' },
   { name: 'Petunia', color: '#FF6B6B', emoji: '🌺' },
   { name: 'Begonia', color: '#FF8C69', emoji: '🌸' },
@@ -92,8 +92,8 @@ const STANDARD_PLANTS = [
   { name: 'Zonnebloem', color: '#FFD700', emoji: '🌻' },
   { name: 'Calendula', color: '#FFA500', emoji: '🌼' },
   { name: 'Goudsbloem', color: '#FFA500', emoji: '🌼' },
-  { name: 'Nicotiana', color: '#FFFFFF', emoji: '🤍' },
-  { name: 'Siertabak', color: '#FFFFFF', emoji: '🤍' },
+  { name: 'Nicotiana', color: '#F8F8FF', emoji: '🤍' },
+  { name: 'Siertabak', color: '#F8F8FF', emoji: '🤍' },
   { name: 'Cleome', color: '#FF69B4', emoji: '🌸' },
   { name: 'Spinnenbloem', color: '#FF69B4', emoji: '🌸' },
   { name: 'Celosia', color: '#FF6347', emoji: '🌺' },
@@ -1530,8 +1530,8 @@ export default function PlantBedViewPage() {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-muted rounded w-1/3 mb-4"></div>
+          <div className="h-64 bg-muted rounded"></div>
         </div>
       </div>
     )
@@ -1541,7 +1541,7 @@ export default function PlantBedViewPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
-          <Leaf className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <Leaf className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">Plantvak niet gevonden</h3>
           <p className="text-muted-foreground mb-4">Het plantvak dat je zoekt bestaat niet.</p>
           <Button onClick={goBack} className="bg-green-600 hover:bg-green-700">
@@ -2390,7 +2390,7 @@ export default function PlantBedViewPage() {
               {flowerPositions.length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <Flower className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                    <Flower className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-lg font-medium text-foreground mb-2">Nog geen bloemen</h3>
                     <p className="text-muted-foreground mb-4">Voeg bloemen toe aan dit plantvak.</p>
                     <Button onClick={() => setIsAddingFlower(true)} className="bg-pink-600 hover:bg-pink-700">
@@ -2428,7 +2428,7 @@ export default function PlantBedViewPage() {
               {/* Flowers List */}
               {flowerPositions.length === 0 ? (
                 <div className="text-center py-12">
-                  <Flower className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <Flower className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium text-foreground mb-2">Nog geen bloemen</h3>
                   <p className="text-muted-foreground mb-4">Voeg bloemen toe aan dit plantvak.</p>
                   <Button onClick={() => setIsAddingFlower(true)} className="bg-pink-600 hover:bg-pink-700">
@@ -2585,7 +2585,7 @@ export default function PlantBedViewPage() {
                   </div>
                 ) : tasks.length === 0 ? (
                   <div className="text-center py-8">
-                    <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-lg font-medium text-foreground mb-2">Nog geen taken</h3>
                     <p className="text-muted-foreground mb-4">Voeg taken toe voor dit plantvak of specifieke bloemen.</p>
                   </div>

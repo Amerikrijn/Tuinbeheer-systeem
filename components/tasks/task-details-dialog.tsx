@@ -389,7 +389,7 @@ export function TaskDetailsDialog({
           </div>
 
           {/* Timestamps */}
-          <div className="text-sm text-gray-500 border-t pt-4">
+          <div className="text-sm text-muted-foreground border-t pt-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <span className="font-medium">Aangemaakt:</span>

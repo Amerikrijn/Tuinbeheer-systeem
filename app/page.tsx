@@ -544,7 +544,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
               {loadingFlowers ? (
                 <div className="grid grid-cols-2 gap-2">
                   {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+                    <div key={i} className="h-12 bg-muted rounded-lg animate-pulse"></div>
                   ))}
                 </div>
               ) : allFlowers.length > 0 ? (
