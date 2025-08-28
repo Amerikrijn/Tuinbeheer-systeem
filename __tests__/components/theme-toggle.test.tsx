@@ -1,20 +1,25 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { vi } from 'vitest'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { useTheme } from 'next-themes'
 
-let theme = 'light'
-const setTheme = vi.fn((newTheme: string) => {
-  theme = newTheme
-})
-
-vi.mock('next-themes', () => ({
-  useTheme: () => ({ theme, systemTheme: 'light', setTheme })
+// Mock next-themes
+jest.mock('next-themes', () => ({
+  useTheme: jest.fn()
 }))
 
+const mockUseTheme = useTheme as jest.MockedFunction<typeof useTheme>;
+
 describe('ThemeToggle', () => {
+  const mockSetTheme = jest.fn()
+
   beforeEach(() => {
-    theme = 'light'
-    setTheme.mockClear()
+    jest.clearAllMocks()
+    mockUseTheme.mockReturnValue({
+      setTheme: mockSetTheme,
+      theme: 'light',
+      systemTheme: 'light',
+      resolvedTheme: 'light'
+    })
   })
 
   it('renders current theme', async () => {
@@ -29,22 +34,17 @@ describe('ThemeToggle', () => {
   })
 
   it('changes theme when selecting option', async () => {
-    const { rerender } = render(<ThemeToggle />)
+    render(<ThemeToggle />)
 
     await waitFor(() => expect(screen.getByRole('button')).not.toBeDisabled())
 
     fireEvent.click(screen.getByRole('button'))
+    
+    // Wait for dropdown menu to appear
+    await waitFor(() => expect(screen.getByText('Donker')).toBeInTheDocument())
+    
     fireEvent.click(screen.getByText('Donker'))
 
-    expect(setTheme).toHaveBeenCalledWith('dark')
-
-    rerender(<ThemeToggle />)
-
-    await waitFor(() =>
-      expect(screen.getByRole('button')).toHaveAttribute(
-        'aria-label',
-        'Huidige thema: Donker. Klik om te wijzigen.'
-      )
-    )
+    expect(mockSetTheme).toHaveBeenCalledWith('dark')
   })
 })

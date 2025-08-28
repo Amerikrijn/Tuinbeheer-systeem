@@ -8,7 +8,7 @@ jest.mock('next-themes', () => ({
   useTheme: jest.fn()
 }))
 
-const mockUseTheme = useTheme as jest.MockedFunction<typeof useTheme>
+const mockUseTheme = useTheme as jest.MockedFunction<typeof useTheme>;
 
 describe('ThemeToggle', () => {
   const mockSetTheme = jest.fn()
