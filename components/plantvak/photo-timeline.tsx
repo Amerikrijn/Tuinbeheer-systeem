@@ -154,8 +154,8 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
         <CardContent>
           <div className="text-center py-8">
             <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-            <p className="text-gray-600">Nog geen foto's in het logboek</p>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-muted-foreground">Nog geen foto's in het logboek</p>
+            <p className="text-sm text-muted-foreground mt-1">
               Voeg foto's toe aan je logboek entries om ze hier te zien
             </p>
           </div>
@@ -188,9 +188,9 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
               >
                 <div className="flex items-center gap-3">
                   {yearGroup.isExpanded ? (
-                    <ChevronDown className="h-4 w-4 text-gray-600" />
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   ) : (
-                    <ChevronRight className="h-4 w-4 text-gray-600" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   )}
                   <span className="font-semibold text-lg">
                     {yearGroup.year}
@@ -210,7 +210,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
 
               {/* Year Content - Photo Grid */}
               {yearGroup.isExpanded && (
-                <div className="p-4 bg-white">
+                <div className="p-4 bg-background">
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     {yearGroup.entries.map((entry) => (
                       <div
@@ -264,7 +264,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                               setShowFullscreen(true)
                             }}
                           >
-                            <div className="text-sm text-gray-600 mb-1">
+                            <div className="text-sm text-muted-foreground mb-1">
                               {format(parseISO(entry.entry_date), 'd MMMM yyyy', { locale: nl })}
                             </div>
                             <div className="bg-gray-50 rounded-lg p-3">
@@ -322,7 +322,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
               
               {/* Photo Details */}
               <div className="space-y-3">
-                <div className="flex items-center gap-4 text-sm text-gray-600">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     <span>{format(parseISO(selectedPhoto.entry_date), 'dd MMMM yyyy', { locale: nl })}</span>
@@ -336,7 +336,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                 
                 {/* Notes */}
                 <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-2">Notities</h4>
+                  <h4 className="font-medium text-foreground mb-2">Notities</h4>
                   <p className="text-gray-700 whitespace-pre-wrap">{selectedPhoto.notes}</p>
                 </div>
                 

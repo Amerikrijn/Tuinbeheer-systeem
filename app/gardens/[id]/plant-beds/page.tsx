@@ -107,9 +107,9 @@ export default function PlantBedsPage() {
       case "partial-sun":
         return <Sun className="h-4 w-4 text-orange-500" />
       case "shade":
-        return <Sun className="h-4 w-4 text-gray-500" />
+        return <Sun className="h-4 w-4 text-muted-foreground" />
       default:
-        return <Sun className="h-4 w-4 text-gray-400" />
+        return <Sun className="h-4 w-4 text-muted-foreground/50" />
     }
   }
 
@@ -145,9 +145,9 @@ export default function PlantBedsPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
-          <TreePine className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Tuin niet gevonden</h3>
-          <p className="text-gray-600 mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
+          <TreePine className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
+          <p className="text-muted-foreground mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
           <Link href="/gardens">
             <Button className="bg-green-600 hover:bg-green-700">
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -173,7 +173,7 @@ export default function PlantBedsPage() {
               <Leaf className="h-8 w-8 text-green-600" />
               Plantvakken - {garden.name}
             </h1>
-            <div className="flex items-center gap-2 text-gray-600 mt-1">
+            <div className="flex items-center gap-2 text-muted-foreground mt-1">
               <MapPin className="h-4 w-4" />
               {garden.location}
             </div>
@@ -200,7 +200,7 @@ export default function PlantBedsPage() {
 
       {/* Search */}
       <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground/50 h-4 w-4" />
         <Input
           placeholder="Zoek plantvakken..."
           value={searchTerm}
@@ -227,21 +227,21 @@ export default function PlantBedsPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">🌱</span>
                         <div>
-                          <h3 className="font-medium text-gray-900">
+                          <h3 className="font-medium text-foreground">
                             <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 font-bold rounded-full mr-2">
                               {bed.letter_code || bed.name}
                             </span>
                             Plantvak {bed.letter_code || bed.name}
                           </h3>
                           {bed.location && (
-                            <p className="text-sm text-gray-500">{bed.location}</p>
+                            <p className="text-sm text-muted-foreground">{bed.location}</p>
                           )}
                         </div>
                       </div>
                       <div className={`w-3 h-3 rounded-full border-2 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 shadow-gray-200'}`}></div>
                     </div>
                     
-                    <div className="space-y-2 text-sm text-gray-600 mb-4">
+                    <div className="space-y-2 text-sm text-muted-foreground mb-4">
                       {bed.size && (
                         <div className="flex justify-between">
                           <span>Grootte:</span>
@@ -278,7 +278,7 @@ export default function PlantBedsPage() {
                           </span>
                         ))}
                         {bed.plants.length > 6 && (
-                          <span className="text-xs text-gray-500 ml-1">+{bed.plants.length - 6}</span>
+                          <span className="text-xs text-muted-foreground ml-1">+{bed.plants.length - 6}</span>
                         )}
                       </div>
                     )}
@@ -289,13 +289,13 @@ export default function PlantBedsPage() {
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <span className="text-xl">🌱</span>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 truncate">
+                        <h3 className="font-medium text-foreground truncate">
                           <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 text-sm font-bold rounded-full mr-2">
                             {bed.letter_code || bed.name}
                           </span>
                           Plantvak {bed.letter_code || bed.name}
                         </h3>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                           <span>{bed.plants.length} bloemen</span>
                           {bed.size && <span>Grootte: {bed.size}</span>}
                           {bed.sun_exposure && (
@@ -313,7 +313,7 @@ export default function PlantBedsPage() {
                               </span>
                             ))}
                             {bed.plants.length > 4 && (
-                              <span className="text-xs text-gray-500 ml-1">+{bed.plants.length - 4}</span>
+                              <span className="text-xs text-muted-foreground ml-1">+{bed.plants.length - 4}</span>
                             )}
                           </div>
                         )}
@@ -387,11 +387,11 @@ export default function PlantBedsPage() {
         </div>
       ) : (
         <div className="text-center py-12">
-          <Leaf className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-          <h3 className="text-xl font-medium text-gray-900 mb-2">
+          <Leaf className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+          <h3 className="text-xl font-medium text-foreground mb-2">
             {searchTerm ? "Geen plantvakken gevonden" : "Nog geen plantvakken"}
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             {searchTerm
               ? `Geen plantvakken gevonden voor "${searchTerm}"`
               : "Begin met het toevoegen van je eerste plantvak"}
@@ -425,25 +425,25 @@ export default function PlantBedsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-green-600">{plantBeds.length}</div>
-                <div className="text-sm text-gray-600">Totaal Plantvakken</div>
+                <div className="text-sm text-muted-foreground">Totaal Plantvakken</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-blue-600">
                   {plantBeds.reduce((sum, bed) => sum + Math.max(1, bed.plants.length), 0)}
                 </div>
-                <div className="text-sm text-gray-600">Totaal Bloemen</div>
+                <div className="text-sm text-muted-foreground">Totaal Bloemen</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-purple-600">
                   {plantBeds.length}
                 </div>
-                <div className="text-sm text-gray-600">Actieve Vakken</div>
+                <div className="text-sm text-muted-foreground">Actieve Vakken</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-orange-600">
                   100%
                 </div>
-                <div className="text-sm text-gray-600">Bezettingsgraad</div>
+                <div className="text-sm text-muted-foreground">Bezettingsgraad</div>
               </div>
             </div>
           </CardContent>

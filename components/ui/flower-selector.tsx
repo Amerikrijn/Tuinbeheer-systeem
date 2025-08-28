@@ -134,7 +134,7 @@ export function FlowerSelector({
               <div className="text-left">
                 <div className="font-medium">{selectedFlower.name}</div>
                 {selectedFlower.scientificName && (
-                  <div className="text-xs text-gray-500 italic">
+                  <div className="text-xs text-muted-foreground italic">
                     {selectedFlower.scientificName}
                   </div>
                 )}
@@ -150,12 +150,12 @@ export function FlowerSelector({
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-3 w-3 text-blue-500" />
-                    <span className="text-gray-600">Bloei:</span>
+                    <span className="text-muted-foreground">Bloei:</span>
                     <span className="font-medium">{selectedFlower.bloeiperiode}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Palette className="h-3 w-3 text-purple-500" />
-                    <span className="text-gray-600">Kleur:</span>
+                    <span className="text-muted-foreground">Kleur:</span>
                     <div className="flex gap-1">
                       {selectedFlower.kleur.slice(0, 3).map((color) => (
                         <Badge key={color} variant="secondary" className="px-1 py-0 text-xs">
@@ -169,7 +169,7 @@ export function FlowerSelector({
                       )}
                     </div>
                   </div>
-                  <div className="col-span-2 text-gray-600">
+                  <div className="col-span-2 text-muted-foreground">
                     <Badge variant="outline" className="text-xs">
                       {FLOWER_CATEGORIES[selectedFlower.category]}
                     </Badge>
@@ -180,7 +180,7 @@ export function FlowerSelector({
                     )}
                   </div>
                   {selectedFlower.description && (
-                    <div className="col-span-2 text-xs text-gray-600 mt-1">
+                    <div className="col-span-2 text-xs text-muted-foreground mt-1">
                       <Info className="h-3 w-3 inline mr-1" />
                       {selectedFlower.description}
                     </div>
@@ -193,7 +193,7 @@ export function FlowerSelector({
           <Button
             variant="ghost"
             size="sm"
-            className="mt-2 text-gray-500 hover:text-gray-700"
+            className="mt-2 text-muted-foreground hover:text-foreground"
             onClick={handleClearSelection}
           >
             Andere bloem kiezen
@@ -268,7 +268,7 @@ export function FlowerSelector({
             {/* Filtered flowers list */}
             <div className="max-h-60 overflow-y-auto">
               {filteredFlowers.length === 0 ? (
-                <div className="p-4 text-center text-gray-500 text-sm">
+                <div className="p-4 text-center text-muted-foreground text-sm">
                   {searchQuery ? 'Geen bloemen gevonden' : 'Geen bloemen beschikbaar'}
                 </div>
               ) : (
@@ -291,11 +291,11 @@ export function FlowerSelector({
                           )}
                         </div>
                         {flower.scientificName && (
-                          <div className="text-xs text-gray-500 italic">
+                          <div className="text-xs text-muted-foreground italic">
                             {flower.scientificName}
                           </div>
                         )}
-                        <div className="text-xs text-gray-600 mt-1">
+                        <div className="text-xs text-muted-foreground mt-1">
                           <span className="mr-3">{flower.bloeiperiode}</span>
                           <Badge variant="outline" className="text-xs">
                             {FLOWER_CATEGORIES[flower.category]}
@@ -313,7 +313,7 @@ export function FlowerSelector({
                             />
                           ))}
                           {flower.kleur.length > 4 && (
-                            <div className="text-xs text-gray-500 ml-1">
+                            <div className="text-xs text-muted-foreground ml-1">
                               +{flower.kleur.length - 4}
                             </div>
                           )}

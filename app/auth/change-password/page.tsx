@@ -154,8 +154,8 @@ export default function ChangePasswordPage() {
               <TreePine className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Wachtwoord Wijzigen</h1>
-          <p className="text-gray-600 mt-2">Stel een nieuw wachtwoord in voor je account</p>
+          <h1 className="text-2xl font-bold text-foreground">Wachtwoord Wijzigen</h1>
+          <p className="text-muted-foreground mt-2">Stel een nieuw wachtwoord in voor je account</p>
         </div>
 
         {/* Info Alert */}
@@ -193,7 +193,7 @@ export default function ChangePasswordPage() {
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
                     {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -205,7 +205,7 @@ export default function ChangePasswordPage() {
                     {errors.newPassword}
                   </p>
                 )}
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Minimaal 8 karakters, met hoofdletter, kleine letter en cijfer
                 </p>
               </div>
@@ -227,7 +227,7 @@ export default function ChangePasswordPage() {
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
                     {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

@@ -348,7 +348,7 @@ function NewLogbookPageContent() {
             <Calendar className="h-12 w-12 mx-auto mb-2" />
             <h2 className="text-xl font-semibold">Fout bij laden gegevens</h2>
           </div>
-          <p className="text-gray-600 mb-4">{state.error}</p>
+          <p className="text-muted-foreground mb-4">{state.error}</p>
           <div className="flex gap-2 justify-center">
             <Button onClick={loadData} variant="outline">
               Opnieuw proberen
@@ -378,10 +378,10 @@ function NewLogbookPageContent() {
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Nieuwe Logboek Entry
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Voeg een nieuwe entry toe aan het logboek voor je tuin.
           </p>
         </div>
@@ -466,7 +466,7 @@ function NewLogbookPageContent() {
                   rows={6}
                   required
                 />
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   {state.formData.notes.length} karakters
                 </p>
               </div>
@@ -494,8 +494,8 @@ function NewLogbookPageContent() {
                   </div>
                 ) : (
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <Camera className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600 mb-2">
+                    <Camera className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground mb-2">
                       Klik om een foto toe te voegen
                     </p>
                     <Input
@@ -525,16 +525,16 @@ function NewLogbookPageContent() {
                     </Button>
                   </div>
                 )}
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Ondersteunde formaten: JPG, PNG, GIF. Maximaal 5MB.
                 </p>
               </div>
 
               {/* Preview */}
               {selectedPlantBed && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="font-medium text-gray-900 mb-2">Preview</h3>
-                  <div className="text-sm text-gray-600 space-y-1">
+                <div className="bg-muted rounded-lg p-4">
+                  <h3 className="font-medium text-foreground mb-2">Preview</h3>
+                  <div className="text-sm text-muted-foreground space-y-1">
                     <p><strong>Plantvak:</strong> {selectedPlantBed.name}</p>
                     {selectedPlant && (
                       <p><strong>Plant:</strong> {selectedPlant.name}

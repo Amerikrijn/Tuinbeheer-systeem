@@ -94,7 +94,7 @@ export function LogbookList() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-semibold text-foreground dark:text-white">
             Recente Logboek Entries
           </h2>
           <Button disabled>
@@ -111,7 +111,7 @@ export function LogbookList() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-semibold text-foreground dark:text-white">
             Recente Logboek Entries
           </h2>
           <Link href="/logbook/new">
@@ -126,10 +126,10 @@ export function LogbookList() {
           <CardContent className="pt-6">
             <div className="text-center py-8">
               <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-medium text-foreground dark:text-white mb-2">
                 Fout bij laden
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-muted-foreground dark:text-gray-400 mb-4">
                 {error}
               </p>
               <Button onClick={handleRefresh} disabled={refreshing}>
@@ -150,7 +150,7 @@ export function LogbookList() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-xl font-semibold text-foreground dark:text-white">
           Recente Logboek Entries
         </h2>
         <div className="flex items-center gap-2">
@@ -180,10 +180,10 @@ export function LogbookList() {
           <CardContent className="pt-6">
             <div className="text-center py-8">
               <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-medium text-foreground dark:text-white mb-2">
                 Geen logboek entries gevonden
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-muted-foreground dark:text-gray-400 mb-4">
                 Begin met het maken van je eerste logboek entry om bij te houden wat er gebeurt in je tuin.
               </p>
               <Link href="/logbook/new">
@@ -201,13 +201,13 @@ export function LogbookList() {
             <Card key={entry.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <CardTitle className="text-lg">{entry.notes ? (entry.notes.length > 50 ? entry.notes.slice(0, 50) + '…' : entry.notes) : 'Logboek entry'}</CardTitle>
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center text-sm text-muted-foreground dark:text-gray-400">
                   <Calendar className="w-4 h-4 mr-1" />
                   {new Date(entry.created_at).toLocaleDateString('nl-NL')}
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600 dark:text-gray-300 line-clamp-3">
+                <p className="text-muted-foreground dark:text-gray-300 line-clamp-3">
                   {entry.notes}
                 </p>
                 <div className="mt-4">

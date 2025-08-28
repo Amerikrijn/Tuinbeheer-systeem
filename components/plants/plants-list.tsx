@@ -96,7 +96,7 @@ export function PlantsList() {
       case 'good': return 'text-blue-600 dark:text-blue-400'
       case 'fair': return 'text-yellow-600 dark:text-yellow-400'
       case 'poor': return 'text-red-600 dark:text-red-400'
-      default: return 'text-gray-600 dark:text-gray-400'
+      default: return 'text-muted-foreground dark:text-gray-400'
     }
   }
 
@@ -114,7 +114,7 @@ export function PlantsList() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-semibold text-foreground dark:text-white">
             Mijn Planten
           </h2>
           <Button disabled>
@@ -131,7 +131,7 @@ export function PlantsList() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-semibold text-foreground dark:text-white">
             Mijn Planten
           </h2>
           <Link href="/plants/new">
@@ -146,10 +146,10 @@ export function PlantsList() {
           <CardContent className="pt-6">
             <div className="text-center py-8">
               <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-medium text-foreground dark:text-white mb-2">
                 Fout bij laden
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-muted-foreground dark:text-gray-400 mb-4">
                 {error}
               </p>
               <Button onClick={handleRefresh} disabled={refreshing}>
@@ -170,7 +170,7 @@ export function PlantsList() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-xl font-semibold text-foreground dark:text-white">
           Mijn Planten
         </h2>
         <div className="flex items-center gap-2">
@@ -200,10 +200,10 @@ export function PlantsList() {
           <CardContent className="pt-6">
             <div className="text-center py-8">
               <Leaf className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-medium text-foreground dark:text-white mb-2">
                 Geen planten gevonden
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-muted-foreground dark:text-gray-400 mb-4">
                 Begin met het toevoegen van je eerste plant om je tuin te beheren.
               </p>
               <Link href="/plants/new">
@@ -221,17 +221,17 @@ export function PlantsList() {
             <Card key={plant.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <CardTitle className="text-lg">{plant.name}</CardTitle>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{plant.species}</p>
+                <p className="text-sm text-muted-foreground dark:text-gray-400">{plant.species}</p>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                  <div className="flex items-center text-sm text-muted-foreground dark:text-gray-300">
                     <Calendar className="w-4 h-4 mr-2" />
                     Geplant: {new Date(plant.planted_date).toLocaleDateString('nl-NL')}
                   </div>
                   
                   {plant.last_watered && (
-                    <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                    <div className="flex items-center text-sm text-muted-foreground dark:text-gray-300">
                       <Droplets className="w-4 h-4 mr-2" />
                       Laatst bewaterd: {new Date(plant.last_watered).toLocaleDateString('nl-NL')}
                     </div>

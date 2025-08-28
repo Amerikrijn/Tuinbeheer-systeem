@@ -275,7 +275,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
                 <Button
                   variant="outline"
                   size="sm"
-                  className="absolute top-2 right-2 bg-white/90 hover:bg-white border-green-300"
+                  className="absolute top-2 right-2 bg-background/90 hover:bg-background border-green-300"
                   onClick={() => setShowPhotoDialog(false)}
                 >
                   <X className="w-4 h-4" />

@@ -234,7 +234,7 @@ function UserDashboardContent() {
       case 'harvest': return 'bg-orange-100 text-orange-800'
       case 'observation': return 'bg-purple-100 text-purple-800'
       case 'problem': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      default: return 'bg-muted text-muted-foreground'
     }
   }
 
@@ -252,7 +252,7 @@ function UserDashboardContent() {
   const getWeatherIcon = (weather?: LogbookEntry['weather']) => {
     switch (weather) {
       case 'sunny': return <Sun className="w-4 h-4 text-yellow-500" />
-      case 'cloudy': return <CloudDrizzle className="w-4 h-4 text-gray-500" />
+      case 'cloudy': return <CloudDrizzle className="w-4 h-4 text-muted-foreground" />
       case 'rainy': return <CloudRain className="w-4 h-4 text-blue-500" />
       case 'snowy': return <Snowflake className="w-4 h-4 text-blue-300" />
       default: return null
@@ -287,8 +287,8 @@ function UserDashboardContent() {
     <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Mijn Dashboard</h1>
-        <p className="text-gray-600 mt-1">
+        <h1 className="text-3xl font-bold text-foreground">Mijn Dashboard</h1>
+        <p className="text-muted-foreground mt-1">
           Welkom {user.full_name || user.email}! Hier zijn jouw taken en logboek items.
         </p>
       </div>

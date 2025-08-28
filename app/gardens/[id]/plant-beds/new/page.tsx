@@ -251,7 +251,7 @@ export default function NewPlantBedPage() {
       <div className="container mx-auto p-6">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-600">Tuin niet gevonden</h1>
-          <p className="text-gray-600 mt-2">De opgevraagde tuin bestaat niet.</p>
+          <p className="text-muted-foreground mt-2">De opgevraagde tuin bestaat niet.</p>
           <Button onClick={goBack} className="mt-4">
             Terug
           </Button>
@@ -297,9 +297,9 @@ export default function NewPlantBedPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Automatic Letter Code Assignment - Prominent Display */}
-                <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg">
+                <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
                   <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 text-white text-4xl font-bold rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 text-white text-4xl font-bold rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-800">
                       {nextLetterCode}
                     </div>
                     <div className="flex-1">
@@ -307,7 +307,7 @@ export default function NewPlantBedPage() {
                       <p className="text-gray-700 text-lg mb-2">
                         Dit plantvak krijgt automatisch de naam: <strong className="text-green-700 text-2xl">Plantvak {nextLetterCode}</strong>
                       </p>
-                      <p className="text-gray-600 text-sm">
+                      <p className="text-muted-foreground text-sm">
                         Geen handmatige invoer nodig - het systeem wijst automatisch letters toe.
                       </p>
                       
@@ -435,7 +435,7 @@ export default function NewPlantBedPage() {
                                     ? "text-yellow-500"
                                     : option.value === "partial-sun"
                                       ? "text-orange-500"
-                                      : "text-gray-500"
+                                      : "text-muted-foreground"
                                 }`}
                               />
                               {option.label}
@@ -484,7 +484,7 @@ export default function NewPlantBedPage() {
                   </Button>
                   
                   {/* Debug info */}
-                  <div className="text-xs text-gray-500 ml-4 flex items-center">
+                  <div className="text-xs text-muted-foreground ml-4 flex items-center">
                     Loading: {loading ? "true" : "false"} | 
                     Size: {newPlantBed.size ? "✓" : "✗"} |
                     Soil: {newPlantBed.soilType ? "✓" : "✗"} |
@@ -504,7 +504,7 @@ export default function NewPlantBedPage() {
             <CardContent className="text-sm leading-relaxed space-y-3">
               <div>
                 <strong>Hoe het werkt:</strong>
-                <ul className="list-disc list-inside mt-2 space-y-1 text-gray-600">
+                <ul className="list-disc list-inside mt-2 space-y-1 text-muted-foreground">
                   <li>Eerste plantvak → <strong>A</strong></li>
                   <li>Tweede plantvak → <strong>B</strong></li>
                   <li>Derde plantvak → <strong>C</strong></li>
@@ -514,7 +514,7 @@ export default function NewPlantBedPage() {
               </div>
               <div>
                 <strong>Voordelen:</strong>
-                <ul className="list-disc list-inside mt-2 space-y-1 text-gray-600">
+                <ul className="list-disc list-inside mt-2 space-y-1 text-muted-foreground">
                   <li>Geen handmatige invoer nodig</li>
                   <li>Altijd unieke codes</li>
                   <li>Logische volgorde</li>

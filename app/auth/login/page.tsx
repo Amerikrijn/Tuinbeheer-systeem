@@ -132,8 +132,8 @@ function LoginContent() {
               <TreePine className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Tuinbeheer Systeem</h1>
-          <p className="text-gray-600 dark:text-gray-300 mt-2">Meld je aan om door te gaan</p>
+          <h1 className="text-2xl font-bold text-foreground dark:text-gray-100">Tuinbeheer Systeem</h1>
+          <p className="text-muted-foreground dark:text-gray-300 mt-2">Meld je aan om door te gaan</p>
         </div>
 
         {/* Login Form */}
@@ -186,7 +186,7 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

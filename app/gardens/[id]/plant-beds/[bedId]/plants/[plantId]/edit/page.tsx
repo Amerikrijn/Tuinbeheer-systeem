@@ -274,8 +274,8 @@ export default function EditPlantPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Plant niet gevonden</h2>
-          <p className="text-gray-600 mb-6">De opgevraagde plant bestaat niet of is verwijderd.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-4">Plant niet gevonden</h2>
+          <p className="text-muted-foreground mb-6">De opgevraagde plant bestaat niet of is verwijderd.</p>
           <Button asChild>
             <Link href={`/gardens/${params.id}/plantvak-view/${params.bedId}`}>
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -299,11 +299,11 @@ export default function EditPlantPage() {
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-2">
+        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
           <Leaf className="h-8 w-8 text-green-600" />
           Bloem Bewerken
         </h1>
-        <div className="text-gray-600">
+        <div className="text-muted-foreground">
           <p>{plant.name}</p>
         </div>
       </div>
@@ -368,9 +368,9 @@ export default function EditPlantPage() {
                   {tasks.slice(0, 3).map((task) => (
                     <div key={task.id} className="flex items-center gap-2 text-sm">
                       <div className={`w-2 h-2 rounded-full ${
-                        task.completed ? 'bg-green-500' : 
-                        task.priority === 'high' ? 'bg-red-500' : 
-                        task.priority === 'medium' ? 'bg-yellow-500' : 'bg-gray-500'
+                        task.completed ? 'bg-green-500 dark:bg-green-600' : 
+                        task.priority === 'high' ? 'bg-red-500 dark:bg-red-600' : 
+                        task.priority === 'medium' ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-gray-500 dark:bg-gray-600'
                       }`} />
                       <span className={task.completed ? 'line-through text-gray-500' : ''}>
                         {task.title}
