@@ -1294,11 +1294,6 @@ export default function GardenDetailPage() {
 
                 {/* Plant Beds */}
                 {plantBeds.map((bed) => {
-                  // Skip beds that don't have any matching plants when filter is active
-                  if (selectedMonth && filterMode !== 'all' && !shouldHighlightBed(bed)) {
-                    return null
-                  }
-                  
                   const isSelected = selectedBed === bed.id
                   const isDragging = draggedBed === bed.id
                   const isRotating = rotatingBed === bed.id
@@ -1330,7 +1325,6 @@ export default function GardenDetailPage() {
                           isDragging ? 'shadow-2xl scale-105 border-green-600 z-50 cursor-grabbing ring-4 ring-green-300' : 
                           isRotating ? 'shadow-2xl border-orange-600 z-50 ring-4 ring-orange-200' :
                           isSelected ? 'border-blue-600 shadow-xl ring-3 ring-blue-300 cursor-grab' :
-                          isHighlighted ? 'border-green-500 shadow-xl ring-4 ring-green-400 animate-pulse cursor-grab' :
                           'cursor-grab hover:shadow-xl hover:scale-102 hover:border-green-500 hover:ring-2 hover:ring-green-300'
                         }`}
                         style={{
@@ -1356,9 +1350,13 @@ export default function GardenDetailPage() {
                                   {getSunExposureIcon(bed.sun_exposure)}
                                 </div>
                               )}
-                              {isHighlighted && (
-                                <Badge variant="default" className="text-xs bg-green-500">
+                              {selectedMonth && filterMode !== 'all' && (
+                                <Badge 
+                                  variant={isHighlighted ? "default" : "outline"} 
+                                  className={`text-xs ${isHighlighted ? 'bg-green-500' : 'bg-gray-200 text-gray-500'}`}
+                                >
                                   {filterMode === 'sowing' ? '🌱' : '🌸'}
+                                  {!isHighlighted && ' -'}
                                 </Badge>
                               )}
                             </div>
@@ -1384,13 +1382,18 @@ export default function GardenDetailPage() {
                                 // Show message when no plants match the filter
                                 if (selectedMonth && filterMode !== 'all' && bed.plants.length > 0) {
                                   return (
-                                    <div className="flex items-center justify-center h-full text-muted-foreground text-xs font-medium">
-                                      <div className="text-center">
-                                        <div className="text-orange-600 mb-1">
+                                    <div className="flex items-center justify-center h-full text-muted-foreground text-xs">
+                                      <div className="text-center p-2">
+                                        <div className="text-gray-400 mb-1">
                                           {filterMode === 'sowing' ? '🌱' : '🌸'}
                                         </div>
-                                        <div>Geen planten voor</div>
-                                        <div>{filterMode === 'sowing' ? 'zaaien' : 'bloei'} deze maand</div>
+                                        <div className="font-medium">Niet actief</div>
+                                        <div className="text-[10px]">
+                                          {filterMode === 'sowing' ? 'Geen zaaitijd' : 'Bloeit niet'}
+                                        </div>
+                                        <div className="text-[10px] mt-1 text-gray-500">
+                                          ({bed.plants.length} plant{bed.plants.length !== 1 ? 'en' : ''} totaal)
+                                        </div>
                                       </div>
                                     </div>
                                   )
@@ -1608,36 +1611,6 @@ export default function GardenDetailPage() {
                   )
                 })}
 
-                {/* Check if any beds are visible after filtering */}
-                {(() => {
-                  const visibleBeds = plantBeds.filter(bed => {
-                    if (!selectedMonth || filterMode === 'all') return true
-                    return shouldHighlightBed(bed)
-                  })
-                  
-                  if (visibleBeds.length === 0 && selectedMonth && filterMode !== 'all') {
-                    return (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-center bg-background/80 p-8 rounded-lg border-2 border-dashed border-border">
-                          <div className="text-orange-600 mb-4 text-5xl">
-                            {filterMode === 'sowing' ? '🌱' : '🌸'}
-                          </div>
-                          <h3 className="text-xl font-medium text-foreground mb-2">Geen plantvakken zichtbaar</h3>
-                          <p className="text-muted-foreground mb-4">
-                            Er zijn geen planten die {filterMode === 'sowing' ? 'gezaaid moeten worden' : 'bloeien'} in deze maand.
-                          </p>
-                          <Button 
-                            variant="outline"
-                            onClick={() => setFilterMode('all')}
-                          >
-                            Toon alle plantvakken
-                          </Button>
-                        </div>
-                      </div>
-                    )
-                  }
-                })()}
-
                 {/* Empty State */}
                 {plantBeds.length === 0 && (
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -1782,39 +1755,7 @@ export default function GardenDetailPage() {
             </Card>
           ) : (
             <div className="grid gap-4">
-              {(() => {
-                const filteredBeds = plantBeds.filter(bed => {
-                  // Show all beds when no filter is active
-                  if (!selectedMonth || filterMode === 'all') return true
-                  // Only show beds that have plants matching the filter
-                  return shouldHighlightBed(bed)
-                })
-                
-                if (filteredBeds.length === 0 && selectedMonth && filterMode !== 'all') {
-                  return (
-                    <Card className="text-center py-12">
-                      <CardContent>
-                        <div className="text-orange-600 mb-4 text-4xl">
-                          {filterMode === 'sowing' ? '🌱' : '🌸'}
-                        </div>
-                        <h3 className="text-xl font-medium text-muted-foreground mb-2">
-                          Geen plantvakken gevonden
-                        </h3>
-                        <p className="text-muted-foreground mb-6">
-                          Er zijn geen planten die {filterMode === 'sowing' ? 'gezaaid moeten worden' : 'bloeien'} in deze maand.
-                        </p>
-                        <Button 
-                          variant="outline"
-                          onClick={() => setFilterMode('all')}
-                        >
-                          Toon alle plantvakken
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  )
-                }
-                
-                return filteredBeds.map((bed) => (
+              {plantBeds.map((bed) => (
                 <Card key={bed.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -1871,8 +1812,7 @@ export default function GardenDetailPage() {
                   </div>
                 </CardContent>
               </Card>
-                ))
-              })()}
+              ))}
             </div>
           )}
         </div>
