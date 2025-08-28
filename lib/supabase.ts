@@ -32,9 +32,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       'X-Request-Id': typeof crypto !== 'undefined' ? crypto.randomUUID() : 'server-side',
     },
     fetch: async (url, options = {}) => {
-      // Add request timeout and retry logic
+      // Add request timeout and retry logic with progressive timeouts
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      const isHealthCheck = url.includes('/rest/v1/gardens?select=count');
+      const timeoutMs = isHealthCheck ? 5000 : 20000; // Shorter timeout for health checks
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      
+      const startTime = performance.now();
       
       try {
         const response = await fetch(url, {
@@ -43,21 +47,40 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         });
         clearTimeout(timeoutId);
         
-        // Log slow requests
-        const responseTime = performance.now();
-        if (responseTime > 5000) {
-          console.warn(`⚠️ Slow Supabase request: ${url} took ${responseTime}ms`);
+        const responseTime = performance.now() - startTime;
+        
+        // Log performance metrics
+        if (responseTime > 10000) {
+          console.error(`🚨 CRITICAL: Supabase request took ${responseTime.toFixed(0)}ms: ${url}`);
+        } else if (responseTime > 3000) {
+          console.warn(`⚠️ SLOW: Supabase request took ${responseTime.toFixed(0)}ms: ${url}`);
+        } else if (process.env.NODE_ENV === 'development' && responseTime > 1000) {
+          console.log(`📊 Supabase request: ${responseTime.toFixed(0)}ms - ${url}`);
+        }
+        
+        // Check response status
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error');
+          console.error(`🚨 Supabase HTTP ${response.status}:`, errorText);
+          throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
         }
         
         return response;
       } catch (error: any) {
         clearTimeout(timeoutId);
+        const responseTime = performance.now() - startTime;
         
         if (error.name === 'AbortError') {
-          console.error('🚨 Supabase request timeout:', url);
-          throw new Error('Request timeout - please try again');
+          console.error(`🚨 Supabase request timeout after ${timeoutMs}ms:`, url);
+          throw new Error(`Verbinding time-out na ${timeoutMs/1000}s - probeer opnieuw`);
         }
         
+        // Network errors
+        if (!navigator.onLine) {
+          throw new Error('Geen internetverbinding - controleer je netwerk');
+        }
+        
+        console.error(`🚨 Supabase request failed after ${responseTime.toFixed(0)}ms:`, error.message);
         throw error;
       }
     },

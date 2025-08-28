@@ -298,7 +298,7 @@ function HomePageContent() {
               <TrendingUp className="h-4 w-4" />
             </div>
             <p className="text-xs text-blue-600 mt-1">
-              Gebruik van geoptimaliseerde JOIN queries voor snellere laadtijden
+              Verbeterde verbindingslogica en timeout handling voor betrouwbare toegang
             </p>
           </div>
         )}
