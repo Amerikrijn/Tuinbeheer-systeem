@@ -13,9 +13,11 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
+import { getPlantBedsOptimized } from "@/lib/database-optimized"
+
 import { uiLogger, AuditLogger } from "@/lib/logger"
 import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -45,6 +47,8 @@ function HomePageContent() {
   const { toast } = useToast()
   const { user, isAdmin } = useAuth()
   
+
+  
   const [state, setState] = React.useState<HomePageState>({
     gardens: [],
     loading: true,
@@ -55,7 +59,7 @@ function HomePageContent() {
     hasMore: false,
   })
 
-  // Load gardens with proper error handling and logging (memoized for performance)
+  // Load gardens with proper error handling and logging
   const loadGardens = React.useCallback(async (page = 1, searchTerm = "", append = false) => {
     const operationId = `loadGardens-${Date.now()}`
     
@@ -64,40 +68,45 @@ function HomePageContent() {
       
       setState(prev => ({ ...prev, loading: true, error: null }))
       
-      const filters = searchTerm ? { query: searchTerm } : undefined
-      const sort = { field: 'created_at', direction: 'desc' as const }
+      // Gebruik normale TuinService
+      let paginatedData
+      if (searchTerm) {
+        paginatedData = await TuinService.getAll({ query: searchTerm }, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
+      } else {
+        paginatedData = await TuinService.getAll(undefined, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
+      }
       
-      const result = await TuinService.getAll(filters, sort, page, ITEMS_PER_PAGE)
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to load gardens')
+      if (!paginatedData.success) {
+        throw new Error(paginatedData.error || 'Failed to load gardens')
       }
 
-      const { data: paginatedData } = result
-      if (!paginatedData) {
+      const { data } = paginatedData
+      if (!data) {
         throw new Error('No data received from server')
       }
 
       // Banking-grade logging: Log gardens loaded with metadata only
       uiLogger.debug('Gardens loaded from TuinService', { 
-        count: paginatedData.data.length,
+        count: data.data.length,
         operationId,
-        hasActiveGardens: paginatedData.data.some(g => g.is_active)
+        hasActiveGardens: data.data.some(g => g.is_active)
       })
 
       uiLogger.info('Gardens loaded successfully', { 
-        count: paginatedData.data.length, 
-        totalPages: paginatedData.total_pages,
-        page: paginatedData.page 
+        count: data.data.length, 
+        totalPages: data.total_pages,
+        page: data.page
       })
+
+
 
       setState(prev => ({
         ...prev,
-        gardens: append ? [...prev.gardens, ...paginatedData.data] : paginatedData.data,
+        gardens: append ? [...prev.gardens, ...data.data] : data.data,
         loading: false,
-        page: paginatedData.page,
-        totalPages: paginatedData.total_pages,
-        hasMore: paginatedData.page < paginatedData.total_pages,
+        page: data.page,
+        totalPages: data.total_pages,
+        hasMore: data.page < data.total_pages,
       }))
 
       // Log user action for audit trail
@@ -106,7 +115,7 @@ function HomePageContent() {
         'VIEW',
         'gardens',
         undefined,
-        { page, searchTerm, resultCount: paginatedData.data.length }
+        { page, searchTerm, resultCount: data.data.length }
       )
 
     } catch (error) {
@@ -171,6 +180,8 @@ function HomePageContent() {
   const handleRetry = React.useCallback(() => {
     loadGardens(1, state.searchTerm, false)
   }, [loadGardens, state.searchTerm])
+
+
 
   // Delete garden with confirmation
   const handleDeleteGarden = React.useCallback(async (gardenId: string, gardenName: string) => {
@@ -240,6 +251,8 @@ function HomePageContent() {
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Tuinbeheer Systeem</h1>
         </div>
 
+        
+        
       </header>
 
       {/* Search and Actions */}

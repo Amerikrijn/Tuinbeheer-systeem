@@ -10,14 +10,10 @@ export function middleware(request: NextRequest) {
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
   
-  // Allow caching for static assets and public pages
+  // ✅ Intelligente caching op basis van content type en route
   const isStaticAsset = pathname.startsWith('/_next/static') || 
                        pathname.startsWith('/favicon') ||
-                       pathname.endsWith('.png') ||
-                       pathname.endsWith('.jpg') ||
-                       pathname.endsWith('.jpeg') ||
-                       pathname.endsWith('.svg') ||
-                       pathname.endsWith('.ico')
+                       pathname.match(/\.(png|jpg|jpeg|svg|ico|css|js|woff|woff2|ttf|eot)$/)
   
   const isPublicPage = pathname === '/auth/login' ||
                       pathname === '/auth/forgot-password' ||
@@ -28,16 +24,38 @@ export function middleware(request: NextRequest) {
                       pathname === '/auth/pending' ||
                       pathname.startsWith('/api/auth')
   
-  // Allow short-term caching for public pages and longer caching for static assets
+  const isApiRoute = pathname.startsWith('/api/') && !pathname.includes('/auth/')
+  const isGardenPage = pathname.startsWith('/gardens/') || pathname.startsWith('/plants/') || pathname.startsWith('/tasks/')
+  const isDashboardPage = pathname === '/' || pathname === '/user-dashboard' || pathname === '/admin'
+  
+  // ✅ Intelligente cache strategieën
   if (isStaticAsset) {
+    // Static assets: lange cache (1 jaar)
     response.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
   } else if (isPublicPage) {
-    response.headers.set('Cache-Control', 'public, max-age=300, must-revalidate') // 5 minutes
+    // Auth pages: korte cache (5 minuten)
+    response.headers.set('Cache-Control', 'public, max-age=300, must-revalidate')
+  } else if (isApiRoute) {
+    // API routes: korte cache voor data (1 minuut)
+    response.headers.set('Cache-Control', 'public, max-age=60, must-revalidate')
+  } else if (isGardenPage) {
+    // Garden pages: medium cache (10 minuten) - data verandert niet vaak
+    response.headers.set('Cache-Control', 'public, max-age=600, must-revalidate')
+  } else if (isDashboardPage) {
+    // Dashboard: korte cache (2 minuten) - data kan veranderen
+    response.headers.set('Cache-Control', 'public, max-age=120, must-revalidate')
   } else {
-    // For authenticated pages, disable caching for critical updates
-    response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate')
-    response.headers.set('Pragma', 'no-cache')
-    response.headers.set('Expires', '0')
+    // Andere pagina's: korte cache (5 minuten)
+    response.headers.set('Cache-Control', 'public, max-age=300, must-revalidate')
+  }
+  
+  // ✅ Performance headers toevoegen
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('X-Frame-Options', 'DENY')
+  
+  // ✅ Compressie optimalisatie
+  if (pathname.match(/\.(css|js|html|xml|txt)$/)) {
+    response.headers.set('Vary', 'Accept-Encoding')
   }
   
   return response
