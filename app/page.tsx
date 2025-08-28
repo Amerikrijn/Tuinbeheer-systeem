@@ -645,7 +645,16 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
               </div>
             ) : (
               <div className="text-xs text-muted-foreground italic">
-                {loadingUsers ? 'Laden...' : 'Geen gebruikers'}
+                {loadingUsers ? 'Laden...' : (
+                  gardenUsers.length === 0 ? (
+                    <div className="flex flex-col gap-1">
+                      <span>Geen gebruikers met toegang</span>
+                      <span className="text-xs opacity-75">
+                        (Voeg toegang toe via admin → Gebruikers → Tuin Toegang Beheren)
+                      </span>
+                    </div>
+                  ) : 'Geen gebruikers'
+                )}
               </div>
             )}
           </div>
