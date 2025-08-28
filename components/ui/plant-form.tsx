@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ChevronDown, ChevronUp, AlertCircle, Settings, Flower, Info } from "lucide-react"
+import { DUTCH_FLOWERS } from "@/lib/dutch-flowers"
 
 // Standard flower types with emojis
 const STANDARD_FLOWERS = [
@@ -39,6 +40,7 @@ export interface PlantFormData {
   sunPreference: 'full-sun' | 'partial-sun' | 'shade'
   plantingDate: string
   expectedHarvestDate: string
+  bloom_period?: string
   status: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   notes: string
   careInstructions: string
@@ -89,12 +91,19 @@ export function PlantForm({
       f.name.toLowerCase() === value.toLowerCase()
     )
     
+    // Also check Dutch flowers database for bloom period
+    const dutchFlower = DUTCH_FLOWERS.find(f => 
+      f.name.toLowerCase() === value.toLowerCase() ||
+      f.scientificName?.toLowerCase() === value.toLowerCase()
+    )
+    
     if (selectedFlower) {
       onChange({
         ...data,
         name: value,
         emoji: selectedFlower.emoji,
         color: data.color || selectedFlower.color,
+        bloom_period: dutchFlower?.bloeiperiode || data.bloom_period || '',
         isStandardFlower: true,
       })
     } else {
@@ -102,6 +111,7 @@ export function PlantForm({
         ...data,
         name: value,
         emoji: data.emoji === DEFAULT_FLOWER_EMOJI ? DEFAULT_FLOWER_EMOJI : data.emoji,
+        bloom_period: dutchFlower?.bloeiperiode || data.bloom_period || '',
         isStandardFlower: false,
       })
     }
@@ -558,6 +568,7 @@ export function createInitialPlantFormData(): PlantFormData {
     sunPreference: 'partial-sun',
     plantingDate: "",
     expectedHarvestDate: "",
+    bloom_period: "",
     status: "gezond",
     notes: "",
     careInstructions: "",

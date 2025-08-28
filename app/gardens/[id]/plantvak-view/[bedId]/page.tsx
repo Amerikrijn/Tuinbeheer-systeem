@@ -48,6 +48,7 @@ import { TaskService } from "@/lib/services/task.service"
 import { AddTaskForm } from "@/components/tasks/add-task-form"
 import { PlantForm, PlantFormData, PlantFormErrors, createInitialPlantFormData } from "@/components/ui/plant-form"
 import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supabase"
+import { DUTCH_FLOWERS } from "@/lib/dutch-flowers"
 import type { TaskWithPlantInfo, WeeklyTask } from "@/lib/types/tasks"
 import { getTaskTypeConfig, getPriorityConfig, formatTaskDate } from "@/lib/types/tasks"
 import { uploadImage, type UploadResult } from "@/lib/storage"
@@ -767,6 +768,12 @@ export default function PlantBedViewPage() {
         }
       }
       
+      // Find bloom period from Dutch flowers database
+      const dutchFlowerData = DUTCH_FLOWERS.find(f => 
+        f.name.toLowerCase() === newFlower.name.toLowerCase() ||
+        f.scientificName?.toLowerCase() === newFlower.name.toLowerCase()
+      );
+      
       const newPlant = await createVisualPlant({
         plant_bed_id: plantBed.id,
         name: newFlower.name,
@@ -782,7 +789,8 @@ export default function PlantBedViewPage() {
         category: newFlower.isStandardFlower ? 'Standaard' : 'Aangepast',
         notes: newFlower.notes || '',
         planting_date: newFlower.plantingDate || '',
-        bloom_period: newFlower.expectedHarvestDate || ''
+        bloom_period: dutchFlowerData?.bloeiperiode || newFlower.bloom_period || '',
+        expected_harvest_date: newFlower.expectedHarvestDate || ''
       })
 
       if (newPlant) {
@@ -817,13 +825,20 @@ export default function PlantBedViewPage() {
     }
 
     try {
+      // Find bloom period from Dutch flowers database
+      const dutchFlowerData = DUTCH_FLOWERS.find(f => 
+        f.name.toLowerCase() === newFlower.name.toLowerCase() ||
+        f.scientificName?.toLowerCase() === newFlower.name.toLowerCase()
+      );
+      
       const updatedPlant = await updatePlantPosition(selectedFlower.id, {
         name: newFlower.name,
         color: newFlower.color,
         status: newFlower.status,
         emoji: newFlower.emoji,
         planting_date: newFlower.plantingDate || '',
-        bloom_period: newFlower.expectedHarvestDate || ''
+        bloom_period: dutchFlowerData?.bloeiperiode || newFlower.bloom_period || selectedFlower.bloom_period || '',
+        expected_harvest_date: newFlower.expectedHarvestDate || ''
       })
 
       if (updatedPlant) {
