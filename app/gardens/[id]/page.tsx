@@ -1358,45 +1358,76 @@ export default function GardenDetailPage() {
                             )}
                           </div>
 
-                          {/* Main area - show simple plant count and emojis */}
-                          <div className="w-full h-full flex flex-col items-center justify-center p-2 relative">
+                          {/* Main area - adaptive content based on size */}
+                          <div className="w-full h-full p-2 overflow-y-auto relative">
                             {bed.plants.length > 0 ? (
-                              <>
-                                {/* Plant emojis display */}
-                                <div className="flex flex-wrap justify-center gap-1 mb-1">
-                                  {/* Show unique plant emojis (max 4) */}
-                                  {Array.from(new Set(bed.plants.map(p => p.emoji || '🌸')))
-                                    .slice(0, 4)
-                                    .map((emoji, idx) => (
-                                      <span key={idx} className="text-lg" style={{ fontSize: Math.min(24, bedWidth / 6) }}>
-                                        {emoji}
-                                      </span>
-                                    ))}
-                                </div>
-                                {/* Plant count */}
-                                <div className="text-xs font-medium text-muted-foreground">
-                                  {bed.plants.length} plant{bed.plants.length !== 1 ? 'en' : ''}
-                                </div>
-                                
-                                {/* Hover info panel - shows on hover */}
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
-                                  <div className="bg-background/95 backdrop-blur-sm border-2 border-border rounded-lg shadow-xl p-3 min-w-[200px] max-w-[300px]">
-                                    <PlantBedSummary
-                                      plantBed={bed}
-                                      selectedMonth={selectedMonth}
-                                      filterMode={filterMode}
-                                      isHighlighted={isHighlighted}
-                                    />
-                                  </div>
-                                  {/* Arrow pointing down */}
-                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
-                                    <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-border"></div>
-                                  </div>
-                                </div>
-                              </>
+                              <div className="space-y-1">
+                                {/* Group plants by unique name */}
+                                {(() => {
+                                  const plantGroups = new Map()
+                                  bed.plants.forEach(plant => {
+                                    if (!plantGroups.has(plant.name)) {
+                                      plantGroups.set(plant.name, {
+                                        name: plant.name,
+                                        count: 0,
+                                        color: plant.color,
+                                        emoji: plant.emoji,
+                                        bloom_period: plant.bloom_period
+                                      })
+                                    }
+                                    plantGroups.get(plant.name).count++
+                                  })
+                                  
+                                  const isSmall = bedWidth < 200 || bedHeight < 200
+                                  const groups = Array.from(plantGroups.values())
+                                  
+                                  // For small plantvakken, show compact view
+                                  if (isSmall) {
+                                    return (
+                                      <div className="flex flex-col items-center justify-center h-full">
+                                        <div className="flex flex-wrap justify-center gap-1">
+                                          {groups.slice(0, 4).map((group, idx) => (
+                                            <span key={idx} className="text-base" title={group.name}>
+                                              {group.emoji || '🌸'}
+                                            </span>
+                                          ))}
+                                        </div>
+                                        <div className="text-xs text-center mt-1 text-muted-foreground">
+                                          {bed.plants.length} plant{bed.plants.length !== 1 ? 'en' : ''}
+                                        </div>
+                                      </div>
+                                    )
+                                  }
+                                  
+                                  // For larger plantvakken, show detailed view
+                                  return groups.map((group, idx) => (
+                                    <div key={idx} className="flex items-start gap-1 text-xs">
+                                      <span className="text-sm flex-shrink-0">{group.emoji || '🌸'}</span>
+                                      <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-1">
+                                          <span className="font-medium truncate">
+                                            {group.count > 1 && `${group.count}x `}{group.name}
+                                          </span>
+                                          {group.color && (
+                                            <div 
+                                              className="w-2 h-2 rounded-full border border-gray-400 flex-shrink-0"
+                                              style={{ backgroundColor: group.color }}
+                                            />
+                                          )}
+                                        </div>
+                                        {group.bloom_period && bedHeight > 250 && (
+                                          <div className="text-[10px] text-muted-foreground">
+                                            🌸 {group.bloom_period}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))
+                                })()}
+                              </div>
                             ) : (
-                              <div className="text-muted-foreground text-xs font-medium">
-                                Leeg
+                              <div className="flex items-center justify-center h-full text-muted-foreground text-xs font-medium">
+                                Leeg plantvak
                               </div>
                             )}
                             
