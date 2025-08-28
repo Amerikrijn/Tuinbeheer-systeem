@@ -1,41 +1,61 @@
-import type { Metadata, Viewport } from "next"
+import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { Toaster } from "@/components/ui/toaster"
 import { ThemeProvider } from "@/components/theme-provider"
 import { LanguageProvider } from "@/hooks/use-language"
+import { Toaster } from "@/components/ui/toaster"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { ConditionalNavigation } from "@/components/navigation/conditional-navigation" 
 import { SupabaseAuthProvider } from "@/components/auth/supabase-auth-provider"
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { ProvidersWrapper } from "@/components/providers-wrapper"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Tuinbeheer Systeem",
-  description: "Een systeem voor het beheren van tuinen en plantenvakken",
-}
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: "cover"
-}
-
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-      retry: 2,
-      refetchOnWindowFocus: false,
+  description: "Professioneel tuinbeheer systeem voor het beheren van tuinen, planten en taken",
+  keywords: ["tuinbeheer", "planten", "tuin", "beheer", "systeem"],
+  authors: [{ name: "Tuinbeheer Systeem" }],
+  creator: "Tuinbeheer Systeem",
+  publisher: "Tuinbeheer Systeem",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+  openGraph: {
+    title: "Tuinbeheer Systeem",
+    description: "Professioneel tuinbeheer systeem voor het beheren van tuinen, planten en taken",
+    url: "/",
+    siteName: "Tuinbeheer Systeem",
+    locale: "nl_NL",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tuinbeheer Systeem",
+    description: "Professioneel tuinbeheer systeem voor het beheren van tuinen, planten en taken",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
-})
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover"
+  }
+}
 
 export default function RootLayout({
   children,
@@ -45,7 +65,7 @@ export default function RootLayout({
   return (
     <html lang="nl">
       <body className={inter.className}>
-        <QueryClientProvider client={queryClient}>
+        <ProvidersWrapper>
           <ErrorBoundary>
             <ThemeProvider 
               attribute="class" 
@@ -61,9 +81,8 @@ export default function RootLayout({
                 </SupabaseAuthProvider>
               </LanguageProvider>
             </ThemeProvider>
-            <ReactQueryDevtools initialIsOpen={false} />
           </ErrorBoundary>
-        </QueryClientProvider>
+        </ProvidersWrapper>
       </body>
     </html>
   )
