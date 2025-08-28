@@ -47,6 +47,9 @@ function HomePageContent() {
   const { toast } = useToast()
   const { user, isAdmin } = useAuth()
   
+  // ✅ Performance monitoring hook
+  const performanceMonitor = usePerformanceMonitor()
+  
   const [state, setState] = React.useState<HomePageState>({
     gardens: [],
     loading: true,
@@ -150,7 +153,7 @@ function HomePageContent() {
         variant: "destructive",
       })
     }
-  }, [toast])
+  }, [toast, performanceMonitor])
 
   // Search with debouncing
   const debouncedSearch = React.useMemo(
@@ -163,7 +166,7 @@ function HomePageContent() {
         }, 300) // 300ms debounce
       }
     },
-    [loadGardens]
+    [loadGardens, performanceMonitor]
   )
 
   // Initial load
@@ -183,15 +186,14 @@ function HomePageContent() {
     if (!state.loading && state.hasMore) {
       loadGardens(state.page + 1, state.searchTerm, true)
     }
-  }, [loadGardens, state.loading, state.hasMore, state.page, state.searchTerm])
+  }, [loadGardens, state.loading, state.hasMore, state.page, state.searchTerm, performanceMonitor])
 
   // Retry loading gardens
   const handleRetry = React.useCallback(() => {
     loadGardens(1, state.searchTerm, false)
-  }, [loadGardens, state.searchTerm])
+  }, [loadGardens, state.searchTerm, performanceMonitor])
 
-  // ✅ Performance monitoring met nieuwe hook
-  const performanceMonitor = usePerformanceMonitor()
+
 
   // Delete garden with confirmation
   const handleDeleteGarden = React.useCallback(async (gardenId: string, gardenName: string) => {
