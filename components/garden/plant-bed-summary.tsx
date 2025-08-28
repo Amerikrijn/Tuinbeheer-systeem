@@ -60,9 +60,17 @@ const parseMonthRange = (period?: string): number[] => {
   return months
 }
 
-// Helper to get sowing month (typically 2-3 months before blooming)
-const getSowingMonths = (bloomPeriod?: string): number[] => {
-  const bloomMonths = parseMonthRange(bloomPeriod)
+// Helper to get sowing months - check actual planting_date first, then fallback to calculated
+const getSowingMonths = (plant: PlantWithPosition): number[] => {
+  // First check if plant has actual planting_date
+  if (plant.planting_date) {
+    const plantingDate = new Date(plant.planting_date)
+    const plantingMonth = plantingDate.getMonth() + 1 // getMonth() returns 0-11, we need 1-12
+    return [plantingMonth]
+  }
+  
+  // Fallback: calculate from bloom period (typically 2-3 months before blooming)
+  const bloomMonths = parseMonthRange(plant.bloom_period)
   if (bloomMonths.length === 0) return []
   
   const firstBloomMonth = bloomMonths[0]
@@ -111,6 +119,7 @@ export function PlantBedSummary({
       bloomPeriod?: string
       sowingMonths: number[]
       bloomMonths: number[]
+      plants: PlantWithPosition[] // Store individual plants for detailed filtering
     }> = new Map()
     
     plantBed.plants.forEach(plant => {
@@ -122,30 +131,66 @@ export function PlantBedSummary({
           count: 0,
           emoji: plant.emoji,
           bloomPeriod: plant.bloom_period,
-          sowingMonths: getSowingMonths(plant.bloom_period),
-          bloomMonths: parseMonthRange(plant.bloom_period)
+          sowingMonths: getSowingMonths(plant),
+          bloomMonths: parseMonthRange(plant.bloom_period),
+          plants: []
         })
       }
       
       const group = groups.get(key)!
       group.count++
+      group.plants.push(plant)
       if (plant.color) group.colors.add(plant.color)
+      
+      // Update sowing months if this plant has a different planting_date
+      const plantSowingMonths = getSowingMonths(plant)
+      plantSowingMonths.forEach(month => {
+        if (!group.sowingMonths.includes(month)) {
+          group.sowingMonths.push(month)
+        }
+      })
     })
     
     return Array.from(groups.values())
   }, [plantBed.plants])
   
+  // Helper to check if a plant matches the filter (same logic as main page)
+  const plantMatchesFilter = (plant: PlantWithPosition): boolean => {
+    if (!selectedMonth || filterMode === 'all') return true
+    
+    if (filterMode === 'blooming') {
+      // Check if plant blooms in selected month based on bloom_period
+      const bloomMonths = parseMonthRange(plant.bloom_period)
+      return bloomMonths.includes(selectedMonth)
+    } else if (filterMode === 'sowing') {
+      // Check if plant has planting_date in selected month
+      if (plant.planting_date) {
+        const plantingDate = new Date(plant.planting_date)
+        const plantingMonth = plantingDate.getMonth() + 1 // getMonth() returns 0-11, we need 1-12
+        return plantingMonth === selectedMonth
+      }
+      
+      // Fallback: if no planting_date, calculate sowing months from bloom_period
+      const bloomMonths = parseMonthRange(plant.bloom_period)
+      if (bloomMonths.length === 0) return false
+      
+      const firstBloomMonth = bloomMonths[0]
+      for (let i = 2; i <= 3; i++) {
+        let sowMonth = firstBloomMonth - i
+        if (sowMonth <= 0) sowMonth += 12
+        if (sowMonth === selectedMonth) return true
+      }
+    }
+    return false
+  }
+
   // Filter plants based on selected month and mode
   const filteredPlants = useMemo(() => {
     if (!selectedMonth || filterMode === 'all') return plantGroups
     
     return plantGroups.filter(group => {
-      if (filterMode === 'sowing') {
-        return group.sowingMonths.includes(selectedMonth)
-      } else if (filterMode === 'blooming') {
-        return group.bloomMonths.includes(selectedMonth)
-      }
-      return false // Changed from true to false - only show plants that match the filter
+      // Check if any plant in this group matches the filter
+      return group.plants.some(plant => plantMatchesFilter(plant))
     })
   }, [plantGroups, selectedMonth, filterMode])
   

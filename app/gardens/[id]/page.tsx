@@ -132,15 +132,23 @@ export default function GardenDetailPage() {
   const plantMatchesFilter = (plant: PlantWithPosition): boolean => {
     if (!selectedMonth || filterMode === 'all') return true
     
-    const bloomMonths = parseMonthRange(plant.bloom_period)
-    
     if (filterMode === 'blooming') {
+      // Check if plant blooms in selected month based on bloom_period
+      const bloomMonths = parseMonthRange(plant.bloom_period)
       return bloomMonths.includes(selectedMonth)
     } else if (filterMode === 'sowing') {
-      // Sowing is typically 2-3 months before blooming
-      const firstBloomMonth = bloomMonths[0]
-      if (!firstBloomMonth) return false
+      // Check if plant has planting_date in selected month
+      if (plant.planting_date) {
+        const plantingDate = new Date(plant.planting_date)
+        const plantingMonth = plantingDate.getMonth() + 1 // getMonth() returns 0-11, we need 1-12
+        return plantingMonth === selectedMonth
+      }
       
+      // Fallback: if no planting_date, calculate sowing months from bloom_period
+      const bloomMonths = parseMonthRange(plant.bloom_period)
+      if (bloomMonths.length === 0) return false
+      
+      const firstBloomMonth = bloomMonths[0]
       for (let i = 2; i <= 3; i++) {
         let sowMonth = firstBloomMonth - i
         if (sowMonth <= 0) sowMonth += 12
