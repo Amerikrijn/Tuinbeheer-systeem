@@ -435,29 +435,35 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
     const loadGardenUsers = async () => {
       try {
         setLoadingUsers(true)
-        const { data: users, error } = await supabase
+        
+        // Eerst de user IDs ophalen die toegang hebben tot deze tuin
+        const { data: accessData, error: accessError } = await supabase
           .from('user_garden_access')
-          .select(`
-            user_id,
-            users!user_garden_access_user_id_fkey (
-              id,
-              email,
-              full_name
-            )
-          `)
+          .select('user_id')
           .eq('garden_id', garden.id)
           .eq('is_active', true)
 
-        if (!error && users) {
-          uiLogger.debug('Raw users data from user_garden_access', { users, count: users.length })
-          // Filter out any entries where users is null and map to user objects
-          const filteredUsers = users
-            .map(u => u.users)
-            .filter(Boolean)
-          uiLogger.debug('Filtered users', { filteredUsers, count: filteredUsers.length })
-          setGardenUsers(filteredUsers)
+        if (accessError) {
+          throw accessError
+        }
+
+        if (accessData && accessData.length > 0) {
+          // Dan de gebruikersgegevens ophalen voor deze user IDs
+          const userIds = accessData.map(item => item.user_id)
+          const { data: users, error: usersError } = await supabase
+            .from('users')
+            .select('id, email, full_name')
+            .in('id', userIds)
+            .eq('is_active', true)
+
+          if (usersError) {
+            throw usersError
+          }
+
+          uiLogger.debug('Users loaded for garden', { users, count: users.length })
+          setGardenUsers(users || [])
         } else {
-          uiLogger.warn('No users data or error in user_garden_access query', { error, users })
+          uiLogger.debug('No users have access to this garden')
           setGardenUsers([])
         }
       } catch (error) {
