@@ -17,14 +17,14 @@ import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds, getPlantBed } from "@/lib/database"
 import { uploadImage, type UploadResult } from "@/lib/storage"
 import { uiLogger } from "@/lib/logger"
-import type { LogbookEntryFormData, Plantvak, Bloem, PlantvakWithBloemen } from "@/lib/types/index"
+import type { LogbookEntryFormData, Plantvak, Plant, PlantvakWithPlanten } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
 
 interface NewLogbookPageState {
-  plantBeds: PlantvakWithBloemen[]
-  plants: Bloem[]
+  plantBeds: PlantvakWithPlanten[]
+  plants: Plant[]
   loading: boolean
   submitting: boolean
   uploadingPhoto: boolean
@@ -65,7 +65,7 @@ function NewLogbookPageContent() {
       const plantBeds = await getPlantBeds()
 
       // Load plants if a plant bed is selected
-      let plants: Bloem[] = []
+      let plants: Plant[] = []
       if (state.formData.plant_bed_id) {
         const plantBedWithPlants = await getPlantBed(state.formData.plant_bed_id)
         if (plantBedWithPlants && plantBedWithPlants.plants) {

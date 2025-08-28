@@ -196,7 +196,7 @@ export default function NewPlantBedPage() {
         setTimeout(() => {
           toast({
             title: `Letter Code: ${plantBed.letter_code}`,
-            description: `Je kunt nu plantvak ${plantBed.letter_code} gebruiken om taken toe te voegen en bloemen te planten.`,
+            description: `Je kunt nu plantvak ${plantBed.letter_code} gebruiken om taken toe te voegen en planten te planten.`,
           })
         }, 1000)
         

@@ -51,7 +51,7 @@ import type { Garden, PlantBedWithPlants, PlantWithPosition } from "@/lib/supaba
 import type { TaskWithPlantInfo, WeeklyTask } from "@/lib/types/tasks"
 import { getTaskTypeConfig, getPriorityConfig, formatTaskDate } from "@/lib/types/tasks"
 import { uploadImage, type UploadResult } from "@/lib/storage"
-import { FlowerVisualization } from "@/components/flower-visualization"
+import { PlantVisualization } from "@/components/plant-visualization"
 import {
   METERS_TO_PIXELS,
   PLANTVAK_CANVAS_PADDING,
@@ -71,8 +71,8 @@ const SCALE_MIN = 0.5
 const SCALE_MAX = 3
 const FLOWER_SIZE = FLOWER_SIZE_MEDIUM // Default to medium size (now 45px)
 
-const STANDARD_FLOWERS = [
-  // Eenjarige bloemen (Annual flowers only)
+const STANDARD_PLANTS = [
+  // Eenjarige planten (Annual plants only)
   { name: 'Zinnia', color: '#FF6347', emoji: '🌻' },
   { name: 'Marigold', color: '#FFA500', emoji: '🌼' },
   { name: 'Tagetes', color: '#FFA500', emoji: '🌼' },
@@ -730,7 +730,7 @@ export default function PlantBedViewPage() {
 
     // Validate form
     const newErrors: PlantFormErrors = {}
-    if (!newFlower.name.trim()) newErrors.name = "Bloemnaam is verplicht"
+    if (!newFlower.name.trim()) newErrors.name = "Plantnaam is verplicht"
     if (!newFlower.color.trim()) newErrors.color = "Kleur is verplicht"
     if (!newFlower.height.trim()) newErrors.height = "Hoogte is verplicht"
     
@@ -805,7 +805,7 @@ export default function PlantBedViewPage() {
 
     // Validate form
     const newErrors: PlantFormErrors = {}
-    if (!newFlower.name.trim()) newErrors.name = "Bloemnaam is verplicht"
+    if (!newFlower.name.trim()) newErrors.name = "Plantnaam is verplicht"
     if (!newFlower.color.trim()) newErrors.color = "Kleur is verplicht"
     if (!newFlower.height.trim()) newErrors.height = "Hoogte is verplicht"
     
@@ -1587,14 +1587,14 @@ export default function PlantBedViewPage() {
                 setIsCustomFlower(false)
               }}>
                 <Plus className="h-4 w-4 mr-2" />
-                Bloem Toevoegen
+                Plant Toevoegen
               </Button>
                           </DialogTrigger>
             <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background border border-gray-200 shadow-xl">
               <DialogHeader>
-                <DialogTitle>Nieuwe Bloem Toevoegen</DialogTitle>
+                <DialogTitle>Nieuwe Plant Toevoegen</DialogTitle>
                 <DialogDescription>
-                  Voeg een nieuwe bloem toe aan dit plantvak. Je kunt het later verplaatsen door te slepen.
+                  Voeg een nieuwe plant toe aan dit plantvak. Je kunt het later verplaatsen door te slepen.
                 </DialogDescription>
               </DialogHeader>
               <div className="py-4">
@@ -1639,9 +1639,9 @@ export default function PlantBedViewPage() {
           }}>
             <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background z-50 border border-gray-200 shadow-xl">
               <DialogHeader>
-                <DialogTitle>Bloem Bewerken</DialogTitle>
+                <DialogTitle>Plant Bewerken</DialogTitle>
                 <DialogDescription>
-                  Wijzig de eigenschappen van deze bloem.
+                  Wijzig de eigenschappen van deze plant.
                 </DialogDescription>
               </DialogHeader>
               <div className="py-4">
