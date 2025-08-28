@@ -267,7 +267,7 @@ function HomePageContent() {
             className="px-2"
           >
             <Grid3X3 className="h-4 w-4 mr-1" />
-            {isVisualView ? "Lijst" : "Visueel"}
+            {isVisualView ? "Compacte weergave" : "Volledige weergave"}
           </Button>
 
           <Button asChild className="bg-green-600 hover:bg-green-700">
@@ -338,10 +338,7 @@ function HomePageContent() {
             </div>
           ) : (
             <>
-              <div className={isVisualView 
-                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"
-                : "space-y-4 mb-8"
-              }>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 {filteredGardens.map((garden) => (
                   <GardenCard 
                     key={garden.id} 
@@ -497,12 +494,10 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
   }
 
   return (
-    <Card className={`group hover:shadow-lg transition-all duration-200 border-2 hover:border-green-200 overflow-hidden ${
-      isListView ? 'mb-2' : ''
-    }`}>
+    <Card className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-green-200 overflow-hidden">
       <Link href={`/gardens/${garden.id}`} className="block">
-        <CardHeader className={isListView ? "pb-2 py-3" : "pb-3"}>
-          <div className={`flex items-start justify-between ${isListView ? 'gap-4' : ''}`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <CardTitle className={`font-semibold text-card-foreground group-hover:text-primary transition-colors truncate ${
                   garden.name.length > 20 ? 'text-sm' : 'text-base'
@@ -528,53 +523,53 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
           )}
 
           {/* Flower Preview Section */}
-          <div className={isListView ? "mb-2" : "mb-4"}>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-card-foreground">Planten in deze tuin:</span>
-              <span className="text-xs text-muted-foreground">
-                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} planten
-              </span>
+          <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-card-foreground">Planten in deze tuin:</span>
+                <span className="text-xs text-muted-foreground">
+                  {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} planten
+                </span>
+              </div>
+              
+              {loadingFlowers ? (
+                <div className="flex gap-1">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                  ))}
+                </div>
+              ) : allFlowers.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {allFlowers.slice(0, isListView ? 4 : 6).map((flower, index) => (
+                    <div
+                      key={`${flower.id}-${index}`}
+                      className="flex items-center gap-1 bg-green-50 border border-green-200 rounded-lg px-2 py-1"
+                      title={flower.name}
+                    >
+                      <span className="text-sm">
+                        {getPlantEmoji(flower.name, flower.emoji)}
+                      </span>
+                      <span className="text-xs font-medium text-green-800 truncate max-w-16">
+                        {flower.name}
+                      </span>
+                    </div>
+                  ))}
+                  {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > (isListView ? 4 : 6) && (
+                    <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
+                      <span className="text-xs text-muted-foreground">
+                        +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - (isListView ? 4 : 6)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-xs text-muted-foreground italic">
+                  Nog geen planten geplant
+                </div>
+              )}
             </div>
-            
-            {loadingFlowers ? (
-              <div className="flex gap-1">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
-                ))}
-              </div>
-            ) : allFlowers.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {allFlowers.map((flower, index) => (
-                  <div
-                    key={`${flower.id}-${index}`}
-                    className="flex items-center gap-1 bg-green-50 border border-green-200 rounded-lg px-2 py-1"
-                    title={flower.name}
-                  >
-                    <span className="text-sm">
-                      {getPlantEmoji(flower.name, flower.emoji)}
-                    </span>
-                    <span className="text-xs font-medium text-green-800 truncate max-w-16">
-                      {flower.name}
-                    </span>
-                  </div>
-                ))}
-                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-                  <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
-                    <span className="text-xs text-muted-foreground">
-                      +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-xs text-muted-foreground italic">
-                Nog geen planten geplant
-              </div>
-            )}
-          </div>
 
           {/* Users with access section */}
-          <div className={isListView ? "mb-2" : "mb-4"}>
+          <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-card-foreground">Gebruikers met toegang:</span>
               <span className="text-xs text-muted-foreground">
@@ -611,15 +606,12 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
               </div>
             )}
           </div>
-          
-{!isListView && (
-            <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-1" />
-                <span>Aangemaakt {formatDate(garden.created_at)}</span>
-              </div>
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+            <div className="flex items-center">
+              <Calendar className="h-4 w-4 mr-1" />
+              <span>Aangemaakt {formatDate(garden.created_at)}</span>
             </div>
-          )}
+          </div>
           
           <div className="flex items-center justify-between">
             <div className="flex items-center text-green-600">
