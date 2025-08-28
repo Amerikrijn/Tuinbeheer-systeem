@@ -27,6 +27,8 @@ pas alleen technical debt toe als hier expliceit toestemming voor is anders een 
 - Vermijd vakjargon tenzij uitgelegd
 - Suggesties voor documentatie en communicatie naar developers
 - Meld proactief als iets fout gaat of onduidelijk is
+Meld vooraf altijd wat je denkt wat de bedoeling is in functionele termen
+Bij akkoord ga dan bouwen, testen. als je klaar bent leg dan uit wat je ehbt gedaan vraag om toestemming om pr te mogen maken. 
 
 ### 💬 Voorbeeldvragen die een Product owner (de mens) kan stellen
 - "Kun je uitleggen wat deze CI/CD wijziging doet?"
