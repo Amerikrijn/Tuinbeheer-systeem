@@ -157,16 +157,21 @@ export function useSupabaseAuth(): AuthContextType {
     try {
       // 🏦 ENHANCED: Progressive timeout with retry logic and circuit breaker
       const performDatabaseQuery = async () => {
-        const timeouts = [5000, 10000, 20000] // Progressive timeouts
+        const timeouts = [3000, 8000, 15000] // Optimized progressive timeouts
         let lastError: any = null
         
         for (let i = 0; i < timeouts.length; i++) {
           try {
+            // Add connection check before each attempt
+            if (typeof window !== 'undefined' && !navigator.onLine) {
+              throw new Error('No internet connection detected')
+            }
+
             const timeoutPromise = new Promise((_, reject) => {
               setTimeout(() => reject(new Error(`Database lookup timeout after ${timeouts[i]}ms (attempt ${i + 1}/${timeouts.length})`)), timeouts[i])
             })
 
-            // 🏦 OPTIMIZED: Use efficient query with proper ordering
+            // 🏦 OPTIMIZED: Use efficient query with proper ordering and health check
             const databasePromise = supabase
               .from('users')
               .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
@@ -180,11 +185,25 @@ export function useSupabaseAuth(): AuthContextType {
             ])
             
             // Success - return the result
+            console.log(`✅ Database query succeeded on attempt ${i + 1}`)
             return result
-          } catch (error) {
+          } catch (error: any) {
             lastError = error
+            
+            // Check for specific error types that shouldn't be retried
+            if (error?.message?.includes('No internet connection') || 
+                error?.code === 'PGRST116' || // Row not found - don't retry
+                error?.message?.includes('JWT')) { // Auth issues - don't retry
+              console.error(`❌ Non-retryable error: ${error.message}`)
+              throw error
+            }
+            
             if (i < timeouts.length - 1) {
-              console.warn(`⏱️ Database query attempt ${i + 1} failed with ${timeouts[i]}ms timeout, retrying...`)
+              console.warn(`⏱️ Database query attempt ${i + 1} failed with ${timeouts[i]}ms timeout, retrying in ${1000 * (i + 1)}ms...`)
+              // Add exponential backoff delay between retries
+              await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)))
+            } else {
+              console.error(`🚨 All database query attempts failed. Last error:`, error)
             }
           }
         }
@@ -314,17 +333,37 @@ export function useSupabaseAuth(): AuthContextType {
     } catch (error) {
       console.error('Error in loadUserProfile:', error)
       
-      // 🏦 FALLBACK: Try to use cached data if available
+      // 🏦 ENHANCED FALLBACK: Try to use cached data with connection awareness
       if (useCache) {
         const cached = getCachedUserProfile()
         if (cached && cached.email?.toLowerCase() === supabaseUser.email?.toLowerCase()) {
-          console.warn('⚠️ Using cached profile due to database error')
-          return cached
+          const isConnectionError = error.message?.includes('timeout') || 
+                                   error.message?.includes('network') ||
+                                   error.message?.includes('fetch');
+          
+          if (isConnectionError) {
+            console.warn('⚠️ Using cached profile due to connection issues:', error.message)
+            // Show user that we're using cached data
+            setState(prev => ({
+              ...prev,
+              error: 'Verbinding traag - gegevens mogelijk niet actueel'
+            }))
+            return cached
+          } else {
+            console.warn('⚠️ Using cached profile due to database error:', error.message)
+            return cached
+          }
         }
       }
       
-      // If no cache available, throw the error
-      throw error
+      // Enhanced error messaging
+      const userFriendlyError = error.message?.includes('timeout') 
+        ? 'Verbinding time-out - probeer het later opnieuw'
+        : error.message?.includes('network') || error.message?.includes('fetch')
+        ? 'Netwerkfout - controleer je internetverbinding' 
+        : 'Database fout - neem contact op met de beheerder';
+      
+      throw new Error(userFriendlyError)
     }
   }
 
@@ -392,14 +431,19 @@ export function useSupabaseAuth(): AuthContextType {
 
     initializeAuth()
 
-    // Reduced loading timeout for better UX
+    // Enhanced loading timeout with connection awareness
     const loadingTimeout = setTimeout(() => {
+      const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+      const errorMessage = isOnline 
+        ? 'Inloggen duurt langer dan verwacht. Controleer je internetverbinding en probeer opnieuw.'
+        : 'Geen internetverbinding. Controleer je netwerk en probeer opnieuw.';
+        
       setState(prev => ({
         ...prev,
         loading: false,
-        error: prev.user ? null : 'Loading timeout - please refresh page'
+        error: prev.user ? null : errorMessage
       }))
-    }, 8000) // Reduced from 10000ms
+    }, 12000) // Slightly longer timeout with better messaging
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
