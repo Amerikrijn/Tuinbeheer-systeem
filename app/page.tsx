@@ -13,9 +13,10 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
+import { getPlantBedsOptimized, measureQueryPerformance } from "@/lib/database-optimized"
 import { uiLogger, AuditLogger } from "@/lib/logger"
 import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -64,40 +65,65 @@ function HomePageContent() {
       
       setState(prev => ({ ...prev, loading: true, error: null }))
       
-      const filters = searchTerm ? { query: searchTerm } : undefined
-      const sort = { field: 'created_at', direction: 'desc' as const }
+      // ✅ Gebruik geoptimaliseerde functie met performance monitoring
+      const { data: paginatedData, duration } = await measureQueryPerformance(
+        'loadGardens',
+        async () => {
+          if (searchTerm) {
+            // Gebruik geoptimaliseerde search functie
+            const gardens = await TuinService.getAll({ query: searchTerm }, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
+            return gardens
+          } else {
+            // Gebruik geoptimaliseerde getAll functie
+            const gardens = await TuinService.getAll(undefined, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
+            return gardens
+          }
+        }
+      )
       
-      const result = await TuinService.getAll(filters, sort, page, ITEMS_PER_PAGE)
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to load gardens')
+      if (!paginatedData.success) {
+        throw new Error(paginatedData.error || 'Failed to load gardens')
       }
 
-      const { data: paginatedData } = result
-      if (!paginatedData) {
+      const { data } = paginatedData
+      if (!data) {
         throw new Error('No data received from server')
       }
 
       // Banking-grade logging: Log gardens loaded with metadata only
       uiLogger.debug('Gardens loaded from TuinService', { 
-        count: paginatedData.data.length,
+        count: data.data.length,
         operationId,
-        hasActiveGardens: paginatedData.data.some(g => g.is_active)
+        hasActiveGardens: data.data.some(g => g.is_active),
+        queryDuration: duration
       })
 
       uiLogger.info('Gardens loaded successfully', { 
-        count: paginatedData.data.length, 
-        totalPages: paginatedData.total_pages,
-        page: paginatedData.page 
+        count: data.data.length, 
+        totalPages: data.total_pages,
+        page: data.page,
+        performance: `${duration.toFixed(2)}ms`
+      })
+
+      // ✅ Update performance metrics
+      setPerformanceMetrics(prev => {
+        const newTotalQueries = prev.totalQueries + 1
+        const newAverageQueryTime = (prev.averageQueryTime * prev.totalQueries + duration) / newTotalQueries
+        
+        return {
+          lastQueryTime: duration,
+          averageQueryTime: newAverageQueryTime,
+          totalQueries: newTotalQueries
+        }
       })
 
       setState(prev => ({
         ...prev,
-        gardens: append ? [...prev.gardens, ...paginatedData.data] : paginatedData.data,
+        gardens: append ? [...prev.gardens, ...data.data] : data.data,
         loading: false,
-        page: paginatedData.page,
-        totalPages: paginatedData.total_pages,
-        hasMore: paginatedData.page < paginatedData.total_pages,
+        page: data.page,
+        totalPages: data.total_pages,
+        hasMore: data.page < data.total_pages,
       }))
 
       // Log user action for audit trail
@@ -106,7 +132,7 @@ function HomePageContent() {
         'VIEW',
         'gardens',
         undefined,
-        { page, searchTerm, resultCount: paginatedData.data.length }
+        { page, searchTerm, resultCount: data.data.length, performance: duration }
       )
 
     } catch (error) {
@@ -171,6 +197,24 @@ function HomePageContent() {
   const handleRetry = React.useCallback(() => {
     loadGardens(1, state.searchTerm, false)
   }, [loadGardens, state.searchTerm])
+
+  // Performance monitoring
+  const [performanceMetrics, setPerformanceMetrics] = React.useState<{
+    lastQueryTime: number
+    averageQueryTime: number
+    totalQueries: number
+  }>({
+    lastQueryTime: 0,
+    averageQueryTime: 0,
+    totalQueries: 0
+  })
+
+  // Update performance metrics
+  React.useEffect(() => {
+    if (performanceMetrics.totalQueries > 0) {
+      console.log(`📊 Performance Stats: Avg: ${performanceMetrics.averageQueryTime.toFixed(2)}ms, Total: ${performanceMetrics.totalQueries}`)
+    }
+  }, [performanceMetrics])
 
   // Delete garden with confirmation
   const handleDeleteGarden = React.useCallback(async (gardenId: string, gardenName: string) => {
@@ -240,6 +284,23 @@ function HomePageContent() {
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Tuinbeheer Systeem</h1>
         </div>
 
+        {/* ✅ Performance Indicator */}
+        {performanceMetrics.totalQueries > 0 && (
+          <div className="mt-4 flex items-center justify-center space-x-6 text-sm text-muted-foreground">
+            <span className="flex items-center">
+              <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
+              Laatste: {performanceMetrics.lastQueryTime.toFixed(0)}ms
+            </span>
+            <span className="flex items-center">
+              <TrendingUp className="w-4 h-4 mr-1 text-blue-500" />
+              Gemiddeld: {performanceMetrics.averageQueryTime.toFixed(0)}ms
+            </span>
+            <span className="flex items-center">
+              <Database className="w-4 h-4 mr-1 text-purple-500" />
+              Totaal: {performanceMetrics.totalQueries} queries
+            </span>
+          </div>
+        )}
       </header>
 
       {/* Search and Actions */}
