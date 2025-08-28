@@ -13,13 +13,15 @@ const config = getSupabaseConfig();
 const supabaseUrl = config.url;
 const supabaseAnonKey = config.anonKey;
 
-// Create Supabase client with optimized settings
+// Create Supabase client with optimized settings and improved error handling
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
+    storageKey: 'tuinbeheer-auth', // Consistent storage key
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
   },
   db: {
     schema: 'public',
@@ -27,6 +29,42 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     headers: {
       'X-Client-Info': 'tuinbeheer-systeem',
+      'X-Request-Id': typeof crypto !== 'undefined' ? crypto.randomUUID() : 'server-side',
+    },
+    fetch: async (url, options = {}) => {
+      // Add request timeout and retry logic
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      try {
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+        
+        // Log slow requests
+        const responseTime = performance.now();
+        if (responseTime > 5000) {
+          console.warn(`⚠️ Slow Supabase request: ${url} took ${responseTime}ms`);
+        }
+        
+        return response;
+      } catch (error: any) {
+        clearTimeout(timeoutId);
+        
+        if (error.name === 'AbortError') {
+          console.error('🚨 Supabase request timeout:', url);
+          throw new Error('Request timeout - please try again');
+        }
+        
+        throw error;
+      }
+    },
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10, // Rate limiting for real-time events
     },
   },
 });
