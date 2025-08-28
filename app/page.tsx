@@ -289,19 +289,7 @@ function HomePageContent() {
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Tuinbeheer Systeem</h1>
         </div>
 
-        {/* Performance Optimization Banner */}
-        {!state.loading && state.gardens.length > 0 && (
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center justify-center gap-2 text-sm text-blue-800">
-              <Database className="h-4 w-4" />
-              <span className="font-medium">Performance Optimalisatie Actief</span>
-              <TrendingUp className="h-4 w-4" />
-            </div>
-            <p className="text-xs text-blue-600 mt-1">
-              Verbeterde verbindingslogica en timeout handling voor betrouwbare toegang
-            </p>
-          </div>
-        )}
+
         
       </header>
 
