@@ -3,6 +3,7 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase } from '@/lib/supabase'
 import { clearStaleCache } from '@/lib/version'
+import { performanceMonitor, authCircuitBreaker } from '@/lib/performance-monitor'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 
 // Enhanced User interface with garden access and permissions
@@ -106,6 +107,28 @@ export function useSupabaseAuth(): AuthContextType {
     error: null
   })
 
+  // Retry helper with exponential backoff
+  const retryWithBackoff = async <T>(fn: () => Promise<T>, maxRetries = 3, baseDelay = 1000): Promise<T> => {
+    let lastError: any = null
+    
+    for (let i = 0; i < maxRetries; i++) {
+      try {
+        return await fn()
+      } catch (error) {
+        lastError = error
+        if (i === maxRetries - 1) {
+          throw error
+        }
+        
+        const delay = baseDelay * Math.pow(2, i)
+        console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`, error)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+    
+    throw lastError
+  }
+
   // Load user profile with caching and optimized database lookup
   const loadUserProfile = async (supabaseUser: SupabaseUser, useCache = true): Promise<User> => {
     // 🚨 PRODUCTION FIX: Clear cache if environment changed
@@ -132,23 +155,51 @@ export function useSupabaseAuth(): AuthContextType {
     }
     
     try {
-      // 🏦 IMPROVED: Better timeout with progressive fallback
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Database lookup timeout')), 15000) // Increased for production stability
-      })
+      // 🏦 ENHANCED: Progressive timeout with retry logic and circuit breaker
+      const performDatabaseQuery = async () => {
+        const timeouts = [5000, 10000, 20000] // Progressive timeouts
+        let lastError: any = null
+        
+        for (let i = 0; i < timeouts.length; i++) {
+          try {
+            const timeoutPromise = new Promise((_, reject) => {
+              setTimeout(() => reject(new Error(`Database lookup timeout after ${timeouts[i]}ms (attempt ${i + 1}/${timeouts.length})`)), timeouts[i])
+            })
 
-      // 🏦 BANKING-GRADE: Case-insensitive email lookup with timeout
-      const databasePromise = supabase
-        .from('users')
-        .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
-        .ilike('email', supabaseUser.email || '') // Case-insensitive match
-        .eq('is_active', true) // Only active users
-        .single()
+            // 🏦 OPTIMIZED: Use efficient query with proper ordering
+            const databasePromise = supabase
+              .from('users')
+              .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
+              .eq('is_active', true) // Filter active users first (uses index if available)
+              .ilike('email', supabaseUser.email || '') // Then case-insensitive match
+              .single()
 
-      const { data: userProfile, error: userError } = await Promise.race([
-        databasePromise,
-        timeoutPromise
-      ]) as { data: any, error: any }
+            const result = await Promise.race([
+              databasePromise,
+              timeoutPromise
+            ])
+            
+            // Success - return the result
+            return result
+          } catch (error) {
+            lastError = error
+            if (i < timeouts.length - 1) {
+              console.warn(`⏱️ Database query attempt ${i + 1} failed with ${timeouts[i]}ms timeout, retrying...`)
+            }
+          }
+        }
+        
+        throw lastError
+      }
+
+      // Execute query with circuit breaker, retry logic and performance monitoring
+      const { data: userProfile, error: userError } = await authCircuitBreaker.execute(
+        () => performanceMonitor.track(
+          'loadUserProfile',
+          () => retryWithBackoff(performDatabaseQuery, 2, 1000),
+          { email: supabaseUser.email, userId: supabaseUser.id }
+        )
+      ) as { data: any, error: any }
 
       let role: 'admin' | 'user' = 'user'
       let fullName = supabaseUser.email?.split('@')[0] || 'User'
@@ -262,6 +313,17 @@ export function useSupabaseAuth(): AuthContextType {
 
     } catch (error) {
       console.error('Error in loadUserProfile:', error)
+      
+      // 🏦 FALLBACK: Try to use cached data if available
+      if (useCache) {
+        const cached = getCachedUserProfile()
+        if (cached && cached.email?.toLowerCase() === supabaseUser.email?.toLowerCase()) {
+          console.warn('⚠️ Using cached profile due to database error')
+          return cached
+        }
+      }
+      
+      // If no cache available, throw the error
       throw error
     }
   }
