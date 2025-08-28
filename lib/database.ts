@@ -178,6 +178,84 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
   return plantBedsWithPlants
 }
 
+export async function getGardenPlantsByMonth(
+  gardenId: string,
+  month: number,
+  mode: 'sowing' | 'blooming'
+): Promise<PlantBedWithPlants[]> {
+  const monthNamesFull = [
+    'januari',
+    'februari',
+    'maart',
+    'april',
+    'mei',
+    'juni',
+    'juli',
+    'augustus',
+    'september',
+    'oktober',
+    'november',
+    'december'
+  ]
+  const monthNamesShort = [
+    'jan',
+    'feb',
+    'mrt',
+    'apr',
+    'mei',
+    'jun',
+    'jul',
+    'aug',
+    'sep',
+    'okt',
+    'nov',
+    'dec'
+  ]
+
+  const getMonthStrings = (m: number) => {
+    const idx = ((m - 1) % 12 + 12) % 12
+    return [
+      monthNamesFull[idx],
+      monthNamesShort[idx],
+      m.toString().padStart(2, '0')
+    ]
+  }
+
+  const buildFilter = (field: string, months: string[]) =>
+    months.map(name => `${field}.ilike.%${name}%`).join(',')
+
+  let orConditions = ''
+
+  if (mode === 'blooming') {
+    const monthStrings = getMonthStrings(month)
+    orConditions = [
+      buildFilter('bloom_period', monthStrings),
+      buildFilter('planting_date', monthStrings)
+    ].join(',')
+  } else {
+    const plantingFilter = buildFilter('planting_date', getMonthStrings(month))
+    const bloomMonth1 = ((month + 2 - 1) % 12) + 1
+    const bloomMonth2 = ((month + 3 - 1) % 12) + 1
+    const bloomFilter1 = buildFilter('bloom_period', getMonthStrings(bloomMonth1))
+    const bloomFilter2 = buildFilter('bloom_period', getMonthStrings(bloomMonth2))
+    orConditions = [plantingFilter, bloomFilter1, bloomFilter2].join(',')
+  }
+
+  const { data, error } = await supabase
+    .from('plant_beds')
+    .select('*, plants(*)')
+    .eq('garden_id', gardenId)
+    .eq('is_active', true)
+    .or(orConditions, { foreignTable: 'plants' })
+
+  if (error) {
+    console.error('Error fetching garden plants by month:', error)
+    return []
+  }
+
+  return (data || []) as PlantBedWithPlants[]
+}
+
 export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null> {
   const { data: plantBed, error: plantBedError } = await supabase
     .from("plant_beds")

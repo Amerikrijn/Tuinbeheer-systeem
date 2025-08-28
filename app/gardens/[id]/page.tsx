@@ -36,7 +36,7 @@ import {
   Filter,
   Flower2,
 } from "lucide-react"
-import { getGarden, getPlantBeds, updatePlantBed, deletePlantBed } from "@/lib/database"
+import { getGarden, getPlantBeds, updatePlantBed, deletePlantBed, getGardenPlantsByMonth } from "@/lib/database"
 import { PlantvakService } from "@/lib/services/plantvak.service"
 import type { Garden, PlantBedWithPlants, PlantWithPosition, Plant } from "@/lib/supabase"
 import { 
@@ -108,13 +108,18 @@ export default function GardenDetailPage() {
       'jan': 1, 'feb': 2, 'mrt': 3, 'apr': 4, 'mei': 5, 'jun': 6,
       'jul': 7, 'aug': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'dec': 12
     }
-    
+
     const parts = period.toLowerCase().split('-')
+    if (parts.length === 1) {
+      const single = monthNames[parts[0].trim()]
+      return single ? [single] : []
+    }
+
     if (parts.length !== 2) return []
-    
+
     const startMonth = monthNames[parts[0].trim()]
     const endMonth = monthNames[parts[1].trim()]
-    
+
     if (!startMonth || !endMonth) return []
     
     const months: number[] = []
@@ -131,16 +136,18 @@ export default function GardenDetailPage() {
   // Helper to check if a plant matches the filter
   const plantMatchesFilter = (plant: PlantWithPosition): boolean => {
     if (!selectedMonth || filterMode === 'all') return true
-    
+
     const bloomMonths = parseMonthRange(plant.bloom_period)
-    
+    const plantingMonths = parseMonthRange(plant.planting_date)
+
     if (filterMode === 'blooming') {
       return bloomMonths.includes(selectedMonth)
     } else if (filterMode === 'sowing') {
-      // Sowing is typically 2-3 months before blooming
+      if (plantingMonths.includes(selectedMonth)) return true
+
       const firstBloomMonth = bloomMonths[0]
       if (!firstBloomMonth) return false
-      
+
       for (let i = 2; i <= 3; i++) {
         let sowMonth = firstBloomMonth - i
         if (sowMonth <= 0) sowMonth += 12
@@ -225,7 +232,13 @@ export default function GardenDetailPage() {
         setLoading(true)
         const [gardenData, plantBedsData] = await Promise.all([
           getGarden(params.id as string),
-          getPlantBeds(params.id as string),
+          selectedMonth && filterMode !== 'all'
+            ? getGardenPlantsByMonth(
+                params.id as string,
+                selectedMonth,
+                filterMode as 'sowing' | 'blooming'
+              )
+            : getPlantBeds(params.id as string),
         ])
         console.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
         setGarden(gardenData)
@@ -301,7 +314,7 @@ export default function GardenDetailPage() {
     if (params.id) {
       loadData()
     }
-  }, [params.id])
+  }, [params.id, selectedMonth, filterMode])
 
   // Check if plant beds fit in new garden dimensions
   const validatePlantBedsInGarden = (newLength: string, newWidth: string) => {
