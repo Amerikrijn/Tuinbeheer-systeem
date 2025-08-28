@@ -52,7 +52,7 @@ import type { TaskWithPlantInfo, WeeklyTask } from "@/lib/types/tasks"
 import { getTaskTypeConfig, getPriorityConfig, formatTaskDate } from "@/lib/types/tasks"
 import { uploadImage, type UploadResult } from "@/lib/storage"
 import { PlantVisualization } from "@/components/plant-visualization"
-import { dutchFlowers } from "@/lib/dutch-flowers"
+
 import {
   METERS_TO_PIXELS,
   PLANTVAK_CANVAS_PADDING,
@@ -181,22 +181,7 @@ const FLOWER_STATUS_OPTIONS = [
   return undefined
 }
 
-  // Helper function to get bloom period from Dutch flowers database
-  const getBloomPeriodForPlant = (plantName: string): string | null => {
-    if (!plantName) return null
-    
-    const lowerName = plantName.toLowerCase()
-    
-    // Search through Dutch flowers database
-    for (const flower of dutchFlowers) {
-      if (lowerName.includes(flower.name.toLowerCase()) || 
-          (flower.scientificName && lowerName.includes(flower.scientificName.toLowerCase()))) {
-        return flower.bloeiperiode
-      }
-    }
-    
-    return null
-  }
+
 
 export default function PlantBedViewPage() {
   const router = useRouter()
@@ -575,7 +560,7 @@ export default function PlantBedViewPage() {
             is_custom: templateFlower.is_custom || false,
             category: templateFlower.category,
             notes: `Extra ${templateFlower.name} - ${plantvakAreaMeters.toFixed(1)}m²`,
-            bloom_period: getBloomPeriodForPlant(templateFlower.name) || ''
+            bloom_period: templateFlower.bloom_period || ''
           })
           
           if (newFlower) {
@@ -801,7 +786,7 @@ export default function PlantBedViewPage() {
         category: newFlower.isStandardFlower ? 'Standaard' : 'Aangepast',
         notes: newFlower.notes || '',
         planting_date: newFlower.plantingDate || '',
-        bloom_period: getBloomPeriodForPlant(newFlower.name) || newFlower.expectedHarvestDate || ''
+        bloom_period: newFlower.expectedHarvestDate || ''
       })
 
       if (newPlant) {
@@ -842,7 +827,7 @@ export default function PlantBedViewPage() {
         status: newFlower.status,
         emoji: newFlower.emoji,
         planting_date: newFlower.plantingDate || '',
-        bloom_period: getBloomPeriodForPlant(newFlower.name) || newFlower.expectedHarvestDate || ''
+        bloom_period: newFlower.expectedHarvestDate || ''
       })
 
       if (updatedPlant) {
@@ -2346,7 +2331,7 @@ export default function PlantBedViewPage() {
                                        is_custom: false,
                                        category: flower.category,
                                        notes: `sub_flower_of:${flower.id}`,
-                                       bloom_period: getBloomPeriodForPlant(flower.name) || ''
+                                       bloom_period: flower.bloom_period || ''
                                      })
                                      
                                      if (newFlower) {
