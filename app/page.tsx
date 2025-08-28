@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
-import { getPlantBedsOptimized, measureQueryPerformance } from "@/lib/database-optimized"
+import { getPlantBedsOptimized } from "@/lib/database-optimized"
 
 import { uiLogger, AuditLogger } from "@/lib/logger"
 import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
@@ -59,7 +59,7 @@ function HomePageContent() {
     hasMore: false,
   })
 
-  // Load gardens with proper error handling and logging (memoized for performance)
+  // Load gardens with proper error handling and logging
   const loadGardens = React.useCallback(async (page = 1, searchTerm = "", append = false) => {
     const operationId = `loadGardens-${Date.now()}`
     
@@ -251,7 +251,7 @@ function HomePageContent() {
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Tuinbeheer Systeem</h1>
         </div>
 
-        {/* ✅ Performance Indicator */}
+        
         
       </header>
 
