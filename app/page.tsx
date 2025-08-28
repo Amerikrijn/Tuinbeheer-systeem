@@ -436,7 +436,38 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
       try {
         setLoadingUsers(true)
         
-        // Eerst de user IDs ophalen die toegang hebben tot deze tuin
+        // Eerst controleren of de user_garden_access tabel bestaat
+        const { data: tableCheck, error: tableError } = await supabase
+          .from('user_garden_access')
+          .select('id')
+          .limit(1)
+        
+        if (tableError) {
+          // Tabel bestaat niet of er is een andere fout
+          uiLogger.warn('user_garden_access table not accessible', { error: tableError, gardenId: garden.id })
+          
+          // Tijdelijke fallback: toon alle actieve gebruikers
+          try {
+            const { data: allUsers, error: usersError } = await supabase
+              .from('users')
+              .select('id, email, full_name')
+              .eq('is_active', true)
+              .limit(5)
+            
+            if (!usersError && allUsers) {
+              uiLogger.info('Showing fallback users (all active users)', { count: allUsers.length })
+              setGardenUsers(allUsers)
+            } else {
+              setGardenUsers([])
+            }
+          } catch (fallbackError) {
+            uiLogger.error('Fallback user loading also failed', fallbackError as Error)
+            setGardenUsers([])
+          }
+          return
+        }
+        
+        // Tabel bestaat, nu data ophalen
         const { data: accessData, error: accessError } = await supabase
           .from('user_garden_access')
           .select('user_id')
