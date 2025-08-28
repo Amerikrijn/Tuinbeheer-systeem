@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getSupabaseAdminClient } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
 
 export const runtime = 'nodejs'
 
@@ -39,7 +39,7 @@ export async function GET() {
 
     // Test database connection using admin client
     try {
-      const supabase = getSupabaseAdminClient()
+      const supabase = supabaseAdmin
       const { error } = await supabase
         .from('users')
         .select('count')

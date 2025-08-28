@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 
 // Performance metrics interface
 interface PerformanceMetrics {
@@ -11,12 +12,15 @@ interface PerformanceMetrics {
   memoryUsage: number
   bundleSize: number
   lastUpdate: Date
+  reactQueryCacheSize: number
+  activeQueries: number
+  cacheHitRate: number
 }
 
 // Performance event interface
 interface PerformanceEvent {
   id: string
-  type: 'page_load' | 'database_query' | 'component_render' | 'api_call'
+  type: 'page_load' | 'database_query' | 'component_render' | 'api_call' | 'cache_hit' | 'cache_miss'
   name: string
   startTime: number
   endTime?: number
@@ -33,13 +37,21 @@ export function usePerformanceMonitor() {
     slowQueries: 0,
     memoryUsage: 0,
     bundleSize: 0,
-    lastUpdate: new Date()
+    lastUpdate: new Date(),
+    reactQueryCacheSize: 0,
+    activeQueries: 0,
+    cacheHitRate: 0
   })
 
   const [events, setEvents] = useState<PerformanceEvent[]>([])
   const [isMonitoring, setIsMonitoring] = useState(false)
   const pageLoadStart = useRef<number>(0)
   const queryTimes = useRef<number[]>([])
+  const cacheHits = useRef<number>(0)
+  const cacheMisses = useRef<number>(0)
+  
+  // React Query client
+  const queryClient = useQueryClient()
 
   // Start monitoring
   const startMonitoring = useCallback(() => {
@@ -47,7 +59,7 @@ export function usePerformanceMonitor() {
     pageLoadStart.current = performance.now()
     
     // Monitor memory usage (browser support dependent)
-    if ('memory' in performance) {
+    if (typeof window !== 'undefined' && 'memory' in performance) {
       const memory = (performance as any).memory
       setMetrics(prev => ({
         ...prev,
@@ -71,6 +83,46 @@ export function usePerformanceMonitor() {
     
     console.log(`📊 Page load completed in ${pageLoadTime.toFixed(2)}ms`)
   }, [])
+
+  // Get React Query cache statistics
+  const getQueryCacheStats = useCallback(() => {
+    try {
+      const queries = queryClient.getQueryCache().getAll()
+      const mutations = queryClient.getMutationCache().getAll()
+      
+      return {
+        cacheSize: queries.length + mutations.length,
+        activeQueries: queries.filter(q => q.isActive()).length,
+        totalQueries: queries.length,
+        activeMutations: mutations.filter(m => m.isPending()).length,
+        totalMutations: mutations.length
+      }
+    } catch (error) {
+      console.warn('Failed to get query cache stats:', error)
+      return {
+        cacheSize: 0,
+        activeQueries: 0,
+        totalQueries: 0,
+        activeMutations: 0,
+        totalMutations: 0
+      }
+    }
+  }, [queryClient])
+
+  // Update React Query metrics
+  const updateQueryMetrics = useCallback(() => {
+    const stats = getQueryCacheStats()
+    const totalRequests = cacheHits.current + cacheMisses.current
+    const hitRate = totalRequests > 0 ? (cacheHits.current / totalRequests) * 100 : 0
+    
+    setMetrics(prev => ({
+      ...prev,
+      reactQueryCacheSize: stats.cacheSize,
+      activeQueries: stats.activeQueries,
+      cacheHitRate: Math.round(hitRate),
+      lastUpdate: new Date()
+    }))
+  }, [getQueryCacheStats])
 
   // Track database query performance
   const trackDatabaseQuery = useCallback(async <T>(
@@ -141,6 +193,28 @@ export function usePerformanceMonitor() {
       throw error
     }
   }, [isMonitoring])
+
+  // Track cache hit/miss
+  const trackCacheEvent = useCallback((type: 'cache_hit' | 'cache_miss', queryKey: string) => {
+    if (!isMonitoring) return
+
+    if (type === 'cache_hit') {
+      cacheHits.current++
+    } else {
+      cacheMisses.current++
+    }
+
+    const event: PerformanceEvent = {
+      id: `cache_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      type,
+      name: queryKey,
+      startTime: performance.now(),
+      metadata: { queryKey }
+    }
+
+    setEvents(prev => [...prev, event])
+    updateQueryMetrics()
+  }, [isMonitoring, updateQueryMetrics])
 
   // Track component render performance
   const trackComponentRender = useCallback((componentName: string, metadata?: Record<string, any>) => {
@@ -252,14 +326,24 @@ export function usePerformanceMonitor() {
         acc[e.type] = (acc[e.type] || 0) + 1
         return acc
       }, {} as Record<string, number>),
-      metrics
+      metrics,
+      queryCacheStats: getQueryCacheStats(),
+      cachePerformance: {
+        hits: cacheHits.current,
+        misses: cacheMisses.current,
+        hitRate: cacheHits.current + cacheMisses.current > 0 
+          ? (cacheHits.current / (cacheHits.current + cacheMisses.current)) * 100 
+          : 0
+      }
     }
-  }, [events, metrics])
+  }, [events, metrics, getQueryCacheStats])
 
   // Clear performance data
   const clearPerformanceData = useCallback(() => {
     setEvents([])
     queryTimes.current = []
+    cacheHits.current = 0
+    cacheMisses.current = 0
     setMetrics({
       pageLoadTime: 0,
       databaseQueries: 0,
@@ -267,7 +351,10 @@ export function usePerformanceMonitor() {
       slowQueries: 0,
       memoryUsage: 0,
       bundleSize: 0,
-      lastUpdate: new Date()
+      lastUpdate: new Date(),
+      reactQueryCacheSize: 0,
+      activeQueries: 0,
+      cacheHitRate: 0
     })
   }, [])
 
@@ -286,6 +373,15 @@ export function usePerformanceMonitor() {
     }
   }, [startMonitoring, stopMonitoring])
 
+  // Update React Query metrics periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateQueryMetrics()
+    }, 5000) // Update every 5 seconds
+
+    return () => clearInterval(interval)
+  }, [updateQueryMetrics])
+
   // Log performance summary periodically
   useEffect(() => {
     if (metrics.databaseQueries > 0 && metrics.databaseQueries % 10 === 0) {
@@ -293,7 +389,9 @@ export function usePerformanceMonitor() {
         queries: metrics.databaseQueries,
         avgTime: metrics.averageQueryTime + 'ms',
         slowQueries: metrics.slowQueries,
-        memory: metrics.memoryUsage + 'MB'
+        memory: metrics.memoryUsage + 'MB',
+        cacheSize: metrics.reactQueryCacheSize,
+        cacheHitRate: metrics.cacheHitRate + '%'
       })
     }
   }, [metrics])
@@ -310,8 +408,13 @@ export function usePerformanceMonitor() {
     trackDatabaseQuery,
     trackComponentRender,
     trackApiCall,
+    trackCacheEvent,
     getPerformanceReport,
-    clearPerformanceData
+    clearPerformanceData,
+    
+    // React Query specific
+    getQueryCacheStats,
+    updateQueryMetrics
   }
 }
 

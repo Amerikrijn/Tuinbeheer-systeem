@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Calendar, FileText, Loader2, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
-import { getSupabaseClient } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 interface LogbookEntry {
   id: string
@@ -32,7 +32,7 @@ export function LogbookList() {
       
       setError(null)
       
-      const supabase = getSupabaseClient()
+    
       
       // 🚀 PERFORMANCE: Optimized query with pagination and sorting
       const { data, error: fetchError } = await supabase

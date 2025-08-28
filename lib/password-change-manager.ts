@@ -8,7 +8,7 @@
  * - Banking compliance
  */
 
-import { getSupabaseClient, getSupabaseAdminClient } from '@/lib/supabase'
+import { supabase, supabaseAdmin } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 export interface PasswordChangeResult {
