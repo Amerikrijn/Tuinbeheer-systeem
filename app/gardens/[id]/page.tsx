@@ -52,6 +52,7 @@ import {
 } from "@/lib/scaling-constants"
 import { PlantVisualization } from "@/components/plant-visualization"
 import { PlantBedSummary } from "@/components/garden/plant-bed-summary"
+import { MonthFilterDebug } from "@/components/garden/month-filter-debug"
 
 interface PlantBedPosition {
   id: string
@@ -100,7 +101,12 @@ export default function GardenDetailPage() {
 
   // Parse month ranges from bloom_period
   const parseMonthRange = (period?: string): number[] => {
-    if (!period) return []
+    if (!period || typeof period !== 'string') return []
+    
+    // Clean the input string
+    const cleanPeriod = period.trim().toLowerCase()
+    if (cleanPeriod === '') return []
+    
     const monthNames: { [key: string]: number } = {
       'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
       'mei': 5, 'juni': 6, 'juli': 7, 'augustus': 8,
@@ -109,8 +115,14 @@ export default function GardenDetailPage() {
       'jul': 7, 'aug': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'dec': 12
     }
     
-    const parts = period.toLowerCase().split('-')
-    if (parts.length !== 2) return []
+    // Handle different formats
+    const parts = cleanPeriod.split(/[-–—]/) // Support different dash types
+    if (parts.length !== 2) {
+      // Try to handle single month format
+      const singleMonth = monthNames[cleanPeriod]
+      if (singleMonth) return [singleMonth]
+      return []
+    }
     
     const startMonth = monthNames[parts[0].trim()]
     const endMonth = monthNames[parts[1].trim()]
@@ -119,10 +131,12 @@ export default function GardenDetailPage() {
     
     const months: number[] = []
     let current = startMonth
+    
+    // Handle year boundary crossing
     while (current !== endMonth) {
       months.push(current)
       current = current === 12 ? 1 : current + 1
-      if (months.length > 12) break
+      if (months.length > 12) break // Safety check to prevent infinite loops
     }
     months.push(endMonth)
     return months
@@ -132,22 +146,27 @@ export default function GardenDetailPage() {
   const plantMatchesFilter = (plant: PlantWithPosition): boolean => {
     if (!selectedMonth || filterMode === 'all') return true
     
-    const bloomMonths = parseMonthRange(plant.bloom_period)
-    
-    if (filterMode === 'blooming') {
-      return bloomMonths.includes(selectedMonth)
-    } else if (filterMode === 'sowing') {
-      // Sowing is typically 2-3 months before blooming
-      const firstBloomMonth = bloomMonths[0]
-      if (!firstBloomMonth) return false
+    try {
+      const bloomMonths = parseMonthRange(plant.bloom_period)
       
-      for (let i = 2; i <= 3; i++) {
-        let sowMonth = firstBloomMonth - i
-        if (sowMonth <= 0) sowMonth += 12
-        if (sowMonth === selectedMonth) return true
+      if (filterMode === 'blooming') {
+        return bloomMonths.includes(selectedMonth)
+      } else if (filterMode === 'sowing') {
+        // Sowing is typically 2-3 months before blooming
+        const firstBloomMonth = bloomMonths[0]
+        if (!firstBloomMonth) return false
+        
+        for (let i = 2; i <= 3; i++) {
+          let sowMonth = firstBloomMonth - i
+          if (sowMonth <= 0) sowMonth += 12
+          if (sowMonth === selectedMonth) return true
+        }
       }
+      return false
+    } catch (error) {
+      console.warn('Error checking plant filter:', plant.name, error)
+      return false
     }
-    return false
   }
 
   // Helper to check if a plant bed should be highlighted based on month filter
@@ -1665,74 +1684,81 @@ export default function GardenDetailPage() {
       ) : (
         /* List View of Plant Beds */
         <div>
-          {/* Month Filter for List View */}
-          <Card className="mb-4">
-            <CardContent className="pt-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Filter op maand:</span>
-                </div>
-                
-                <Select 
-                  value={selectedMonth?.toString() || "none"} 
-                  onValueChange={(value) => {
-                    setSelectedMonth(value === "none" ? undefined : parseInt(value))
-                    if (value === "none") setFilterMode('all')
-                    else if (filterMode === 'all') setFilterMode('blooming')
-                  }}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Kies maand" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Geen filter</SelectItem>
-                    <SelectItem value="1">Januari</SelectItem>
-                    <SelectItem value="2">Februari</SelectItem>
-                    <SelectItem value="3">Maart</SelectItem>
-                    <SelectItem value="4">April</SelectItem>
-                    <SelectItem value="5">Mei</SelectItem>
-                    <SelectItem value="6">Juni</SelectItem>
-                    <SelectItem value="7">Juli</SelectItem>
-                    <SelectItem value="8">Augustus</SelectItem>
-                    <SelectItem value="9">September</SelectItem>
-                    <SelectItem value="10">Oktober</SelectItem>
-                    <SelectItem value="11">November</SelectItem>
-                    <SelectItem value="12">December</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                {selectedMonth && (
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant={filterMode === 'sowing' ? 'default' : 'outline'}
-                      onClick={() => setFilterMode('sowing')}
-                      className="text-xs"
-                    >
-                      🌱 Zaaien
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={filterMode === 'blooming' ? 'default' : 'outline'}
-                      onClick={() => setFilterMode('blooming')}
-                      className="text-xs"
-                    >
-                      🌸 Bloeit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={filterMode === 'all' ? 'default' : 'outline'}
-                      onClick={() => setFilterMode('all')}
-                      className="text-xs"
-                    >
-                      Alles
-                    </Button>
-                  </div>
-                )}
+                  {/* Month Filter for List View */}
+        <Card className="mb-4">
+          <CardContent className="pt-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Filter op maand:</span>
               </div>
-            </CardContent>
-          </Card>
+              
+              <Select 
+                value={selectedMonth?.toString() || "none"} 
+                onValueChange={(value) => {
+                  setSelectedMonth(value === "none" ? undefined : parseInt(value))
+                  if (value === "none") setFilterMode('all')
+                  else if (filterMode === 'all') setFilterMode('blooming')
+                }}
+              >
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Kies maand" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Geen filter</SelectItem>
+                  <SelectItem value="1">Januari</SelectItem>
+                  <SelectItem value="2">Februari</SelectItem>
+                  <SelectItem value="3">Maart</SelectItem>
+                  <SelectItem value="4">April</SelectItem>
+                  <SelectItem value="5">Mei</SelectItem>
+                  <SelectItem value="6">Juni</SelectItem>
+                  <SelectItem value="7">Juli</SelectItem>
+                  <SelectItem value="8">Augustus</SelectItem>
+                  <SelectItem value="9">September</SelectItem>
+                  <SelectItem value="10">Oktober</SelectItem>
+                  <SelectItem value="11">November</SelectItem>
+                  <SelectItem value="12">December</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {selectedMonth && (
+                <div className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant={filterMode === 'sowing' ? 'default' : 'outline'}
+                    onClick={() => setFilterMode('sowing')}
+                    className="text-xs"
+                  >
+                    🌱 Zaaien
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={filterMode === 'blooming' ? 'default' : 'outline'}
+                    onClick={() => setFilterMode('blooming')}
+                    className="text-xs"
+                  >
+                    🌸 Bloeit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={filterMode === 'all' ? 'default' : 'outline'}
+                    onClick={() => setFilterMode('all')}
+                    className="text-xs"
+                  >
+                    Alles
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Debug component for month filtering */}
+        <MonthFilterDebug 
+          plantBeds={plantBeds}
+          selectedMonth={selectedMonth}
+          filterMode={filterMode}
+        />
           
           {plantBeds.length === 0 ? (
             <Card className="text-center py-12">

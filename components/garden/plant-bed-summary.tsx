@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { PlantBedWithPlants, PlantWithPosition } from '@/lib/supabase'
 import { Badge } from '@/components/ui/badge'
+import { PlantBloomPeriodEditor } from './plant-bloom-period-editor'
 import { 
   Flower2, 
   Calendar, 
@@ -30,7 +31,11 @@ interface PlantBedSummaryProps {
 
 // Helper to parse bloom period strings like "Juni-September" or "Maart-Mei"
 const parseMonthRange = (period?: string): number[] => {
-  if (!period) return []
+  if (!period || typeof period !== 'string') return []
+  
+  // Clean the input string
+  const cleanPeriod = period.trim().toLowerCase()
+  if (cleanPeriod === '') return []
   
   const monthNames: { [key: string]: number } = {
     'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
@@ -40,8 +45,14 @@ const parseMonthRange = (period?: string): number[] => {
     'jul': 7, 'aug': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'dec': 12
   }
   
-  const parts = period.toLowerCase().split('-')
-  if (parts.length !== 2) return []
+  // Handle different formats
+  const parts = cleanPeriod.split(/[-–—]/) // Support different dash types
+  if (parts.length !== 2) {
+    // Try to handle single month format
+    const singleMonth = monthNames[cleanPeriod]
+    if (singleMonth) return [singleMonth]
+    return []
+  }
   
   const startMonth = monthNames[parts[0].trim()]
   const endMonth = monthNames[parts[1].trim()]
@@ -50,10 +61,12 @@ const parseMonthRange = (period?: string): number[] => {
   
   const months: number[] = []
   let current = startMonth
+  
+  // Handle year boundary crossing
   while (current !== endMonth) {
     months.push(current)
     current = current === 12 ? 1 : current + 1
-    if (months.length > 12) break // Safety check
+    if (months.length > 12) break // Safety check to prevent infinite loops
   }
   months.push(endMonth)
   
@@ -140,12 +153,17 @@ export function PlantBedSummary({
     if (!selectedMonth || filterMode === 'all') return plantGroups
     
     return plantGroups.filter(group => {
-      if (filterMode === 'sowing') {
-        return group.sowingMonths.includes(selectedMonth)
-      } else if (filterMode === 'blooming') {
-        return group.bloomMonths.includes(selectedMonth)
+      try {
+        if (filterMode === 'sowing') {
+          return group.sowingMonths.includes(selectedMonth)
+        } else if (filterMode === 'blooming') {
+          return group.bloomMonths.includes(selectedMonth)
+        }
+        return false
+      } catch (error) {
+        console.warn('Error filtering plant:', group.name, error)
+        return false
       }
-      return false // Changed from true to false - only show plants that match the filter
     })
   }, [plantGroups, selectedMonth, filterMode])
   
@@ -291,6 +309,18 @@ export function PlantBedSummary({
                       <span>Bloeit: {group.bloomPeriod}</span>
                     </div>
                   )}
+                  
+                  {/* Bloom period editor */}
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <PlantBloomPeriodEditor 
+                      plant={plantBed.plants.find(p => p.name === group.name)!}
+                      onUpdate={() => {
+                        // Trigger re-render by updating a state or calling a callback
+                        // This is a simple approach - in a real app you might want to use a more sophisticated state management
+                        window.location.reload()
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             ))}
