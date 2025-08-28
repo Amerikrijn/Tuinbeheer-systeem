@@ -1366,16 +1366,21 @@ export default function GardenDetailPage() {
                                 {(() => {
                                   const plantGroups = new Map()
                                   bed.plants.forEach(plant => {
-                                    if (!plantGroups.has(plant.name)) {
-                                      plantGroups.set(plant.name, {
-                                        name: plant.name,
+                                    // Use variety or latin_name if name is generic
+                                    const displayName = plant.variety || plant.latin_name || plant.scientific_name || plant.name || 'Plant'
+                                    const key = displayName
+                                    
+                                    if (!plantGroups.has(key)) {
+                                      plantGroups.set(key, {
+                                        name: displayName,
                                         count: 0,
-                                        color: plant.color,
+                                        color: plant.color || plant.plant_color,
                                         emoji: plant.emoji,
-                                        bloom_period: plant.bloom_period
+                                        bloom_period: plant.bloom_period,
+                                        planting_date: plant.planting_date
                                       })
                                     }
-                                    plantGroups.get(plant.name).count++
+                                    plantGroups.get(key).count++
                                   })
                                   
                                   const isSmall = bedWidth < 200 || bedHeight < 200
@@ -1401,25 +1406,30 @@ export default function GardenDetailPage() {
                                   
                                   // For larger plantvakken, show detailed view
                                   return groups.map((group, idx) => (
-                                    <div key={idx} className="flex items-start gap-1 text-xs">
+                                    <div key={idx} className="flex items-start gap-1 text-xs border-b border-gray-200 pb-1 last:border-0">
                                       <span className="text-sm flex-shrink-0">{group.emoji || '🌸'}</span>
                                       <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1">
-                                          <span className="font-medium truncate">
+                                        <div className="flex items-center gap-1 flex-wrap">
+                                          <span className="font-semibold text-gray-800">
                                             {group.count > 1 && `${group.count}x `}{group.name}
                                           </span>
                                           {group.color && (
                                             <div 
-                                              className="w-2 h-2 rounded-full border border-gray-400 flex-shrink-0"
+                                              className="w-3 h-3 rounded-full border border-gray-400 flex-shrink-0"
                                               style={{ backgroundColor: group.color }}
+                                              title={`Kleur: ${group.color}`}
                                             />
                                           )}
                                         </div>
-                                        {group.bloom_period && bedHeight > 250 && (
-                                          <div className="text-[10px] text-muted-foreground">
-                                            🌸 {group.bloom_period}
-                                          </div>
-                                        )}
+                                        {/* Show planting date and bloom period if available */}
+                                        <div className="text-[10px] text-muted-foreground space-y-0.5">
+                                          {group.planting_date && (
+                                            <div>🌱 Zaai: {group.planting_date}</div>
+                                          )}
+                                          {group.bloom_period && (
+                                            <div>🌸 Bloei: {group.bloom_period}</div>
+                                          )}
+                                        </div>
                                       </div>
                                     </div>
                                   ))
