@@ -1404,35 +1404,51 @@ export default function GardenDetailPage() {
                                     )
                                   }
                                   
-                                  // For larger plantvakken, show detailed view
-                                  return groups.map((group, idx) => (
-                                    <div key={idx} className="flex items-start gap-1 text-xs border-b border-gray-200 pb-1 last:border-0">
-                                      <span className="text-sm flex-shrink-0">{group.emoji || '🌸'}</span>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-1 flex-wrap">
-                                          <span className="font-semibold text-gray-800">
-                                            {group.count > 1 && `${group.count}x `}{group.name}
-                                          </span>
-                                          {group.color && (
-                                            <div 
-                                              className="w-3 h-3 rounded-full border border-gray-400 flex-shrink-0"
-                                              style={{ backgroundColor: group.color }}
-                                              title={`Kleur: ${group.color}`}
-                                            />
-                                          )}
+                                  // For larger plantvakken, show detailed view with readable text
+                                  return (
+                                    <div className="space-y-2">
+                                      {groups.map((group, idx) => (
+                                        <div key={idx} className="bg-white/80 dark:bg-gray-800/80 rounded p-2 border border-gray-300 dark:border-gray-600">
+                                          <div className="flex items-start gap-2">
+                                            <span className="text-xl">{group.emoji || '🌸'}</span>
+                                            <div className="flex-1">
+                                              <div className="flex items-center gap-2">
+                                                <span className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                                                  {group.count > 1 && `${group.count}x `}{group.name}
+                                                </span>
+                                                {group.color && (
+                                                  <div 
+                                                    className="w-4 h-4 rounded-full border-2 border-gray-600 shadow-sm"
+                                                    style={{ backgroundColor: group.color }}
+                                                    title={`Kleur: ${group.color}`}
+                                                  />
+                                                )}
+                                              </div>
+                                              {/* Show details with better visibility */}
+                                              {(group.planting_date || group.bloom_period) && (
+                                                <div className="mt-1 text-xs text-gray-700 dark:text-gray-300 space-y-0.5">
+                                                  {group.planting_date && (
+                                                    <div className="flex items-center gap-1">
+                                                      <span>🌱</span>
+                                                      <span className="font-medium">Zaai:</span>
+                                                      <span>{group.planting_date}</span>
+                                                    </div>
+                                                  )}
+                                                  {group.bloom_period && (
+                                                    <div className="flex items-center gap-1">
+                                                      <span>🌸</span>
+                                                      <span className="font-medium">Bloei:</span>
+                                                      <span>{group.bloom_period}</span>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
                                         </div>
-                                        {/* Show planting date and bloom period if available */}
-                                        <div className="text-[10px] text-muted-foreground space-y-0.5">
-                                          {group.planting_date && (
-                                            <div>🌱 Zaai: {group.planting_date}</div>
-                                          )}
-                                          {group.bloom_period && (
-                                            <div>🌸 Bloei: {group.bloom_period}</div>
-                                          )}
-                                        </div>
-                                      </div>
+                                      ))}
                                     </div>
-                                  ))
+                                  )
                                 })()}
                               </div>
                             ) : (
