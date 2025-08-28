@@ -17,7 +17,7 @@ import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, 
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { getPlantBedsOptimized, measureQueryPerformance } from "@/lib/database-optimized"
-import { usePerformanceMonitor } from "@/hooks/use-performance-monitor"
+
 import { uiLogger, AuditLogger } from "@/lib/logger"
 import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -47,8 +47,7 @@ function HomePageContent() {
   const { toast } = useToast()
   const { user, isAdmin } = useAuth()
   
-  // ✅ Performance monitoring hook
-  const performanceMonitor = usePerformanceMonitor()
+
   
   const [state, setState] = React.useState<HomePageState>({
     gardens: [],
@@ -69,22 +68,13 @@ function HomePageContent() {
       
       setState(prev => ({ ...prev, loading: true, error: null }))
       
-      // ✅ Gebruik nieuwe performance monitoring hook
-      const { data: paginatedData, duration } = await performanceMonitor.trackDatabaseQuery(
-        'loadGardens',
-        async () => {
-          if (searchTerm) {
-            // Gebruik geoptimaliseerde search functie
-            const gardens = await TuinService.getAll({ query: searchTerm }, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
-            return gardens
-          } else {
-            // Gebruik geoptimaliseerde getAll functie
-            const gardens = await TuinService.getAll(undefined, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
-            return gardens
-          }
-        },
-        { page, searchTerm, append }
-      )
+      // Gebruik normale TuinService
+      let paginatedData
+      if (searchTerm) {
+        paginatedData = await TuinService.getAll({ query: searchTerm }, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
+      } else {
+        paginatedData = await TuinService.getAll(undefined, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
+      }
       
       if (!paginatedData.success) {
         throw new Error(paginatedData.error || 'Failed to load gardens')
@@ -99,18 +89,16 @@ function HomePageContent() {
       uiLogger.debug('Gardens loaded from TuinService', { 
         count: data.data.length,
         operationId,
-        hasActiveGardens: data.data.some(g => g.is_active),
-        queryDuration: duration
+        hasActiveGardens: data.data.some(g => g.is_active)
       })
 
       uiLogger.info('Gardens loaded successfully', { 
         count: data.data.length, 
         totalPages: data.total_pages,
-        page: data.page,
-        performance: `${duration.toFixed(2)}ms`
+        page: data.page
       })
 
-      // ✅ Performance monitoring wordt automatisch bijgehouden door de hook
+
 
       setState(prev => ({
         ...prev,
@@ -127,7 +115,7 @@ function HomePageContent() {
         'VIEW',
         'gardens',
         undefined,
-        { page, searchTerm, resultCount: data.data.length, performance: duration }
+        { page, searchTerm, resultCount: data.data.length }
       )
 
     } catch (error) {
@@ -153,7 +141,7 @@ function HomePageContent() {
         variant: "destructive",
       })
     }
-  }, [toast, performanceMonitor])
+  }, [toast])
 
   // Search with debouncing
   const debouncedSearch = React.useMemo(
@@ -166,7 +154,7 @@ function HomePageContent() {
         }, 300) // 300ms debounce
       }
     },
-    [loadGardens, performanceMonitor]
+    [loadGardens]
   )
 
   // Initial load
@@ -186,12 +174,12 @@ function HomePageContent() {
     if (!state.loading && state.hasMore) {
       loadGardens(state.page + 1, state.searchTerm, true)
     }
-  }, [loadGardens, state.loading, state.hasMore, state.page, state.searchTerm, performanceMonitor])
+  }, [loadGardens, state.loading, state.hasMore, state.page, state.searchTerm])
 
   // Retry loading gardens
   const handleRetry = React.useCallback(() => {
     loadGardens(1, state.searchTerm, false)
-  }, [loadGardens, state.searchTerm, performanceMonitor])
+  }, [loadGardens, state.searchTerm])
 
 
 
@@ -264,26 +252,7 @@ function HomePageContent() {
         </div>
 
         {/* ✅ Performance Indicator */}
-        {performanceMonitor.metrics.databaseQueries > 0 && (
-          <div className="mt-4 flex items-center justify-center space-x-6 text-sm text-muted-foreground">
-            <span className="flex items-center">
-              <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
-              Laatste: {performanceMonitor.metrics.averageQueryTime}ms
-            </span>
-            <span className="flex items-center">
-              <TrendingUp className="w-4 h-4 mr-1 text-blue-500" />
-              Gemiddeld: {performanceMonitor.metrics.averageQueryTime}ms
-            </span>
-            <span className="flex items-center">
-              <Database className="w-4 h-4 mr-1 text-purple-500" />
-              Totaal: {performanceMonitor.metrics.databaseQueries} queries
-            </span>
-            <span className="flex items-center">
-              <HardDrive className="w-4 h-4 mr-1 text-orange-500" />
-              Memory: {performanceMonitor.metrics.memoryUsage}MB
-            </span>
-          </div>
-        )}
+        
       </header>
 
       {/* Search and Actions */}
