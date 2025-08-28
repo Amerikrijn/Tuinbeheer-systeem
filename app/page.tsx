@@ -13,10 +13,11 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, Memory } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { getPlantBedsOptimized, measureQueryPerformance } from "@/lib/database-optimized"
+import { usePerformanceMonitor } from "@/hooks/use-performance-monitor"
 import { uiLogger, AuditLogger } from "@/lib/logger"
 import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -65,8 +66,8 @@ function HomePageContent() {
       
       setState(prev => ({ ...prev, loading: true, error: null }))
       
-      // ✅ Gebruik geoptimaliseerde functie met performance monitoring
-      const { data: paginatedData, duration } = await measureQueryPerformance(
+      // ✅ Gebruik nieuwe performance monitoring hook
+      const { data: paginatedData, duration } = await performanceMonitor.trackDatabaseQuery(
         'loadGardens',
         async () => {
           if (searchTerm) {
@@ -78,7 +79,8 @@ function HomePageContent() {
             const gardens = await TuinService.getAll(undefined, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
             return gardens
           }
-        }
+        },
+        { page, searchTerm, append }
       )
       
       if (!paginatedData.success) {
@@ -105,17 +107,7 @@ function HomePageContent() {
         performance: `${duration.toFixed(2)}ms`
       })
 
-      // ✅ Update performance metrics
-      setPerformanceMetrics(prev => {
-        const newTotalQueries = prev.totalQueries + 1
-        const newAverageQueryTime = (prev.averageQueryTime * prev.totalQueries + duration) / newTotalQueries
-        
-        return {
-          lastQueryTime: duration,
-          averageQueryTime: newAverageQueryTime,
-          totalQueries: newTotalQueries
-        }
-      })
+      // ✅ Performance monitoring wordt automatisch bijgehouden door de hook
 
       setState(prev => ({
         ...prev,
@@ -198,23 +190,8 @@ function HomePageContent() {
     loadGardens(1, state.searchTerm, false)
   }, [loadGardens, state.searchTerm])
 
-  // Performance monitoring
-  const [performanceMetrics, setPerformanceMetrics] = React.useState<{
-    lastQueryTime: number
-    averageQueryTime: number
-    totalQueries: number
-  }>({
-    lastQueryTime: 0,
-    averageQueryTime: 0,
-    totalQueries: 0
-  })
-
-  // Update performance metrics
-  React.useEffect(() => {
-    if (performanceMetrics.totalQueries > 0) {
-      console.log(`📊 Performance Stats: Avg: ${performanceMetrics.averageQueryTime.toFixed(2)}ms, Total: ${performanceMetrics.totalQueries}`)
-    }
-  }, [performanceMetrics])
+  // ✅ Performance monitoring met nieuwe hook
+  const performanceMonitor = usePerformanceMonitor()
 
   // Delete garden with confirmation
   const handleDeleteGarden = React.useCallback(async (gardenId: string, gardenName: string) => {
@@ -285,19 +262,23 @@ function HomePageContent() {
         </div>
 
         {/* ✅ Performance Indicator */}
-        {performanceMetrics.totalQueries > 0 && (
+        {performanceMonitor.metrics.databaseQueries > 0 && (
           <div className="mt-4 flex items-center justify-center space-x-6 text-sm text-muted-foreground">
             <span className="flex items-center">
               <CheckCircle className="w-4 h-4 mr-1 text-green-500" />
-              Laatste: {performanceMetrics.lastQueryTime.toFixed(0)}ms
+              Laatste: {performanceMonitor.metrics.averageQueryTime}ms
             </span>
             <span className="flex items-center">
               <TrendingUp className="w-4 h-4 mr-1 text-blue-500" />
-              Gemiddeld: {performanceMetrics.averageQueryTime.toFixed(0)}ms
+              Gemiddeld: {performanceMonitor.metrics.averageQueryTime}ms
             </span>
             <span className="flex items-center">
               <Database className="w-4 h-4 mr-1 text-purple-500" />
-              Totaal: {performanceMetrics.totalQueries} queries
+              Totaal: {performanceMonitor.metrics.databaseQueries} queries
+            </span>
+            <span className="flex items-center">
+              <Memory className="w-4 h-4 mr-1 text-orange-500" />
+              Memory: {performanceMonitor.metrics.memoryUsage}MB
             </span>
           </div>
         )}
