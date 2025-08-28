@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, Memory } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { getPlantBedsOptimized, measureQueryPerformance } from "@/lib/database-optimized"
@@ -277,7 +277,7 @@ function HomePageContent() {
               Totaal: {performanceMonitor.metrics.databaseQueries} queries
             </span>
             <span className="flex items-center">
-              <Memory className="w-4 h-4 mr-1 text-orange-500" />
+              <HardDrive className="w-4 h-4 mr-1 text-orange-500" />
               Memory: {performanceMonitor.metrics.memoryUsage}MB
             </span>
           </div>

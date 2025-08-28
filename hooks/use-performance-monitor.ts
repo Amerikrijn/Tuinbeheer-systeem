@@ -77,7 +77,7 @@ export function usePerformanceMonitor() {
     queryName: string,
     queryFn: () => Promise<T>,
     metadata?: Record<string, any>
-  ): Promise<{ data: T; duration: number }> {
+  ): Promise<{ data: T; duration: number }> => {
     if (!isMonitoring) {
       return { data: await queryFn(), duration: 0 }
     }
@@ -182,7 +182,7 @@ export function usePerformanceMonitor() {
     apiName: string,
     apiCall: () => Promise<T>,
     metadata?: Record<string, any>
-  ): Promise<{ data: T; duration: number }> {
+  ): Promise<{ data: T; duration: number }> => {
     if (!isMonitoring) {
       return { data: await apiCall(), duration: 0 }
     }
