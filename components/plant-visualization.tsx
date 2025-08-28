@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import type { PlantBedWithPlants, Plant, PlantWithPosition } from "@/lib/supabase"
 import { parsePlantBedDimensions } from "@/lib/scaling-constants"
 
-interface FlowerVisualizationProps {
+interface PlantVisualizationProps {
   plantBed: PlantBedWithPlants
   plants: Plant[] | PlantWithPosition[]
   containerWidth: number
@@ -24,7 +24,7 @@ interface FlowerInstance {
   isMainFlower: boolean
 }
 
-export function FlowerVisualization({ plantBed, plants, containerWidth, containerHeight }: FlowerVisualizationProps) {
+export function PlantVisualization({ plantBed, plants, containerWidth, containerHeight }: PlantVisualizationProps) {
   const [flowerInstances, setFlowerInstances] = useState<FlowerInstance[]>([])
 
   // Helper function to get emoji based on plant name

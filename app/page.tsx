@@ -530,9 +530,9 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
           {/* Flower Preview Section */}
           <div className={isListView ? "mb-2" : "mb-4"}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-card-foreground">Bloemen in deze tuin:</span>
+              <span className="text-sm font-medium text-card-foreground">Planten in deze tuin:</span>
               <span className="text-xs text-muted-foreground">
-                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} bloemen
+                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} planten
               </span>
             </div>
             
@@ -568,7 +568,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
               </div>
             ) : (
               <div className="text-xs text-muted-foreground italic">
-                Nog geen bloemen geplant
+                Nog geen planten geplant
               </div>
             )}
           </div>
@@ -681,7 +681,7 @@ function RoleBasedHomeContent() {
             </Button>
           </div>
           <p className="text-muted-foreground">
-            Bekijk en beheer je tuintaken per week. Zie welke bloemen aandacht nodig hebben.
+            Bekijk en beheer je tuintaken per week. Zie welke planten aandacht nodig hebben.
           </p>
         </div>
 

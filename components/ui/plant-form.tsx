@@ -72,7 +72,7 @@ export function PlantForm({
   onChange,
   onSubmit,
   onReset,
-  submitLabel = "Bloem toevoegen",
+  submitLabel = "Plant toevoegen",
   isSubmitting = false,
   showAdvanced = true
 }: PlantFormProps) {
@@ -147,7 +147,7 @@ export function PlantForm({
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-green-800">
             <Flower className="h-5 w-5" />
-            Basis Bloemgegevens
+            Basis Plantgegevens
             <span className="text-sm font-normal text-green-600">(verplicht)</span>
           </CardTitle>
         </CardHeader>
@@ -155,13 +155,13 @@ export function PlantForm({
           {/* Plant Name with suggestions */}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-medium text-foreground flex items-center gap-1">
-              Bloemnaam
+              Plantnaam
               <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
               <Input
                 id="name"
-                placeholder="Typ een bloemnaam of kies uit de lijst..."
+                placeholder="Typ een plantnaam of kies uit de lijst..."
                 value={data.name}
                 onChange={(e) => handleNameChange(e.target.value)}
                 onFocus={handleNameFocus}
@@ -189,7 +189,7 @@ export function PlantForm({
                         <span className="text-xl">{flower.emoji}</span>
                         <div>
                           <span className="font-medium">{flower.name}</span>
-                          <div className="text-xs text-muted-foreground">Standaard bloem</div>
+                          <div className="text-xs text-muted-foreground">Standaard plant</div>
                         </div>
                       </div>
                     ))}
@@ -199,7 +199,7 @@ export function PlantForm({
                     <div className="px-4 py-3 text-muted-foreground text-sm border-b border-gray-100">
                       <div className="flex items-center gap-2">
                         <span className="text-lg">{DEFAULT_FLOWER_EMOJI}</span>
-                        <span>"{data.name}" als nieuwe bloem</span>
+                        <span>"{data.name}" als nieuwe plant</span>
                       </div>
                     </div>
                   )}
@@ -471,7 +471,7 @@ export function PlantForm({
                       </Label>
                       <Textarea
                         id="careInstructions"
-                        placeholder="Bijv. Wekelijks water geven, maandelijks bemesten, dode bloemen wegknippen..."
+                        placeholder="Bijv. Wekelijks water geven, maandelijks bemesten, dode bladeren wegknippen..."
                         value={data.careInstructions}
                         onChange={(e) => handleFieldChange('careInstructions', e.target.value)}
                         className="border-gray-300 focus:border-blue-500 min-h-[80px]"

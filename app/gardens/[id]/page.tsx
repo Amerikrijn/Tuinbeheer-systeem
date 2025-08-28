@@ -46,7 +46,7 @@ import {
   pixelsToMeters,
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
-import { FlowerVisualization } from "@/components/flower-visualization"
+import { PlantVisualization } from "@/components/plant-visualization"
 
 interface PlantBedPosition {
   id: string
@@ -1223,7 +1223,7 @@ export default function GardenDetailPage() {
                             <div className="absolute inset-0 bg-gradient-to-br from-transparent via-background/10 to-transparent pointer-events-none"></div>
                             
                             {/* Flower Visualization System */}
-                            <FlowerVisualization 
+                            <PlantVisualization 
                               plantBed={bed}
                               plants={bed.plants}
                               containerWidth={bedWidth}
@@ -1382,7 +1382,7 @@ export default function GardenDetailPage() {
                 Nog geen plantvakken
               </h3>
               <p className="text-muted-foreground mb-6">
-                Voeg je eerste plantvak toe om bloemen te kunnen planten.
+                Voeg je eerste plantvak toe om planten te kunnen planten.
               </p>
               <Button 
                 className="bg-green-600 hover:bg-green-700"
@@ -1412,7 +1412,7 @@ export default function GardenDetailPage() {
                           </div>
                         )}
                         <div>
-                          {bed.plants.length} bloemen
+                          {bed.plants.length} planten
                         </div>
                       </div>
                       
@@ -1505,7 +1505,7 @@ export default function GardenDetailPage() {
                   </span>
                 </div>
                 <div className="text-sm text-red-700">
-                  {plantBeds.find(bed => bed.id === deletingBedId)?.plants.length || 0} bloemen zullen ook worden verwijderd
+                  {plantBeds.find(bed => bed.id === deletingBedId)?.plants.length || 0} planten zullen ook worden verwijderd
                 </div>
               </div>
             </div>

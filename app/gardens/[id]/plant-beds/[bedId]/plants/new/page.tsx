@@ -72,9 +72,9 @@ export default function NewPlantPage() {
 
     // Required fields
     if (!data.name.trim()) {
-      newErrors.name = "Bloemnaam is verplicht"
+      newErrors.name = "Plantnaam is verplicht"
     } else if (data.name.length > 100) {
-      newErrors.name = "Bloemnaam mag maximaal 100 karakters bevatten"
+      newErrors.name = "Plantnaam mag maximaal 100 karakters bevatten"
     }
 
     if (!data.color.trim()) {
@@ -242,7 +242,7 @@ export default function NewPlantPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
           <Leaf className="h-8 w-8 text-green-600" />
-          Nieuwe Bloem Toevoegen
+          Nieuwe Plant Toevoegen
         </h1>
         <div className="text-muted-foreground">
           <p><strong>Tuin:</strong> {garden.name}</p>
@@ -253,7 +253,7 @@ export default function NewPlantPage() {
       {/* Plant Form */}
       <Card>
         <CardHeader>
-          <CardTitle>Bloem Details</CardTitle>
+          <CardTitle>Plant Details</CardTitle>
         </CardHeader>
         <CardContent>
           <PlantForm
@@ -262,7 +262,7 @@ export default function NewPlantPage() {
             onChange={setPlantData}
             onSubmit={handleSubmit}
             onReset={handleReset}
-            submitLabel="Bloem toevoegen"
+            submitLabel="Plant toevoegen"
             isSubmitting={loading}
             showAdvanced={true}
           />

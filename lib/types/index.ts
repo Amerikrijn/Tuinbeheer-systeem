@@ -49,7 +49,7 @@ export interface Plantvak {
   visual_updated_at?: string
 }
 
-export interface Bloem {
+export interface Plant {
   id: string
   plant_bed_id: string
   name: string
@@ -129,7 +129,7 @@ export interface PlantvakFormData {
   description: string
 }
 
-export interface BloemFormData {
+export interface PlantFormData {
   name: string
   latin_name?: string
   scientific_name?: string
@@ -158,12 +158,12 @@ export interface LogbookEntryFormData {
 }
 
 // Composite Types
-export interface PlantvakWithBloemen extends Plantvak {
-  plants: Bloem[]
+export interface PlantvakWithPlanten extends Plantvak {
+  plants: Plant[]
 }
 
 export interface TuinWithPlantvakken extends Tuin {
-  plant_beds: PlantvakWithBloemen[]
+  plant_beds: PlantvakWithPlanten[]
 }
 
 // Visual Garden Types
@@ -291,7 +291,7 @@ export interface User {
 }
 
 // Additional Types
-export interface PlantWithPosition extends Bloem {
+export interface PlantWithPosition extends Plant {
   position_x: number
   position_y: number
   visual_width: number
@@ -302,8 +302,9 @@ export interface PlantWithPosition extends Bloem {
 // Legacy type aliases for backward compatibility
 export type Garden = Tuin
 export type PlantBed = Plantvak
-export type Plant = Bloem
+export type Bloem = Plant // Backward compatibility alias
 export type PlantBedFormData = PlantvakFormData
-export type PlantFormData = BloemFormData
-export type PlantBedWithPlants = PlantvakWithBloemen
+export type BloemFormData = PlantFormData // Backward compatibility alias
+export type PlantBedWithPlants = PlantvakWithPlanten
+export type PlantvakWithBloemen = PlantvakWithPlanten // Backward compatibility alias
 export type PlantBedPosition = PlantvakPosition

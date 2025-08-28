@@ -11,10 +11,10 @@ import { AddTaskForm } from '@/components/tasks/add-task-form'
 import { TaskService } from '@/lib/services/task.service'
 import { supabase } from '@/lib/supabase'
 import type { TaskWithPlantInfo } from '@/lib/types/tasks'
-import type { Bloem } from '@/lib/types/index'
+import type { Plant } from '@/lib/types/index'
 import { PlantPhotoGallery } from '@/components/plant-photo-gallery'
 
-interface PlantWithBeds extends Bloem {
+interface PlantWithBeds extends Plant {
   plant_beds?: {
     name: string
     sun_exposure?: string
@@ -163,8 +163,8 @@ export default function PlantDetailPage() {
         <Card>
           <CardContent className="p-8 text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">Bloem niet gevonden</h3>
-            <p className="text-muted-foreground mb-4">De bloem die je zoekt bestaat niet of is verwijderd.</p>
+            <h3 className="text-lg font-medium text-foreground mb-2">Plant niet gevonden</h3>
+            <p className="text-muted-foreground mb-4">De plant die je zoekt bestaat niet of is verwijderd.</p>
             <Button asChild>
               <Link href="/">Terug naar overzicht</Link>
             </Button>
@@ -224,13 +224,13 @@ export default function PlantDetailPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-green-800">
                 <Leaf className="w-5 h-5" />
-                Basis Bloemgegevens
+                Basis Plantgegevens
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-foreground">Bloemnaam</label>
+                  <label className="text-sm font-medium text-foreground">Plantnaam</label>
                   <p className="text-lg font-semibold flex items-center gap-2">
                     {plant.emoji && <span className="text-xl">{plant.emoji}</span>}
                     {plant.name}
@@ -521,7 +521,7 @@ export default function PlantDetailPage() {
                 <Calendar className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
                 <h3 className="font-medium text-foreground mb-2">Nog geen taken</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Voeg je eerste taak toe voor deze bloem.
+                  Voeg je eerste taak toe voor deze plant.
                 </p>
                 <Button
                   onClick={() => setShowAddTask(true)}

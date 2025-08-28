@@ -249,7 +249,7 @@ export default function PlantBedsPage() {
                         </div>
                       )}
                       <div className="flex justify-between">
-                        <span>Bloemen:</span>
+                        <span>Planten:</span>
                         <span>{bed.plants.length}</span>
                       </div>
                       {bed.soil_type && (
@@ -296,7 +296,7 @@ export default function PlantBedsPage() {
                           Plantvak {bed.letter_code || bed.name}
                         </h3>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                          <span>{bed.plants.length} bloemen</span>
+                          <span>{bed.plants.length} planten</span>
                           {bed.size && <span>Grootte: {bed.size}</span>}
                           {bed.sun_exposure && (
                             <div className="flex items-center gap-1">
@@ -431,7 +431,7 @@ export default function PlantBedsPage() {
                 <div className="text-2xl font-bold text-blue-600">
                   {plantBeds.reduce((sum, bed) => sum + Math.max(1, bed.plants.length), 0)}
                 </div>
-                <div className="text-sm text-muted-foreground">Totaal Bloemen</div>
+                <div className="text-sm text-muted-foreground">Totaal Planten</div>
               </div>
               <div>
                 <div className="text-2xl font-bold text-purple-600">
