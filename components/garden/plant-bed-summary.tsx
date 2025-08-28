@@ -145,7 +145,7 @@ export function PlantBedSummary({
       } else if (filterMode === 'blooming') {
         return group.bloomMonths.includes(selectedMonth)
       }
-      return true
+      return false // Changed from true to false - only show plants that match the filter
     })
   }, [plantGroups, selectedMonth, filterMode])
   
@@ -157,6 +157,36 @@ export function PlantBedSummary({
       <div className="text-center py-4 text-muted-foreground">
         <Flower2 className="h-8 w-8 mx-auto mb-2 opacity-30" />
         <p className="text-xs">Nog geen planten</p>
+      </div>
+    )
+  }
+  
+  // Show message when no plants match the filter but bed has plants
+  if (selectedMonth && filterMode !== 'all' && !hasRelevantPlants && plantBed.plants.length > 0) {
+    return (
+      <div className="space-y-2">
+        {/* Header with basic info */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{plantBed.name}</span>
+            {getSunExposureIcon(plantBed.sun_exposure)}
+            <Badge variant="secondary" className="text-xs">
+              {plantBed.plants.length} planten
+            </Badge>
+            <Badge variant="outline" className="text-xs bg-gray-100">
+              {filterMode === 'sowing' ? '🌱 Geen zaaitijd' : '🌸 Bloeit niet'}
+            </Badge>
+          </div>
+        </div>
+        <div className="text-center py-2 text-muted-foreground bg-gray-50 dark:bg-gray-900 rounded">
+          <div className="text-gray-400 mb-1">
+            {filterMode === 'sowing' ? '🌱' : '🌸'}
+          </div>
+          <p className="text-xs">Niet actief in deze maand</p>
+          <p className="text-[10px] text-gray-500 mt-1">
+            {plantBed.plants.length} plant{plantBed.plants.length !== 1 ? 'en' : ''} in dit plantvak
+          </p>
+        </div>
       </div>
     )
   }
