@@ -12,7 +12,8 @@ import type {
   ApiResponse,
   PaginatedResponse,
   SearchFilters,
-  SortOptions
+  SortOptions,
+  PlantBedWithPlants
 } from '../types/index'
 
 /**
@@ -139,10 +140,13 @@ export class TuinService {
       
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
       
-      // Build query
+      // ✅ PERFORMANCE FIX: Gebruik geoptimaliseerde query met plant bed count
       let query = supabase
         .from(this.RESOURCE_NAME)
-        .select('*', { count: 'exact' })
+        .select(`
+          *,
+          plant_beds!plant_beds_garden_id_fkey(count)
+        `, { count: 'exact' })
         .eq('is_active', true)
       
       // Apply filters
@@ -233,6 +237,59 @@ export class TuinService {
       
       databaseLogger.error('Unexpected error in TuinService.getById', error as Error, { id })
       return createResponse<Tuin>(null, 'An unexpected error occurred', 'get garden by ID')
+    }
+  }
+
+  /**
+   * ✅ PERFORMANCE FIX: Get garden with all plant beds and plants in one optimized query
+   * Eliminates N+1 query problem completely
+   */
+  static async getByIdWithDetails(id: string): Promise<ApiResponse<Tuin & { plant_beds: any[] }>> {
+    const operationId = `getByIdWithDetails-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      validateId(id, 'Garden')
+      await validateConnection()
+      
+      // ✅ Eén query met nested JOINs - geen N+1 probleem!
+      const { data, error } = await supabase
+        .from(this.RESOURCE_NAME)
+        .select(`
+          *,
+          plant_beds!plant_beds_garden_id_fkey(
+            *,
+            plants(*)
+          )
+        `)
+        .eq('id', id)
+        .eq('is_active', true)
+        .single()
+      
+      if (error) {
+        if (error.code === 'PGRST116') {
+          throw new NotFoundError('Garden', id)
+        }
+        throw new DatabaseError('Failed to fetch garden with details', error.code, error)
+      }
+      
+      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, id, { withDetails: true })
+      PerformanceLogger.endTimer(operationId, 'TuinService.getByIdWithDetails', { found: !!data })
+      
+      return createResponse(data, null, 'get garden by ID with details')
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'TuinService.getByIdWithDetails', { error: true })
+      
+      if (error instanceof NotFoundError) {
+        return createResponse<Tuin & { plant_beds: any[] }>(null, error.message, 'get garden by ID with details')
+      }
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError) {
+        return createResponse<Tuin & { plant_beds: any[] }>(null, error.message, 'get garden by ID with details')
+      }
+      
+      databaseLogger.error('Unexpected error in TuinService.getByIdWithDetails', error as Error, { id })
+      return createResponse<Tuin & { plant_beds: any[] }>(null, 'An unexpected error occurred', 'get garden by ID with details')
     }
   }
   
@@ -416,6 +473,198 @@ export class TuinService {
       
       databaseLogger.error('Unexpected error in TuinService.delete', error as Error, { id })
       return createResponse<boolean>(false, 'An unexpected error occurred', 'delete garden')
+    }
+  }
+
+  /**
+   * ✅ PERFORMANCE FIX: Get all active gardens with plant bed counts in one optimized query
+   * Eliminates N+1 query problem for garden overview
+   */
+  static async getAllWithCounts(
+    filters?: SearchFilters,
+    sort?: SortOptions,
+    page?: number,
+    pageSize?: number
+  ): Promise<ApiResponse<PaginatedResponse<Tuin & { plant_bed_count: number }>>> {
+    const operationId = `getAllWithCounts-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      await validateConnection()
+      
+      const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
+      
+      // ✅ Eén query met subquery voor plant bed count - geen N+1 probleem!
+      let query = supabase
+        .from(this.RESOURCE_NAME)
+        .select(`
+          *,
+          plant_beds!plant_beds_garden_id_fkey(count)
+        `, { count: 'exact' })
+        .eq('is_active', true)
+      
+      // Apply filters
+      if (filters?.query) {
+        query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%,location.ilike.%${filters.query}%`)
+      }
+      
+      // Apply sorting
+      const sortField = sort?.field || 'created_at'
+      const sortDirection = sort?.direction === 'asc'
+      query = query.order(sortField, { ascending: sortDirection })
+      
+      // Apply pagination
+      const from = (validPage - 1) * validPageSize
+      const to = from + validPageSize - 1
+      query = query.range(from, to)
+      
+      const { data, error, count } = await query
+      
+      if (error) {
+        throw new DatabaseError('Failed to fetch gardens with counts', error.code, error)
+      }
+      
+      // Transform data to include plant bed count
+      const gardensWithCounts = (data || []).map(garden => ({
+        ...garden,
+        plant_bed_count: garden.plant_beds?.[0]?.count || 0
+      }))
+      
+      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, { 
+        filters, 
+        sort, 
+        page: validPage, 
+        pageSize: validPageSize,
+        withCounts: true 
+      })
+      
+      const result = {
+        data: gardensWithCounts,
+        count: count || 0,
+        page: validPage,
+        page_size: validPageSize,
+        total_pages: Math.ceil((count || 0) / validPageSize)
+      }
+      
+      PerformanceLogger.endTimer(operationId, 'TuinService.getAllWithCounts', { resultCount: gardensWithCounts.length })
+      
+      return createResponse(result, null, 'getAll gardens with counts')
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'TuinService.getAllWithCounts', { error: true })
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError) {
+        return createResponse<PaginatedResponse<Tuin & { plant_bed_count: number }>>(null, error.message, 'getAll gardens with counts')
+      }
+      
+      databaseLogger.error('Unexpected error in TuinService.getAllWithCounts', error as Error)
+      return createResponse<PaginatedResponse<Tuin & { plant_bed_count: number }>>(null, 'An unexpected error occurred', 'getAll gardens with counts')
+    }
+  }
+
+  /**
+   * ✅ PERFORMANCE FIX: Get all active gardens with all details in one optimized query
+   * Eliminates all N+1 query problems for complete garden overview
+   */
+  static async getAllWithFullDetails(
+    filters?: SearchFilters,
+    sort?: SortOptions,
+    page?: number,
+    pageSize?: number
+  ): Promise<ApiResponse<PaginatedResponse<Tuin & { 
+    plant_beds: any[],
+    plant_bed_count: number,
+    total_plants: number 
+  }>>> {
+    const operationId = `getAllWithFullDetails-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      await validateConnection()
+      
+      const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
+      
+      // ✅ Eén query met alle JOINs - geen N+1 probleem!
+      let query = supabase
+        .from(this.RESOURCE_NAME)
+        .select(`
+          *,
+          plant_beds!plant_beds_garden_id_fkey(
+            *,
+            plants(*)
+          )
+        `, { count: 'exact' })
+        .eq('is_active', true)
+      
+      // Apply filters
+      if (filters?.query) {
+        query = query.or(`name.ilike.%${filters.query}%,description.ilike.%${filters.query}%,location.ilike.%${filters.query}%`)
+      }
+      
+      // Apply sorting
+      const sortField = sort?.field || 'created_at'
+      const sortDirection = sort?.direction === 'asc'
+      query = query.order(sortField, { ascending: sortDirection })
+      
+      // Apply pagination
+      const from = (validPage - 1) * validPageSize
+      const to = from + validPageSize - 1
+      query = query.range(from, to)
+      
+      const { data, error, count } = await query
+      
+      if (error) {
+        throw new DatabaseError('Failed to fetch gardens with full details', error.code, error)
+      }
+      
+      // Transform data to include counts and flatten structure
+      const gardensWithDetails = (data || []).map(garden => {
+        const plantBeds = garden.plant_beds || []
+        const totalPlants = plantBeds.reduce((sum, bed) => sum + (bed.plants?.length || 0), 0)
+        
+        return {
+          ...garden,
+          plant_beds: plantBeds,
+          plant_bed_count: plantBeds.length,
+          total_plants: totalPlants
+        }
+      })
+      
+      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, undefined, { 
+        filters, 
+        sort, 
+        page: validPage, 
+        pageSize: validPageSize,
+        withFullDetails: true 
+      })
+      
+      const result = {
+        data: gardensWithDetails,
+        count: count || 0,
+        page: validPage,
+        page_size: validPageSize,
+        total_pages: Math.ceil((count || 0) / validPageSize)
+      }
+      
+      PerformanceLogger.endTimer(operationId, 'TuinService.getAllWithFullDetails', { resultCount: gardensWithDetails.length })
+      
+      return createResponse(result, null, 'getAll gardens with full details')
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'TuinService.getAllWithFullDetails', { error: true })
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError) {
+        return createResponse<PaginatedResponse<Tuin & { 
+          plant_beds: any[],
+          plant_bed_count: number,
+          total_plants: number 
+        }>>(null, error.message, 'getAll gardens with full details')
+      }
+      
+      databaseLogger.error('Unexpected error in TuinService.getAllWithFullDetails', error as Error)
+      return createResponse<PaginatedResponse<Tuin & { 
+        plant_beds: any[],
+        plant_bed_count: number,
+        total_plants: number 
+      }>>(null, 'An unexpected error occurred', 'getAll gardens with full details')
     }
   }
 }
@@ -1020,9 +1269,168 @@ export class LogbookService {
   }
 }
 
+/**
+ * PlantBed Service
+ * Handles all plant bed related database operations with optimized queries
+ */
+export class PlantBedService {
+  private static readonly RESOURCE_NAME = 'plant_beds'
+  
+  /**
+   * ✅ PERFORMANCE FIX: Get all plant beds with plants in one optimized query
+   * Eliminates N+1 query problem completely
+   */
+  static async getAllWithPlants(gardenId?: string): Promise<ApiResponse<PlantBedWithPlants[]>> {
+    const operationId = `getAllWithPlants-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      await validateConnection()
+      
+      // ✅ Eén query met JOIN - geen N+1 probleem!
+      let query = supabase
+        .from(this.RESOURCE_NAME)
+        .select(`
+          *,
+          plants(*)
+        `)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+
+      if (gardenId) {
+        query = query.eq('garden_id', gardenId)
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        throw new DatabaseError('Failed to fetch plant beds with plants', error.code, error)
+      }
+
+      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, gardenId, { withPlants: true })
+      PerformanceLogger.endTimer(operationId, 'PlantBedService.getAllWithPlants', { resultCount: data?.length || 0 })
+      
+      return createResponse(data || [], null, 'getAll plant beds with plants')
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'PlantBedService.getAllWithPlants', { error: true })
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError) {
+        return createResponse<PlantBedWithPlants[]>(null, error.message, 'getAll plant beds with plants')
+      }
+      
+      databaseLogger.error('Unexpected error in PlantBedService.getAllWithPlants', error as Error)
+      return createResponse<PlantBedWithPlants[]>(null, 'An unexpected error occurred', 'getAll plant beds with plants')
+    }
+  }
+
+  /**
+   * ✅ PERFORMANCE FIX: Get plant bed by ID with plants in one optimized query
+   */
+  static async getByIdWithPlants(id: string): Promise<ApiResponse<PlantBedWithPlants | null>> {
+    const operationId = `getByIdWithPlants-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      validateId(id, 'PlantBed')
+      await validateConnection()
+      
+      // ✅ Eén query met JOIN - geen N+1 probleem!
+      const { data, error } = await supabase
+        .from(this.RESOURCE_NAME)
+        .select(`
+          *,
+          plants(*)
+        `)
+        .eq('id', id)
+        .eq('is_active', true)
+        .single()
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          throw new NotFoundError('PlantBed', id)
+        }
+        throw new DatabaseError('Failed to fetch plant bed with plants', error.code, error)
+      }
+
+      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, id, { withPlants: true })
+      PerformanceLogger.endTimer(operationId, 'PlantBedService.getByIdWithPlants', { found: !!data })
+      
+      return createResponse(data, null, 'get plant bed by ID with plants')
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'PlantBedService.getByIdWithPlants', { error: true })
+      
+      if (error instanceof NotFoundError) {
+        return createResponse<PlantBedWithPlants | null>(null, error.message, 'get plant bed by ID with plants')
+      }
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError) {
+        return createResponse<PlantBedWithPlants | null>(null, error.message, 'get plant bed by ID with plants')
+      }
+      
+      databaseLogger.error('Unexpected error in PlantBedService.getByIdWithPlants', error as Error, { id })
+      return createResponse<PlantBedWithPlants | null>(null, 'An unexpected error occurred', 'get plant bed by ID with plants')
+    }
+  }
+}
+
+/**
+ * UserGardenAccess Service
+ * Handles all user garden access related database operations with optimized queries
+ */
+export class UserGardenAccessService {
+  private static readonly RESOURCE_NAME = 'user_garden_access'
+  
+  /**
+   * ✅ PERFORMANCE FIX: Get users with access to a specific garden in one optimized query
+   */
+  static async getUsersForGarden(gardenId: string): Promise<ApiResponse<any[]>> {
+    const operationId = `getUsersForGarden-${Date.now()}`
+    PerformanceLogger.startTimer(operationId)
+    
+    try {
+      validateId(gardenId, 'Garden')
+      await validateConnection()
+      
+      // ✅ Eén query met JOIN - geen N+1 probleem!
+      const { data, error } = await supabase
+        .from(this.RESOURCE_NAME)
+        .select(`
+          users!inner(
+            id,
+            email,
+            full_name
+          )
+        `)
+        .eq('garden_id', gardenId)
+
+      if (error) {
+        throw new DatabaseError('Failed to fetch users for garden', error.code, error)
+      }
+
+      const users = data?.map(u => u.users).filter(Boolean) || []
+      
+      AuditLogger.logDataAccess(null, 'READ', this.RESOURCE_NAME, gardenId, { withUsers: true })
+      PerformanceLogger.endTimer(operationId, 'UserGardenAccessService.getUsersForGarden', { resultCount: users.length })
+      
+      return createResponse(users, null, 'get users for garden')
+    } catch (error) {
+      PerformanceLogger.endTimer(operationId, 'UserGardenAccessService.getUsersForGarden', { error: true })
+      
+      if (error instanceof DatabaseError || error instanceof ValidationError) {
+        return createResponse<any[]>(null, error.message, 'get users for garden')
+      }
+      
+      databaseLogger.error('Unexpected error in UserGardenAccessService.getUsersForGarden', error as Error, { gardenId })
+      return createResponse<any[]>(null, 'An unexpected error occurred', 'get users for garden')
+    }
+  }
+}
+
 // For backward compatibility, create a unified DatabaseService
 export const DatabaseService = {
   Tuin: TuinService,
   Logbook: LogbookService,
+  PlantBed: PlantBedService,
+  UserGardenAccess: UserGardenAccessService,
   // TODO: Add PlantvakService and BloemService following the same pattern
 }

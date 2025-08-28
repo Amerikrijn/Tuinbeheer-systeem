@@ -16,7 +16,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
-import { getPlantBedsOptimized } from "@/lib/database-optimized"
+import { getPlantBedsOptimized, getGardenWithPlantBedsOptimized } from "@/lib/database-optimized"
+import { PlantBedService, UserGardenAccessService } from "@/lib/services/database.service"
 
 import { uiLogger, AuditLogger } from "@/lib/logger"
 import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen } from "@/lib/types/index"
@@ -59,6 +60,13 @@ function HomePageContent() {
     hasMore: false,
   })
 
+  // ✅ PERFORMANCE FIX: Verwijder onnodige state variabelen
+  const [plantBeds, setPlantBeds] = React.useState<PlantvakWithBloemen[]>([])
+  const [gardenUsers, setGardenUsers] = React.useState<any[]>([])
+
+  // ✅ PERFORMANCE FIX: Verwijder onnodige useEffect hooks
+  // Data wordt nu direct uit hoofdquery geladen
+
   // Load gardens with proper error handling and logging
   const loadGardens = React.useCallback(async (page = 1, searchTerm = "", append = false) => {
     const operationId = `loadGardens-${Date.now()}`
@@ -68,12 +76,12 @@ function HomePageContent() {
       
       setState(prev => ({ ...prev, loading: true, error: null }))
       
-      // Gebruik normale TuinService
+      // ✅ PERFORMANCE FIX: Gebruik geoptimaliseerde functie om alle data in één query op te halen
       let paginatedData
       if (searchTerm) {
-        paginatedData = await TuinService.getAll({ query: searchTerm }, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
+        paginatedData = await TuinService.getAllWithFullDetails({ query: searchTerm }, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
       } else {
-        paginatedData = await TuinService.getAll(undefined, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
+        paginatedData = await TuinService.getAllWithFullDetails(undefined, { field: 'created_at', direction: 'desc' as const }, page, ITEMS_PER_PAGE)
       }
       
       if (!paginatedData.success) {
@@ -98,8 +106,6 @@ function HomePageContent() {
         page: data.page
       })
 
-
-
       setState(prev => ({
         ...prev,
         gardens: append ? [...prev.gardens, ...data.data] : data.data,
@@ -108,6 +114,17 @@ function HomePageContent() {
         totalPages: data.total_pages,
         hasMore: data.page < data.total_pages,
       }))
+
+      // ✅ PERFORMANCE FIX: Update plant beds en users direct uit hoofddata
+      if (data.data.length > 0) {
+        const firstGarden = data.data[0]
+        if (firstGarden.plant_beds) {
+          setPlantBeds(firstGarden.plant_beds as PlantvakWithBloemen[])
+        }
+        if (firstGarden.users) {
+          setGardenUsers(firstGarden.users)
+        }
+      }
 
       // Log user action for audit trail
       AuditLogger.logUserAction(
@@ -414,51 +431,19 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
 
   // Load plant beds and flowers for preview
   React.useEffect(() => {
-    const loadFlowers = async () => {
-      try {
-        setLoadingFlowers(true)
-        const beds = await getPlantBeds(garden.id)
-        setPlantBeds(beds as PlantvakWithBloemen[])
-      } catch (error) {
-        uiLogger.error('Error loading flowers for garden preview', error as Error, { gardenId: garden.id })
-        setPlantBeds([])
-      } finally {
-        setLoadingFlowers(false)
-      }
+    // ✅ PERFORMANCE FIX: Data is al geladen in hoofdquery, geen aparte queries nodig
+    if (garden.plant_beds) {
+      setPlantBeds(garden.plant_beds as PlantvakWithBloemen[])
     }
-
-    loadFlowers()
-  }, [garden.id])
+  }, [garden.plant_beds])
 
   // Load users with access to this garden
   React.useEffect(() => {
-    const loadGardenUsers = async () => {
-      try {
-        setLoadingUsers(true)
-        const { data: users, error } = await supabase
-          .from('user_garden_access')
-          .select(`
-            users (
-              id,
-              email,
-              full_name
-            )
-          `)
-          .eq('garden_id', garden.id)
-
-        if (!error && users) {
-          setGardenUsers(users.map(u => u.users).filter(Boolean))
-        }
-      } catch (error) {
-        uiLogger.error('Error loading garden users', error as Error, { gardenId: garden.id })
-        setGardenUsers([])
-      } finally {
-        setLoadingUsers(false)
-      }
+    // ✅ PERFORMANCE FIX: Data is al geladen in hoofdquery, geen aparte queries nodig
+    if (garden.users) {
+      setGardenUsers(garden.users)
     }
-
-    loadGardenUsers()
-  }, [garden.id])
+  }, [garden.users])
 
   // Get all unique flowers from all plant beds
   const allFlowers = React.useMemo(() => {
@@ -526,13 +511,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
                 </span>
               </div>
               
-              {loadingFlowers ? (
-                <div className="flex gap-1">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
-                  ))}
-                </div>
-              ) : allFlowers.length > 0 ? (
+              {allFlowers.length > 0 ? (
                 <div className="flex flex-wrap gap-1">
                   {allFlowers.map((flower, index) => (
                     <div
@@ -568,17 +547,11 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-card-foreground">Gebruikers met toegang:</span>
               <span className="text-xs text-muted-foreground">
-                {loadingUsers ? 'Laden...' : `${gardenUsers.length} gebruiker(s)`}
+                {gardenUsers.length} gebruiker(s)
               </span>
             </div>
             
-            {loadingUsers ? (
-              <div className="flex gap-1">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-                ))}
-              </div>
-            ) : gardenUsers.length > 0 ? (
+            {gardenUsers.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {gardenUsers.slice(0, 3).map((user, index) => (
                   <span 
@@ -597,7 +570,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
               </div>
             ) : (
               <div className="text-xs text-muted-foreground italic">
-                {loadingUsers ? 'Laden...' : 'Geen gebruikers'}
+                Geen gebruikers
               </div>
             )}
           </div>
