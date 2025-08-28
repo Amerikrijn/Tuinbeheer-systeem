@@ -1364,11 +1364,40 @@ export default function GardenDetailPage() {
                               <div className="space-y-1">
                                 {/* Group plants by unique name */}
                                 {(() => {
+                                  // Import Dutch flower data for bloom periods
+                                  const dutchFlowers = {
+                                    'Zinnia': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'April-Mei' },
+                                    'Marigold': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Maart-April' },
+                                    'Tagetes': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Maart-April' },
+                                    'Petunia': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Februari-Maart' },
+                                    'Begonia': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Januari-Februari' },
+                                    'Impatiens': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Februari-Maart' },
+                                    'Cosmos': { bloeiperiode: 'Juli-Oktober', zaaiperiode: 'April-Mei' },
+                                    'Calendula': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'Maart-April' },
+                                    'Goudsbloem': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'Maart-April' },
+                                    'Zonnebloem': { bloeiperiode: 'Juli-September', zaaiperiode: 'April-Mei' },
+                                    'Sunflower': { bloeiperiode: 'Juli-September', zaaiperiode: 'April-Mei' },
+                                    'Dahlia': { bloeiperiode: 'Juli-Oktober', zaaiperiode: 'Maart-April' },
+                                    'Lavendel': { bloeiperiode: 'Juni-Augustus', zaaiperiode: 'Maart-April' },
+                                    'Roos': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'November-Maart' },
+                                    'Rose': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'November-Maart' },
+                                  }
+                                  
                                   const plantGroups = new Map()
                                   bed.plants.forEach(plant => {
                                     // Use variety or latin_name if name is generic
                                     const displayName = plant.variety || plant.latin_name || plant.scientific_name || plant.name || 'Plant'
                                     const key = displayName
+                                    
+                                    // Try to find bloom data from Dutch flowers database
+                                    let bloomData = null
+                                    for (const [flowerName, data] of Object.entries(dutchFlowers)) {
+                                      if (displayName.toLowerCase().includes(flowerName.toLowerCase()) || 
+                                          (plant.name && plant.name.toLowerCase().includes(flowerName.toLowerCase()))) {
+                                        bloomData = data
+                                        break
+                                      }
+                                    }
                                     
                                     if (!plantGroups.has(key)) {
                                       plantGroups.set(key, {
@@ -1376,8 +1405,8 @@ export default function GardenDetailPage() {
                                         count: 0,
                                         color: plant.color || plant.plant_color,
                                         emoji: plant.emoji,
-                                        bloom_period: plant.bloom_period,
-                                        planting_date: plant.planting_date
+                                        bloom_period: plant.bloom_period || bloomData?.bloeiperiode || null,
+                                        planting_date: plant.planting_date || bloomData?.zaaiperiode || null
                                       })
                                     }
                                     plantGroups.get(key).count++
@@ -1424,21 +1453,16 @@ export default function GardenDetailPage() {
                                                   />
                                                 )}
                                               </div>
-                                              {/* Always show details section even if empty */}
+                                              {/* Show details with bloom data */}
                                               <div className="text-[10px] text-black font-medium space-y-0">
-                                                {group.planting_date ? (
+                                                {group.planting_date && (
                                                   <div>🌱 Zaai: {group.planting_date}</div>
-                                                ) : (
-                                                  <div className="text-gray-600">🌱 Zaai: onbekend</div>
                                                 )}
-                                                {group.bloom_period ? (
+                                                {group.bloom_period && (
                                                   <div>🌸 Bloei: {group.bloom_period}</div>
-                                                ) : (
-                                                  <div className="text-gray-600">🌸 Bloei: onbekend</div>
                                                 )}
-                                                {/* Add more plant info if available */}
-                                                {group.color && (
-                                                  <div>🎨 Kleur: {group.color}</div>
+                                                {!group.planting_date && !group.bloom_period && (
+                                                  <div className="text-gray-500 italic">Geen seizoensdata beschikbaar</div>
                                                 )}
                                               </div>
                                             </div>
