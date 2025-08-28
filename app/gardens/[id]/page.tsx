@@ -1358,21 +1358,53 @@ export default function GardenDetailPage() {
                             )}
                           </div>
 
-                          {/* Main area for plant summary - scrollable */}
-                          <div className="w-full h-full p-3 overflow-y-auto bg-gradient-to-br from-muted/30 to-muted/50 dark:from-muted/10 dark:to-muted/20 rounded-lg">
-                            {/* Plant Bed Summary */}
-                            <PlantBedSummary
-                              plantBed={bed}
-                              selectedMonth={selectedMonth}
-                              filterMode={filterMode}
-                              isHighlighted={isHighlighted}
-                            />
+                          {/* Main area - show simple plant count and emojis */}
+                          <div className="w-full h-full flex flex-col items-center justify-center p-2 relative">
+                            {bed.plants.length > 0 ? (
+                              <>
+                                {/* Plant emojis display */}
+                                <div className="flex flex-wrap justify-center gap-1 mb-1">
+                                  {/* Show unique plant emojis (max 4) */}
+                                  {Array.from(new Set(bed.plants.map(p => p.emoji || '🌸')))
+                                    .slice(0, 4)
+                                    .map((emoji, idx) => (
+                                      <span key={idx} className="text-lg" style={{ fontSize: Math.min(24, bedWidth / 6) }}>
+                                        {emoji}
+                                      </span>
+                                    ))}
+                                </div>
+                                {/* Plant count */}
+                                <div className="text-xs font-medium text-muted-foreground">
+                                  {bed.plants.length} plant{bed.plants.length !== 1 ? 'en' : ''}
+                                </div>
+                                
+                                {/* Hover info panel - shows on hover */}
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 pointer-events-none">
+                                  <div className="bg-background/95 backdrop-blur-sm border-2 border-border rounded-lg shadow-xl p-3 min-w-[200px] max-w-[300px]">
+                                    <PlantBedSummary
+                                      plantBed={bed}
+                                      selectedMonth={selectedMonth}
+                                      filterMode={filterMode}
+                                      isHighlighted={isHighlighted}
+                                    />
+                                  </div>
+                                  {/* Arrow pointing down */}
+                                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
+                                    <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-border"></div>
+                                  </div>
+                                </div>
+                              </>
+                            ) : (
+                              <div className="text-muted-foreground text-xs font-medium">
+                                Leeg
+                              </div>
+                            )}
                             
-                            {/* Corner decorations to emphasize the plant bed area */}
-                            <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none"></div>
-                            <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none"></div>
-                            <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none"></div>
-                            <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none"></div>
+                            {/* Corner decorations */}
+                            <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none opacity-50"></div>
+                            <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none opacity-50"></div>
+                            <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none opacity-50"></div>
+                            <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none opacity-50"></div>
                           </div>
 
 
