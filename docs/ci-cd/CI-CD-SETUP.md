@@ -1,300 +1,229 @@
-# 🚀 Parallel CI/CD Pipeline Setup
+# 🚀 Banking-Grade CI/CD Pipeline Setup
 
-Deze setup laat je **twee pipelines parallel draaien**: je normale CI/CD pipeline EN een AI-powered testing pipeline. Beide draaien gelijktijdig voor maximale snelheid!
+Deze documentatie beschrijft hoe je CI/CD pipeline is geconfigureerd om automatisch te voldoen aan de hoogste kwaliteitsstandaarden zonder mogelijkheid tot overruling.
 
-## 🔄 Hoe Het Werkt
+## 🎯 Overzicht
 
-### **Pipeline 1: Standard Tests & Build**
-- 🧪 Je normale tests (`npm test`)
-- 🔨 Build process (`npm run build`)
-- 📦 Dependency installatie
-- ✅ Standard quality checks
+De CI/CD pipeline is ontworpen om **automatisch** te zorgen dat alle code voldoet aan de vereiste standaarden voordat deze naar preview of productie wordt gedeployed. Er is **geen mogelijkheid** om deze checks te omzeilen of over te rulen.
 
-### **Pipeline 2: AI Testing Pipeline**
-- 🤖 **Test Generator Agent** - Genereert test scenarios
-- 🔍 **Quality Analyzer Agent** - Analyseert code kwaliteit
-- 🔧 **Auto-Fix Agent** - Identificeert fixes (past ze NIET toe)
-- 🎯 **Pipeline Orchestrator** - Coördineert alles
+## 🔒 Quality Gates (Geen Override Mogelijk)
 
-### **Resultaat:**
-```
-Tijd: 0s    1m    2m    3m    4m
-      |     |     |     |     |
-Tests: ████████████████████
-AI:    ████████████████████████████
-Deploy:                           ████
-```
+### 1. Code Quality Gates
+- **ESLint**: Code style en kwaliteit (CRITICAL - geen override)
+- **TypeScript**: Type safety validatie (CRITICAL - geen override)
+- **Jest Tests**: Unit en integratie tests (CRITICAL - geen override)
+- **Coverage Thresholds**: Test coverage validatie (CRITICAL - geen override)
 
-**Beide pipelines starten tegelijk en draaien parallel!**
+### 2. Security Gates
+- **Security Audit**: NPM security vulnerabilities (CRITICAL - geen override)
+- **Banking Standards**: Compliance checks (CRITICAL - geen override)
+- **Dependency Check**: Known vulnerabilities scan
 
-## 🚀 Snelle Start
+### 3. Build Gates
+- **Build Validation**: Applicatie build (CRITICAL - geen override)
+- **Size Check**: Build output validatie
+- **Bundle Analysis**: Optionele bundle optimalisatie
 
-### **1. Test Lokaal (Optioneel)**
-```bash
-# Test de AI pipeline lokaal
-./quick-start-ai-pipeline.sh
-```
+### 4. Documentation Gates
+- **README Check**: Documentatie aanwezigheid
+- **Cursor Rules**: Development guidelines
+- **TODO Check**: Openstaande taken identificatie
 
-### **2. Push naar GitHub**
-```bash
-git add .
-git commit -m "Add parallel CI/CD with AI testing pipeline"
-git push origin main
-```
+## 🚫 Preview Deployment Blokkering
 
-### **3. Bekijk Resultaten**
-- Ga naar **GitHub Actions** tab
-- Je ziet beide pipelines parallel draaien
-- Beide moeten slagen voordat deploy start
+**PR's worden AUTOMATISCH geblokkeerd voor preview deployment als:**
 
-## 📁 Bestanden Structuur
-
-```
-.github/
-├── workflows/
-│   └── ci-cd-with-ai.yml          # GitHub Actions workflow
-└── ai-pipeline-config.json        # AI pipeline configuratie
-
-agents/
-├── test-generator/                 # Agent 1: Test generatie
-├── quality-analyzer/               # Agent 2: Kwaliteitsanalyse
-├── auto-fix/                      # Agent 3: Fix identificatie
-└── pipeline-orchestrator/          # Agent 4: Coördinatie
-
-quick-start-ai-pipeline.sh          # Lokaal test script
-```
-
-## ⚡ Voordelen van Parallelle Uitvoering
-
-### **✅ Snelheid**
-- **Sequential**: 5 minuten totaal
-- **Parallel**: 3 minuten totaal (40% sneller!)
-
-### **✅ Onafhankelijkheid**
-- AI pipeline failure stopt normale tests niet
-- Normale tests failure stopt AI pipeline niet
-- Beide kunnen tegelijk debuggen
-
-### **✅ Resource Efficiency**
-- GitHub Actions runt beide op verschillende runners
-- Geen wachttijd tussen pipelines
-
-## 🔧 Configuratie
-
-### **AI Pipeline Config**
-```json
-{
-  "agents": [
-    {
-      "id": "test-generator",
-      "config": {
-        "path": "./app/auth/login",
-        "strategy": "risk-based",
-        "maxInteractions": 100
-      }
-    },
-    {
-      "id": "auto-fix",
-      "config": {
-        "autoApply": false,  // 🚨 GEEN automatische fixes!
-        "maxFixes": 25
-      }
-    }
-  ]
-}
-```
-
-### **Veilige Instellingen**
-- ❌ `autoApply: false` - Geen automatische code wijzigingen
-- ✅ `requireValidation: true` - Alle fixes worden gevalideerd
-- ✅ `maxFixes: 25` - Beperkt aantal fixes per run
-
-## 📊 Wat Je Krijgt
-
-### **GitHub Actions UI**
-```
-✅ Complete CI/CD with AI Testing
-├── 🧪 Standard Tests & Build (2m 15s) ✅
-├── 🤖 AI Testing Pipeline (3m 42s) ✅  
-└── 🚀 Deploy (45s) ✅
-```
-
-### **PR Comments**
-```
-## 🤖 AI Testing Pipeline Results
-
-### 📊 Pipeline Status
-- 🧪 Standard Tests: ✅ **PASSED**
-- 🤖 AI Testing: ✅ **COMPLETED**
-- 🚀 Ready for deployment
-
-### 💡 Next Steps
-- Review AI testing results above
-- Consider applying suggested auto-fixes
-- Merge when ready
-```
-
-### **Artifacts**
-- **standard-test-results**: Je normale test resultaten
-- **ai-testing-results**: Alle AI agent output
-- **ai-summary**: Samenvatting van AI bevindingen
-
-## 🎯 Workflow Stappen
-
-### **Job 1: Standard Tests**
-1. Checkout code
-2. Setup Node.js
-3. Install dependencies
-4. Run tests
-5. Build project
-6. Upload results
-
-### **Job 2: AI Testing Pipeline**
-1. Checkout code
-2. Setup Node.js
-3. Install AI agent dependencies
-4. Run complete AI pipeline
-5. Upload AI results
-6. Generate summary
-
-### **Job 3: Deploy**
-1. Wacht op beide jobs
-2. Download AI summary
-3. Display results
-4. Deploy to production
-
-### **Job 4: PR Comment**
-1. Wacht op beide jobs
-2. Download AI summary
-3. Post comment to PR
-
-## 🚨 Veiligheidsmaatregelen
-
-### **Geen Automatische Fixes**
-- `autoApply: false` in alle configuraties
-- AI agents identificeren alleen problemen
-- Geen code wijzigingen zonder handmatige goedkeuring
-
-### **Quality Gates**
-- Deploy alleen als beide pipelines slagen
-- AI pipeline kan builds blokkeren bij kritieke issues
-- Configurable thresholds per branch
-
-### **Rollback Protection**
-- Automatische rollback bij pipeline failures
-- Checkpoint system voor complexe workflows
-- Dependency tracking tussen agents
-
-## 🔮 Toekomstige Uitbreidingen
-
-### **Fase 2: Smart Quality Gates**
-- AI agents kunnen builds blokkeren
-- Dynamische thresholds op basis van historie
-- Slack/Teams notifications
-
-### **Fase 3: Auto-Fix Integration**
-- Automatische fixes in feature branches
-- Pull request met AI-suggested improvements
-- Code review van AI fixes
-
-### **Fase 4: Machine Learning**
-- Verbeterde test generatie
-- Predictive quality analysis
-- Adaptive testing strategies
-
-## 🧪 Lokaal Testen
-
-### **Quick Start Script**
-```bash
-./quick-start-ai-pipeline.sh
-```
-
-Dit script:
-1. ✅ Controleert alle agents
-2. 📦 Installeert dependencies
-3. 🚀 Start AI pipeline
-4. 📊 Toont resultaten
-5. 🎯 Simuleert CI/CD workflow
-
-### **Individuele Agent Testing**
-```bash
-# Test Generator
-cd agents/test-generator
-npx ts-node cli.ts --help
-
-# Quality Analyzer
-cd agents/quality-analyzer
-npx ts-node cli.ts --help
-
-# Auto-Fix
-cd agents/auto-fix
-npx ts-node cli.ts --help
-
-# Pipeline Orchestrator
-cd agents/pipeline-orchestrator
-npx ts-node cli.ts --help
-```
-
-## 🚀 Deployment
-
-### **Automatische Deploy**
-- Deploy start alleen als beide pipelines slagen
-- AI summary wordt getoond tijdens deployment
-- Geen deploy zonder AI testing
-
-### **Manual Override**
 ```yaml
-# In workflow
-deploy:
-  if: success() || github.event.inputs.force_deploy == 'true'
+# Preview deployment wordt alleen uitgevoerd als:
+if: |
+  (needs.changes.outputs.code == 'true' || github.event_name == 'pull_request') &&
+  github.event_name == 'pull_request' &&
+  needs.quality.result == 'success' &&      # ✅ Alle quality gates moeten slagen
+  needs.security.result == 'success' &&     # ✅ Alle security checks moeten slagen
+  needs.build.result == 'success' &&        # ✅ Build moet slagen
+  secrets.VERCEL_TOKEN != ''
 ```
 
-## 💡 Best Practices
+## 🔐 Branch Protection Rules
 
-### **1. Branch Strategy**
-- **main**: Volledige AI pipeline + quality gates
-- **develop**: AI pipeline met waarschuwingen
-- **feature**: Snelle AI pipeline zonder blokkerende checks
+### Main Branch (Production)
+- **2 code reviews vereist**
+- **Code owner review vereist**
+- **Alle CI/CD checks moeten slagen**
+- **Geen force push toegestaan**
+- **Conversatie resolutie vereist**
 
-### **2. Monitoring**
-- Bekijk AI pipeline resultaten in GitHub Actions
-- Download artifacts voor lokale analyse
-- Gebruik PR comments voor snelle review
+### Develop Branch (Staging)
+- **1 code review vereist**
+- **Alle CI/CD checks moeten slagen**
+- **Geen force push toegestaan**
+- **Conversatie resolutie vereist**
 
-### **3. Iteratie**
-- Start met veilige configuratie
-- Verhoog thresholds geleidelijk
-- Monitor impact op deployment times
+### Feature Branches
+- **1 code review vereist**
+- **Quality, Security, Build checks vereist**
+- **Force push toegestaan (development)**
 
-## 🆘 Troubleshooting
+### Hotfix Branches
+- **2 code reviews vereist**
+- **Code owner review vereist**
+- **Alle critical checks vereist**
+- **Geen force push toegestaan**
 
-### **AI Pipeline Fails**
-1. Check agent dependencies
-2. Verify config bestanden
-3. Review agent logs
-4. Test lokaal met quick-start script
+## 🛠️ Automatische Setup
 
-### **Standard Tests Fail**
-1. AI pipeline blijft draaien
-2. Deploy wordt geblokkeerd
-3. Fix normale tests eerst
+### 0. Master Setup Script
 
-### **Beide Pipelines Fail**
-1. Deploy wordt geblokkeerd
-2. Review beide pipeline logs
-3. Fix issues in volgorde van prioriteit
+Gebruik het onderstaande script om de volledige CI/CD-configuratie in één keer uit te voeren. Het script valideert de projectstructuur, controleert afhankelijkheden en draait alle noodzakelijke checks.
 
-## 🎉 Resultaat
+```bash
+./scripts/setup-ci-cd.sh
+```
 
-Met deze setup krijg je:
-- ✅ **Dubbele snelheid** door parallelle uitvoering
-- ✅ **AI-powered insights** bij elke commit
-- ✅ **Veilige automatisering** zonder risico's
-- ✅ **Comprehensive kwaliteitscontrole**
-- ✅ **Professional CI/CD pipeline**
+### 1. Branch Protection Script
 
-**🚀 Start vandaag nog met parallelle AI-powered CI/CD!**
+```bash
+# Installeer vereisten
+sudo apt-get install jq
+
+# Configureer environment variables
+export GITHUB_TOKEN="your_github_token"
+export GITHUB_REPOSITORY="username/repository"
+
+# Voer het script uit
+./scripts/setup-branch-protection.sh
+```
+
+### 2. GitHub UI Setup (Pattern Branches)
+
+Voor `feature/*` en `hotfix/*` branches moet je handmatig de pattern protection instellen:
+
+1. Ga naar **Settings > Branches**
+2. Klik op **Add rule**
+3. Voer pattern in: `feature/*`
+4. Configureer:
+   - ✅ Require status checks to pass before merging
+   - ✅ Require branches to be up to date before merging
+   - ✅ Require pull request reviews before merging
+   - ✅ Dismiss stale pull request approvals when new commits are pushed
+   - ✅ Require review from code owners
+   - ✅ Allow force pushes
+   - ✅ Allow deletions
+
+Herhaal voor `hotfix/*` (maar zonder force push toegestaan).
+
+## 📊 Pipeline Flow
+
+```mermaid
+graph TD
+    A[PR Created] --> B[Change Detection]
+    B --> C[Quality Gates]
+    B --> D[Security Checks]
+    B --> E[Build Validation]
+    B --> F[Documentation Check]
+    
+    C --> G{All Tests Pass?}
+    D --> H{All Security OK?}
+    E --> I{Build Success?}
+    F --> J{Docs OK?}
+    
+    G -->|❌| K[Preview BLOCKED]
+    H -->|❌| K
+    I -->|❌| K
+    J -->|❌| K
+    
+    G -->|✅| L[Preview Ready]
+    H -->|✅| L
+    I -->|✅| L
+    J -->|✅| L
+    
+    L --> M[Deploy to Preview]
+    M --> N[PR Available for Review]
+```
+
+## 📋 Unified Report
+
+Na elke pull request-run wordt een gecombineerd rapport gegenereerd.
+Je vindt de resultaten als commentaar in de PR en als artifacts
+`report.html` en `report.json` bij de betreffende GitHub Actions-run.
+
+## 🚨 Error Handling
+
+### Test Failures
+```bash
+❌ CRITICAL: Tests failed with exit code 1
+🔒 Preview deployment will NOT be triggered
+📋 Please fix all issues and push again
+```
+
+### Security Violations
+```bash
+❌ CRITICAL: Hardcoded credentials found!
+🔒 Preview deployment will NOT be triggered
+📋 Please remove hardcoded values and use environment variables
+```
+
+### Build Failures
+```bash
+❌ CRITICAL: Build failed!
+🔒 Preview deployment will NOT be triggered
+📋 Please fix build issues and push again
+```
+
+## 🔧 Troubleshooting
+
+### Pipeline Hangs
+1. Check GitHub Actions tab
+2. Verify all required secrets are set
+3. Check branch protection rules
+4. Ensure all required status checks are configured
+
+### Tests Failing
+1. Run tests locally: `npm run test:ci`
+2. Check coverage thresholds in `jest.config.js`
+3. Verify all dependencies are installed
+4. Check for TypeScript errors: `npm run type-check`
+
+### Security Issues
+1. Run security audit: `npm run audit:security`
+2. Update vulnerable dependencies
+3. Check for hardcoded credentials
+4. Verify environment variable usage
+
+## 📈 Monitoring & Metrics
+
+### Code Coverage
+- **Minimum threshold**: 80%
+- **Enforced in**: Jest configuratie
+- **Reported to**: Codecov (optioneel)
+
+### Build Performance
+- **Build time tracking**
+- **Bundle size monitoring**
+- **Performance regression detection**
+
+### Security Metrics
+- **Vulnerability count tracking**
+- **Dependency update frequency**
+- **Compliance violation history**
+
+## 🎉 Voordelen van deze Setup
+
+1. **🔒 Geen Override Mogelijk**: Alle checks zijn verplicht
+2. **🚀 Automatische Deployment**: Preview wordt automatisch gedeployed bij succes
+3. **🛡️ Consistentie**: Alle code voldoet aan dezelfde standaarden
+4. **📊 Transparantie**: Duidelijke feedback over wat er mis is
+5. **⚡ Snelheid**: Geen handmatige checks nodig
+6. **🔍 Compliance**: Automatische banking standards validatie
+
+## 🚀 Volgende Stappen
+
+1. **Configureer branch protection rules** met het script
+2. **Stel pattern-based protection** in voor feature/hotfix branches
+3. **Test de pipeline** met een kleine PR
+4. **Monitor de resultaten** in GitHub Actions
+5. **Pas thresholds aan** indien nodig
 
 ---
 
-*Gemaakt met ❤️ door het AI Testing Team*
+**⚠️ Belangrijk**: Deze pipeline is ontworpen om **NIET** overruled te kunnen worden. Alle quality gates moeten slagen voordat deployment mogelijk is. Dit zorgt ervoor dat je code altijd voldoet aan de hoogste standaarden.

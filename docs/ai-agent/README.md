@@ -26,8 +26,8 @@ Continue verbetering van de codebase door het hanteren van banking‑grade stand
 ## 🔗 Gerelateerde Documenten
 
 - [Hoofd README](../../README.md)
-- [PR Instructies](../../PR_INSTRUCTIONS.md)
-- [AI Agent Rules](../../.AI%20agent%20rules)
+- [PR Instructies](../development/PR_INSTRUCTIONS.md)
+- [AI Agent Rules](./.AI agent rules)
 
 ## 📞 Contact
 
