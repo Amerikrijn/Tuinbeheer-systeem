@@ -375,8 +375,7 @@ interface GardenCardProps {
 function GardenCard({ garden, onDelete }: GardenCardProps) {
   const [plantBeds, setPlantBeds] = React.useState<PlantvakWithBloemen[]>([])
   const [loadingFlowers, setLoadingFlowers] = React.useState(true)
-  const [gardenUsers, setGardenUsers] = React.useState<any[]>([])
-  const [loadingUsers, setLoadingUsers] = React.useState(true)
+
 
   // Helper function to get emoji based on plant name
   const getPlantEmoji = (name?: string, storedEmoji?: string): string => {
@@ -430,83 +429,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
     loadFlowers()
   }, [garden.id])
 
-  // Load users with access to this garden
-  React.useEffect(() => {
-    const loadGardenUsers = async () => {
-      try {
-        setLoadingUsers(true)
-        
-        // Eerst controleren of de user_garden_access tabel bestaat
-        const { data: tableCheck, error: tableError } = await supabase
-          .from('user_garden_access')
-          .select('id')
-          .limit(1)
-        
-        if (tableError) {
-          // Tabel bestaat niet of er is een andere fout
-          uiLogger.warn('user_garden_access table not accessible', { error: tableError, gardenId: garden.id })
-          
-          // Tijdelijke fallback: toon alle actieve gebruikers
-          try {
-            const { data: allUsers, error: usersError } = await supabase
-              .from('users')
-              .select('id, email, full_name')
-              .eq('is_active', true)
-              .limit(5)
-            
-            if (!usersError && allUsers) {
-              uiLogger.info('Showing fallback users (all active users)', { count: allUsers.length })
-              setGardenUsers(allUsers)
-            } else {
-              setGardenUsers([])
-            }
-          } catch (fallbackError) {
-            uiLogger.error('Fallback user loading also failed', fallbackError as Error)
-            setGardenUsers([])
-          }
-          return
-        }
-        
-        // Tabel bestaat, nu data ophalen
-        const { data: accessData, error: accessError } = await supabase
-          .from('user_garden_access')
-          .select('user_id')
-          .eq('garden_id', garden.id)
-          .eq('is_active', true)
 
-        if (accessError) {
-          throw accessError
-        }
-
-        if (accessData && accessData.length > 0) {
-          // Dan de gebruikersgegevens ophalen voor deze user IDs
-          const userIds = accessData.map(item => item.user_id)
-          const { data: users, error: usersError } = await supabase
-            .from('users')
-            .select('id, email, full_name')
-            .in('id', userIds)
-            .eq('is_active', true)
-
-          if (usersError) {
-            throw usersError
-          }
-
-          uiLogger.debug('Users loaded for garden', { users, count: users.length })
-          setGardenUsers(users || [])
-        } else {
-          uiLogger.debug('No users have access to this garden')
-          setGardenUsers([])
-        }
-      } catch (error) {
-        uiLogger.error('Error loading garden users', error as Error, { gardenId: garden.id })
-        setGardenUsers([])
-      } finally {
-        setLoadingUsers(false)
-      }
-    }
-
-    loadGardenUsers()
-  }, [garden.id])
 
   // Get all unique flowers from all plant beds
   const allFlowers = React.useMemo(() => {
@@ -611,53 +534,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
               )}
             </div>
 
-          {/* Users with access section */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-card-foreground">Gebruikers met toegang:</span>
-              <span className="text-xs text-muted-foreground">
-                {loadingUsers ? 'Laden...' : `${gardenUsers.length} gebruiker(s)`}
-              </span>
-            </div>
-            
-            {loadingUsers ? (
-              <div className="flex gap-1">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
-                ))}
-              </div>
-            ) : gardenUsers.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {gardenUsers.slice(0, 3).map((user, index) => (
-                  <span 
-                    key={user.id} 
-                    className="text-xs text-muted-foreground truncate"
-                    title={user.full_name || user.email}
-                  >
-                    {user.full_name || user.email}
-                  </span>
-                ))}
-                {gardenUsers.length > 3 && (
-                  <div className="flex items-center justify-center bg-muted text-muted-foreground px-2 py-1 rounded-full text-xs">
-                    +{gardenUsers.length - 3}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-xs text-muted-foreground italic">
-                {loadingUsers ? 'Laden...' : (
-                  gardenUsers.length === 0 ? (
-                    <div className="flex flex-col gap-1">
-                      <span>Geen gebruikers met toegang</span>
-                      <span className="text-xs opacity-75">
-                        (Voeg toegang toe via admin → Gebruikers → Tuin Toegang Beheren)
-                      </span>
-                    </div>
-                  ) : 'Geen gebruikers'
-                )}
-              </div>
-            )}
-          </div>
+
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
