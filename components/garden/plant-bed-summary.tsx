@@ -145,7 +145,7 @@ export function PlantBedSummary({
       } else if (filterMode === 'blooming') {
         return group.bloomMonths.includes(selectedMonth)
       }
-      return true
+      return false // Changed from true to false - only show plants that match the filter
     })
   }, [plantGroups, selectedMonth, filterMode])
   
@@ -157,6 +157,19 @@ export function PlantBedSummary({
       <div className="text-center py-4 text-muted-foreground">
         <Flower2 className="h-8 w-8 mx-auto mb-2 opacity-30" />
         <p className="text-xs">Nog geen planten</p>
+      </div>
+    )
+  }
+  
+  // Show message when no plants match the filter
+  if (selectedMonth && filterMode !== 'all' && !hasRelevantPlants) {
+    return (
+      <div className="text-center py-4 text-muted-foreground">
+        <div className="text-orange-600 mb-2">
+          {filterMode === 'sowing' ? '🌱' : '🌸'}
+        </div>
+        <p className="text-xs">Geen planten voor {filterMode === 'sowing' ? 'zaaien' : 'bloei'}</p>
+        <p className="text-xs">in deze maand</p>
       </div>
     )
   }

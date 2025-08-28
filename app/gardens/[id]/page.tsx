@@ -98,59 +98,70 @@ export default function GardenDetailPage() {
   const [selectedMonth, setSelectedMonth] = useState<number | undefined>(undefined)
   const [filterMode, setFilterMode] = useState<'all' | 'sowing' | 'blooming'>('all')
 
+  // Parse month ranges from bloom_period
+  const parseMonthRange = (period?: string): number[] => {
+    if (!period) return []
+    const monthNames: { [key: string]: number } = {
+      'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
+      'mei': 5, 'juni': 6, 'juli': 7, 'augustus': 8,
+      'september': 9, 'oktober': 10, 'november': 11, 'december': 12,
+      'jan': 1, 'feb': 2, 'mrt': 3, 'apr': 4, 'mei': 5, 'jun': 6,
+      'jul': 7, 'aug': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'dec': 12
+    }
+    
+    const parts = period.toLowerCase().split('-')
+    if (parts.length !== 2) return []
+    
+    const startMonth = monthNames[parts[0].trim()]
+    const endMonth = monthNames[parts[1].trim()]
+    
+    if (!startMonth || !endMonth) return []
+    
+    const months: number[] = []
+    let current = startMonth
+    while (current !== endMonth) {
+      months.push(current)
+      current = current === 12 ? 1 : current + 1
+      if (months.length > 12) break
+    }
+    months.push(endMonth)
+    return months
+  }
+
+  // Helper to check if a plant matches the filter
+  const plantMatchesFilter = (plant: PlantWithPosition): boolean => {
+    if (!selectedMonth || filterMode === 'all') return true
+    
+    const bloomMonths = parseMonthRange(plant.bloom_period)
+    
+    if (filterMode === 'blooming') {
+      return bloomMonths.includes(selectedMonth)
+    } else if (filterMode === 'sowing') {
+      // Sowing is typically 2-3 months before blooming
+      const firstBloomMonth = bloomMonths[0]
+      if (!firstBloomMonth) return false
+      
+      for (let i = 2; i <= 3; i++) {
+        let sowMonth = firstBloomMonth - i
+        if (sowMonth <= 0) sowMonth += 12
+        if (sowMonth === selectedMonth) return true
+      }
+    }
+    return false
+  }
+
   // Helper to check if a plant bed should be highlighted based on month filter
   const shouldHighlightBed = (bed: PlantBedWithPlants): boolean => {
     if (!selectedMonth || filterMode === 'all') return false
     
-    // Parse month ranges from bloom_period
-    const parseMonthRange = (period?: string): number[] => {
-      if (!period) return []
-      const monthNames: { [key: string]: number } = {
-        'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
-        'mei': 5, 'juni': 6, 'juli': 7, 'augustus': 8,
-        'september': 9, 'oktober': 10, 'november': 11, 'december': 12,
-        'jan': 1, 'feb': 2, 'mrt': 3, 'apr': 4, 'mei': 5, 'jun': 6,
-        'jul': 7, 'aug': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'dec': 12
-      }
-      
-      const parts = period.toLowerCase().split('-')
-      if (parts.length !== 2) return []
-      
-      const startMonth = monthNames[parts[0].trim()]
-      const endMonth = monthNames[parts[1].trim()]
-      
-      if (!startMonth || !endMonth) return []
-      
-      const months: number[] = []
-      let current = startMonth
-      while (current !== endMonth) {
-        months.push(current)
-        current = current === 12 ? 1 : current + 1
-        if (months.length > 12) break
-      }
-      months.push(endMonth)
-      return months
-    }
-    
     // Check if any plant matches the filter
-    return bed.plants.some(plant => {
-      const bloomMonths = parseMonthRange(plant.bloom_period)
-      
-      if (filterMode === 'blooming') {
-        return bloomMonths.includes(selectedMonth)
-      } else if (filterMode === 'sowing') {
-        // Sowing is typically 2-3 months before blooming
-        const firstBloomMonth = bloomMonths[0]
-        if (!firstBloomMonth) return false
-        
-        for (let i = 2; i <= 3; i++) {
-          let sowMonth = firstBloomMonth - i
-          if (sowMonth <= 0) sowMonth += 12
-          if (sowMonth === selectedMonth) return true
-        }
-      }
-      return false
-    })
+    return bed.plants.some(plant => plantMatchesFilter(plant))
+  }
+
+  // Get filtered plants for a bed
+  const getFilteredPlants = (bed: PlantBedWithPlants): PlantWithPosition[] => {
+    if (!selectedMonth || filterMode === 'all') return bed.plants
+    return bed.plants.filter(plant => plantMatchesFilter(plant))
   }
 
   // Calculate canvas size based on garden dimensions
@@ -1283,6 +1294,11 @@ export default function GardenDetailPage() {
 
                 {/* Plant Beds */}
                 {plantBeds.map((bed) => {
+                  // Skip beds that don't have any matching plants when filter is active
+                  if (selectedMonth && filterMode !== 'all' && !shouldHighlightBed(bed)) {
+                    return null
+                  }
+                  
                   const isSelected = selectedBed === bed.id
                   const isDragging = draggedBed === bed.id
                   const isRotating = rotatingBed === bed.id
@@ -1360,31 +1376,58 @@ export default function GardenDetailPage() {
 
                           {/* Main area - adaptive content based on size */}
                           <div className="w-full h-full p-2 overflow-y-auto relative">
-                            {bed.plants.length > 0 ? (
-                              <div className="space-y-1">
-                                {/* Group plants by unique name */}
-                                {(() => {
-                                  // Import Dutch flower data for bloom periods
-                                  const dutchFlowers = {
-                                    'Zinnia': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'April-Mei' },
-                                    'Marigold': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Maart-April' },
-                                    'Tagetes': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Maart-April' },
-                                    'Petunia': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Februari-Maart' },
-                                    'Begonia': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Januari-Februari' },
-                                    'Impatiens': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Februari-Maart' },
-                                    'Cosmos': { bloeiperiode: 'Juli-Oktober', zaaiperiode: 'April-Mei' },
-                                    'Calendula': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'Maart-April' },
-                                    'Goudsbloem': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'Maart-April' },
-                                    'Zonnebloem': { bloeiperiode: 'Juli-September', zaaiperiode: 'April-Mei' },
-                                    'Sunflower': { bloeiperiode: 'Juli-September', zaaiperiode: 'April-Mei' },
-                                    'Dahlia': { bloeiperiode: 'Juli-Oktober', zaaiperiode: 'Maart-April' },
-                                    'Lavendel': { bloeiperiode: 'Juni-Augustus', zaaiperiode: 'Maart-April' },
-                                    'Roos': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'November-Maart' },
-                                    'Rose': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'November-Maart' },
-                                  }
-                                  
-                                  const plantGroups = new Map()
-                                  bed.plants.forEach(plant => {
+                            {(() => {
+                              // Get filtered plants based on month filter
+                              const filteredPlants = getFilteredPlants(bed)
+                              
+                              if (filteredPlants.length === 0) {
+                                // Show message when no plants match the filter
+                                if (selectedMonth && filterMode !== 'all' && bed.plants.length > 0) {
+                                  return (
+                                    <div className="flex items-center justify-center h-full text-muted-foreground text-xs font-medium">
+                                      <div className="text-center">
+                                        <div className="text-orange-600 mb-1">
+                                          {filterMode === 'sowing' ? '🌱' : '🌸'}
+                                        </div>
+                                        <div>Geen planten voor</div>
+                                        <div>{filterMode === 'sowing' ? 'zaaien' : 'bloei'} deze maand</div>
+                                      </div>
+                                    </div>
+                                  )
+                                }
+                                // Empty bed
+                                return (
+                                  <div className="flex items-center justify-center h-full text-muted-foreground text-xs font-medium">
+                                    Leeg plantvak
+                                  </div>
+                                )
+                              }
+                              
+                              return (
+                                <div className="space-y-1">
+                                  {/* Group plants by unique name */}
+                                  {(() => {
+                                    // Import Dutch flower data for bloom periods
+                                    const dutchFlowers = {
+                                      'Zinnia': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'April-Mei' },
+                                      'Marigold': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Maart-April' },
+                                      'Tagetes': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Maart-April' },
+                                      'Petunia': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Februari-Maart' },
+                                      'Begonia': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Januari-Februari' },
+                                      'Impatiens': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Februari-Maart' },
+                                      'Cosmos': { bloeiperiode: 'Juli-Oktober', zaaiperiode: 'April-Mei' },
+                                      'Calendula': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'Maart-April' },
+                                      'Goudsbloem': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'Maart-April' },
+                                      'Zonnebloem': { bloeiperiode: 'Juli-September', zaaiperiode: 'April-Mei' },
+                                      'Sunflower': { bloeiperiode: 'Juli-September', zaaiperiode: 'April-Mei' },
+                                      'Dahlia': { bloeiperiode: 'Juli-Oktober', zaaiperiode: 'Maart-April' },
+                                      'Lavendel': { bloeiperiode: 'Juni-Augustus', zaaiperiode: 'Maart-April' },
+                                      'Roos': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'November-Maart' },
+                                      'Rose': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'November-Maart' },
+                                    }
+                                    
+                                    const plantGroups = new Map()
+                                    filteredPlants.forEach(plant => {
                                     // Use variety or latin_name if name is generic
                                     const displayName = plant.variety || plant.latin_name || plant.scientific_name || plant.name || 'Plant'
                                     const key = displayName
@@ -1470,14 +1513,11 @@ export default function GardenDetailPage() {
                                         </div>
                                       ))}
                                     </div>
-                                  )
-                                })()}
-                              </div>
-                            ) : (
-                              <div className="flex items-center justify-center h-full text-muted-foreground text-xs font-medium">
-                                Leeg plantvak
-                              </div>
-                            )}
+                                    )
+                                  })()}
+                                </div>
+                              )
+                            })()}
                             
                             {/* Corner decorations */}
                             <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none opacity-50"></div>
@@ -1557,13 +1597,46 @@ export default function GardenDetailPage() {
                         <div className="mt-1 text-center">
                           <div className="text-xs text-muted-foreground font-medium">{bed.name}</div>
                           <div className="text-xs text-muted-foreground">
-                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {bed.plants.length} 🌸
+                            {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {getFilteredPlants(bed).length} 🌸
+                            {selectedMonth && filterMode !== 'all' && getFilteredPlants(bed).length < bed.plants.length && (
+                              <span className="text-orange-600"> ({bed.plants.length} totaal)</span>
+                            )}
                           </div>
                         </div>
                       </div>
                     </div>
                   )
                 })}
+
+                {/* Check if any beds are visible after filtering */}
+                {(() => {
+                  const visibleBeds = plantBeds.filter(bed => {
+                    if (!selectedMonth || filterMode === 'all') return true
+                    return shouldHighlightBed(bed)
+                  })
+                  
+                  if (visibleBeds.length === 0 && selectedMonth && filterMode !== 'all') {
+                    return (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-center bg-background/80 p-8 rounded-lg border-2 border-dashed border-border">
+                          <div className="text-orange-600 mb-4 text-5xl">
+                            {filterMode === 'sowing' ? '🌱' : '🌸'}
+                          </div>
+                          <h3 className="text-xl font-medium text-foreground mb-2">Geen plantvakken zichtbaar</h3>
+                          <p className="text-muted-foreground mb-4">
+                            Er zijn geen planten die {filterMode === 'sowing' ? 'gezaaid moeten worden' : 'bloeien'} in deze maand.
+                          </p>
+                          <Button 
+                            variant="outline"
+                            onClick={() => setFilterMode('all')}
+                          >
+                            Toon alle plantvakken
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  }
+                })()}
 
                 {/* Empty State */}
                 {plantBeds.length === 0 && (
@@ -1709,7 +1782,39 @@ export default function GardenDetailPage() {
             </Card>
           ) : (
             <div className="grid gap-4">
-              {plantBeds.map((bed) => (
+              {(() => {
+                const filteredBeds = plantBeds.filter(bed => {
+                  // Show all beds when no filter is active
+                  if (!selectedMonth || filterMode === 'all') return true
+                  // Only show beds that have plants matching the filter
+                  return shouldHighlightBed(bed)
+                })
+                
+                if (filteredBeds.length === 0 && selectedMonth && filterMode !== 'all') {
+                  return (
+                    <Card className="text-center py-12">
+                      <CardContent>
+                        <div className="text-orange-600 mb-4 text-4xl">
+                          {filterMode === 'sowing' ? '🌱' : '🌸'}
+                        </div>
+                        <h3 className="text-xl font-medium text-muted-foreground mb-2">
+                          Geen plantvakken gevonden
+                        </h3>
+                        <p className="text-muted-foreground mb-6">
+                          Er zijn geen planten die {filterMode === 'sowing' ? 'gezaaid moeten worden' : 'bloeien'} in deze maand.
+                        </p>
+                        <Button 
+                          variant="outline"
+                          onClick={() => setFilterMode('all')}
+                        >
+                          Toon alle plantvakken
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  )
+                }
+                
+                return filteredBeds.map((bed) => (
                 <Card key={bed.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
@@ -1766,7 +1871,8 @@ export default function GardenDetailPage() {
                   </div>
                 </CardContent>
               </Card>
-              ))}
+                ))
+              })()}
             </div>
           )}
         </div>
