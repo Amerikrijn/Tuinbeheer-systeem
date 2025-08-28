@@ -30,7 +30,6 @@ import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/tas
 import { WeeklyTaskList } from "@/components/tasks/weekly-task-list"
 import { SimpleTasksView } from "@/components/user/simple-tasks-view"
 import { getUserFriendlyErrorMessage } from "@/lib/errors"
-import { useMemoryCleanup } from "@/hooks/use-memory-cleanup"
 
 interface HomePageState {
   searchTerm: string
@@ -44,18 +43,12 @@ function HomePageContent() {
   const { toast } = useToast()
   const { user, isAdmin } = useAuth()
   
-  // Memory cleanup hook
-  const { registerCleanup } = useMemoryCleanup({
-    enableGarbageCollection: true,
-    logMemoryUsage: true
-  })
-  
   const [state, setState] = React.useState<HomePageState>({
     searchTerm: "",
     page: 1,
   })
 
-  // React Query for gardens data
+  // React Query for gardens data - PERFORMANCE OPTIMIZATION
   const {
     data: gardensData,
     isLoading: gardensLoading,
@@ -185,14 +178,6 @@ function HomePageContent() {
     []
   )
 
-  // Memory cleanup registration
-  React.useEffect(() => {
-    registerCleanup(() => {
-      // Clear any component-specific state or event listeners
-      console.log('🧹 HomePage memory cleanup executed')
-    })
-  }, [registerCleanup])
-
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
@@ -235,15 +220,15 @@ function HomePageContent() {
     }
 
     try {
-      uiLogger.info('Deleting garden (optimized)', { gardenId, gardenName })
-      
-      const result = await TuinService.delete(gardenId)
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to delete garden')
+      const { error } = await supabase
+        .from('gardens')
+        .update({ is_active: false })
+        .eq('id', gardenId)
+
+      if (error) {
+        throw error
       }
 
-      // Remove from local state - works with TuinWithPlantvakken[]
       // This will trigger a refetch of the gardens data
       refetchGardens()
 
@@ -252,17 +237,15 @@ function HomePageContent() {
       toast({
         title: "Tuin verwijderd",
         description: `De tuin "${gardenName}" is succesvol verwijderd.`,
+        variant: "default",
       })
-
-      AuditLogger.logUserAction(null, 'DELETE', 'gardens', gardenId, { name: gardenName, optimized: true })
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to delete garden'
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
       
-      uiLogger.error('Failed to delete garden (optimized)', error as Error, { gardenId, gardenName })
+      uiLogger.error('Failed to delete garden', error as Error, { gardenId, gardenName })
       
       toast({
-        title: "Fout bij verwijderen",
+        title: "Fout bij verwijderen van tuin",
         description: getUserFriendlyErrorMessage(errorMessage),
         variant: "destructive",
       })
@@ -286,37 +269,54 @@ function HomePageContent() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
       {/* Header */}
-      <header className="text-center mb-6">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="p-3 bg-green-100 rounded-full">
-            <TreePine className="h-8 w-8 text-green-600" />
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <TreePine className="w-7 h-7 text-green-700" />
+            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Tuinbeheer Systeem</h1>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Tuinbeheer Systeem</h1>
+          <div className="flex items-center space-x-2">
+            <Button 
+              onClick={() => router.push('/logbook')}
+              variant="outline"
+              className="text-sm"
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              Logboek
+            </Button>
+            <Button 
+              onClick={() => router.push('/tasks')}
+              variant="outline"
+              className="text-sm"
+            >
+              <ClipboardList className="w-4 h-4 mr-2" />
+              Taken
+            </Button>
+            <Button 
+              onClick={() => router.push('/gardens/new')}
+              className="text-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nieuwe Tuin
+            </Button>
+          </div>
         </div>
+        <p className="text-muted-foreground">
+          Beheer je tuinen, planten en taken op één centrale plek.
+        </p>
+      </div>
 
-
-        
-      </header>
-
-      {/* Search and Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
-            type="text"
-            placeholder="Zoek tuinen op naam, locatie of beschrijving..."
+            placeholder="Zoek tuinen..."
             value={state.searchTerm}
             onChange={handleSearchChange}
             className="pl-10"
-            aria-label="Zoek tuinen"
           />
         </div>
-        <Button asChild className="bg-green-600 hover:bg-green-700">
-          <Link href="/gardens/new">
-            <Plus className="h-4 w-4 mr-2" />
-            Nieuwe Tuin
-          </Link>
-        </Button>
       </div>
 
       {/* Error State */}
@@ -338,14 +338,13 @@ function HomePageContent() {
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {Array.from({ length: 6 }).map((_, index) => (
             <Card key={index} className="overflow-hidden">
-              <CardHeader>
+              <CardHeader className="pb-3">
                 <Skeleton className="h-6 w-3/4" />
                 <Skeleton className="h-4 w-1/2" />
               </CardHeader>
-              <CardContent>
-                <Skeleton className="h-4 w-full mb-2" />
-                <Skeleton className="h-4 w-2/3 mb-4" />
-                <Skeleton className="h-10 w-full" />
+              <CardContent className="pt-3">
+                <Skeleton className="h-4 w-full mb-3" />
+                <Skeleton className="h-4 w-2/3" />
               </CardContent>
             </Card>
           ))}
@@ -359,30 +358,28 @@ function HomePageContent() {
             <div className="text-center py-12">
               <TreePine className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-foreground mb-2">
-                Geen tuinen gevonden
+                {state.searchTerm ? 'Geen tuinen gevonden' : 'Nog geen tuinen'}
               </h3>
-              <p className="text-muted-foreground mb-6">
+              <p className="text-muted-foreground mb-4">
                 {state.searchTerm 
                   ? `Geen tuinen gevonden voor "${state.searchTerm}". Probeer een andere zoekterm.`
-                  : 'Er zijn nog geen tuinen aangemaakt. Begin met het toevoegen van je eerste tuin.'
+                  : 'Maak je eerste tuin aan om te beginnen.'
                 }
               </p>
               {!state.searchTerm && (
-                <Button asChild className="bg-green-600 hover:bg-green-700">
-                  <Link href="/gardens/new">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Maak uw eerste tuin
-                  </Link>
+                <Button onClick={() => router.push('/gardens/new')}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Eerste Tuin Aanmaken
                 </Button>
               )}
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 mb-8">
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
                 {filteredGardens.map((garden) => (
-                  <GardenCard 
-                    key={garden.id} 
-                    garden={garden} 
+                  <GardenCard
+                    key={garden.id}
+                    garden={garden}
                     onDelete={handleDeleteGarden}
                   />
                 ))}
@@ -401,7 +398,7 @@ function HomePageContent() {
                   </Button>
                 </div>
               )}
-            </>
+            </div>
           )}
         </>
       ) : null}
@@ -419,7 +416,6 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
   // 🚀 NO MORE N+1 QUERIES! Plant beds are already loaded via JOIN
   const plantBeds = React.useMemo(() => garden.plant_beds || [], [garden.plant_beds])
   const loadingFlowers = false // Always false since data is pre-loaded
-
 
   // Helper function to get emoji based on plant name
   const getPlantEmoji = (name?: string, storedEmoji?: string): string => {
@@ -465,8 +461,6 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
       console.log(`✅ Garden "${garden.name}": ${plantBeds.length} plant beds & ${totalPlants} plants loaded instantly (no additional queries needed)`)
     }
   }, [garden.name, plantBeds])
-
-
 
   // Get all unique flowers from all plant beds
   const allFlowers = React.useMemo(() => {
@@ -571,7 +565,6 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
               )}
             </div>
 
-
           <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
@@ -599,7 +592,6 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
     </Card>
   )
 }
-
 
 // Main page component with error boundary and auth protection
 export default function HomePage() {
