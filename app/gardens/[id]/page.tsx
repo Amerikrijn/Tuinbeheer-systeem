@@ -100,7 +100,12 @@ export default function GardenDetailPage() {
 
   // Parse month ranges from bloom_period
   const parseMonthRange = (period?: string): number[] => {
-    if (!period) return []
+    if (!period) {
+      console.log('🔍 parseMonthRange: No period provided')
+      return []
+    }
+    console.log('🔍 parseMonthRange: Parsing period:', period)
+    
     const monthNames: { [key: string]: number } = {
       'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
       'mei': 5, 'juni': 6, 'juli': 7, 'augustus': 8,
@@ -110,12 +115,23 @@ export default function GardenDetailPage() {
     }
     
     const parts = period.toLowerCase().split('-')
-    if (parts.length !== 2) return []
+    console.log('🔍 parseMonthRange: Parts:', parts)
+    
+    if (parts.length !== 2) {
+      console.log('🔍 parseMonthRange: Invalid format, expected 2 parts')
+      return []
+    }
     
     const startMonth = monthNames[parts[0].trim()]
     const endMonth = monthNames[parts[1].trim()]
     
-    if (!startMonth || !endMonth) return []
+    console.log('🔍 parseMonthRange: Start month:', parts[0].trim(), '→', startMonth)
+    console.log('🔍 parseMonthRange: End month:', parts[1].trim(), '→', endMonth)
+    
+    if (!startMonth || !endMonth) {
+      console.log('🔍 parseMonthRange: Invalid month names')
+      return []
+    }
     
     const months: number[] = []
     let current = startMonth
@@ -125,6 +141,8 @@ export default function GardenDetailPage() {
       if (months.length > 12) break
     }
     months.push(endMonth)
+    
+    console.log('🔍 parseMonthRange: Result months:', months)
     return months
   }
 
@@ -132,10 +150,20 @@ export default function GardenDetailPage() {
   const plantMatchesFilter = (plant: PlantWithPosition): boolean => {
     if (!selectedMonth || filterMode === 'all') return true
     
+    console.log('🔍 plantMatchesFilter:', {
+      plantName: plant.name,
+      selectedMonth,
+      filterMode,
+      bloomPeriod: plant.bloom_period,
+      plantingDate: plant.planting_date
+    })
+    
     if (filterMode === 'blooming') {
       // Check if plant blooms in selected month based on bloom_period
       const bloomMonths = parseMonthRange(plant.bloom_period)
-      return bloomMonths.includes(selectedMonth)
+      const matches = bloomMonths.includes(selectedMonth)
+      console.log('🔍 Blooming filter result:', matches)
+      return matches
     } else if (filterMode === 'sowing') {
       // Check if plant has planting_date in selected month
       if (plant.planting_date) {
