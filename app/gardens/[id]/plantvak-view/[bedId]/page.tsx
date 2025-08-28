@@ -52,6 +52,7 @@ import type { TaskWithPlantInfo, WeeklyTask } from "@/lib/types/tasks"
 import { getTaskTypeConfig, getPriorityConfig, formatTaskDate } from "@/lib/types/tasks"
 import { uploadImage, type UploadResult } from "@/lib/storage"
 import { PlantVisualization } from "@/components/plant-visualization"
+
 import {
   METERS_TO_PIXELS,
   PLANTVAK_CANVAS_PADDING,
@@ -179,6 +180,8 @@ const FLOWER_STATUS_OPTIONS = [
   // Default: no emoji, show name instead
   return undefined
 }
+
+
 
 export default function PlantBedViewPage() {
   const router = useRouter()
@@ -556,7 +559,8 @@ export default function PlantBedViewPage() {
             emoji: templateFlower.emoji,
             is_custom: templateFlower.is_custom || false,
             category: templateFlower.category,
-            notes: `Extra ${templateFlower.name} - ${plantvakAreaMeters.toFixed(1)}m²`
+            notes: `Extra ${templateFlower.name} - ${plantvakAreaMeters.toFixed(1)}m²`,
+            bloom_period: templateFlower.bloom_period || ''
           })
           
           if (newFlower) {
@@ -2326,7 +2330,8 @@ export default function PlantBedViewPage() {
                                        emoji: flower.emoji,
                                        is_custom: false,
                                        category: flower.category,
-                                       notes: `sub_flower_of:${flower.id}`
+                                       notes: `sub_flower_of:${flower.id}`,
+                                       bloom_period: flower.bloom_period || ''
                                      })
                                      
                                      if (newFlower) {

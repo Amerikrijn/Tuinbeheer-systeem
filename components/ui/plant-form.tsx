@@ -408,13 +408,14 @@ export function PlantForm({
 
                     <div className="space-y-2">
                       <Label htmlFor="expectedHarvestDate" className="text-sm font-medium text-gray-700">
-                        Verwachte bloeitijd
+                        Bloeiperiode
                       </Label>
                       <Input
                         id="expectedHarvestDate"
-                        type="date"
+                        type="text"
                         value={data.expectedHarvestDate}
                         onChange={(e) => handleFieldChange('expectedHarvestDate', e.target.value)}
+                        placeholder="Bijvoorbeeld: Mei-September"
                         className="border-gray-300 focus:border-blue-500"
                       />
                     </div>

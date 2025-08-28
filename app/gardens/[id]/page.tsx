@@ -98,9 +98,37 @@ export default function GardenDetailPage() {
   const [selectedMonth, setSelectedMonth] = useState<number | undefined>(undefined)
   const [filterMode, setFilterMode] = useState<'all' | 'sowing' | 'blooming'>('all')
 
-  // Parse month ranges from bloom_period
+  // Get default bloom period for common plants
+  const getDefaultBloomPeriod = (plantName: string): string => {
+    const name = plantName.toLowerCase()
+    
+    // Common flowers with their bloom periods
+    if (name.includes('zinnia') || name.includes('zonnebloem')) return 'juli-oktober'
+    if (name.includes('marigold') || name.includes('tagetes')) return 'mei-oktober'
+    if (name.includes('petunia')) return 'mei-oktober'
+    if (name.includes('begonia')) return 'mei-oktober'
+    if (name.includes('impatiens')) return 'mei-oktober'
+    if (name.includes('cosmos')) return 'juli-oktober'
+    if (name.includes('calendula') || name.includes('goudsbloem')) return 'juni-oktober'
+    if (name.includes('dahlia')) return 'juli-oktober'
+    if (name.includes('aster')) return 'augustus-oktober'
+    if (name.includes('chrysant')) return 'september-november'
+    
+    // Default fallback - most flowers bloom in summer/fall
+    return 'juni-oktober'
+  }
+
+  // Parse month ranges from bloom_period (handles both dates and period text)
   const parseMonthRange = (period?: string): number[] => {
     if (!period) return []
+    
+    // Check if it's a date format (YYYY-MM-DD)
+    if (period.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const date = new Date(period)
+      const month = date.getMonth() + 1 // getMonth() returns 0-11, we need 1-12
+      return [month]
+    }
+    
     const monthNames: { [key: string]: number } = {
       'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
       'mei': 5, 'juni': 6, 'juli': 7, 'augustus': 8,
@@ -132,15 +160,36 @@ export default function GardenDetailPage() {
   const plantMatchesFilter = (plant: PlantWithPosition): boolean => {
     if (!selectedMonth || filterMode === 'all') return true
     
-    const bloomMonths = parseMonthRange(plant.bloom_period)
+
     
     if (filterMode === 'blooming') {
-      return bloomMonths.includes(selectedMonth)
+      // Check if plant blooms in selected month - handle both dates and period text
+      if (plant.bloom_period) {
+        // If it's a date format (YYYY-MM-DD), extract month directly
+        if (plant.bloom_period.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const bloomDate = new Date(plant.bloom_period)
+          const bloomMonth = bloomDate.getMonth() + 1
+          return bloomMonth === selectedMonth
+        } else {
+          // If it's period text like "mei-oktober", use parseMonthRange
+          const bloomMonths = parseMonthRange(plant.bloom_period)
+          return bloomMonths.includes(selectedMonth)
+        }
+      }
+      return false
     } else if (filterMode === 'sowing') {
-      // Sowing is typically 2-3 months before blooming
-      const firstBloomMonth = bloomMonths[0]
-      if (!firstBloomMonth) return false
+      // Check if plant has planting_date in selected month
+      if (plant.planting_date) {
+        const plantingDate = new Date(plant.planting_date)
+        const plantingMonth = plantingDate.getMonth() + 1 // getMonth() returns 0-11, we need 1-12
+        return plantingMonth === selectedMonth
+      }
       
+      // Fallback: if no planting_date, calculate sowing months from bloom_period
+      const bloomMonths = parseMonthRange(plant.bloom_period)
+      if (bloomMonths.length === 0) return false
+      
+      const firstBloomMonth = bloomMonths[0]
       for (let i = 2; i <= 3; i++) {
         let sowMonth = firstBloomMonth - i
         if (sowMonth <= 0) sowMonth += 12
