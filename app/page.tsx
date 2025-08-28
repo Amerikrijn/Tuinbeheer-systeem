@@ -7,14 +7,13 @@ export const runtime = 'nodejs'
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useViewPreference } from "@/hooks/use-view-preference"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Grid3X3, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw } from "lucide-react"
 import { TuinService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger, AuditLogger } from "@/lib/logger"
@@ -44,7 +43,6 @@ const ITEMS_PER_PAGE = 12
 function HomePageContent() {
   const router = useRouter()
   const { toast } = useToast()
-  const { isVisualView, toggleView } = useViewPreference()
   const { user, isAdmin } = useAuth()
   
   const [state, setState] = React.useState<HomePageState>({
@@ -259,24 +257,12 @@ function HomePageContent() {
             aria-label="Zoek tuinen"
           />
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant={isVisualView ? "default" : "outline"}
-            size="sm"
-            onClick={toggleView}
-            className="px-2"
-          >
-            <Grid3X3 className="h-4 w-4 mr-1" />
-            {isVisualView ? "Compacte weergave" : "Volledige weergave"}
-          </Button>
-
-          <Button asChild className="bg-green-600 hover:bg-green-700">
-            <Link href="/gardens/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Nieuwe Tuin
-            </Link>
-          </Button>
-        </div>
+        <Button asChild className="bg-green-600 hover:bg-green-700">
+          <Link href="/gardens/new">
+            <Plus className="h-4 w-4 mr-2" />
+            Nieuwe Tuin
+          </Link>
+        </Button>
       </div>
 
       {/* Error State */}
@@ -344,7 +330,6 @@ function HomePageContent() {
                     key={garden.id} 
                     garden={garden} 
                     onDelete={handleDeleteGarden}
-                    isListView={!isVisualView}
                   />
                 ))}
               </div>
@@ -374,10 +359,9 @@ function HomePageContent() {
 interface GardenCardProps {
   garden: Tuin
   onDelete: (gardenId: string, gardenName: string) => void
-  isListView?: boolean
 }
 
-function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
+function GardenCard({ garden, onDelete }: GardenCardProps) {
   const [plantBeds, setPlantBeds] = React.useState<PlantvakWithBloemen[]>([])
   const [loadingFlowers, setLoadingFlowers] = React.useState(true)
   const [gardenUsers, setGardenUsers] = React.useState<any[]>([])
@@ -539,7 +523,7 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
                 </div>
               ) : allFlowers.length > 0 ? (
                 <div className="flex flex-wrap gap-1">
-                  {allFlowers.slice(0, isListView ? 4 : 6).map((flower, index) => (
+                  {allFlowers.map((flower, index) => (
                     <div
                       key={`${flower.id}-${index}`}
                       className="flex items-center gap-1 bg-green-50 border border-green-200 rounded-lg px-2 py-1"
@@ -553,10 +537,10 @@ function GardenCard({ garden, onDelete, isListView = false }: GardenCardProps) {
                       </span>
                     </div>
                   ))}
-                  {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > (isListView ? 4 : 6) && (
+                  {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
                     <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
                       <span className="text-xs text-muted-foreground">
-                        +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - (isListView ? 4 : 6)}
+                        +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6}
                       </span>
                     </div>
                   )}
