@@ -98,13 +98,29 @@ export default function GardenDetailPage() {
   const [selectedMonth, setSelectedMonth] = useState<number | undefined>(undefined)
   const [filterMode, setFilterMode] = useState<'all' | 'sowing' | 'blooming'>('all')
 
+  // Get default bloom period for common plants
+  const getDefaultBloomPeriod = (plantName: string): string => {
+    const name = plantName.toLowerCase()
+    
+    // Common flowers with their bloom periods
+    if (name.includes('zinnia') || name.includes('zonnebloem')) return 'juli-oktober'
+    if (name.includes('marigold') || name.includes('tagetes')) return 'mei-oktober'
+    if (name.includes('petunia')) return 'mei-oktober'
+    if (name.includes('begonia')) return 'mei-oktober'
+    if (name.includes('impatiens')) return 'mei-oktober'
+    if (name.includes('cosmos')) return 'juli-oktober'
+    if (name.includes('calendula') || name.includes('goudsbloem')) return 'juni-oktober'
+    if (name.includes('dahlia')) return 'juli-oktober'
+    if (name.includes('aster')) return 'augustus-oktober'
+    if (name.includes('chrysant')) return 'september-november'
+    
+    // Default fallback - most flowers bloom in summer/fall
+    return 'juni-oktober'
+  }
+
   // Parse month ranges from bloom_period
   const parseMonthRange = (period?: string): number[] => {
-    if (!period) {
-      console.log('🔍 parseMonthRange: No period provided')
-      return []
-    }
-    console.log('🔍 parseMonthRange: Parsing period:', period)
+    if (!period) return []
     
     const monthNames: { [key: string]: number } = {
       'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
@@ -115,23 +131,12 @@ export default function GardenDetailPage() {
     }
     
     const parts = period.toLowerCase().split('-')
-    console.log('🔍 parseMonthRange: Parts:', parts)
-    
-    if (parts.length !== 2) {
-      console.log('🔍 parseMonthRange: Invalid format, expected 2 parts')
-      return []
-    }
+    if (parts.length !== 2) return []
     
     const startMonth = monthNames[parts[0].trim()]
     const endMonth = monthNames[parts[1].trim()]
     
-    console.log('🔍 parseMonthRange: Start month:', parts[0].trim(), '→', startMonth)
-    console.log('🔍 parseMonthRange: End month:', parts[1].trim(), '→', endMonth)
-    
-    if (!startMonth || !endMonth) {
-      console.log('🔍 parseMonthRange: Invalid month names')
-      return []
-    }
+    if (!startMonth || !endMonth) return []
     
     const months: number[] = []
     let current = startMonth
@@ -141,8 +146,6 @@ export default function GardenDetailPage() {
       if (months.length > 12) break
     }
     months.push(endMonth)
-    
-    console.log('🔍 parseMonthRange: Result months:', months)
     return months
   }
 
