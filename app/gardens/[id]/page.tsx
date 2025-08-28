@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useParams } from "next/navigation"
 import { useNavigation } from "@/hooks/use-navigation"
-import { useViewPreference } from "@/hooks/use-view-preference"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -21,7 +20,6 @@ import {
   Plus,
   Leaf,
   MapPin,
-  Grid3X3,
   ZoomIn,
   ZoomOut,
   RotateCcw,
@@ -63,7 +61,6 @@ interface PlantBedPosition {
 
 export default function GardenDetailPage() {
   const { goBack, navigateTo } = useNavigation()
-  const { isVisualView, toggleView, isInitialized } = useViewPreference()
   const params = useParams()
   // toast removed - no more notifications
   const [garden, setGarden] = useState<Garden | null>(null)
@@ -997,16 +994,6 @@ export default function GardenDetailPage() {
             Bewerken
           </Button>
           
-          <Button
-            variant={isVisualView ? "default" : "outline"}
-            size="sm"
-            onClick={toggleView}
-            className="px-2"
-          >
-            <Grid3X3 className="h-4 w-4 mr-1" />
-            {isVisualView ? "Lijst" : "Visueel"}
-          </Button>
-          
           <Dialog open={isAddingPlantBed} onOpenChange={(open) => {
             if (open) {
               // Reset form when dialog opens
@@ -1150,14 +1137,13 @@ export default function GardenDetailPage() {
         </div>
       </div>
 
-      {isVisualView ? (
-        /* Visual Garden Layout */
+      {/* Visual Garden Layout */}
         <Card>
           <CardHeader>
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
-                  <Grid3X3 className="h-5 w-5 text-blue-600" />
+
                   Tuinoverzicht
                 </CardTitle>
                 <div className="flex items-center gap-2">
@@ -1616,161 +1602,6 @@ export default function GardenDetailPage() {
             </div>
           </CardContent>
         </Card>
-      ) : (
-        /* List View of Plant Beds */
-        <div>
-          {/* Month Filter for List View */}
-          <Card className="mb-4">
-            <CardContent className="pt-4">
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Filter op maand:</span>
-                </div>
-                
-                <Select 
-                  value={selectedMonth?.toString() || "none"} 
-                  onValueChange={(value) => {
-                    setSelectedMonth(value === "none" ? undefined : parseInt(value))
-                    if (value === "none") setFilterMode('all')
-                    else if (filterMode === 'all') setFilterMode('blooming')
-                  }}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Kies maand" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Geen filter</SelectItem>
-                    <SelectItem value="1">Januari</SelectItem>
-                    <SelectItem value="2">Februari</SelectItem>
-                    <SelectItem value="3">Maart</SelectItem>
-                    <SelectItem value="4">April</SelectItem>
-                    <SelectItem value="5">Mei</SelectItem>
-                    <SelectItem value="6">Juni</SelectItem>
-                    <SelectItem value="7">Juli</SelectItem>
-                    <SelectItem value="8">Augustus</SelectItem>
-                    <SelectItem value="9">September</SelectItem>
-                    <SelectItem value="10">Oktober</SelectItem>
-                    <SelectItem value="11">November</SelectItem>
-                    <SelectItem value="12">December</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                {selectedMonth && (
-                  <div className="flex gap-1">
-                    <Button
-                      size="sm"
-                      variant={filterMode === 'sowing' ? 'default' : 'outline'}
-                      onClick={() => setFilterMode('sowing')}
-                      className="text-xs"
-                    >
-                      🌱 Zaaien
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={filterMode === 'blooming' ? 'default' : 'outline'}
-                      onClick={() => setFilterMode('blooming')}
-                      className="text-xs"
-                    >
-                      🌸 Bloeit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={filterMode === 'all' ? 'default' : 'outline'}
-                      onClick={() => setFilterMode('all')}
-                      className="text-xs"
-                    >
-                      Alles
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-          
-          {plantBeds.length === 0 ? (
-            <Card className="text-center py-12">
-              <CardContent>
-                <Leaf className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-muted-foreground mb-2">
-                  Nog geen plantvakken
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  Voeg je eerste plantvak toe om planten te kunnen planten.
-                </p>
-                <Button 
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={() => setIsAddingPlantBed(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Eerste Plantvak Maken
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4">
-              {plantBeds.map((bed) => (
-                <Card key={bed.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-xl text-green-700 flex items-center gap-2">
-                        {bed.name}
-                        {bed.sun_exposure && getSunExposureIcon(bed.sun_exposure)}
-                      </CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                        {bed.size && (
-                          <div className="flex items-center gap-1">
-                            <Leaf className="h-4 w-4" />
-                            {bed.size}
-                          </div>
-                        )}
-                        <div>
-                          {bed.plants.length} planten
-                        </div>
-                      </div>
-                      
-                      {/* Use PlantBedSummary component for consistent display */}
-                      <div className="mt-3">
-                        <PlantBedSummary
-                          plantBed={bed}
-                          selectedMonth={selectedMonth}
-                          filterMode={filterMode}
-                          isHighlighted={shouldHighlightBed(bed)}
-                        />
-                      </div>
-                    </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
-                      {bed.plants.length > 0 ? 'Beplant' : 'Leeg'}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  {bed.description && (
-                    <p className="text-muted-foreground mb-4">{bed.description}</p>
-                  )}
-                  <div className="flex gap-2">
-                    <Link href={`/gardens/${garden.id}/plantvak-view/${bed.id}`}>
-                      <Button className="bg-green-600 hover:bg-green-700">
-                        Plantvak Beheren
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeletePlantBed(bed.id)}
-                      className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
