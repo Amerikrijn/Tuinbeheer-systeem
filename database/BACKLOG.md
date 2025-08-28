@@ -28,7 +28,20 @@
   - [ ] Document policy requirements
   - [ ] Create policy implementation plan
 
-## 🧹 DATABASE CLEANUP (PARKED - LOWER PRIORITY)
+## 🧹 DATABASE CLEANUP (PRIORITY 2.5 - After Analysis)
+- [x] **Field Usage Analysis** ✅ COMPLETED
+  - [x] Analyzed all database fields vs actual usage in application
+  - [x] Identified 8 unused fields that can be safely removed
+  - [x] Identified 3 duplicate fields that can be consolidated
+  - [x] Created comprehensive analysis report (`database_field_analysis.md`)
+  
+- [ ] **Unused Field Cleanup** 🔄 READY TO IMPLEMENT
+  - [ ] Remove unused fields: `season_year`, `stem_length`, `grid_size`, `default_zoom`, `show_grid`, `snap_to_grid`, `background_color`, `visual_updated_at`
+  - [ ] Consolidate duplicates: `latin_name` vs `scientific_name`, `color` vs `plant_color`, `height` vs `plant_height`
+  - [ ] Update TypeScript types after field removal
+  - [ ] Create database migration scripts
+  - [ ] Test all forms and functionality after cleanup
+
 - [ ] **Table Analysis**
   - [ ] Compare preview vs production table counts (36 vs 27)
   - [ ] Identify which 17 _copy tables can be safely removed
