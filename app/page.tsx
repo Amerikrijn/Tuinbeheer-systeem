@@ -292,7 +292,7 @@ function HomePageContent() {
 
       {/* Loading State */}
       {state.loading && state.gardens.length === 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
           {Array.from({ length: 6 }).map((_, index) => (
             <Card key={index} className="overflow-hidden">
               <CardHeader>
@@ -335,7 +335,7 @@ function HomePageContent() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 mb-8">
                 {filteredGardens.map((garden) => (
                   <GardenCard 
                     key={garden.id} 
@@ -481,7 +481,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
           </div>
         </CardHeader>
         
-        <CardContent className="pt-4">
+        <CardContent className="pt-3">
           {garden.description && (
             <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
               {garden.description}
@@ -489,7 +489,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
           )}
 
           {/* Flower Preview Section */}
-          <div className="mb-4">
+          <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-card-foreground">Planten in deze tuin:</span>
                 <span className="text-xs text-muted-foreground">
@@ -498,31 +498,31 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
               </div>
               
               {loadingFlowers ? (
-                <div className="flex gap-1">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="w-8 h-8 bg-gray-200 rounded animate-pulse"></div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
                   ))}
                 </div>
               ) : allFlowers.length > 0 ? (
-                <div className="flex flex-wrap gap-1">
-                  {allFlowers.map((flower, index) => (
+                <div className="grid grid-cols-2 gap-2">
+                  {allFlowers.slice(0, 6).map((flower, index) => (
                     <div
                       key={`${flower.id}-${index}`}
-                      className="flex items-center gap-1 bg-green-50 border border-green-200 rounded-lg px-2 py-1"
+                      className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 hover:bg-green-100 transition-colors"
                       title={flower.name}
                     >
-                      <span className="text-sm">
+                      <span className="text-lg">
                         {getPlantEmoji(flower.name, flower.emoji)}
                       </span>
-                      <span className="text-xs font-medium text-green-800 truncate max-w-16">
+                      <span className="text-xs font-medium text-green-800 truncate flex-1">
                         {flower.name}
                       </span>
                     </div>
                   ))}
                   {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-                    <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
-                      <span className="text-xs text-muted-foreground">
-                        +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6}
+                    <div className="col-span-2 flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-3 py-2">
+                      <span className="text-xs text-muted-foreground font-medium">
+                        +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6} meer planten
                       </span>
                     </div>
                   )}
@@ -535,7 +535,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
             </div>
 
 
-          <div className="flex items-center justify-between text-sm text-muted-foreground mb-4">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
               <span>Aangemaakt {formatDate(garden.created_at)}</span>
