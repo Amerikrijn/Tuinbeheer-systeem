@@ -438,16 +438,27 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
         const { data: users, error } = await supabase
           .from('user_garden_access')
           .select(`
-            users (
+            user_id,
+            users!user_garden_access_user_id_fkey (
               id,
               email,
               full_name
             )
           `)
           .eq('garden_id', garden.id)
+          .eq('is_active', true)
 
         if (!error && users) {
-          setGardenUsers(users.map(u => u.users).filter(Boolean))
+          uiLogger.debug('Raw users data from user_garden_access', { users, count: users.length })
+          // Filter out any entries where users is null and map to user objects
+          const filteredUsers = users
+            .map(u => u.users)
+            .filter(Boolean)
+          uiLogger.debug('Filtered users', { filteredUsers, count: filteredUsers.length })
+          setGardenUsers(filteredUsers)
+        } else {
+          uiLogger.warn('No users data or error in user_garden_access query', { error, users })
+          setGardenUsers([])
         }
       } catch (error) {
         uiLogger.error('Error loading garden users', error as Error, { gardenId: garden.id })
