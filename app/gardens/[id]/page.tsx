@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+
 // useToast removed - no more toast notifications
 import {
   ArrowLeft,
@@ -31,6 +32,9 @@ import {
   Cloud,
   Trash2,
   Move,
+  Calendar,
+  Filter,
+  Flower2,
 } from "lucide-react"
 import { getGarden, getPlantBeds, updatePlantBed, deletePlantBed } from "@/lib/database"
 import { PlantvakService } from "@/lib/services/plantvak.service"
@@ -47,6 +51,7 @@ import {
   parsePlantBedDimensions
 } from "@/lib/scaling-constants"
 import { PlantVisualization } from "@/components/plant-visualization"
+import { PlantBedSummary } from "@/components/garden/plant-bed-summary"
 
 interface PlantBedPosition {
   id: string
@@ -88,6 +93,65 @@ export default function GardenDetailPage() {
     description: ''
   })
   const canvasRef = useRef<HTMLDivElement>(null)
+  
+  // Month filter states
+  const [selectedMonth, setSelectedMonth] = useState<number | undefined>(undefined)
+  const [filterMode, setFilterMode] = useState<'all' | 'sowing' | 'blooming'>('all')
+
+  // Helper to check if a plant bed should be highlighted based on month filter
+  const shouldHighlightBed = (bed: PlantBedWithPlants): boolean => {
+    if (!selectedMonth || filterMode === 'all') return false
+    
+    // Parse month ranges from bloom_period
+    const parseMonthRange = (period?: string): number[] => {
+      if (!period) return []
+      const monthNames: { [key: string]: number } = {
+        'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
+        'mei': 5, 'juni': 6, 'juli': 7, 'augustus': 8,
+        'september': 9, 'oktober': 10, 'november': 11, 'december': 12,
+        'jan': 1, 'feb': 2, 'mrt': 3, 'apr': 4, 'mei': 5, 'jun': 6,
+        'jul': 7, 'aug': 8, 'sep': 9, 'okt': 10, 'nov': 11, 'dec': 12
+      }
+      
+      const parts = period.toLowerCase().split('-')
+      if (parts.length !== 2) return []
+      
+      const startMonth = monthNames[parts[0].trim()]
+      const endMonth = monthNames[parts[1].trim()]
+      
+      if (!startMonth || !endMonth) return []
+      
+      const months: number[] = []
+      let current = startMonth
+      while (current !== endMonth) {
+        months.push(current)
+        current = current === 12 ? 1 : current + 1
+        if (months.length > 12) break
+      }
+      months.push(endMonth)
+      return months
+    }
+    
+    // Check if any plant matches the filter
+    return bed.plants.some(plant => {
+      const bloomMonths = parseMonthRange(plant.bloom_period)
+      
+      if (filterMode === 'blooming') {
+        return bloomMonths.includes(selectedMonth)
+      } else if (filterMode === 'sowing') {
+        // Sowing is typically 2-3 months before blooming
+        const firstBloomMonth = bloomMonths[0]
+        if (!firstBloomMonth) return false
+        
+        for (let i = 2; i <= 3; i++) {
+          let sowMonth = firstBloomMonth - i
+          if (sowMonth <= 0) sowMonth += 12
+          if (sowMonth === selectedMonth) return true
+        }
+      }
+      return false
+    })
+  }
 
   // Calculate canvas size based on garden dimensions
   const getCanvasSize = () => {
@@ -917,7 +981,7 @@ export default function GardenDetailPage() {
                   (garden.length && garden.width && 
                     `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
                   )
-                }
+              }
               </p>
             )}
           </div>
@@ -1090,20 +1154,88 @@ export default function GardenDetailPage() {
         /* Visual Garden Layout */
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle className="flex items-center gap-2">
-                <Grid3X3 className="h-5 w-5 text-blue-600" />
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={zoomOut}>
-                  <ZoomOut className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" onClick={zoomIn}>
-                  <ZoomIn className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" onClick={resetView}>
-                  <RotateCcw className="h-4 w-4" />
-                </Button>
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  <Grid3X3 className="h-5 w-5 text-blue-600" />
+                  Tuinoverzicht
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={zoomOut}>
+                    <ZoomOut className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={zoomIn}>
+                    <ZoomIn className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={resetView}>
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Month Filter Controls */}
+              <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Filter op maand:</span>
+                </div>
+                
+                <Select 
+                  value={selectedMonth?.toString() || "none"} 
+                  onValueChange={(value) => {
+                    setSelectedMonth(value === "none" ? undefined : parseInt(value))
+                    if (value === "none") setFilterMode('all')
+                    else if (filterMode === 'all') setFilterMode('blooming')
+                  }}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Kies maand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Geen filter</SelectItem>
+                    <SelectItem value="1">Januari</SelectItem>
+                    <SelectItem value="2">Februari</SelectItem>
+                    <SelectItem value="3">Maart</SelectItem>
+                    <SelectItem value="4">April</SelectItem>
+                    <SelectItem value="5">Mei</SelectItem>
+                    <SelectItem value="6">Juni</SelectItem>
+                    <SelectItem value="7">Juli</SelectItem>
+                    <SelectItem value="8">Augustus</SelectItem>
+                    <SelectItem value="9">September</SelectItem>
+                    <SelectItem value="10">Oktober</SelectItem>
+                    <SelectItem value="11">November</SelectItem>
+                    <SelectItem value="12">December</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {selectedMonth && (
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant={filterMode === 'sowing' ? 'default' : 'outline'}
+                      onClick={() => setFilterMode('sowing')}
+                      className="text-xs"
+                    >
+                      🌱 Zaaien
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterMode === 'blooming' ? 'default' : 'outline'}
+                      onClick={() => setFilterMode('blooming')}
+                      className="text-xs"
+                    >
+                      🌸 Bloeit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterMode === 'all' ? 'default' : 'outline'}
+                      onClick={() => setFilterMode('all')}
+                      className="text-xs"
+                    >
+                      Alles
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </CardHeader>
@@ -1154,6 +1286,7 @@ export default function GardenDetailPage() {
                   const isSelected = selectedBed === bed.id
                   const isDragging = draggedBed === bed.id
                   const isRotating = rotatingBed === bed.id
+                  const isHighlighted = shouldHighlightBed(bed)
                   
                   // Always recalculate dimensions from size to ensure correct scaling
                   let bedWidth = metersToPixels(2) // Default 2x2 meters
@@ -1181,6 +1314,7 @@ export default function GardenDetailPage() {
                           isDragging ? 'shadow-2xl scale-105 border-green-600 z-50 cursor-grabbing ring-4 ring-green-300' : 
                           isRotating ? 'shadow-2xl border-orange-600 z-50 ring-4 ring-orange-200' :
                           isSelected ? 'border-blue-600 shadow-xl ring-3 ring-blue-300 cursor-grab' :
+                          isHighlighted ? 'border-green-500 shadow-xl ring-4 ring-green-400 animate-pulse cursor-grab' :
                           'cursor-grab hover:shadow-xl hover:scale-102 hover:border-green-500 hover:ring-2 hover:ring-green-300'
                         }`}
                         style={{
@@ -1200,11 +1334,18 @@ export default function GardenDetailPage() {
                         }`}>
                           {/* Top corner elements */}
                           <div className="flex items-start justify-between">
-                            {bed.sun_exposure && (
-                              <div className="bg-background/90 p-1 rounded shadow-sm">
-                                {getSunExposureIcon(bed.sun_exposure)}
-                              </div>
-                            )}
+                            <div className="flex items-center gap-1">
+                              {bed.sun_exposure && (
+                                <div className="bg-background/90 p-1 rounded shadow-sm">
+                                  {getSunExposureIcon(bed.sun_exposure)}
+                                </div>
+                              )}
+                              {isHighlighted && (
+                                <Badge variant="default" className="text-xs bg-green-500">
+                                  {filterMode === 'sowing' ? '🌱' : '🌸'}
+                                </Badge>
+                              )}
+                            </div>
                             {isDragging && (
                               <div className="text-xs font-bold text-green-600 bg-green-100 dark:bg-green-950 px-2 py-1 rounded shadow-sm animate-bounce">
                                 🖱️ Verplaatsen
@@ -1217,29 +1358,132 @@ export default function GardenDetailPage() {
                             )}
                           </div>
 
-                          {/* Main area for plants/flowers - full height for flowers */}
-                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden border-2 border-dashed border-border rounded-lg bg-gradient-to-br from-muted/30 to-muted/50 dark:from-muted/10 dark:to-muted/20">
-                            {/* Plantvak visual indicator */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-background/10 to-transparent pointer-events-none"></div>
-                            
-                            {/* Flower Visualization System */}
-                            <PlantVisualization 
-                              plantBed={bed}
-                              plants={bed.plants}
-                              containerWidth={bedWidth}
-                              containerHeight={bedHeight}
-                            />
-                            {bed.plants.length === 0 && (
-                              <div className="text-muted-foreground text-sm font-medium bg-background/80 px-3 py-2 rounded-lg border border-border shadow-sm">
-                                🌱 Leeg plantvak
+                          {/* Main area - adaptive content based on size */}
+                          <div className="w-full h-full p-2 overflow-y-auto relative">
+                            {bed.plants.length > 0 ? (
+                              <div className="space-y-1">
+                                {/* Group plants by unique name */}
+                                {(() => {
+                                  // Import Dutch flower data for bloom periods
+                                  const dutchFlowers = {
+                                    'Zinnia': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'April-Mei' },
+                                    'Marigold': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Maart-April' },
+                                    'Tagetes': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Maart-April' },
+                                    'Petunia': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Februari-Maart' },
+                                    'Begonia': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Januari-Februari' },
+                                    'Impatiens': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'Februari-Maart' },
+                                    'Cosmos': { bloeiperiode: 'Juli-Oktober', zaaiperiode: 'April-Mei' },
+                                    'Calendula': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'Maart-April' },
+                                    'Goudsbloem': { bloeiperiode: 'Juni-Oktober', zaaiperiode: 'Maart-April' },
+                                    'Zonnebloem': { bloeiperiode: 'Juli-September', zaaiperiode: 'April-Mei' },
+                                    'Sunflower': { bloeiperiode: 'Juli-September', zaaiperiode: 'April-Mei' },
+                                    'Dahlia': { bloeiperiode: 'Juli-Oktober', zaaiperiode: 'Maart-April' },
+                                    'Lavendel': { bloeiperiode: 'Juni-Augustus', zaaiperiode: 'Maart-April' },
+                                    'Roos': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'November-Maart' },
+                                    'Rose': { bloeiperiode: 'Mei-Oktober', zaaiperiode: 'November-Maart' },
+                                  }
+                                  
+                                  const plantGroups = new Map()
+                                  bed.plants.forEach(plant => {
+                                    // Use variety or latin_name if name is generic
+                                    const displayName = plant.variety || plant.latin_name || plant.scientific_name || plant.name || 'Plant'
+                                    const key = displayName
+                                    
+                                    // Try to find bloom data from Dutch flowers database
+                                    let bloomData = null
+                                    for (const [flowerName, data] of Object.entries(dutchFlowers)) {
+                                      if (displayName.toLowerCase().includes(flowerName.toLowerCase()) || 
+                                          (plant.name && plant.name.toLowerCase().includes(flowerName.toLowerCase()))) {
+                                        bloomData = data
+                                        break
+                                      }
+                                    }
+                                    
+                                    if (!plantGroups.has(key)) {
+                                      plantGroups.set(key, {
+                                        name: displayName,
+                                        count: 0,
+                                        color: plant.color || plant.plant_color,
+                                        emoji: plant.emoji,
+                                        bloom_period: plant.bloom_period || bloomData?.bloeiperiode || null,
+                                        planting_date: plant.planting_date || bloomData?.zaaiperiode || null
+                                      })
+                                    }
+                                    plantGroups.get(key).count++
+                                  })
+                                  
+                                  const isSmall = bedWidth < 200 || bedHeight < 200
+                                  const groups = Array.from(plantGroups.values())
+                                  
+                                  // For small plantvakken, show compact view
+                                  if (isSmall) {
+                                    return (
+                                      <div className="flex flex-col items-center justify-center h-full">
+                                        <div className="flex flex-wrap justify-center gap-1">
+                                          {groups.slice(0, 4).map((group, idx) => (
+                                            <span key={idx} className="text-base" title={group.name}>
+                                              {group.emoji || '🌸'}
+                                            </span>
+                                          ))}
+                                        </div>
+                                        <div className="text-xs text-center mt-1 text-muted-foreground">
+                                          {bed.plants.length} plant{bed.plants.length !== 1 ? 'en' : ''}
+                                        </div>
+                                      </div>
+                                    )
+                                  }
+                                  
+                                  // For larger plantvakken, show detailed view with HIGH CONTRAST text
+                                  return (
+                                    <div className="space-y-1">
+                                      {groups.map((group, idx) => (
+                                        <div key={idx} className="bg-white rounded p-1.5 border border-gray-400 shadow-sm">
+                                          <div className="flex items-start gap-1">
+                                            <span className="text-lg">{group.emoji || '🌸'}</span>
+                                            <div className="flex-1">
+                                              <div className="flex items-center gap-1 flex-wrap">
+                                                <span className="font-bold text-xs text-black">
+                                                  {group.count > 1 && `${group.count}x `}{group.name}
+                                                </span>
+                                                {group.color && (
+                                                  <div 
+                                                    className="w-3 h-3 rounded-full border border-black"
+                                                    style={{ backgroundColor: group.color }}
+                                                    title={`Kleur: ${group.color}`}
+                                                  />
+                                                )}
+                                              </div>
+                                              {/* Show details with bloom data */}
+                                              <div className="text-[10px] text-black font-medium space-y-0">
+                                                {group.planting_date && (
+                                                  <div>🌱 Zaai: {group.planting_date}</div>
+                                                )}
+                                                {group.bloom_period && (
+                                                  <div>🌸 Bloei: {group.bloom_period}</div>
+                                                )}
+                                                {!group.planting_date && !group.bloom_period && (
+                                                  <div className="text-gray-500 italic">Geen seizoensdata beschikbaar</div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )
+                                })()}
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center h-full text-muted-foreground text-xs font-medium">
+                                Leeg plantvak
                               </div>
                             )}
                             
-                            {/* Corner decorations to emphasize the plant bed area */}
-                            <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none"></div>
-                            <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none"></div>
-                            <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none"></div>
-                            <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none"></div>
+                            {/* Corner decorations */}
+                            <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none opacity-50"></div>
+                            <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none opacity-50"></div>
+                            <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none opacity-50"></div>
+                            <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none opacity-50"></div>
                           </div>
 
 
@@ -1374,29 +1618,99 @@ export default function GardenDetailPage() {
         </Card>
       ) : (
         /* List View of Plant Beds */
-        plantBeds.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Leaf className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-muted-foreground mb-2">
-                Nog geen plantvakken
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Voeg je eerste plantvak toe om planten te kunnen planten.
-              </p>
-              <Button 
-                className="bg-green-600 hover:bg-green-700"
-                onClick={() => setIsAddingPlantBed(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Eerste Plantvak Maken
-              </Button>
+        <div>
+          {/* Month Filter for List View */}
+          <Card className="mb-4">
+            <CardContent className="pt-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Filter op maand:</span>
+                </div>
+                
+                <Select 
+                  value={selectedMonth?.toString() || "none"} 
+                  onValueChange={(value) => {
+                    setSelectedMonth(value === "none" ? undefined : parseInt(value))
+                    if (value === "none") setFilterMode('all')
+                    else if (filterMode === 'all') setFilterMode('blooming')
+                  }}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Kies maand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Geen filter</SelectItem>
+                    <SelectItem value="1">Januari</SelectItem>
+                    <SelectItem value="2">Februari</SelectItem>
+                    <SelectItem value="3">Maart</SelectItem>
+                    <SelectItem value="4">April</SelectItem>
+                    <SelectItem value="5">Mei</SelectItem>
+                    <SelectItem value="6">Juni</SelectItem>
+                    <SelectItem value="7">Juli</SelectItem>
+                    <SelectItem value="8">Augustus</SelectItem>
+                    <SelectItem value="9">September</SelectItem>
+                    <SelectItem value="10">Oktober</SelectItem>
+                    <SelectItem value="11">November</SelectItem>
+                    <SelectItem value="12">December</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {selectedMonth && (
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant={filterMode === 'sowing' ? 'default' : 'outline'}
+                      onClick={() => setFilterMode('sowing')}
+                      className="text-xs"
+                    >
+                      🌱 Zaaien
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterMode === 'blooming' ? 'default' : 'outline'}
+                      onClick={() => setFilterMode('blooming')}
+                      className="text-xs"
+                    >
+                      🌸 Bloeit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={filterMode === 'all' ? 'default' : 'outline'}
+                      onClick={() => setFilterMode('all')}
+                      className="text-xs"
+                    >
+                      Alles
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid gap-4">
-            {plantBeds.map((bed) => (
-              <Card key={bed.id} className="hover:shadow-lg transition-shadow">
+          
+          {plantBeds.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardContent>
+                <Leaf className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-muted-foreground mb-2">
+                  Nog geen plantvakken
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Voeg je eerste plantvak toe om planten te kunnen planten.
+                </p>
+                <Button 
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={() => setIsAddingPlantBed(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Eerste Plantvak Maken
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {plantBeds.map((bed) => (
+                <Card key={bed.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div>
@@ -1416,41 +1730,15 @@ export default function GardenDetailPage() {
                         </div>
                       </div>
                       
-                      {/* Flower preview in plant bed list */}
-                      {bed.plants.length > 0 && (
-                        <div className="mt-2">
-                          <div className="flex flex-wrap gap-1">
-                            {bed.plants.slice(0, 4).map((flower, index) => (
-                              <div
-                                key={`${flower.id}-${index}`}
-                                className="flex items-center gap-1 bg-purple-50 border border-purple-200 rounded-lg px-2 py-1"
-                                title={`${flower.name}${flower.color ? ` - ${flower.color}` : ''}`}
-                              >
-                                <span className="text-sm">
-                                  {flower.emoji || '🌸'}
-                                </span>
-                                <span className="text-xs font-medium text-purple-800 truncate max-w-20">
-                                  {flower.name}
-                                </span>
-                                {flower.color && (
-                                  <div
-                                    className="w-2 h-2 rounded-full border border-gray-300 ml-1"
-                                    style={{ backgroundColor: flower.color }}
-                                    title={flower.color}
-                                  />
-                                )}
-                              </div>
-                            ))}
-                            {bed.plants.length > 4 && (
-                              <div className="flex items-center justify-center bg-muted border border-border rounded-lg px-2 py-1">
-                                <span className="text-xs text-muted-foreground">
-                                  +{bed.plants.length - 4}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
+                      {/* Use PlantBedSummary component for consistent display */}
+                      <div className="mt-3">
+                        <PlantBedSummary
+                          plantBed={bed}
+                          selectedMonth={selectedMonth}
+                          filterMode={filterMode}
+                          isHighlighted={shouldHighlightBed(bed)}
+                        />
+                      </div>
                     </div>
                     <Badge variant="secondary" className="bg-green-100 text-green-800">
                       {bed.plants.length > 0 ? 'Beplant' : 'Leeg'}
@@ -1478,9 +1766,10 @@ export default function GardenDetailPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Delete Confirmation Dialog */}

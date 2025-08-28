@@ -780,7 +780,9 @@ export default function PlantBedViewPage() {
         photo_url: null,
         is_custom: !newFlower.isStandardFlower,
         category: newFlower.isStandardFlower ? 'Standaard' : 'Aangepast',
-        notes: newFlower.notes || ''
+        notes: newFlower.notes || '',
+        planting_date: newFlower.plantingDate || '',
+        bloom_period: newFlower.expectedHarvestDate || ''
       })
 
       if (newPlant) {
@@ -819,7 +821,9 @@ export default function PlantBedViewPage() {
         name: newFlower.name,
         color: newFlower.color,
         status: newFlower.status,
-        emoji: newFlower.emoji
+        emoji: newFlower.emoji,
+        planting_date: newFlower.plantingDate || '',
+        bloom_period: newFlower.expectedHarvestDate || ''
       })
 
       if (updatedPlant) {
