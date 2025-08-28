@@ -118,9 +118,16 @@ export default function GardenDetailPage() {
     return 'juni-oktober'
   }
 
-  // Parse month ranges from bloom_period
+  // Parse month ranges from bloom_period (handles both dates and period text)
   const parseMonthRange = (period?: string): number[] => {
     if (!period) return []
+    
+    // Check if it's a date format (YYYY-MM-DD)
+    if (period.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const date = new Date(period)
+      const month = date.getMonth() + 1 // getMonth() returns 0-11, we need 1-12
+      return [month]
+    }
     
     const monthNames: { [key: string]: number } = {
       'januari': 1, 'februari': 2, 'maart': 3, 'april': 4,
