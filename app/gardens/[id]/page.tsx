@@ -160,20 +160,23 @@ export default function GardenDetailPage() {
   const plantMatchesFilter = (plant: PlantWithPosition): boolean => {
     if (!selectedMonth || filterMode === 'all') return true
     
-    console.log('🔍 plantMatchesFilter:', {
-      plantName: plant.name,
-      selectedMonth,
-      filterMode,
-      bloomPeriod: plant.bloom_period,
-      plantingDate: plant.planting_date
-    })
+
     
     if (filterMode === 'blooming') {
-      // Check if plant blooms in selected month based on bloom_period
-      const bloomMonths = parseMonthRange(plant.bloom_period)
-      const matches = bloomMonths.includes(selectedMonth)
-      console.log('🔍 Blooming filter result:', matches)
-      return matches
+      // Check if plant blooms in selected month - handle both dates and period text
+      if (plant.bloom_period) {
+        // If it's a date format (YYYY-MM-DD), extract month directly
+        if (plant.bloom_period.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          const bloomDate = new Date(plant.bloom_period)
+          const bloomMonth = bloomDate.getMonth() + 1
+          return bloomMonth === selectedMonth
+        } else {
+          // If it's period text like "mei-oktober", use parseMonthRange
+          const bloomMonths = parseMonthRange(plant.bloom_period)
+          return bloomMonths.includes(selectedMonth)
+        }
+      }
+      return false
     } else if (filterMode === 'sowing') {
       // Check if plant has planting_date in selected month
       if (plant.planting_date) {
