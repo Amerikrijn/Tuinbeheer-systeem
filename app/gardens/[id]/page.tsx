@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { TooltipProvider } from "@/components/ui/tooltip"
+
 // useToast removed - no more toast notifications
 import {
   ArrowLeft,
@@ -957,7 +957,6 @@ export default function GardenDetailPage() {
   }
 
   return (
-    <TooltipProvider>
     <div className="container mx-auto p-4 space-y-4">
       {/* Compact Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
@@ -982,7 +981,7 @@ export default function GardenDetailPage() {
                   (garden.length && garden.width && 
                     `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
                   )
-                }
+              }
               </p>
             )}
           </div>
@@ -1508,7 +1507,7 @@ export default function GardenDetailPage() {
         </Card>
       ) : (
         /* List View of Plant Beds */
-        <>
+        <div>
           {/* Month Filter for List View */}
           <Card className="mb-4">
             <CardContent className="pt-4">
@@ -1578,29 +1577,29 @@ export default function GardenDetailPage() {
             </CardContent>
           </Card>
           
-        {plantBeds.length === 0 ? (
-          <Card className="text-center py-12">
-            <CardContent>
-              <Leaf className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="text-xl font-medium text-muted-foreground mb-2">
-                Nog geen plantvakken
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Voeg je eerste plantvak toe om planten te kunnen planten.
-              </p>
-              <Button 
-                className="bg-green-600 hover:bg-green-700"
-                onClick={() => setIsAddingPlantBed(true)}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Eerste Plantvak Maken
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4">
-            {plantBeds.map((bed) => (
-              <Card key={bed.id} className="hover:shadow-lg transition-shadow">
+          {plantBeds.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardContent>
+                <Leaf className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
+                <h3 className="text-xl font-medium text-muted-foreground mb-2">
+                  Nog geen plantvakken
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Voeg je eerste plantvak toe om planten te kunnen planten.
+                </p>
+                <Button 
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={() => setIsAddingPlantBed(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Eerste Plantvak Maken
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4">
+              {plantBeds.map((bed) => (
+                <Card key={bed.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div>
@@ -1656,9 +1655,10 @@ export default function GardenDetailPage() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        </>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Delete Confirmation Dialog */}
@@ -1987,6 +1987,5 @@ export default function GardenDetailPage() {
         </DialogContent>
       </Dialog>
     </div>
-    </TooltipProvider>
   )
 }
