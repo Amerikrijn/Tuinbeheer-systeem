@@ -1724,7 +1724,7 @@ export default function PlantBedViewPage() {
       </div>
 
       {/* Plant Bed Information - Simplified */}
-      <Card className="bg-gray-50">
+      <Card className="bg-muted/50">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -2031,7 +2031,7 @@ export default function PlantBedViewPage() {
           {viewMode === 'visual' ? (
             <>
               {/* Mobile help text */}
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
+              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg md:hidden">
                 <h4 className="font-medium text-blue-900 mb-1">📱 Mobiele bediening:</h4>
                 <ul className="text-sm text-blue-800 space-y-1">
                   <li>• <strong>1x tikken:</strong> Bloem selecteren</li>
@@ -2052,7 +2052,7 @@ export default function PlantBedViewPage() {
               <div className="relative overflow-hidden rounded-lg border-2 border-dashed border-green-200">
             <div
               ref={containerRef}
-              className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100"
+              className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-green-950/30"
               style={{
                 width: getCanvasSize().width,
                 height: getCanvasSize().height,
@@ -2097,7 +2097,7 @@ export default function PlantBedViewPage() {
                 
                 return (
                   <div
-                    className="absolute border-2 border-dashed border-green-400 bg-green-50/20 rounded-lg pointer-events-none"
+                    className="absolute border-2 border-dashed border-green-400 bg-green-50/20 dark:bg-green-950/10 rounded-lg pointer-events-none"
                     style={{
                       left: plantvakStartX,
                       top: plantvakStartY,
@@ -2205,13 +2205,13 @@ export default function PlantBedViewPage() {
 
                     {/* Mode indicators */}
                     {isSelected && isDragMode && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
                         🖱️ Sleep me!
                       </div>
                     )}
                     
                     {isSelected && isResizeMode && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-blue-600 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
                         📏 Resize actief!
                       </div>
                     )}
@@ -2227,7 +2227,7 @@ export default function PlantBedViewPage() {
                           
                           return (
                             <div
-                              className="absolute border-2 border-dashed border-blue-300 bg-blue-50 bg-opacity-20 rounded-lg pointer-events-none"
+                              className="absolute border-2 border-dashed border-blue-300 dark:border-blue-700 bg-blue-50/20 dark:bg-blue-950/10 rounded-lg pointer-events-none"
                               style={{
                                 left: -areaSize/2 + FLOWER_SIZE/2,
                                 top: -areaSize/2 + FLOWER_SIZE/2,
@@ -2354,7 +2354,7 @@ export default function PlantBedViewPage() {
                         
                         {/* Show live area info during resize */}
                         {isBeingResized && (
-                          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-500 text-white text-sm px-3 py-2 rounded-full z-10 animate-bounce shadow-lg">
+                          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white text-sm px-3 py-2 rounded-full z-10 animate-bounce shadow-lg">
                             🌸 Gebied: {(() => {
                               const areaSize = flower.notes?.includes('area_size:') 
                                 ? parseInt(flower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
@@ -2413,7 +2413,7 @@ export default function PlantBedViewPage() {
             /* List View */
             <div className="space-y-4">
               {/* List Header */}
-              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                 <div className="flex items-center gap-2">
                   <List className="h-5 w-5 text-muted-foreground" />
                   <span className="font-medium text-foreground">Bloemen Lijst</span>
@@ -2488,7 +2488,7 @@ export default function PlantBedViewPage() {
                             )}
                           </div>
                           {flower.notes && (
-                            <div className="mt-2 p-2 bg-gray-50 rounded">
+                            <div className="mt-2 p-2 bg-muted rounded">
                               <span className="text-xs font-medium">Notities:</span>
                               <p className="text-xs mt-1">{flower.notes}</p>
                             </div>
@@ -2543,7 +2543,7 @@ export default function PlantBedViewPage() {
 
               {/* Tasks Section - Only in List View */}
               <div className="mt-8">
-                <div className="flex items-center justify-between p-4 bg-blue-50 rounded-lg mb-4">
+                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg mb-4">
                   <div className="flex items-center gap-3">
                       <Calendar className="h-6 w-6 text-blue-700" />
                       <span className="font-semibold text-foreground text-xl leading-snug">Taken voor dit Plantvak</span>
@@ -2554,7 +2554,7 @@ export default function PlantBedViewPage() {
                       size="sm"
                       variant="outline"
                       onClick={() => handleAddTask()}
-                      className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                      className="text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-950/30"
                     >
                       <Plus className="h-4 w-4 mr-1" />
                       Plantvak Taak
@@ -2564,7 +2564,7 @@ export default function PlantBedViewPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleAddTask(flowerPositions[0].id)}
-                        className="text-green-600 border-green-200 hover:bg-green-50"
+                        className="text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/30"
                       >
                         <Plus className="h-4 w-4 mr-1" />
                         Bloem Taak
@@ -2604,7 +2604,7 @@ export default function PlantBedViewPage() {
                                   checked={task.completed}
                                   onChange={(e) => handleTaskComplete(task.id, e.target.checked)}
                                   disabled={updatingTasks.has(task.id)}
-                                  className={`w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 transition-opacity ${
+                                  className={`w-4 h-4 text-blue-600 bg-muted border-border rounded focus:ring-blue-500 transition-opacity ${
                                     updatingTasks.has(task.id) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                                   }`}
                                 />

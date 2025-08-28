@@ -297,9 +297,9 @@ export default function NewPlantBedPage() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Automatic Letter Code Assignment - Prominent Display */}
-                <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 border-2 border-blue-200 rounded-lg">
+                <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
                   <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 text-white text-4xl font-bold rounded-full flex items-center justify-center shadow-lg border-4 border-white">
+                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 text-white text-4xl font-bold rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-800">
                       {nextLetterCode}
                     </div>
                     <div className="flex-1">

@@ -340,10 +340,10 @@ export default function GardenDetailPage() {
   const getPlantBedColor = (bedId: string) => {
     const index = plantBeds.findIndex(bed => bed.id === bedId)
     const colors = [
-      'bg-green-50 border-green-400 shadow-green-100',
-      'bg-blue-50 border-blue-400 shadow-blue-100',
-      'bg-purple-50 border-purple-400 shadow-purple-100',
-      'bg-yellow-50 border-yellow-400 shadow-yellow-100',
+      'bg-green-50 dark:bg-green-950/20 border-green-400 shadow-green-100',
+      'bg-blue-50 dark:bg-blue-950/20 border-blue-400 shadow-blue-100',
+      'bg-purple-50 dark:bg-purple-950/20 border-purple-400 shadow-purple-100',
+      'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-400 shadow-yellow-100',
       'bg-pink-50 border-pink-400 shadow-pink-100',
       'bg-indigo-50 border-indigo-400 shadow-indigo-100',
     ]
@@ -1109,7 +1109,7 @@ export default function GardenDetailPage() {
           </CardHeader>
           <CardContent>
             {/* Mobile help text */}
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg md:hidden">
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg md:hidden">
               <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak beheren:</h4>
               <ul className="text-sm text-blue-800 space-y-1">
                 <li>• <strong>Sleep:</strong> Verplaats plantvak direct</li>
@@ -1126,7 +1126,7 @@ export default function GardenDetailPage() {
             <div className="relative overflow-auto rounded-lg border-2 border-dashed border-green-200" style={{ minHeight: "400px" }}>
               <div
                 ref={canvasRef}
-                className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 cursor-crosshair"
+                className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-green-950/30 cursor-crosshair"
                 style={{
                   width: CANVAS_WIDTH,
                   height: CANVAS_HEIGHT,
@@ -1206,21 +1206,21 @@ export default function GardenDetailPage() {
                               </div>
                             )}
                             {isDragging && (
-                              <div className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded shadow-sm animate-bounce">
+                              <div className="text-xs font-bold text-green-600 bg-green-100 dark:bg-green-950 px-2 py-1 rounded shadow-sm animate-bounce">
                                 🖱️ Verplaatsen
                               </div>
                             )}
                             {isRotating && (
-                              <div className="text-xs font-bold text-orange-600 bg-orange-100 px-2 py-1 rounded shadow-sm animate-pulse">
+                              <div className="text-xs font-bold text-orange-600 bg-orange-100 dark:bg-orange-950 px-2 py-1 rounded shadow-sm animate-pulse">
                                 🔄 Roteren
                               </div>
                             )}
                           </div>
 
                           {/* Main area for plants/flowers - full height for flowers */}
-                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden border-2 border-dashed border-gray-300 rounded-lg bg-gradient-to-br from-green-25 to-green-50">
+                          <div className="w-full h-full flex items-center justify-center relative overflow-hidden border-2 border-dashed border-border rounded-lg bg-gradient-to-br from-muted/30 to-muted/50 dark:from-muted/10 dark:to-muted/20">
                             {/* Plantvak visual indicator */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/10 to-transparent pointer-events-none"></div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-background/10 to-transparent pointer-events-none"></div>
                             
                             {/* Flower Visualization System */}
                             <FlowerVisualization 
@@ -1246,7 +1246,7 @@ export default function GardenDetailPage() {
                           
                           {isSelected && (
                             <>
-                              <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1 rounded">
+                              <div className="absolute -top-1 -right-1 bg-blue-500 dark:bg-blue-600 text-white text-xs px-1 rounded">
                                 Geselecteerd
                               </div>
                               {/* Rotation handle - improved */}
@@ -1306,7 +1306,7 @@ export default function GardenDetailPage() {
                               </div>
                             </>
                           )}
-                          <div className="absolute inset-0 bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
+                          <div className="absolute inset-0 bg-green-500/10 dark:bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
                         </div>
                         
                         {/* Plantvak info onder het vak */}
@@ -1442,7 +1442,7 @@ export default function GardenDetailPage() {
                               </div>
                             ))}
                             {bed.plants.length > 4 && (
-                              <div className="flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-2 py-1">
+                              <div className="flex items-center justify-center bg-muted border border-border rounded-lg px-2 py-1">
                                 <span className="text-xs text-muted-foreground">
                                   +{bed.plants.length - 4}
                                 </span>
@@ -1604,7 +1604,7 @@ export default function GardenDetailPage() {
                     )
                   } else if (plantBeds.length > 0) {
                     return (
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                      <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
                         <div className="flex items-center gap-2 text-green-800 font-medium">
                           <span>✅</span>
                           <span>Alle plantvakken passen nog in de tuin</span>
@@ -1659,9 +1659,9 @@ export default function GardenDetailPage() {
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-lg mb-4">
+            <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/30 dark:to-blue-950/30 border-2 border-green-200 dark:border-green-800 rounded-lg mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-500 text-white text-xl font-bold rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-green-500 dark:bg-green-600 text-white text-xl font-bold rounded-full flex items-center justify-center">
                   ?
                 </div>
                 <div>
