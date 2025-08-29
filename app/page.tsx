@@ -35,7 +35,7 @@ import {
   Sparkles,
   Eye,
   ChevronRight,
-  Garden,
+  Square,
   Flower2,
   Clock,
   Zap,
@@ -298,7 +298,7 @@ function HomePageContent() {
             <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-green-200/50 dark:border-green-800/30 shadow-sm hover:shadow-md transition-all duration-200">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                  <Garden className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <Square className="w-5 h-5 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Totaal Tuinen</p>
@@ -372,7 +372,7 @@ function HomePageContent() {
                   </>
                 ) : (
                   <>
-                    <Garden className="w-4 h-4 mr-2" />
+                    <Square className="w-4 h-4 mr-2" />
                     Grid
                   </>
                 )}
