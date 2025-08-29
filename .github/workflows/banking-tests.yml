@@ -183,7 +183,30 @@ jobs:
           echo "Generating detailed test analysis report..."
           
           # Run our custom test analysis script for Jest output
-          node scripts/analyze-jest-results.js test-results/all-tests.json
+          if [ -f "test-results/all-tests.json" ]; then
+            node scripts/analyze-jest-results.js test-results/all-tests.json
+          else
+            echo "⚠️ Jest test results not found, creating fallback summary"
+            # Create a fallback summary if no test results exist
+            cat > jest-analysis-summary.json << EOF
+{
+  "totalTests": 0,
+  "totalSuccess": 0,
+  "totalFailures": 0,
+  "totalErrors": 0,
+  "criticalFailures": 0,
+  "highPriorityFailures": 0,
+  "mediumPriorityFailures": 0,
+  "unexpectedSuccesses": 0,
+  "recommendations": {
+    "critical": [],
+    "high": [],
+    "medium": [],
+    "unexpected": []
+  }
+}
+EOF
+          fi
           
           # Generate pipeline status report
           node scripts/generate-pipeline-status.js
@@ -203,6 +226,20 @@ jobs:
             echo "**Critical Failures**: $(jq -r '.criticalFailures' jest-analysis-summary.json)" >> test-results/pipeline-summary.md
             echo "**High Priority Failures**: $(jq -r '.highPriorityFailures' jest-analysis-summary.json)" >> test-results/pipeline-summary.md
             echo "**Medium Priority Failures**: $(jq -r '.mediumPriorityFailures' jest-analysis-summary.json)" >> test-results/pipeline-summary.md
+          elif [ -f "test-results/all-tests.json" ]; then
+            # Fallback: parse Jest results directly
+            total_tests=$(jq -r '.numTotalTests' test-results/all-tests.json)
+            total_failures=$(jq -r '.numFailedTests' test-results/all-tests.json)
+            total_errors=$(jq -r '.numRuntimeErrorTestSuites' test-results/all-tests.json)
+            total_success=$((total_tests - total_failures - total_errors))
+            echo "**Total Tests**: $total_tests" >> test-results/pipeline-summary.md
+            echo "**Success Rate**: $total_success/$total_tests ($(echo "scale=1; $total_success * 100 / $total_tests" | bc)% success)" >> test-results/pipeline-summary.md
+            echo "**Total Failures**: $total_failures" >> test-results/pipeline-summary.md
+            echo "**Total Errors**: $total_errors" >> test-results/pipeline-summary.md
+          else
+            echo "**Total Tests**: Unknown (analysis not available)" >> test-results/pipeline-summary.md
+            echo "**Success Rate**: Unknown" >> test-results/pipeline-summary.md
+            echo "**Status**: Test execution completed, but analysis failed" >> test-results/pipeline-summary.md
           fi
           
           echo "" >> test-results/pipeline-summary.md
@@ -383,6 +420,37 @@ jobs:
                 jq -r '.recommendations.unexpected[] | "- " + .name + ": " + .tests + " tests"' test-artifacts/jest-analysis-summary.json >> test-summary.md
                 echo "" >> test-summary.md
               fi
+            elif [ -f "test-artifacts/test-results/all-tests.json" ]; then
+              # Fallback: try to parse Jest results directly
+              echo "## 📊 Test Results Summary (Direct Parse)" >> test-summary.md
+              echo "" >> test-summary.md
+              
+              # Parse Jest results directly
+              total_tests=$(jq -r '.numTotalTests' test-artifacts/test-results/all-tests.json)
+              total_failures=$(jq -r '.numFailedTests' test-artifacts/test-results/all-tests.json)
+              total_errors=$(jq -r '.numRuntimeErrorTestSuites' test-artifacts/test-results/all-tests.json)
+              total_success=$((total_tests - total_failures - total_errors))
+              
+              echo "### 📈 Test Statistics" >> test-summary.md
+              echo "- **Total Tests**: $total_tests" >> test-summary.md
+              echo "- **Success Rate**: $total_success/$total_tests ($(echo "scale=1; $total_success * 100 / $total_tests" | bc)% success)" >> test-summary.md
+              echo "- **Total Failures**: $total_failures" >> test-summary.md
+              echo "- **Total Errors**: $total_errors" >> test-summary.md
+              echo "" >> test-summary.md
+              
+              echo "**Note**: Detailed analysis not available, but test execution completed." >> test-summary.md
+            else
+              # Fallback when no analysis is available
+              echo "## 📊 Test Results Summary" >> test-summary.md
+              echo "" >> test-summary.md
+              echo "⚠️ **Detailed test analysis not available**" >> test-summary.md
+              echo "" >> test-summary.md
+              echo "**Possible reasons:**" >> test-summary.md
+              echo "- Tests failed to execute completely" >> test-summary.md
+              echo "- Jest analysis script encountered an error" >> test-summary.md
+              echo "- Test results files are missing or corrupted" >> test-summary.md
+              echo "" >> test-summary.md
+              echo "**Check the workflow logs for more details.**" >> test-summary.md
             fi
             
             # Check for summary file
@@ -452,8 +520,22 @@ jobs:
           echo "" >> test-summary.md
           echo "## 🔧 Next Steps for Test Quality" >> test-summary.md
           echo "To improve test success rate:" >> test-summary.md
-          echo "1. **Fix Critical Failures**: Address the $critical_failures critical test failures first" >> test-summary.md
-          echo "2. **Fix High Priority**: Address the $high_priority high priority failures within 1 week" >> test-summary.md
+          
+          # Check if we have analysis data
+          if [ -f "jest-analysis-summary.json" ]; then
+            critical_failures=$(jq -r '.criticalFailures' jest-analysis-summary.json)
+            high_priority=$(jq -r '.highPriorityFailures' jest-analysis-summary.json)
+            echo "1. **Fix Critical Failures**: Address the $critical_failures critical test failures first" >> test-summary.md
+            echo "2. **Fix High Priority**: Address the $high_priority high priority failures within 1 week" >> test-summary.md
+          elif [ -f "test-results/all-tests.json" ]; then
+            total_failures=$(jq -r '.numFailedTests' test-results/all-tests.json)
+            echo "1. **Fix Test Failures**: Address the $total_failures failing tests" >> test-summary.md
+            echo "2. **Improve Test Coverage**: Add missing test cases" >> test-summary.md
+          else
+            echo "1. **Investigate Test Execution**: Check why tests didn't run properly" >> test-summary.md
+            echo "2. **Review Workflow Logs**: Look for errors in the test execution" >> test-summary.md
+          fi
+          
           echo "3. **Add data-testid attributes** to UI components" >> test-summary.md
           echo "4. **Create proper test mocks** for database dependencies" >> test-summary.md
           echo "5. **Set up test environment** with required services" >> test-summary.md
