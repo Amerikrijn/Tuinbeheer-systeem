@@ -118,16 +118,16 @@ function HomePageContent() {
         }
 
         const { data } = paginatedData
-        if (!data) {
-          throw new Error('No data received from server')
+        if (!data || !data.data || !Array.isArray(data.data)) {
+          throw new Error('Invalid data structure received from server')
         }
 
         const performanceDuration = performance.now() - performanceStart
 
-        // Calculate performance metrics
+        // Calculate performance metrics with proper null checks
         const totalPlantBeds = data.data.reduce((sum, garden) => sum + (garden.plant_beds?.length || 0), 0)
         const totalPlants = data.data.reduce((sum, garden) => 
-          sum + garden.plant_beds?.reduce((bedSum, bed) => bedSum + (bed.plants?.length || 0), 0) || 0, 0
+          sum + (garden.plant_beds?.reduce((bedSum, bed) => bedSum + (bed.plants?.length || 0), 0) || 0), 0
         )
 
         uiLogger.info('Gardens loaded successfully (OPTIMIZED)', { 
@@ -237,9 +237,13 @@ function HomePageContent() {
 
   // Calculate garden statistics
   const gardenStats = React.useMemo(() => {
+    if (!filteredGardens || !Array.isArray(filteredGardens)) {
+      return { totalPlantBeds: 0, totalPlants: 0 }
+    }
+    
     const totalPlantBeds = filteredGardens.reduce((sum, garden) => sum + (garden.plant_beds?.length || 0), 0)
     const totalPlants = filteredGardens.reduce((sum, garden) => 
-      sum + garden.plant_beds?.reduce((bedSum, bed) => bedSum + (bed.plants?.length || 0), 0) || 0, 0
+      sum + (garden.plant_beds?.reduce((bedSum, bed) => bedSum + (bed.plants?.length || 0), 0) || 0), 0
     )
     return { totalPlantBeds, totalPlants }
   }, [filteredGardens])
@@ -547,7 +551,9 @@ function GardenCard({ garden, onDelete, viewMode }: GardenCardProps) {
     return uniqueFlowers
   }, [plantBeds])
 
-  const totalPlants = plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)
+  const totalPlants = plantBeds && Array.isArray(plantBeds) 
+    ? plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)
+    : 0
   const formatDate = (dateString: string) => {
     try {
       return new Date(dateString).toLocaleDateString('nl-NL', {
