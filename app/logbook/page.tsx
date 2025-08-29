@@ -13,15 +13,15 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Plus, ArrowLeft, Search, Filter, BookOpen, Clock, User } from "lucide-react"
 import { ProtectedRoute } from "@/components/auth/protected-route"
-import { UserRestriction } from "@/components/auth/user-restriction"
+import { UserRestrictedRoute } from "@/components/auth/user-restricted-route"
 import { useAuth } from "@/hooks/use-supabase-auth"
 
 export default function LogbookPage() {
   return (
     <ProtectedRoute>
-      <UserRestriction>
+      <UserRestrictedRoute>
         <LogbookPageContent />
-      </UserRestriction>
+      </UserRestrictedRoute>
     </ProtectedRoute>
   )
 }
