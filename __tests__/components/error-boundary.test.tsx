@@ -23,31 +23,22 @@ describe('ErrorBoundary component', () => {
       </ErrorBoundary>
     )
 
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'An unexpected error occurred. Please try refreshing the page or contact support if the problem persists.'
-      )
-    ).toBeInTheDocument()
-    expect(screen.getByText('Refresh Page')).toBeInTheDocument()
+    expect(screen.getByText('Something went wrong while loading the application.')).toBeInTheDocument()
+    expect(screen.getByText('boom')).toBeInTheDocument()
     expect(screen.getByText('Try Again')).toBeInTheDocument()
+    expect(screen.getByText('Go Home')).toBeInTheDocument()
+    expect(screen.getByText('Reload Page')).toBeInTheDocument()
   })
 
   it('provides guidance for Supabase errors', () => {
-    jest.spyOn(ErrorBoundary, 'getDerivedStateFromError').mockImplementation(error => ({
-      hasError: true,
-      error,
-    }))
-
     render(
       <ErrorBoundary>
         <ProblemChild message="supabaseKey missing" />
       </ErrorBoundary>
     )
 
-    expect(screen.getByText(/Supabase Configuration Issue/)).toBeInTheDocument()
-    expect(screen.getByText(/\.env\.local/)).toBeInTheDocument()
-    expect(screen.getByText(/SUPABASE_SETUP.md/)).toBeInTheDocument()
+    expect(screen.getByText('supabaseKey missing')).toBeInTheDocument()
+    expect(screen.getByText('Missing or invalid environment variables')).toBeInTheDocument()
   })
 
   it('resets when Try Again is clicked', () => {

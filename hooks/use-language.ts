@@ -45,7 +45,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const handleSetLanguage = (lang: Language) => {
     setLanguageState(lang)
     if (typeof window !== "undefined") {
-      localStorage.setItem("language", lang)
+      try {
+        localStorage.setItem("language", lang)
+      } catch (error) {
+        // Silently fail if localStorage is not available or throws an error
+        // The language change is still applied in memory
+        console.warn('Failed to persist language to localStorage:', error)
+      }
     }
   }
 

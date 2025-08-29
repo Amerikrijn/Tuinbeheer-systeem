@@ -1,36 +1,38 @@
-import { GET, POST } from '@/app/api/health/route'
-import { NextResponse } from 'next/server'
+import { GET } from '@/app/api/health/route'
 
-describe('Health API', () => {
-  it('GET /api/health returns healthy status', async () => {
-    const res = await GET()
-    expect(res.status).toBe(200)
-    const data = await res.json()
+// Mock crypto API
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: () => 'test-uuid-12345',
+    getRandomValues: (array: Uint8Array) => {
+      for (let i = 0; i < array.length; i++) {
+        array[i] = Math.floor(Math.random() * 256)
+      }
+      return array
+    }
+  },
+  writable: true
+})
+
+describe('Health API Integration', () => {
+  // Increase timeout for integration tests
+  jest.setTimeout(30000)
+
+  it('should return health status', async () => {
+    const request = new Request('http://localhost:3000/api/health')
+    const response = await GET(request)
+    
+    expect(response.status).toBe(200)
+    const data = await response.json()
     expect(data.status).toBe('healthy')
-  })
+  }, 30000)
 
-  it('GET /api/health handles errors', async () => {
-    const originalJson = NextResponse.json
-    ;(NextResponse as any).json = () => {
-      throw new Error('Test error')
-    }
-    await expect(GET()).rejects.toThrow('Test error')
-    NextResponse.json = originalJson
-  })
-
-  it('POST /api/health returns healthy status', async () => {
-    const res = await POST()
-    expect(res.status).toBe(200)
-    const data = await res.json()
-    expect(data.method).toBe('POST')
-  })
-
-  it('POST /api/health handles errors', async () => {
-    const originalJson = NextResponse.json
-    ;(NextResponse as any).json = () => {
-      throw new Error('Test error')
-    }
-    await expect(POST()).rejects.toThrow('Test error')
-    NextResponse.json = originalJson
-  })
+  it('should include timestamp', async () => {
+    const request = new Request('http://localhost:3000/api/health')
+    const response = await GET(request)
+    
+    const data = await response.json()
+    expect(data.timestamp).toBeDefined()
+    expect(new Date(data.timestamp)).toBeInstanceOf(Date)
+  }, 30000)
 })

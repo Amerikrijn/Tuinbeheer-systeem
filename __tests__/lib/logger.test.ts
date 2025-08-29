@@ -4,14 +4,14 @@ const ORIGINAL_ENV = { ...process.env }
 
 beforeEach(() => {
   process.env = { ...ORIGINAL_ENV }
-  vi.spyOn(console, 'log').mockImplementation(() => {})
-  vi.spyOn(console, 'info').mockImplementation(() => {})
-  vi.spyOn(console, 'warn').mockImplementation(() => {})
-  vi.spyOn(console, 'error').mockImplementation(() => {})
+  jest.spyOn(console, 'log').mockImplementation(() => {})
+  jest.spyOn(console, 'info').mockImplementation(() => {})
+  jest.spyOn(console, 'warn').mockImplementation(() => {})
+  jest.spyOn(console, 'error').mockImplementation(() => {})
 })
 
 afterEach(() => {
-  vi.restoreAllMocks()
+  jest.restoreAllMocks()
   process.env = { ...ORIGINAL_ENV }
 })
 
@@ -46,7 +46,7 @@ describe('Logger', () => {
 
 describe('PerformanceLogger', () => {
   it('measures duration and logs result', () => {
-    const nowSpy = vi.spyOn(Date, 'now')
+    const nowSpy = jest.spyOn(Date, 'now')
     nowSpy.mockReturnValueOnce(1000)
     PerformanceLogger.startTimer('op')
     nowSpy.mockReturnValueOnce(1500)

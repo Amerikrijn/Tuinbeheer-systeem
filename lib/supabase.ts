@@ -29,7 +29,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     headers: {
       'X-Client-Info': 'tuinbeheer-systeem',
-      'X-Request-Id': typeof crypto !== 'undefined' ? crypto.randomUUID() : 'server-side',
+      'X-Request-Id': (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'server-side',
     },
     fetch: async (url, options = {}) => {
       // Add request timeout and retry logic with progressive timeouts

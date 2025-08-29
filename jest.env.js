@@ -173,9 +173,9 @@ global.NextRequest = class MockNextRequest {
   async text() {
     if (!this._body) return '';
     if (typeof this._body === 'string') {
-      return this._body;
+      return JSON.stringify(this._body);
     }
-    return JSON.stringify(this._body);
+    return this._body;
   }
 };
 

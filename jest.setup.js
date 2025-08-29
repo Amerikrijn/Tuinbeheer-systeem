@@ -1,8 +1,8 @@
 // Jest setup bestand - vervangt Vitest setup
 import '@testing-library/jest-dom';
 
-// Early crypto mock setup - MUST be before any module imports that use crypto
-global.crypto = global.crypto || {
+// Enhanced crypto mock setup - MUST be before any module imports that use crypto
+const mockCrypto = {
   randomUUID: () => 'test-uuid-' + Math.random().toString(36).substr(2, 9),
   getRandomValues: (array) => {
     for (let i = 0; i < array.length; i++) {
@@ -25,11 +25,25 @@ global.crypto = global.crypto || {
 };
 
 // Ensure crypto is available everywhere
+global.crypto = mockCrypto;
 if (typeof globalThis !== 'undefined') {
-  globalThis.crypto = global.crypto;
+  globalThis.crypto = mockCrypto;
 }
-if (typeof window !== 'undefined') {
-  window.crypto = global.crypto;
+
+// Ensure window object is available for jsdom
+if (typeof window === 'undefined') {
+  global.window = {};
+}
+
+// Ensure document object is available
+if (typeof document === 'undefined') {
+  global.document = {
+    createElement: jest.fn(),
+    getElementById: jest.fn(),
+    querySelector: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  };
 }
 
 // Mock voor Next.js router
@@ -62,21 +76,6 @@ global.console = {
   error: jest.fn(),
 };
 
-// Mock voor window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
-
 // Mock voor ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),
@@ -91,16 +90,58 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),
 }));
 
+// Mock voor performance API
+global.performance = {
+  now: () => Date.now(),
+  mark: jest.fn(),
+  measure: jest.fn(),
+  getEntriesByType: jest.fn(() => []),
+  getEntriesByName: jest.fn(() => []),
+  clearMarks: jest.fn(),
+  clearMeasures: jest.fn(),
+};
+
+// Mock voor localStorage
+const localStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+
+// Mock voor sessionStorage
+const sessionStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+
+// Mock voor fetch
+global.fetch = jest.fn();
+
 // Mock voor vitest globals (voor compatibiliteit tijdens migratie)
 global.vi = {
   fn: jest.fn,
-  mock: jest.mock,
   spyOn: jest.spyOn,
+  mock: jest.mock,
   restoreAllMocks: jest.restoreAllMocks,
-  clearAllMocks: jest.clearAllMocks,
   resetAllMocks: jest.resetAllMocks,
+  clearAllMocks: jest.clearAllMocks,
   useFakeTimers: jest.useFakeTimers,
   useRealTimers: jest.useRealTimers,
   runAllTimers: jest.runAllTimers,
   advanceTimersByTime: jest.advanceTimersByTime,
+  advanceTimersToNextTimer: jest.advanceTimersToNextTimer,
+  clearAllTimers: jest.clearAllTimers,
+  getTimerCount: jest.getTimerCount,
+  setSystemTime: jest.setSystemTime,
+  getRealSystemTime: jest.getRealSystemTime,
+  clearSystemTime: jest.clearSystemTime,
+  isMockFunction: jest.isMockFunction,
+  mocked: jest.mocked,
+  replaceProperty: jest.replaceProperty,
+  resetModules: jest.resetModules,
 };
+
+console.log('🧪 Jest setup loaded successfully');
