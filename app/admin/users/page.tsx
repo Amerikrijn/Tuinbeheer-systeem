@@ -135,9 +135,22 @@ function AdminUsersPageContent() {
       
     } catch (error: any) {
       console.error('Error resetting password:', error)
+      
+      // Provide more specific error messages for admins
+      let errorMessage = "Kon wachtwoord niet resetten"
+      if (error.message.includes('permission')) {
+        errorMessage = "Geen toestemming om wachtwoord te resetten. Controleer je admin rechten."
+      } else if (error.message.includes('user not found')) {
+        errorMessage = "Gebruiker niet gevonden. Mogelijk is de gebruiker al verwijderd."
+      } else if (error.message.includes('network')) {
+        errorMessage = "Netwerkfout. Controleer de verbinding en probeer het opnieuw."
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       toast({
         title: "Reset mislukt",
-        description: error.message || "Kon wachtwoord niet resetten",
+        description: errorMessage,
         variant: "destructive"
       })
     } finally {
@@ -170,9 +183,24 @@ function AdminUsersPageContent() {
       
     } catch (error: any) {
       console.error('Error deleting user:', error)
+      
+      // Provide more specific error messages for admins
+      let errorMessage = "Kon gebruiker niet verwijderen"
+      if (error.message.includes('foreign key')) {
+        errorMessage = "Gebruiker heeft nog gekoppelde data (logboek entries, tuinen, etc.). Verwijder eerst alle gekoppelde data."
+      } else if (error.message.includes('permission')) {
+        errorMessage = "Geen toestemming om gebruiker te verwijderen. Controleer je admin rechten."
+      } else if (error.message.includes('not found')) {
+        errorMessage = "Gebruiker niet gevonden. Mogelijk is de gebruiker al verwijderd."
+      } else if (error.message.includes('network')) {
+        errorMessage = "Netwerkfout. Controleer de verbinding en probeer het opnieuw."
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       toast({
         title: "Verwijderen mislukt",
-        description: error.message || "Kon gebruiker niet verwijderen",
+        description: errorMessage,
         variant: "destructive"
       })
     }

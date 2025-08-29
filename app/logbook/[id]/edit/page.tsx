@@ -167,7 +167,7 @@ export default function EditLogbookPage() {
     if (file.size > 5 * 1024 * 1024) { // 5MB
       toast({
         title: "Bestand te groot",
-        description: "De afbeelding mag maximaal 5MB groot zijn.",
+        description: `De afbeelding mag maximaal 5MB groot zijn. Huidige grootte: ${(file.size / 1024 / 1024).toFixed(1)}MB.`,
         variant: "destructive",
       })
       return
@@ -179,22 +179,37 @@ export default function EditLogbookPage() {
       const result: UploadResult = await uploadImage(file, 'logbook')
       
       if (!result.success) {
-        throw new Error(result.error || 'Failed to upload photo')
+        // Handle specific error types with better user guidance
+        let errorDescription = result.error || 'Onbekende fout bij uploaden'
+        
+        if (result.errorCode === 'BUCKET_NOT_FOUND') {
+          errorDescription = 'Storage bucket is niet geconfigureerd. Neem contact op met een beheerder.'
+        } else if (result.errorCode === 'UPLOAD_FAILED') {
+          errorDescription = `${result.error} Probeer het opnieuw of neem contact op met support.`
+        } else if (result.errorCode === 'NETWORK_ERROR') {
+          errorDescription = 'Netwerkfout. Controleer je internetverbinding en probeer het opnieuw.'
+        } else if (result.errorCode === 'INVALID_FILE_TYPE') {
+          errorDescription = 'Ongeldig bestandstype. Alleen afbeeldingen zijn toegestaan.'
+        } else if (result.errorCode === 'FILE_TOO_LARGE') {
+          errorDescription = result.error || 'Bestand is te groot.'
+        }
+        
+        throw new Error(errorDescription)
       }
 
       setFormData(prev => ({ ...prev, photo_url: result.url as string }))
 
       toast({
         title: "Foto geüpload",
-        description: "De foto is succesvol geüpload.",
+        description: "De foto is succesvol geüpload en toegevoegd aan je entry.",
       })
 
     } catch (error) {
       console.error('Photo upload error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo'
+      const errorMessage = error instanceof Error ? error.message : 'Onbekende fout bij uploaden'
       toast({
         title: "Fout bij uploaden",
-        description: `${errorMessage}. Controleer of de storage bucket correct is geconfigureerd.`,
+        description: errorMessage,
         variant: "destructive",
       })
     } finally {
@@ -223,7 +238,7 @@ export default function EditLogbookPage() {
       <div className="container mx-auto px-4 py-8 safe-area-px">
         <div className="max-w-2xl mx-auto">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto mb-4"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
             <p className="text-muted-foreground">Logboek entry laden...</p>
           </div>
         </div>

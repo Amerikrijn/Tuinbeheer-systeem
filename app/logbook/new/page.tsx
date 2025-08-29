@@ -75,7 +75,7 @@ function NewLogbookPageContent() {
 
       setState(prev => ({
         ...prev,
-        plantBeds: (plantBeds || []) as PlantvakWithBloemen[],
+        plantBeds: (plantBeds || []) as PlantvakWithPlanten[],
         plants,
         loading: false
       }))
@@ -159,7 +159,7 @@ function NewLogbookPageContent() {
     if (!file.type.startsWith('image/')) {
       toast({
         title: "Ongeldig bestandstype",
-        description: "Alleen afbeeldingen zijn toegestaan.",
+        description: "Alleen afbeeldingen zijn toegestaan (JPG, PNG, GIF, etc.).",
         variant: "destructive",
       })
       return
@@ -169,7 +169,7 @@ function NewLogbookPageContent() {
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: "Bestand te groot",
-        description: "De afbeelding mag maximaal 5MB groot zijn.",
+        description: `De afbeelding mag maximaal 5MB groot zijn. Huidige grootte: ${(file.size / 1024 / 1024).toFixed(1)}MB.`,
         variant: "destructive",
       })
       return
@@ -192,7 +192,18 @@ function NewLogbookPageContent() {
       const result: UploadResult = await uploadImage(file, 'logbook')
       
       if (!result.success) {
-        throw new Error(result.error || 'Failed to upload photo')
+        // Handle specific error types with better user guidance
+        let errorDescription = result.error || 'Onbekende fout bij uploaden'
+        
+        if (result.errorCode === 'BUCKET_NOT_FOUND') {
+          errorDescription = 'Storage bucket is niet geconfigureerd. Neem contact op met een beheerder.'
+        } else if (result.errorCode === 'UPLOAD_FAILED') {
+          errorDescription = `${result.error} Probeer het opnieuw of neem contact op met support.`
+        } else if (result.errorCode === 'NETWORK_ERROR') {
+          errorDescription = 'Netwerkfout. Controleer je internetverbinding en probeer het opnieuw.'
+        }
+        
+        throw new Error(errorDescription)
       }
 
       setState(prev => ({
@@ -206,17 +217,17 @@ function NewLogbookPageContent() {
 
       toast({
         title: "Foto geüpload",
-        description: "De foto is succesvol geüpload.",
+        description: "De foto is succesvol geüpload en toegevoegd aan je entry.",
       })
 
     } catch (error) {
       console.error('Photo upload error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'Failed to upload photo'
+      const errorMessage = error instanceof Error ? error.message : 'Onbekende fout bij uploaden'
       setState(prev => ({ ...prev, uploadingPhoto: false }))
       
       toast({
         title: "Fout bij uploaden",
-        description: `${errorMessage}. Controleer of de storage bucket correct is geconfigureerd.`,
+        description: errorMessage,
         variant: "destructive",
       })
     }
@@ -317,20 +328,20 @@ function NewLogbookPageContent() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <div className="mb-6">
-            <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-4" />
-            <div className="h-10 w-3/4 bg-gray-200 rounded animate-pulse mb-2" />
-            <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse" />
+            <div className="h-8 w-32 bg-muted rounded animate-pulse mb-4" />
+            <div className="h-10 w-3/4 bg-muted rounded animate-pulse mb-2" />
+            <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
           </div>
           
           <Card>
             <CardHeader>
-              <div className="h-6 w-1/3 bg-gray-200 rounded animate-pulse" />
+              <div className="h-6 w-1/3 bg-muted rounded animate-pulse" />
             </CardHeader>
             <CardContent className="space-y-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i}>
-                  <div className="h-4 w-1/4 bg-gray-200 rounded animate-pulse mb-2" />
-                  <div className="h-10 w-full bg-gray-200 rounded animate-pulse" />
+                  <div className="h-4 w-1/4 bg-muted rounded animate-pulse mb-2" />
+                  <div className="h-10 w-full bg-muted rounded animate-pulse" />
                 </div>
               ))}
             </CardContent>
