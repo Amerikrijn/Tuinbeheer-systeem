@@ -1,4 +1,4 @@
-hello
+hello - Vercel deployment trigger
 
 # 🌱 Visual Garden App
 
