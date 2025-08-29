@@ -113,18 +113,19 @@ jobs:
 
       - name: Run all tests with coverage
         run: |
-          echo "Running all tests in __tests__ folder..."
+          echo "Running all tests in __tests__ folder with Jest..."
           echo "This may take several minutes due to test failures..."
           
           # Run all tests and generate coverage - continue even if tests fail
-          npx vitest run \
-            --reporter=junit \
-            --outputFile=test-results/all-tests.xml \
+          npm run test:ci \
+            -- --testPathPattern="__tests__" \
             --coverage \
-            --coverage.reporter=text \
-            --coverage.reporter=lcov \
-            --coverage.reporter=html \
-            --reporter=verbose || {
+            --coverageReporters=text \
+            --coverageReporters=lcov \
+            --coverageReporters=html \
+            --json \
+            --outputFile=test-results/all-tests.json \
+            --verbose || {
             echo "⚠️ Some tests failed, but continuing to generate report..."
             echo "This is expected - many tests have known issues that need fixing"
             exit 0
@@ -132,57 +133,57 @@ jobs:
 
       - name: Run specific test categories (continue on failure)
         run: |
-          echo "Running specific test categories..."
+          echo "Running specific test categories with Jest..."
           echo "Note: Many tests may fail due to missing data-testid attributes"
           
           # UI Components
           echo "Testing UI Components..."
-          npx vitest run __tests__/components/ui/ \
-            --reporter=junit \
-            --outputFile=test-results/ui-components.xml \
-            --coverage || echo "⚠️ UI components tests failed (expected - missing data-testid)"
+          npm run test:ci -- --testPathPattern="__tests__/components/ui/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/ui-components.json || echo "⚠️ UI components tests failed (expected - missing data-testid)"
           
           # Core Components
           echo "Testing Core Components..."
-          npx vitest run __tests__/components/ \
-            --reporter=junit \
-            --outputFile=test-results/core-components.xml \
-            --coverage || echo "⚠️ Core components tests failed (expected - missing data-testid)"
+          npm run test:ci -- --testPathPattern="__tests__/components/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/core-components.json || echo "⚠️ Core components tests failed (expected - missing data-testid)"
           
           # Hooks
           echo "Testing Hooks..."
-          npx vitest run __tests__/hooks/ \
-            --reporter=junit \
-            --outputFile=test-results/hooks.xml \
-            --coverage || echo "⚠️ Hooks tests failed (expected - missing dependencies)"
+          npm run test:ci -- --testPathPattern="__tests__/hooks/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/hooks.json || echo "⚠️ Hooks tests failed (expected - missing dependencies)"
           
           # Integration Tests
           echo "Testing Integration..."
-          npx vitest run __tests__/integration/ \
-            --reporter=junit \
-            --outputFile=test-results/integration.xml \
-            --coverage || echo "⚠️ Integration tests failed (expected - missing mocks)"
+          npm run test:ci -- --testPathPattern="__tests__/integration/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/integration.json || echo "⚠️ Integration tests failed (expected - missing mocks)"
           
           # Unit Tests
           echo "Testing Unit Tests..."
-          npx vitest run __tests__/unit/ \
-            --reporter=junit \
-            --outputFile=test-results/unit.xml \
-            --coverage || echo "⚠️ Unit tests failed (expected - missing dependencies)"
+          npm run test:ci -- --testPathPattern="__tests__/unit/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/unit.json || echo "⚠️ Unit tests failed (expected - missing dependencies)"
           
           # Lib Tests
           echo "Testing Lib Tests..."
-          npx vitest run __tests__/lib/ \
-            --reporter=junit \
-            --outputFile=test-results/lib.xml \
-            --coverage || echo "⚠️ Lib tests failed (expected - missing mocks)"
+          npm run test:ci -- --testPathPattern="__tests__/lib/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/lib.json || echo "⚠️ Lib tests failed (expected - missing mocks)"
 
       - name: Generate detailed test analysis report
         run: |
           echo "Generating detailed test analysis report..."
           
-          # Run our custom test analysis script
-          node scripts/fix-test-analysis.js test-results/all-tests.xml
+          # Run our custom test analysis script for Jest output
+          node scripts/analyze-jest-results.js test-results/all-tests.json
           
           # Generate pipeline status report
           node scripts/generate-pipeline-status.js
@@ -196,12 +197,12 @@ jobs:
           echo "" >> test-results/pipeline-summary.md
           
           # Extract test statistics from the analysis
-          if [ -f "test-analysis-fixed-summary.json" ]; then
-            echo "**Total Tests**: $(jq -r '.totalTests' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
-            echo "**Success Rate**: $(jq -r '.totalSuccess' test-analysis-fixed-summary.json)/$(jq -r '.totalTests' test-analysis-fixed-summary.json) ($(echo "scale=1; $(jq -r '.totalSuccess' test-analysis-fixed-summary.json) * 100 / $(jq -r '.totalTests' test-analysis-fixed-summary.json)" | bc)% success)" >> test-results/pipeline-summary.md
-            echo "**Critical Failures**: $(jq -r '.criticalFailures' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
-            echo "**High Priority Failures**: $(jq -r '.highPriorityFailures' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
-            echo "**Medium Priority Failures**: $(jq -r '.mediumPriorityFailures' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
+          if [ -f "jest-analysis-summary.json" ]; then
+            echo "**Total Tests**: $(jq -r '.totalTests' jest-analysis-summary.json)" >> test-results/pipeline-summary.md
+            echo "**Success Rate**: $(jq -r '.totalSuccess' jest-analysis-summary.json)/$(jq -r '.totalTests' jest-analysis-summary.json) ($(echo "scale=1; $(jq -r '.totalSuccess' jest-analysis-summary.json) * 100 / $(jq -r '.totalTests' jest-analysis-summary.json)" | bc)% success)" >> test-results/pipeline-summary.md
+            echo "**Critical Failures**: $(jq -r '.criticalFailures' jest-analysis-summary.json)" >> test-results/pipeline-summary.md
+            echo "**High Priority Failures**: $(jq -r '.highPriorityFailures' jest-analysis-summary.json)" >> test-results/pipeline-summary.md
+            echo "**Medium Priority Failures**: $(jq -r '.mediumPriorityFailures' jest-analysis-summary.json)" >> test-results/pipeline-summary.md
           fi
           
           echo "" >> test-results/pipeline-summary.md
@@ -244,7 +245,7 @@ jobs:
           path: |
             test-results/
             coverage/
-            test-analysis-fixed-summary.json
+            jest-analysis-summary.json
             pipeline-status-report.md
             github-summary.md
           retention-days: 30
@@ -336,17 +337,17 @@ jobs:
             echo "" >> test-summary.md
             
             # Check for detailed analysis
-            if [ -f "test-artifacts/test-analysis-fixed-summary.json" ]; then
+            if [ -f "test-artifacts/jest-analysis-summary.json" ]; then
               echo "## 📊 Detailed Test Analysis" >> test-summary.md
               echo "" >> test-summary.md
               
               # Extract key metrics
-              total_tests=$(jq -r '.totalTests' test-artifacts/test-analysis-fixed-summary.json)
-              total_success=$(jq -r '.totalSuccess' test-artifacts/test-analysis-fixed-summary.json)
-              total_failures=$(jq -r '.totalFailures' test-artifacts/test-analysis-fixed-summary.json)
-              critical_failures=$(jq -r '.criticalFailures' test-artifacts/test-analysis-fixed-summary.json)
-              high_priority=$(jq -r '.highPriorityFailures' test-artifacts/test-analysis-fixed-summary.json)
-              medium_priority=$(jq -r '.mediumPriorityFailures' test-artifacts/test-analysis-fixed-summary.json)
+              total_tests=$(jq -r '.totalTests' test-artifacts/jest-analysis-summary.json)
+              total_success=$(jq -r '.totalSuccess' test-artifacts/jest-analysis-summary.json)
+              total_failures=$(jq -r '.totalFailures' test-artifacts/jest-analysis-summary.json)
+              critical_failures=$(jq -r '.criticalFailures' test-artifacts/jest-analysis-summary.json)
+              high_priority=$(jq -r '.highPriorityFailures' test-artifacts/jest-analysis-summary.json)
+              medium_priority=$(jq -r '.mediumPriorityFailures' test-artifacts/jest-analysis-summary.json)
               
               echo "### 📈 Test Statistics" >> test-summary.md
               echo "- **Total Tests**: $total_tests" >> test-summary.md
@@ -363,23 +364,23 @@ jobs:
               # Show critical failures
               if [ "$critical_failures" -gt 0 ]; then
                 echo "### 🚨 Critical Failures (Direct Fixen)" >> test-summary.md
-                jq -r '.recommendations.critical[] | "- " + .name + ": " + .failures + " failures"' test-artifacts/test-analysis-fixed-summary.json >> test-summary.md
+                jq -r '.recommendations.critical[] | "- " + .name + ": " + .failures + " failures"' test-artifacts/jest-analysis-summary.json >> test-summary.md
                 echo "" >> test-summary.md
               fi
               
               # Show high priority failures
               if [ "$high_priority" -gt 0 ]; then
                 echo "### ⚠️ High Priority Failures (Binnen 1 Week)" >> test-summary.md
-                jq -r '.recommendations.high[] | "- " + .name + ": " + (.failures|tostring) + " failures (" + ((.successRate*100|floor)/100|tostring) + "% success)"' test-artifacts/test-analysis-fixed-summary.json >> test-summary.md
+                jq -r '.recommendations.high[] | "- " + .name + ": " + (.failures|tostring) + " failures (" + ((.successRate*100|floor)/100|tostring) + "% success)"' test-artifacts/jest-analysis-summary.json >> test-summary.md
                 echo "" >> test-summary.md
               fi
               
               # Show unexpected successes
-              unexpected_count=$(jq -r '.unexpectedSuccesses' test-artifacts/test-analysis-fixed-summary.json)
+              unexpected_count=$(jq -r '.unexpectedSuccesses' test-artifacts/jest-analysis-summary.json)
               if [ "$unexpected_count" -gt 0 ]; then
                 echo "### 🎯 Onverwachte Successes (Controleren)" >> test-summary.md
                 echo "Deze tests slagen maar mogelijk te oppervlakkig:" >> test-summary.md
-                jq -r '.recommendations.unexpected[] | "- " + .name + ": " + .tests + " tests"' test-artifacts/test-analysis-fixed-summary.json >> test-summary.md
+                jq -r '.recommendations.unexpected[] | "- " + .name + ": " + .tests + " tests"' test-artifacts/jest-analysis-summary.json >> test-summary.md
                 echo "" >> test-summary.md
               fi
             fi
@@ -488,14 +489,15 @@ jobs:
               reportContent = fs.readFileSync('test-results/test-report.md', 'utf8');
             } else if (fs.existsSync('test-artifacts/test-results/detailed-report.md')) {
               reportContent = fs.readFileSync('test-artifacts/test-results/detailed-report.md', 'utf8');
-            } else if (fs.existsSync('test-artifacts/test-results/all-tests.xml')) {
-              // As last resort, generate a minimal summary directly from JUnit
-              const xml = fs.readFileSync('test-artifacts/test-results/all-tests.xml', 'utf8');
-              const header = xml.match(/<testsuites[^>]*tests=\"(\\d+)\"[^>]*failures=\"(\\d+)\"[^>]*errors=\"(\\d+)\"[^>]*time=\"([^\"]+)\"/);
-              if (header) {
-                const tests = header[1], fails = header[2], errs = header[3], secs = header[4];
-                reportContent = `# 🏦 Traditional Banking System Test Report\n\n**Total Tests**: ${tests}\n**Failed**: ${fails}\n**Errors**: ${errs}\n**Duration**: ${parseFloat(secs).toFixed(2)}s\n\n<!-- TRADITIONAL_BANKING_TEST_REPORT -->`;
-              }
+            } else if (fs.existsSync('test-artifacts/test-results/all-tests.json')) {
+              // As last resort, generate a minimal summary directly from Jest JSON
+              const json = fs.readFileSync('test-artifacts/test-results/all-tests.json', 'utf8');
+              const results = JSON.parse(json);
+              const tests = results.numTotalTests || 0;
+              const fails = results.numFailedTests || 0;
+              const errs = results.numRuntimeErrorTestSuites || 0;
+              const secs = (results.testResults.reduce((acc, suite) => acc + suite.endTime - suite.startTime, 0) / 1000).toFixed(2);
+              reportContent = `# 🏦 Traditional Banking System Test Report\n\n**Total Tests**: ${tests}\n**Failed**: ${fails}\n**Errors**: ${errs}\n**Duration**: ${secs}s\n\n<!-- TRADITIONAL_BANKING_TEST_REPORT -->`;
             } else if (fs.existsSync('test-summary.md')) {
               reportContent = fs.readFileSync('test-summary.md', 'utf8');
             } else {

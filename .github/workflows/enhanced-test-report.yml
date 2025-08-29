@@ -44,22 +44,20 @@ jobs:
       - name: Run tests with detailed output
         id: run-tests
         run: |
-          echo "🧪 Running comprehensive test suite..."
+          echo "🧪 Running comprehensive test suite with Jest..."
           echo "Collecting real test data for detailed analysis..."
           
-          # Run tests with multiple reporters for comprehensive data collection
-          npx vitest run \
-            --reporter=verbose \
-            --reporter=junit \
-            --outputFile=test-results/junit.xml \
-            --reporter=json \
+          # Run tests with Jest for comprehensive data collection
+          npm run test:ci \
+            -- --testPathPattern="__tests__" \
+            --json \
             --outputFile=test-results/test-results.json \
             --coverage \
-            --coverage.reporter=text \
-            --coverage.reporter=lcov \
-            --coverage.reporter=html \
-            --coverage.reporter=json \
-            --outputFile=test-results/coverage.json || {
+            --coverageReporters=text \
+            --coverageReporters=lcov \
+            --coverageReporters=html \
+            --coverageReporters=json \
+            --coverageDirectory=test-results/coverage || {
             echo "⚠️ Tests completed with some failures - collecting failure data..."
             echo "exit_code=$?" >> $GITHUB_OUTPUT
             exit 0
@@ -262,13 +260,13 @@ ${analysis.summary.successRate >= 90 ?
 ## 🔍 **TECHNICAL DETAILS**
 
 ### **Test Execution Environment**
-- **Framework**: Vitest
-- **Coverage Tool**: @vitest/coverage-v8
-- **Reporters**: JUnit XML, JSON, HTML
+- **Framework**: Jest
+- **Coverage Tool**: Jest Coverage
+- **Reporters**: JSON, HTML, LCOV
 - **Environment**: GitHub Actions (Ubuntu Latest)
 
 ### **Data Collection**
-- **JUnit XML**: ${analysis.junit.totalSuites || 'N/A'} test suites analyzed
+- **Jest Results**: ${analysis.testResults.numTotalTests || 'N/A'} tests analyzed
 - **Coverage Data**: ${Object.keys(analysis.coverage).length > 0 ? 'Available' : 'Not available'}
 - **Test Results**: ${Object.keys(analysis.testResults).length > 0 ? 'Available' : 'Not available'}
 

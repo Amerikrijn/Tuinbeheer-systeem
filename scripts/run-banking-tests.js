@@ -26,39 +26,39 @@ const path = require('path');
 const CONFIG = {
   testSuites: [
     // UI Components - Small, focused tests that should pass
-    { name: 'ui-button', script: 'npx vitest run __tests__/components/ui/button.test.tsx', pattern: '__tests__/components/ui/button.test.tsx' },
-    { name: 'ui-input', script: 'npx vitest run __tests__/components/ui/input.test.tsx', pattern: '__tests__/components/ui/input.test.tsx' },
-    { name: 'ui-card', script: 'npx vitest run __tests__/components/ui/card.test.tsx', pattern: '__tests__/components/ui/card.test.tsx' },
-    { name: 'ui-table', script: 'npx vitest run __tests__/components/ui/table.test.tsx', pattern: '__tests__/components/ui/table.test.tsx' },
-    { name: 'ui-switch', script: 'npx vitest run __tests__/components/ui/switch.test.tsx', pattern: '__tests__/components/ui/switch.test.tsx' },
-    { name: 'ui-label', script: 'npx vitest run __tests__/components/ui/label.test.tsx', pattern: '__tests__/components/ui/label.test.tsx' },
-    { name: 'ui-alert', script: 'npx vitest run __tests__/components/ui/alert.test.tsx', pattern: '__tests__/components/ui/alert.test.tsx' },
-    { name: 'ui-badge', script: 'npx vitest run __tests__/components/ui/badge.test.tsx', pattern: '__tests__/components/ui/badge.test.tsx' },
-    { name: 'ui-checkbox', script: 'npx vitest run __tests__/components/ui/checkbox.test.tsx', pattern: '__tests__/components/ui/checkbox.test.tsx' },
-    { name: 'ui-textarea', script: 'npx vitest run __tests__/components/ui/textarea.test.tsx', pattern: '__tests__/components/ui/textarea.test.tsx' },
-    { name: 'ui-tabs', script: 'npx vitest run __tests__/components/ui/tabs.test.tsx', pattern: '__tests__/components/ui/tabs.test.tsx' },
-    { name: 'ui-breadcrumb', script: 'npx vitest run __tests__/components/ui/breadcrumb.test.tsx', pattern: '__tests__/components/ui/breadcrumb.test.tsx' },
-    { name: 'ui-pagination', script: 'npx vitest run __tests__/components/ui/pagination.test.tsx', pattern: '__tests__/components/ui/pagination.test.tsx' },
-    { name: 'ui-skeleton', script: 'npx vitest run __tests__/components/ui/skeleton.test.tsx', pattern: '__tests__/components/ui/skeleton.test.tsx' },
-    { name: 'ui-navigation-menu', script: 'npx vitest run __tests__/components/ui/navigation-menu.test.tsx', pattern: '__tests__/components/ui/navigation-menu.test.tsx' },
+    { name: 'ui-button', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/button.test.tsx"', pattern: '__tests__/components/ui/button.test.tsx' },
+    { name: 'ui-input', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/input.test.tsx"', pattern: '__tests__/components/ui/input.test.tsx' },
+    { name: 'ui-card', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/card.test.tsx"', pattern: '__tests__/components/ui/card.test.tsx' },
+    { name: 'ui-table', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/table.test.tsx"', pattern: '__tests__/components/ui/table.test.tsx' },
+    { name: 'ui-switch', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/switch.test.tsx"', pattern: '__tests__/components/ui/switch.test.tsx' },
+    { name: 'ui-label', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/label.test.tsx"', pattern: '__tests__/components/ui/label.test.tsx' },
+    { name: 'ui-alert', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/alert.test.tsx"', pattern: '__tests__/components/ui/alert.test.tsx' },
+    { name: 'ui-badge', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/badge.test.tsx"', pattern: '__tests__/components/ui/badge.test.tsx' },
+    { name: 'ui-checkbox', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/checkbox.test.tsx"', pattern: '__tests__/components/ui/checkbox.test.tsx' },
+    { name: 'ui-textarea', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/textarea.test.tsx"', pattern: '__tests__/components/ui/textarea.test.tsx' },
+    { name: 'ui-tabs', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/tabs.test.tsx"', pattern: '__tests__/components/ui/tabs.test.tsx' },
+    { name: 'ui-breadcrumb', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/breadcrumb.test.tsx"', pattern: '__tests__/components/ui/breadcrumb.test.tsx' },
+    { name: 'ui-pagination', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/pagination.test.tsx"', pattern: '__tests__/components/ui/pagination.test.tsx' },
+    { name: 'ui-skeleton', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/skeleton.test.tsx"', pattern: '__tests__/components/ui/skeleton.test.tsx' },
+    { name: 'ui-navigation-menu', script: 'npm run test:ci -- --testPathPattern="__tests__/components/ui/navigation-menu.test.tsx"', pattern: '__tests__/components/ui/navigation-menu.test.tsx' },
     
     // Core Components - Main application components
-    { name: 'core-LoginForm', script: 'npx vitest run __tests__/components/LoginForm.test.tsx', pattern: '__tests__/components/LoginForm.test.tsx' },
-    { name: 'core-navigation', script: 'npx vitest run __tests__/components/navigation.test.tsx', pattern: '__tests__/components/navigation.test.tsx' },
-    { name: 'core-theme-toggle', script: 'npx vitest run __tests__/components/theme-toggle.test.tsx', pattern: '__tests__/components/theme-toggle.test.tsx' },
-    { name: 'core-language-switcher', script: 'npx vitest run __tests__/components/language-switcher.test.tsx', pattern: '__tests__/components/language-switcher.test.tsx' },
-    { name: 'core-error-boundary', script: 'npx vitest run __tests__/components/error-boundary.test.tsx', pattern: '__tests__/components/error-boundary.test.tsx' },
+    { name: 'core-LoginForm', script: 'npm run test:ci -- --testPathPattern="__tests__/components/LoginForm.test.tsx"', pattern: '__tests__/components/LoginForm.test.tsx' },
+    { name: 'core-navigation', script: 'npm run test:ci -- --testPathPattern="__tests__/components/navigation.test.tsx"', pattern: '__tests__/components/navigation.test.tsx' },
+    { name: 'core-theme-toggle', script: 'npm run test:ci -- --testPathPattern="__tests__/components/theme-toggle.test.tsx"', pattern: '__tests__/components/theme-toggle.test.tsx' },
+    { name: 'core-language-switcher', script: 'npm run test:ci -- --testPathPattern="__tests__/components/language-switcher.test.tsx"', pattern: '__tests__/components/language-switcher.test.tsx' },
+    { name: 'core-error-boundary', script: 'npm run test:ci -- --testPathPattern="__tests__/components/error-boundary.test.tsx"', pattern: '__tests__/components/error-boundary.test.tsx' },
     
     // Banking Compliance Tests
-    { name: 'compliance-banking', script: 'npx vitest run __tests__/setup/banking-pipeline.test.ts', pattern: '__tests__/setup/banking-pipeline.test.ts' },
+    { name: 'compliance-banking', script: 'npm run test:ci -- --testPathPattern="__tests__/setup/banking-pipeline.test.ts"', pattern: '__tests__/setup/banking-pipeline.test.ts' },
     
     // Integration Tests (if they exist)
-    { name: 'integration-api', script: 'npx vitest run __tests__/integration/**/*.{test,spec}.{ts,tsx}', pattern: '__tests__/integration/**/*.{test,spec}.{ts,tsx}' },
+    { name: 'integration-api', script: 'npm run test:ci -- --testPathPattern="__tests__/integration/**/*.{test,spec}.{ts,tsx}"', pattern: '__tests__/integration/**/*.{test,spec}.{ts,tsx}' },
     
     // Unit Tests (if they exist)
-    { name: 'unit-lib', script: 'npx vitest run __tests__/unit/lib/**/*.{test,spec}.{ts,tsx}', pattern: '__tests__/unit/lib/**/*.{test,spec}.{ts,tsx}' },
-    { name: 'unit-app', script: 'npx vitest run __tests__/unit/app/**/*.{test,spec}.{ts,tsx}', pattern: '__tests__/unit/app/**/*.{test,spec}.{ts,tsx}' },
-    { name: 'unit-hooks', script: 'npx vitest run __tests__/unit/hooks/**/*.{test,spec}.{ts,tsx}', pattern: '__tests__/unit/hooks/**/*.{test,spec}.{ts,tsx}' },
+    { name: 'unit-lib', script: 'npm run test:ci -- --testPathPattern="__tests__/unit/lib/**/*.{test,spec}.{ts,tsx}"', pattern: '__tests__/unit/lib/**/*.{test,spec}.{ts,tsx}' },
+    { name: 'unit-app', script: 'npm run test:ci -- --testPathPattern="__tests__/unit/app/**/*.{test,spec}.{ts,tsx}"', pattern: '__tests__/unit/app/**/*.{test,spec}.{ts,tsx}' },
+    { name: 'unit-hooks', script: 'npm run test:ci -- --testPathPattern="__tests__/unit/hooks/**/*.{test,spec}.{ts,tsx}"', pattern: '__tests__/unit/hooks/**/*.{test,spec}.{ts,tsx}' },
   ],
   coverageThreshold: 80,
   testResultsDir: 'test-results',
@@ -117,22 +117,22 @@ function runCommand(command, options = {}) {
   });
 }
 
-// --- New helpers: aggregate artifacts + parse junit/coverage ---
+// --- New helpers: aggregate artifacts + parse Jest results ---
 async function runAggregateArtifacts({ withCoverage, silent } = { withCoverage: false, silent: false }) {
   try {
-    const junitOut = path.join(CONFIG.testResultsDir, 'ci.xml');
-    const parts = ['npx', 'vitest', 'run', '--reporter=junit', `--outputFile ${junitOut}`];
+    const jsonOut = path.join(CONFIG.testResultsDir, 'ci.json');
+    const parts = ['npm', 'run', 'test:ci', '--', '--testPathPattern="__tests__"', '--json', `--outputFile ${jsonOut}`];
     if (withCoverage) parts.push('--coverage');
     const cmd = parts.join(' ');
-    log(`Running aggregate Vitest for artifacts: ${cmd}`);
+    log(`Running aggregate Jest for artifacts: ${cmd}`);
     await runCommand(cmd, { silent });
-    log('Aggregate JUnit (and coverage if enabled) generated', 'success');
+    log('Aggregate Jest JSON (and coverage if enabled) generated', 'success');
   } catch (e) {
     log(`Failed to generate aggregate artifacts: ${e.stderr || e.error || e.code}`, 'warning');
   }
 }
 
-function parseJUnitResults(xmlPath) {
+function parseJestResults(jsonPath) {
   const result = {
     found: false,
     totals: { tests: 0, failures: 0, errors: 0, skipped: 0, passed: 0, passRate: 0, timeSec: 0 },
@@ -140,48 +140,47 @@ function parseJUnitResults(xmlPath) {
     suites: []
   };
   try {
-    if (!fs.existsSync(xmlPath)) return result;
-    const content = fs.readFileSync(xmlPath, 'utf8');
+    if (!fs.existsSync(jsonPath)) return result;
+    const content = fs.readFileSync(jsonPath, 'utf8');
+    const jestResults = JSON.parse(content);
     result.found = true;
 
-    const header = content.match(/<testsuites[^>]*tests="(\d+)"[^>]*failures="(\d+)"[^>]*errors="(\d+)"[^>]*time="([^"]+)"/);
-
-    // Parse each <testsuite ...> opening tag and extract attributes safely
-    const suites = [];
-    const openTagRegex = /<testsuite\b[^>]*>/g;
-    let tagMatch;
-    while ((tagMatch = openTagRegex.exec(content)) !== null) {
-      const tag = tagMatch[0];
-      const attrMap = {};
-      for (const m of tag.matchAll(/(\w+)="([^"]*)"/g)) {
-        attrMap[m[1]] = m[2];
-      }
-      const name = attrMap.name || '';
-      if (name === 'vitest tests' || name === 'cursor') continue; // skip header/hostname
-      const tests = parseInt(attrMap.tests || '0', 10);
-      const failures = parseInt(attrMap.failures || '0', 10);
-      const errors = parseInt(attrMap.errors || '0', 10);
-      const skipped = parseInt(attrMap.skipped || '0', 10);
-      const time = parseFloat(attrMap.time || '0');
-      const success = tests - failures - errors - skipped;
-      const successRate = tests > 0 ? (success / tests) * 100 : 0;
-      suites.push({ name, tests, failures, errors, skipped, time, successRate });
-    }
-
-    // Totals
-    let tests = 0, failures = 0, errors = 0, skipped = 0, timeSec = 0;
-    suites.forEach(s => { tests += s.tests; failures += s.failures; errors += s.errors; skipped += s.skipped; timeSec += s.time; });
-    if (header) {
-      // Prefer header totals if present for tests/failures/errors/time
-      tests = parseInt(header[1], 10);
-      failures = parseInt(header[2], 10);
-      errors = parseInt(header[3], 10);
-      timeSec = parseFloat(header[4]);
-    }
+    // Extract totals from Jest results
+    const tests = jestResults.numTotalTests || 0;
+    const failures = jestResults.numFailedTests || 0;
+    const errors = jestResults.numRuntimeErrorTestSuites || 0;
+    const skipped = jestResults.numPendingTests || 0;
     const passed = tests - failures - errors - skipped;
     const passRate = tests > 0 ? (passed / tests) * 100 : 0;
+    const timeSec = jestResults.testResults.reduce((acc, suite) => acc + (suite.endTime - suite.startTime), 0) / 1000;
 
     result.totals = { tests, failures, errors, skipped, passed, passRate, timeSec };
+
+    // Parse test suites from Jest results
+    const suites = [];
+    jestResults.testResults.forEach(suite => {
+      if (suite.testResults && suite.testResults.length > 0) {
+        const suiteTests = suite.testResults.length;
+        const suiteFailures = suite.testResults.filter(test => test.status === 'failed').length;
+        const suiteErrors = suite.testResults.filter(test => test.status === 'failed' && test.failureMessages && test.failureMessages.length > 0).length;
+        const suiteSkipped = suite.testResults.filter(test => test.status === 'pending').length;
+        const suiteTime = (suite.endTime - suite.startTime) / 1000;
+        const suiteSuccess = suiteTests - suiteFailures - suiteErrors - suiteSkipped;
+        const successRate = suiteTests > 0 ? (suiteSuccess / suiteTests) * 100 : 0;
+        
+        suites.push({ 
+          name: suite.name, 
+          tests: suiteTests, 
+          failures: suiteFailures, 
+          errors: suiteErrors, 
+          skipped: suiteSkipped, 
+          time: suiteTime, 
+          successRate 
+        });
+      }
+    });
+
+    result.suites = suites;
 
     // Top failures
     const sortedByFailureRate = suites
@@ -193,9 +192,8 @@ function parseJUnitResults(xmlPath) {
     const medium = sortedByFailureRate.filter(s => s.failures > 0 && (s.failures / s.tests) <= 0.5).slice(0, 10);
 
     result.topFailures = { critical, high, medium };
-    result.suites = suites;
   } catch (e) {
-    log(`Failed to parse JUnit: ${e.message}`, 'warning');
+    log(`Failed to parse Jest results: ${e.message}`, 'warning');
   }
   return result;
 }
@@ -213,20 +211,26 @@ function readCoverageSummaryIfAny() {
   return null;
 }
 
-function resolveJUnitPath() {
+function resolveJestResultsPath() {
   try {
-    const preferred = path.join(CONFIG.testResultsDir, 'ci.xml');
+    const preferred = path.join(CONFIG.testResultsDir, 'ci.json');
     if (fs.existsSync(preferred)) return preferred;
-    const fallback = path.join(CONFIG.testResultsDir, 'all-tests.xml');
-    if (fs.existsSync(fallback)) return fallback;
-    if (fs.existsSync(CONFIG.testResultsDir)) {
-      const files = fs.readdirSync(CONFIG.testResultsDir)
-        .filter(f => f.toLowerCase().endsWith('.xml'))
-        .map(f => path.join(CONFIG.testResultsDir, f));
-      if (files.length > 0) return files[0];
+    
+    // Fallback to other possible Jest result files
+    const alternatives = [
+      path.join(CONFIG.testResultsDir, 'all-tests.json'),
+      path.join(CONFIG.testResultsDir, 'test-results.json')
+    ];
+    
+    for (const alt of alternatives) {
+      if (fs.existsSync(alt)) return alt;
     }
-  } catch (_) {}
-  return path.join(CONFIG.testResultsDir, 'ci.xml');
+    
+    return null;
+  } catch (e) {
+    log('Could not resolve Jest results path', 'warning');
+    return null;
+  }
 }
 
 async function runTestSuite(suite) {
@@ -291,10 +295,10 @@ function generateTestReport(results) {
     suites: results,
     coverage: null,
     artifacts: {
-      junit: resolveJUnitPath(),
+      junit: resolveJestResultsPath(), // Changed to resolveJestResultsPath
       coverageDir: CONFIG.coverageDir
     },
-    junit: null,
+    jest: null,
   };
   
   report.summary.successRate = Math.round((report.summary.passed / report.summary.total) * 100);
@@ -305,10 +309,10 @@ function generateTestReport(results) {
     report.coverage = cov;
   }
 
-  // Attach parsed JUnit totals and top failures if available
-  const junitParsed = parseJUnitResults(report.artifacts.junit);
-  if (junitParsed.found) {
-    report.junit = junitParsed;
+  // Attach parsed Jest totals and top failures if available
+  const jestParsed = parseJestResults(report.artifacts.junit);
+  if (jestParsed.found) {
+    report.jest = jestParsed;
   }
   
   // Write JSON + Markdown reports
@@ -336,8 +340,8 @@ function generateMarkdownReport(report) {
   markdown += `- **Failed**: ${report.summary.failed} ❌\n`;
   markdown += `- **Success Rate**: ${report.summary.successRate}%\n\n`;
 
-  if (report.junit) {
-    const j = report.junit.totals;
+  if (report.jest) {
+    const j = report.jest.totals;
     markdown += `## 🧪 Test Execution Summary (Artifacts)\n\n`;
     markdown += `- **Total Tests**: ${j.tests}\n`;
     markdown += `- **Passed**: ${j.passed}\n`;
@@ -360,8 +364,8 @@ function generateMarkdownReport(report) {
 \`node scripts/run-banking-tests.js --ci --coverage --report\`).\n\n`;
   }
 
-  if (report.junit) {
-    const { critical, high, medium } = report.junit.topFailures;
+  if (report.jest) {
+    const { critical, high, medium } = report.jest.topFailures;
     markdown += `## 🚨 Top Failures\n\n`;
     markdown += `### 🔥 Kritiek (100% failure)\n`;
     if (critical.length) {
@@ -385,7 +389,7 @@ function generateMarkdownReport(report) {
   }
 
   markdown += `## 📦 Artifacts\n\n`;
-  markdown += `- **JUnit**: ${report.artifacts.junit}\n`;
+  markdown += `- **Jest Results**: ${report.artifacts.junit}\n`;
   markdown += `- **Coverage dir**: ${report.artifacts.coverageDir} (lcov, html, summary)\n\n`;
 
   markdown += `## 🔒 Traditional Banking Compliance Status\n\n`;
@@ -395,8 +399,8 @@ function generateMarkdownReport(report) {
   markdown += `- **AI-Free**: ✅ NO AI tools used - Traditional approach only\n\n`;
 
   markdown += `## 📋 Next Steps\n\n`;
-  if (report.junit) {
-    const failedCount = report.junit.totals.failures;
+  if (report.jest) {
+    const failedCount = report.jest.totals.failures;
     if (failedCount > 0) {
       markdown += `- Fix critical failures first (see Top Failures)\n`;
       markdown += `- Address high priority failures within 1 week\n`;
@@ -464,7 +468,7 @@ async function main() {
       await runTestsInParallel() : 
       await runTestsSequentially();
 
-    // Ensure aggregate artifacts (JUnit + optional coverage) exist for reporting
+    // Ensure aggregate artifacts (Jest + optional coverage) exist for reporting
     if (options.report || options.ci) {
       await runAggregateArtifacts({ withCoverage: options.coverage, silent: options.ci });
     }
