@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive, X } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive, X, Trash2 } from "lucide-react"
 import { TuinService, TuinServiceEnhanced, PlantBedService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { getPlantBedsOptimized } from "@/lib/database-optimized"
@@ -267,125 +267,126 @@ function HomePageContent() {
   }, [gardens, state.searchTerm])
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
-      {/* Header - Mobile First - Build Trigger */}
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-4">
-          <div className="flex items-center gap-3">
-            <TreePine className="w-6 h-6 sm:w-7 sm:h-7 text-green-700" />
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
-              Tuinbeheer Systeem
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl safe-area-px">
+      {/* Banking-Grade Compact Header */}
+      <div className="mb-4 sm:mb-6 border-b border-border pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-primary/10 rounded-md">
+              <TreePine className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            </div>
+            <h1 className="text-lg sm:text-xl font-semibold text-foreground">
+              Tuinbeheer
             </h1>
           </div>
           
-          {/* Responsive Button Layout */}
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
+          {/* Banking-Grade Action Bar */}
+          <div className="flex items-center gap-1">
             <Button 
               onClick={() => router.push('/logbook')}
-              variant="outline"
-              className="text-sm justify-center sm:justify-start"
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-xs"
             >
-              <BookOpen className="w-4 h-4 mr-2" />
+              <BookOpen className="w-3.5 h-3.5 mr-1" />
               Logboek
             </Button>
             <Button 
               onClick={() => router.push('/tasks')}
-              variant="outline"
-              className="text-sm justify-center sm:justify-start"
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 text-xs"
             >
-              <ClipboardList className="w-4 h-4 mr-2" />
+              <ClipboardList className="w-3.5 h-3.5 mr-1" />
               Taken
             </Button>
             <Button 
               onClick={() => router.push('/gardens/new')}
-              className="text-sm justify-center sm:justify-start"
+              size="sm"
+              className="h-8 px-3 text-xs"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Nieuwe Tuin
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              Tuin
             </Button>
           </div>
         </div>
-        <p className="text-muted-foreground text-sm sm:text-base">
-          Beheer je tuinen, planten en taken op één centrale plek. (Build v2)
-        </p>
       </div>
 
-      {/* Enhanced Search Bar - Mobile First */}
-      <div className="mb-6">
-        <div className="relative w-full max-w-md mx-auto">
+      {/* Banking-Grade Search */}
+      <div className="mb-4">
+        <div className="relative max-w-sm mx-auto">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
           <Input
-            placeholder="Zoek tuinen op naam, locatie..."
+            placeholder="Zoek tuinen..."
             value={state.searchTerm}
             onChange={handleSearchChange}
-            className="pl-10 pr-10 w-full"
+            className="pl-9 pr-9 h-9 text-sm border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
           />
           {state.searchTerm && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setState(prev => ({ ...prev, searchTerm: "" }))}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted"
+              className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0 hover:bg-muted/50"
             >
               <X className="h-3 w-3" />
             </Button>
           )}
         </div>
         {state.searchTerm && (
-          <p className="text-center text-xs sm:text-sm text-muted-foreground mt-2">
+          <p className="text-center text-xs text-muted-foreground mt-2">
             {filteredGardens.length} tuin{filteredGardens.length !== 1 ? 'en' : ''} gevonden
           </p>
         )}
       </div>
 
-      {/* Enhanced Error State - Mobile First */}
+      {/* Banking-Grade Error State */}
       {gardensError && (
-        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
-          <div className="flex items-start gap-3 mb-4">
-            <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-destructive mt-0.5 flex-shrink-0" />
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+          <div className="flex items-start gap-2 mb-3">
+            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive mt-0.5 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <h3 className="text-base sm:text-lg font-semibold text-destructive mb-2">Er is een fout opgetreden</h3>
-              <p className="text-destructive text-sm sm:text-base mb-4">{gardensError.message}</p>
+              <h3 className="text-sm sm:text-base font-semibold text-destructive mb-1">Er is een fout opgetreden</h3>
+              <p className="text-destructive text-xs sm:text-sm mb-3">{gardensError.message}</p>
             </div>
           </div>
           <Button 
             onClick={() => refetchGardens()} 
             variant="outline" 
-            className="w-full sm:w-auto border-destructive text-destructive hover:bg-destructive/10"
+            size="sm"
+            className="w-full sm:w-auto border-destructive text-destructive hover:bg-destructive/10 text-xs"
           >
             Opnieuw proberen
           </Button>
         </div>
       )}
 
-      {/* Enhanced Loading State - Mobile First */}
+      {/* Banking-Grade Loading State */}
       {gardensLoading && gardens.length === 0 && (
         <div className="space-y-4 sm:space-y-6">
-          <div className="text-center mb-6 sm:mb-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full mb-4">
-              <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 text-primary animate-spin" />
+          <div className="text-center mb-4 sm:mb-6">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full mb-3">
+              <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-spin" />
             </div>
-            <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">Tuinen laden...</h3>
-            <p className="text-muted-foreground text-sm sm:text-base">Even geduld terwijl we je tuinen ophalen</p>
+            <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">Tuinen laden...</h3>
+            <p className="text-muted-foreground text-xs sm:text-sm">Even geduld terwijl we je tuinen ophalen</p>
           </div>
           
-          <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {Array.from({ length: 6 }).map((_, index) => (
-              <Card key={index} className="overflow-hidden h-full">
-                <CardHeader className="pb-3 sm:pb-4">
-                  <Skeleton className="h-5 sm:h-6 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-                <CardContent className="pt-3 sm:pt-4 space-y-3 sm:space-y-4">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                      <Skeleton key={i} className="h-16 sm:h-20 w-full rounded-lg" />
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                              <Card key={index} className="overflow-hidden">
+                  <CardHeader className="pb-2 pt-3 px-3">
+                    <Skeleton className="h-4 w-3/4 mb-2" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </CardHeader>
+                  <CardContent className="pt-0 pb-3 px-3">
+                    <div className="flex flex-wrap gap-1.5">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <Skeleton key={i} className="h-6 w-16 rounded" />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
             ))}
           </div>
         </div>
@@ -395,27 +396,27 @@ function HomePageContent() {
       {!gardensLoading || gardens.length > 0 ? (
         <>
           {filteredGardens.length === 0 && !gardensLoading ? (
-            <div className="text-center py-8 sm:py-12">
-              <TreePine className="h-12 w-12 sm:h-16 sm:w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg sm:text-xl font-semibold text-foreground mb-2">
+            <div className="text-center py-6 sm:py-8">
+              <TreePine className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3" />
+              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                 {state.searchTerm ? 'Geen tuinen gevonden' : 'Nog geen tuinen'}
               </h3>
-              <p className="text-muted-foreground mb-4 text-sm sm:text-base">
+              <p className="text-muted-foreground mb-3 text-xs sm:text-sm">
                 {state.searchTerm 
                   ? `Geen tuinen gevonden voor "${state.searchTerm}". Probeer een andere zoekterm.`
                   : 'Maak je eerste tuin aan om te beginnen.'
                 }
               </p>
               {!state.searchTerm && (
-                <Button onClick={() => router.push('/gardens/new')} className="w-full sm:w-auto">
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button onClick={() => router.push('/gardens/new')} size="sm" className="w-full sm:w-auto text-xs">
+                  <Plus className="w-3.5 h-3.5 mr-1" />
                   Eerste Tuin Aanmaken
                 </Button>
               )}
             </div>
           ) : (
             <div className="space-y-4 sm:space-y-6">
-              <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {filteredGardens.map((garden) => (
                   <GardenCard
                     key={garden.id}
@@ -425,14 +426,15 @@ function HomePageContent() {
                 ))}
               </div>
 
-              {/* Load More Button - Mobile First */}
+              {/* Banking-Grade Load More Button */}
               {hasMore && !state.searchTerm && (
-                <div className="text-center pt-4">
+                <div className="text-center pt-3">
                   <Button 
                     onClick={handleLoadMore} 
                     disabled={gardensLoading}
                     variant="outline"
-                    className="w-full sm:w-auto min-w-32"
+                    size="sm"
+                    className="w-full sm:w-auto min-w-28 text-xs"
                   >
                     {gardensLoading ? 'Laden...' : 'Meer laden'}
                   </Button>
@@ -531,105 +533,62 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
   }
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-green-200 overflow-hidden h-full">
-      <Link href={`/gardens/${garden.id}`} className="block h-full">
-        <CardHeader className="pb-3 sm:pb-4">
+    <Card className="group hover:shadow-sm transition-shadow duration-150 border-border hover:border-primary/30 overflow-hidden relative">
+      <Link href={`/gardens/${garden.id}`} className="block">
+        <CardHeader className="pb-2 pt-3 px-3">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
-              <CardTitle className={`font-semibold text-card-foreground group-hover:text-primary transition-colors truncate ${
-                  garden.name.length > 20 ? 'text-sm sm:text-base' : 'text-base'
-                }`}>
+              <CardTitle className="text-sm font-medium text-foreground group-hover:text-primary transition-colors truncate">
                 {garden.name}
               </CardTitle>
-              <div className="flex items-center text-sm text-muted-foreground mt-2">
-                <MapPin className="h-3 w-3 mr-2 flex-shrink-0" />
+              <div className="flex items-center text-xs text-muted-foreground mt-1">
+                <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
                 <span className="truncate">{garden.location}</span>
               </div>
             </div>
-            <Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
-              Actief
+            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5 border-border">
+              {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)}
             </Badge>
           </div>
         </CardHeader>
         
-        <CardContent className="pt-3 sm:pt-4 space-y-3 sm:space-y-4">
-          {garden.description && (
-            <p className="text-muted-foreground text-sm mb-3 sm:mb-4 line-clamp-2">
-              {garden.description}
-            </p>
+        <CardContent className="pt-0 pb-3 px-3">
+          {/* Banking-Grade Compact Plant Preview */}
+          {allFlowers.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {allFlowers.slice(0, 6).map((flower, index) => (
+                <div
+                  key={`${flower.id}-${index}`}
+                  className="inline-flex items-center gap-1 bg-muted/30 rounded px-2 py-1 text-xs border border-border/50"
+                  title={flower.name}
+                >
+                  <span className="text-sm">{getPlantEmoji(flower.name, flower.emoji)}</span>
+                  <span className="truncate max-w-16 font-medium">{flower.name}</span>
+                </div>
+              ))}
+              {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
+                <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/20 rounded border border-border/30">
+                  +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground italic py-2 text-center">
+              Geen planten
+            </div>
           )}
-
-          {/* Enhanced Flower Preview Section - Mobile First */}
-          <div className="space-y-2 sm:space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-card-foreground">Planten in deze tuin:</span>
-              <span className="text-xs text-muted-foreground">
-                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} planten
-              </span>
-            </div>
-            
-            {loadingFlowers ? (
-              <div className="grid grid-cols-2 gap-2">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
-                ))}
-              </div>
-            ) : allFlowers.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3">
-                {allFlowers.slice(0, 6).map((flower, index) => (
-                  <div
-                    key={`${flower.id}-${index}`}
-                    className="flex flex-col items-center gap-1 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg px-2 py-3 hover:bg-green-100 dark:hover:bg-green-900/50 transition-colors min-h-[60px] sm:min-h-[70px] justify-center"
-                    title={flower.name}
-                  >
-                    <span className="text-lg sm:text-xl">
-                      {getPlantEmoji(flower.name, flower.emoji)}
-                    </span>
-                    <span className="text-xs font-medium text-green-800 dark:text-green-200 text-center leading-tight line-clamp-2">
-                      {flower.name}
-                    </span>
-                  </div>
-                ))}
-                {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-                  <div className="col-span-2 sm:col-span-3 flex items-center justify-center bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-4">
-                    <span className="text-xs text-muted-foreground font-medium text-center">
-                      +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6} meer planten
-                    </span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <Leaf className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                <span className="text-xs sm:text-sm">Nog geen planten geplant</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center justify-between text-sm text-muted-foreground pt-2">
-            <div className="flex items-center">
-              <Calendar className="h-4 w-4 mr-2" />
-              <span className="text-xs sm:text-sm">Aangemaakt {formatDate(garden.created_at)}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between pt-2 border-t border-border">
-            <div className="flex items-center text-green-600 dark:text-green-400">
-              <Leaf className="h-4 w-4 mr-2" />
-              <span className="text-sm font-medium">Beheren</span>
-            </div>
-            
-            <Button
-              onClick={handleDeleteClick}
-              variant="ghost"
-              size="sm"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-            >
-              Verwijderen
-            </Button>
-          </div>
         </CardContent>
       </Link>
+      
+      {/* Banking-Grade Delete Button */}
+      <Button
+        onClick={handleDeleteClick}
+        variant="ghost"
+        size="sm"
+        className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background border border-border/50"
+      >
+        <Trash2 className="h-3 w-3 text-destructive" />
+      </Button>
     </Card>
   )
 }
