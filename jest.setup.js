@@ -274,37 +274,39 @@ jest.mock('@/lib/supabase', () => ({
   }
 }));
 
+
+
 // Mock voor NextResponse (kritiek voor API route tests)
 global.NextResponse = {
   json: (data, init = {}) => {
-    const response = new global.Response(JSON.stringify(data), {
+    const response = new Response(JSON.stringify(data), {
       status: init.status || 200,
       headers: {
         'Content-Type': 'application/json',
-        ...init.headers
-      }
+        ...init.headers,
+      },
     });
     
-    // Ensure the json method works correctly
+    // Add json method to response for testing
     response.json = async () => data;
     
     return response;
   },
   redirect: (url, init = {}) => {
-    return new global.Response(null, {
+    return new Response(null, {
       status: init.status || 302,
       headers: {
         'Location': url,
-        ...init.headers
-      }
+        ...init.headers,
+      },
     });
   },
   next: (init = {}) => {
-    return new global.Response(null, {
+    return new Response(null, {
       status: init.status || 200,
       ...init
     });
-  }
+  },
 };
 
 // Mock voor NextRequest (kritiek voor API route tests)
@@ -380,5 +382,20 @@ global.vi = {
   replaceProperty: jest.replaceProperty,
   resetModules: jest.resetModules,
 };
+
+// Mock window.matchMedia for next-themes
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
 
 console.log('🧪 Jest setup loaded successfully');

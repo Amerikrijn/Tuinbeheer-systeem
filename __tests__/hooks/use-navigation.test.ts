@@ -22,6 +22,15 @@ describe('useNavigation', () => {
     mockPush.mockClear()
     mockReplace.mockClear()
     mockBack.mockClear()
+    
+    // Mock window.history for consistent testing
+    Object.defineProperty(window, 'history', {
+      value: {
+        back: jest.fn(),
+        length: 2
+      },
+      writable: true
+    })
   })
 
   afterEach(() => {
@@ -49,14 +58,14 @@ describe('useNavigation', () => {
     expect(mockReplace).toHaveBeenCalledWith('/new')
   })
 
-  it('goBack calls router.back', () => {
+  it('goBack calls window.history.back when history is available', () => {
     const { result } = renderHook(() => useNavigation())
 
     act(() => {
       result.current.goBack()
     })
 
-    expect(mockBack).toHaveBeenCalled()
+    expect(window.history.back).toHaveBeenCalled()
   })
 
   it('falls back to router.push when history is unavailable', () => {

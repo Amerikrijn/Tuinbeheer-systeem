@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ViewPreferencesService, ViewMode } from '@/lib/services/view-preferences.service'
 
 export function useViewPreference() {
@@ -8,10 +8,17 @@ export function useViewPreference() {
   const [isInitialized, setIsInitialized] = useState(false)
 
   useEffect(() => {
-    // Load preference from ViewPreferencesService (includes mobile detection)
-    const initialMode = ViewPreferencesService.getViewMode()
-    setViewMode(initialMode)
-    setIsInitialized(true)
+    try {
+      // Load preference from ViewPreferencesService (includes mobile detection)
+      const initialMode = ViewPreferencesService.getViewMode()
+      setViewMode(initialMode)
+    } catch (error) {
+      // Fallback to default view mode if service fails
+      console.warn('Failed to load view preference:', error)
+      setViewMode('visual')
+    } finally {
+      setIsInitialized(true)
+    }
 
     // Listen for view mode changes from other components
     const cleanup = ViewPreferencesService.onViewModeChange((newMode) => {
@@ -21,15 +28,15 @@ export function useViewPreference() {
     return cleanup
   }, [])
 
-  const setViewPreference = (mode: ViewMode) => {
+  const setViewPreference = useCallback((mode: ViewMode) => {
     setViewMode(mode)
     ViewPreferencesService.setViewMode(mode)
-  }
+  }, [])
 
-  const toggleView = () => {
+  const toggleView = useCallback(() => {
     const newMode = viewMode === 'visual' ? 'list' : 'visual'
     setViewPreference(newMode)
-  }
+  }, [viewMode, setViewPreference])
 
   return {
     viewMode,

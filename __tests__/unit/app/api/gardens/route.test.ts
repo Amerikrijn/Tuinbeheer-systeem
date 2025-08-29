@@ -165,6 +165,23 @@ describe('Gardens API Route', () => {
         20
       );
     });
+
+    it('should use default query parameters when not provided', async () => {
+      const mockGardens = { success: true, data: { data: [] } };
+      mockTuinService.getAll.mockResolvedValue(mockGardens);
+
+      const url = new URL('http://localhost:3000/api/gardens');
+      const request = new NextRequest(url);
+      
+      await GET(request);
+
+      expect(mockTuinService.getAll).toHaveBeenCalledWith(
+        undefined,
+        { field: 'created_at', direction: 'desc' },
+        1,
+        10
+      );
+    });
   });
 
   describe('POST /api/gardens', () => {

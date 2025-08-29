@@ -9,26 +9,16 @@ const INACTIVITY_TIMEOUT = 60 * 60 * 1000 // 60 minutes in milliseconds
 const WARNING_TIME = 10 * 60 * 1000 // Show warning 10 minutes before logout
 
 export function useActivityTimeout() {
-  // Try to get auth, but don't throw if not available
-  let user = null
-  let signOut = null
-  let authAvailable = false
-  
-  try {
-    const auth = useAuth()
-    user = auth.user
-    signOut = auth.signOut
-    authAvailable = true
-  } catch (error) {
-    // Auth not available, skip activity timeout
-    authAvailable = false
-  }
+  // Get auth, but handle gracefully if not available
+  const auth = useAuth()
+  const user = auth?.user
+  const signOut = auth?.signOut
   
   const router = useRouter()
   const { toast } = useToast()
   
   // Early return if auth is not available
-  if (!authAvailable) {
+  if (!auth || !user || !signOut) {
     return
   }
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)

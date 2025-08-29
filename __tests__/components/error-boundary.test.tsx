@@ -38,7 +38,10 @@ describe('ErrorBoundary component', () => {
     )
 
     expect(screen.getByText('supabaseKey missing')).toBeInTheDocument()
-    expect(screen.getByText('Ontbrekende of ongeldige omgevingsvariabelen')).toBeInTheDocument()
+    // The ErrorBoundary shows general guidance for all errors
+    expect(screen.getByText(/Ontbrekende of ongeldige omgevingsvariabelen/)).toBeInTheDocument()
+    expect(screen.getByText(/Database verbindingsproblemen/)).toBeInTheDocument()
+    expect(screen.getByText(/Netwerkverbindingsproblemen/)).toBeInTheDocument()
   })
 
   it('resets when Try Again is clicked', () => {
