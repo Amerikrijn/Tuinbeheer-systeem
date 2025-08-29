@@ -32,7 +32,7 @@ export function UnifiedCard({
     variant === 'compact' && "border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700",
     variant === 'minimal' && "border border-green-200/50 dark:border-green-800/50 hover:border-green-300/70 dark:hover:border-green-700/70",
     hover && "hover:shadow-lg hover:shadow-green-200/50 dark:hover:shadow-green-800/20",
-    onClick && "cursor-pointer",
+    onClick && "cursor-pointer active:scale-[0.98] sm:active:scale-100",
     className
   )
 
@@ -40,9 +40,9 @@ export function UnifiedCard({
     <>
       {header && (
         <CardHeader className={cn(
-          "pb-3 pt-4 px-4",
-          variant === 'compact' && "pb-2 pt-3 px-3",
-          variant === 'minimal' && "pb-2 pt-3 px-3"
+          "pb-3 pt-4 px-4 sm:px-4",
+          variant === 'compact' && "pb-2 pt-3 px-3 sm:px-3",
+          variant === 'minimal' && "pb-2 pt-3 px-3 sm:px-3"
         )}>
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
@@ -74,9 +74,9 @@ export function UnifiedCard({
       )}
       
       <CardContent className={cn(
-        "pt-0 pb-4 px-4",
-        variant === 'compact' && "pt-0 pb-3 px-3",
-        variant === 'minimal' && "pt-0 pb-3 px-3"
+        "pt-0 pb-4 px-4 sm:px-4",
+        variant === 'compact' && "pt-0 pb-3 px-3 sm:px-3",
+        variant === 'minimal' && "pt-0 pb-3 px-3 sm:px-3"
       )}>
         {children}
       </CardContent>
