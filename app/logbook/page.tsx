@@ -3,345 +3,91 @@
 // Force dynamic rendering to prevent SSR issues with auth
 export const dynamic = 'force-dynamic'
 
-// Trigger Vercel preview deployment
-
 import * as React from "react"
-import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BookOpen, Plus, Search, Calendar, Camera, Leaf, MapPin, Filter, X, ClipboardList, CheckCircle2, ArrowLeft, Sparkles, Eye, FileText } from "lucide-react"
-import { LogbookService } from "@/lib/services/database.service"
-import { getPlantBeds } from "@/lib/database"
-import { uiLogger } from "@/lib/logger"
-import type { LogbookEntryWithDetails, Plantvak, PlantvakWithBloemen } from "@/lib/types/index"
-import { ErrorBoundary } from "@/components/error-boundary"
-import { useToast } from "@/hooks/use-toast"
+import { Calendar, Plus, ArrowLeft, Search, Filter, BookOpen, Clock, User } from "lucide-react"
 import { ProtectedRoute } from "@/components/auth/protected-route"
-import { UserRestrictedRoute } from "@/components/auth/user-restricted-route"
+import { UserRestriction } from "@/components/auth/user-restriction"
 import { useAuth } from "@/hooks/use-supabase-auth"
-import { supabase } from "@/lib/supabase"
-import { format, parseISO } from "date-fns"
-import { nl } from "date-fns/locale"
 
-interface LogbookPageState {
-  entries: LogbookEntryWithDetails[]
-  plantBeds: PlantvakWithBloemen[]
-  loading: boolean
-  error: string | null
-  searchTerm: string
-  selectedGarden: string
-  selectedPlantBed: string
-  selectedYear: string
-  page: number
-  hasMore: boolean
+export default function LogbookPage() {
+  return (
+    <ProtectedRoute>
+      <UserRestriction>
+        <LogbookPageContent />
+      </UserRestriction>
+    </ProtectedRoute>
+  )
 }
-
-const ITEMS_PER_PAGE = 20
 
 function LogbookPageContent() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const { toast } = useToast()
-  const { user, getAccessibleGardens, isAdmin, loadGardenAccess } = useAuth()
-  
-  // Track garden access loading state
-  const [gardenAccessLoaded, setGardenAccessLoaded] = React.useState(false)
-  
-  // Check if we're viewing a specific user's logbook (admin only)
-  const viewingUserId = searchParams.get('user_id')
-  const [viewingUser, setViewingUser] = React.useState<any>(null)
+  const { user } = useAuth()
+  const [showAddForm, setShowAddForm] = React.useState(false)
+  const [editingEntry, setEditingEntry] = React.useState<any>(null)
+  const [searchQuery, setSearchQuery] = React.useState("")
+  const [statusFilter, setStatusFilter] = React.useState("all")
+  const [isLoading, setIsLoading] = React.useState(false)
 
-  // Ensure garden access is loaded for regular users
-  React.useEffect(() => {
-    async function ensureGardenAccess() {
-      if (!user) return
-      
-      // For users, ensure garden access is loaded
-      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
-        console.log('🔍 Logbook - Loading garden access for user...')
-        try {
-          await loadGardenAccess()
-          setGardenAccessLoaded(true)
-          console.log('✅ Logbook - Garden access loaded')
-        } catch (error) {
-          console.error('❌ Logbook - Failed to load garden access:', error)
-          setGardenAccessLoaded(true) // Still mark as loaded to avoid infinite loop
-        }
-      } else {
-        setGardenAccessLoaded(true)
-      }
+  // Mock data for demonstration
+  const mockEntries = [
+    {
+      id: "1",
+      title: "Planten water gegeven",
+      description: "Alle planten in de achtertuin hebben water gekregen",
+      status: "completed",
+      date: "2024-01-15",
+      user: "John Doe",
+      category: "Watering"
+    },
+    {
+      id: "2",
+      title: "Onkruid verwijderd",
+      description: "Onkruid weggehaald uit de moestuin",
+      status: "completed",
+      date: "2024-01-14",
+      user: "Jane Smith",
+      category: "Maintenance"
+    },
+    {
+      id: "3",
+      title: "Meststoffen toegevoegd",
+      description: "Organische meststoffen toegevoegd aan de bloembedden",
+      status: "in_progress",
+      date: "2024-01-13",
+      user: "John Doe",
+      category: "Fertilizing"
     }
-    
-    ensureGardenAccess()
-  }, [user?.id, loadGardenAccess])
-  
-  const [state, setState] = React.useState<LogbookPageState>({
-    entries: [],
-    plantBeds: [],
-    loading: true,
-    error: null,
-    searchTerm: "",
-    selectedGarden: "all",
-    selectedPlantBed: "all",
-    selectedYear: new Date().getFullYear().toString(),
-    page: 1,
-    hasMore: false,
+  ]
+
+  const filteredEntries = mockEntries.filter(entry => {
+    const matchesSearch = entry.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         entry.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesStatus = statusFilter === "all" || entry.status === statusFilter
+    return matchesSearch && matchesStatus
   })
 
-  // Load specific user data if viewing for another user (admin only)
-  const loadViewingUser = React.useCallback(async () => {
-    if (!viewingUserId || !isAdmin()) return
-
-    try {
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('id, email, full_name, role')
-        .eq('id', viewingUserId)
-        .single()
-
-      if (error) {
-        console.error('Failed to load viewing user:', error)
-        return
-      }
-
-      setViewingUser(userData)
-    } catch (error) {
-      console.error('Error loading viewing user:', error)
-    }
-  }, [viewingUserId, isAdmin])
-
-  React.useEffect(() => {
-    loadViewingUser()
-  }, [loadViewingUser])
-
-  // Load plant beds for filtering
-  const loadPlantBeds = React.useCallback(async () => {
-    try {
-      const plantBeds = await getPlantBeds()
-      setState(prev => ({ ...prev, plantBeds }))
-    } catch (error) {
-      console.error('Failed to load plant beds:', error)
-    }
-  }, [])
-
-  React.useEffect(() => {
-    loadPlantBeds()
-  }, [loadPlantBeds])
-
-  // Load logbook entries
-  const loadLogbookEntries = React.useCallback(async (resetPage = false) => {
-    if (!user || !gardenAccessLoaded) return
-
-    setState(prev => ({ 
-      ...prev, 
-      loading: true, 
-      error: null,
-      page: resetPage ? 1 : prev.page 
-    }))
-
-    try {
-      let accessibleGardens = []
-      
-      if (isAdmin()) {
-        // Admin can see all gardens or specific user's gardens
-        if (viewingUserId) {
-          // Load specific user's garden access
-          const { data: userGardenAccess, error: accessError } = await supabase
-            .from('user_garden_access')
-            .select('garden_id')
-            .eq('user_id', viewingUserId)
-
-          if (accessError) {
-            throw new Error(`Failed to load user garden access: ${accessError.message}`)
-          }
-
-          accessibleGardens = userGardenAccess.map(access => access.garden_id)
-        } else {
-          // Admin can see all gardens
-          accessibleGardens = []
-        }
-      } else {
-        // Regular users can only see their accessible gardens
-        accessibleGardens = user.garden_access || []
-      }
-
-      const { data, error } = await LogbookService.getLogbookEntries(
-        accessibleGardens,
-        state.selectedGarden !== "all" ? [state.selectedGarden] : undefined,
-        state.selectedPlantBed !== "all" ? [state.selectedPlantBed] : undefined,
-        state.selectedYear,
-        state.page,
-        ITEMS_PER_PAGE,
-        state.searchTerm
-      )
-
-      if (error) {
-        throw new Error(error)
-      }
-
-      setState(prev => ({
-        ...prev,
-        entries: resetPage ? data.entries : [...prev.entries, ...data.entries],
-        hasMore: data.entries.length === ITEMS_PER_PAGE,
-        loading: false
-      }))
-
-      uiLogger.info('Logbook entries loaded successfully', { 
-        count: data.entries.length, 
-        page: state.page,
-        filters: {
-          garden: state.selectedGarden,
-          plantBed: state.selectedPlantBed,
-          year: state.selectedYear,
-          search: state.searchTerm
-        }
-      })
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
-      setState(prev => ({ 
-        ...prev, 
-        error: errorMessage, 
-        loading: false 
-      }))
-      
-      uiLogger.error('Failed to load logbook entries', error as Error, { 
-        page: state.page,
-        filters: {
-          garden: state.selectedGarden,
-          plantBed: state.selectedPlantBed,
-          year: state.selectedYear,
-          search: state.searchTerm
-        }
-      })
-    }
-  }, [user, gardenAccessLoaded, isAdmin, viewingUserId, state.selectedGarden, state.selectedPlantBed, state.selectedYear, state.page, state.searchTerm])
-
-  React.useEffect(() => {
-    loadLogbookEntries(true)
-  }, [loadLogbookEntries])
-
-  // Handle search
-  const handleSearch = (searchTerm: string) => {
-    setState(prev => ({ ...prev, searchTerm }))
+  const handleAddEntry = (entryData: any) => {
+    console.log("Adding new entry:", entryData)
+    setShowAddForm(false)
+    // Here you would typically save to database
   }
 
-  // Handle filter changes
-  const handleFilterChange = (filterType: 'garden' | 'plantBed' | 'year', value: string) => {
-    setState(prev => ({ ...prev, [filterType]: value }))
+  const handleEditEntry = (entryData: any) => {
+    console.log("Editing entry:", entryData)
+    setEditingEntry(null)
+    // Here you would typically update database
   }
 
-  // Load more entries
-  const handleLoadMore = () => {
-    setState(prev => ({ ...prev, page: prev.page + 1 }))
-  }
-
-  // Delete entry
-  const handleDeleteEntry = async (entryId: string) => {
-    if (!confirm('Weet u zeker dat u dit logboek item wilt verwijderen?')) {
-      return
-    }
-
-    try {
-      const { error } = await supabase
-        .from('logbook_entries')
-        .delete()
-        .eq('id', entryId)
-
-      if (error) {
-        throw error
-      }
-
-      // Reload entries
-      loadLogbookEntries(true)
-
-      toast({
-        title: "Logboek item verwijderd",
-        description: "Het logboek item is succesvol verwijderd.",
-        variant: "default",
-      })
-
-      uiLogger.info('Logbook entry deleted successfully', { entryId })
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
-      
-      toast({
-        title: "Fout bij verwijderen",
-        description: getUserFriendlyErrorMessage(errorMessage),
-        variant: "destructive",
-      })
-
-      uiLogger.error('Failed to delete logbook entry', error as Error, { entryId })
-    }
-  }
-
-  // Get accessible gardens for filtering
-  const accessibleGardens = React.useMemo(() => {
-    if (isAdmin()) {
-      // Admin can see all gardens
-      return []
-    }
-    return user?.garden_access || []
-  }, [user, isAdmin])
-
-  // Filter plant beds based on selected garden
-  const filteredPlantBeds = React.useMemo(() => {
-    if (state.selectedGarden === "all") {
-      return state.plantBeds
-    }
-    return state.plantBeds.filter(bed => bed.garden_id === state.selectedGarden)
-  }, [state.plantBeds, state.selectedGarden])
-
-  // Get years for filtering (last 5 years + current year)
-  const years = React.useMemo(() => {
-    const currentYear = new Date().getFullYear()
-    return Array.from({ length: 6 }, (_, i) => (currentYear - i).toString())
-  }, [])
-
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    try {
-      return format(parseISO(dateString), 'dd MMM yyyy', { locale: nl })
-    } catch {
-      return 'Onbekende datum'
-    }
-  }
-
-  // Get user-friendly error message
-  const getUserFriendlyErrorMessage = (error: string) => {
-    if (error.includes('network') || error.includes('fetch')) {
-      return 'Netwerkfout. Controleer je internetverbinding en probeer het opnieuw.'
-    }
-    if (error.includes('permission') || error.includes('access')) {
-      return 'Je hebt geen toegang tot deze functionaliteit.'
-    }
-    if (error.includes('not found')) {
-      return 'De gevraagde gegevens zijn niet gevonden.'
-    }
-    return error
-  }
-
-  // Loading state
-  if (!gardenAccessLoaded) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-background to-blue-50 dark:from-green-950/20 dark:via-background dark:to-blue-950/20">
-        <div className="container mx-auto px-4 py-4 max-w-5xl">
-          <div className="flex items-center justify-center min-h-[50vh]">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Laden...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+  const handleDeleteEntry = (entryId: string) => {
+    console.log("Deleting entry:", entryId)
+    // Here you would typically delete from database
   }
 
   return (
@@ -351,36 +97,32 @@ function LogbookPageContent() {
         <div className="mb-6">
           {/* Top Bar - Mobile First */}
           <div className="flex items-center justify-between mb-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-10 w-10 p-2 rounded-full shadow-sm hover:shadow-md transition-all duration-200"
               onClick={() => router.back()}
-              className="p-2 h-10 w-10 rounded-full shadow-sm hover:shadow-md transition-all duration-200"
+              aria-label="Ga terug"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="h-5 w-5" />
             </Button>
             
             <div className="flex-1 text-center">
               <h1 className="text-2xl font-bold text-foreground">
                 Logboek
               </h1>
-              {viewingUser && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {viewingUser.full_name || viewingUser.email}
-                </p>
-              )}
             </div>
             
             <Button
-              onClick={() => router.push('/logbook/new')}
-              size="sm"
-              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 rounded-full h-10 w-10 p-0"
+              onClick={() => setShowAddForm(true)}
+              className="h-10 w-10 p-0 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 rounded-full"
+              aria-label="Nieuwe logboek entry toevoegen"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="h-5 w-5" />
             </Button>
           </div>
-
-          {/* Enhanced Description - Mobile First */}
+          
+          {/* Description */}
           <div className="text-center mb-6">
             <div className="flex items-center justify-center gap-2 mb-2">
               <BookOpen className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -389,281 +131,209 @@ function LogbookPageContent() {
               </span>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
-              Bekijk en beheer je tuinactiviteiten en notities
+              Houd bij wat je in je tuin doet en wanneer
             </p>
           </div>
 
-          {/* Mobile-First Search */}
-          <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Zoek in logboek..."
-                value={state.searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="pl-10 h-12 text-base border-2 border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400 transition-all duration-200 shadow-sm"
-              />
-            </div>
-          </div>
-
-          {/* Mobile-First Filters */}
-          <div className="grid grid-cols-1 gap-3 mb-6">
-            {/* Garden Filter */}
-            <Select value={state.selectedGarden} onValueChange={(value) => handleFilterChange('garden', value)}>
-              <SelectTrigger className="h-12 border-2 border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400">
-                <SelectValue placeholder="Selecteer tuin" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle tuinen</SelectItem>
-                {accessibleGardens.map((gardenId) => {
-                  const garden = state.plantBeds.find(bed => bed.garden_id === gardenId)?.garden
-                  return garden ? (
-                    <SelectItem key={gardenId} value={gardenId}>
-                      {garden.name}
-                    </SelectItem>
-                  ) : null
-                })}
-              </SelectContent>
-            </Select>
-
-            {/* Plant Bed Filter */}
-            <Select value={state.selectedPlantBed} onValueChange={(value) => handleFilterChange('plantBed', value)}>
-              <SelectTrigger className="h-12 border-2 border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400">
-                <SelectValue placeholder="Selecteer plantbed" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Alle plantbedden</SelectItem>
-                {filteredPlantBeds.map((bed) => (
-                  <SelectItem key={bed.id} value={bed.id}>
-                    {bed.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Year Filter */}
-            <Select value={state.selectedYear} onValueChange={(value) => handleFilterChange('year', value)}>
-              <SelectTrigger className="h-12 border-2 border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400">
-                <SelectValue placeholder="Selecteer jaar" />
-              </SelectTrigger>
-              <SelectContent>
-                {years.map((year) => (
-                  <SelectItem key={year} value={year}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Error State */}
-        {state.error && (
-          <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6 shadow-sm">
-            <div className="flex items-center gap-3 mb-2">
-              <X className="h-5 w-5 text-destructive" />
-              <h3 className="text-sm font-semibold text-destructive">Er is een fout opgetreden</h3>
-            </div>
-            <p className="text-sm text-destructive mb-3">{state.error}</p>
-            <Button 
-              onClick={() => loadLogbookEntries(true)} 
-              variant="outline" 
-              size="sm"
-              className="border-destructive text-destructive hover:bg-destructive/10"
-            >
-              Opnieuw proberen
-            </Button>
-          </div>
-        )}
-
-        {/* Logbook Entries - Mobile First */}
-        <div className="space-y-4">
-          {state.loading && state.entries.length === 0 ? (
-            // Loading skeletons
-            Array.from({ length: 3 }).map((_, index) => (
-              <Card key={index} className="bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-800/30">
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="w-10 h-10 rounded-full" />
-                      <div className="flex-1 space-y-2">
-                        <Skeleton className="h-4 w-3/4" />
-                        <Skeleton className="h-3 w-1/2" />
-                      </div>
-                    </div>
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-2/3" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : state.entries.length === 0 ? (
-            // Empty state
-            <Card className="bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-800/30">
-              <CardContent className="p-8 text-center">
-                <BookOpen className="w-16 h-16 text-muted-foreground/40 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Geen logboek items gevonden
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString()
-                    ? 'Probeer je filters aan te passen of maak je eerste logboek item aan.'
-                    : 'Maak je eerste logboek item aan om te beginnen.'
-                  }
-                </p>
-                <Button 
-                  onClick={() => router.push('/logbook/new')}
-                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Eerste Item
-                </Button>
-              </CardContent>
-            </Card>
-          ) : (
-            // Logbook entries
-            <>
-              {state.entries.map((entry) => (
-                <LogbookEntryCard
-                  key={entry.id}
-                  entry={entry}
-                  onDelete={handleDeleteEntry}
-                  formatDate={formatDate}
-                />
-              ))}
-
-              {/* Load More Button */}
-              {state.hasMore && (
-                <div className="text-center pt-4">
-                  <Button 
-                    onClick={handleLoadMore} 
-                    disabled={state.loading}
-                    variant="outline"
-                    size="lg"
-                    className="min-w-40 shadow-sm hover:shadow-md transition-all duration-200"
-                  >
-                    {state.loading ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
-                        Laden...
-                      </>
-                    ) : (
-                      'Meer laden'
-                    )}
-                  </Button>
+          {/* Mobile Stats Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-3 border border-green-200/50 dark:border-green-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                  <BookOpen className="w-4 h-4 text-green-600 dark:text-green-400" />
                 </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Mobile-First Logbook Entry Card
-interface LogbookEntryCardProps {
-  entry: LogbookEntryWithDetails
-  onDelete: (entryId: string) => void
-  formatDate: (dateString: string) => string
-}
-
-function LogbookEntryCard({ entry, onDelete, formatDate }: LogbookEntryCardProps) {
-  const [showFullContent, setShowFullContent] = React.useState(false)
-
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    onDelete(entry.id)
-  }
-
-  return (
-    <Card className="bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-800/30 shadow-sm hover:shadow-md transition-all duration-200">
-      <CardContent className="p-4">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
-              <FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground truncate">Totaal</p>
+                  <p className="text-lg font-bold text-foreground">{mockEntries.length}</p>
+                </div>
+              </div>
             </div>
-            <div className="min-w-0">
-              <h3 className="font-semibold text-foreground truncate">
-                {entry.title || 'Geen titel'}
-              </h3>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                <Calendar className="w-3 h-3" />
-                <span>{formatDate(entry.created_at)}</span>
-                {entry.garden && (
-                  <>
-                    <MapPin className="w-3 h-3" />
-                    <span className="truncate">{entry.garden.name}</span>
-                  </>
-                )}
+            
+            <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/50 dark:border-blue-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-muted-foreground truncate">Vandaag</p>
+                  <p className="text-lg font-bold text-foreground">1</p>
+                </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Search and Filter Bar */}
+        <div className="mb-6 space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Zoek in logboek..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-12 bg-white/80 dark:bg-card/80 backdrop-blur-sm border-2 border-green-200/50 dark:border-green-800/30 shadow-sm hover:shadow-md transition-all duration-200"
+            />
+          </div>
           
-          <Button
-            onClick={handleDeleteClick}
-            variant="ghost"
-            size="sm"
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 p-2 h-8 w-8"
-          >
-            <X className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-12 bg-white/80 dark:bg-card/80 backdrop-blur-sm border-2 border-green-200/50 dark:border-green-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+                <SelectValue placeholder="Filter op status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Alle statussen</SelectItem>
+                <SelectItem value="completed">Voltooid</SelectItem>
+                <SelectItem value="in_progress">In uitvoering</SelectItem>
+                <SelectItem value="planned">Gepland</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="space-y-3">
-          {entry.content && (
-            <div className="text-sm text-foreground leading-relaxed">
-              {showFullContent ? (
-                <p>{entry.content}</p>
-              ) : (
-                <p className="line-clamp-3">{entry.content}</p>
-              )}
-              
-              {entry.content.length > 150 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowFullContent(!showFullContent)}
-                  className="text-green-600 hover:text-green-700 p-0 h-auto text-xs mt-2"
-                >
-                  {showFullContent ? 'Minder tonen' : 'Meer tonen'}
-                </Button>
-              )}
-            </div>
-          )}
+        {/* Logbook Entries */}
+        <Card className="rounded-lg text-card-foreground bg-white/80 dark:bg-card/80 backdrop-blur-sm border-2 border-green-200/50 dark:border-green-800/30 shadow-lg">
+          <CardHeader className="flex flex-col space-y-1.5 p-6 pb-3 px-4">
+            <CardTitle className="font-semibold tracking-tight flex items-center justify-center gap-2 text-lg">
+              <BookOpen className="w-5 h-5 text-green-600 dark:text-green-400" />
+              Recente Activiteiten
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-6 pt-0 px-4 pb-4">
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-center space-x-4">
+                    <Skeleton className="h-12 w-12 rounded-full" />
+                    <div className="space-y-2 flex-1">
+                      <Skeleton className="h-4 w-[250px]" />
+                      <Skeleton className="h-4 w-[200px]" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredEntries.length === 0 ? (
+              <div className="text-center py-8">
+                <BookOpen className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">Geen activiteiten gevonden</h3>
+                <p className="text-muted-foreground mb-4">
+                  {searchQuery || statusFilter !== "all" 
+                    ? "Probeer je zoekopdracht aan te passen" 
+                    : "Voeg je eerste tuinactiviteit toe"}
+                </p>
+                {!searchQuery && statusFilter === "all" && (
+                  <Button onClick={() => setShowAddForm(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Eerste Entry Toevoegen
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredEntries.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="flex items-start space-x-4 p-4 rounded-lg border border-border/50 hover:border-border transition-colors"
+                  >
+                    <div className="flex-shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+                        <BookOpen className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h3 className="text-sm font-semibold text-foreground truncate">
+                            {entry.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                            {entry.description}
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 ml-4">
+                          <Badge 
+                            variant={entry.status === "completed" ? "default" : "secondary"}
+                            className="text-xs"
+                          >
+                            {entry.status === "completed" ? "Voltooid" : "In uitvoering"}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          <span>{entry.date}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          <span>{entry.user}</span>
+                        </div>
+                        <span className="px-2 py-1 bg-muted rounded-md">{entry.category}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-2 mt-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingEntry(entry)}
+                          className="h-8 text-xs"
+                        >
+                          Bewerken
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteEntry(entry.id)}
+                          className="h-8 text-xs text-red-600 hover:text-red-700"
+                        >
+                          Verwijderen
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
-          {/* Plant Bed Info */}
-          {entry.plant_bed && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Leaf className="w-3 h-3" />
-              <span>{entry.plant_bed.name}</span>
+      {/* Add Entry Form - Simple placeholder for now */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">Nieuwe Logboek Entry</h3>
+            <p className="text-muted-foreground mb-4">
+              Deze functionaliteit wordt binnenkort toegevoegd.
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={() => setShowAddForm(false)} className="flex-1">
+                Sluiten
+              </Button>
             </div>
-          )}
-
-          {/* Photos */}
-          {entry.photos && entry.photos.length > 0 && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Camera className="w-3 h-3" />
-              <span>{entry.photos.length} foto{entry.photos.length !== 1 ? 's' : ''}</span>
-            </div>
-          )}
+          </div>
         </div>
-      </CardContent>
-    </Card>
-  )
-}
+      )}
 
-// Main logbook page component
-export default function LogbookPage() {
-  return (
-    <ProtectedRoute>
-      <ErrorBoundary>
-        <LogbookPageContent />
-      </ErrorBoundary>
-    </ProtectedRoute>
+      {/* Edit Entry Form - Simple placeholder for now */}
+      {editingEntry && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">Bewerk Entry</h3>
+            <p className="text-muted-foreground mb-4">
+              Deze functionaliteit wordt binnenkort toegevoegd.
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={() => setEditingEntry(null)} className="flex-1">
+                Sluiten
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
