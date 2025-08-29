@@ -1,5 +1,11 @@
 hello
 
+# 👋 Hello!
+
+Welcome to the Visual Garden App! This is a modern garden management system built with Next.js, TypeScript, and Supabase.
+
+---
+
 # 🌱 Visual Garden App
 
 Lees altijd the AI agent rules. Hier staat je standaarden en je gedragsregels. WIJK hiet niet vnaa tenzij de opdracht je dat vertelt
