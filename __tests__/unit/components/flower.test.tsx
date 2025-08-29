@@ -47,14 +47,15 @@ describe('Flower component', () => {
     render(<Flower flower={mockFlower} />)
     
     const flowerElement = screen.getByTestId('flower-instance')
-    const computedStyle = window.getComputedStyle(flowerElement)
     
-    // Check positioning
-    expect(flowerElement).toHaveStyle({
-      position: 'absolute',
-      left: '75px', // x - size/2 = 100 - 25
-      top: '75px'   // y - size/2 = 100 - 25
-    })
+    // Check that the element has the correct positioning attributes
+    expect(flowerElement).toHaveAttribute('style')
+    const style = flowerElement.getAttribute('style')
+    expect(style).toContain('left: 75px')
+    expect(style).toContain('top: 75px')
+    
+    // Position absolute comes from CSS class, not inline style
+    expect(flowerElement).toHaveClass('absolute')
   })
 
   it('applies correct size styles', () => {
@@ -85,7 +86,7 @@ describe('Flower component', () => {
     const flowerElement = screen.getByTestId('flower-instance')
     
     // Check if glow effect div exists for main flower
-    const glowEffect = flowerElement.querySelector('div[style*="blur-sm"]')
+    const glowEffect = flowerElement.querySelector('div[class*="blur-sm"]')
     expect(glowEffect).toBeInTheDocument()
   })
 

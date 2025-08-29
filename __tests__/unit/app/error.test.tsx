@@ -124,7 +124,8 @@ describe('Error component', () => {
     const homeButton = screen.getByText('Naar Hoofdpagina')
     
     expect(retryButton).toHaveClass('bg-green-600', 'hover:bg-green-700')
-    expect(homeButton).toHaveClass('variant-outline')
+    // Button component uses Tailwind classes, not variant-outline
+    expect(homeButton).toHaveClass('border', 'bg-background')
   })
 
   it('handles empty error object gracefully', () => {

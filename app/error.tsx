@@ -21,7 +21,7 @@ export default function Error({
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 flex items-center justify-center p-6">
       <div className="container max-w-2xl">
         <div className="text-center mb-8">
-          <TreePine className="h-16 w-16 text-green-600 mx-auto mb-4" />
+          <TreePine className="h-16 w-16 text-green-600 mx-auto mb-4" data-testid="tree-pine-icon" />
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Tuinbeheer Systeem
           </h1>
@@ -31,7 +31,7 @@ export default function Error({
         <Card className="border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950/20">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-800 dark:text-red-200">
-              <AlertCircle className="h-5 w-5" />
+              <AlertCircle className="h-5 w-5" data-testid="alert-circle-icon" />
               Er is een fout opgetreden
             </CardTitle>
           </CardHeader>
@@ -62,16 +62,18 @@ export default function Error({
               <Button
                 onClick={reset}
                 className="flex-1 bg-green-600 hover:bg-green-700"
+                data-testid="retry-button"
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <RefreshCw className="h-4 w-4 mr-2" data-testid="refresh-cw-icon" />
                 Probeer Opnieuw
               </Button>
               <Button
                 variant="outline"
                 onClick={() => window.location.href = '/'}
                 className="flex-1"
+                data-testid="home-button"
               >
-                <Home className="h-4 w-4 mr-2" />
+                <Home className="h-4 w-4 mr-2" data-testid="home-icon" />
                 Naar Hoofdpagina
               </Button>
             </div>

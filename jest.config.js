@@ -23,7 +23,19 @@ const customJestConfig = {
     'lib/**/*.{js,jsx,ts,tsx}',
     'hooks/**/*.{js,jsx,ts,tsx}',
     '!**/*.d.ts',
+    '!**/*.config.{js,ts}',
+    '!**/jest.setup.js',
+    '!**/jest.env.js',
   ],
+  // COVERAGE REQUIREMENTS - Quality Gate
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80
+    }
+  },
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
