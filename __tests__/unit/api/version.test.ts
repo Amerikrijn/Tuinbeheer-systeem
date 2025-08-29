@@ -1,5 +1,13 @@
-import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/version/route';
+
+// Mock NextRequest from next/server to use our mock
+jest.mock('next/server', () => ({
+  NextRequest: global.NextRequest,
+  NextResponse: global.NextResponse
+}));
+
+// Import after mocking
+import { NextRequest } from 'next/server';
 
 // Mock the version module
 jest.mock('@/lib/version', () => ({

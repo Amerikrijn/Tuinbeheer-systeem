@@ -1,23 +1,23 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import { useLanguage, LanguageProvider } from '@/hooks/use-language'
 import { loadTranslations } from '@/lib/translations'
 
 // Mock loadTranslations to avoid actual async operations
-vi.mock('@/lib/translations', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/translations')>('@/lib/translations')
+jest.mock('@/lib/translations', async () => {
+  const actual = await jest.importActual<typeof import('@/lib/translations')>('@/lib/translations')
   return {
     ...actual,
-    loadTranslations: vi.fn().mockResolvedValue(undefined),
+          loadTranslations: jest.fn().mockResolvedValue(undefined),
   }
 })
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
+      getItem: jest.fn(),
+    setItem: jest.fn(),
+    removeItem: jest.fn(),
+    clear: jest.fn(),
 }
 
 Object.defineProperty(window, 'localStorage', {
@@ -27,7 +27,7 @@ Object.defineProperty(window, 'localStorage', {
 
 describe('useLanguage', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   it('should initialize with default language nl and load translations', async () => {

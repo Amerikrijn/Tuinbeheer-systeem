@@ -1,6 +1,37 @@
 // Jest setup bestand - vervangt Vitest setup
 import '@testing-library/jest-dom';
 
+// Early crypto mock setup - MUST be before any module imports that use crypto
+global.crypto = global.crypto || {
+  randomUUID: () => 'test-uuid-' + Math.random().toString(36).substr(2, 9),
+  getRandomValues: (array) => {
+    for (let i = 0; i < array.length; i++) {
+      array[i] = Math.floor(Math.random() * 256);
+    }
+    return array;
+  },
+  subtle: {
+    digest: jest.fn().mockResolvedValue(new ArrayBuffer(32)),
+    encrypt: jest.fn().mockResolvedValue(new ArrayBuffer(16)),
+    decrypt: jest.fn().mockResolvedValue(new ArrayBuffer(16)),
+    sign: jest.fn().mockResolvedValue(new ArrayBuffer(64)),
+    verify: jest.fn().mockResolvedValue(true),
+    generateKey: jest.fn().mockResolvedValue({}),
+    importKey: jest.fn().mockResolvedValue({}),
+    exportKey: jest.fn().mockResolvedValue(new ArrayBuffer(32)),
+    deriveBits: jest.fn().mockResolvedValue(new ArrayBuffer(32)),
+    deriveKey: jest.fn().mockResolvedValue({})
+  }
+};
+
+// Ensure crypto is available everywhere
+if (typeof globalThis !== 'undefined') {
+  globalThis.crypto = global.crypto;
+}
+if (typeof window !== 'undefined') {
+  window.crypto = global.crypto;
+}
+
 // Mock voor Next.js router
 jest.mock('next/navigation', () => ({
   useRouter: () => ({

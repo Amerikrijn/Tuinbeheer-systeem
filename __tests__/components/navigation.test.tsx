@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { vi } from 'vitest';
+import { jest } from '@jest/globals';
 
 // Mock Next.js Link component
-vi.mock('next/link', () => ({
+jest.mock('next/link', () => ({
   default: ({ children, href, ...props }: any) => (
     <a href={href} {...props}>
       {children}
@@ -12,7 +12,7 @@ vi.mock('next/link', () => ({
 }));
 
 // Mock lucide-react icons used in navigation
-vi.mock('lucide-react', () => ({
+jest.mock('lucide-react', () => ({
   TreePine: () => <span data-testid="tree-pine-icon" />, 
   BookOpen: () => <span data-testid="book-open-icon" />, 
   ClipboardList: () => <span data-testid="clipboard-list-icon" />, 
@@ -22,28 +22,28 @@ vi.mock('lucide-react', () => ({
 }));
 
 // Mock UI components to avoid dependencies
-vi.mock('@/components/ui/badge', () => ({
+jest.mock('@/components/ui/badge', () => ({
   Badge: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="badge">{children}</div>
   ),
 }));
 
-vi.mock('@/components/ui/button', () => ({
+jest.mock('@/components/ui/button', () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
 }));
 
-vi.mock('@/components/theme-toggle', () => ({
+jest.mock('@/components/theme-toggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle" />,
 }));
 
 // Mock useAuth and usePathname hooks
-const mockUseAuth = vi.fn();
-vi.mock('@/hooks/use-supabase-auth', () => ({
+const mockUseAuth = jest.fn();
+jest.mock('@/hooks/use-supabase-auth', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-const mockUsePathname = vi.fn();
-vi.mock('next/navigation', () => ({
+const mockUsePathname = jest.fn();
+jest.mock('next/navigation', () => ({
   usePathname: () => mockUsePathname(),
 }));
 
@@ -51,14 +51,14 @@ import { Navigation } from '@/components/navigation';
 
 describe('Navigation', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     mockUsePathname.mockReturnValue('/');
   });
 
   it('renders admin links for admin users', () => {
     mockUseAuth.mockReturnValue({
       user: { role: 'admin', full_name: 'Admin', email: 'admin@example.com' },
-      hasPermission: vi.fn(() => true),
+      hasPermission: jest.fn(() => true),
     });
 
     render(<Navigation />);
@@ -71,7 +71,7 @@ describe('Navigation', () => {
   it('hides admin links for non-admin users', () => {
     mockUseAuth.mockReturnValue({
       user: { role: 'user', full_name: 'User', email: 'user@example.com' },
-      hasPermission: vi.fn(() => true),
+      hasPermission: jest.fn(() => true),
     });
 
     render(<Navigation />);
@@ -84,7 +84,7 @@ describe('Navigation', () => {
   it('toggles mobile menu visibility', () => {
     mockUseAuth.mockReturnValue({
       user: { role: 'user', full_name: 'User', email: 'user@example.com' },
-      hasPermission: vi.fn(() => true),
+      hasPermission: jest.fn(() => true),
     });
 
     render(<Navigation />);

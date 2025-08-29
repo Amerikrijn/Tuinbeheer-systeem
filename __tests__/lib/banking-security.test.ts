@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import {
   validateInput,
   validateApiInput,
@@ -93,22 +93,22 @@ describe('getSecurityHeaders', () => {
 
 describe('checkRateLimit', () => {
   const createSupabaseMock = (singleResult: any) => {
-    const single = vi.fn().mockResolvedValue(singleResult)
+    const single = jest.fn().mockResolvedValue(singleResult)
     const queryBuilder = {
-      eq: vi.fn().mockReturnThis(),
-      gte: vi.fn().mockReturnThis(),
+              eq: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockReturnThis(),
       single,
     }
-    const select = vi.fn().mockReturnValue(queryBuilder)
-    const insert = vi.fn().mockResolvedValue({ data: null, error: null })
-    const updateBuilder = { eq: vi.fn().mockReturnThis() }
-    const update = vi.fn().mockReturnValue(updateBuilder)
-    const from = vi.fn().mockReturnValue({ select, insert, update })
+          const select = jest.fn().mockReturnValue(queryBuilder)
+          const insert = jest.fn().mockResolvedValue({ data: null, error: null })
+          const updateBuilder = { eq: jest.fn().mockReturnThis() }
+          const update = jest.fn().mockReturnValue(updateBuilder)
+          const from = jest.fn().mockReturnValue({ select, insert, update })
     return { from, select, insert, update, queryBuilder, single }
   }
 
   beforeEach(() => {
-    vi.restoreAllMocks()
+    jest.restoreAllMocks()
   })
 
   it('creates record for first request', async () => {

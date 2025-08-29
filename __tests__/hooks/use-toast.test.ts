@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals'
 import { renderHook, act } from '@testing-library/react'
 
 // Helper to dynamically import module for clean state
@@ -8,14 +8,14 @@ let useToastHook: any
 
 describe('use-toast reducer', () => {
   beforeEach(async () => {
-    vi.resetModules()
-    vi.useFakeTimers()
+    jest.resetModules()
+    jest.useFakeTimers()
     const mod = await import('@/hooks/use-toast')
     reducer = mod.reducer
   })
 
   afterEach(() => {
-    vi.useRealTimers()
+    jest.useRealTimers()
   })
 
   it('handles ADD_TOAST', () => {
@@ -32,7 +32,7 @@ describe('use-toast reducer', () => {
   })
 
   it('handles DISMISS_TOAST and schedules removal', () => {
-    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout')
+    const setTimeoutSpy = jest.spyOn(globalThis, 'setTimeout')
     const toast1 = { id: '1', open: true } as any
     const toast2 = { id: '2', open: true } as any
     let state = { toasts: [toast1, toast2] }
@@ -62,15 +62,15 @@ describe('use-toast reducer', () => {
 
 describe('toast function', () => {
   beforeEach(async () => {
-    vi.resetModules()
-    vi.useFakeTimers()
+    jest.resetModules()
+    jest.useFakeTimers()
     const mod = await import('@/hooks/use-toast')
     toastFn = mod.toast
     useToastHook = mod.useToast
   })
 
   afterEach(() => {
-    vi.useRealTimers()
+    jest.useRealTimers()
   })
 
   it('adds toasts and removes them after dismissal delay', () => {
@@ -87,7 +87,7 @@ describe('toast function', () => {
     expect(result.current.toasts[0].open).toBe(false)
 
     act(() => {
-      vi.advanceTimersByTime(1000000)
+      jest.advanceTimersByTime(1000000)
     })
     expect(result.current.toasts).toHaveLength(0)
   })

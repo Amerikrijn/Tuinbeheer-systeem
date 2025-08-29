@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen, fireEvent, act } from '@testing-library/react'
-import { vi } from 'vitest'
+import { jest } from '@jest/globals'
 import { ErrorBoundary } from '@/components/error-boundary'
 
 const ProblemChild = ({ message }: { message?: string }) => {
@@ -9,11 +9,11 @@ const ProblemChild = ({ message }: { message?: string }) => {
 
 describe('ErrorBoundary component', () => {
   beforeEach(() => {
-    vi.spyOn(console, 'error').mockImplementation(() => {})
+    jest.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    jest.restoreAllMocks()
   })
 
   it('renders fallback UI when child throws', () => {
@@ -34,7 +34,7 @@ describe('ErrorBoundary component', () => {
   })
 
   it('provides guidance for Supabase errors', () => {
-    vi.spyOn(ErrorBoundary, 'getDerivedStateFromError').mockImplementation(error => ({
+    jest.spyOn(ErrorBoundary, 'getDerivedStateFromError').mockImplementation(error => ({
       hasError: true,
       error,
     }))
