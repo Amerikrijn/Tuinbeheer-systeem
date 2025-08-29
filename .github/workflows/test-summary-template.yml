@@ -1,0 +1,142 @@
+name: "📊 Test Samenvatting - Altijd Op PR"
+
+on:
+  pull_request:
+    branches: [ "main", "preview", "develop", "staging" ]
+  push:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  NODE_VERSION: '18'  # Fix: Gebruik Node.js 18.x voor compatibiliteit
+  CI: true
+
+concurrency:
+  group: test-summary-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Test Samenvatting - Geen Gates, Alleen Informatie
+  test-summary:
+    name: "📊 Test Samenvatting"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 18.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests and collect summary
+        id: test-summary
+        run: |
+          echo "🧪 Running tests for samenvatting..."
+          
+          # Run tests and capture output
+          npm run test:ci > test-output.txt 2>&1 || true
+          
+          # Extract key metrics
+          TOTAL_TESTS=$(grep -o "Tests:.*passed" test-output.txt | grep -o "[0-9]* passed" | head -1 | grep -o "[0-9]*" || echo "0")
+          FAILED_TESTS=$(grep -o "[0-9]* failed" test-output.txt | head -1 | grep -o "[0-9]*" || echo "0")
+          SKIPPED_TESTS=$(grep -o "[0-9]* skipped" test-output.txt | head -1 | grep -o "[0-9]*" || echo "0")
+          
+          # Calculate coverage if available
+          COVERAGE=$(grep -o "All files.*%" test-output.txt | tail -1 | grep -o "[0-9]*%" || echo "N/A")
+          
+          # Set outputs for next step
+          echo "total_tests=$TOTAL_TESTS" >> $GITHUB_OUTPUT
+          echo "failed_tests=$FAILED_TESTS" >> $GITHUB_OUTPUT
+          echo "skipped_tests=$SKIPPED_TESTS" >> $GITHUB_OUTPUT
+          echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+          
+          # Save full output for comment
+          echo "test_output<<EOF" >> $GITHUB_OUTPUT
+          cat test-output.txt >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create test summary comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { total_tests, failed_tests, skipped_tests, coverage, test_output } = context.payload.outputs;
+            
+            // Calculate passed tests
+            const passed_tests = parseInt(total_tests) - parseInt(failed_tests) - parseInt(skipped_tests);
+            
+            // Determine status emoji and color
+            let status_emoji = "✅";
+            let status_color = "success";
+            let status_text = "Tests Geslaagd";
+            
+            if (parseInt(failed_tests) > 0) {
+              status_emoji = "⚠️";
+              status_color = "warning";
+              status_text = "Tests Met Waarschuwingen";
+            }
+            
+            if (parseInt(failed_tests) > parseInt(total_tests) * 0.1) { // >10% failure
+              status_emoji = "❌";
+              status_color = "failure";
+              status_text = "Tests Met Problemen";
+            }
+            
+            // Create comprehensive summary
+            const summary = `## 📊 Test Samenvatting - ${status_text} ${status_emoji}
+
+### 📈 Test Resultaten
+- **Totaal Tests**: ${total_tests}
+- **Geslaagd**: ${passed_tests} ✅
+- **Gefaald**: ${failed_tests} ${failed_tests > 0 ? '❌' : '✅'}
+- **Overgeslagen**: ${skipped_tests} ${skipped_tests > 0 ? '⏭️' : '✅'}
+- **Coverage**: ${coverage}
+
+### 🔍 Details
+<details>
+<summary>📋 Volledige Test Output</summary>
+
+\`\`\`
+${test_output}
+\`\`\`
+
+</details>
+
+### 💡 Belangrijk
+- **Geen strikte gates** - Gebruiker beslist zelf over deployment
+- **Informatie alleen** - Deze samenvatting helpt bij besluitvorming
+- **Altijd beschikbaar** - Elke PR krijgt deze samenvatting
+
+### 🚀 Volgende Stappen
+1. Bekijk de test resultaten hierboven
+2. Besluit of je wilt deployen of eerst issues wilt oplossen
+3. Gebruik deze informatie voor kwaliteitsbeslissingen`;
+
+            // Post comment to PR
+            if (context.eventName === 'pull_request') {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: summary
+              });
+            }
+            
+            // Also post to commit if it's a push
+            if (context.eventName === 'push') {
+              await github.rest.repos.createCommitComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+                body: summary
+              });
+            }
