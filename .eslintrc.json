@@ -1,12 +1,35 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript"],
   "rules": {
-    "@typescript-eslint/no-unused-vars": "off",
-    "@typescript-eslint/no-explicit-any": "warn",
-    "react/no-unescaped-entities": "off",
-    "@next/next/no-img-element": "off",
-    "react-hooks/exhaustive-deps": "warn",
-    "@typescript-eslint/no-require-imports": "off",
-    "import/no-anonymous-default-export": "off"
+    // STRICT MODE - Code Quality Gates
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/explicit-function-return-type": "warn",
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    "@typescript-eslint/prefer-optional-chain": "error",
+    
+    // React Strict Mode
+    "react-hooks/exhaustive-deps": "error",
+    "react/no-unescaped-entities": "error",
+    "react/jsx-no-useless-fragment": "error",
+    "react/jsx-key": "error",
+    
+    // Next.js Strict Mode
+    "@next/next/no-img-element": "error",
+    "@next/next/no-html-link-for-pages": "error",
+    
+    // Import/Export Strict Mode
+    "import/no-anonymous-default-export": "error",
+    "import/order": ["error", {
+      "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+      "newlines-between": "always"
+    }],
+    
+    // General Code Quality
+    "no-console": "warn",
+    "no-debugger": "error",
+    "prefer-const": "error",
+    "no-var": "error"
   }
 }

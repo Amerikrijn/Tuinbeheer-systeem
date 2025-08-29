@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react'
-import { describe, it, beforeEach, afterEach, expect, vi } from 'vitest'
+import { describe, it, beforeEach, afterEach, expect, jest } from '@jest/globals'
 import { useIsMobile } from '@/hooks/use-mobile'
 
 describe('useIsMobile', () => {
@@ -14,14 +14,14 @@ describe('useIsMobile', () => {
 
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
-      value: vi.fn().mockImplementation((query) => ({
+      value: jest.fn().mockImplementation((query) => ({
         matches: window.innerWidth < 768,
         media: query,
         addEventListener: (_event: string, cb: (e: MediaQueryListEvent) => void) => {
           trigger = cb
         },
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
+                  removeEventListener: jest.fn(),
+          dispatchEvent: jest.fn(),
         onchange: null,
       })),
     })
@@ -37,7 +37,7 @@ describe('useIsMobile', () => {
       value: 1024,
     })
     trigger = null
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   it('updates state when crossing the 768px breakpoint', () => {

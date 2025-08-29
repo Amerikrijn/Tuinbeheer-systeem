@@ -12,7 +12,7 @@ permissions:
   pull-requests: write
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '18'  # Fix: Gebruik Node.js 18.x voor compatibiliteit
   CI: true
 
 concurrency:

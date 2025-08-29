@@ -1,13 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import { vi } from 'vitest'
+import { jest } from '@jest/globals'
 import { LanguageSwitcher } from '@/components/language-switcher'
 
 let language = 'nl'
-const setLanguage = vi.fn((newLang: string) => {
+const setLanguage = jest.fn((newLang: string) => {
   language = newLang
 })
 
-vi.mock('@/hooks/use-language', () => ({
+jest.mock('@/hooks/use-language', () => ({
   useLanguage: () => ({ language, setLanguage })
 }))
 

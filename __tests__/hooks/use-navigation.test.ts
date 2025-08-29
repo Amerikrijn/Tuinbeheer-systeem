@@ -1,30 +1,36 @@
 import { renderHook, act } from '@testing-library/react'
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 import { useNavigation } from '@/hooks/use-navigation'
-import { useRouter } from 'next/navigation'
 
-let push: ReturnType<typeof vi.fn>
-let replace: ReturnType<typeof vi.fn>
+// Mock the useRouter hook
+const mockPush = jest.fn()
+const mockReplace = jest.fn()
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    replace: mockReplace
+  })
+}))
+
+let push: ReturnType<typeof jest.fn>
+let replace: ReturnType<typeof jest.fn>
 
 describe('useNavigation', () => {
   beforeEach(() => {
-    push = vi.fn()
-    replace = vi.fn()
-    vi.mocked(useRouter).mockReturnValue({
-      push,
-      replace,
-    } as any)
-    vi.clearAllMocks()
+    push = mockPush
+    replace = mockReplace
+    jest.clearAllMocks()
   })
 
   afterEach(() => {
     // reset history length to default
     Object.defineProperty(window.history, 'length', { configurable: true, value: 1 })
-    vi.restoreAllMocks()
+    jest.restoreAllMocks()
   })
 
   it('uses browser history when available', () => {
-    const backSpy = vi.spyOn(window.history, 'back').mockImplementation(() => {})
+    const backSpy = jest.spyOn(window.history, 'back').mockImplementation(() => {})
     Object.defineProperty(window.history, 'length', { configurable: true, value: 2 })
 
     const { result } = renderHook(() => useNavigation())
@@ -38,7 +44,7 @@ describe('useNavigation', () => {
   })
 
   it('falls back to router.push when history is unavailable', () => {
-    const backSpy = vi.spyOn(window.history, 'back').mockImplementation(() => {})
+    const backSpy = jest.spyOn(window.history, 'back').mockImplementation(() => {})
     Object.defineProperty(window.history, 'length', { configurable: true, value: 1 })
 
     const { result } = renderHook(() => useNavigation())

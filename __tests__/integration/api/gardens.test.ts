@@ -1,7 +1,15 @@
 import { createRequest, createResponse } from 'node-mocks-http'
-import { NextRequest } from 'next/server'
 import { GET, POST } from '@/app/api/gardens/route'
 import { mockGardenData, mockGardensArray } from '@/__tests__/setup/supabase-mock'
+
+// Mock NextRequest from next/server to use our mock
+jest.mock('next/server', () => ({
+  NextRequest: global.NextRequest,
+  NextResponse: global.NextResponse
+}));
+
+// Import after mocking
+import { NextRequest } from 'next/server'
 
 // Mock the supabase client
 jest.mock('@/lib/supabase', () => {

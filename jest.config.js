@@ -8,9 +8,13 @@ const createJestConfig = nextJest({
 // Add any custom config to be passed to Jest
 const customJestConfig = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  setupFiles: ['<rootDir>/jest.env.js'], // Load test environment variables
   moduleNameMapper: {
     // Handle module aliases (this will be automatically configured for you based on your tsconfig.json paths)
     '^@/(.*)$': '<rootDir>/$1',
+    // Mock modules that cause issues in tests
+    '^radix-ui/react-toggle-group$': '<rootDir>/__tests__/mocks/radix-ui-toggle-group.ts',
+    '^radix-ui/react-label$': '<rootDir>/__tests__/mocks/radix-ui-label.ts',
   },
   testEnvironment: 'jest-environment-jsdom',
   collectCoverageFrom: [
@@ -19,7 +23,19 @@ const customJestConfig = {
     'lib/**/*.{js,jsx,ts,tsx}',
     'hooks/**/*.{js,jsx,ts,tsx}',
     '!**/*.d.ts',
+    '!**/*.config.{js,ts}',
+    '!**/jest.setup.js',
+    '!**/jest.env.js',
   ],
+  // COVERAGE REQUIREMENTS - Quality Gate
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80
+    }
+  },
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],

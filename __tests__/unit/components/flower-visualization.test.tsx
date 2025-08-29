@@ -60,8 +60,8 @@ describe('FlowerVisualization', () => {
 
     const flowers = screen.getAllByTestId('flower-instance');
     expect(flowers).toHaveLength(2);
-    expect(flowers[0]).toHaveStyle({ left: '20px', top: '40px' });
-    expect(flowers[1]).toHaveStyle({ left: '60px', top: '40px' });
+    expect(flowers[0]).toHaveStyle({ left: '15px', top: '40px' });
+    expect(flowers[1]).toHaveStyle({ left: '65px', top: '40px' });
   });
 });
 

@@ -23,7 +23,7 @@ const buttonVariants = cva(
         default: "h-10 px-4 py-2",
         sm: "h-9 rounded-md px-3",
         lg: "h-11 rounded-md px-8",
-        icon: "h-10 w-10 md:h-10 md:w-10 h-9 w-9",
+        icon: "h-10 w-10",
       },
     },
     defaultVariants: {
@@ -46,6 +46,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        data-testid={`button-${variant || 'default'}-${size || 'default'}`}
         {...props}
       />
     )

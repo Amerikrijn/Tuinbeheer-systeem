@@ -1,59 +1,75 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals'
+
+// Mock crypto before any imports that might use it
+Object.defineProperty(global, 'crypto', {
+  value: {
+    randomUUID: () => 'test-uuid-' + Math.random().toString(36).substr(2, 9),
+    getRandomValues: (array) => {
+      for (let i = 0; i < array.length; i++) {
+        array[i] = Math.floor(Math.random() * 256);
+      }
+      return array;
+    }
+  }
+});
+
+// Mock the entire supabase module to avoid crypto issues
+jest.mock('@/lib/supabase', () => ({
+  getSupabaseClient: jest.fn(() => mockSupabaseClient),
+}))
+
 import { useAuth, SupabaseAuthProvider } from '@/hooks/use-supabase-auth'
 import { getSupabaseClient } from '@/lib/supabase'
 
 // Mock Supabase client
 const mockSupabaseClient = {
   auth: {
-    signInWithPassword: vi.fn(),
-    signOut: vi.fn(),
-    signUp: vi.fn(),
-    resetPasswordForEmail: vi.fn(),
-    getUser: vi.fn(),
-    getSession: vi.fn(),
-    onAuthStateChange: vi.fn(),
+    signInWithPassword: jest.fn(),
+    signOut: jest.fn(),
+    signUp: jest.fn(),
+    resetPasswordForEmail: jest.fn(),
+    getUser: jest.fn(),
+    getSession: jest.fn(),
+    onAuthStateChange: jest.fn(),
   },
-  from: vi.fn(),
+      from: jest.fn(),
 }
 
 const createFromMock = (user: any) => {
-  const single = vi.fn().mockResolvedValue({ data: user, error: null })
+  const single = jest.fn().mockResolvedValue({ data: user, error: null })
   const query = {
-    eq: vi.fn(),
+          eq: jest.fn(),
     single,
   }
   query.eq.mockReturnValue(query)
   return {
-    select: vi.fn().mockReturnValue(query),
+    select: jest.fn().mockReturnValue(query),
   }
 }
 
-// Mock the getSupabaseClient function
-vi.mock('@/lib/supabase', () => ({
-  getSupabaseClient: vi.fn(() => mockSupabaseClient),
-}))
+// Mock already defined above
 
 // Mock localStorage
 const localStorageMock = {
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-  removeItem: vi.fn(),
-  clear: vi.fn(),
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
 }
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 })
 
 // Mock console.error to avoid noise in tests
-const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
 describe('useAuth', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
     localStorageMock.clear()
     consoleSpy.mockClear()
-    vi.mocked(getSupabaseClient).mockReturnValue(mockSupabaseClient)
+    jest.mocked(getSupabaseClient).mockReturnValue(mockSupabaseClient)
     mockSupabaseClient.auth.getSession.mockResolvedValue({
       data: { session: null },
       error: null,
@@ -63,7 +79,7 @@ describe('useAuth', () => {
       error: null,
     })
     mockSupabaseClient.auth.onAuthStateChange.mockReturnValue({
-      data: { subscription: { unsubscribe: vi.fn() } },
+      data: { subscription: { unsubscribe: jest.fn() } },
     })
   })
 
@@ -349,7 +365,7 @@ describe('useAuth', () => {
 
   it('should handle Supabase client initialization errors', () => {
     // Mock getSupabaseClient to throw an error
-    vi.mocked(getSupabaseClient).mockImplementation(() => {
+    jest.mocked(getSupabaseClient).mockImplementation(() => {
       throw new Error('Supabase client unavailable')
     })
 

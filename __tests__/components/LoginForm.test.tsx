@@ -1,9 +1,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { vi } from 'vitest'
+import { jest } from '@jest/globals'
 import { LoginForm } from '@/components/LoginForm'
 
 // Mock the UI components to avoid complex dependencies
-vi.mock('@/components/ui/card', () => ({
+jest.mock('@/components/ui/card', () => ({
   Card: ({ children }: { children: React.ReactNode }) => <div data-testid="card">{children}</div>,
   CardContent: ({ children }: { children: React.ReactNode }) => <div data-testid="card-content">{children}</div>,
   CardDescription: ({ children }: { children: React.ReactNode }) => <div data-testid="card-description">{children}</div>,
@@ -11,24 +11,24 @@ vi.mock('@/components/ui/card', () => ({
   CardTitle: ({ children }: { children: React.ReactNode }) => <h2 data-testid="card-title">{children}</h2>,
 }))
 
-vi.mock('@/components/ui/button', () => ({
+jest.mock('@/components/ui/button', () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
 }))
 
-vi.mock('@/components/ui/input', () => ({
+jest.mock('@/components/ui/input', () => ({
   Input: (props: any) => <input {...props} />,
 }))
 
-vi.mock('@/components/ui/label', () => ({
+jest.mock('@/components/ui/label', () => ({
   Label: ({ children, ...props }: any) => <label {...props}>{children}</label>,
 }))
 
-vi.mock('@/components/ui/alert', () => ({
+jest.mock('@/components/ui/alert', () => ({
   Alert: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   AlertDescription: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
 }))
 
-vi.mock('lucide-react', () => ({
+jest.mock('lucide-react', () => ({
   Mail: () => <span data-testid="mail-icon">📧</span>,
   Lock: () => <span data-testid="lock-icon">🔒</span>,
   Eye: () => <span data-testid="eye-icon">👁️</span>,
@@ -38,10 +38,10 @@ vi.mock('lucide-react', () => ({
 }))
 
 describe('LoginForm', () => {
-  const mockOnLogin = vi.fn()
+  const mockOnLogin = jest.fn()
 
   beforeEach(() => {
-    vi.clearAllMocks()
+    jest.clearAllMocks()
   })
 
   it('should render login form with all elements', () => {

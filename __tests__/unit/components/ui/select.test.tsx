@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import { jest } from '@jest/globals';
 import {
   Select,
   SelectGroup,
@@ -15,12 +15,12 @@ import {
   SelectScrollDownButton,
 } from '@/components/ui/select';
 
-vi.mock('@/lib/utils', () => ({
+jest.mock('@/lib/utils', () => ({
   cn: (...classes: any[]) => classes.filter(Boolean).join(' ')
 }));
 
 // Mock the Radix UI Select components to properly render with data-testid
-vi.mock('@radix-ui/react-select', () => ({
+jest.mock('@radix-ui/react-select', () => ({
   Root: React.forwardRef(({ children, ...props }: any, ref: any) => (
     <div ref={ref} data-testid="select-root" {...props}>
       {children}
@@ -128,7 +128,7 @@ vi.mock('@radix-ui/react-select', () => ({
   ),
 }));
 
-vi.mock('lucide-react', () => ({
+jest.mock('lucide-react', () => ({
   Check: ({ ...props }: any) => (
     <span data-testid="check-icon" {...props}>✓</span>
   ),

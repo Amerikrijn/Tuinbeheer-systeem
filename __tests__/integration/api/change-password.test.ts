@@ -1,9 +1,9 @@
 import { POST } from '@/app/api/user/change-password/route'
 import type { NextRequest } from 'next/server'
-import { vi } from 'vitest'
+import { jest } from '@jest/globals'
 
-vi.mock('@/lib/supabase', () => ({
-  getSupabaseAdminClient: vi.fn(),
+jest.mock('@/lib/supabase', () => ({
+  getSupabaseAdminClient: jest.fn(),
 }))
 import { getSupabaseAdminClient } from '@/lib/supabase'
 

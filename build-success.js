@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 console.log('🚀 Starting custom Next.js build for Vercel...');
-// 🔧 Build validation updated for Vitest instead of Jest
+// 🔧 Build validation updated for Jest
 
 // Set environment variables
 process.env.SKIP_ENV_VALIDATION = '1';
@@ -42,12 +42,7 @@ function validateStandards() {
     }
   }
 
-  if (config.checks?.vitestConfigPresent) {
-    const vitestCfg = path.join(process.cwd(), 'vitest.config.ts');
-    if (!fs.existsSync(vitestCfg)) {
-      errors.push('Vitest configuratie ontbreekt (vitest.config.ts)');
-    }
-  }
+
 
   if (Array.isArray(config.checks?.rlsPolicyFiles)) {
     const missingRls = config.checks.rlsPolicyFiles.filter((p) => !fs.existsSync(path.join(process.cwd(), p)));
