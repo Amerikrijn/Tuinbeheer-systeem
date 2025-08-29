@@ -8,9 +8,21 @@ import { useToast } from '@/hooks/use-toast'
 const INACTIVITY_TIMEOUT = 60 * 60 * 1000 // 60 minutes in milliseconds  
 const WARNING_TIME = 10 * 60 * 1000 // Show warning 10 minutes before logout
 
-export function useActivityTimeout() {
+export function useActivityTimeout(authOverride?: any) {
   // Get auth, but handle gracefully if not available
-  const auth = useAuth()
+  let auth: any;
+  
+  if (authOverride !== undefined && authOverride !== null) {
+    auth = authOverride;
+  } else {
+    try {
+      auth = useAuth();
+    } catch (error) {
+      // In test environment or when context is not available, return undefined
+      return;
+    }
+  }
+  
   const user = auth?.user
   const signOut = auth?.signOut
   
