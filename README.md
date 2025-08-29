@@ -2,6 +2,8 @@ hello - Vercel deployment trigger
 
 # 🌱 Visual Garden App
 
+**TEST: hello** - Dit is een test toevoeging
+
 Lees altijd the AI agent rules. Hier staat je standaarden en je gedragsregels. WIJK hiet niet vnaa tenzij de opdracht je dat vertelt
 
 **🚨 STATUS UPDATE NA TERUGZETTEN SOFTWARE** - Deze wijziging triggert de nieuwe Main Pipeline om te testen of alle jobs nu correct werken zonder parallel jobs die niets doen!
