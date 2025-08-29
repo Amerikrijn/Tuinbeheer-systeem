@@ -1,5 +1,7 @@
 # 🌱 Tuinbeheersysteem
 
+hello
+
 Een moderne webapplicatie voor het beheren van gemeenschapstuinen, plantvakken en planten. Gebouwd met Next.js, TypeScript en Supabase.
 
 ## ✨ Functies
