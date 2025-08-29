@@ -273,42 +273,23 @@ function HomePageContent() {
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl safe-area-px">
-      {/* Unified Header - Mobile First */}
+      {/* Clean Header - No Duplicate Navigation */}
       <UnifiedHeader
         title="🌱 Tuinbeheer"
         subtitle="Beheer je tuinen, planten en taken op één centrale plek"
         icon="tree"
         variant="default"
         actions={
-          <>
-            <UnifiedButton
-              variant="ghost"
-              size="compact"
-              onClick={() => router.push('/logbook')}
-              icon={<BookOpen className="w-4 h-4" />}
-              fullWidth={true}
-            >
-              Logboek
-            </UnifiedButton>
-            <UnifiedButton
-              variant="ghost"
-              size="compact"
-              onClick={() => router.push('/tasks')}
-              icon={<ClipboardList className="w-4 h-4" />}
-              fullWidth={true}
-            >
-              Taken
-            </UnifiedButton>
-            <UnifiedButton
-              variant="primary"
-              size="compact"
-              onClick={() => router.push('/gardens/new')}
-              icon={<Plus className="w-4 h-4" />}
-              fullWidth={true}
-            >
-              Nieuwe Tuin
-            </UnifiedButton>
-          </>
+          <UnifiedButton
+            variant="primary"
+            size="compact"
+            onClick={() => router.push('/gardens/new')}
+            icon={<Plus className="w-4 h-4" />}
+            fullWidth={true}
+            className="sm:w-auto"
+          >
+            Nieuwe Tuin
+          </UnifiedButton>
         }
       />
 
