@@ -15,6 +15,7 @@ import { Plus, MoreHorizontal, Edit, UserCheck, UserX, TreePine, Loader2, Key, T
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { CreateUserDialog } from '@/components/admin/create-user-dialog'
 import { EditUserDialog } from '@/components/admin/edit-user-dialog'
+import React from 'react'
 
 interface User {
   id: string
@@ -55,6 +56,37 @@ function AdminUsersPageContent() {
   const [tempPassword, setTempPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [passwordCopied, setPasswordCopied] = useState(false)
+
+  // State for individual user operations
+  const [userOperations, setUserOperations] = useState<{
+    [userId: string]: {
+      editing: boolean
+      resetting: boolean
+      deleting: boolean
+    }
+  }>({})
+
+  // Initialize user operations state
+  React.useEffect(() => {
+    if (users.length > 0) {
+      const initialOperations = users.reduce((acc, user) => {
+        acc[user.id] = { editing: false, resetting: false, deleting: false }
+        return acc
+      }, {} as typeof userOperations)
+      setUserOperations(initialOperations)
+    }
+  }, [users])
+
+  // Update user operation state
+  const updateUserOperation = (userId: string, operation: keyof typeof userOperations[string], value: boolean) => {
+    setUserOperations(prev => ({
+      ...prev,
+      [userId]: {
+        ...prev[userId],
+        [operation]: value
+      }
+    }))
+  }
 
   useEffect(() => {
     if (currentUser && isAdmin()) {
@@ -101,19 +133,19 @@ function AdminUsersPageContent() {
   }
 
   const handleResetPassword = async (user: User) => {
-    setSelectedUser(user)
-    setResetting(true)
+    if (!confirm(`Weet je zeker dat je het wachtwoord wilt resetten voor ${user.full_name || user.email}?`)) {
+      return
+    }
+    
+    updateUserOperation(user.id, 'resetting', true)
     
     try {
-      const response = await fetch('/api/admin/users', {
-        method: 'PUT',
+      const response = await fetch('/api/admin/users/reset-password', {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          userId: user.id,
-          action: 'reset_password'
-        })
+        body: JSON.stringify({ userId: user.id })
       })
 
       const result = await response.json()
@@ -122,10 +154,9 @@ function AdminUsersPageContent() {
         throw new Error(result.error || 'Password reset failed')
       }
 
-      // Show new password to admin
-      setTempPassword(result.user.newPassword)
-      setIsPasswordResetDialogOpen(true)
-      
+      setTempPassword(result.user.tempPassword)
+      setShowPassword(true)
+
       toast({
         title: "Wachtwoord gereset",
         description: `Nieuw tijdelijk wachtwoord ingesteld voor ${result.user.fullName}`,
@@ -154,7 +185,7 @@ function AdminUsersPageContent() {
         variant: "destructive"
       })
     } finally {
-      setResetting(false)
+      updateUserOperation(user.id, 'resetting', false)
     }
   }
 
@@ -162,6 +193,8 @@ function AdminUsersPageContent() {
     if (!confirm(`Weet je zeker dat je ${user.full_name || user.email} wilt verwijderen naar de prullenbak?`)) {
       return
     }
+    
+    updateUserOperation(user.id, 'deleting', true)
     
     try {
       const response = await fetch(`/api/admin/users?userId=${user.id}`, {
@@ -203,6 +236,8 @@ function AdminUsersPageContent() {
         description: errorMessage,
         variant: "destructive"
       })
+    } finally {
+      updateUserOperation(user.id, 'deleting', false)
     }
   }
 
@@ -351,19 +386,27 @@ function AdminUsersPageContent() {
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleResetPassword(user)}
-                          disabled={user.id === currentUser?.id || resetting}
+                          disabled={user.id === currentUser?.id || userOperations[user.id]?.resetting}
                           className="text-orange-600 hover:text-orange-700"
                         >
-                          <Key className="w-4 h-4 mr-2" />
-                          Wachtwoord Resetten
+                          {userOperations[user.id]?.resetting ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Key className="h-4 w-4 mr-2" />
+                          )}
+                          {userOperations[user.id]?.resetting ? 'Resetten...' : 'Wachtwoord Resetten'}
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user)}
                           className="text-red-600 hover:text-red-700"
-                          disabled={user.id === currentUser?.id}
+                          disabled={user.id === currentUser?.id || userOperations[user.id]?.deleting}
                         >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Naar Prullenbak
+                          {userOperations[user.id]?.deleting ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-4 w-4 mr-2" />
+                          )}
+                          {userOperations[user.id]?.deleting ? 'Verwijderen...' : 'Naar Prullenbak'}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

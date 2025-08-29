@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -37,29 +37,75 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
     logMemoryUsage: true
   })
 
+  // State for memory operations
+  const [memoryOperations, setMemoryOperations] = useState({
+    cleanup: false,
+    garbageCollection: false
+  })
+
+  // Handle memory cleanup with loading state
+  const handleCleanup = async () => {
+    setMemoryOperations(prev => ({ ...prev, cleanup: true }))
+    try {
+      await executeCleanup()
+    } catch (error) {
+      console.error('Memory cleanup failed:', error)
+    } finally {
+      setMemoryOperations(prev => ({ ...prev, cleanup: false }))
+    }
+  }
+
+  // Handle garbage collection with loading state
+  const handleGarbageCollection = async () => {
+    setMemoryOperations(prev => ({ ...prev, garbageCollection: true }))
+    try {
+      await forceGarbageCollection()
+    } catch (error) {
+      console.error('Garbage collection failed:', error)
+    } finally {
+      setMemoryOperations(prev => ({ ...prev, garbageCollection: false }))
+    }
+  }
+
   // Get React Query cache statistics
   const getQueryCacheStats = () => {
-    const queries = queryClient.getQueryCache().getAll()
-    const mutations = queryClient.getMutationCache().getAll()
-    
-    return {
-      activeQueries: queries.filter(q => q.isActive()).length,
-      totalQueries: queries.length,
-      activeMutations: mutations.filter(m => m.isPending()).length,
-      totalMutations: mutations.length,
-      cacheSize: queries.length + mutations.length
+    try {
+      const queries = queryClient.getQueryCache().getAll()
+      const mutations = queryClient.getMutationCache().getAll()
+      
+      return {
+        activeQueries: queries.filter(q => q.isActive()).length,
+        totalQueries: queries.length,
+        activeMutations: mutations.filter(m => m.isPending()).length,
+        totalMutations: mutations.length,
+        cacheSize: queries.length + mutations.length
+      }
+    } catch (error) {
+      console.warn('Failed to get query cache stats:', error)
+      return {
+        activeQueries: 0,
+        totalQueries: 0,
+        activeMutations: 0,
+        totalMutations: 0,
+        cacheSize: 0
+      }
     }
   }
 
   // Get memory usage
   const getCurrentMemoryUsage = () => {
-    const memory = getMemoryUsage()
-    return memory ? {
-      used: memory.used,
-      total: memory.total,
-      limit: memory.limit,
-      percentage: Math.round((memory.used / memory.limit) * 100)
-    } : null
+    try {
+      const memory = getMemoryUsage()
+      return memory ? {
+        used: memory.used,
+        total: memory.total,
+        limit: memory.limit,
+        percentage: Math.round((memory.used / memory.limit) * 100)
+      } : null
+    } catch (error) {
+      console.warn('Failed to get memory usage:', error)
+      return null
+    }
   }
 
   // Bereken real-time statistieken
@@ -224,18 +270,20 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
               <Button
                 variant="outline"
                 size="sm"
-                onClick={executeCleanup}
+                onClick={handleCleanup}
+                disabled={memoryOperations.cleanup}
                 className="text-xs"
               >
-                Cleanup
+                {memoryOperations.cleanup ? 'Cleaning...' : 'Cleanup'}
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={forceGarbageCollection}
+                onClick={handleGarbageCollection}
+                disabled={memoryOperations.garbageCollection}
                 className="text-xs"
               >
-                GC
+                {memoryOperations.garbageCollection ? 'GCing...' : 'GC'}
               </Button>
             </div>
           </div>
@@ -374,7 +422,7 @@ export function PerformanceDashboardCompact({ className = '' }: { className?: st
         <span className="text-muted-foreground">{metrics.averageQueryTime}ms</span>
       </div>
       <div className="flex items-center space-x-1">
-        <Memory className="h-4 w-4 text-orange-500" />
+        <Cpu className="h-4 w-4 text-orange-500" />
         <span className="text-muted-foreground">{metrics.memoryUsage}MB</span>
       </div>
       {metrics.slowQueries > 0 && (

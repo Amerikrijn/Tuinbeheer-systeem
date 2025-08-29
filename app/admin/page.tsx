@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -13,7 +13,8 @@ import {
   BarChart3,
   TrendingUp,
   HardDrive,
-  Cpu
+  Cpu,
+  Loader2
 } from 'lucide-react'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-supabase-auth'
@@ -24,6 +25,48 @@ import { useServiceWorker } from '@/hooks/use-service-worker'
 export default function AdminPage() {
   const { user, isAdmin } = useAuth()
   const serviceWorker = useServiceWorker()
+  
+  // Loading states for admin actions
+  const [loadingStates, setLoadingStates] = useState({
+    databaseStatus: false,
+    systemSettings: false,
+    performanceReport: false,
+    cacheInfo: false,
+    systemLogs: false
+  })
+
+  // Handle loading state for admin actions
+  const handleAdminAction = async (action: keyof typeof loadingStates, actionFn: () => Promise<void>) => {
+    setLoadingStates(prev => ({ ...prev, [action]: true }))
+    try {
+      await actionFn()
+    } catch (error) {
+      console.error(`Error in ${action}:`, error)
+    } finally {
+      setLoadingStates(prev => ({ ...prev, [action]: false }))
+    }
+  }
+
+  // Mock admin action functions
+  const handleDatabaseStatus = async () => {
+    await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate API call
+    console.log('Database status checked')
+  }
+
+  const handleSystemSettings = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1500)) // Simulate API call
+    console.log('System settings opened')
+  }
+
+  const handlePerformanceReport = async () => {
+    await new Promise(resolve => setTimeout(resolve, 3000)) // Simulate API call
+    console.log('Performance report generated')
+  }
+
+  const handleSystemLogs = async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
+    console.log('System logs opened')
+  }
 
   // Check if user is admin
   if (!isAdmin()) {
@@ -230,9 +273,14 @@ export default function AdminPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline">
-                <Database className="w-4 h-4 mr-2" />
-                Database Status
+              <Button 
+                onClick={() => handleAdminAction('databaseStatus', handleDatabaseStatus)}
+                className="w-full" 
+                variant="outline"
+                disabled={loadingStates.databaseStatus}
+              >
+                {loadingStates.databaseStatus ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Database className="w-4 h-4 mr-2" />}
+                {loadingStates.databaseStatus ? 'Controleren...' : 'Database Status'}
               </Button>
             </CardContent>
           </Card>
@@ -245,9 +293,14 @@ export default function AdminPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline">
-                <Settings className="w-4 h-4 mr-2" />
-                Instellingen
+              <Button 
+                onClick={() => handleAdminAction('systemSettings', handleSystemSettings)}
+                className="w-full" 
+                variant="outline"
+                disabled={loadingStates.systemSettings}
+              >
+                {loadingStates.systemSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Settings className="w-4 h-4 mr-2" />}
+                {loadingStates.systemSettings ? 'Aanpassen...' : 'Instellingen'}
               </Button>
             </CardContent>
           </Card>
@@ -260,9 +313,14 @@ export default function AdminPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline">
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Rapport Genereren
+              <Button 
+                onClick={() => handleAdminAction('performanceReport', handlePerformanceReport)}
+                className="w-full" 
+                variant="outline"
+                disabled={loadingStates.performanceReport}
+              >
+                {loadingStates.performanceReport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BarChart3 className="w-4 h-4 mr-2" />}
+                {loadingStates.performanceReport ? 'Genereren...' : 'Rapport Genereren'}
               </Button>
             </CardContent>
           </Card>
@@ -279,9 +337,10 @@ export default function AdminPage() {
                 onClick={serviceWorker.getCacheInfo}
                 className="w-full" 
                 variant="outline"
+                disabled={loadingStates.cacheInfo}
               >
-                <HardDrive className="w-4 h-4 mr-2" />
-                Cache Info
+                {loadingStates.cacheInfo ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HardDrive className="w-4 h-4 mr-2" />}
+                {loadingStates.cacheInfo ? 'Laden...' : 'Cache Info'}
               </Button>
             </CardContent>
           </Card>
@@ -294,9 +353,14 @@ export default function AdminPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline">
-                <Activity className="w-4 h-4 mr-2" />
-                Logs Bekijken
+              <Button 
+                onClick={() => handleAdminAction('systemLogs', handleSystemLogs)}
+                className="w-full" 
+                variant="outline"
+                disabled={loadingStates.systemLogs}
+              >
+                {loadingStates.systemLogs ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Activity className="w-4 h-4 mr-2" />}
+                {loadingStates.systemLogs ? 'Laden...' : 'Logs Bekijken'}
               </Button>
             </CardContent>
           </Card>

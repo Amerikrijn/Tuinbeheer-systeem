@@ -113,9 +113,20 @@ export function CreateUserDialog({
       
     } catch (error: any) {
       console.error('Error creating user:', error)
+      
+      // Provide more specific error messages
+      let errorMessage = error.message || "Kon gebruiker niet aanmaken"
+      if (error.message.includes('duplicate')) {
+        errorMessage = "Een gebruiker met dit email adres bestaat al."
+      } else if (error.message.includes('permission')) {
+        errorMessage = "Geen toestemming om gebruikers aan te maken. Controleer je admin rechten."
+      } else if (error.message.includes('network')) {
+        errorMessage = "Netwerkfout. Controleer je verbinding en probeer het opnieuw."
+      }
+      
       toast({
         title: "Aanmaken mislukt",
-        description: error.message || "Kon gebruiker niet aanmaken",
+        description: errorMessage,
         variant: "destructive"
       })
     } finally {
@@ -143,6 +154,7 @@ export function CreateUserDialog({
               value={createForm.email}
               onChange={(e) => setCreateForm(prev => ({ ...prev, email: e.target.value }))}
               required
+              disabled={creating}
             />
           </div>
 
@@ -155,6 +167,7 @@ export function CreateUserDialog({
               value={createForm.fullName}
               onChange={(e) => setCreateForm(prev => ({ ...prev, fullName: e.target.value }))}
               required
+              disabled={creating}
             />
           </div>
           
@@ -163,6 +176,7 @@ export function CreateUserDialog({
             <Select 
               value={createForm.role} 
               onValueChange={(value: 'admin' | 'user') => setCreateForm(prev => ({ ...prev, role: value }))}
+              disabled={creating}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -248,6 +262,7 @@ export function CreateUserDialog({
 
         <DialogFooter>
           <Button 
+            type="button" 
             variant="outline" 
             onClick={handleClose}
             disabled={creating}
@@ -256,17 +271,17 @@ export function CreateUserDialog({
           </Button>
           <Button 
             onClick={handleCreateUser}
-            disabled={!createForm.email || !createForm.fullName || creating}
-            className="min-w-[140px]"
+            disabled={creating || !createForm.email || !createForm.fullName}
+            className="bg-green-600 hover:bg-green-700"
           >
             {creating ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Aanmaken...
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Gebruiker Aanmaken...
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Gebruiker Aanmaken
               </>
             )}
