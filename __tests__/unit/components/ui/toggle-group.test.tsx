@@ -1,17 +1,19 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
+// Mock the cn utility function
 jest.mock('@/lib/utils', () => ({
   cn: (...classes: any[]) => classes.filter(Boolean).join(' ')
 }));
 
+// Mock the toggle variants
 jest.mock('@/components/ui/toggle', () => ({
-  toggleVariants: jest.fn(() => 'mock-toggle-classes')
+  toggleVariants: ({ variant, size }: any) => `toggle-${variant}-${size}`
 }));
 
-jest.mock('radix-ui/react-toggle-group', () => ({
+jest.mock('@radix-ui/react-toggle-group', () => ({
   Root: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <div
       ref={ref}
@@ -22,12 +24,11 @@ jest.mock('radix-ui/react-toggle-group', () => ({
       {children}
     </div>
   )),
-  Item: React.forwardRef(({ className, children, value, ...props }: any, ref: any) => (
+  Item: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
     <button
       ref={ref}
       className={className}
       data-testid="toggle-group-item"
-      value={value}
       {...props}
     >
       {children}

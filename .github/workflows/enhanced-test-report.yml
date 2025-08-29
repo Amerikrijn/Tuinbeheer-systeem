@@ -44,22 +44,19 @@ jobs:
       - name: Run tests with detailed output
         id: run-tests
         run: |
-          echo "🧪 Running comprehensive test suite..."
+          echo "🧪 Running comprehensive test suite with Jest..."
           echo "Collecting real test data for detailed analysis..."
           
-          # Run tests with multiple reporters for comprehensive data collection
-          npx vitest run \
-            --reporter=verbose \
-            --reporter=junit \
-            --outputFile=test-results/junit.xml \
-            --reporter=json \
+          # Run tests with Jest for comprehensive data collection
+          npm run test:ci -- \
+            --json \
             --outputFile=test-results/test-results.json \
             --coverage \
-            --coverage.reporter=text \
-            --coverage.reporter=lcov \
-            --coverage.reporter=html \
-            --coverage.reporter=json \
-            --outputFile=test-results/coverage.json || {
+            --coverageReporters=text \
+            --coverageReporters=lcov \
+            --coverageReporters=html \
+            --coverageReporters=json \
+            --coverageDirectory=test-results/coverage || {
             echo "⚠️ Tests completed with some failures - collecting failure data..."
             echo "exit_code=$?" >> $GITHUB_OUTPUT
             exit 0
@@ -70,133 +67,86 @@ jobs:
         run: |
           echo "📊 Parsing test results and generating detailed analysis..."
           
-          # Create a comprehensive test analysis script
+          # Create a comprehensive test analysis script for Jest
           cat > parse-test-results.js << 'EOF'
           const fs = require('fs');
           const path = require('path');
           
           try {
-            // Parse JUnit XML results
-            let junitData = {};
-            if (fs.existsSync('test-results/junit.xml')) {
-              const xmlContent = fs.readFileSync('test-results/junit.xml', 'utf8');
-              // Simple XML parsing for test counts
-              const testMatches = xmlContent.match(/testsuite/g) || [];
-              const failureMatches = xmlContent.match(/failure/g) || [];
-              const errorMatches = xmlContent.match(/error/g) || [];
-              
-              junitData = {
-                totalSuites: testMatches.length,
-                totalFailures: failureMatches.length,
-                totalErrors: errorMatches.length
+            // Parse Jest JSON results
+            let testData = {};
+            if (fs.existsSync('test-results/test-results.json')) {
+              const testResults = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
+              testData = {
+                totalTests: testResults.numTotalTests || 0,
+                totalPassed: testResults.numPassedTests || 0,
+                totalFailed: testResults.numFailedTests || 0,
+                totalPending: testResults.numPendingTests || 0,
+                totalSuites: testResults.numTotalTestSuites || 0,
+                totalPassedSuites: testResults.numPassedTestSuites || 0,
+                totalFailedSuites: testResults.numFailedTestSuites || 0
               };
             }
             
             // Parse coverage data
             let coverageData = {};
-            if (fs.existsSync('test-results/coverage.json')) {
-              const coverage = JSON.parse(fs.readFileSync('test-results/coverage.json', 'utf8'));
+            if (fs.existsSync('test-results/coverage/coverage-summary.json')) {
+              const coverage = JSON.parse(fs.readFileSync('test-results/coverage/coverage-summary.json', 'utf8'));
               coverageData = {
                 total: coverage.total || {},
-                summary: coverage.summary || {}
+                files: Object.keys(coverage).filter(key => key !== 'total')
               };
             }
             
-            // Parse test results JSON
-            let testResults = {};
-            if (fs.existsSync('test-results/test-results.json')) {
-              testResults = JSON.parse(fs.readFileSync('test-results/test-results.json', 'utf8'));
-            }
+            // Calculate success rate
+            const successRate = testData.totalTests > 0 ? 
+              Math.round((testData.totalPassed / testData.totalTests) * 100) : 0;
             
-            // Generate comprehensive analysis
+            // Generate analysis
             const analysis = {
               timestamp: new Date().toISOString(),
               commit: process.env.GITHUB_SHA || 'unknown',
               branch: process.env.GITHUB_REF_NAME || 'unknown',
-              junit: junitData,
-              coverage: coverageData,
-              testResults: testResults,
               summary: {
-                totalTests: junitData.totalSuites || 0,
-                totalFailures: junitData.totalFailures || 0,
-                totalErrors: junitData.totalErrors || 0,
-                successRate: 0,
-                coverage: {
-                  lines: coverageData.total?.lines?.pct || 0,
-                  branches: coverageData.total?.branches?.pct || 0,
-                  functions: coverageData.total?.functions?.pct || 0,
-                  statements: coverageData.total?.statements?.pct || 0
-                }
-              }
+                totalTests: testData.totalTests,
+                passedTests: testData.totalPassed,
+                failedTests: testData.totalFailed,
+                pendingTests: testData.totalPending,
+                totalSuites: testData.totalSuites,
+                passedSuites: testData.totalPassedSuites,
+                failedSuites: testData.totalFailedSuites,
+                successRate: successRate
+              },
+              coverage: coverageData,
+              testResults: testData
             };
-            
-            // Calculate success rate
-            const totalTests = analysis.summary.totalTests;
-            const totalFailures = analysis.summary.totalFailures + analysis.summary.totalErrors;
-            analysis.summary.successRate = totalTests > 0 ? ((totalTests - totalFailures) / totalTests * 100).toFixed(1) : 0;
             
             // Write analysis to file
             fs.writeFileSync('test-results/analysis.json', JSON.stringify(analysis, null, 2));
             
-            // Generate markdown report
-            const report = generateMarkdownReport(analysis);
+            // Generate detailed markdown report
+            const report = generateDetailedReport(analysis);
             fs.writeFileSync('test-results/detailed-report.md', report);
             
-            // Set GitHub outputs
-            console.log(`::set-output name=total-tests::${analysis.summary.totalTests}`);
-            console.log(`::set-output name=total-failures::${analysis.summary.totalFailures}`);
-            console.log(`::set-output name=success-rate::${analysis.summary.successRate}`);
-            console.log(`::set-output name=line-coverage::${analysis.summary.coverage.lines}`);
-            
             console.log('✅ Test analysis completed successfully');
+            console.log(`📊 Success Rate: ${successRate}%`);
             
           } catch (error) {
             console.error('❌ Error parsing test results:', error);
             process.exit(1);
           }
           
-          function generateMarkdownReport(analysis) {
-            const status = analysis.summary.successRate >= 90 ? '🟢 EXCELLENT' : 
-                          analysis.summary.successRate >= 80 ? '🟡 GOOD' : 
-                          analysis.summary.successRate >= 70 ? '🟠 MODERATE' : '🔴 POOR';
-            
-            return `# 📊 **PROFESSIONAL TEST REPORT - Real Data Analysis**
+          function generateDetailedReport(analysis) {
+            return `# 🧪 PROFESSIONAL TEST REPORT
 
-## 🎯 **EXECUTIVE SUMMARY**
+## 📊 **EXECUTIVE SUMMARY**
 
-**Overall Test Health**: ${status} (${analysis.summary.successRate}% success rate)  
-**Total Tests Executed**: ${analysis.summary.totalTests}  
-**Critical Issues**: ${analysis.summary.totalFailures} tests failing  
-**Test Coverage**: ${analysis.summary.coverage.lines}% line coverage  
-**Recommendation**: ${analysis.summary.successRate >= 90 ? 'Maintain current quality' : 'Immediate action required'}
-
----
-
-## 📈 **KEY METRICS & KPIs**
-
-### **Test Execution Statistics**
-| Metric | Value | Industry Benchmark | Status |
-|--------|-------|-------------------|---------|
-| **Total Tests** | ${analysis.summary.totalTests} | 1,000+ | ${analysis.summary.totalTests >= 1000 ? '✅ Above Average' : '⚠️ Below Average'} |
-| **Pass Rate** | ${analysis.summary.successRate}% | 90%+ | ${analysis.summary.successRate >= 90 ? '✅ Above Standard' : '❌ Below Standard'} |
-| **Failure Rate** | ${(100 - analysis.summary.successRate).toFixed(1)}% | <10% | ${(100 - analysis.summary.successRate) < 10 ? '✅ Good' : '❌ Needs Improvement'} |
-| **Test Suites** | ${analysis.junit.totalSuites || 'N/A'} | N/A | ✅ Measured |
-
-### **Coverage Metrics**
-| Coverage Type | Current | Target | Gap | Priority |
-|---------------|---------|--------|-----|----------|
-| **Line Coverage** | ${analysis.summary.coverage.lines}% | 90% | ${(90 - analysis.summary.coverage.lines).toFixed(1)}% | ${analysis.summary.coverage.lines >= 90 ? '🟢 Low' : '🔴 High'} |
-| **Branch Coverage** | ${analysis.summary.coverage.branches}% | 85% | ${(85 - analysis.summary.coverage.branches).toFixed(1)}% | ${analysis.summary.coverage.branches >= 85 ? '🟢 Low' : '🔴 High'} |
-| **Function Coverage** | ${analysis.summary.coverage.functions}% | 90% | ${(90 - analysis.summary.coverage.functions).toFixed(1)}% | ${analysis.summary.coverage.functions >= 90 ? '🟢 Low' : '🟡 Medium'} |
-| **Statement Coverage** | ${analysis.summary.coverage.statements}% | 90% | ${(90 - analysis.summary.coverage.statements).toFixed(1)}% | ${analysis.summary.coverage.statements >= 90 ? '🟢 Low' : '🔴 High'} |
-
----
-
-## 🚨 **ISSUE ANALYSIS**
-
-### **Current Test Status**
-- **✅ Passing Tests**: ${analysis.summary.totalTests - analysis.summary.totalFailures} tests
-- **❌ Failing Tests**: ${analysis.summary.totalFailures} tests
+### **Test Results Overview**
+- **Total Tests**: ${analysis.summary.totalTests}
+- **Passed**: ${analysis.summary.passedTests} ✅
+- **Failed**: ${analysis.summary.failedTests} ❌
+- **Pending**: ${analysis.summary.pendingTests} ⏸️
+- **Test Suites**: ${analysis.summary.totalSuites}
 - **📊 Success Rate**: ${analysis.summary.successRate}%
 
 ### **Priority Assessment**
@@ -253,8 +203,8 @@ ${analysis.summary.successRate >= 90 ?
 
 ### **Quality Targets**
 - [ ] **Success Rate**: 90%+ (currently ${analysis.summary.successRate}%)
-- [ ] **Line Coverage**: 90%+ (currently ${analysis.summary.coverage.lines}%)
-- [ ] **Branch Coverage**: 85%+ (currently ${analysis.summary.coverage.branches}%)
+- [ ] **Line Coverage**: 90%+ (currently ${analysis.coverage.total?.lines?.pct || 'N/A'}%)
+- [ ] **Branch Coverage**: 85%+ (currently ${analysis.coverage.total?.branches?.pct || 'N/A'}%)
 - [ ] **Test Stability**: 95%+ consistency
 
 ---
@@ -262,15 +212,14 @@ ${analysis.summary.successRate >= 90 ?
 ## 🔍 **TECHNICAL DETAILS**
 
 ### **Test Execution Environment**
-- **Framework**: Vitest
-- **Coverage Tool**: @vitest/coverage-v8
-- **Reporters**: JUnit XML, JSON, HTML
+- **Framework**: Jest
+- **Coverage Tool**: Jest built-in coverage
+- **Reporters**: JSON, HTML, LCOV
 - **Environment**: GitHub Actions (Ubuntu Latest)
 
 ### **Data Collection**
-- **JUnit XML**: ${analysis.junit.totalSuites || 'N/A'} test suites analyzed
-- **Coverage Data**: ${Object.keys(analysis.coverage).length > 0 ? 'Available' : 'Not available'}
 - **Test Results**: ${Object.keys(analysis.testResults).length > 0 ? 'Available' : 'Not available'}
+- **Coverage Data**: ${Object.keys(analysis.coverage).length > 0 ? 'Available' : 'Not available'}
 
 ---
 

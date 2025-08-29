@@ -14,14 +14,6 @@ Object.defineProperty(global, 'crypto', {
   }
 });
 
-// Mock the entire supabase module to avoid crypto issues
-jest.mock('@/lib/supabase', () => ({
-  getSupabaseClient: jest.fn(() => mockSupabaseClient),
-}))
-
-import { useAuth, SupabaseAuthProvider } from '@/hooks/use-supabase-auth'
-import { getSupabaseClient } from '@/lib/supabase'
-
 // Mock Supabase client
 const mockSupabaseClient = {
   auth: {
@@ -33,22 +25,8 @@ const mockSupabaseClient = {
     getSession: jest.fn(),
     onAuthStateChange: jest.fn(),
   },
-      from: jest.fn(),
+  from: jest.fn(),
 }
-
-const createFromMock = (user: any) => {
-  const single = jest.fn().mockResolvedValue({ data: user, error: null })
-  const query = {
-          eq: jest.fn(),
-    single,
-  }
-  query.eq.mockReturnValue(query)
-  return {
-    select: jest.fn().mockReturnValue(query),
-  }
-}
-
-// Mock already defined above
 
 // Mock localStorage
 const localStorageMock = {
@@ -65,11 +43,19 @@ Object.defineProperty(window, 'localStorage', {
 const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
 describe('useAuth', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks()
     localStorageMock.clear()
     consoleSpy.mockClear()
-    jest.mocked(getSupabaseClient).mockReturnValue(mockSupabaseClient)
+    
+    // Mock the module for each test
+    jest.doMock('@/lib/supabase', () => ({
+      getSupabaseClient: jest.fn(() => mockSupabaseClient),
+    }))
+    
+    // Re-import the module to get the mocked version
+    const { useAuth, SupabaseAuthProvider } = await import('@/hooks/use-supabase-auth')
+    
     mockSupabaseClient.auth.getSession.mockResolvedValue({
       data: { session: null },
       error: null,
@@ -85,9 +71,12 @@ describe('useAuth', () => {
 
   afterEach(() => {
     consoleSpy.mockRestore()
+    jest.dontMock('@/lib/supabase')
   })
 
-  it('should initialize with default state', () => {
+  it('should initialize with default state', async () => {
+    const { useAuth, SupabaseAuthProvider } = await import('@/hooks/use-supabase-auth')
+    
     const { result } = renderHook(() => useAuth(), { wrapper: SupabaseAuthProvider })
     
     expect(result.current.user).toBeNull()
