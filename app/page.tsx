@@ -306,7 +306,7 @@ function HomePageContent() {
           </div>
         </div>
         <p className="text-muted-foreground text-sm sm:text-base">
-          Beheer je tuinen, planten en taken op één centrale plek.
+          Beheer je tuinen, planten en taken op één centrale plek. (Build v2)
         </p>
       </div>
 
