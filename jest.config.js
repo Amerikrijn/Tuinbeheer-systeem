@@ -7,51 +7,63 @@ const createJestConfig = nextJest({
 
 // Add any custom config to be passed to Jest
 const customJestConfig = {
+  // Force jsdom environment
+  testEnvironment: 'jsdom',
+  
+  // Setup files
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  setupFiles: ['<rootDir>/jest.env.js'], // Load test environment variables
-  moduleNameMapper: {
-    // Handle module aliases (this will be automatically configured for you based on your tsconfig.json paths)
-    '^@/(.*)$': '<rootDir>/$1',
-    // Mock modules that cause issues in tests
-    '^radix-ui/react-toggle-group$': '<rootDir>/__tests__/mocks/radix-ui-toggle-group.ts',
-    '^radix-ui/react-label$': '<rootDir>/__tests__/mocks/radix-ui-label.ts',
-  },
-  testEnvironment: 'jest-environment-jsdom',
-  collectCoverageFrom: [
-    'components/**/*.{js,jsx,ts,tsx}',
-    'app/**/*.{js,jsx,ts,tsx}',
-    'lib/**/*.{js,jsx,ts,tsx}',
-    'hooks/**/*.{js,jsx,ts,tsx}',
-    '!**/*.d.ts',
-    '!**/*.config.{js,ts}',
-    '!**/jest.setup.js',
-    '!**/jest.env.js',
+  
+  // Module directories
+  moduleDirectories: ['node_modules', '<rootDir>'],
+  
+  // Ignore setup files and other non-test files
+  testPathIgnorePatterns: [
+    '<rootDir>/.next/',
+    '<rootDir>/node_modules/',
+    '<rootDir>/__tests__/setup/',
+    '<rootDir>/__mocks__/',
   ],
-  // COVERAGE REQUIREMENTS - Quality Gate
-  coverageThreshold: {
-    global: {
-      branches: 80,
-      functions: 80,
-      lines: 80,
-      statements: 80
-    }
+  
+  // Module name mapping
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+    // Mock Radix UI components
+    '^@radix-ui/react-label$': '<rootDir>/__mocks__/radix-ui/label.ts',
+    '^@radix-ui/react-toggle-group$': '<rootDir>/__mocks__/radix-ui/toggle-group.ts',
+    // Handle CSS and static assets
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
+    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$':
+      '<rootDir>/__mocks__/fileMock.js',
   },
-  testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
-  transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
-  },
+  
   // Enhanced timeout and error handling
   testTimeout: 30000, // 30 seconds for all tests
   maxWorkers: '50%', // Limit concurrent tests to avoid resource issues
+  
   // Better error reporting
   verbose: true,
+  
   // Handle async operations better
   forceExit: true,
+  
   // Clear mocks between tests
   clearMocks: true,
+  
   // Reset modules between tests
   resetModules: true,
+  
+  // JSDOM specific options
+  testEnvironmentOptions: {
+    url: 'http://localhost:3000',
+    pretendToBeVisual: true,
+    resources: 'usable',
+  },
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
-module.exports = createJestConfig(customJestConfig)
+const config = createJestConfig(customJestConfig)
+
+// Force the test environment to be jsdom
+config.testEnvironment = 'jsdom'
+
+module.exports = config

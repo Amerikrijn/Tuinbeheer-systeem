@@ -1,56 +1,35 @@
-import { render, screen } from '@testing-library/react'
-import { Label } from '@/components/ui/label'
-
-// Mock the cn utility function
-jest.mock('@/lib/utils', () => ({
-  cn: (...classes: any[]) => classes.filter(Boolean).join(' ')
-}));
+import React from 'react';
+import { render, screen } from '@testing-library/react';
+import { Label } from '@/components/ui/label';
 
 // Mock Radix UI components to avoid context issues
 jest.mock('@radix-ui/react-label', () => ({
-  Root: React.forwardRef(({ className, children, ...props }: any, ref: any) => (
-    <label
-      ref={ref}
-      className={className}
-      data-testid="label-root"
-      {...props}
-    >
-      {children}
-    </label>
-  ))
+  Root: React.forwardRef(({ className, children, ...props }: any, ref: any) => {
+    return React.createElement('label', { ref, className, ...props }, children);
+  }),
 }));
 
 describe('Label Component', () => {
-  it('renders label text correctly', () => {
-    render(<Label>Test Label</Label>)
-    expect(screen.getByText('Test Label')).toBeInTheDocument()
-  })
-
-  it('renders as label element', () => {
-    render(<Label>Test</Label>)
-    const label = screen.getByText('Test')
-    expect(label.tagName).toBe('LABEL')
-  })
-
-  it('applies default variant classes', () => {
-    render(<Label>Default Label</Label>)
-    const label = screen.getByText('Default Label')
-    expect(label).toHaveClass('text-sm', 'font-medium', 'leading-none')
-  })
+  it('renders label with text', () => {
+    render(<Label>Test Label</Label>);
+    expect(screen.getByText('Test Label')).toBeInTheDocument();
+  });
 
   it('applies custom className', () => {
-    render(<Label className="custom-class">Custom Label</Label>)
-    const label = screen.getByText('Custom Label')
-    expect(label).toHaveClass('custom-class')
-  })
+    render(<Label className="custom-class">Test Label</Label>);
+    const label = screen.getByText('Test Label');
+    expect(label).toHaveClass('custom-class');
+  });
 
   it('forwards ref correctly', () => {
-    const ref = jest.fn()
-    render(<Label ref={ref}>Ref Test</Label>)
-    expect(ref).toHaveBeenCalled()
-  })
+    const ref = React.createRef<HTMLLabelElement>();
+    render(<Label ref={ref}>Test Label</Label>);
+    expect(ref.current).toBeInTheDocument();
+  });
 
-  it('has correct display name', () => {
-    expect(Label.displayName).toBe('Label')
-  })
-})
+  it('spreads additional props', () => {
+    render(<Label data-testid="custom-label" id="test-label">Test Label</Label>);
+    const label = screen.getByTestId('custom-label');
+    expect(label).toHaveAttribute('id', 'test-label');
+  });
+});

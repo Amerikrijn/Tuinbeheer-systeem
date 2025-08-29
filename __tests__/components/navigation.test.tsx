@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { jest } from '@jest/globals';
 import { Navigation } from '@/components/navigation';
-import { AllTheProviders } from '@/__tests__/setup/test-utils'
+import { AllTheProviders } from '@/__tests__/utils/test-utils'
 
 // Mock Next.js Link component
 jest.mock('next/link', () => ({

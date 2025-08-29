@@ -29,8 +29,21 @@ global.crypto = mockCrypto;
 if (typeof globalThis !== 'undefined') {
   globalThis.crypto = mockCrypto;
 }
-if (typeof window !== 'undefined') {
-  window.crypto = mockCrypto;
+
+// Ensure window object is available for jsdom
+if (typeof window === 'undefined') {
+  global.window = {};
+}
+
+// Ensure document object is available
+if (typeof document === 'undefined') {
+  global.document = {
+    createElement: jest.fn(),
+    getElementById: jest.fn(),
+    querySelector: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  };
 }
 
 // Mock voor Next.js router
@@ -62,21 +75,6 @@ global.console = {
   warn: jest.fn(),
   error: jest.fn(),
 };
-
-// Mock voor window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
 
 // Mock voor ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
@@ -110,7 +108,6 @@ const localStorageMock = {
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.localStorage = localStorageMock;
 
 // Mock voor sessionStorage
 const sessionStorageMock = {
@@ -119,7 +116,6 @@ const sessionStorageMock = {
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.sessionStorage = sessionStorageMock;
 
 // Mock voor fetch
 global.fetch = jest.fn();
@@ -127,13 +123,25 @@ global.fetch = jest.fn();
 // Mock voor vitest globals (voor compatibiliteit tijdens migratie)
 global.vi = {
   fn: jest.fn,
-  mock: jest.mock,
   spyOn: jest.spyOn,
+  mock: jest.mock,
   restoreAllMocks: jest.restoreAllMocks,
-  clearAllMocks: jest.clearAllMocks,
   resetAllMocks: jest.resetAllMocks,
+  clearAllMocks: jest.clearAllMocks,
   useFakeTimers: jest.useFakeTimers,
   useRealTimers: jest.useRealTimers,
   runAllTimers: jest.runAllTimers,
   advanceTimersByTime: jest.advanceTimersByTime,
+  advanceTimersToNextTimer: jest.advanceTimersToNextTimer,
+  clearAllTimers: jest.clearAllTimers,
+  getTimerCount: jest.getTimerCount,
+  setSystemTime: jest.setSystemTime,
+  getRealSystemTime: jest.getRealSystemTime,
+  clearSystemTime: jest.clearSystemTime,
+  isMockFunction: jest.isMockFunction,
+  mocked: jest.mocked,
+  replaceProperty: jest.replaceProperty,
+  resetModules: jest.resetModules,
 };
+
+console.log('🧪 Jest setup loaded successfully');
