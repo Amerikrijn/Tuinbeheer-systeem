@@ -103,7 +103,20 @@ export function validateInput(
   
   // XSS patterns (if HTML not allowed)
   if (!allowHtml) {
-    const xssPatterns = /(<[^>]*script|javascript:|on\w+\s*=|data:text\/html)/i;
+    // Detect any HTML tags
+    const htmlPatterns = /<[^>]*>/i;
+    if (htmlPatterns.test(input)) {
+      logClientSecurityEvent(
+        'CLIENT_XSS_ATTEMPT',
+        'HIGH',
+        false,
+        'Potential XSS attempt detected'
+      );
+      return false;
+    }
+    
+    // Also check for specific XSS patterns
+    const xssPatterns = /(javascript:|on\w+\s*=|data:text\/html)/i;
     if (xssPatterns.test(input)) {
       logClientSecurityEvent(
         'CLIENT_XSS_ATTEMPT',
@@ -484,6 +497,206 @@ export function withPerformanceMonitoring<T extends (...args: any[]) => any>(
 }
 
 // ===================================================================
+// SECURITY HEADERS
+// ===================================================================
+
+/**
+ * Returns standard security headers for banking applications
+ */
+export function getSecurityHeaders(): Record<string, string> {
+  return {
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+    'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline';"
+  };
+}
+
+// ===================================================================
+// RATE LIMITING
+// ===================================================================
+
+/**
+ * Check rate limit for user actions
+ */
+export async function checkRateLimit(
+  userId: string,
+  action: string,
+  maxRequests: number,
+  windowMs: number,
+  supabaseClient?: any
+): Promise<boolean> {
+  try {
+    const client = supabaseClient || supabase;
+    const now = new Date().toISOString();
+    const windowStart = new Date(Date.now() - windowMs).toISOString();
+
+    // Check existing rate limit record
+    const { data: existingRecord, error: selectError } = await client
+      .from('rate_limits')
+      .select('request_count, timestamp')
+      .eq('user_id', userId)
+      .eq('action', action)
+      .gte('timestamp', windowStart)
+      .single();
+
+    if (selectError && selectError.message !== 'No rows found') {
+      console.error('Rate limit check error:', selectError);
+      return false; // Fail closed for security
+    }
+
+    if (!existingRecord) {
+      // First request in window, create new record
+      const { error: insertError } = await client
+        .from('rate_limits')
+        .insert({
+          user_id: userId,
+          action: action,
+          request_count: 1,
+          timestamp: now
+        });
+
+      if (insertError) {
+        console.error('Rate limit insert error:', insertError);
+        return false;
+      }
+
+      return true;
+    }
+
+    // Check if limit exceeded
+    if (existingRecord.request_count >= maxRequests) {
+      await logClientSecurityEvent(
+        'RATE_LIMIT_EXCEEDED',
+        'HIGH',
+        false,
+        `Rate limit exceeded for user ${userId}, action ${action}`
+      );
+      return false;
+    }
+
+    // Increment request count
+    const { error: updateError } = await client
+      .from('rate_limits')
+      .update({ request_count: existingRecord.request_count + 1 })
+      .eq('user_id', userId)
+      .eq('action', action)
+      .gte('timestamp', windowStart);
+
+    if (updateError) {
+      console.error('Rate limit update error:', updateError);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Rate limit error:', error);
+    return false; // Fail closed for security
+  }
+}
+
+// ===================================================================
+// SCHEMA-BASED VALIDATION
+// ===================================================================
+
+interface ValidationSchema {
+  [key: string]: {
+    type: 'string' | 'number' | 'boolean';
+    required?: boolean;
+    minLength?: number;
+    maxLength?: number;
+    min?: number;
+    max?: number;
+    pattern?: RegExp;
+  };
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  sanitizedData: any;
+}
+
+/**
+ * Validate API input against a schema with detailed error reporting
+ */
+export function validateApiInputWithSchema(
+  data: any,
+  schema: ValidationSchema
+): ValidationResult {
+  const errors: string[] = [];
+  const sanitizedData: any = {};
+
+  for (const [fieldName, fieldSchema] of Object.entries(schema)) {
+    const value = data[fieldName];
+
+    // Check required fields
+    if (fieldSchema.required && (value === undefined || value === null || value === '')) {
+      errors.push(`${fieldName} is verplicht`);
+      continue;
+    }
+
+    // Skip validation for undefined optional fields
+    if (value === undefined || value === null) {
+      continue;
+    }
+
+    // Type validation
+    if (fieldSchema.type === 'string') {
+      if (typeof value !== 'string') {
+        errors.push(`${fieldName} moet een string zijn`);
+        continue;
+      }
+
+      if (fieldSchema.minLength && value.length < fieldSchema.minLength) {
+        errors.push(`${fieldName} moet minimaal ${fieldSchema.minLength} karakters bevatten`);
+      }
+
+      if (fieldSchema.maxLength && value.length > fieldSchema.maxLength) {
+        errors.push(`${fieldName} moet maximaal ${fieldSchema.maxLength} karakters bevatten`);
+      }
+
+      if (fieldSchema.pattern && !fieldSchema.pattern.test(value)) {
+        errors.push(`${fieldName} heeft een ongeldig formaat`);
+      }
+
+      // Sanitize string input
+      sanitizedData[fieldName] = value.trim();
+    } else if (fieldSchema.type === 'number') {
+      if (typeof value !== 'number') {
+        errors.push(`${fieldName} moet een nummer zijn`);
+        continue;
+      }
+
+      if (fieldSchema.min !== undefined && value < fieldSchema.min) {
+        errors.push(`${fieldName} moet minimaal ${fieldSchema.min} zijn`);
+      }
+
+      if (fieldSchema.max !== undefined && value > fieldSchema.max) {
+        errors.push(`${fieldName} moet maximaal ${fieldSchema.max} zijn`);
+      }
+
+      sanitizedData[fieldName] = value;
+    } else if (fieldSchema.type === 'boolean') {
+      if (typeof value !== 'boolean') {
+        errors.push(`${fieldName} moet een boolean zijn`);
+        continue;
+      }
+
+      sanitizedData[fieldName] = value;
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    sanitizedData
+  };
+}
+
+// ===================================================================
 // EXPORT ALL BANKING SECURITY UTILITIES
 // ===================================================================
 
@@ -494,6 +707,7 @@ export default {
   // Validation
   validateInput,
   validateApiInput,
+  validateApiInputWithSchema,
   
   // Authentication & Authorization
   requireAuthentication,
@@ -513,4 +727,8 @@ export default {
   // Performance Monitoring
   PerformanceMonitor,
   withPerformanceMonitoring,
+
+  // Security Headers
+  getSecurityHeaders,
+  checkRateLimit,
 };

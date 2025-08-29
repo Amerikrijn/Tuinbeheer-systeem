@@ -1,16 +1,15 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { jest } from '@jest/globals';
-import { Navigation } from '@/components/navigation';
-import { AllTheProviders } from '@/__tests__/utils/test-utils'
 
-// Mock Next.js Link component
-jest.mock('next/link', () => ({
-  default: ({ children, href, ...props }: any) => (
-    <a href={href} {...props}>
-      {children}
-    </a>
-  ),
+// Import the useAuth mock BEFORE importing components
+import '../mocks/use-auth.mock';
+import { mockUseAuth } from '../mocks/use-auth.mock';
+
+// Mock usePathname hook BEFORE importing components
+const mockUsePathname = jest.fn();
+jest.mock('next/navigation', () => ({
+  usePathname: () => mockUsePathname(),
 }));
 
 // Mock lucide-react icons used in navigation
@@ -38,21 +37,9 @@ jest.mock('@/components/theme-toggle', () => ({
   ThemeToggle: () => <div data-testid="theme-toggle" />,
 }));
 
-// Mock useAuth and usePathname hooks
-const mockUseAuth = {
-  user: null,
-  hasPermission: jest.fn(),
-  signOut: jest.fn(),
-}
-
-jest.mock('@/hooks/use-supabase-auth', () => ({
-  useAuth: () => mockUseAuth,
-}))
-
-const mockUsePathname = jest.fn();
-jest.mock('next/navigation', () => ({
-  usePathname: () => mockUsePathname(),
-}));
+// Import components AFTER mocks
+import { Navigation } from '@/components/navigation';
+import { AllTheProviders } from '@/__tests__/utils/test-utils'
 
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
@@ -69,8 +56,21 @@ describe('Navigation', () => {
   });
 
   it('renders admin links for admin users', () => {
-    mockUseAuth.user = { role: 'admin' }
-    mockUseAuth.hasPermission.mockReturnValue(true)
+    mockUseAuth.mockReturnValue({
+      user: { role: 'admin' },
+      hasPermission: jest.fn().mockReturnValue(true),
+      signOut: jest.fn(),
+      isLoading: false,
+      isAuthenticated: true,
+      profile: null,
+      refreshProfile: jest.fn(),
+      signIn: jest.fn(),
+      signUp: jest.fn(),
+      resetPassword: jest.fn(),
+      updatePassword: jest.fn(),
+      updateProfile: jest.fn(),
+      deleteAccount: jest.fn(),
+    });
 
     renderWithProviders(<Navigation />);
 
@@ -80,8 +80,21 @@ describe('Navigation', () => {
   });
 
   it('hides admin links for non-admin users', () => {
-    mockUseAuth.user = { role: 'user' }
-    mockUsePathname.mockReturnValue(false)
+    mockUseAuth.mockReturnValue({
+      user: { role: 'user' },
+      hasPermission: jest.fn().mockReturnValue(false),
+      signOut: jest.fn(),
+      isLoading: false,
+      isAuthenticated: true,
+      profile: null,
+      refreshProfile: jest.fn(),
+      signIn: jest.fn(),
+      signUp: jest.fn(),
+      resetPassword: jest.fn(),
+      updatePassword: jest.fn(),
+      updateProfile: jest.fn(),
+      deleteAccount: jest.fn(),
+    });
 
     renderWithProviders(<Navigation />);
 
@@ -91,7 +104,21 @@ describe('Navigation', () => {
   });
 
   it('toggles mobile menu visibility', () => {
-    mockUseAuth.user = { role: 'user' }
+    mockUseAuth.mockReturnValue({
+      user: { role: 'user' },
+      hasPermission: jest.fn().mockReturnValue(false),
+      signOut: jest.fn(),
+      isLoading: false,
+      isAuthenticated: true,
+      profile: null,
+      refreshProfile: jest.fn(),
+      signIn: jest.fn(),
+      signUp: jest.fn(),
+      resetPassword: jest.fn(),
+      updatePassword: jest.fn(),
+      updateProfile: jest.fn(),
+      deleteAccount: jest.fn(),
+    });
 
     renderWithProviders(<Navigation />);
 

@@ -5,34 +5,28 @@ import { ThemeProvider } from 'next-themes';
 import { SupabaseAuthProvider } from '@/components/auth/supabase-auth-provider';
 
 // Mock providers for testing
-const MockLanguageProvider = ({ children }: { children: React.ReactNode }) => (
-  <LanguageProvider>
-    {children}
-  </LanguageProvider>
-);
+const MockLanguageProvider = ({ children }: { children: React.ReactNode }) => {
+  return React.createElement(LanguageProvider, {}, children);
+};
 
-const MockThemeProvider = ({ children }: { children: React.ReactNode }) => (
-  <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-    {children}
-  </ThemeProvider>
-);
+const MockThemeProvider = ({ children }: { children: React.ReactNode }) => {
+  return React.createElement(ThemeProvider, { 
+    attribute: "class", 
+    defaultTheme: "light", 
+    enableSystem: true 
+  }, children);
+};
 
-const MockSupabaseAuthProvider = ({ children }: { children: React.ReactNode }) => (
-  <SupabaseAuthProvider>
-    {children}
-  </SupabaseAuthProvider>
-);
+const MockSupabaseAuthProvider = ({ children }: { children: React.ReactNode }) => {
+  return React.createElement(SupabaseAuthProvider, {}, children);
+};
 
 // Custom render function with all providers
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <MockThemeProvider>
-      <MockSupabaseAuthProvider>
-        <MockLanguageProvider>
-          {children}
-        </MockLanguageProvider>
-      </MockSupabaseAuthProvider>
-    </MockThemeProvider>
+  return React.createElement(MockThemeProvider, {},
+    React.createElement(MockSupabaseAuthProvider, {},
+      React.createElement(MockLanguageProvider, {}, children)
+    )
   );
 };
 

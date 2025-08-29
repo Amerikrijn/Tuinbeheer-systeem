@@ -34,7 +34,7 @@ class NextJSLogger {
   private version: string
 
   constructor(options: { level?: LogLevel; service?: string; version?: string } = {}) {
-    this.level = options.level || (process.env.NODE_ENV === 'production' ? 'info' : 'debug')
+    this.level = options.level || (process.env.LOG_LEVEL as LogLevel) || (process.env.NODE_ENV === 'production' ? 'info' : 'debug')
     this.service = options.service || 'tuinbeheer-systeem'
     this.version = options.version || '0.1.0'
   }
@@ -51,12 +51,14 @@ class NextJSLogger {
   }
 
   private formatLogEntry(level: LogLevel, message: string, metadata?: Record<string, any>): LogEntry {
+    const { context, ...otherMetadata } = metadata || {};
     return {
       timestamp: new Date().toISOString(),
       level: level.toUpperCase(),
       message,
       correlationId: this.getCorrelationId(),
-      ...metadata,
+      context,
+      ...otherMetadata,
     }
   }
 
@@ -226,7 +228,7 @@ export class PerformanceLogger {
     this.timers.set(operationId, Date.now())
   }
 
-  static endTimer(operationId: string, operation: string, metadata?: Record<string, any>): void {
+  static endTimer(operationId: string, operation: string, metadata?: Record<string, any>): number {
     const startTime = this.timers.get(operationId)
     if (startTime) {
       const duration = Date.now() - startTime
@@ -236,6 +238,8 @@ export class PerformanceLogger {
         category: 'PERFORMANCE',
         operation,
         duration,
+        operationId,
+        durationMs: duration,
         metadata: metadata || {},
         timestamp: new Date().toISOString(),
       })
@@ -249,6 +253,16 @@ export class PerformanceLogger {
           metadata: metadata || {},
         })
       }
+      
+      return duration
+    } else {
+      logger.warn('Timer not found for operation', {
+        category: 'PERFORMANCE_WARNING',
+        operationId,
+        operation,
+        metadata: metadata || {},
+      })
+      return 0
     }
   }
 }

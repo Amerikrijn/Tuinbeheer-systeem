@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals'
 import {
   validateInput,
   validateApiInput,
+  validateApiInputWithSchema,
   getSecurityHeaders,
   checkRateLimit,
 } from '@/lib/banking-security'
@@ -44,8 +45,8 @@ describe('validateApiInput', () => {
   }
 
   it('validates and sanitizes correct data', () => {
-    const { isValid, errors, sanitizedData } = validateApiInput(
-      { name: '  Alice ', age: 30, newsletter: true },
+    const { isValid, errors, sanitizedData } = validateApiInputWithSchema(
+      { name: 'Alice', age: 30, newsletter: true },
       schema
     )
 
@@ -55,7 +56,7 @@ describe('validateApiInput', () => {
   })
 
   it('returns errors for invalid data', () => {
-    const { isValid, errors } = validateApiInput(
+    const { isValid, errors } = validateApiInputWithSchema(
       { name: 'A', age: 'old', newsletter: 'yes' } as any,
       schema
     )
@@ -67,7 +68,7 @@ describe('validateApiInput', () => {
   })
 
   it('reports missing required fields', () => {
-    const { isValid, errors } = validateApiInput({ age: 30 }, schema)
+    const { isValid, errors } = validateApiInputWithSchema({ age: 30 }, schema)
 
     expect(isValid).toBe(false)
     expect(errors).toContain('name is verplicht')
@@ -95,15 +96,18 @@ describe('checkRateLimit', () => {
   const createSupabaseMock = (singleResult: any) => {
     const single = jest.fn().mockResolvedValue(singleResult)
     const queryBuilder = {
-              eq: jest.fn().mockReturnThis(),
-        gte: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
       single,
     }
-          const select = jest.fn().mockReturnValue(queryBuilder)
-          const insert = jest.fn().mockResolvedValue({ data: null, error: null })
-          const updateBuilder = { eq: jest.fn().mockReturnThis() }
-          const update = jest.fn().mockReturnValue(updateBuilder)
-          const from = jest.fn().mockReturnValue({ select, insert, update })
+    const select = jest.fn().mockReturnValue(queryBuilder)
+    const insert = jest.fn().mockResolvedValue({ data: null, error: null })
+    const updateBuilder = { 
+      eq: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis()
+    }
+    const update = jest.fn().mockReturnValue(updateBuilder)
+    const from = jest.fn().mockReturnValue({ select, insert, update })
     return { from, select, insert, update, queryBuilder, single }
   }
 
@@ -112,10 +116,9 @@ describe('checkRateLimit', () => {
   })
 
   it('creates record for first request', async () => {
-    const mock = createSupabaseMock({ data: null, error: { message: 'not found' } })
-    ;(globalThis as any).supabase = mock
+    const mock = createSupabaseMock({ data: null, error: { message: 'No rows found' } })
 
-    const result = await checkRateLimit('user1', 'action1', 10, 60000)
+    const result = await checkRateLimit('user1', 'action1', 10, 60000, mock)
 
     expect(result).toBe(true)
     expect(mock.insert).toHaveBeenCalledWith({
@@ -128,9 +131,8 @@ describe('checkRateLimit', () => {
 
   it('increments count when under limit', async () => {
     const mock = createSupabaseMock({ data: { request_count: 5 }, error: null })
-    ;(globalThis as any).supabase = mock
 
-    const result = await checkRateLimit('user1', 'action1', 10, 60000)
+    const result = await checkRateLimit('user1', 'action1', 10, 60000, mock)
 
     expect(result).toBe(true)
     expect(mock.update).toHaveBeenCalledWith({ request_count: 6 })
@@ -138,9 +140,8 @@ describe('checkRateLimit', () => {
 
   it('blocks request when limit exceeded', async () => {
     const mock = createSupabaseMock({ data: { request_count: 10 }, error: null })
-    ;(globalThis as any).supabase = mock
 
-    const result = await checkRateLimit('user1', 'action1', 10, 60000)
+    const result = await checkRateLimit('user1', 'action1', 10, 60000, mock)
 
     expect(result).toBe(false)
     expect(mock.update).not.toHaveBeenCalled()

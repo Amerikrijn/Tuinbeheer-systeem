@@ -1,17 +1,8 @@
 import { POST } from '@/app/api/storage/ensure-bucket/route';
 
-// Mock the entire module
-jest.mock('@/lib/supabase', () => ({
-  supabaseAdmin: {
-    storage: {
-      getBucket: jest.fn(),
-      createBucket: jest.fn()
-    }
-  }
-}));
-
 describe('/api/storage/ensure-bucket (Simplified)', () => {
   let mockRequest: any;
+  let mockSupabaseAdmin: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -19,18 +10,34 @@ describe('/api/storage/ensure-bucket (Simplified)', () => {
     mockRequest = {
       json: jest.fn()
     };
+
+    // Create fresh mock for each test
+    mockSupabaseAdmin = {
+      storage: {
+        getBucket: jest.fn(),
+        createBucket: jest.fn()
+      }
+    };
+
+    // Mock the module
+    jest.doMock('@/lib/supabase', () => ({
+      supabaseAdmin: mockSupabaseAdmin
+    }));
+  });
+
+  afterEach(() => {
+    jest.dontMock('@/lib/supabase');
   });
 
   describe('POST', () => {
     it('should handle basic request with default values', async () => {
-      const { supabaseAdmin } = require('@/lib/supabase');
-      
-      supabaseAdmin.storage.getBucket.mockResolvedValue({
+      // Mock bucket doesn't exist, so it will be created
+      mockSupabaseAdmin.storage.getBucket.mockResolvedValue({
         data: null,
-        error: new Error('Bucket not found')
+        error: { message: 'Bucket not found' }
       });
       
-      supabaseAdmin.storage.createBucket.mockResolvedValue({
+      mockSupabaseAdmin.storage.createBucket.mockResolvedValue({
         data: { public: true },
         error: null
       });
@@ -44,14 +51,13 @@ describe('/api/storage/ensure-bucket (Simplified)', () => {
     });
 
     it('should handle custom bucket parameters', async () => {
-      const { supabaseAdmin } = require('@/lib/supabase');
-      
-      supabaseAdmin.storage.getBucket.mockResolvedValue({
+      // Mock bucket doesn't exist, so it will be created
+      mockSupabaseAdmin.storage.getBucket.mockResolvedValue({
         data: null,
-        error: new Error('Bucket not found')
+        error: { message: 'Bucket not found' }
       });
       
-      supabaseAdmin.storage.createBucket.mockResolvedValue({
+      mockSupabaseAdmin.storage.createBucket.mockResolvedValue({
         data: { public: false },
         error: null
       });
@@ -68,9 +74,8 @@ describe('/api/storage/ensure-bucket (Simplified)', () => {
     });
 
     it('should handle existing bucket', async () => {
-      const { supabaseAdmin } = require('@/lib/supabase');
-      
-      supabaseAdmin.storage.getBucket.mockResolvedValue({
+      // Mock bucket exists
+      mockSupabaseAdmin.storage.getBucket.mockResolvedValue({
         data: { public: true },
         error: null
       });

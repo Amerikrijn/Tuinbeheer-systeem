@@ -52,7 +52,7 @@ describe('Gardens API Route', () => {
     
     // Default mock implementations
     mockSupabase.auth.getUser.mockResolvedValue({
-      data: { user: { id: 'test-user-id' } },
+      data: { user: { id: 'user-id' } },
       error: null,
     });
     
@@ -156,6 +156,8 @@ describe('Gardens API Route', () => {
       );
       const request = new NextRequest(url);
       
+
+      
       await GET(request);
 
       expect(mockTuinService.getAll).toHaveBeenCalledWith(
@@ -165,23 +167,37 @@ describe('Gardens API Route', () => {
         20
       );
     });
+
+    it('should use default query parameters when not provided', async () => {
+      const mockGardens = { success: true, data: { data: [] } };
+      mockTuinService.getAll.mockResolvedValue(mockGardens);
+
+      const url = new URL('http://localhost:3000/api/gardens');
+      const request = new NextRequest(url);
+      
+      await GET(request);
+
+      expect(mockTuinService.getAll).toHaveBeenCalledWith(
+        undefined,
+        { field: 'created_at', direction: 'desc' },
+        1,
+        10
+      );
+    });
   });
 
   describe('POST /api/gardens', () => {
     it('should create garden successfully', async () => {
-      const mockGarden = {
-        success: true,
-        data: { id: 'new-garden-id', name: 'New Garden' },
-      };
-      
+      const mockGarden = { success: true, data: { id: '1', name: 'New Garden' } };
       mockTuinService.create.mockResolvedValue(mockGarden);
+      mockValidateApiInput.mockReturnValue(true);
+      mockValidateTuinFormData.mockReturnValue({ isValid: true, errors: [] });
 
-      const url = new URL('http://localhost:3000/api/gardens');
-      const request = new NextRequest(url, {
+      const request = new NextRequest('http://localhost:3000/api/gardens', {
         method: 'POST',
-        body: JSON.stringify({ name: 'New Garden' }),
+        body: JSON.stringify({ name: 'New Garden' })
       });
-      
+
       const response = await POST(request);
       const data = await response.json();
 
@@ -189,10 +205,10 @@ describe('Gardens API Route', () => {
       expect(data).toEqual(mockGarden);
       expect(mockTuinService.create).toHaveBeenCalledWith({ name: 'New Garden' });
       expect(mockAuditLogger.logUserAction).toHaveBeenCalledWith(
-        'test-user-id',
+        'user-id',
         'CREATE',
         'gardens',
-        'new-garden-id',
+        '1',
         { name: 'New Garden' }
       );
     });
@@ -218,17 +234,17 @@ describe('Gardens API Route', () => {
     });
 
     it('should handle validation failure', async () => {
+      mockValidateApiInput.mockReturnValue(true);
       mockValidateTuinFormData.mockReturnValue({
         isValid: false,
-        errors: [{ message: 'Name is required' }],
+        errors: [{ message: 'Name is required' }]
       });
 
-      const url = new URL('http://localhost:3000/api/gardens');
-      const request = new NextRequest(url, {
+      const request = new NextRequest('http://localhost:3000/api/gardens', {
         method: 'POST',
-        body: JSON.stringify({}),
+        body: JSON.stringify({})
       });
-      
+
       const response = await POST(request);
       const data = await response.json();
 
@@ -243,17 +259,16 @@ describe('Gardens API Route', () => {
     });
 
     it('should handle service creation failure', async () => {
-      mockTuinService.create.mockResolvedValue({
-        success: false,
-        error: 'Garden already exists',
+      const mockError = { success: false, error: 'Garden already exists' };
+      mockTuinService.create.mockResolvedValue(mockError);
+      mockValidateApiInput.mockReturnValue(true);
+      mockValidateTuinFormData.mockReturnValue({ isValid: true, errors: [] });
+
+      const request = new NextRequest('http://localhost:3000/api/gardens', {
+        method: 'POST',
+        body: JSON.stringify({ name: 'Existing Garden' })
       });
 
-      const url = new URL('http://localhost:3000/api/gardens');
-      const request = new NextRequest(url, {
-        method: 'POST',
-        body: JSON.stringify({ name: 'Existing Garden' }),
-      });
-      
       const response = await POST(request);
       const data = await response.json();
 
@@ -263,14 +278,15 @@ describe('Gardens API Route', () => {
     });
 
     it('should handle unexpected errors', async () => {
+      mockValidateApiInput.mockReturnValue(true);
+      mockValidateTuinFormData.mockReturnValue({ isValid: true, errors: [] });
       mockTuinService.create.mockRejectedValue(new Error('Database connection failed'));
 
-      const url = new URL('http://localhost:3000/api/gardens');
-      const request = new NextRequest(url, {
+      const request = new NextRequest('http://localhost:3000/api/gardens', {
         method: 'POST',
-        body: JSON.stringify({ name: 'New Garden' }),
+        body: JSON.stringify({ name: 'New Garden' })
       });
-      
+
       const response = await POST(request);
       const data = await response.json();
 

@@ -141,7 +141,9 @@ describe('Plant Beds API Route', () => {
     it('should handle unexpected errors gracefully', async () => {
       // Create a mock query that throws an error
       const mockQuery = {
-        select: jest.fn().mockRejectedValue(new Error('Unexpected error')),
+        select: jest.fn().mockImplementation(() => {
+          throw new Error('Unexpected error');
+        }),
       };
 
       mockSupabase.from.mockReturnValue(mockQuery);
