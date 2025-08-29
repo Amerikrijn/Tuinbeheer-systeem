@@ -268,7 +268,7 @@ function HomePageContent() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
-      {/* Header - Mobile First */}
+      {/* Header - Mobile First - Build Trigger */}
       <div className="mb-6 sm:mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-6 mb-4">
           <div className="flex items-center gap-3">
