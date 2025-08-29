@@ -1,232 +1,302 @@
 "use client"
+
+import { useState } from "react"
 import Link from "next/link"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { TreePine, Calendar, Smartphone, Users, Leaf, Plus, ArrowRight } from "lucide-react"
+import { Separator } from "@/components/ui/separator"
+import {
+  Sprout,
+  Calendar,
+  Users,
+  BarChart3,
+  Plus,
+  MapPin,
+  Droplets,
+  Sun,
+  Thermometer,
+  Wind,
+  CloudRain,
+} from "lucide-react"
 import { useLanguage } from "@/hooks/use-language"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 export default function HomePage() {
   const { t } = useLanguage()
+  const [weatherData] = useState({
+    temperature: 22,
+    humidity: 65,
+    windSpeed: 12,
+    condition: "partly-cloudy",
+    forecast: [
+      { day: "Vandaag", temp: 22, condition: "sunny" },
+      { day: "Morgen", temp: 19, condition: "rainy" },
+      { day: "Overmorgen", temp: 24, condition: "sunny" },
+    ],
+  })
 
-  const features = [
-    {
-      icon: TreePine,
-      title: "Tuinbeheer",
-      description: "Beheer meerdere tuinen met gedetailleerde informatie over locatie, afmetingen en onderhoud.",
-      color: "text-green-600",
-    },
-    {
-      icon: Leaf,
-      title: "Plantvakken",
-      description: "Organiseer je tuin in plantvakken met verschillende zonligging en grondsoorten.",
-      color: "text-emerald-600",
-    },
-    {
-      icon: Users,
-      title: "Vrijwilligers",
-      description: "Coördineer vrijwilligerswerk en houd bij wie wanneer welke taken uitvoert.",
-      color: "text-blue-600",
-    },
-    {
-      icon: Calendar,
-      title: "Planning",
-      description: "Plan verzorgingsactiviteiten en houd een kalender bij van alle tuinactiviteiten.",
-      color: "text-purple-600",
-    },
+  const quickStats = [
+    { label: t("gardens"), value: "12", icon: MapPin, color: "text-green-600" },
+    { label: t("plantBeds"), value: "48", icon: Sprout, color: "text-blue-600" },
+    { label: t("plants"), value: "324", icon: Sprout, color: "text-purple-600" },
+    { label: t("volunteers"), value: "28", icon: Users, color: "text-orange-600" },
   ]
 
-  const quickActions = [
-    {
-      title: "Nieuwe Tuin",
-      description: "Voeg een nieuwe tuin toe",
-      href: "/gardens/new",
-      icon: Plus,
-      color: "bg-green-600 hover:bg-green-700",
-    },
-    {
-      title: "Kalender",
-      description: "Bekijk geplande activiteiten",
-      href: "/calendar",
-      icon: Calendar,
-      color: "bg-blue-600 hover:bg-blue-700",
-    },
-    {
-      title: "Mobiele App",
-      description: "Optimaal voor onderweg",
-      href: "/mobile",
-      icon: Smartphone,
-      color: "bg-purple-600 hover:bg-purple-700",
-    },
+  const recentActivities = [
+    { action: "Nieuwe tuin toegevoegd", garden: "Stadspark Noord", time: "2 uur geleden" },
+    { action: "Planten water gegeven", garden: "Gemeenschapstuin West", time: "4 uur geleden" },
+    { action: "Oogst geregistreerd", garden: "Schooltuin Centrum", time: "1 dag geleden" },
   ]
 
-  const steps = [
-    {
-      number: "1",
-      title: "Maak een Tuin",
-      description: "Begin met het aanmaken van je eerste tuin met locatie en basisinformatie.",
-    },
-    {
-      number: "2",
-      title: "Voeg Plantvakken toe",
-      description: "Verdeel je tuin in plantvakken op basis van zonligging en gebruik.",
-    },
-    {
-      number: "3",
-      title: "Beheer Planten",
-      description: "Voeg planten toe aan plantvakken en houd hun groei en verzorging bij.",
-    },
-    {
-      number: "4",
-      title: "Coördineer Activiteiten",
-      description: "Plan verzorgingsactiviteiten en coördineer vrijwilligerswerk.",
-    },
+  const upcomingTasks = [
+    { task: "Water geven - Tomaten", garden: "Stadspark Noord", due: "Vandaag 14:00" },
+    { task: "Onkruid wieden", garden: "Gemeenschapstuin West", due: "Morgen 09:00" },
+    { task: "Zaden planten", garden: "Schooltuin Centrum", due: "Vrijdag 10:00" },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50">
-      {/* Hero Section */}
-      <section className="container mx-auto px-6 py-16 text-center">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-6 flex justify-center">
-            <Badge variant="secondary" className="px-4 py-2 text-sm">
-              🌱 Tuinbeheersysteem v1.0
-            </Badge>
-          </div>
-
-          <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 md:text-6xl">
-            Beheer je{" "}
-            <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
-              Gemeenschapstuin
-            </span>{" "}
-            met gemak
-          </h1>
-
-          <p className="mb-8 text-xl text-gray-600 md:text-2xl">
-            Een moderne webapplicatie voor het beheren van tuinen, plantvakken en planten. Coördineer vrijwilligerswerk
-            en houd de voortgang bij.
-          </p>
-
-          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
-              <Link href="/gardens" className="flex items-center gap-2">
-                <TreePine className="h-5 w-5" />
-                Bekijk Tuinen
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/gardens/new" className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                Nieuwe Tuin
-              </Link>
-            </Button>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-3">
+              <div className="bg-green-600 p-2 rounded-lg">
+                <Sprout className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-gray-900">{t("gardenManagement")}</h1>
+                <p className="text-sm text-gray-500">{t("welcomeBack")}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <LanguageSwitcher />
+              <Button variant="outline" size="sm">
+                <Users className="h-4 w-4 mr-2" />
+                {t("profile")}
+              </Button>
+            </div>
           </div>
         </div>
-      </section>
+      </header>
 
-      {/* Quick Actions */}
-      <section className="container mx-auto px-6 py-16">
-        <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-gray-900">Snelle Acties</h2>
-          <p className="text-lg text-gray-600">Kom snel aan de slag met deze handige shortcuts</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">{t("welcomeToGardenSystem")}</h2>
+          <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">{t("systemDescription")}</p>
+
+          {/* Quick Actions */}
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            <Link href="/gardens/new">
+              <Button size="lg" className="bg-green-600 hover:bg-green-700">
+                <Plus className="h-5 w-5 mr-2" />
+                {t("addNewGarden")}
+              </Button>
+            </Link>
+            <Link href="/gardens">
+              <Button variant="outline" size="lg">
+                <MapPin className="h-5 w-5 mr-2" />
+                {t("viewGardens")}
+              </Button>
+            </Link>
+            <Link href="/calendar">
+              <Button variant="outline" size="lg">
+                <Calendar className="h-5 w-5 mr-2" />
+                {t("calendar")}
+              </Button>
+            </Link>
+          </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
-          {quickActions.map((action, index) => (
-            <Card key={index} className="group cursor-pointer transition-all hover:shadow-lg">
-              <Link href={action.href}>
-                <CardContent className="p-6">
-                  <div
-                    className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg ${action.color} text-white`}
-                  >
-                    <action.icon className="h-6 w-6" />
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {quickStats.map((stat, index) => (
+            <Card key={index} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
+                    <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
                   </div>
-                  <h3 className="mb-2 text-xl font-semibold text-gray-900">{action.title}</h3>
-                  <p className="text-gray-600">{action.description}</p>
-                  <div className="mt-4 flex items-center text-sm font-medium text-blue-600 group-hover:text-blue-700">
-                    Ga naar {action.title.toLowerCase()}
-                    <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </div>
-                </CardContent>
-              </Link>
+                  <stat.icon className={`h-8 w-8 ${stat.color}`} />
+                </div>
+              </CardContent>
             </Card>
           ))}
         </div>
-      </section>
 
-      {/* Features */}
-      <section className="bg-white py-16">
-        <div className="container mx-auto px-6">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-gray-900">Functies</h2>
-            <p className="text-lg text-gray-600">Alles wat je nodig hebt voor effectief tuinbeheer</p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature, index) => (
-              <Card key={index} className="text-center">
-                <CardContent className="p-6">
-                  <div
-                    className={`mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 ${feature.color}`}
-                  >
-                    <feature.icon className="h-8 w-8" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Weather Widget */}
+          <Card className="lg:col-span-1">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Sun className="h-5 w-5 mr-2 text-yellow-500" />
+                {t("weather")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Thermometer className="h-4 w-4 text-red-500" />
+                    <span className="text-sm text-gray-600">{t("temperature")}</span>
                   </div>
-                  <h3 className="mb-3 text-xl font-semibold text-gray-900">{feature.title}</h3>
-                  <p className="text-gray-600">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+                  <span className="font-semibold">{weatherData.temperature}°C</span>
+                </div>
 
-      {/* How it Works */}
-      <section className="container mx-auto px-6 py-16">
-        <div className="mb-12 text-center">
-          <h2 className="mb-4 text-3xl font-bold text-gray-900">Hoe het werkt</h2>
-          <p className="text-lg text-gray-600">In vier eenvoudige stappen naar een goed georganiseerde tuin</p>
-        </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Droplets className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm text-gray-600">{t("humidity")}</span>
+                  </div>
+                  <span className="font-semibold">{weatherData.humidity}%</span>
+                </div>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {steps.map((step, index) => (
-            <div key={index} className="text-center">
-              <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-green-600 text-2xl font-bold text-white">
-                {step.number}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Wind className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">{t("wind")}</span>
+                  </div>
+                  <span className="font-semibold">{weatherData.windSpeed} km/h</span>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-gray-700">{t("forecast")}</h4>
+                  {weatherData.forecast.map((day, index) => (
+                    <div key={index} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">{day.day}</span>
+                      <div className="flex items-center space-x-2">
+                        {day.condition === "sunny" ? (
+                          <Sun className="h-3 w-3 text-yellow-500" />
+                        ) : (
+                          <CloudRain className="h-3 w-3 text-blue-500" />
+                        )}
+                        <span className="font-medium">{day.temp}°C</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <h3 className="mb-3 text-xl font-semibold text-gray-900">{step.title}</h3>
-              <p className="text-gray-600">{step.description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+            </CardContent>
+          </Card>
 
-      {/* CTA Section */}
-      <section className="bg-gradient-to-r from-green-600 to-blue-600 py-16 text-white">
-        <div className="container mx-auto px-6 text-center">
-          <h2 className="mb-4 text-3xl font-bold">Klaar om te beginnen?</h2>
-          <p className="mb-8 text-xl opacity-90">Start vandaag nog met het beheren van je gemeenschapstuin</p>
-          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
-            <Button asChild size="lg" variant="secondary">
-              <Link href="/gardens/new" className="flex items-center gap-2">
-                <Plus className="h-5 w-5" />
-                Maak je eerste tuin
+          {/* Recent Activities */}
+          <Card className="lg:col-span-1">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <BarChart3 className="h-5 w-5 mr-2 text-blue-500" />
+                {t("recentActivities")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentActivities.map((activity, index) => (
+                  <div key={index} className="border-l-2 border-green-200 pl-4">
+                    <p className="font-medium text-sm text-gray-900">{activity.action}</p>
+                    <p className="text-sm text-gray-600">{activity.garden}</p>
+                    <p className="text-xs text-gray-500">{activity.time}</p>
+                  </div>
+                ))}
+              </div>
+              <Separator className="my-4" />
+              <Link href="/activities">
+                <Button variant="outline" size="sm" className="w-full bg-transparent">
+                  {t("viewAllActivities")}
+                </Button>
               </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-white hover:text-green-600 bg-transparent"
-            >
-              <Link href="/gardens" className="flex items-center gap-2">
-                <TreePine className="h-5 w-5" />
-                Bekijk voorbeelden
+            </CardContent>
+          </Card>
+
+          {/* Upcoming Tasks */}
+          <Card className="lg:col-span-1">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Calendar className="h-5 w-5 mr-2 text-purple-500" />
+                {t("upcomingTasks")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {upcomingTasks.map((task, index) => (
+                  <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm text-gray-900">{task.task}</p>
+                        <p className="text-sm text-gray-600">{task.garden}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {task.due}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Separator className="my-4" />
+              <Link href="/tasks">
+                <Button variant="outline" size="sm" className="w-full bg-transparent">
+                  {t("viewAllTasks")}
+                </Button>
               </Link>
-            </Button>
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </section>
+
+        {/* Feature Cards */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <MapPin className="h-5 w-5 mr-2 text-green-600" />
+                {t("gardenManagement")}
+              </CardTitle>
+              <CardDescription>{t("manageGardensDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/gardens">
+                <Button className="w-full">{t("manageGardens")}</Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Sprout className="h-5 w-5 mr-2 text-blue-600" />
+                {t("plantTracking")}
+              </CardTitle>
+              <CardDescription>{t("trackPlantsDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/plants">
+                <Button className="w-full bg-transparent" variant="outline">
+                  {t("viewPlants")}
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Users className="h-5 w-5 mr-2 text-purple-600" />
+                {t("volunteerManagement")}
+              </CardTitle>
+              <CardDescription>{t("manageVolunteersDescription")}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/volunteers">
+                <Button className="w-full bg-transparent" variant="outline">
+                  {t("manageVolunteers")}
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
