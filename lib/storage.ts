@@ -7,10 +7,16 @@ export async function ensureBucketExists(bucket: string = 'plant-images', isPubl
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ bucket, public: isPublic })
     })
-    if (!res.ok) return false
+    
+    if (!res.ok) {
+      console.error(`Storage bucket check failed: ${res.status} ${res.statusText}`)
+      return false
+    }
+    
     const json = await res.json()
     return Boolean(json?.exists || json?.created)
-  } catch {
+  } catch (error) {
+    console.error('Storage bucket check error:', error)
     return false
   }
 }
@@ -19,6 +25,7 @@ export interface UploadResult {
   success: boolean
   url?: string
   error?: string
+  errorCode?: string
 }
 
 /**
@@ -33,7 +40,8 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
     if (!file.type.startsWith('image/')) {
       return {
         success: false,
-        error: 'Only image files are allowed'
+        error: 'Alleen afbeeldingen zijn toegestaan (JPG, PNG, GIF, etc.)',
+        errorCode: 'INVALID_FILE_TYPE'
       }
     }
 
@@ -42,11 +50,20 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
     if (file.size > maxSize) {
       return {
         success: false,
-        error: 'File size must be less than 5MB'
+        error: `Bestand is te groot. Maximum grootte is 5MB. Huidige grootte: ${(file.size / 1024 / 1024).toFixed(1)}MB`,
+        errorCode: 'FILE_TOO_LARGE'
       }
     }
 
-    await ensureBucketExists('plant-images', true)
+    // Check if storage bucket exists
+    const bucketExists = await ensureBucketExists('plant-images', true)
+    if (!bucketExists) {
+      return {
+        success: false,
+        error: 'Storage bucket "plant-images" bestaat niet. Neem contact op met een beheerder om dit op te lossen.',
+        errorCode: 'BUCKET_NOT_FOUND'
+      }
+    }
 
     // Generate unique filename
     const timestamp = Date.now()
@@ -65,9 +82,23 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
 
     if (error) {
       console.error('Storage upload error:', error)
+      
+      // Provide specific error messages based on error type
+      let userMessage = 'Upload mislukt'
+      if (error.message.includes('bucket')) {
+        userMessage = 'Storage bucket is niet toegankelijk. Controleer de configuratie.'
+      } else if (error.message.includes('permission')) {
+        userMessage = 'Geen toestemming om bestanden te uploaden. Controleer je rechten.'
+      } else if (error.message.includes('quota')) {
+        userMessage = 'Storage quota bereikt. Neem contact op met een beheerder.'
+      } else if (error.message.includes('network')) {
+        userMessage = 'Netwerkfout bij uploaden. Probeer het opnieuw.'
+      }
+      
       return {
         success: false,
-        error: error.message
+        error: userMessage,
+        errorCode: 'UPLOAD_FAILED'
       }
     }
 
@@ -82,9 +113,20 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
     }
   } catch (error) {
     console.error('Upload error:', error)
+    
+    // Handle specific error types
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      return {
+        success: false,
+        error: 'Netwerkfout bij uploaden. Controleer je internetverbinding.',
+        errorCode: 'NETWORK_ERROR'
+      }
+    }
+    
     return {
       success: false,
-      error: 'Failed to upload image'
+      error: 'Onverwachte fout bij uploaden. Probeer het opnieuw of neem contact op met support.',
+      errorCode: 'UNKNOWN_ERROR'
     }
   }
 }
@@ -94,12 +136,15 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
  * @param url - The public URL of the image to delete
  * @returns Promise with deletion result
  */
-export async function deleteImage(url: string): Promise<boolean> {
+export async function deleteImage(url: string): Promise<{ success: boolean; error?: string }> {
   try {
     // Extract file path from URL
     const urlParts = url.split('/plant-images/')
     if (urlParts.length < 2) {
-      return false
+      return {
+        success: false,
+        error: 'Ongeldige afbeelding URL. Kan bestand niet verwijderen.'
+      }
     }
     
     const filePath = urlParts[1]
@@ -110,12 +155,26 @@ export async function deleteImage(url: string): Promise<boolean> {
 
     if (error) {
       console.error('Storage delete error:', error)
-      return false
+      
+      let userMessage = 'Verwijderen mislukt'
+      if (error.message.includes('not found')) {
+        userMessage = 'Afbeelding bestaat niet meer in storage.'
+      } else if (error.message.includes('permission')) {
+        userMessage = 'Geen toestemming om bestand te verwijderen.'
+      }
+      
+      return {
+        success: false,
+        error: userMessage
+      }
     }
 
-    return true
+    return { success: true }
   } catch (error) {
     console.error('Delete error:', error)
-    return false
+    return {
+      success: false,
+      error: 'Onverwachte fout bij verwijderen van afbeelding.'
+    }
   }
 }
