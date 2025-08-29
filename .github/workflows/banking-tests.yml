@@ -178,6 +178,101 @@ jobs:
             --json \
             --outputFile=test-results/lib.json || echo "⚠️ Lib tests failed (expected - missing mocks)"
 
+      - name: Generate test summary with detailed breakdown
+        run: |
+          echo "Generating detailed test summary with category breakdown..."
+          
+          # Create a comprehensive test summary
+          cat > test-results/detailed-test-summary.md << 'EOF'
+          # 🧪 Detailed Test Execution Summary
+          
+          ## 📊 Overall Test Results
+          EOF
+          
+          # Add overall results if available
+          if [ -f "test-results/all-tests.json" ]; then
+            total_tests=$(jq -r '.numTotalTests' test-results/all-tests.json)
+            total_failures=$(jq -r '.numFailedTests' test-results/all-tests.json)
+            total_errors=$(jq -r '.numRuntimeErrorTestSuites' test-results/all-tests.json)
+            total_success=$((total_tests - total_failures - total_errors))
+            
+            echo "**Total Tests**: $total_tests" >> test-results/detailed-test-summary.md
+            echo "**Success Rate**: $total_success/$total_tests ($(echo "scale=1; $total_success * 100 / $total_tests" | bc)% success)" >> test-results/detailed-test-summary.md
+            echo "**Total Failures**: $total_failures" >> test-results/detailed-test-summary.md
+            echo "**Total Errors**: $total_errors" >> test-results/detailed-test-summary.md
+            echo "" >> test-results/detailed-test-summary.md
+          fi
+          
+          echo "## 🎯 Test Category Breakdown" >> test-results/detailed-test-summary.md
+          echo "" >> test-results/detailed-test-summary.md
+          
+          # UI Components
+          if [ -f "test-results/ui-components.json" ]; then
+            ui_tests=$(jq -r '.numTotalTests' test-results/ui-components.json)
+            ui_failures=$(jq -r '.numFailedTests' test-results/ui-components.json)
+            ui_success=$((ui_tests - ui_failures))
+            echo "### 🎨 UI Components: $ui_success/$ui_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 🎨 UI Components: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          # Core Components
+          if [ -f "test-results/core-components.json" ]; then
+            core_tests=$(jq -r '.numTotalTests' test-results/core-components.json)
+            core_failures=$(jq -r '.numFailedTests' test-results/core-components.json)
+            core_success=$((core_tests - core_failures))
+            echo "### 🔧 Core Components: $core_success/$core_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 🔧 Core Components: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          # Hooks
+          if [ -f "test-results/hooks.json" ]; then
+            hooks_tests=$(jq -r '.numTotalTests' test-results/hooks.json)
+            hooks_failures=$(jq -r '.numFailedTests' test-results/hooks.json)
+            hooks_success=$((hooks_tests - hooks_failures))
+            echo "### 🪝 Hooks: $hooks_success/$hooks_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 🪝 Hooks: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          # Integration Tests
+          if [ -f "test-results/integration.json" ]; then
+            int_tests=$(jq -r '.numTotalTests' test-results/integration.json)
+            int_failures=$(jq -r '.numFailedTests' test-results/integration.json)
+            int_success=$((int_tests - int_failures))
+            echo "### 🔗 Integration Tests: $int_success/$int_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 🔗 Integration Tests: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          # Unit Tests
+          if [ -f "test-results/unit.json" ]; then
+            unit_tests=$(jq -r '.numTotalTests' test-results/unit.json)
+            unit_failures=$(jq -r '.numFailedTests' test-results/unit.json)
+            unit_success=$((unit_tests - unit_failures))
+            echo "### 🧩 Unit Tests: $unit_success/$unit_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 🧩 Unit Tests: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          # Lib Tests
+          if [ -f "test-results/lib.json" ]; then
+            lib_tests=$(jq -r '.numTotalTests' test-results/lib.json)
+            lib_failures=$(jq -r '.numFailedTests' test-results/lib.json)
+            lib_success=$((lib_tests - lib_failures))
+            echo "### 📚 Lib Tests: $lib_success/$lib_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 📚 Lib Tests: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          echo "" >> test-results/detailed-test-summary.md
+          echo "## 📋 Test Execution Details" >> test-results/detailed-test-summary.md
+          echo "Generated: $(date)" >> test-results/detailed-test-summary.md
+          echo "Commit: ${{ github.sha }}" >> test-results/detailed-test-summary.md
+          echo "Branch: ${{ github.ref_name }}" >> test-results/detailed-test-summary.md
+EOF
+
       - name: Generate detailed test analysis report
         run: |
           echo "Generating detailed test analysis report..."
@@ -457,6 +552,13 @@ EOF
             if [ -f "test-artifacts/test-results/summary.txt" ]; then
               echo "## 📋 Test Execution Details" >> test-summary.md
               cat test-artifacts/test-results/summary.txt >> test-summary.md
+              echo "" >> test-summary.md
+            fi
+            
+            # Check for detailed test summary
+            if [ -f "test-artifacts/test-results/detailed-test-summary.md" ]; then
+              echo "## 📊 Detailed Test Category Breakdown" >> test-summary.md
+              cat test-artifacts/test-results/detailed-test-summary.md >> test-summary.md
               echo "" >> test-summary.md
             fi
             
