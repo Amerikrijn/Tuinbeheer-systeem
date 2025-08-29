@@ -59,13 +59,37 @@ const customJestConfig = {
     resources: 'usable',
   },
   
-  // Coverage configuration
+  // Coverage configuration - ensure this works with CI
   collectCoverage: true,
   coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html', 'json'],
+  coverageReporters: ['text', 'lcov', 'html', 'json-summary'],
   
   // Test results output
-  testResultsProcessor: undefined, // Disable default processor
+  testResultsProcessor: '<rootDir>/jest-results-processor.js',
+  
+  // Ensure coverage is collected even on test failures
+  collectCoverageFrom: [
+    'app/**/*.{js,jsx,ts,tsx}',
+    'components/**/*.{js,jsx,ts,tsx}',
+    'lib/**/*.{js,jsx,ts,tsx}',
+    'hooks/**/*.{js,jsx,ts,tsx}',
+    '!**/*.d.ts',
+    '!**/node_modules/**',
+    '!**/.next/**',
+    '!**/coverage/**',
+    '!**/__tests__/**',
+    '!**/__mocks__/**'
+  ],
+  
+  // Coverage thresholds (optional - can be adjusted)
+  coverageThreshold: {
+    global: {
+      branches: 0,
+      functions: 0,
+      lines: 0,
+      statements: 0
+    }
+  }
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
