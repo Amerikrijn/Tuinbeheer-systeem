@@ -5,6 +5,7 @@
 body {
   font-family: Arial, Helvetica, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  line-height: 1.6;
 }
 
 @layer utilities {
@@ -59,7 +60,7 @@ body {
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
   .dark {
-    /* Banking-grade dark mode with WCAG AA+ contrast ratios */
+    /* Banking-grade dark mode with WCAG AA+ contrast ratios - BEHOUDEN! */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 217.2 32.6% 8.5%;
@@ -102,6 +103,21 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Subtiele typography verbeteringen - behoud bestaande fonts */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+  
+  /* Betere spacing voor cards */
+  .card-spacing {
+    @apply p-4;
+  }
+  
+  /* Subtiele hover effecten */
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-md;
+  }
 }
 
 /* Prevent hydration issues by hiding content during initial render */
@@ -112,4 +128,9 @@ body {
 .hydration-safe.hydrated {
   opacity: 1;
   transition: opacity 0.2s ease-in-out;
+}
+
+/* Focus styles voor toegankelijkheid */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2;
 }
