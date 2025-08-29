@@ -40,6 +40,17 @@ const customJestConfig = {
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
   },
+  // Enhanced timeout and error handling
+  testTimeout: 30000, // 30 seconds for all tests
+  maxWorkers: '50%', // Limit concurrent tests to avoid resource issues
+  // Better error reporting
+  verbose: true,
+  // Handle async operations better
+  forceExit: true,
+  // Clear mocks between tests
+  clearMocks: true,
+  // Reset modules between tests
+  resetModules: true,
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

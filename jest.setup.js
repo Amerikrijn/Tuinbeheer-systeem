@@ -1,8 +1,8 @@
 // Jest setup bestand - vervangt Vitest setup
 import '@testing-library/jest-dom';
 
-// Early crypto mock setup - MUST be before any module imports that use crypto
-global.crypto = global.crypto || {
+// Enhanced crypto mock setup - MUST be before any module imports that use crypto
+const mockCrypto = {
   randomUUID: () => 'test-uuid-' + Math.random().toString(36).substr(2, 9),
   getRandomValues: (array) => {
     for (let i = 0; i < array.length; i++) {
@@ -25,11 +25,12 @@ global.crypto = global.crypto || {
 };
 
 // Ensure crypto is available everywhere
+global.crypto = mockCrypto;
 if (typeof globalThis !== 'undefined') {
-  globalThis.crypto = global.crypto;
+  globalThis.crypto = mockCrypto;
 }
 if (typeof window !== 'undefined') {
-  window.crypto = global.crypto;
+  window.crypto = mockCrypto;
 }
 
 // Mock voor Next.js router
@@ -90,6 +91,38 @@ global.IntersectionObserver = jest.fn().mockImplementation(() => ({
   unobserve: jest.fn(),
   disconnect: jest.fn(),
 }));
+
+// Mock voor performance API
+global.performance = {
+  now: () => Date.now(),
+  mark: jest.fn(),
+  measure: jest.fn(),
+  getEntriesByType: jest.fn(() => []),
+  getEntriesByName: jest.fn(() => []),
+  clearMarks: jest.fn(),
+  clearMeasures: jest.fn(),
+};
+
+// Mock voor localStorage
+const localStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+global.localStorage = localStorageMock;
+
+// Mock voor sessionStorage
+const sessionStorageMock = {
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+global.sessionStorage = sessionStorageMock;
+
+// Mock voor fetch
+global.fetch = jest.fn();
 
 // Mock voor vitest globals (voor compatibiliteit tijdens migratie)
 global.vi = {

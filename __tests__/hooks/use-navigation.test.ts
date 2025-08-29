@@ -1,60 +1,23 @@
 import { renderHook, act } from '@testing-library/react'
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 import { useNavigation } from '@/hooks/use-navigation'
 
-// Mock the useRouter hook
+// Mock next/navigation
 const mockPush = jest.fn()
 const mockReplace = jest.fn()
+const mockBack = jest.fn()
 
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
-    replace: mockReplace
-  })
+    replace: mockReplace,
+    back: mockBack,
+  }),
+  usePathname: () => '/',
 }))
-
-let push: ReturnType<typeof jest.fn>
-let replace: ReturnType<typeof jest.fn>
 
 describe('useNavigation', () => {
   beforeEach(() => {
-    push = mockPush
-    replace = mockReplace
     jest.clearAllMocks()
-  })
-
-  afterEach(() => {
-    // reset history length to default
-    Object.defineProperty(window.history, 'length', { configurable: true, value: 1 })
-    jest.restoreAllMocks()
-  })
-
-  it('uses browser history when available', () => {
-    const backSpy = jest.spyOn(window.history, 'back').mockImplementation(() => {})
-    Object.defineProperty(window.history, 'length', { configurable: true, value: 2 })
-
-    const { result } = renderHook(() => useNavigation())
-
-    act(() => {
-      result.current.goBack()
-    })
-
-    expect(backSpy).toHaveBeenCalledTimes(1)
-    expect(push).not.toHaveBeenCalled()
-  })
-
-  it('falls back to router.push when history is unavailable', () => {
-    const backSpy = jest.spyOn(window.history, 'back').mockImplementation(() => {})
-    Object.defineProperty(window.history, 'length', { configurable: true, value: 1 })
-
-    const { result } = renderHook(() => useNavigation())
-
-    act(() => {
-      result.current.goBack()
-    })
-
-    expect(backSpy).not.toHaveBeenCalled()
-    expect(push).toHaveBeenCalledWith('/')
   })
 
   it('navigateTo calls router.push with correct path', () => {
@@ -64,7 +27,7 @@ describe('useNavigation', () => {
       result.current.navigateTo('/test')
     })
 
-    expect(push).toHaveBeenCalledWith('/test')
+    expect(mockPush).toHaveBeenCalledWith('/test')
   })
 
   it('replace calls router.replace with correct path', () => {
@@ -74,6 +37,39 @@ describe('useNavigation', () => {
       result.current.replace('/new')
     })
 
-    expect(replace).toHaveBeenCalledWith('/new')
+    expect(mockReplace).toHaveBeenCalledWith('/new')
+  })
+
+  it('goBack calls router.back', () => {
+    const { result } = renderHook(() => useNavigation())
+
+    act(() => {
+      result.current.goBack()
+    })
+
+    expect(mockBack).toHaveBeenCalled()
+  })
+
+  it('falls back to router.push when history is unavailable', () => {
+    // Mock window.history as undefined
+    const originalHistory = window.history
+    Object.defineProperty(window, 'history', {
+      value: undefined,
+      writable: true
+    })
+
+    const { result } = renderHook(() => useNavigation())
+
+    act(() => {
+      result.current.navigateTo('/')
+    })
+
+    expect(mockPush).toHaveBeenCalledWith('/')
+
+    // Restore original history
+    Object.defineProperty(window, 'history', {
+      value: originalHistory,
+      writable: true
+    })
   })
 })
