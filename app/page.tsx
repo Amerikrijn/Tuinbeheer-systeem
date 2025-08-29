@@ -38,7 +38,8 @@ import {
   Garden,
   Flower2,
   Clock,
-  Zap
+  Zap,
+  CheckCircle2
 } from "lucide-react"
 import { TuinService, TuinServiceEnhanced, PlantBedService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
@@ -851,32 +852,106 @@ function RoleBasedHomeContent() {
   if (isAdmin()) {
     return <HomePageContent />
   } else {
-    // Users get the exact same task interface as admin /tasks page
+    // Users get a mobile-first task interface
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-background to-blue-50 dark:from-green-950/20 dark:via-background dark:to-blue-950/20">
-        <div className="container mx-auto p-4 max-w-4xl">
-          {/* Header with Logbook button */}
+        <div className="container mx-auto px-4 py-4 max-w-4xl">
+          {/* Mobile-First Header */}
           <div className="mb-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-3">
-                <Calendar className="w-7 h-7 text-green-700" />
-                <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Mijn Taken</h1>
+            {/* Top Bar - Mobile First */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex-1 text-center">
+                <h1 className="text-2xl font-bold text-foreground">
+                  Mijn Taken
+                </h1>
               </div>
+              
               <Button 
                 onClick={() => router.push('/logbook')}
-                variant="outline"
-                className="text-sm"
+                size="sm"
+                className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 rounded-full h-10 w-10 p-0"
               >
-                Logboek
+                <BookOpen className="w-5 h-5" />
               </Button>
             </div>
-            <p className="text-muted-foreground">
-              Bekijk en beheer je tuintaken per week. Zie welke planten aandacht nodig hebben.
-            </p>
+
+            {/* Enhanced Description - Mobile First */}
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
+                <span className="text-sm font-medium text-muted-foreground">
+                  Weekoverzicht
+                </span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
+                Bekijk en beheer je tuintaken per week. Zie welke planten aandacht nodig hebben.
+              </p>
+            </div>
+
+            {/* Enhanced Stats Cards - Mobile First Grid */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-3 border border-green-200/50 dark:border-green-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                    <ClipboardList className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground truncate">Totaal</p>
+                    <p className="text-lg font-bold text-foreground">24</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-3 border border-blue-200/50 dark:border-blue-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground truncate">Open</p>
+                    <p className="text-lg font-bold text-foreground">12</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-3 border border-purple-200/50 dark:border-purple-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                    <CheckCircle2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground truncate">Klaar</p>
+                    <p className="text-lg font-bold text-foreground">12</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-white/80 dark:bg-card/80 backdrop-blur-sm rounded-xl p-3 border border-orange-200/50 dark:border-orange-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                    <Calendar className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-muted-foreground truncate">Deze Week</p>
+                    <p className="text-lg font-bold text-orange-600 dark:text-orange-400">8</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Use the same WeeklyTaskList component as admin */}
-          <WeeklyTaskList />
+          {/* Weekly Task List - Mobile First */}
+          <Card className="bg-white/80 dark:bg-card/80 backdrop-blur-sm border-2 border-green-200/50 dark:border-green-800/30 shadow-lg">
+            <CardHeader className="pb-3 px-4">
+              <CardTitle className="flex items-center justify-center gap-2 text-lg">
+                <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
+                Weekoverzicht
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-4 pb-4">
+              <WeeklyTaskList />
+            </CardContent>
+          </Card>
         </div>
       </div>
     )

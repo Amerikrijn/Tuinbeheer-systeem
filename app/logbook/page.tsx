@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { BookOpen, Plus, Search, Calendar, Camera, Leaf, MapPin, Filter, X, ClipboardList, CheckCircle2 } from "lucide-react"
+import { BookOpen, Plus, Search, Calendar, Camera, Leaf, MapPin, Filter, X, ClipboardList, CheckCircle2, ArrowLeft, Sparkles, Eye, FileText } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { uiLogger } from "@/lib/logger"
@@ -98,504 +98,341 @@ function LogbookPageContent() {
   // Load specific user data if viewing for another user (admin only)
   const loadViewingUser = React.useCallback(async () => {
     if (!viewingUserId || !isAdmin()) return
-    
+
     try {
       const { data: userData, error } = await supabase
         .from('users')
-        .select('id, email, full_name')
+        .select('id, email, full_name, role')
         .eq('id', viewingUserId)
         .single()
-      
-      if (error) throw error
-      setViewingUser(userData)
-    } catch (error) {
-      console.error('Error loading user:', error)
-      toast({
-        title: "Fout bij laden gebruiker",
-        description: "Kon gebruikersgegevens niet laden",
-        variant: "destructive"
-      })
-    }
-  }, [viewingUserId, isAdmin, toast])
 
-  // Load logbook entries (filtered by accessible gardens or specific user)
-  const loadEntries = React.useCallback(async (page = 1, append = false) => {
-    const operationId = `loadLogbookEntries-${Date.now()}`
-    
-    try {
-      setState(prev => ({ ...prev, loading: !append, error: null }))
-      
-      // Wait for garden access to be loaded for regular users
-      if (user?.role === 'user' && !gardenAccessLoaded) {
-        console.log('🔍 Logbook - Waiting for garden access to be loaded...')
+      if (error) {
+        console.error('Failed to load viewing user:', error)
         return
       }
-      
-      // Get accessible gardens for filtering
-      let accessibleGardens: string[]
-      let hasGardenRestriction: boolean
-      
-      if (viewingUser && isAdmin()) {
-        // Admin viewing specific user - get that user's garden access from database
-        try {
-          const { data: gardenAccess, error } = await supabase
-            .from('user_garden_access')
-            .select('garden_id')
-            .eq('user_id', viewingUser.id)
-          
-          if (error) {
-            console.error('Error fetching user garden access:', error)
-            accessibleGardens = []
-          } else {
-            accessibleGardens = gardenAccess?.map(access => access.garden_id) || []
-          }
-        } catch (error) {
-          console.error('Exception fetching user garden access:', error)
-          accessibleGardens = []
-        }
-        
-        hasGardenRestriction = accessibleGardens.length > 0
-        console.log('🔍 Admin viewing user logbook:', { user: viewingUser.email, gardens: accessibleGardens })
-      } else {
-        // Regular user or admin viewing own logbook
-        accessibleGardens = getAccessibleGardens()
-        hasGardenRestriction = !isAdmin() && accessibleGardens.length > 0
-        console.log('🔍 Logbook viewing own:', { 
-          isAdmin: isAdmin(), 
-          gardens: accessibleGardens, 
-          restricted: hasGardenRestriction,
-          gardenCount: accessibleGardens.length 
-        })
-      }
 
-      const filters: any = {
-        limit: ITEMS_PER_PAGE,
-        offset: (page - 1) * ITEMS_PER_PAGE
-      }
-
-      // SECURITY: Apply strict garden access filtering
-      if (!isAdmin()) {
-        // NON-ADMIN USERS: ALWAYS filter by accessible gardens - NEVER allow cross-garden access
-        if (accessibleGardens.length === 0) {
-          throw new Error('Geen toegang tot tuinen')
-        }
-        
-        if (state.selectedGarden && state.selectedGarden !== "all") {
-          // SECURITY CHECK: Verify user has access to selected garden
-          if (!accessibleGardens.includes(state.selectedGarden)) {
-            throw new Error('SECURITY VIOLATION: Geen toegang tot geselecteerde tuin')
-          }
-          filters.garden_id = state.selectedGarden
-        } else {
-          // SECURITY: Always filter to only accessible gardens
-          filters.garden_ids = accessibleGardens
-        }
-      } else {
-        // ADMIN USERS: Can access all gardens
-        if (state.selectedGarden && state.selectedGarden !== "all") {
-          filters.garden_id = state.selectedGarden
-        }
-        // Don't pass garden_ids for admin when they have access to all gardens
-        // This prevents the security warning in LogbookService.getAll
-      }
-
-      if (state.selectedPlantBed && state.selectedPlantBed !== "all") {
-        filters.plant_bed_id = state.selectedPlantBed
-      }
-
-      // Load regular logbook entries with timeout
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Query timeout - verbinding te traag')), 30000) // 30 second timeout
-      })
-      
-      let response
-      try {
-        response = await Promise.race([
-          LogbookService.getAll(filters),
-          timeoutPromise
-        ]) as any
-      } catch (error) {
-        console.error('🔥 Logbook query error:', error)
-        throw new Error(`Logbook query failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-      }
-      
-      if (!response || !response.success) {
-        console.error('🔥 Logbook response invalid:', response)
-        // Handle the case where response is valid but indicates an error
-        if (response && response.error) {
-          throw new Error(response.error)
-        } else {
-          throw new Error('Failed to fetch logbook entries')
-        }
-      }
-      
-      // Handle successful response with no data (empty logbook)
-      const logbookData = response.data || []
-
-      // Also load completed tasks as logbook entries
-      let completedTasksData: any[] = []
-      try {
-        let tasksQuery = supabase
-          .from('tasks')
-          .select(`
-            id,
-            title,
-            description,
-            due_date,
-            updated_at,
-            completed,
-            plants!inner(
-              id,
-              name,
-              plant_beds!inner(
-                id,
-                name,
-                garden_id,
-                gardens!inner(name)
-              )
-            )
-          `)
-          .eq('completed', true)
-
-        // Apply same garden filtering as logbook entries
-        if (!isAdmin()) {
-          if (accessibleGardens.length === 0) {
-            console.log('🔍 Logbook - No garden access, skipping tasks query')
-            completedTasksData = []
-          } else {
-            if (filters.garden_id) {
-              tasksQuery = tasksQuery.eq('plants.plant_beds.garden_id', filters.garden_id)
-            } else if (filters.garden_ids && filters.garden_ids.length > 0) {
-              tasksQuery = tasksQuery.in('plants.plant_beds.garden_id', filters.garden_ids)
-            } else {
-              tasksQuery = tasksQuery.in('plants.plant_beds.garden_id', accessibleGardens)
-            }
-          }
-        } else {
-          // Admin can see all, apply same filters as logbook
-          if (filters.garden_id) {
-            tasksQuery = tasksQuery.eq('plants.plant_beds.garden_id', filters.garden_id)
-          }
-        }
-
-        const { data: tasksResults } = await tasksQuery.order('updated_at', { ascending: false })
-        
-        if (tasksResults) {
-          // Transform completed tasks to look like logbook entries
-          completedTasksData = tasksResults.map((task: any) => ({
-            id: `task-${task.id}`,
-            entry_date: task.updated_at,
-            notes: `✅ Taak voltooid: ${task.title}${task.description ? ` - ${task.description}` : ''}`,
-            plant_bed_name: task.plants?.[0]?.plant_beds?.[0]?.name || 'Onbekend plantvak',
-            plant_name: task.plants?.[0]?.name || 'Onbekende plant',
-            garden_name: task.plants?.[0]?.plant_beds?.[0]?.gardens?.[0]?.name || 'Onbekende tuin',
-            photo_url: null,
-            is_completed_task: true, // Flag to identify this as a completed task
-            original_task: task
-          }))
-        }
-      } catch (error) {
-        console.warn('Failed to load completed tasks for logbook:', error)
-        completedTasksData = []
-      }
-
-      // Combine logbook entries and completed tasks with safety checks
-      const logbookEntries = Array.isArray(logbookData) ? logbookData : []
-      const completedTasks = Array.isArray(completedTasksData) ? completedTasksData : []
-      const allEntries = [...logbookEntries, ...completedTasks]
-
-      console.log('🔍 Logbook - Combined entries:', {
-        logbookCount: logbookEntries.length,
-        tasksCount: completedTasks.length,
-        totalCount: allEntries.length
-      })
-
-      // Sort by entry_date descending FIRST (most recent first - chronological order)
-      allEntries.sort((a, b) => {
-        const aDate = a?.entry_date ? new Date(a.entry_date) : new Date(0)
-        const bDate = b?.entry_date ? new Date(b.entry_date) : new Date(0)
-        return bDate.getTime() - aDate.getTime()
-      })
-
-      // Filter by year first
-      const yearFilteredEntries = allEntries.filter(entry => {
-        const entryYear = new Date(entry.entry_date).getFullYear()
-        return entryYear.toString() === state.selectedYear
-      })
-
-      // Then apply search filter (maintain chronological order)
-      const filteredEntries = state.searchTerm 
-        ? yearFilteredEntries.filter(entry => 
-            entry.notes.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-            entry.plant_bed_name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-            (entry.plant_name && entry.plant_name.toLowerCase().includes(state.searchTerm.toLowerCase()))
-          )
-        : yearFilteredEntries
-
-      setState(prev => ({
-        ...prev,
-        entries: append ? [...prev.entries, ...filteredEntries] : filteredEntries,
-        loading: false,
-        page,
-        hasMore: filteredEntries.length === ITEMS_PER_PAGE
-      }))
-
-      uiLogger.debug('Logbook entries loaded successfully', { 
-        count: filteredEntries.length, 
-        page, 
-        operationId 
-      })
-
+      setViewingUser(userData)
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Er is een onbekende fout opgetreden'
-      setState(prev => ({ ...prev, loading: false, error: errorMessage }))
-      uiLogger.error('Failed to load logbook entries', error as Error, { page, operationId })
-      
-      // More user-friendly error messages
-      let userMessage = errorMessage
-      if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
-        userMessage = 'Verbinding verbroken. Probeer de pagina te vernieuwen.'
-      } else if (errorMessage.includes('SECURITY VIOLATION')) {
-        userMessage = 'Geen toegang tot deze gegevens.'
-      } else if (errorMessage.includes('Failed to fetch')) {
-        userMessage = 'Kan gegevens niet laden. Controleer je internetverbinding.'
-      }
-      
-      toast({
-        title: "Fout bij laden logboek",
-        description: userMessage,
-        variant: "destructive",
-        action: (
-          <button 
-            onClick={() => window.location.reload()} 
-            className="text-sm underline"
-          >
-            Pagina vernieuwen
-          </button>
-        )
-      })
+      console.error('Error loading viewing user:', error)
     }
-  }, [state.searchTerm, state.selectedGarden, state.selectedPlantBed, state.selectedYear, toast, getAccessibleGardens, isAdmin, viewingUser, user, gardenAccessLoaded])
+  }, [viewingUserId, isAdmin])
+
+  React.useEffect(() => {
+    loadViewingUser()
+  }, [loadViewingUser])
 
   // Load plant beds for filtering
   const loadPlantBeds = React.useCallback(async () => {
     try {
       const plantBeds = await getPlantBeds()
-      setState(prev => ({ ...prev, plantBeds: (plantBeds || []) as PlantvakWithBloemen[] }))
+      setState(prev => ({ ...prev, plantBeds }))
     } catch (error) {
-      uiLogger.error('Failed to load plant beds for filtering', error as Error)
+      console.error('Failed to load plant beds:', error)
     }
   }, [])
 
-  // Load viewing user data when user_id parameter changes
   React.useEffect(() => {
-    loadViewingUser()
-  }, [loadViewingUser])
-
-  // Initial load
-  React.useEffect(() => {
-    if (viewingUserId && !viewingUser && isAdmin()) {
-      // Wait for viewing user to load first
-      return
-    }
-    loadEntries()
     loadPlantBeds()
-  }, [loadEntries, loadPlantBeds, viewingUserId, viewingUser, isAdmin])
+  }, [loadPlantBeds])
 
-  // Reload when filters change
-  React.useEffect(() => {
-    if (state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.searchTerm !== "" || state.selectedYear !== new Date().getFullYear().toString()) {
-      loadEntries(1, false)
-    }
-  }, [state.selectedGarden, state.selectedPlantBed, state.searchTerm, state.selectedYear, loadEntries])
+  // Load logbook entries
+  const loadLogbookEntries = React.useCallback(async (resetPage = false) => {
+    if (!user || !gardenAccessLoaded) return
 
-  // Reload when garden access becomes available
-  React.useEffect(() => {
-    if (gardenAccessLoaded && user) {
-      loadEntries(1, false)
+    setState(prev => ({ 
+      ...prev, 
+      loading: true, 
+      error: null,
+      page: resetPage ? 1 : prev.page 
+    }))
+
+    try {
+      let accessibleGardens = []
+      
+      if (isAdmin()) {
+        // Admin can see all gardens or specific user's gardens
+        if (viewingUserId) {
+          // Load specific user's garden access
+          const { data: userGardenAccess, error: accessError } = await supabase
+            .from('user_garden_access')
+            .select('garden_id')
+            .eq('user_id', viewingUserId)
+
+          if (accessError) {
+            throw new Error(`Failed to load user garden access: ${accessError.message}`)
+          }
+
+          accessibleGardens = userGardenAccess.map(access => access.garden_id)
+        } else {
+          // Admin can see all gardens
+          accessibleGardens = []
+        }
+      } else {
+        // Regular users can only see their accessible gardens
+        accessibleGardens = user.garden_access || []
+      }
+
+      const { data, error } = await LogbookService.getLogbookEntries(
+        accessibleGardens,
+        state.selectedGarden !== "all" ? [state.selectedGarden] : undefined,
+        state.selectedPlantBed !== "all" ? [state.selectedPlantBed] : undefined,
+        state.selectedYear,
+        state.page,
+        ITEMS_PER_PAGE,
+        state.searchTerm
+      )
+
+      if (error) {
+        throw new Error(error)
+      }
+
+      setState(prev => ({
+        ...prev,
+        entries: resetPage ? data.entries : [...prev.entries, ...data.entries],
+        hasMore: data.entries.length === ITEMS_PER_PAGE,
+        loading: false
+      }))
+
+      uiLogger.info('Logbook entries loaded successfully', { 
+        count: data.entries.length, 
+        page: state.page,
+        filters: {
+          garden: state.selectedGarden,
+          plantBed: state.selectedPlantBed,
+          year: state.selectedYear,
+          search: state.searchTerm
+        }
+      })
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
+      setState(prev => ({ 
+        ...prev, 
+        error: errorMessage, 
+        loading: false 
+      }))
+      
+      uiLogger.error('Failed to load logbook entries', error as Error, { 
+        page: state.page,
+        filters: {
+          garden: state.selectedGarden,
+          plantBed: state.selectedPlantBed,
+          year: state.selectedYear,
+          search: state.searchTerm
+        }
+      })
     }
-  }, [gardenAccessLoaded, user, loadEntries])
+  }, [user, gardenAccessLoaded, isAdmin, viewingUserId, state.selectedGarden, state.selectedPlantBed, state.selectedYear, state.page, state.searchTerm])
+
+  React.useEffect(() => {
+    loadLogbookEntries(true)
+  }, [loadLogbookEntries])
 
   // Handle search
-  const handleSearchChange = (value: string) => {
-    setState(prev => ({ ...prev, searchTerm: value, page: 1 }))
+  const handleSearch = (searchTerm: string) => {
+    setState(prev => ({ ...prev, searchTerm }))
   }
 
   // Handle filter changes
-  const handleGardenChange = (value: string) => {
-    setState(prev => ({ 
-      ...prev, 
-      selectedGarden: value, 
-      selectedPlantBed: "all", // Reset plant bed when garden changes
-      page: 1 
-    }))
-  }
-
-  const handlePlantBedChange = (value: string) => {
-    setState(prev => ({ ...prev, selectedPlantBed: value, page: 1 }))
-  }
-
-  const handleYearChange = (value: string) => {
-    setState(prev => ({ ...prev, selectedYear: value, page: 1 }))
-  }
-
-  // Clear filters
-  const clearFilters = () => {
-    setState(prev => ({ 
-      ...prev, 
-      searchTerm: "", 
-      selectedGarden: "all", 
-      selectedPlantBed: "all",
-      selectedYear: new Date().getFullYear().toString(),
-      page: 1 
-    }))
-    loadEntries(1, false)
+  const handleFilterChange = (filterType: 'garden' | 'plantBed' | 'year', value: string) => {
+    setState(prev => ({ ...prev, [filterType]: value }))
   }
 
   // Load more entries
-  const loadMore = () => {
-    if (!state.loading && state.hasMore) {
-      loadEntries(state.page + 1, true)
+  const handleLoadMore = () => {
+    setState(prev => ({ ...prev, page: prev.page + 1 }))
+  }
+
+  // Delete entry
+  const handleDeleteEntry = async (entryId: string) => {
+    if (!confirm('Weet u zeker dat u dit logboek item wilt verwijderen?')) {
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('logbook_entries')
+        .delete()
+        .eq('id', entryId)
+
+      if (error) {
+        throw error
+      }
+
+      // Reload entries
+      loadLogbookEntries(true)
+
+      toast({
+        title: "Logboek item verwijderd",
+        description: "Het logboek item is succesvol verwijderd.",
+        variant: "default",
+      })
+
+      uiLogger.info('Logbook entry deleted successfully', { entryId })
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
+      
+      toast({
+        title: "Fout bij verwijderen",
+        description: getUserFriendlyErrorMessage(errorMessage),
+        variant: "destructive",
+      })
+
+      uiLogger.error('Failed to delete logbook entry', error as Error, { entryId })
     }
   }
+
+  // Get accessible gardens for filtering
+  const accessibleGardens = React.useMemo(() => {
+    if (isAdmin()) {
+      // Admin can see all gardens
+      return []
+    }
+    return user?.garden_access || []
+  }, [user, isAdmin])
+
+  // Filter plant beds based on selected garden
+  const filteredPlantBeds = React.useMemo(() => {
+    if (state.selectedGarden === "all") {
+      return state.plantBeds
+    }
+    return state.plantBeds.filter(bed => bed.garden_id === state.selectedGarden)
+  }, [state.plantBeds, state.selectedGarden])
+
+  // Get years for filtering (last 5 years + current year)
+  const years = React.useMemo(() => {
+    const currentYear = new Date().getFullYear()
+    return Array.from({ length: 6 }, (_, i) => (currentYear - i).toString())
+  }, [])
 
   // Format date for display
   const formatDate = (dateString: string) => {
     try {
-      return format(parseISO(dateString), 'dd MMMM yyyy', { locale: nl })
+      return format(parseISO(dateString), 'dd MMM yyyy', { locale: nl })
     } catch {
-      return dateString
+      return 'Onbekende datum'
     }
   }
 
-  // Get available years for filtering
-  const getAvailableYears = () => {
-    const currentYear = new Date().getFullYear()
-    const years = []
-    for (let year = currentYear; year >= currentYear - 5; year--) {
-      years.push(year)
+  // Get user-friendly error message
+  const getUserFriendlyErrorMessage = (error: string) => {
+    if (error.includes('network') || error.includes('fetch')) {
+      return 'Netwerkfout. Controleer je internetverbinding en probeer het opnieuw.'
     }
-    return years
+    if (error.includes('permission') || error.includes('access')) {
+      return 'Je hebt geen toegang tot deze functionaliteit.'
+    }
+    if (error.includes('not found')) {
+      return 'De gevraagde gegevens zijn niet gevonden.'
+    }
+    return error
   }
 
-  // Get unique gardens from logbook entries (which have garden names)
-  const gardens = React.useMemo(() => {
-    const uniqueGardens = new Map()
-    state.entries.forEach(entry => {
-      if (!uniqueGardens.has(entry.garden_id)) {
-        uniqueGardens.set(entry.garden_id, entry.garden_name)
-      }
-    })
-    return Array.from(uniqueGardens.entries()).map(([id, name]) => ({ id, name }))
-  }, [state.entries])
-
-  // Filter plant beds by selected garden
-  const filteredPlantBeds = React.useMemo(() => {
-    return state.selectedGarden && state.selectedGarden !== "all"
-      ? state.plantBeds.filter(bed => bed.garden_id === state.selectedGarden)
-      : state.plantBeds
-  }, [state.plantBeds, state.selectedGarden])
-
-  if (state.error) {
+  // Loading state
+  if (!gardenAccessLoaded) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <div className="text-red-600 mb-4">
-            <BookOpen className="h-12 w-12 mx-auto mb-2" />
-            <h2 className="text-xl font-semibold">Fout bij laden logboek</h2>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-background to-blue-50 dark:from-green-950/20 dark:via-background dark:to-blue-950/20">
+        <div className="container mx-auto px-4 py-4 max-w-5xl">
+          <div className="flex items-center justify-center min-h-[50vh]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Laden...</p>
+            </div>
           </div>
-          <p className="text-muted-foreground mb-4">{state.error}</p>
-          <Button onClick={() => loadEntries()} variant="outline">
-            Opnieuw proberen
-          </Button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 safe-area-px">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-            <BookOpen className="h-8 w-8" />
-            {viewingUser ? `Logboek van ${viewingUser.full_name || viewingUser.email}` : 'Logboek'}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {viewingUser 
-              ? `Logboek entries van ${viewingUser.full_name || viewingUser.email}`
-              : 'Overzicht van alle logboek entries voor je tuinen'
-            }
-          </p>
-          {viewingUser && (
-            <div className="mt-2">
-              <Badge variant="outline" className="text-xs">
-                Bekijkt logboek van: {viewingUser.full_name || viewingUser.email}
-              </Badge>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-background to-blue-50 dark:from-green-950/20 dark:via-background dark:to-blue-950/20">
+      <div className="container mx-auto px-4 py-4 max-w-5xl">
+        {/* Mobile-First Header */}
+        <div className="mb-6">
+          {/* Top Bar - Mobile First */}
+          <div className="flex items-center justify-between mb-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => router.back()}
+              className="p-2 h-10 w-10 rounded-full shadow-sm hover:shadow-md transition-all duration-200"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            
+            <div className="flex-1 text-center">
+              <h1 className="text-2xl font-bold text-foreground">
+                Logboek
+              </h1>
+              {viewingUser && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {viewingUser.full_name || viewingUser.email}
+                </p>
+              )}
             </div>
-          )}
-        </div>
+            
+            <Button
+              onClick={() => router.push('/logbook/new')}
+              size="sm"
+              className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 rounded-full h-10 w-10 p-0"
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
+          </div>
 
-        {/* Tasks button for users */}
-        {!isAdmin() && (
-          <Button 
-            onClick={() => router.push('/')}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <ClipboardList className="w-4 h-4" />
-            Taken
-          </Button>
-        )}
-        
-        <Button asChild>
-          <Link href="/logbook/new">
-            <Plus className="h-4 w-4 mr-2" />
-            Nieuwe entry
-          </Link>
-        </Button>
-      </div>
-
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Zoek in opmerkingen, plantvakken of planten..."
-                  value={state.searchTerm}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+          {/* Enhanced Description - Mobile First */}
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <BookOpen className="w-5 h-5 text-green-600 dark:text-green-400" />
+              <span className="text-sm font-medium text-muted-foreground">
+                Tuinactiviteiten
+              </span>
             </div>
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
+              Bekijk en beheer je tuinactiviteiten en notities
+            </p>
+          </div>
 
-            {/* Garden filter */}
-            <Select value={state.selectedGarden} onValueChange={handleGardenChange}>
-              <SelectTrigger className="w-full lg:w-48">
-                <SelectValue placeholder="Alle tuinen" />
+          {/* Mobile-First Search */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Zoek in logboek..."
+                value={state.searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-10 h-12 text-base border-2 border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400 transition-all duration-200 shadow-sm"
+              />
+            </div>
+          </div>
+
+          {/* Mobile-First Filters */}
+          <div className="grid grid-cols-1 gap-3 mb-6">
+            {/* Garden Filter */}
+            <Select value={state.selectedGarden} onValueChange={(value) => handleFilterChange('garden', value)}>
+              <SelectTrigger className="h-12 border-2 border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400">
+                <SelectValue placeholder="Selecteer tuin" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Alle tuinen</SelectItem>
-                {gardens.map((garden) => (
-                  <SelectItem key={garden.id} value={garden.id}>
-                    {garden.name}
-                  </SelectItem>
-                ))}
+                {accessibleGardens.map((gardenId) => {
+                  const garden = state.plantBeds.find(bed => bed.garden_id === gardenId)?.garden
+                  return garden ? (
+                    <SelectItem key={gardenId} value={gardenId}>
+                      {garden.name}
+                    </SelectItem>
+                  ) : null
+                })}
               </SelectContent>
             </Select>
 
-            {/* Plant bed filter */}
-            <Select value={state.selectedPlantBed} onValueChange={handlePlantBedChange}>
-              <SelectTrigger className="w-full lg:w-48">
-                <SelectValue placeholder="Alle plantvakken" />
+            {/* Plant Bed Filter */}
+            <Select value={state.selectedPlantBed} onValueChange={(value) => handleFilterChange('plantBed', value)}>
+              <SelectTrigger className="h-12 border-2 border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400">
+                <SelectValue placeholder="Selecteer plantbed" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Alle plantvakken</SelectItem>
+                <SelectItem value="all">Alle plantbedden</SelectItem>
                 {filteredPlantBeds.map((bed) => (
                   <SelectItem key={bed.id} value={bed.id}>
                     {bed.name}
@@ -604,212 +441,228 @@ function LogbookPageContent() {
               </SelectContent>
             </Select>
 
-            {/* Year filter */}
-            <Select value={state.selectedYear} onValueChange={handleYearChange}>
-              <SelectTrigger className="w-full lg:w-32">
-                <SelectValue placeholder="Jaar" />
+            {/* Year Filter */}
+            <Select value={state.selectedYear} onValueChange={(value) => handleFilterChange('year', value)}>
+              <SelectTrigger className="h-12 border-2 border-gray-200 dark:border-gray-700 focus:border-green-500 dark:focus:border-green-400">
+                <SelectValue placeholder="Selecteer jaar" />
               </SelectTrigger>
               <SelectContent>
-                {getAvailableYears().map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
+                {years.map((year) => (
+                  <SelectItem key={year} value={year}>
                     {year}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-
-            {/* Clear filters */}
-            {(state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString()) && (
-              <Button variant="outline" onClick={clearFilters}>
-                <X className="h-4 w-4 mr-2" />
-                Wissen
-              </Button>
-            )}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Loading state */}
-      {state.loading && state.entries.length === 0 && (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-20 w-full mb-3" />
-                <Skeleton className="h-3 w-full mb-2" />
-                <Skeleton className="h-3 w-2/3" />
-              </CardContent>
-            </Card>
-          ))}
         </div>
-      )}
 
-      {/* Empty state */}
-      {!state.loading && state.entries.length === 0 && (
-        <div className="text-center py-12">
-          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">
-            Geen logboek entries gevonden
-          </h3>
-          <p className="text-muted-foreground mb-6">
-            {state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString()
-              ? "Probeer je filters aan te passen of maak een nieuwe entry aan."
-              : "Begin met het maken van je eerste logboek entry."}
-          </p>
-          <Button asChild>
-            <Link href="/logbook/new">
-              <Plus className="h-4 w-4 mr-2" />
-              Eerste entry maken
-            </Link>
-          </Button>
-        </div>
-      )}
+        {/* Error State */}
+        {state.error && (
+          <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-2">
+              <X className="h-5 w-5 text-destructive" />
+              <h3 className="text-sm font-semibold text-destructive">Er is een fout opgetreden</h3>
+            </div>
+            <p className="text-sm text-destructive mb-3">{state.error}</p>
+            <Button 
+              onClick={() => loadLogbookEntries(true)} 
+              variant="outline" 
+              size="sm"
+              className="border-destructive text-destructive hover:bg-destructive/10"
+            >
+              Opnieuw proberen
+            </Button>
+          </div>
+        )}
 
-      {/* Logbook entries - redesigned for better emphasis */}
-      {state.entries.length > 0 && (
+        {/* Logbook Entries - Mobile First */}
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            💡 Klik op een entry om de details te bekijken
-          </p>
-          
-          {/* Modern card-based layout instead of table */}
-          <div className="space-y-4">
-            {state.entries.map((entry) => (
-              <Card 
-                key={entry.id} 
-                className={`cursor-pointer hover:shadow-md transition-shadow ${
-                  entry.is_completed_task ? 'bg-green-50 dark:bg-green-950/20 border-l-4 border-l-green-500' : 'hover:bg-muted/50'
-                }`}
-                onClick={() => entry.is_completed_task ? null : router.push(`/logbook/${entry.id}`)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex gap-6">
-                    {/* Photo section - prominent display */}
-                    <div className="flex-shrink-0">
-                      {entry.photo_url ? (
-                        <div className="relative">
-                          <img 
-                            src={entry.photo_url} 
-                            alt="Logboek foto"
-                            className="w-32 h-32 object-cover rounded-lg border shadow-sm hover:shadow-md transition-shadow"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
-                            <Camera className="w-6 h-6 text-white opacity-0 hover:opacity-100 transition-opacity" />
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="w-32 h-32 bg-muted border-2 border-dashed border-border rounded-lg flex items-center justify-center">
-                          <div className="text-center text-muted-foreground">
-                            <Camera className="w-8 h-8 mx-auto mb-1" />
-                            <span className="text-xs">Geen foto</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content section - emphasis on description */}
-                    <div className="flex-1 min-w-0">
-                      {/* Main description - large text like tasks */}
-                      <div className="mb-3">
-                        {entry.is_completed_task ? (
-                          <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0 mt-1">
-                              <CheckCircle2 className="w-5 h-5 text-green-600" />
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-lg font-medium text-green-800 dark:text-green-400 leading-relaxed">
-                                {entry.notes}
-                              </p>
-                              <Badge variant="secondary" className="mt-2 text-xs bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400">
-                                📋 Voltooide taak
-                              </Badge>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-start gap-3">
-                            <div className="flex-shrink-0 mt-1">
-                              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                            </div>
-                            <div className="flex-1">
-                              <p className="text-lg font-medium text-foreground leading-relaxed">
-                                {entry.notes}
-                              </p>
-                              <Badge variant="outline" className="mt-2 text-xs">
-                                📝 Logboek entry
-                              </Badge>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Metadata - smaller and smarter layout */}
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                        {/* Date - prominent but smaller */}
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="w-4 h-4 text-muted-foreground" />
-                          <span className="font-medium">{formatDate(entry.entry_date)}</span>
-                        </div>
-                        
-                        {/* Location info - compact */}
-                        <div className="flex items-center gap-1.5">
-                          <MapPin className="w-4 h-4 text-blue-500" />
-                          <span>{entry.plant_bed_name}</span>
-                        </div>
-                        
-                        {/* Garden - as small badge */}
-                        <Badge variant="outline" className="text-xs px-2 py-0.5">
-                          {entry.garden_name}
-                        </Badge>
-                        
-                        {/* Plant info - when available */}
-                        {entry.plant_name && (
-                          <div className="flex items-center gap-1.5">
-                            <Leaf className="w-4 h-4 text-green-500" />
-                            <span className="text-sm">
-                              {entry.plant_name}
-                              {entry.plant_variety && (
-                                <span className="text-muted-foreground ml-1">({entry.plant_variety})</span>
-                              )}
-                            </span>
-                          </div>
-                        )}
+          {state.loading && state.entries.length === 0 ? (
+            // Loading skeletons
+            Array.from({ length: 3 }).map((_, index) => (
+              <Card key={index} className="bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-800/30">
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="w-10 h-10 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-1/2" />
                       </div>
                     </div>
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
                   </div>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        </div>
-      )}
+            ))
+          ) : state.entries.length === 0 ? (
+            // Empty state
+            <Card className="bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-800/30">
+              <CardContent className="p-8 text-center">
+                <BookOpen className="w-16 h-16 text-muted-foreground/40 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Geen logboek items gevonden
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString()
+                    ? 'Probeer je filters aan te passen of maak je eerste logboek item aan.'
+                    : 'Maak je eerste logboek item aan om te beginnen.'
+                  }
+                </p>
+                <Button 
+                  onClick={() => router.push('/logbook/new')}
+                  className="bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Eerste Item
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            // Logbook entries
+            <>
+              {state.entries.map((entry) => (
+                <LogbookEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onDelete={handleDeleteEntry}
+                  formatDate={formatDate}
+                />
+              ))}
 
-      {/* Load more button */}
-      {state.hasMore && (
-        <div className="text-center mt-8">
-          <Button 
-            onClick={loadMore} 
-            disabled={state.loading}
-            variant="outline"
-          >
-            {state.loading ? 'Laden...' : 'Meer laden'}
-          </Button>
+              {/* Load More Button */}
+              {state.hasMore && (
+                <div className="text-center pt-4">
+                  <Button 
+                    onClick={handleLoadMore} 
+                    disabled={state.loading}
+                    variant="outline"
+                    size="lg"
+                    className="min-w-40 shadow-sm hover:shadow-md transition-all duration-200"
+                  >
+                    {state.loading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-current mr-2"></div>
+                        Laden...
+                      </>
+                    ) : (
+                      'Meer laden'
+                    )}
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }
 
+// Mobile-First Logbook Entry Card
+interface LogbookEntryCardProps {
+  entry: LogbookEntryWithDetails
+  onDelete: (entryId: string) => void
+  formatDate: (dateString: string) => string
+}
+
+function LogbookEntryCard({ entry, onDelete, formatDate }: LogbookEntryCardProps) {
+  const [showFullContent, setShowFullContent] = React.useState(false)
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onDelete(entry.id)
+  }
+
+  return (
+    <Card className="bg-white/80 dark:bg-card/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+      <CardContent className="p-4">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+              <FileText className="w-5 h-5 text-green-600 dark:text-green-400" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-foreground truncate">
+                {entry.title || 'Geen titel'}
+              </h3>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                <Calendar className="w-3 h-3" />
+                <span>{formatDate(entry.created_at)}</span>
+                {entry.garden && (
+                  <>
+                    <MapPin className="w-3 h-3" />
+                    <span className="truncate">{entry.garden.name}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <Button
+            onClick={handleDeleteClick}
+            variant="ghost"
+            size="sm"
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 p-2 h-8 w-8"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Content */}
+        <div className="space-y-3">
+          {entry.content && (
+            <div className="text-sm text-foreground leading-relaxed">
+              {showFullContent ? (
+                <p>{entry.content}</p>
+              ) : (
+                <p className="line-clamp-3">{entry.content}</p>
+              )}
+              
+              {entry.content.length > 150 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFullContent(!showFullContent)}
+                  className="text-green-600 hover:text-green-700 p-0 h-auto text-xs mt-2"
+                >
+                  {showFullContent ? 'Minder tonen' : 'Meer tonen'}
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Plant Bed Info */}
+          {entry.plant_bed && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Leaf className="w-3 h-3" />
+              <span>{entry.plant_bed.name}</span>
+            </div>
+          )}
+
+          {/* Photos */}
+          {entry.photos && entry.photos.length > 0 && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Camera className="w-3 h-3" />
+              <span>{entry.photos.length} foto{entry.photos.length !== 1 ? 's' : ''}</span>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// Main logbook page component
 export default function LogbookPage() {
   return (
     <ProtectedRoute>
       <ErrorBoundary>
-        <React.Suspense fallback={<div>Loading...</div>}>
-          <LogbookPageContent />
-        </React.Suspense>
+        <LogbookPageContent />
       </ErrorBoundary>
     </ProtectedRoute>
   )
