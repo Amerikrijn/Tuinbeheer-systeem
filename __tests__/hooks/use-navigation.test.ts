@@ -17,7 +17,16 @@ jest.mock('next/navigation', () => ({
 
 describe('useNavigation', () => {
   beforeEach(() => {
+    // Clear all mocks and reset mock function calls
     jest.clearAllMocks()
+    mockPush.mockClear()
+    mockReplace.mockClear()
+    mockBack.mockClear()
+  })
+
+  afterEach(() => {
+    // Ensure mocks are restored
+    jest.restoreAllMocks()
   })
 
   it('navigateTo calls router.push with correct path', () => {

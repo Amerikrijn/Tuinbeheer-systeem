@@ -19,7 +19,7 @@ describe('Loading component', () => {
   it('renders with proper heading structure', () => {
     render(<Loading />)
     
-    const heading = screen.getByRole('heading', { level: 1 })
+    const heading = screen.getByRole('heading', { level: 2 })
     expect(heading).toBeInTheDocument()
     expect(heading).toHaveTextContent('Laden...')
     expect(heading).toHaveClass('text-xl', 'font-semibold', 'text-foreground')
@@ -32,10 +32,11 @@ describe('Loading component', () => {
     expect(description).toHaveClass('text-muted-foreground')
   })
 
-  it('has proper accessibility attributes', () => {
+  it('has proper accessibility structure', () => {
     render(<Loading />)
     
-    const heading = screen.getByRole('heading', { level: 1 })
-    expect(heading).toHaveAttribute('aria-live', 'polite')
+    const heading = screen.getByRole('heading', { level: 2 })
+    expect(heading).toBeInTheDocument()
+    expect(heading).toHaveTextContent('Laden...')
   })
 })

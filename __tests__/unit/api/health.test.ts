@@ -16,8 +16,7 @@ Object.defineProperty(global, 'crypto', {
 
 describe('Health API', () => {
   it('should return health status', async () => {
-    const request = new Request('http://localhost:3000/api/health')
-    const response = await GET(request)
+    const response = await GET()
     
     expect(response.status).toBe(200)
     const data = await response.json()
@@ -25,8 +24,7 @@ describe('Health API', () => {
   })
 
   it('should include timestamp', async () => {
-    const request = new Request('http://localhost:3000/api/health')
-    const response = await GET(request)
+    const response = await GET()
     
     const data = await response.json()
     expect(data.timestamp).toBeDefined()

@@ -1,5 +1,6 @@
 // Jest setup bestand - vervangt Vitest setup
-import '@testing-library/jest-dom';
+const React = require('react');
+require('@testing-library/jest-dom');
 
 // Enhanced crypto mock setup - MUST be before any module imports that use crypto
 const mockCrypto = {
@@ -63,7 +64,7 @@ jest.mock('next/navigation', () => ({
 // Mock voor Next.js Link
 jest.mock('next/link', () => {
   return ({ children, href, ...props }) => {
-    return <a href={href} {...props}>{children}</a>;
+    return React.createElement('a', { href, ...props }, children);
   };
 });
 
@@ -100,6 +101,242 @@ global.performance = {
   clearMarks: jest.fn(),
   clearMeasures: jest.fn(),
 };
+
+// Mock voor Web API globals (Request, Response, etc.)
+global.Request = class Request {
+  constructor(input, init = {}) {
+    this.url = typeof input === 'string' ? input : input?.url || '';
+    this.method = init.method || 'GET';
+    this.headers = new Map(Object.entries(init.headers || {}));
+    this.body = init.body || null;
+    this.signal = init.signal || null;
+  }
+  
+  clone() {
+    return new Request(this.url, {
+      method: this.method,
+      headers: Object.fromEntries(this.headers),
+      body: this.body,
+      signal: this.signal,
+    });
+  }
+};
+
+global.Response = class Response {
+  constructor(body = null, init = {}) {
+    this.body = body;
+    this.status = init.status || 200;
+    this.statusText = init.statusText || 'OK';
+    this.headers = new Map(Object.entries(init.headers || {}));
+    this.ok = this.status >= 200 && this.status < 300;
+  }
+  
+  json() {
+    return Promise.resolve(this.body);
+  }
+  
+  text() {
+    return Promise.resolve(String(this.body));
+  }
+  
+  clone() {
+    return new Response(this.body, {
+      status: this.status,
+      statusText: this.statusText,
+      headers: Object.fromEntries(this.headers),
+    });
+  }
+};
+
+global.Headers = class Headers {
+  constructor(init = {}) {
+    this._headers = new Map(Object.entries(init));
+  }
+  
+  get(name) {
+    return this._headers.get(name.toLowerCase()) || null;
+  }
+  
+  set(name, value) {
+    this._headers.set(name.toLowerCase(), value);
+  }
+  
+  has(name) {
+    return this._headers.has(name.toLowerCase());
+  }
+  
+  append(name, value) {
+    const existing = this._headers.get(name.toLowerCase());
+    if (existing) {
+      this._headers.set(name.toLowerCase(), `${existing}, ${value}`);
+    } else {
+      this._headers.set(name.toLowerCase(), value);
+    }
+  }
+  
+  delete(name) {
+    this._headers.delete(name.toLowerCase());
+  }
+  
+  forEach(callback, thisArg) {
+    this._headers.forEach((value, name) => callback.call(thisArg, value, name, this));
+  }
+  
+  entries() {
+    return this._headers.entries();
+  }
+  
+  keys() {
+    return this._headers.keys();
+  }
+  
+  values() {
+    return this._headers.values();
+  }
+};
+
+// Mock voor AbortSignal
+global.AbortSignal = class AbortSignal {
+  constructor() {
+    this.aborted = false;
+    this.reason = undefined;
+  }
+  
+  static abort(reason) {
+    const signal = new AbortSignal();
+    signal.aborted = true;
+    signal.reason = reason;
+    return signal;
+  }
+  
+  static timeout(ms) {
+    const signal = new AbortSignal();
+    setTimeout(() => {
+      signal.aborted = true;
+      signal.reason = new Error('Timeout');
+    }, ms);
+    return signal;
+  }
+};
+
+// Mock voor AbortController
+global.AbortController = class AbortController {
+  constructor() {
+    this.signal = new AbortSignal();
+  }
+  
+  abort(reason) {
+    this.signal.aborted = true;
+    this.signal.reason = reason;
+  }
+};
+
+// Mock environment variables for tests
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.anonym.key';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.service.key';
+process.env.NODE_ENV = 'test';
+
+// Mock Supabase client for tests
+global.supabaseAdmin = {
+  from: jest.fn().mockReturnValue({
+    select: jest.fn().mockReturnValue({
+      limit: jest.fn().mockResolvedValue({ error: null })
+    })
+  })
+};
+
+// Mock Supabase modules
+jest.mock('@/lib/supabase', () => ({
+  supabaseAdmin: {
+    from: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        limit: jest.fn().mockResolvedValue({ error: null })
+      })
+    }),
+    storage: {
+      getBucket: jest.fn().mockResolvedValue({ 
+        data: { public: true }, 
+        error: null 
+      }),
+      createBucket: jest.fn().mockResolvedValue({ 
+        data: { public: true }, 
+        error: null 
+      })
+    }
+  },
+  supabase: {
+    from: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        limit: jest.fn().mockResolvedValue({ error: null })
+      })
+    })
+  }
+}));
+
+// Mock voor NextResponse (kritiek voor API route tests)
+global.NextResponse = {
+  json: (data, init = {}) => {
+    const response = new global.Response(JSON.stringify(data), {
+      status: init.status || 200,
+      headers: {
+        'Content-Type': 'application/json',
+        ...init.headers
+      }
+    });
+    
+    // Ensure the json method works correctly
+    response.json = async () => data;
+    
+    return response;
+  },
+  redirect: (url, init = {}) => {
+    return new global.Response(null, {
+      status: init.status || 302,
+      headers: {
+        'Location': url,
+        ...init.headers
+      }
+    });
+  },
+  next: (init = {}) => {
+    return new global.Response(null, {
+      status: init.status || 200,
+      ...init
+    });
+  }
+};
+
+// Mock voor NextRequest (kritiek voor API route tests)
+global.NextRequest = class NextRequest extends global.Request {
+  constructor(input, init = {}) {
+    super(input, init);
+    
+    // Simulate NextRequest specific properties
+    this.nextUrl = {
+      pathname: this.url ? new URL(this.url).pathname : '/',
+      searchParams: new URLSearchParams(this.url ? new URL(this.url).search : ''),
+      search: this.url ? new URL(this.url).search : '',
+      href: this.url || '/',
+      origin: this.url ? new URL(this.url).origin : 'http://localhost:3000'
+    };
+  }
+  
+  // Override url getter to make it read-only
+  get url() {
+    return this._url || super.url;
+  }
+  
+  set url(value) {
+    this._url = value;
+  }
+};
+
+// Mock NextResponse module import
+jest.mock('next/server', () => ({
+  NextResponse: global.NextResponse,
+  NextRequest: global.NextRequest,
+}));
 
 // Mock voor localStorage
 const localStorageMock = {

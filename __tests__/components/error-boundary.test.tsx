@@ -23,11 +23,11 @@ describe('ErrorBoundary component', () => {
       </ErrorBoundary>
     )
 
-    expect(screen.getByText('Something went wrong while loading the application.')).toBeInTheDocument()
+    expect(screen.getByText('Er is iets misgegaan bij het laden van de applicatie.')).toBeInTheDocument()
     expect(screen.getByText('boom')).toBeInTheDocument()
-    expect(screen.getByText('Try Again')).toBeInTheDocument()
-    expect(screen.getByText('Go Home')).toBeInTheDocument()
-    expect(screen.getByText('Reload Page')).toBeInTheDocument()
+    expect(screen.getByText('Opnieuw Proberen')).toBeInTheDocument()
+    expect(screen.getByText('Naar Home')).toBeInTheDocument()
+    expect(screen.getByText('Pagina Herladen')).toBeInTheDocument()
   })
 
   it('provides guidance for Supabase errors', () => {
@@ -38,7 +38,7 @@ describe('ErrorBoundary component', () => {
     )
 
     expect(screen.getByText('supabaseKey missing')).toBeInTheDocument()
-    expect(screen.getByText('Missing or invalid environment variables')).toBeInTheDocument()
+    expect(screen.getByText('Ontbrekende of ongeldige omgevingsvariabelen')).toBeInTheDocument()
   })
 
   it('resets when Try Again is clicked', () => {
@@ -49,7 +49,7 @@ describe('ErrorBoundary component', () => {
     )
 
     act(() => {
-      fireEvent.click(screen.getByText('Try Again'))
+      fireEvent.click(screen.getByText('Opnieuw Proberen'))
       rerender(
         <ErrorBoundary>
           <div data-testid="safe">content</div>

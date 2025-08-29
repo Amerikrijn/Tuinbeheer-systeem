@@ -24,7 +24,7 @@ describe('LanguageSwitcher', () => {
 
     const button = screen.getByRole('button')
     expect(button).toBeInTheDocument()
-    expect(button).toHaveTextContent('NL')
+    expect(button).toHaveTextContent('EN') // Shows language to switch TO, not current language
   })
 
   it('shows current language', () => {
@@ -32,6 +32,6 @@ describe('LanguageSwitcher', () => {
 
     const button = screen.getByRole('button')
     expect(button).toBeInTheDocument()
-    expect(button).toHaveTextContent('NL')
+    expect(button).toHaveTextContent('EN') // Shows language to switch TO, not current language
   })
 })

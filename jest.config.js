@@ -58,6 +58,14 @@ const customJestConfig = {
     pretendToBeVisual: true,
     resources: 'usable',
   },
+  
+  // Coverage configuration
+  collectCoverage: true,
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov', 'html', 'json'],
+  
+  // Test results output
+  testResultsProcessor: undefined, // Disable default processor
 }
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
