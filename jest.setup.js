@@ -314,23 +314,34 @@ global.NextRequest = class NextRequest extends global.Request {
   constructor(input, init = {}) {
     super(input, init);
     
+    // Parse the URL to get search params
+    let urlObj;
+    try {
+      urlObj = new URL(input);
+    } catch {
+      urlObj = new URL('http://localhost:3000/');
+    }
+    
     // Simulate NextRequest specific properties
     this.nextUrl = {
-      pathname: this.url ? new URL(this.url).pathname : '/',
-      searchParams: new URLSearchParams(this.url ? new URL(this.url).search : ''),
-      search: this.url ? new URL(this.url).search : '',
-      href: this.url || '/',
-      origin: this.url ? new URL(this.url).origin : 'http://localhost:3000'
+      pathname: urlObj.pathname,
+      searchParams: urlObj.searchParams,
+      search: urlObj.search,
+      href: urlObj.href,
+      origin: urlObj.origin
     };
-  }
-  
-  // Override url getter to make it read-only
-  get url() {
-    return this._url || super.url;
-  }
-  
-  set url(value) {
-    this._url = value;
+    
+    // Add json method for parsing request body
+    this.json = async () => {
+      if (this.body) {
+        try {
+          return JSON.parse(this.body);
+        } catch {
+          throw new Error('Invalid JSON');
+        }
+      }
+      return null;
+    };
   }
 };
 
