@@ -90,9 +90,9 @@ jobs:
             echo "⚠️ Build failed - .next directory missing, but continuing with tests"
           fi
 
-  # Run All Tests - Simple approach
+  # Run All Tests with Jest
   run-all-tests:
-    name: "🧪 Run All Tests"
+    name: "🧪 Run All Tests with Jest"
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -113,18 +113,19 @@ jobs:
 
       - name: Run all tests with coverage
         run: |
-          echo "Running all tests in __tests__ folder..."
+          echo "Running all tests in __tests__ folder with Jest..."
           echo "This may take several minutes due to test failures..."
           
           # Run all tests and generate coverage - continue even if tests fail
-          npx vitest run \
-            --reporter=junit \
-            --outputFile=test-results/all-tests.xml \
+          npm run test:ci \
+            -- --testPathPattern="__tests__" \
             --coverage \
-            --coverage.reporter=text \
-            --coverage.reporter=lcov \
-            --coverage.reporter=html \
-            --reporter=verbose || {
+            --coverageReporters=text \
+            --coverageReporters=lcov \
+            --coverageReporters=html \
+            --json \
+            --outputFile=test-results/all-tests.json \
+            --verbose || {
             echo "⚠️ Some tests failed, but continuing to generate report..."
             echo "This is expected - many tests have known issues that need fixing"
             exit 0
@@ -132,122 +133,177 @@ jobs:
 
       - name: Run specific test categories (continue on failure)
         run: |
-          echo "Running specific test categories..."
+          echo "Running specific test categories with Jest..."
           echo "Note: Many tests may fail due to missing data-testid attributes"
           
           # UI Components
           echo "Testing UI Components..."
-          npx vitest run __tests__/components/ui/ \
-            --reporter=junit \
-            --outputFile=test-results/ui-components.xml \
-            --coverage || echo "⚠️ UI components tests failed (expected - missing data-testid)"
+          npm run test:ci -- --testPathPattern="__tests__/components/ui/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/ui-components.json || echo "⚠️ UI components tests failed (expected - missing data-testid)"
           
           # Core Components
           echo "Testing Core Components..."
-          npx vitest run __tests__/components/ \
-            --reporter=junit \
-            --outputFile=test-results/core-components.xml \
-            --coverage || echo "⚠️ Core components tests failed (expected - missing data-testid)"
+          npm run test:ci -- --testPathPattern="__tests__/components/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/core-components.json || echo "⚠️ Core components tests failed (expected - missing data-testid)"
           
           # Hooks
           echo "Testing Hooks..."
-          npx vitest run __tests__/hooks/ \
-            --reporter=junit \
-            --outputFile=test-results/hooks.xml \
-            --coverage || echo "⚠️ Hooks tests failed (expected - missing dependencies)"
+          npm run test:ci -- --testPathPattern="__tests__/hooks/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/hooks.json || echo "⚠️ Hooks tests failed (expected - missing dependencies)"
           
           # Integration Tests
           echo "Testing Integration..."
-          npx vitest run __tests__/integration/ \
-            --reporter=junit \
-            --outputFile=test-results/integration.xml \
-            --coverage || echo "⚠️ Integration tests failed (expected - missing mocks)"
+          npm run test:ci -- --testPathPattern="__tests__/integration/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/integration.json || echo "⚠️ Integration tests failed (expected - missing mocks)"
           
           # Unit Tests
           echo "Testing Unit Tests..."
-          npx vitest run __tests__/unit/ \
-            --reporter=junit \
-            --outputFile=test-results/unit.xml \
-            --coverage || echo "⚠️ Unit tests failed (expected - missing dependencies)"
+          npm run test:ci -- --testPathPattern="__tests__/unit/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/unit.json || echo "⚠️ Unit tests failed (expected - missing dependencies)"
           
           # Lib Tests
           echo "Testing Lib Tests..."
-          npx vitest run __tests__/lib/ \
-            --reporter=junit \
-            --outputFile=test-results/lib.xml \
-            --coverage || echo "⚠️ Lib tests failed (expected - missing mocks)"
+          npm run test:ci -- --testPathPattern="__tests__/lib/" \
+            --coverage \
+            --json \
+            --outputFile=test-results/lib.json || echo "⚠️ Lib tests failed (expected - missing mocks)"
+
+      - name: Generate test summary with detailed breakdown
+        run: |
+          echo "Generating detailed test summary with category breakdown..."
+          
+          # Create a comprehensive test summary
+          cat > test-results/detailed-test-summary.md << 'EOF'
+          # 🧪 Detailed Test Execution Summary
+          
+          ## 📊 Overall Test Results
+          EOF
+          
+          # Add overall results if available
+          if [ -f "test-results/all-tests.json" ]; then
+            total_tests=$(jq -r '.numTotalTests' test-results/all-tests.json)
+            total_failures=$(jq -r '.numFailedTests' test-results/all-tests.json)
+            total_errors=$(jq -r '.numRuntimeErrorTestSuites' test-results/all-tests.json)
+            total_success=$((total_tests - total_failures - total_errors))
+            
+            echo "**Total Tests**: $total_tests" >> test-results/detailed-test-summary.md
+            echo "**Success Rate**: $total_success/$total_tests ($(echo "scale=1; $total_success * 100 / $total_tests" | bc)% success)" >> test-results/detailed-test-summary.md
+            echo "**Total Failures**: $total_failures" >> test-results/detailed-test-summary.md
+            echo "**Total Errors**: $total_errors" >> test-results/detailed-test-summary.md
+            echo "" >> test-results/detailed-test-summary.md
+          fi
+          
+          echo "## 🎯 Test Category Breakdown" >> test-results/detailed-test-summary.md
+          echo "" >> test-results/detailed-test-summary.md
+          
+          # UI Components
+          if [ -f "test-results/ui-components.json" ]; then
+            ui_tests=$(jq -r '.numTotalTests' test-results/ui-components.json)
+            ui_failures=$(jq -r '.numFailedTests' test-results/ui-components.json)
+            ui_success=$((ui_tests - ui_failures))
+            echo "### 🎨 UI Components: $ui_success/$ui_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 🎨 UI Components: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          # Core Components
+          if [ -f "test-results/core-components.json" ]; then
+            core_tests=$(jq -r '.numTotalTests' test-results/core-components.json)
+            core_failures=$(jq -r '.numFailedTests' test-results/core-components.json)
+            core_success=$((core_tests - core_failures))
+            echo "### 🔧 Core Components: $core_success/$core_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 🔧 Core Components: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          # Hooks
+          if [ -f "test-results/hooks.json" ]; then
+            hooks_tests=$(jq -r '.numTotalTests' test-results/hooks.json)
+            hooks_failures=$(jq -r '.numFailedTests' test-results/hooks.json)
+            hooks_success=$((hooks_tests - hooks_failures))
+            echo "### 🪝 Hooks: $hooks_success/$hooks_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 🪝 Hooks: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          # Integration Tests
+          if [ -f "test-results/integration.json" ]; then
+            int_tests=$(jq -r '.numTotalTests' test-results/integration.json)
+            int_failures=$(jq -r '.numFailedTests' test-results/integration.json)
+            int_success=$((int_tests - int_failures))
+            echo "### 🔗 Integration Tests: $int_success/$int_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 🔗 Integration Tests: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          # Unit Tests
+          if [ -f "test-results/unit.json" ]; then
+            unit_tests=$(jq -r '.numTotalTests' test-results/unit.json)
+            unit_failures=$(jq -r '.numFailedTests' test-results/unit.json)
+            unit_success=$((unit_tests - unit_failures))
+            echo "### 🧩 Unit Tests: $unit_success/$unit_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 🧩 Unit Tests: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          # Lib Tests
+          if [ -f "test-results/lib.json" ]; then
+            lib_tests=$(jq -r '.numTotalTests' test-results/lib.json)
+            lib_failures=$(jq -r '.numFailedTests' test-results/lib.json)
+            lib_success=$((lib_tests - lib_failures))
+            echo "### 📚 Lib Tests: $lib_success/$lib_tests tests passed" >> test-results/detailed-test-summary.md
+          else
+            echo "### 📚 Lib Tests: No results available" >> test-results/detailed-test-summary.md
+          fi
+          
+          echo "" >> test-results/detailed-test-summary.md
+          echo "## 📋 Test Execution Details" >> test-results/detailed-test-summary.md
+          echo "Generated: $(date)" >> test-results/detailed-test-summary.md
+          echo "Commit: ${{ github.sha }}" >> test-results/detailed-test-summary.md
+          echo "Branch: ${{ github.ref_name }}" >> test-results/detailed-test-summary.md
 
       - name: Generate detailed test analysis report
         run: |
           echo "Generating detailed test analysis report..."
           
-          # Run our custom test analysis script
-          node scripts/fix-test-analysis.js test-results/all-tests.xml
+          # Run our custom test analysis script for Jest output
+          if [ -f "test-results/all-tests.json" ]; then
+            node scripts/analyze-jest-results.js test-results/all-tests.json
+          else
+            echo "⚠️ Jest test results not found, creating fallback summary"
+            # Create a fallback summary if no test results exist
+            cat > jest-analysis-summary.json << EOF
+{
+  "totalTests": 0,
+  "totalSuccess": 0,
+  "totalFailures": 0,
+  "totalErrors": 0,
+  "criticalFailures": 0,
+  "highPriorityFailures": 0,
+  "mediumPriorityFailures": 0,
+  "unexpectedSuccesses": 0,
+  "recommendations": {
+    "critical": [],
+    "high": [],
+    "medium": [],
+    "unexpected": []
+  }
+}
+EOF
+          fi
           
           # Generate pipeline status report
           node scripts/generate-pipeline-status.js
-          
-          # Also generate a summary for the pipeline
-          echo "## 🧪 Test Execution Summary" > test-results/pipeline-summary.md
-          echo "" >> test-results/pipeline-summary.md
-          echo "**Date**: $(date)" >> test-results/pipeline-summary.md
-          echo "**Commit**: ${{ github.sha }}" >> test-results/pipeline-summary.md
-          echo "**Branch**: ${{ github.ref_name }}" >> test-results/pipeline-summary.md
-          echo "" >> test-results/pipeline-summary.md
-          
-          # Extract test statistics from the analysis
-          if [ -f "test-analysis-fixed-summary.json" ]; then
-            echo "**Total Tests**: $(jq -r '.totalTests' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
-            echo "**Success Rate**: $(jq -r '.totalSuccess' test-analysis-fixed-summary.json)/$(jq -r '.totalTests' test-analysis-fixed-summary.json) ($(echo "scale=1; $(jq -r '.totalSuccess' test-analysis-fixed-summary.json) * 100 / $(jq -r '.totalTests' test-analysis-fixed-summary.json)" | bc)% success)" >> test-results/pipeline-summary.md
-            echo "**Critical Failures**: $(jq -r '.criticalFailures' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
-            echo "**High Priority Failures**: $(jq -r '.highPriorityFailures' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
-            echo "**Medium Priority Failures**: $(jq -r '.mediumPriorityFailures' test-analysis-fixed-summary.json)" >> test-results/pipeline-summary.md
-          fi
-          
-          echo "" >> test-results/pipeline-summary.md
-          echo "**Note**: Check the detailed test analysis report for complete breakdown." >> test-results/pipeline-summary.md
-
-      - name: Generate enriched markdown report (JUnit + Top Failures)
-        run: |
-          # Produce test-results/test-report.md + test-results/ci.xml using our enhanced runner
-          node scripts/run-banking-tests.js --ci --report || true
-
-      - name: Generate test summary
-        run: |
-          echo "Generating test execution summary..."
-          
-          # Count test files
-          total_files=$(find __tests__ -name "*.test.*" -o -name "*.spec.*" | wc -l)
-          echo "Total test files found: $total_files"
-          
-          # Create summary file
-          cat > test-results/summary.txt << EOF
-          Test Execution Summary
-          ======================
-          
-          Total Test Files: $total_files
-          Execution Time: $(date)
-          Status: Completed (with expected failures)
-          
-          Note: Many tests fail due to:
-          - Missing data-testid attributes in UI components
-          - Missing test mocks and dependencies
-          - Database connection issues
-          
-          This is expected behavior until test infrastructure is improved.
-          EOF
-
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: |
-            test-results/
-            coverage/
-            test-analysis-fixed-summary.json
-            pipeline-status-report.md
-            github-summary.md
-          retention-days: 30
 
   # Security and Compliance
   security-compliance:
