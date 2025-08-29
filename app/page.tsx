@@ -269,14 +269,14 @@ function HomePageContent() {
   return (
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl safe-area-px">
       {/* Banking-Grade Compact Header */}
-      <div className="mb-4 sm:mb-6 border-b border-border pb-3">
+      <div className="mb-4 sm:mb-6 border-b-2 border-primary/20 pb-4 bg-gradient-to-r from-primary/5 to-transparent rounded-lg p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="p-1.5 bg-primary/10 rounded-md">
               <TreePine className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             <h1 className="text-lg sm:text-xl font-semibold text-foreground">
-              Tuinbeheer
+              🌱 Tuinbeheer Pro
             </h1>
           </div>
           
@@ -303,7 +303,7 @@ function HomePageContent() {
             <Button 
               onClick={() => router.push('/gardens/new')}
               size="sm"
-              className="h-8 px-3 text-xs"
+              className="h-8 px-3 text-xs bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25"
             >
               <Plus className="w-3.5 h-3.5 mr-1" />
               Tuin
@@ -315,12 +315,12 @@ function HomePageContent() {
       {/* Banking-Grade Search */}
       <div className="mb-4">
         <div className="relative max-w-sm mx-auto">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary w-4 h-4" />
           <Input
-            placeholder="Zoek tuinen..."
+            placeholder="🔍 Zoek tuinen..."
             value={state.searchTerm}
             onChange={handleSearchChange}
-            className="pl-9 pr-9 h-9 text-sm border-border focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+            className="pl-9 pr-9 h-10 text-sm border-2 border-primary/30 focus:border-primary focus:ring-2 focus:ring-primary/20 bg-background/50"
           />
           {state.searchTerm && (
             <Button
@@ -533,7 +533,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
   }
 
   return (
-    <Card className="group hover:shadow-sm transition-shadow duration-150 border-border hover:border-primary/30 overflow-hidden relative">
+    <Card className="group hover:shadow-md transition-all duration-200 border-2 border-border hover:border-primary/50 hover:shadow-primary/10 overflow-hidden relative bg-gradient-to-br from-card to-card/80">
       <Link href={`/gardens/${garden.id}`} className="block">
         <CardHeader className="pb-2 pt-3 px-3">
           <div className="flex items-start justify-between">
@@ -546,7 +546,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
                 <span className="truncate">{garden.location}</span>
               </div>
             </div>
-            <Badge variant="outline" className="text-xs px-2 py-0.5 h-5 border-border">
+            <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5 bg-primary/20 text-primary border-primary/30">
               {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)}
             </Badge>
           </div>
@@ -559,18 +559,18 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
               {allFlowers.slice(0, 6).map((flower, index) => (
                 <div
                   key={`${flower.id}-${index}`}
-                  className="inline-flex items-center gap-1 bg-muted/30 rounded px-2 py-1 text-xs border border-border/50"
+                  className="inline-flex items-center gap-1 bg-primary/10 hover:bg-primary/20 rounded-lg px-2 py-1.5 text-xs border border-primary/30 hover:border-primary/50 transition-all duration-150"
                   title={flower.name}
                 >
                   <span className="text-sm">{getPlantEmoji(flower.name, flower.emoji)}</span>
-                  <span className="truncate max-w-16 font-medium">{flower.name}</span>
+                  <span className="truncate max-w-16 font-medium text-primary-foreground">{flower.name}</span>
                 </div>
               ))}
-              {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-                <div className="text-xs text-muted-foreground px-2 py-1 bg-muted/20 rounded border border-border/30">
-                  +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6}
-                </div>
-              )}
+                              {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
+                  <div className="text-xs text-primary-foreground px-2 py-1 bg-primary/20 rounded-lg border border-primary/30 font-medium">
+                    +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6} meer
+                  </div>
+                )}
             </div>
           ) : (
             <div className="text-xs text-muted-foreground italic py-2 text-center">
@@ -585,9 +585,9 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
         onClick={handleDeleteClick}
         variant="ghost"
         size="sm"
-        className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 hover:bg-background border border-border/50"
+        className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-red-50 hover:bg-red-100 border border-red-200 hover:border-red-300 shadow-sm"
       >
-        <Trash2 className="h-3 w-3 text-destructive" />
+        <Trash2 className="h-3 w-3 text-red-600" />
       </Button>
     </Card>
   )
