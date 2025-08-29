@@ -3,8 +3,10 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  line-height: 1.6;
+  font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "ss02" 1;
 }
 
 @layer utilities {
@@ -20,78 +22,155 @@ body {
   .touch-pan-y {
     touch-action: pan-y;
   }
+  
+  /* Custom garden-themed utilities */
+  .garden-gradient {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #dcfce7 100%);
+  }
+  
+  .garden-card-shadow {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .garden-card-hover {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+  
+  .garden-border-gradient {
+    border-image: linear-gradient(135deg, #10b981, #3b82f6) 1;
+  }
+  
+  /* Typography utilities */
+  .font-display {
+    font-family: var(--font-poppins), var(--font-inter), sans-serif;
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, #16a34a, #0ea5e9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-green {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-blue {
+    background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
 
 @layer base {
   :root {
+    /* Garden-themed light mode colors */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    
+    /* Primary green for garden theme */
+    --primary: 142.1 76.2% 36.3%;
+    --primary-foreground: 355.7 100% 97.3%;
+    
+    /* Secondary blue for accents */
     --secondary: 210 40% 96%;
     --secondary-foreground: 222.2 84% 4.9%;
+    
+    /* Muted colors for better hierarchy */
     --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    
+    /* Accent colors */
+    --accent: 142.1 70% 45%;
+    --accent-foreground: 355.7 100% 97.3%;
+    
+    /* Destructive */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
+    
+    /* Borders and inputs */
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
+    --ring: 142.1 76.2% 36.3%;
+    --radius: 0.75rem;
+    
+    /* Chart colors */
+    --chart-1: 142.1 76% 36%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    
+    /* Sidebar colors */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary: 142.1 76.2% 36.3%;
     --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 4.8% 95.9%;
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 142.1 76.2% 36.3%;
   }
+  
   .dark {
-    /* Banking-grade dark mode with WCAG AA+ contrast ratios */
+    /* Garden-themed dark mode with better contrast */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 217.2 32.6% 8.5%;
     --card-foreground: 210 40% 98%;
     --popover: 217.2 32.6% 8.5%;
     --popover-foreground: 210 40% 98%;
+    
+    /* Primary green for garden theme */
     --primary: 142.1 76.2% 36.3%;
     --primary-foreground: 355.7 100% 97.3%;
+    
+    /* Secondary */
     --secondary: 217.2 32.6% 15.5%;
     --secondary-foreground: 210 40% 95%;
+    
+    /* Muted */
     --muted: 217.2 32.6% 12.5%;
     --muted-foreground: 215 20.2% 75.1%;
-    --accent: 217.2 32.6% 15.5%;
-    --accent-foreground: 210 40% 95%;
+    
+    /* Accent */
+    --accent: 142.1 70% 45%;
+    --accent-foreground: 355.7 100% 97.3%;
+    
+    /* Destructive */
     --destructive: 0 72.8% 50.6%;
     --destructive-foreground: 210 40% 98%;
+    
+    /* Borders and inputs */
     --border: 217.2 32.6% 20.5%;
     --input: 217.2 32.6% 15.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --chart-1: 220 70% 60%;
+    --ring: 142.1 76.2% 36.3%;
+    
+    /* Chart colors for dark mode */
+    --chart-1: 142.1 76% 36%;
     --chart-2: 160 60% 55%;
     --chart-3: 30 80% 65%;
     --chart-4: 280 65% 70%;
     --chart-5: 340 75% 65%;
+    
+    /* Sidebar colors for dark mode */
     --sidebar-background: 240 5.9% 8%;
     --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 58%;
+    --sidebar-primary: 142.1 76.2% 36.3%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 240 3.7% 18.9%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 20.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 142.1 76.2% 36.3%;
   }
 }
 
@@ -99,8 +178,66 @@ body {
   * {
     @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "ss02" 1;
+  }
+  
+  /* Better typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-semibold tracking-tight;
+  }
+  
+  h1 {
+    @apply text-4xl font-bold leading-tight;
+  }
+  
+  h2 {
+    @apply text-3xl font-semibold leading-tight;
+  }
+  
+  h3 {
+    @apply text-2xl font-semibold leading-tight;
+  }
+  
+  h4 {
+    @apply text-xl font-semibold leading-tight;
+  }
+  
+  h5 {
+    @apply text-lg font-semibold leading-tight;
+  }
+  
+  h6 {
+    @apply text-base font-semibold leading-tight;
+  }
+  
+  /* Paragraph styling */
+  p {
+    @apply leading-relaxed;
+  }
+  
+  /* Link styling */
+  a {
+    @apply transition-colors duration-200;
+  }
+  
+  /* Smooth transitions */
+  * {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+  
+  /* Focus styles */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-green-500 ring-offset-2;
+  }
+  
+  /* Selection styles */
+  ::selection {
+    @apply bg-green-200 text-green-900;
   }
 }
 
@@ -111,5 +248,62 @@ body {
 
 .hydration-safe.hydrated {
   opacity: 1;
-  transition: opacity 0.2s ease-in-out;
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Custom scrollbar for garden theme */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-100;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-green-300 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-green-400;
+}
+
+/* Enhanced button styles */
+.btn-primary {
+  @apply bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5;
+}
+
+.btn-secondary {
+  @apply bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-6 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5;
+}
+
+.btn-outline-green {
+  @apply border-2 border-green-200 text-green-700 hover:bg-green-50 hover:border-green-300 font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md;
+}
+
+.btn-outline-blue {
+  @apply border-2 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 font-semibold px-6 py-3 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md;
+}
+
+/* Card styles */
+.card-garden {
+  @apply bg-white/90 backdrop-blur-sm hover:bg-white/95 transition-all duration-300 border-0 shadow-lg hover:shadow-2xl rounded-2xl overflow-hidden;
+}
+
+.card-garden-hover {
+  @apply transform hover:-translate-y-1;
+}
+
+/* Input styles */
+.input-garden {
+  @apply border-2 border-gray-200 focus:border-green-500 focus:ring-4 focus:ring-green-100 rounded-xl transition-all duration-200;
+}
+
+/* Badge styles */
+.badge-garden {
+  @apply bg-green-100 text-green-800 border-green-200 font-semibold px-3 py-1 rounded-full;
+}
+
+.badge-nature {
+  @apply bg-blue-100 text-blue-800 border-blue-200 font-semibold px-3 py-1 rounded-full;
 }

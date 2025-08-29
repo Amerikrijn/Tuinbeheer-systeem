@@ -1,0 +1,127 @@
+{
+  "name": "Tuinbeheer Systeem - Professioneel Tuinbeheer",
+  "short_name": "Tuinbeheer",
+  "description": "Modern en efficiënt tuinbeheer systeem voor het beheren van tuinen, planten en taken. Perfect voor tuiniers en tuincentra.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "nl",
+  "categories": ["productivity", "lifestyle", "utilities", "business"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Nieuwe Tuin",
+      "short_name": "Tuin",
+      "description": "Maak een nieuwe tuin aan",
+      "url": "/gardens/new",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Taken Bekijken",
+      "short_name": "Taken",
+      "description": "Bekijk je tuintaken",
+      "url": "/tasks",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Logboek",
+      "short_name": "Logboek",
+      "description": "Bekijk je tuinlogboek",
+      "url": "/logbook",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Planten Beheren",
+      "short_name": "Planten",
+      "description": "Beheer je planten en bloemen",
+      "url": "/plants",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-wide.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Tuinbeheer Systeem - Desktop View"
+    },
+    {
+      "src": "/screenshot-narrow.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tuinbeheer Systeem - Mobile View"
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "handle_links": "preferred",
+  "protocol_handlers": [
+    {
+      "protocol": "web+tuinbeheer",
+      "url": "/?garden=%s"
+    }
+  ],
+  "display_override": ["standalone", "minimal-ui"],
+  "prefer_related_applications": false,
+  "scope": "/",
+  "start_url": "/",
+  "theme_color": "#16a34a",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "lang": "nl"
+}
