@@ -1,5 +1,7 @@
 # Tuinbeheer Systeem
 
+hello:
+
 ## 🌱 Overzicht
 
 Een moderne web-applicatie voor het beheren van tuinen, plantbedden en planten. Ontwikkeld met Next.js 14, Supabase en TailwindCSS.
