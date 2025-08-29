@@ -1,23 +1,21 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import * as React from "react"
 import { useRouter, useParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "@/components/ui/use-toast"
-import { ArrowLeft, Leaf, Plus, Sun, MapPin, Ruler, Droplets } from "lucide-react"
-import { PlantvakService } from "@/lib/services/plantvak.service"
-import { getGarden } from "@/lib/database"
-import type { Tuin } from "@/lib/types/index"
-
-// Type alias for backward compatibility
-type Garden = Tuin
+import { useToast } from "@/hooks/use-toast"
+import { ArrowLeft, Leaf, Plus, AlertCircle, Sun } from "lucide-react"
+import { createPlantBed, getGarden } from "@/lib/database"
+import type { Garden } from "@/lib/supabase"
 
 interface NewPlantBed {
+  id: string
+  name: string
   location: string
   size: string
   soilType: string
@@ -25,33 +23,18 @@ interface NewPlantBed {
   description: string
 }
 
-const sunExposureOptions = [
-  { value: "full-sun", label: "Volle zon" },
-  { value: "partial-sun", label: "Halfschaduw" },
-  { value: "shade", label: "Schaduw" },
-]
-
-const soilTypeOptions = [
-  { value: "klei", label: "Klei" },
-  { value: "zand", label: "Zand" },
-  { value: "leem", label: "Leem" },
-  { value: "veen", label: "Veen" },
-  { value: "gemengd", label: "Gemengd" },
-]
-
 export default function NewPlantBedPage() {
   const router = useRouter()
   const params = useParams()
-  const gardenId = params.id as string
-  
-  const [garden, setGarden] = useState<Garden | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [nextLetterCode, setNextLetterCode] = useState<string>("...")
-  const [existingPlantvakken, setExistingPlantvakken] = useState<any[]>([])
+  const { toast } = useToast()
 
-  const [newPlantBed, setNewPlantBed] = useState<NewPlantBed>({
+  const [garden, setGarden] = React.useState<Garden | null>(null)
+  const [loading, setLoading] = React.useState(false)
+  const [errors, setErrors] = React.useState<Record<string, string>>({})
+
+  const [newPlantBed, setNewPlantBed] = React.useState<NewPlantBed>({
+    id: "",
+    name: "",
     location: "",
     size: "",
     soilType: "",
@@ -59,161 +42,91 @@ export default function NewPlantBedPage() {
     description: "",
   })
 
-  // Generate next letter code using the same logic as PlantvakService
-  const generateNextLetterCode = (existingCodes: string[]): string => {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    
-    // Try single letters first (A, B, C, etc.)
-    for (const letter of alphabet) {
-      if (!existingCodes.includes(letter)) {
-        return letter
-      }
-    }
-    
-    // If all single letters are used, try double letters (AA, AB, AC, etc.)
-    for (const firstLetter of alphabet) {
-      for (const secondLetter of alphabet) {
-        const code = `${firstLetter}${secondLetter}`
-        if (!existingCodes.includes(code)) {
-          return code
-        }
-      }
-    }
-    
-    // Fallback
-    return `X${Date.now()}`
-  }
-
-  // Load garden data and calculate next letter code
-  useEffect(() => {
-    const loadGardenAndCalculateLetter = async () => {
+  React.useEffect(() => {
+    const loadGarden = async () => {
       try {
-        const gardenData = await getGarden(gardenId)
+        const gardenData = await getGarden(params.id as string)
         setGarden(gardenData)
-        
-        // Get existing plantvakken and calculate next letter code
-        const existingPlantvakken = await PlantvakService.getByGarden(gardenId)
-        setExistingPlantvakken(existingPlantvakken)
-        
-        const existingCodes = existingPlantvakken
-          .map(p => p.letter_code || p.name)
-          .filter(Boolean) as string[]
-        
-        // Generate next available letter code
-        const nextCode = generateNextLetterCode(existingCodes)
-        
-        setNextLetterCode(nextCode)
-        console.log('🔤 Next letter code calculated:', nextCode)
       } catch (error) {
-        console.error('Error loading garden:', error)
+        console.error("Error loading garden:", error)
         toast({
           title: "Fout",
           description: "Kon tuin niet laden.",
           variant: "destructive",
         })
-      } finally {
-        setIsLoading(false)
       }
     }
 
-    if (gardenId) {
-      loadGardenAndCalculateLetter()
-    }
-  }, [gardenId])
+    loadGarden()
+  }, [params.id, toast])
 
-  const goBack = () => router.back()
+  const sunExposureOptions = [
+    { value: "full-sun", label: "Volle zon (6+ uur direct zonlicht)" },
+    { value: "partial-sun", label: "Gedeeltelijke zon (3-6 uur zonlicht)" },
+    { value: "shade", label: "Schaduw (minder dan 3 uur zonlicht)" },
+  ]
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {}
+  const validateForm = () => {
+    const nextErrors: Record<string, string> = {}
 
-    // Location is now optional - removed validation
-    
-    if (!newPlantBed.size || !newPlantBed.size.trim()) {
-      newErrors.size = "Grootte is verplicht"
-    }
-    if (!newPlantBed.soilType || newPlantBed.soilType === "") {
-      newErrors.soilType = "Bodemtype is verplicht"
-    }
-    if (!newPlantBed.sunExposure || newPlantBed.sunExposure === "") {
-      newErrors.sunExposure = "Zonligging is verplicht"
+    if (!newPlantBed.id.trim()) nextErrors.id = "Plantvak ID is verplicht"
+    if (!newPlantBed.name.trim()) nextErrors.name = "Plantvak naam is verplicht"
+    if (!newPlantBed.location.trim()) nextErrors.location = "Locatie is verplicht"
+
+    // Validate ID format (letters, numbers, hyphens only)
+    if (newPlantBed.id && !/^[a-zA-Z0-9-]+$/.test(newPlantBed.id)) {
+      nextErrors.id = "ID mag alleen letters, cijfers en streepjes bevatten"
     }
 
-    console.log("🔍 Validation errors:", newErrors)
-    console.log("🔍 Form values during validation:", {
-      size: newPlantBed.size,
-      soilType: newPlantBed.soilType,
-      sunExposure: newPlantBed.sunExposure
-    })
-    
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setErrors(nextErrors)
+    return Object.keys(nextErrors).length === 0
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    
-    console.log("🔍 Form submitted, current state:", {
-      size: newPlantBed.size,
-      soilType: newPlantBed.soilType,
-      sunExposure: newPlantBed.sunExposure,
-      location: newPlantBed.location,
-      description: newPlantBed.description
-    })
-    
     if (!validateForm()) {
-      console.log("❌ Form validation failed")
+      toast({
+        title: "Formulier onvolledig",
+        description: "Controleer de gemarkeerde velden en probeer opnieuw.",
+        variant: "destructive",
+      })
       return
     }
-    
-    console.log("✅ Form validation passed")
+
+    if (!garden) {
+      toast({
+        title: "Fout",
+        description: "Tuin informatie niet beschikbaar.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setLoading(true)
-
     try {
-      // Log the exact data being sent
-      const plantvakData = {
-        garden_id: gardenId,
-        location: newPlantBed.location,
-        size: newPlantBed.size,
-        soil_type: newPlantBed.soilType,
-        sun_exposure: newPlantBed.sunExposure as "full-sun" | "partial-sun" | "shade",
-        description: newPlantBed.description,
-      }
-      
-      console.log('🔍 Form data being sent to PlantvakService:', JSON.stringify(plantvakData, null, 2))
-      console.log('🔍 Garden ID type:', typeof gardenId, 'Value:', gardenId)
-      console.log('🔍 Garden ID valid UUID:', /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(gardenId))
+      const plantBed = await createPlantBed({
+        id: newPlantBed.id,
+        garden_id: garden.id,
+        name: newPlantBed.name,
+        location: newPlantBed.location || undefined,
+        size: newPlantBed.size || undefined,
+        soil_type: newPlantBed.soilType || undefined,
+        sun_exposure: newPlantBed.sunExposure || undefined,
+        description: newPlantBed.description || undefined,
+      })
 
-      const plantBed = await PlantvakService.create(plantvakData)
+      toast({
+        title: "Plantvak aangemaakt!",
+        description: `Plantvak "${newPlantBed.name}" is succesvol aangemaakt.`,
+      })
 
       if (plantBed) {
-        console.log('✅ Plantvak created successfully:', plantBed)
-        toast({
-          title: "Plantvak aangemaakt!",
-          description: `Plantvak "${plantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code}.`,
-        })
-
-        // Show additional success message with letter code
-        setTimeout(() => {
-          toast({
-            title: `Letter Code: ${plantBed.letter_code}`,
-            description: `Je kunt nu plantvak ${plantBed.letter_code} gebruiken om taken toe te voegen en planten te planten.`,
-          })
-        }, 1000)
-        
-        router.push(`/gardens/${gardenId}/plant-beds/${plantBed.id}`)
+        router.push(`/gardens/${garden.id}/plant-beds/${plantBed.id}`)
       } else {
-        console.error('❌ PlantvakService.create returned null')
-        throw new Error('Failed to create plantvak - service returned null')
+        router.push(`/gardens/${garden.id}/plant-beds`)
       }
     } catch (err) {
-      console.error("❌ Error creating plant bed:", err)
-      if (err && typeof err === 'object' && 'message' in err) {
-        console.error("❌ Error details:", {
-          message: (err as any).message,
-          stack: (err as any).stack,
-          name: (err as any).name
-        })
-      }
+      console.error("Error creating plant bed:", err)
       toast({
         title: "Fout",
         description: "Er ging iets mis bij het aanmaken van het plantvak.",
@@ -226,6 +139,8 @@ export default function NewPlantBedPage() {
 
   const handleReset = () => {
     setNewPlantBed({
+      id: "",
+      name: "",
       location: "",
       size: "",
       soilType: "",
@@ -235,7 +150,7 @@ export default function NewPlantBedPage() {
     setErrors({})
   }
 
-  if (isLoading) {
+  if (!garden) {
     return (
       <div className="container mx-auto p-6">
         <div className="animate-pulse space-y-6">
@@ -246,41 +161,25 @@ export default function NewPlantBedPage() {
     )
   }
 
-  if (!garden) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600">Tuin niet gevonden</h1>
-          <p className="text-muted-foreground mt-2">De opgevraagde tuin bestaat niet.</p>
-          <Button onClick={goBack} className="mt-4">
-            Terug
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="container mx-auto space-y-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={goBack}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Terug
-          </Button>
+      <div className="flex flex-wrap items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push(`/gardens/${garden.id}/plant-beds`)}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Terug naar Plantvakken
+        </Button>
 
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-              <Plus className="h-7 w-7 text-green-600" />
-              Nieuw Plantvak Toevoegen
-            </h1>
-            <p className="text-muted-foreground">Voeg een nieuw plantvak toe aan {garden.name}</p>
-          </div>
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
+            <Plus className="h-7 w-7 text-green-600" />
+            Nieuw Plantvak Toevoegen
+          </h1>
+          <p className="text-muted-foreground">Voeg een nieuw plantvak toe aan {garden.name}</p>
         </div>
       </div>
 
@@ -295,124 +194,110 @@ export default function NewPlantBedPage() {
             </CardHeader>
 
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Automatic Letter Code Assignment - Prominent Display */}
-                <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 text-white text-4xl font-bold rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-800">
-                      {nextLetterCode}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-800 text-xl mb-1">Automatische Naamgeving</h4>
-                      <p className="text-gray-700 text-lg mb-2">
-                        Dit plantvak krijgt automatisch de naam: <strong className="text-green-700 text-2xl">Plantvak {nextLetterCode}</strong>
-                      </p>
-                      <p className="text-muted-foreground text-sm">
-                        Geen handmatige invoer nodig - het systeem wijst automatisch letters toe.
-                      </p>
-                      
-                      {/* Show existing plantvakken */}
-                      {existingPlantvakken.length > 0 && (
-                        <div className="mt-3">
-                          <p className="text-sm text-blue-600 mb-2">Bestaande plantvakken in deze tuin:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {existingPlantvakken
-                              .sort((a, b) => {
-                                const aCode = a.letter_code || a.name || ''
-                                const bCode = b.letter_code || b.name || ''
-                                // Sort single letters first, then double letters
-                                if (aCode.length !== bCode.length) {
-                                  return aCode.length - bCode.length
-                                }
-                                return aCode.localeCompare(bCode)
-                              })
-                              .map((plantvak) => (
-                              <span 
-                                key={plantvak.id}
-                                className="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 bg-green-100 text-green-800 text-sm font-bold rounded-full border-2 border-green-300"
-                                title={`Plantvak ${plantvak.letter_code || plantvak.name}`}
-                              >
-                                {plantvak.letter_code || plantvak.name || '?'}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {existingPlantvakken.length === 0 && (
-                        <p className="text-sm text-green-600 mt-2">
-                          🎉 Dit is het eerste plantvak in deze tuin!
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
+              <form onSubmit={handleSubmit} onReset={handleReset} className="space-y-6">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="location">Locatie (optioneel)</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="location"
-                        placeholder="Bijv. Noordwest hoek, achter de schuur"
-                        value={newPlantBed.location}
-                        onChange={(e) =>
-                          setNewPlantBed((p) => ({ ...p, location: e.target.value }))
-                        }
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="size">Grootte *</Label>
-                    <div className="relative">
-                      <Ruler className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="size"
-                        placeholder="Bijv. 2x3 meter, 6m²"
-                        value={newPlantBed.size}
-                        onChange={(e) =>
-                          setNewPlantBed((p) => ({ ...p, size: e.target.value }))
-                        }
-                        className={`pl-10 ${errors.size ? "border-red-500" : ""}`}
-                      />
-                    </div>
-                    {errors.size && (
-                      <p className="text-sm text-red-500">{errors.size}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="soilType">Bodemtype *</Label>
-                    <Select
-                      value={newPlantBed.soilType}
-                      onValueChange={(value) =>
-                        setNewPlantBed((p) => ({ ...p, soilType: value }))
+                    <Label htmlFor="id">Plantvak ID *</Label>
+                    <Input
+                      id="id"
+                      placeholder="Bijv. A1, NOORD-01, VAK-001"
+                      value={newPlantBed.id}
+                      onChange={(e) =>
+                        setNewPlantBed((p) => ({
+                          ...p,
+                          id: e.target.value.toUpperCase(),
+                        }))
                       }
-                    >
-                      <SelectTrigger className={errors.soilType ? "border-red-500" : ""}>
-                        <SelectValue placeholder="Selecteer bodemtype" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {soilTypeOptions.map((option) => (
-                          <SelectItem key={option.value} value={option.value}>
-                            <div className="flex items-center gap-2">
-                              <Droplets className="h-4 w-4 text-blue-500" />
-                              {option.label}
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {errors.soilType && (
-                      <p className="text-sm text-red-500">{errors.soilType}</p>
+                      className={errors.id ? "border-destructive" : ""}
+                      required
+                    />
+                    {errors.id && (
+                      <div className="flex items-center gap-1 text-destructive text-sm">
+                        <AlertCircle className="h-4 w-4" />
+                        {errors.id}
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-600">Unieke identificatie voor dit plantvak</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Plantvak Naam *</Label>
+                    <Input
+                      id="name"
+                      placeholder="Bijv. Noordelijke Border, Kruidentuin"
+                      value={newPlantBed.name}
+                      onChange={(e) =>
+                        setNewPlantBed((p) => ({
+                          ...p,
+                          name: e.target.value,
+                        }))
+                      }
+                      className={errors.name ? "border-destructive" : ""}
+                      required
+                    />
+                    {errors.name && (
+                      <div className="flex items-center gap-1 text-destructive text-sm">
+                        <AlertCircle className="h-4 w-4" />
+                        {errors.name}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="location">Locatie in Tuin *</Label>
+                    <Input
+                      id="location"
+                      placeholder="Bijv. Noordoosthoek, Langs het hek, Midden van de tuin"
+                      value={newPlantBed.location}
+                      onChange={(e) =>
+                        setNewPlantBed((p) => ({
+                          ...p,
+                          location: e.target.value,
+                        }))
+                      }
+                      className={errors.location ? "border-destructive" : ""}
+                      required
+                    />
+                    {errors.location && (
+                      <div className="flex items-center gap-1 text-destructive text-sm">
+                        <AlertCircle className="h-4 w-4" />
+                        {errors.location}
+                      </div>
                     )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="sunExposure">Zonligging *</Label>
+                    <Label htmlFor="size">Grootte</Label>
+                    <Input
+                      id="size"
+                      placeholder="Bijv. 2x3m, 6m², Klein, Groot"
+                      value={newPlantBed.size}
+                      onChange={(e) =>
+                        setNewPlantBed((p) => ({
+                          ...p,
+                          size: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="soilType">Grondtype</Label>
+                    <Input
+                      id="soilType"
+                      placeholder="Bijv. Klei, Zand, Leem, Potgrond"
+                      value={newPlantBed.soilType}
+                      onChange={(e) =>
+                        setNewPlantBed((p) => ({
+                          ...p,
+                          soilType: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="sunExposure">Zonligging</Label>
                     <Select
                       value={newPlantBed.sunExposure}
                       onValueChange={(value) =>
@@ -422,7 +307,7 @@ export default function NewPlantBedPage() {
                         }))
                       }
                     >
-                      <SelectTrigger className={errors.sunExposure ? "border-red-500" : ""}>
+                      <SelectTrigger>
                         <SelectValue placeholder="Selecteer zonligging" />
                       </SelectTrigger>
                       <SelectContent>
@@ -435,7 +320,7 @@ export default function NewPlantBedPage() {
                                     ? "text-yellow-500"
                                     : option.value === "partial-sun"
                                       ? "text-orange-500"
-                                      : "text-muted-foreground"
+                                      : "text-gray-500"
                                 }`}
                               />
                               {option.label}
@@ -444,52 +329,32 @@ export default function NewPlantBedPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    {errors.sunExposure && (
-                      <p className="text-sm text-red-500">{errors.sunExposure}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="description">Beschrijving</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Optionele beschrijving van het plantvak..."
-                      value={newPlantBed.description}
-                      onChange={(e) =>
-                        setNewPlantBed((p) => ({
-                          ...p,
-                          description: e.target.value,
-                        }))
-                      }
-                    />
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="description">Beschrijving</Label>
+                  <Textarea
+                    id="description"
+                    rows={4}
+                    placeholder="Beschrijf het plantvak, bijzonderheden, doelstellingen..."
+                    value={newPlantBed.description}
+                    onChange={(e) =>
+                      setNewPlantBed((p) => ({
+                        ...p,
+                        description: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+
                 <div className="flex gap-3">
-                  <Button
-                    type="submit" 
-                    disabled={loading}
-                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
-                  >
-                    {loading ? "Aanmaken..." : "Plantvak Aanmaken"}
+                  <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700">
+                    {loading ? "Opslaan…" : "Plantvak Aanmaken"}
                   </Button>
-                  
-                  <Button
-                    type="button" 
-                    variant="outline"
-                    disabled={loading} 
-                    onClick={handleReset}
-                  >
+                  <Button type="reset" variant="outline" disabled={loading}>
                     Reset Formulier
                   </Button>
-                  
-                  {/* Debug info */}
-                  <div className="text-xs text-muted-foreground ml-4 flex items-center">
-                    Loading: {loading ? "true" : "false"} | 
-                    Size: {newPlantBed.size ? "✓" : "✗"} |
-                    Soil: {newPlantBed.soilType ? "✓" : "✗"} |
-                    Sun: {newPlantBed.sunExposure ? "✓" : "✗"}
-                  </div>
                 </div>
               </form>
             </CardContent>
@@ -499,28 +364,39 @@ export default function NewPlantBedPage() {
         <aside className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Automatische Letter Codes</CardTitle>
+              <CardTitle>Tips voor Plantvakken</CardTitle>
             </CardHeader>
             <CardContent className="text-sm leading-relaxed space-y-3">
               <div>
-                <strong>Hoe het werkt:</strong>
-                <ul className="list-disc list-inside mt-2 space-y-1 text-muted-foreground">
-                  <li>Eerste plantvak → <strong>A</strong></li>
-                  <li>Tweede plantvak → <strong>B</strong></li>
-                  <li>Derde plantvak → <strong>C</strong></li>
-                  <li>Enzovoort...</li>
-                  <li>Na Z → <strong>AA, AB, AC...</strong></li>
-                </ul>
+                <strong>Plantvak ID:</strong>
+                <p>Kies een logisch systeem zoals A1, B2 of NOORD-01 voor gemakkelijke identificatie.</p>
               </div>
               <div>
-                <strong>Voordelen:</strong>
-                <ul className="list-disc list-inside mt-2 space-y-1 text-muted-foreground">
-                  <li>Geen handmatige invoer nodig</li>
-                  <li>Altijd unieke codes</li>
-                  <li>Logische volgorde</li>
-                  <li>Gemakkelijk te onthouden</li>
-                </ul>
+                <strong>Locatie:</strong>
+                <p>Beschrijf de precieze locatie binnen de tuin voor vrijwilligers.</p>
               </div>
+              <div>
+                <strong>Zonligging:</strong>
+                <p>Belangrijk voor het kiezen van de juiste planten voor dit vak.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Leaf className="h-4 w-4" />
+                Na het aanmaken
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm leading-relaxed">
+              <p>Na het aanmaken van het plantvak kun je:</p>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Planten toevoegen aan dit vak</li>
+                <li>Verzorgingsschema opstellen</li>
+                <li>Voortgang bijhouden</li>
+                <li>Foto's toevoegen</li>
+              </ul>
             </CardContent>
           </Card>
         </aside>

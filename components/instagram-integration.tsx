@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -37,14 +37,10 @@ export function InstagramIntegration({
   const [isPosting, setIsPosting] = useState(false)
   const [autoPost, setAutoPost] = useState(false)
   const [customCaption, setCustomCaption] = useState("")
-  const [recentPosts] = useState<InstagramPost[]>([])
+  const [recentPosts] = useState<InstagramPost[]>(getInstagramPosts().slice(0, 3))
   const { toast } = useToast()
 
-  const [defaultCaption, setDefaultCaption] = useState("")
-  
-  useEffect(() => {
-    generateInstagramCaption(sessionTitle, new Date().toISOString(), []).then(setDefaultCaption)
-  }, [sessionTitle])
+  const defaultCaption = generateInstagramCaption(sessionTitle, description, completedTasks, totalTasks, weather)
 
   const handlePost = async () => {
     if (!imageUrl) {
@@ -60,21 +56,14 @@ export function InstagramIntegration({
 
     try {
       const caption = customCaption.trim() || defaultCaption
-      const success = await postToInstagram(imageUrl, caption, "fake-access-token")
+      const post = await postToInstagram(caption, imageUrl, sessionTitle)
 
       toast({
         title: "Instagram Post Succesvol",
         description: `Je post over "${sessionTitle}" is gedeeld op Instagram!`,
       })
 
-      if (onPostSuccess) {
-        onPostSuccess({
-          id: Date.now().toString(),
-          media_url: imageUrl,
-          caption: caption,
-          timestamp: new Date().toISOString()
-        })
-      }
+      onPostSuccess?.(post)
       setCustomCaption("")
     } catch (error) {
       toast({
@@ -166,22 +155,22 @@ export function InstagramIntegration({
               {recentPosts.map((post) => (
                 <div key={post.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
                   <img
-                    src={post.media_url || "/placeholder.svg"}
-                    alt={post.caption}
+                    src={post.imageUrl || "/placeholder.svg"}
+                    alt={post.sessionTitle}
                     className="w-12 h-12 object-cover rounded"
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{post.caption}</div>
-                    <div className="text-xs text-gray-500">{new Date(post.timestamp).toLocaleDateString()}</div>
+                    <div className="font-medium text-sm truncate">{post.sessionTitle}</div>
+                    <div className="text-xs text-gray-500">{new Date(post.postedAt).toLocaleDateString()}</div>
                   </div>
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <span className="flex items-center gap-1">
                       <Heart className="h-3 w-3" />
-                      0
+                      {post.likes}
                     </span>
                     <span className="flex items-center gap-1">
                       <MessageCircle className="h-3 w-3" />
-                      0
+                      {post.comments}
                     </span>
                   </div>
                 </div>

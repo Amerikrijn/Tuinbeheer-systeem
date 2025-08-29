@@ -10,7 +10,6 @@ export interface Plant {
 
 export interface PlantBed {
   id: string
-  garden_id: string
   name: string
   location: string
   size: string
@@ -31,6 +30,9 @@ export interface Garden {
   length: string
   width: string
   gardenType: string
+  maintenanceLevel: string
+  soilCondition: string
+  wateringSystem: string
   establishedDate: string
   lastModifiedDate: string
   lastModifiedBy: string
@@ -124,7 +126,6 @@ export function getMockPlantBeds(): PlantBed[] {
   return [
     {
       id: "A",
-      garden_id: "1",
       name: "Rose Garden",
       location: "Front entrance area",
       size: "Large (15-30m²)",
@@ -155,7 +156,6 @@ export function getMockPlantBeds(): PlantBed[] {
     },
     {
       id: "B",
-      garden_id: "1",
       name: "Herb Garden",
       location: "Near the kitchen area",
       size: "Medium (5-15m²)",
@@ -185,7 +185,6 @@ export function getMockPlantBeds(): PlantBed[] {
     },
     {
       id: "C",
-      garden_id: "1",
       name: "Vegetable Patch",
       location: "South side of garden",
       size: "Extra large (> 30m²)",
@@ -218,6 +217,9 @@ export function getMockGarden(): Garden {
     length: "30m",
     width: "15m",
     gardenType: "Community garden",
+    maintenanceLevel: "Medium - regular maintenance",
+    soilCondition: "Well-drained, fertile soil with good organic content",
+    wateringSystem: "Drip irrigation + manual",
     establishedDate: "2020-03-15",
     lastModifiedDate: "2024-11-15",
     lastModifiedBy: "Garden Admin",

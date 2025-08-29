@@ -1,6 +1,4 @@
 // Translation types
-export type Language = "en" | "nl"
-
 export interface TranslationKey {
   en: string
   nl: string
@@ -366,7 +364,7 @@ const translations: Translations = {
     around: { en: "Around", nl: "Rondom" },
     near: { en: "Near", nl: "Nabij" },
     far: { en: "Far", nl: "Ver" },
-    nearby: { en: "Close", nl: "Dichtbij" },
+    close: { en: "Close", nl: "Dichtbij" },
     distant: { en: "Distant", nl: "Veraf" },
     here: { en: "Here", nl: "Hier" },
     there: { en: "There", nl: "Daar" },
@@ -526,7 +524,7 @@ const translations: Translations = {
     invalid: { en: "Invalid", nl: "Ongeldig" },
     correct: { en: "Correct", nl: "Correct" },
     incorrect: { en: "Incorrect", nl: "Incorrect" },
-    correct_adj: { en: "Right", nl: "Juist" },
+    right: { en: "Right", nl: "Juist" },
     wrong: { en: "Wrong", nl: "Fout" },
     true: { en: "True", nl: "Waar" },
     false: { en: "False", nl: "Onwaar" },
@@ -747,7 +745,7 @@ const translations: Translations = {
     debate: { en: "Debate", nl: "Debat" },
     argument: { en: "Argument", nl: "Argument" },
     opinion: { en: "Opinion", nl: "Mening" },
-    view_opinion: { en: "View", nl: "Mening" },
+    view: { en: "View", nl: "Mening" },
     perspective: { en: "Perspective", nl: "Perspectief" },
     viewpoint: { en: "Viewpoint", nl: "Standpunt" },
     standpoint: { en: "Standpoint", nl: "Standpunt" },
@@ -935,14 +933,14 @@ const translations: Translations = {
     category: { en: "Category", nl: "Categorie" },
     type: { en: "Type", nl: "Type" },
     kind: { en: "Kind", nl: "Soort" },
-    sort_noun: { en: "Sort", nl: "Soort" },
+    sort: { en: "Sort", nl: "Soort" },
     variety: { en: "Variety", nl: "Variëteit" },
-    version_type: { en: "Version", nl: "Versie" },
+    version: { en: "Version", nl: "Versie" },
     edition: { en: "Edition", nl: "Editie" },
     release: { en: "Release", nl: "Release" },
     publication: { en: "Publication", nl: "Publicatie" },
     issue_noun: { en: "Issue", nl: "Uitgave" },
-    volume_book: { en: "Volume", nl: "Volume" },
+    volume: { en: "Volume", nl: "Volume" },
     chapter: { en: "Chapter", nl: "Hoofdstuk" },
     section_noun: { en: "Section", nl: "Sectie" },
     paragraph: { en: "Paragraph", nl: "Paragraaf" },
@@ -954,7 +952,7 @@ const translations: Translations = {
     statement: { en: "Statement", nl: "Verklaring" },
     declaration: { en: "Declaration", nl: "Verklaring" },
     announcement: { en: "Announcement", nl: "Aankondiging" },
-    notice_noun: { en: "Notice", nl: "Kennisgeving" },
+    notice: { en: "Notice", nl: "Kennisgeving" },
     warning_noun: { en: "Warning", nl: "Waarschuwing" },
     caution: { en: "Caution", nl: "Voorzichtigheid" },
     advice: { en: "Advice", nl: "Advies" },
@@ -1283,7 +1281,7 @@ const translations: Translations = {
 }
 
 // Current language state
-let currentLanguage: Language = "en"
+let currentLanguage: "en" | "nl" = "en"
 
 // Helper function to get nested translation
 function getNestedTranslation(obj: any, path: string[]): TranslationKey | undefined {
@@ -1299,7 +1297,7 @@ function getNestedTranslation(obj: any, path: string[]): TranslationKey | undefi
 }
 
 // Translation function
-export function t(key: string, lang?: Language): string {
+export function t(key: string, lang?: "en" | "nl"): string {
   const language = lang || currentLanguage
   const keys = key.split(".")
   const translation = getNestedTranslation(translations, keys)
@@ -1313,32 +1311,30 @@ export function t(key: string, lang?: Language): string {
 }
 
 // Get translation function (backward compatibility)
-export function getTranslation(key: string, lang?: Language): string {
+export function getTranslation(key: string, lang?: "en" | "nl"): string {
   return t(key, lang)
 }
 
 // Set current language
-export function setLanguage(lang: Language): void {
+export function setLanguage(lang: "en" | "nl"): void {
   currentLanguage = lang
 }
 
 // Get current language
-export function getCurrentLanguage(): Language {
+export function getCurrentLanguage(): "en" | "nl" {
   return currentLanguage
 }
 
 // Load translations (async for compatibility)
-export async function loadTranslations(lang?: Language): Promise<void> {
+export async function loadTranslations(lang: "en" | "nl"): Promise<void> {
   return new Promise((resolve) => {
-    if (lang) {
-      setLanguage(lang)
-    }
+    setLanguage(lang)
     resolve()
   })
 }
 
 // Get all translations for a specific language
-export function getAllTranslations(lang: Language): Record<string, string> {
+export function getAllTranslations(lang: "en" | "nl"): Record<string, string> {
   const result: Record<string, string> = {}
 
   function flatten(obj: any, prefix = ""): void {
@@ -1366,7 +1362,7 @@ export function hasTranslation(key: string): boolean {
 }
 
 // Get available languages
-export function getAvailableLanguages(): Array<{ code: Language; name: string; nativeName: string }> {
+export function getAvailableLanguages(): Array<{ code: "en" | "nl"; name: string; nativeName: string }> {
   return [
     { code: "en", name: "English", nativeName: "English" },
     { code: "nl", name: "Dutch", nativeName: "Nederlands" },

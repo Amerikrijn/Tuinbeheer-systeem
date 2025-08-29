@@ -1,8 +1,5 @@
 "use client"
 
-// Force dynamic rendering to prevent SSR issues with auth
-export const dynamic = 'force-dynamic'
-
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -23,6 +20,9 @@ interface NewGarden {
   length: string
   width: string
   gardenType: string
+  maintenanceLevel: string
+  soilCondition: string
+  wateringSystem: string
   establishedDate: string
   notes: string
 }
@@ -34,21 +34,6 @@ export default function NewGardenPage() {
   const [loading, setLoading] = React.useState(false)
   const [errors, setErrors] = React.useState<Record<string, string>>({})
 
-  // Clear any dialog states that might be stuck
-  React.useEffect(() => {
-    // Clear any session storage that might cause overlay issues
-    if (typeof window !== 'undefined') {
-      document.body.style.overflow = 'unset'
-      // Remove any potential stuck modal states
-      const dialogs = document.querySelectorAll('[role="dialog"]')
-      dialogs.forEach(dialog => {
-        if (dialog.getAttribute('data-state') === 'open') {
-          dialog.setAttribute('data-state', 'closed')
-        }
-      })
-    }
-  }, [])
-
   const [newGarden, setNewGarden] = React.useState<NewGarden>({
     name: "",
     description: "",
@@ -57,6 +42,9 @@ export default function NewGardenPage() {
     length: "",
     width: "",
     gardenType: "Gemeenschapstuin",
+    maintenanceLevel: "Gemiddeld onderhoud",
+    soilCondition: "",
+    wateringSystem: "Handmatig",
     establishedDate: "",
     notes: "",
   })
@@ -72,7 +60,16 @@ export default function NewGardenPage() {
     "Botanische tuin",
   ]
 
+  const maintenanceLevelOptions = ["Laag onderhoud", "Gemiddeld onderhoud", "Intensief onderhoud"]
 
+  const wateringSystemOptions = [
+    "Handmatig",
+    "Druppelirrigatie",
+    "Sprinklerinstallatie",
+    "Druppelirrigatie + handmatig",
+    "Regenwater opvang",
+    "Automatisch systeem",
+  ]
 
   const validateForm = () => {
     const nextErrors: Record<string, string> = {}
@@ -83,22 +80,6 @@ export default function NewGardenPage() {
     if (newGarden.width && !Number.isFinite(Number(newGarden.width))) nextErrors.width = "Breedte moet een getal zijn"
     if (newGarden.totalArea && !Number.isFinite(Number(newGarden.totalArea)))
       nextErrors.totalArea = "Totale oppervlakte moet een getal zijn"
-
-    // Validate minimum garden size for plant beds
-    if (newGarden.length && newGarden.width) {
-      const length = parseFloat(newGarden.length)
-      const width = parseFloat(newGarden.width)
-      if (!isNaN(length) && !isNaN(width)) {
-        if (length < 2 || width < 2) {
-          nextErrors.length = length < 2 ? "Minimale lengte is 2 meter voor plantvakken" : nextErrors.length
-          nextErrors.width = width < 2 ? "Minimale breedte is 2 meter voor plantvakken" : nextErrors.width
-        }
-        const area = length * width
-        if (area < 4) {
-          nextErrors.totalArea = "Tuin moet minimaal 4m² zijn voor plantvakken"
-        }
-      }
-    }
 
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -117,24 +98,17 @@ export default function NewGardenPage() {
 
     setLoading(true)
     try {
-      // Calculate square meters automatically if length and width are provided
-      let calculatedTotalArea = newGarden.totalArea
-      if (newGarden.length && newGarden.width && !newGarden.totalArea) {
-        const length = parseFloat(newGarden.length)
-        const width = parseFloat(newGarden.width)
-        if (!isNaN(length) && !isNaN(width)) {
-          calculatedTotalArea = (length * width).toString()
-        }
-      }
-
       const garden = await createGarden({
         name: newGarden.name,
         description: newGarden.description || undefined,
         location: newGarden.location,
-        total_area: calculatedTotalArea || undefined, // keep as text
+        total_area: newGarden.totalArea || undefined, // keep as text
         length: newGarden.length || undefined,
         width: newGarden.width || undefined,
         garden_type: newGarden.gardenType || undefined,
+        maintenance_level: newGarden.maintenanceLevel || undefined,
+        soil_condition: newGarden.soilCondition || undefined,
+        watering_system: newGarden.wateringSystem || undefined,
         established_date: newGarden.establishedDate || undefined,
         notes: newGarden.notes || undefined,
       })
@@ -149,7 +123,7 @@ export default function NewGardenPage() {
       } else {
         router.push("/gardens")
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Supabase createGarden error:", JSON.stringify(err, null, 2))
       toast({
         title: "Fout",
@@ -170,6 +144,9 @@ export default function NewGardenPage() {
       length: "",
       width: "",
       gardenType: "Gemeenschapstuin",
+      maintenanceLevel: "Gemiddeld onderhoud",
+      soilCondition: "",
+      wateringSystem: "Handmatig",
       establishedDate: "",
       notes: "",
     })
@@ -297,14 +274,7 @@ export default function NewGardenPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="totalArea">
-                      Totale oppervlakte (m²)
-                      {newGarden.length && newGarden.width && !newGarden.totalArea && (
-                        <span className="text-sm text-green-600 ml-2">
-                          (Berekend: {(parseFloat(newGarden.length) * parseFloat(newGarden.width)).toFixed(1)} m²)
-                        </span>
-                      )}
-                    </Label>
+                    <Label htmlFor="totalArea">Totale oppervlakte (m²)</Label>
                     <Input
                       id="totalArea"
                       type="number"
@@ -314,11 +284,6 @@ export default function NewGardenPage() {
                           ...p,
                           totalArea: e.target.value,
                         }))
-                      }
-                      placeholder={
-                        newGarden.length && newGarden.width && !newGarden.totalArea
-                          ? `${(parseFloat(newGarden.length) * parseFloat(newGarden.width)).toFixed(1)} (automatisch berekend)`
-                          : "Voer oppervlakte handmatig in"
                       }
                     />
                   </div>
@@ -347,7 +312,53 @@ export default function NewGardenPage() {
                     </Select>
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="maintenanceLevel">Onderhoudsniveau</Label>
+                    <Select
+                      value={newGarden.maintenanceLevel}
+                      onValueChange={(value) =>
+                        setNewGarden((p) => ({
+                          ...p,
+                          maintenanceLevel: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecteer onderhoudsniveau" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {maintenanceLevelOptions.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="wateringSystem">Bewateringssysteem</Label>
+                    <Select
+                      value={newGarden.wateringSystem}
+                      onValueChange={(value) =>
+                        setNewGarden((p) => ({
+                          ...p,
+                          wateringSystem: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecteer bewateringssysteem" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {wateringSystemOptions.map((system) => (
+                          <SelectItem key={system} value={system}>
+                            {system}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="establishedDate">Oprichtingsdatum</Label>
@@ -364,7 +375,20 @@ export default function NewGardenPage() {
                     />
                   </div>
 
-
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="soilCondition">Grondconditie</Label>
+                    <Input
+                      id="soilCondition"
+                      placeholder="Beschrijf de algemene grondconditie"
+                      value={newGarden.soilCondition}
+                      onChange={(e) =>
+                        setNewGarden((p) => ({
+                          ...p,
+                          soilCondition: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">

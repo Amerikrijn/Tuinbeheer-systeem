@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode, createElement } from "react"
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
 import { loadTranslations, type Language, t as translate } from "@/lib/translations"
 
 /**
@@ -20,53 +20,39 @@ const LanguageContext = createContext<LanguageContextValue | null>(null)
 
 /**
  * Provides language state (English / Dutch) and ensures translations are
- * loaded before children render. Persists the chosen language in
+ * loaded before children render.  Persists the chosen language in
  * localStorage for subsequent visits.
  */
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  // Initialize with a default language to prevent hydration issues
   const [language, setLanguageState] = useState<Language>("nl")
   const [translationsLoaded, setTranslationsLoaded] = useState(false)
 
   /* Load saved language preference and translation bundle on mount */
   useEffect(() => {
-    // Only run on client side to prevent hydration issues
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("language") as Language | null
+    const saved = (typeof window !== "undefined" && localStorage.getItem("language")) as Language | null
 
-      if (saved === "en" || saved === "nl") {
-        setLanguageState(saved)
-      }
-
-      loadTranslations().then(() => setTranslationsLoaded(true))
+    if (saved === "en" || saved === "nl") {
+      setLanguageState(saved)
     }
+
+    loadTranslations().then(() => setTranslationsLoaded(true))
   }, [])
 
   const handleSetLanguage = (lang: Language) => {
     setLanguageState(lang)
     if (typeof window !== "undefined") {
-      try {
-        localStorage.setItem("language", lang)
-      } catch (error) {
-        // Silently fail if localStorage is not available or throws an error
-        // The language change is still applied in memory
-        console.warn('Failed to persist language to localStorage:', error)
-      }
+      localStorage.setItem("language", lang)
     }
-  }
-
-  const translateHelper = (key: string): string => {
-    return translate(key, language)
   }
 
   const contextValue: LanguageContextValue = {
     language,
     setLanguage: handleSetLanguage,
     translationsLoaded,
-    t: translateHelper
+    t: (key: string) => translate(key, language),
   }
 
-  return createElement(LanguageContext.Provider, { value: contextValue }, children)
+  return <LanguageContext.Provider value={contextValue}>{children}</LanguageContext.Provider>
 }
 
 /**
