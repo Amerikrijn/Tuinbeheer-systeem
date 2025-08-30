@@ -163,7 +163,10 @@ export async function POST(request: NextRequest) {
       const gardenAccessRecords = gardenAccess.map((gardenId: string) => ({
         user_id: authData.user.id,
         garden_id: gardenId,
-        granted_by: 'admin', // Track who granted access
+        granted_by: null, // Set to null instead of 'admin' string
+        granted_at: new Date().toISOString(),
+        access_level: 'admin', // Add access_level field
+        is_active: true, // Add is_active field
         created_at: new Date().toISOString()
       }))
 
@@ -341,25 +344,30 @@ export async function PUT(request: NextRequest) {
 
       // 🏦 BANKING-GRADE: Update garden access for both users and admins
       // First, remove all existing garden access
+      console.log('Deleting existing garden access for user:', userId)
       const { error: deleteError } = await supabaseAdmin
         .from('user_garden_access')
         .delete()
         .eq('user_id', userId)
 
       if (deleteError) {
-
+        console.error('Error deleting garden access:', deleteError)
         // Don't fail the whole operation
       }
 
       // Then, add new garden access if provided (for both users and admins)
       if (gardenAccess && gardenAccess.length > 0) {
+        console.log('Adding garden access for user:', userId, 'Gardens:', gardenAccess)
         const gardenAccessRecords = gardenAccess.map((gardenId: string) => ({
           user_id: userId,
           garden_id: gardenId,
-          granted_by: 'admin',
-          created_at: new Date().toISOString()
+          granted_by: null, // Set to null instead of 'admin' string
+          granted_at: new Date().toISOString(),
+          access_level: 'admin', // Add access_level field
+          is_active: true // Add is_active field
         }))
 
+        console.log('Garden access records to insert:', gardenAccessRecords)
         const { error: insertError } = await supabaseAdmin
           .from('user_garden_access')
           .insert(gardenAccessRecords)
