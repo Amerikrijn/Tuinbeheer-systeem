@@ -273,74 +273,72 @@ function HomePageContent() {
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl safe-area-px">
-      {/* Clean Header - No Duplicate Navigation - Build v3 */}
-      <UnifiedHeader
-        title="🌱 Tuinbeheer"
-        subtitle="Beheer je tuinen, planten en taken op één centrale plek"
-        icon="tree"
-        variant="default"
-        actions={
-          <UnifiedButton
-            variant="primary"
-            size="compact"
-            onClick={() => router.push('/gardens/new')}
-            icon={<Plus className="w-4 h-4" />}
-            fullWidth={true}
-            className="sm:w-auto"
-          >
-            Nieuwe Tuin
-          </UnifiedButton>
-        }
-      />
+      {/* Minimalist Header - Space Efficient */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+            <TreePine className="w-6 h-6 text-green-700 dark:text-green-400" />
+          </div>
+          <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
+            Tuinen
+          </h1>
+        </div>
+        
+        <UnifiedButton
+          variant="primary"
+          size="compact"
+          onClick={() => router.push('/gardens/new')}
+          icon={<Plus className="w-4 h-4" />}
+          className="h-10 px-4"
+        >
+          Toevoegen
+        </UnifiedButton>
+      </div>
 
-      {/* Unified Mobile Search */}
-      <div className="mb-6">
-        <div className="max-w-sm mx-auto">
+      {/* Compact Search */}
+      <div className="mb-4">
+        <div className="max-w-md mx-auto">
           <MobileSearch
             value={state.searchTerm}
             onChange={(value) => setState(prev => ({ ...prev, searchTerm: value }))}
-            placeholder="🔍 Zoek tuinen op naam, locatie..."
+            placeholder="🔍 Zoek tuinen..."
             fullWidth={true}
           />
           {state.searchTerm && (
-            <p className="text-center text-sm text-muted-foreground mt-3">
+            <p className="text-center text-xs text-muted-foreground mt-2">
               {filteredGardens.length} tuin{filteredGardens.length !== 1 ? 'en' : ''} gevonden
             </p>
           )}
         </div>
       </div>
 
-      {/* Banking-Grade Error State */}
+      {/* Compact Error State */}
       {gardensError && (
-        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
-          <div className="flex items-start gap-2 mb-3">
-            <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive mt-0.5 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <h3 className="text-sm sm:text-base font-semibold text-destructive mb-1">Er is een fout opgetreden</h3>
-              <p className="text-destructive text-xs sm:text-sm mb-3">{gardensError.message}</p>
-            </div>
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <span className="text-sm font-medium text-destructive">Fout bij laden tuinen</span>
           </div>
+          <p className="text-destructive text-xs mb-2">{gardensError.message}</p>
           <UnifiedButton
             onClick={() => refetchGardens()}
             variant="outline"
             size="compact"
-            fullWidth={true}
-            className="sm:w-auto border-destructive text-destructive hover:bg-destructive/10"
+            className="h-8 px-3 text-xs border-destructive text-destructive hover:bg-destructive/10"
           >
             Opnieuw proberen
           </UnifiedButton>
         </div>
       )}
 
-      {/* Banking-Grade Loading State */}
+      {/* Compact Loading State */}
       {gardensLoading && gardens.length === 0 && (
-        <div className="space-y-4 sm:space-y-6">
-          <div className="text-center mb-4 sm:mb-6">
-            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-full mb-3">
-              <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary animate-spin" />
+        <div className="space-y-4">
+          <div className="text-center mb-3">
+            <div className="inline-flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full mb-2">
+              <Loader2 className="w-4 h-4 text-green-600 dark:text-green-400 animate-spin" />
             </div>
-            <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1">Tuinen laden...</h3>
-            <p className="text-muted-foreground text-xs sm:text-sm">Even geduld terwijl we je tuinen ophalen</p>
+            <p className="text-sm text-muted-foreground">Tuinen laden...</p>
           </div>
           
                     <MobileFirstGrid>
@@ -367,15 +365,15 @@ function HomePageContent() {
       {!gardensLoading || gardens.length > 0 ? (
         <>
           {filteredGardens.length === 0 && !gardensLoading ? (
-            <div className="text-center py-6 sm:py-8">
-              <TreePine className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3" />
-              <h3 className="text-base sm:text-lg font-semibold text-foreground mb-2">
+            <div className="text-center py-4">
+              <TreePine className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+              <h3 className="text-sm font-medium text-foreground mb-1">
                 {state.searchTerm ? 'Geen tuinen gevonden' : 'Nog geen tuinen'}
               </h3>
-              <p className="text-muted-foreground mb-3 text-xs sm:text-sm">
+              <p className="text-muted-foreground mb-2 text-xs">
                 {state.searchTerm 
-                  ? `Geen tuinen gevonden voor "${state.searchTerm}". Probeer een andere zoekterm.`
-                  : 'Maak je eerste tuin aan om te beginnen.'
+                  ? `Geen resultaten voor "${state.searchTerm}"`
+                  : 'Maak je eerste tuin aan'
                 }
               </p>
               {!state.searchTerm && (
@@ -384,10 +382,9 @@ function HomePageContent() {
                   variant="primary"
                   size="compact"
                   icon={<Plus className="w-4 h-4" />}
-                  fullWidth={true}
-                  className="sm:w-auto"
+                  className="h-8 px-3 text-xs"
                 >
-                  Eerste Tuin Aanmaken
+                  Aanmaken
                 </UnifiedButton>
               )}
             </div>
