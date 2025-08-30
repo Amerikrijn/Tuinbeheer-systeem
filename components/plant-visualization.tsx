@@ -152,7 +152,7 @@ export function PlantVisualization({ plantBed, plants, containerWidth, container
         >
           {/* Simple flower box */}
           <div
-            className="w-full h-full border-2 border-gray-400 dark:border-gray-600 rounded-lg bg-background/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
+            className="w-full h-full border-2 border-gray-400 dark:border-gray-600 rounded-lg bg-background/95 shadow-md flex flex-col items-center justify-center"
             style={{
               borderColor: `${flower.color}80`,
               backgroundColor: `${flower.color}25`,
@@ -206,7 +206,7 @@ export function PlantVisualization({ plantBed, plants, containerWidth, container
           {[...Array(Math.min(1, Math.floor(plants.length / 3)))].map((_, i) => (
             <div
               key={`particle-${i}`}
-              className="absolute opacity-10 animate-pulse"
+              className="absolute opacity-10"
               style={{
                 fontSize: '8px',
                 left: Math.random() * (containerWidth - 16),

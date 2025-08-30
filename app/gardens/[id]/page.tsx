@@ -988,7 +988,11 @@ export default function GardenDetailPage() {
   if (loading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <div className="animate-pulse space-y-6">
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+          ))}
+        </div>
           <Skeleton className="h-8 w-1/3" />
           <Skeleton className="h-32 w-full" />
           <div className="grid gap-4">

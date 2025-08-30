@@ -1535,7 +1535,11 @@ export default function PlantBedViewPage() {
   if (loading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <div className="animate-pulse">
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+          ))}
+        </div>
           <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
           <div className="h-64 bg-gray-200 rounded"></div>
         </div>
@@ -2120,7 +2124,7 @@ export default function PlantBedViewPage() {
                     }}
                   >
                     {/* Plantvak info - always within the plantvak area */}
-                    <div className="absolute top-2 left-2 bg-background/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border">
+                    <div className="absolute top-2 left-2 bg-background/95 px-3 py-1 rounded-lg shadow-sm border">
                       <div className="text-xs text-green-600">
                         {plantBed.size} • {flowerPositions.length} bloemen
                       </div>

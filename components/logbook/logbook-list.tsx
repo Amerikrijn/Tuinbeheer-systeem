@@ -63,7 +63,11 @@ export function LogbookList() {
 
   // 🚀 PERFORMANCE: Skeleton loading for better perceived performance
   const LogbookSkeleton = () => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-pulse">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-32 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+          ))}
+        </div>
       {Array.from({ length: 6 }).map((_, index) => (
         <Card key={index} className="hover:shadow-md transition-shadow">
           <CardHeader>
@@ -134,7 +138,7 @@ export function LogbookList() {
               </p>
               <Button onClick={handleRefresh} disabled={refreshing}>
                 {refreshing ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                 ) : (
                   <Calendar className="w-4 h-4 mr-2" />
                 )}
@@ -161,7 +165,7 @@ export function LogbookList() {
             disabled={refreshing}
           >
             {refreshing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
             ) : (
               <Calendar className="w-4 h-4" />
             )}

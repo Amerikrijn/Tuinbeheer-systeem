@@ -133,7 +133,11 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="animate-pulse space-y-4">
+          <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+          ))}
+        </div>
             <div className="h-20 bg-gray-200 rounded"></div>
             <div className="h-20 bg-gray-200 rounded"></div>
           </div>
@@ -231,7 +235,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                         </div>
                         
                         {/* Date Badge */}
-                        <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                        <div className="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
                           {formatDate(entry.entry_date)}
                         </div>
                         
