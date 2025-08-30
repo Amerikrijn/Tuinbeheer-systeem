@@ -53,7 +53,7 @@ export async function GET(
         await logClientSecurityEvent('API_DATABASE_ERROR', 'HIGH', false, 'Database error fetching plant beds');
       } catch (logError) {
         // Fallback: If logging fails, still handle the error gracefully
-        console.error('Logging failed, original error:', error);
+
       }
       return NextResponse.json({ error: 'Failed to fetch plant beds' }, { status: 500 });
     }
@@ -75,7 +75,7 @@ export async function GET(
       apiLogger.error('API error in plant beds endpoint', error as Error, { gardenId: params.id, operationId });
     } catch (logError) {
       // Fallback: If logging fails, still handle the error gracefully
-      console.error('Logging failed, original error:', error);
+
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

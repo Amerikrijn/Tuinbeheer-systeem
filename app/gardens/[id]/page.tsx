@@ -159,9 +159,7 @@ export default function GardenDetailPage() {
   // Helper to check if a plant matches the filter
   const plantMatchesFilter = (plant: PlantWithPosition): boolean => {
     if (!selectedMonth || filterMode === 'all') return true
-    
 
-    
     if (filterMode === 'blooming') {
       // Check if plant blooms in selected month - handle both dates and period text
       if (plant.bloom_period) {
@@ -239,15 +237,7 @@ export default function GardenDetailPage() {
     // Use exact pixel conversion for garden dimensions
     const widthPixels = metersToPixels(lengthMeters)
     const heightPixels = metersToPixels(widthMeters)
-    
-    console.log("🏡 Tuin schaal debug:", {
-      lengthMeters,
-      widthMeters,
-      widthPixels,
-      heightPixels,
-      metersToPixelsConstant: METERS_TO_PIXELS
-    })
-    
+
     return {
       width: widthPixels,
       height: heightPixels,
@@ -270,13 +260,13 @@ export default function GardenDetailPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        console.log("🔍 Loading garden data:", { paramsId: params.id, type: typeof params.id })
+
         setLoading(true)
         const [gardenData, plantBedsData] = await Promise.all([
           getGarden(params.id as string),
           getPlantBeds(params.id as string),
         ])
-        console.log("✅ Garden loaded:", { id: gardenData?.id, name: gardenData?.name })
+
         setGarden(gardenData)
         
         // Initialize garden form
@@ -302,21 +292,15 @@ export default function GardenDetailPage() {
             
             // Update the database with recalculated dimensions if they're different
             if (bed.visual_width !== visualWidth || bed.visual_height !== visualHeight) {
-              console.log(`🔧 Updating plantvak ${bed.name} dimensions:`, {
-                oldWidth: bed.visual_width,
-                oldHeight: bed.visual_height,
-                newWidth: visualWidth,
-                newHeight: visualHeight,
-                size: bed.size
-              })
+
               try {
                 await updatePlantBed(bed.id, {
                   visual_width: visualWidth,
                   visual_height: visualHeight
                 })
-                console.log(`✅ Successfully updated plantvak ${bed.name} dimensions`)
+
               } catch (error) {
-                console.error(`❌ Failed to update plantvak ${bed.name} dimensions:`, error)
+
               }
             }
           } else if (!visualWidth || !visualHeight) {
@@ -339,7 +323,7 @@ export default function GardenDetailPage() {
         
         setPlantBeds(processedBeds)
       } catch (error) {
-        console.error("Error loading data:", error)
+
         setGarden(null)
         setPlantBeds([])
       } finally {
@@ -444,7 +428,7 @@ export default function GardenDetailPage() {
       
         // Removed toast notification
     } catch (error) {
-      console.error('Failed to update garden:', error)
+
         // Removed toast notification
     }
   }
@@ -478,7 +462,7 @@ export default function GardenDetailPage() {
   const getDimensionsFromSize = (size: string) => {
     const dimensions = parsePlantBedDimensions(size)
     if (dimensions) {
-      console.log(`✅ Plantvak dimensies: ${size} -> ${dimensions.lengthPixels}px × ${dimensions.widthPixels}px`)
+
       // Fix: In size strings like "4x3 meter", the first number (lengthMeters) is the visual width,
       // and the second number (widthMeters) is the visual height
       return {
@@ -486,7 +470,7 @@ export default function GardenDetailPage() {
         height: dimensions.widthPixels   // Second number = visual height (vertical)
       }
     }
-    console.log("❌ Plantvak dimensies niet geparsed, gebruik standaard 2x2m:", size)
+
     // Default to 2x2 meters instead of minimum size
     return {
       width: metersToPixels(2),
@@ -652,7 +636,7 @@ export default function GardenDetailPage() {
           //   sessionStorage.setItem('gardenSaveShown', 'true')
           // }
         } catch (error) {
-          console.error("Error auto-saving plant bed position:", error)
+
         // Removed toast notification
         }
         
@@ -778,7 +762,7 @@ export default function GardenDetailPage() {
     const checkAllBedsForFlowers = async () => {
       for (const bed of plantBeds) {
         if (bed.plants.length === 0 && bed.size) {
-          console.log(`🌱 Auto-checking empty bed: ${bed.name}`)
+
           await checkAndAddMoreFlowers(bed)
         }
       }
@@ -808,22 +792,16 @@ export default function GardenDetailPage() {
         // Removed toast notification
       }
     } catch (error) {
-      console.error("Error updating rotation:", error)
+
         // Removed toast notification
     }
   }
 
   // Add new plant bed
   const addPlantBed = async () => {
-    console.log("🔍 Adding plant bed:", { garden: garden?.id, newPlantBed })
-    
+
     if (!garden || !newPlantBed.length || !newPlantBed.width) {
-      console.log("❌ Validation failed:", { 
-        garden: !!garden, 
-        gardenId: garden?.id,
-        length: newPlantBed.length, 
-        width: newPlantBed.width 
-      })
+
         // Removed toast notification
       return
     }
@@ -888,14 +866,6 @@ export default function GardenDetailPage() {
       }
 
       const sizeString = `${length}m x ${width}m`
-      
-      console.log("📝 Creating plant bed with data:", {
-        garden_id: garden.id,
-        size: sizeString,
-        description: newPlantBed.description,
-        sun_exposure: newPlantBed.sun_exposure,
-        soil_type: newPlantBed.soil_type,
-      })
 
       // Gebruik PlantvakService voor automatische letter toewijzing
       const plantBed = await PlantvakService.create({
@@ -943,7 +913,7 @@ export default function GardenDetailPage() {
         }
       }
     } catch (error) {
-      console.error("Error creating plant bed:", error)
+
         // Removed toast notification
     }
   }
@@ -967,7 +937,7 @@ export default function GardenDetailPage() {
       
         // Removed toast notification
     } catch (error) {
-      console.error("Error deleting plant bed:", error)
+
         // Removed toast notification
     } finally {
       setDeletingBedId(null)
@@ -1011,7 +981,7 @@ export default function GardenDetailPage() {
           <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
           <p className="text-muted-foreground mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
           <Button onClick={() => {
-            console.log('Navigating back to gardens')
+
             window.location.href = '/gardens'
           }} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
@@ -1584,8 +1554,6 @@ export default function GardenDetailPage() {
                             <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none opacity-50"></div>
                           </div>
 
-
-                          
                           {isSelected && (
                             <>
                               <div className="absolute -top-1 -right-1 bg-blue-500 dark:bg-blue-600 text-white text-xs px-1 rounded">

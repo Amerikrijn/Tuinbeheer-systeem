@@ -29,7 +29,7 @@ const RETRY_CONFIG = {
 // Error logger that only logs in development
 function logError(message: string, error: any) {
   if (process.env.NODE_ENV === 'development') {
-    console.error(message, error)
+
   }
   // In production, errors could be sent to a monitoring service
 }
@@ -206,10 +206,10 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
 
   if (plantBedsError) {
     if (isMissingRelation(plantBedsError)) {
-      console.warn("Supabase table `plant_beds` not found yet – returning empty list until the migration is applied.")
+
       return []
     }
-    console.error("Error fetching plant beds:", plantBedsError)
+
     return []
   }
 
@@ -223,7 +223,7 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
         .order("created_at", { ascending: false })
 
       if (plantsError) {
-        console.error("Error fetching plants for bed:", bed.id, plantsError)
+
         return { ...bed, plants: [] }
       }
 
@@ -244,10 +244,10 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
 
   if (plantBedError) {
     if (isMissingRelation(plantBedError)) {
-      console.warn("Supabase table `plant_beds` not found yet – returning null until the migration is applied.")
+
       return null
     }
-    console.error("Error fetching plant bed:", plantBedError)
+
     return null
   }
 
@@ -258,7 +258,7 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
     .order("created_at", { ascending: false })
 
   if (plantsError) {
-    console.error("Error fetching plants:", plantsError)
+
     return { ...plantBed, plants: [] }
   }
 
@@ -273,8 +273,7 @@ export async function createPlantBed(plantBed: {
   sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
   description?: string
 }): Promise<PlantBed | null> {
-  console.log("🌱 Creating plant bed:", plantBed)
-  
+
   try {
     // Use the new PlantvakService for automatic letter code assignment
     const result = await PlantvakService.create({
@@ -287,14 +286,14 @@ export async function createPlantBed(plantBed: {
     })
     
     if (result) {
-      console.log("✅ Plantvak created successfully with letter code:", result.letter_code)
+
       return result
     } else {
-      console.error("❌ Failed to create plantvak")
+
       return null
     }
   } catch (error) {
-    console.error("❌ Error creating plantvak:", error)
+
     throw error
   }
 }
@@ -303,7 +302,7 @@ export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Pr
   const { data, error } = await supabase.from("plant_beds").update(updates).eq("id", id).select().single()
 
   if (error) {
-    console.error("Error updating plant bed:", error)
+
     throw error
   }
 
@@ -311,8 +310,7 @@ export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Pr
 }
 
 export async function deletePlantBed(id: string): Promise<void> {
-  console.log("🗑️ Attempting to delete plant bed with ID:", id)
-  
+
   const { data, error } = await supabase
     .from("plant_beds")
     .update({ is_active: false })
@@ -321,17 +319,10 @@ export async function deletePlantBed(id: string): Promise<void> {
     .single()
 
   if (error) {
-    console.error("❌ Error deleting plant bed:", error)
-    console.error("Error details:", {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint
-    })
+
     throw error
   }
-  
-  console.log("✅ Plant bed soft-deleted successfully:", data)
+
 }
 
 // Plant functions
@@ -363,7 +354,7 @@ export async function createPlant(plant: {
   const { data, error } = await supabase.from("plants").insert(plant).select().single()
 
   if (error) {
-    console.error("Error creating plant:", error)
+
     throw error
   }
 
@@ -374,7 +365,7 @@ export async function updatePlant(id: string, updates: Partial<Plant>): Promise<
   const { data, error } = await supabase.from("plants").update(updates).eq("id", id).select().single()
 
   if (error) {
-    console.error("Error updating plant:", error)
+
     throw error
   }
 
@@ -385,7 +376,7 @@ export async function deletePlant(id: string): Promise<void> {
   const { error } = await supabase.from("plants").delete().eq("id", id)
 
   if (error) {
-    console.error("Error deleting plant:", error)
+
     throw error
   }
 }
@@ -394,7 +385,7 @@ export async function getPlant(id: string): Promise<Plant | null> {
   const { data, error } = await supabase.from("plants").select("*").eq("id", id).single()
 
   if (error) {
-    console.error("Error fetching plant:", error)
+
     return null
   }
 
@@ -414,7 +405,7 @@ export async function getPlantsWithPositions(plantBedId: string): Promise<PlantW
     .order("created_at", { ascending: true })
 
   if (error) {
-    console.error("Error fetching plants with positions:", error)
+
     return []
   }
 
@@ -476,7 +467,7 @@ export async function createVisualPlant(plant: {
   }).select().single()
 
   if (error) {
-    console.error("Error creating visual plant:", error)
+
     throw error
   }
 
@@ -513,7 +504,7 @@ export async function updatePlantPosition(id: string, updates: {
     .single()
 
   if (error) {
-    console.error("Error updating plant position:", error)
+
     throw error
   }
 

@@ -96,13 +96,13 @@ async function checkCollision(
       });
     
     if (error) {
-      console.error('Collision check error:', error);
+
       return false; // Allow movement if check fails
     }
     
     return data === true;
   } catch (error) {
-    console.error('Collision check exception:', error);
+
     return false; // Allow movement if check fails
   }
 }
@@ -129,13 +129,13 @@ async function checkCanvasBoundaries(
       });
     
     if (error) {
-      console.error('Canvas boundaries check error:', error);
+
       return false;
     }
     
     return data === true;
   } catch (error) {
-    console.error('Canvas boundaries check exception:', error);
+
     return false;
   }
 }
@@ -170,7 +170,7 @@ export async function GET(
       .single();
     
     if (error) {
-      console.error('Database error:', error);
+
       return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
         data: null,
         error: 'Failed to fetch plant bed',
@@ -198,7 +198,7 @@ export async function GET(
       await logClientSecurityEvent('API_POSITION_GET_ERROR', 'HIGH', false, error instanceof Error ? error.message : 'Unknown error');
     } catch (logError) {
       // Fallback: If logging fails, still handle the error gracefully
-      console.error('Logging failed, original error:', error);
+
     }
     return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
       data: null,
@@ -310,7 +310,7 @@ export async function PUT(
       .single();
     
     if (updateError) {
-      console.error('Database update error:', updateError);
+
       return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
         data: null,
         error: 'Failed to update plant bed position',
@@ -325,7 +325,7 @@ export async function PUT(
     });
     
   } catch (error) {
-    console.error('PUT position error:', error);
+
     return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
       data: null,
       error: 'Internal server error',
@@ -453,7 +453,7 @@ export async function PATCH(
       .single();
     
     if (updateError) {
-      console.error('Database update error:', updateError);
+
       return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
         data: null,
         error: 'Failed to update plant bed position',
@@ -468,7 +468,7 @@ export async function PATCH(
     });
     
   } catch (error) {
-    console.error('PATCH position error:', error);
+
     return NextResponse.json<ApiResponse<PlantBedWithPosition>>({
       data: null,
       error: 'Internal server error',

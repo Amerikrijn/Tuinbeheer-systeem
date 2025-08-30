@@ -102,7 +102,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
         }
       })) || [])
     } catch (error) {
-      console.error('Error loading plants:', error)
+
     }
   }
 
@@ -128,7 +128,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
         }
       })) || [])
     } catch (error) {
-      console.error('Error loading plant beds:', error)
+
     }
   }
 
@@ -145,7 +145,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
       const { error } = await TaskService.createTask(formData)
       
       if (error) {
-        console.error('Error creating task:', error)
+
         return
       }
 
@@ -164,7 +164,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
       onTaskAdded()
       onClose()
     } catch (error) {
-      console.error('Error creating task:', error)
+
     } finally {
       setLoading(false)
     }

@@ -205,7 +205,7 @@ export default function EditLogbookPage() {
       })
 
     } catch (error) {
-      console.error('Photo upload error:', error)
+
       const errorMessage = error instanceof Error ? error.message : 'Onbekende fout bij uploaden'
       toast({
         title: "Fout bij uploaden",

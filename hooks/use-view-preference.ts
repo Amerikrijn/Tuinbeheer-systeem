@@ -14,7 +14,7 @@ export function useViewPreference() {
       setViewMode(initialMode)
     } catch (error) {
       // Fallback to default view mode if service fails
-      console.warn('Failed to load view preference:', error)
+
       setViewMode('visual')
     } finally {
       setIsInitialized(true)

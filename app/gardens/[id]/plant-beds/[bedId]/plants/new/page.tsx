@@ -53,7 +53,7 @@ export default function NewPlantPage() {
         setGarden(gardenData)
         setPlantBed(plantBedData)
       } catch (error) {
-        console.error('Error loading data:', error)
+
         toast({
           title: "Fout bij laden",
           description: "Kon de gegevens niet laden. Probeer het opnieuw.",
@@ -180,7 +180,7 @@ export default function NewPlantPage() {
       
       router.push(`/gardens/${garden?.id}/plantvak-view/${plantBed.id}`)
     } catch (error) {
-      console.error('Error creating plant:', error)
+
       toast({
         title: "Fout bij toevoegen",
         description: "Er ging iets mis bij het toevoegen van de plant. Probeer het opnieuw.",

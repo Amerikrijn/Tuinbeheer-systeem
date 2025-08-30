@@ -41,7 +41,7 @@ export function SupabaseAuthProvider({ children }: SupabaseAuthProviderProps) {
           onPasswordChanged={async () => {
             // 🏦 NEW: After password change, force refresh user profile
             // This should update the auth.user object and remove force_password_change flag
-            console.log('🏦 Password change completed, refreshing auth state...')
+
             await auth.forceRefreshUser()
           }} 
         />

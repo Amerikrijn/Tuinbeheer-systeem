@@ -74,7 +74,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
       setUserGardenAccess(currentAccess)
 
     } catch (error) {
-      console.error('Error loading gardens and access:', error)
+
       toast({
         title: "Fout bij laden",
         description: "Kon tuinen en toegang niet laden",
@@ -135,7 +135,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
       onClose()
 
     } catch (error) {
-      console.error('Error saving garden access:', error)
+
       toast({
         title: "Fout bij opslaan",
         description: "Kon tuin toegang niet bijwerken",

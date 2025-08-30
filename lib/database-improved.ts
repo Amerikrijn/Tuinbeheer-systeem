@@ -29,7 +29,7 @@ const RETRY_CONFIG = {
 // Error logger that only logs in development
 function logError(message: string, error: any) {
   if (process.env.NODE_ENV === 'development') {
-    console.error(message, error)
+
   }
   // In production, you could send to a monitoring service here
 }

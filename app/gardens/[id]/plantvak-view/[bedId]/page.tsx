@@ -181,8 +181,6 @@ const FLOWER_STATUS_OPTIONS = [
   return undefined
 }
 
-
-
 export default function PlantBedViewPage() {
   const router = useRouter()
   const params = useParams()
@@ -294,13 +292,7 @@ export default function PlantBedViewPage() {
         // TODO: Improve this filtering logic when we have better task-garden relationships
         return true
       })
-      
-      console.log('🔍 Plantvak tasks filtered by garden:', {
-        gardenId,
-        totalTasks: allTasks.length,
-        filteredTasks: filteredTasks.length
-      })
-      
+
       // Remove duplicates based on task ID
       const uniqueTasks = filteredTasks.filter((task, index, array) => 
         array.findIndex(t => t.id === task.id) === index
@@ -317,7 +309,7 @@ export default function PlantBedViewPage() {
       
       setTasks(uniqueTasks)
     } catch (error) {
-      console.error('Error loading tasks:', error)
+
     } finally {
       setLoadingTasks(false)
     }
@@ -350,7 +342,7 @@ export default function PlantBedViewPage() {
       const { error } = await TaskService.updateTask(taskId, { completed })
       
       if (error) {
-        console.error('Error updating task:', error)
+
         // Revert the optimistic update
         setTasks(prevTasks => {
           const revertedTasks = prevTasks.map(task => 
@@ -366,7 +358,7 @@ export default function PlantBedViewPage() {
       }
       
     } catch (error) {
-      console.error('Error completing task:', error)
+
       // Revert optimistic update on error
       setTasks(prevTasks => {
         const revertedTasks = prevTasks.map(task => 
@@ -443,8 +435,7 @@ export default function PlantBedViewPage() {
         // Load plants from database instead of localStorage
         if (params.bedId) {
           const plants = await getPlantsWithPositions(params.bedId as string)
-                  console.log('Loading plants from database:', plants)
-        
+
         // DEBUG: Show initial flower positions
         console.log('🌸 INITIAL POSITIONS:', plants.map(p => ({
           name: p.name,
@@ -456,7 +447,7 @@ export default function PlantBedViewPage() {
         setFlowerPositions(plants)
         }
       } catch (error) {
-        console.error("Error loading data:", error)
+
         setGarden(null)
         setPlantBed(null)
         setFlowerPositions([])
@@ -539,7 +530,7 @@ export default function PlantBedViewPage() {
         const availableHeight = plantvakHeight - margin * 2 - flowerSize
         
         if (availableWidth <= 0 || availableHeight <= 0) {
-          console.log("Not enough space in plantvak for more flowers")
+
           break
         }
         
@@ -567,7 +558,7 @@ export default function PlantBedViewPage() {
             setFlowerPositions(prev => [...prev, newFlower])
           }
         } catch (error) {
-          console.error("Error auto-adding flower:", error)
+
         }
       }
       
@@ -602,8 +593,7 @@ export default function PlantBedViewPage() {
     })
     
     if (flowersOutside.length > 0) {
-      console.log(`Found ${flowersOutside.length} flowers outside plantvak boundaries, moving them inside...`)
-      
+
       // Move flowers inside the boundaries with better distribution
       for (let i = 0; i < flowersOutside.length; i++) {
         const flower = flowersOutside[i]
@@ -653,7 +643,7 @@ export default function PlantBedViewPage() {
               : f
           ))
         } catch (error) {
-          console.error("Error moving flower inside boundaries:", error)
+
         }
       }
       
@@ -697,9 +687,7 @@ export default function PlantBedViewPage() {
     const plantvakHeight = dimensions.widthPixels
     const plantvakStartX = (currentCanvasSize.width - plantvakWidth) / 2
     const plantvakStartY = (currentCanvasSize.height - plantvakHeight) / 2
-    
-    console.log('🌸 RESETTING FLOWERS TO CENTER')
-    
+
     for (const flower of flowerPositions) {
       const centerX = plantvakStartX + plantvakWidth / 2 - (flower.visual_width || 45) / 2
       const centerY = plantvakStartY + plantvakHeight / 2 - (flower.visual_height || 45) / 2
@@ -720,7 +708,7 @@ export default function PlantBedViewPage() {
             : f
         ))
       } catch (error) {
-        console.error("Error resetting flower position:", error)
+
       }
     }
   }
@@ -799,7 +787,7 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       }
     } catch (error) {
-      console.error("Error creating flower:", error)
+
         // Removed toast notification
     }
   }
@@ -842,7 +830,7 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       }
     } catch (error) {
-      console.error("Error updating flower:", error)
+
         // Removed toast notification
     }
   }
@@ -855,7 +843,7 @@ export default function PlantBedViewPage() {
       setIsEditingFlower(false)
         // Removed toast notification
     } catch (error) {
-      console.error("Error deleting flower:", error)
+
         // Removed toast notification
     }
   }
@@ -944,7 +932,7 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       }
     } catch (error) {
-      console.error("Error updating plant bed:", error)
+
         // Removed toast notification
     }
   }
@@ -959,10 +947,10 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       
       // Navigate back to garden
-              console.log(`Navigating back to garden: ${params.id}`)
+
         window.location.href = `/gardens/${params.id}`
     } catch (error) {
-      console.error("Error deleting plant bed:", error)
+
         // Removed toast notification
     } finally {
       setShowDeletePlantBedDialog(false)
@@ -1004,10 +992,9 @@ export default function PlantBedViewPage() {
 
   // Handle double click - navigate to plant details page
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
-    console.log('Double click on flower:', flower.name, '- navigating to details')
-    
+
     // Navigate to plant details page
-    console.log(`Navigating to plant: ${flower.id}`)
+
     window.location.href = `/plants/${flower.id}`
     }, [])
 
@@ -1045,7 +1032,7 @@ export default function PlantBedViewPage() {
       const isLargeField = newSize > 100
         // Removed toast notification
     } catch (error) {
-      console.error('Failed to resize flower:', error)
+
         // Removed toast notification
     }
   }, [flowerPositions, canvasWidth, canvasHeight])
@@ -1169,8 +1156,6 @@ export default function PlantBedViewPage() {
     }
   }, [selectedFlower, isDragMode, draggedFlower, scale, containerRef])
 
-
-
   // Handle drag move - FIXED: Dynamic boundary calculation to prevent cached size issues
   const handlePointerMove = useCallback((clientX: number, clientY: number) => {
     if (!draggedFlower || !containerRef.current || !plantBed) return
@@ -1200,20 +1185,12 @@ export default function PlantBedViewPage() {
       const currentCanvasSize = getCanvasSize()
       const currentCanvasWidth = currentCanvasSize.width
       const currentCanvasHeight = currentCanvasSize.height
-      
-
 
       // SIMPLE: Just keep flowers within canvas bounds (like garden view)
       const margin = 10
       const constrainedX = Math.max(margin, Math.min(newX, currentCanvasWidth - draggedFlowerData.visual_width - margin))
       const constrainedY = Math.max(margin, Math.min(newY, currentCanvasHeight - draggedFlowerData.visual_height - margin))
       // Force redeploy - all flowers should move freely now
-      
-
-
-      
-
-
 
       // Only update the specific dragged flower
       return prev.map(f => {
@@ -1284,7 +1261,7 @@ export default function PlantBedViewPage() {
           
           // Removed feedback toast - no more notifications when moving
         } catch (error) {
-          console.error("Error auto-saving flower position:", error)
+
         // Removed toast notification
         }
       }
@@ -1298,8 +1275,6 @@ export default function PlantBedViewPage() {
   const onMouseUp = useCallback(() => {
     handlePointerUp()
   }, [handlePointerUp])
-
-
 
   // Save all flower positions to database
   const handleSavePositions = useCallback(async () => {
@@ -1327,7 +1302,7 @@ export default function PlantBedViewPage() {
       
         // Removed toast notification
     } catch (error) {
-      console.error("Error saving flower positions:", error)
+
         // Removed toast notification
     }
   }, [hasChanges, flowerPositions])
@@ -1456,7 +1431,7 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       }
     } catch (error) {
-      console.error("Error saving flower size:", error)
+
         // Removed toast notification
     }
   }, [isResizing, flowerPositions])
@@ -1514,8 +1489,6 @@ export default function PlantBedViewPage() {
         return <Cloud className="h-4 w-4 text-muted-foreground" />
     }
   }
-
-
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -1972,7 +1945,6 @@ export default function PlantBedViewPage() {
             {selectedFlower && (
               <div className="flex items-center gap-2">
 
-                
                 <Button
                   variant={isResizeMode ? "default" : "outline"}
                   size="sm"
@@ -2275,8 +2247,7 @@ export default function PlantBedViewPage() {
                           onMouseDown={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
-                            
-                            console.log("🎯 LAATSTE KANS DRAG START!")
+
                             alert("DRAG GESTART! Sleep nu!")
                             
                             const startX = e.clientX
@@ -2288,9 +2259,7 @@ export default function PlantBedViewPage() {
                                const deltaY = moveEvent.clientY - startY
                                const delta = Math.max(deltaX, deltaY)
                                const newAreaSize = Math.max(100, startSize + delta)
-                               
-                               console.log("🎯 DRAGGING AREA SIZE:", newAreaSize)
-                               
+
                                // Update area size in notes
                                setFlowerPositions(prev => prev.map(f => {
                                  if (f.id === flower.id) {
@@ -2347,14 +2316,14 @@ export default function PlantBedViewPage() {
                                        setFlowerPositions(prev => [...prev, newFlower])
                                      }
                                    } catch (error) {
-                                     console.error("Error adding flower:", error)
+
                                    }
                                  }
                                }
                              }
                             
                             const handleMouseUp = () => {
-                              console.log("🎯 DRAG STOP!")
+
                               alert("DRAG GESTOPT!")
                               document.removeEventListener('mousemove', handleMouseMove)
                               document.removeEventListener('mouseup', handleMouseUp)
@@ -2368,8 +2337,7 @@ export default function PlantBedViewPage() {
                         >
                           <div className="text-foreground text-2xl font-black">⤡</div>
                         </div>
-                          
-                        
+
                         {/* Show live area info during resize */}
                         {isBeingResized && (
                           <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white text-sm px-3 py-2 rounded-full z-10 animate-bounce shadow-lg">
@@ -2397,8 +2365,6 @@ export default function PlantBedViewPage() {
                   </div>
                 )
               })}
-
-
 
               {/* Empty State */}
               {flowerPositions.length === 0 && (
@@ -2518,7 +2484,7 @@ export default function PlantBedViewPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => {
-                console.log(`Navigating to plant: ${flower.id}`)
+
                 window.location.href = `/plants/${flower.id}`
               }}
                             className="flex-1"
@@ -2722,8 +2688,6 @@ export default function PlantBedViewPage() {
         preselectedPlantBedId={selectedTaskPlantId ? undefined : params.bedId as string}
       />
 
-
-
       {/* Resize Interface Overlay */}
       {showResizeInterface && selectedFlower && (
         <div 
@@ -2783,7 +2747,6 @@ export default function PlantBedViewPage() {
         </div>
       )}
 
-      
     </div>
     </div>
   )

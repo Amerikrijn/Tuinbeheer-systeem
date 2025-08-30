@@ -10,8 +10,7 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
 }
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('🚨 CRITICAL: SUPABASE_SERVICE_ROLE_KEY not found in environment variables')
-  console.error('This API requires service role access for admin operations')
+
 }
 
 // Banking-grade admin client with service role
@@ -44,7 +43,7 @@ export async function GET() {
       .order('updated_at', { ascending: false })
 
     if (error) {
-      console.error('Deleted users fetch error:', error)
+
       return NextResponse.json({ error: 'Failed to fetch deleted users' }, { status: 500 })
     }
 
@@ -52,7 +51,7 @@ export async function GET() {
 
     return NextResponse.json({ deletedUsers })
   } catch (error) {
-    console.error('GET trash error:', error)
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -88,7 +87,7 @@ export async function PUT(request: NextRequest) {
       .eq('id', userId)
 
     if (restoreError) {
-      console.error('User restore failed:', restoreError)
+
       return NextResponse.json(
         { error: `Restore failed: ${restoreError.message}` },
         { status: 500 }
@@ -107,7 +106,7 @@ export async function PUT(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('PUT trash error:', error)
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -181,7 +180,7 @@ export async function DELETE(request: NextRequest) {
     // Delete from auth first
     const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(userId)
     if (authError) {
-      console.warn('Auth deletion warning:', authError)
+
       // Continue anyway - auth user might not exist
     }
 
@@ -192,7 +191,7 @@ export async function DELETE(request: NextRequest) {
       .eq('id', userId)
 
     if (dbError) {
-      console.error('Database deletion failed:', dbError)
+
       return NextResponse.json(
         { error: `Database deletion failed: ${dbError.message}` },
         { status: 500 }
@@ -210,7 +209,7 @@ export async function DELETE(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('DELETE trash error:', error)
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

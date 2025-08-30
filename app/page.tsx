@@ -116,14 +116,7 @@ function HomePageContent() {
 
         // Show performance improvement in console
         if (totalPlantBeds > 0) {
-          console.log(`🚀 PERFORMANCE OPTIMIZATION ACTIVE:`)
-          console.log(`   • Gardens loaded: ${data.data.length}`)
-          console.log(`   • Plant beds loaded: ${totalPlantBeds}`)
-          console.log(`   • Plants loaded: ${totalPlants}`)
-          console.log(`   • Query time: ${performanceDuration.toFixed(2)}ms`)
-          console.log(`   • Estimated old method: ${(totalPlantBeds * 50 + totalPlants * 25).toFixed(0)}ms`)
-          console.log(`   • Performance gain: ~${((totalPlantBeds * 50 + totalPlants * 25 - performanceDuration) / (totalPlantBeds * 50 + totalPlants * 25) * 100).toFixed(1)}% faster`)
-          console.log(`   • Method: Single JOIN query instead of ${1 + totalPlantBeds} separate queries`)
+
         }
 
         // Log user action for audit trail
@@ -281,7 +274,7 @@ function HomePageContent() {
         
         <Button
           onClick={() => {
-            console.log('Navigating to new garden form')
+
             window.location.href = '/gardens/new'
           }}
           className="h-10 px-4 bg-green-600 hover:bg-green-700 text-white"
@@ -472,7 +465,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
     // Log performance improvement for this garden card
     if (plantBeds.length > 0) {
       const totalPlants = plantBeds.reduce((sum, bed) => sum + (bed.plants?.length || 0), 0)
-      console.log(`✅ Garden "${garden.name}": ${plantBeds.length} plant beds & ${totalPlants} plants loaded instantly (no additional queries needed)`)
+
     }
   }, [garden.name, plantBeds])
 
@@ -562,7 +555,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
-            console.log(`Navigating to garden: ${garden.id}`)
+
             window.location.href = `/gardens/${garden.id}`
           }}
         >
@@ -634,5 +627,4 @@ function RoleBasedHomeContent() {
     )
   }
 }
-
 

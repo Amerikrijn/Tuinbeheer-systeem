@@ -88,7 +88,7 @@ export function EditUserDialog({
         }))
       }
     } catch (error) {
-      console.error('Error loading user garden access:', error)
+
       toast({
         title: "Waarschuwing",
         description: "Kon huidige tuin toegang niet laden",
@@ -145,7 +145,7 @@ export function EditUserDialog({
       onClose()
       
     } catch (error: any) {
-      console.error('Error updating user:', error)
+
       toast({
         title: "Bijwerken mislukt",
         description: error.message || "Kon gebruiker niet bijwerken",

@@ -238,7 +238,7 @@ export class PasswordChangeManager {
       // The force_password_change flag should now be false
 
     } catch (error) {
-      console.error('Password change flow completion error:', error)
+
     }
   }
 }

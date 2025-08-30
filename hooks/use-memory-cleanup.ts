@@ -45,14 +45,7 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
     if (memory) {
       const usage = memory.used
       const change = memorySnapshot.current > 0 ? usage - memorySnapshot.current : 0
-      
-      console.log(`🧠 Memory ${context}:`, {
-        current: `${usage}MB`,
-        change: change > 0 ? `+${change}MB` : `${change}MB`,
-        total: `${memory.total}MB`,
-        limit: `${memory.limit}MB`
-      })
-      
+
       memorySnapshot.current = usage
     }
   }, [logMemoryUsage, getMemoryUsage])
@@ -62,9 +55,9 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
     if (enableGarbageCollection && typeof window !== 'undefined' && 'gc' in window) {
       try {
         ;(window as any).gc()
-        console.log('🗑️ Garbage collection triggered')
+
       } catch (error) {
-        console.warn('⚠️ Garbage collection failed:', error)
+
       }
     }
   }, [enableGarbageCollection])
@@ -74,18 +67,18 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
     if (clearLocalStorage && typeof window !== 'undefined') {
       try {
         localStorage.clear()
-        console.log('🗑️ LocalStorage cleared')
+
       } catch (error) {
-        console.warn('⚠️ LocalStorage clear failed:', error)
+
       }
     }
 
     if (clearSessionStorage && typeof window !== 'undefined') {
       try {
         sessionStorage.clear()
-        console.log('🗑️ SessionStorage cleared')
+
       } catch (error) {
-        console.warn('⚠️ SessionStorage clear failed:', error)
+
       }
     }
   }, [clearLocalStorage, clearSessionStorage])
@@ -97,14 +90,13 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
 
   // Execute all cleanup functions
   const executeCleanup = useCallback(() => {
-    console.log('🧹 Executing memory cleanup...')
-    
+
     // Execute registered cleanup functions
     cleanupRefs.current.forEach(cleanup => {
       try {
         cleanup()
       } catch (error) {
-        console.warn('⚠️ Cleanup function failed:', error)
+
       }
     })
     cleanupRefs.current.clear()
@@ -158,7 +150,7 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
     const interval = setInterval(() => {
       const memory = getMemoryUsage()
       if (memory && memory.used > memory.limit * 0.8) {
-        console.warn('⚠️ High memory usage detected:', `${memory.used}MB / ${memory.limit}MB`)
+
         executeCleanup()
       }
     }, 30000) // Check every 30 seconds

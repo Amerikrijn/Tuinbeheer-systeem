@@ -105,14 +105,12 @@ function AcceptInvitationContent() {
       })
       
     } catch (error) {
-      console.error('Invitation confirmation error:', error)
+
       setError(error instanceof Error ? error.message : 'Er is een fout opgetreden bij het verifiëren van de uitnodiging')
     } finally {
       setLoading(false)
     }
   }
-
-
 
   const validatePassword = (password: string): string[] => {
     const errors: string[] = []
@@ -200,7 +198,7 @@ function AcceptInvitationContent() {
           })
 
         if (profileError && !profileError.message.includes('duplicate')) {
-          console.error('Profile creation error:', profileError)
+
           // Don't fail the whole process for profile errors
         }
       }
@@ -219,7 +217,7 @@ function AcceptInvitationContent() {
       }, 2000)
       
     } catch (error) {
-      console.error('Accept invitation error:', error)
+
       toast({
         title: "Fout bij accepteren uitnodiging",
         description: error instanceof Error ? error.message : "Er is een onbekende fout opgetreden",

@@ -170,7 +170,7 @@ export class PasswordChangeManager {
       }
 
     } catch (error) {
-      console.error('Password change error:', error)
+
       return {
         success: false,
         error: 'An unexpected error occurred during password change'
@@ -217,7 +217,7 @@ export class PasswordChangeManager {
       }
 
     } catch (error) {
-      console.error('Forced password change error:', error)
+
       return {
         success: false,
         error: 'An unexpected error occurred during forced password change'
@@ -248,7 +248,7 @@ export class PasswordChangeManager {
       return user.user_metadata?.force_password_change === true
 
     } catch (error) {
-      console.error('Check password change required error:', error)
+
       return false
     }
   }
@@ -266,7 +266,7 @@ export class PasswordChangeManager {
       })
 
       if (error) {
-        console.error('Failed to set password change required:', error)
+
         return false
       }
 
@@ -276,7 +276,7 @@ export class PasswordChangeManager {
       return true
 
     } catch (error) {
-      console.error('Set password change required error:', error)
+
       return false
     }
   }
@@ -297,14 +297,14 @@ export class PasswordChangeManager {
 
       // Log to console for development, would go to secure audit system in production
       if (process.env.NODE_ENV === 'development') {
-        console.log('PASSWORD AUDIT:', auditEntry)
+
       }
 
       // Could also log to database or external audit service
       // await supabase.from('audit_log').insert(auditEntry)
 
     } catch (error) {
-      console.error('Failed to log password change:', error)
+
     }
   }
 
@@ -359,7 +359,7 @@ export class PasswordChangeManager {
       return daysSinceChange > this.getPasswordPolicy().maxAge
 
     } catch (error) {
-      console.error('Check password expired error:', error)
+
       return false
     }
   }

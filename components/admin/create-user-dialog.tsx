@@ -112,7 +112,7 @@ export function CreateUserDialog({
       onClose()
       
     } catch (error: any) {
-      console.error('Error creating user:', error)
+
       toast({
         title: "Aanmaken mislukt",
         description: error.message || "Kon gebruiker niet aanmaken",

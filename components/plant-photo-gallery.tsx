@@ -142,7 +142,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
               className="bg-green-600 hover:bg-green-700 text-white border-green-600 mt-3"
               onClick={() => {
                 // TODO: Navigate to logbook new entry form
-                console.log('Navigate to new logbook entry')
+
               }}
             >
               Eerste foto toevoegen
@@ -241,7 +241,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
                 className="bg-green-600 hover:bg-green-700 text-white border-green-600"
                 onClick={() => {
                   // TODO: Navigate to logbook with plant filter
-                  console.log('Navigate to logbook with plant filter')
+
                 }}
               >
                 Alle {photoData.totalCount} foto's bekijken

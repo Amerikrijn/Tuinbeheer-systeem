@@ -182,7 +182,7 @@ export default function NewGardenPage() {
           variant="ghost" 
           size="sm" 
           onClick={() => {
-            console.log('Navigating back to gardens')
+
             window.location.href = "/gardens"
           }} 
           className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30"

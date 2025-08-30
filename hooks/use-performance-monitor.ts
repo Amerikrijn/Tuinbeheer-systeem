@@ -66,8 +66,7 @@ export function usePerformanceMonitor() {
         memoryUsage: Math.round(memory.usedJSHeapSize / 1024 / 1024) // MB
       }))
     }
-    
-    console.log('🚀 Performance monitoring started')
+
   }, [])
 
   // Stop monitoring
@@ -80,8 +79,7 @@ export function usePerformanceMonitor() {
       pageLoadTime: Math.round(pageLoadTime),
       lastUpdate: new Date()
     }))
-    
-    console.log(`📊 Page load completed in ${pageLoadTime.toFixed(2)}ms`)
+
   }, [])
 
   // Get React Query cache statistics
@@ -98,7 +96,7 @@ export function usePerformanceMonitor() {
         totalMutations: mutations.length
       }
     } catch (error) {
-      console.warn('Failed to get query cache stats:', error)
+
       return {
         cacheSize: 0,
         activeQueries: 0,
@@ -385,14 +383,7 @@ export function usePerformanceMonitor() {
   // Log performance summary periodically
   useEffect(() => {
     if (metrics.databaseQueries > 0 && metrics.databaseQueries % 10 === 0) {
-      console.log('📊 Performance Summary:', {
-        queries: metrics.databaseQueries,
-        avgTime: metrics.averageQueryTime + 'ms',
-        slowQueries: metrics.slowQueries,
-        memory: metrics.memoryUsage + 'MB',
-        cacheSize: metrics.reactQueryCacheSize,
-        cacheHitRate: metrics.cacheHitRate + '%'
-      })
+
     }
   }, [metrics])
 

@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
     )
 
     if (updateError) {
-      console.error('Password update error:', updateError)
+
       return NextResponse.json(
         { error: `Password update failed: ${updateError.message}` },
         { status: 500 }
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       .eq('id', userId)
 
     if (profileError) {
-      console.error('Profile update error:', profileError)
+
       return NextResponse.json(
         { error: `Profile update failed: ${profileError.message}` },
         { status: 500 }
@@ -78,7 +78,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Log security action for audit trail
-    console.log(`🔐 SECURITY ACTION: User ${userId} changed password after admin reset`)
 
     return NextResponse.json({
       success: true,
@@ -86,7 +85,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Change password API error:', error)
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
