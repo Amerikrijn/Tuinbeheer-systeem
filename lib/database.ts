@@ -18,11 +18,11 @@ type PlantBedWithPlants = PlantvakWithBloemen & {
   visual_updated_at: string
 }
 
-// Retry configuration
+// Retry configuration - Optimized for Supabase free tier
 const RETRY_CONFIG = {
-  maxRetries: 3,
-  initialDelay: 1000, // 1 second
-  maxDelay: 5000, // 5 seconds
+  maxRetries: 1,          // Reduced from 3 to avoid rate limit spiral
+  initialDelay: 100,      // 100ms instead of 1000ms
+  maxDelay: 500,          // 500ms instead of 5000ms
   backoffMultiplier: 2
 }
 
@@ -53,12 +53,17 @@ async function withRetry<T>(
     } catch (error: any) {
       lastError = error
       
-      // Don't retry on certain errors
+      // Don't retry on certain errors (expanded list for free tier)
       if (error?.code === 'PGRST116' || // RLS violation
           error?.code === '23505' || // Unique constraint violation
           error?.code === '23503' || // Foreign key violation
-          error?.code === '42P01') { // Table doesn't exist
-        throw error
+          error?.code === '42P01' || // Table doesn't exist
+          error?.code === '57014' || // Statement timeout
+          error?.code === '53300' || // Too many connections
+          error?.code === '53400' || // Configuration limit exceeded
+          error?.message?.includes('rate limit') ||
+          error?.message?.includes('too many requests')) {
+        throw error // Don't retry rate limits - it makes things worse!
       }
 
       // If this is the last attempt, throw the error
@@ -196,7 +201,7 @@ export async function deleteGarden(id: string): Promise<void> {
 
 // Plant bed functions
 export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlants[]> {
-  let query = supabase.from("plant_beds").select("*").eq("is_active", true).order("id")
+  let query = supabase.from("plant_beds").select("*").eq("is_active", true).order("id").limit(100) // Added limit for performance
 
   if (gardenId) {
     query = query.eq("garden_id", gardenId)
@@ -221,6 +226,7 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
         .select("*")
         .eq("plant_bed_id", bed.id)
         .order("created_at", { ascending: false })
+        .limit(50) // Added limit - max 50 plants per bed
 
       if (plantsError) {
 
@@ -256,6 +262,7 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
     .select("*")
     .eq("plant_bed_id", id)
     .order("created_at", { ascending: false })
+    .limit(100) // Added limit for performance
 
   if (plantsError) {
 
@@ -403,6 +410,7 @@ export async function getPlantsWithPositions(plantBedId: string): Promise<PlantW
     .select("*")
     .eq("plant_bed_id", plantBedId)
     .order("created_at", { ascending: true })
+    .limit(200) // Added limit - max 200 plants for visual designer
 
   if (error) {
 
