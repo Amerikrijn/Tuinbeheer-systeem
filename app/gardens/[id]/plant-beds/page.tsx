@@ -217,71 +217,73 @@ export default function PlantBedsPage() {
         }>
           {filteredPlantBeds.map((bed) => (
             <Card key={bed.id} className={`hover:shadow-md transition-shadow ${
-              !isVisualView ? 'mb-2' : ''
+              !isVisualView ? 'mb-2' : 'h-full flex flex-col'
             }`}>
-              <CardContent className={isVisualView ? "p-4" : "p-3"}>
+              <CardContent className={`${isVisualView ? "p-4" : "p-3"} ${isVisualView ? "flex-1 flex flex-col" : ""}`}>
 {isVisualView ? (
                   // Visual view - full content
                   <>
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">🌱</span>
-                        <div>
-                          <h3 className="font-medium text-foreground">
-                            <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 text-blue-800 font-bold rounded-full mr-2">
-                              {bed.letter_code || bed.name}
-                            </span>
-                            Plantvak {bed.letter_code || bed.name}
-                          </h3>
-                          {bed.location && (
-                            <p className="text-sm text-muted-foreground">{bed.location}</p>
-                          )}
-                        </div>
-                      </div>
-                      <div className={`w-3 h-3 rounded-full border-2 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 dark:border-gray-400 shadow-gray-200'}`}></div>
-                    </div>
-                    
-                    <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                      {bed.size && (
-                        <div className="flex justify-between">
-                          <span>Grootte:</span>
-                          <span>{bed.size}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between">
-                        <span>Planten:</span>
-                        <span>{bed.plants.length}</span>
-                      </div>
-                      {bed.soil_type && (
-                        <div className="flex justify-between">
-                          <span>Grondtype:</span>
-                          <span className="capitalize">{bed.soil_type}</span>
-                        </div>
-                      )}
-                      {bed.sun_exposure && (
-                        <div className="flex justify-between items-center">
-                          <span>Zon:</span>
-                          <div className="flex items-center gap-1">
-                            {getSunExposureIcon(bed.sun_exposure)}
-                            <span>{getSunExposureText(bed.sun_exposure)}</span>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">🌱</span>
+                          <div>
+                            <h3 className="font-medium text-foreground">
+                              <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 text-blue-800 font-bold rounded-full mr-2">
+                                {bed.letter_code || bed.name}
+                              </span>
+                              Plantvak {bed.letter_code || bed.name}
+                            </h3>
+                            {bed.location && (
+                              <p className="text-sm text-muted-foreground">{bed.location}</p>
+                            )}
                           </div>
                         </div>
-                      )}
-                    </div>
-
-                    {/* Show flower emojis preview */}
-                    {bed.plants.length > 0 && (
-                      <div className="flex items-center gap-1 flex-wrap mb-4">
-                        {bed.plants.slice(0, 6).map((plant, index) => (
-                          <span key={index} className="text-lg" title={plant.name}>
-                            {plant.emoji || '🌸'}
-                          </span>
-                        ))}
-                        {bed.plants.length > 6 && (
-                          <span className="text-xs text-muted-foreground ml-1">+{bed.plants.length - 6}</span>
+                        <div className={`w-3 h-3 rounded-full border-2 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 dark:border-gray-400 shadow-gray-200'}`}></div>
+                      </div>
+                      
+                      <div className="space-y-2 text-sm text-muted-foreground mb-4">
+                        {bed.size && (
+                          <div className="flex justify-between">
+                            <span>Grootte:</span>
+                            <span>{bed.size}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span>Planten:</span>
+                          <span>{bed.plants.length}</span>
+                        </div>
+                        {bed.soil_type && (
+                          <div className="flex justify-between">
+                            <span>Grondtype:</span>
+                            <span className="capitalize">{bed.soil_type}</span>
+                          </div>
+                        )}
+                        {bed.sun_exposure && (
+                          <div className="flex justify-between items-center">
+                            <span>Zon:</span>
+                            <div className="flex items-center gap-1">
+                              {getSunExposureIcon(bed.sun_exposure)}
+                              <span>{getSunExposureText(bed.sun_exposure)}</span>
+                            </div>
+                          </div>
                         )}
                       </div>
-                    )}
+
+                      {/* Show flower emojis preview */}
+                      {bed.plants.length > 0 && (
+                        <div className="flex items-center gap-1 flex-wrap mb-4">
+                          {bed.plants.slice(0, 6).map((plant, index) => (
+                            <span key={index} className="text-lg" title={plant.name}>
+                              {plant.emoji || '🌸'}
+                            </span>
+                          ))}
+                          {bed.plants.length > 6 && (
+                            <span className="text-xs text-muted-foreground ml-1">+{bed.plants.length - 6}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </>
                 ) : (
                   // List view - compact content
@@ -324,7 +326,7 @@ export default function PlantBedsPage() {
                 )}
 
 {isVisualView ? (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mt-auto">
                     <Button
                       size="sm"
                       variant="outline"

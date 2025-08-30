@@ -498,9 +498,9 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
   }
 
   return (
-    <Link href={`/gardens/${garden.id}`} className="block">
+    <Link href={`/gardens/${garden.id}`} className="block h-full">
       <Card 
-        className="group hover:shadow-md transition-colors duration-150 border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 overflow-hidden relative cursor-pointer"
+        className="group hover:shadow-md transition-colors duration-150 border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 overflow-hidden relative cursor-pointer h-full flex flex-col"
       >
       <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex items-start justify-between">
@@ -519,35 +519,37 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0 pb-3 px-3">
+      <CardContent className="pt-0 pb-3 px-3 flex-1 flex flex-col">
         {/* Plant Preview */}
-        {allFlowers.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
-            {allFlowers.slice(0, 6).map((flower, index) => (
-              <div
-                key={`${flower.id}-${index}`}
-                className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 rounded-lg px-2 py-1.5 text-xs border border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors duration-150"
-                title={flower.name}
-              >
-                <span className="text-sm">{getPlantEmoji(flower.name, flower.emoji)}</span>
-                <span className="truncate max-w-16 font-medium text-green-800 dark:text-green-200">{flower.name}</span>
-              </div>
-            ))}
-            {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-              <div className="text-xs text-green-700 dark:text-green-300 px-2 py-1 bg-green-200 dark:bg-green-800/50 rounded-lg border border-green-300 dark:border-green-600 font-medium">
-                +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6} meer
-              </div>
-            )}
-          </div>
-        ) : (
-          <div className="text-xs text-muted-foreground italic py-2 text-center">
-            Geen planten
-          </div>
-        )}
+        <div className="flex-1">
+          {allFlowers.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5">
+              {allFlowers.slice(0, 6).map((flower, index) => (
+                <div
+                  key={`${flower.id}-${index}`}
+                  className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 rounded-lg px-2 py-1.5 text-xs border border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors duration-150"
+                  title={flower.name}
+                >
+                  <span className="text-sm">{getPlantEmoji(flower.name, flower.emoji)}</span>
+                  <span className="truncate max-w-16 font-medium text-green-800 dark:text-green-200">{flower.name}</span>
+                </div>
+              ))}
+              {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
+                <div className="text-xs text-green-700 dark:text-green-300 px-2 py-1 bg-green-200 dark:bg-green-800/50 rounded-lg border border-green-300 dark:border-green-600 font-medium">
+                  +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6} meer
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="text-xs text-muted-foreground italic py-2 text-center">
+              Geen planten
+            </div>
+          )}
+        </div>
       </CardContent>
       
       {/* Footer met acties */}
-      <div className="px-3 pb-3 flex items-center justify-between">
+      <div className="px-3 pb-3 flex items-center justify-between mt-auto">
         <Button
           variant="ghost"
           size="sm"
