@@ -19,6 +19,8 @@
     "test:e2e": "npm run build && npm run test:ci",
     "test:all": "npm run test:ci && npm run test:regression && npm run test:security",
     "test:migrate": "echo 'Migrating from Vitest to Jest...' && npm run test:ci",
+    "test:summary": "node scripts/generate-test-summary.js",
+    "test:report": "npm run test:ci && npm run test:summary",
     "clean": "rm -rf .next && rm -rf node_modules/.cache && rm -rf coverage",
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
