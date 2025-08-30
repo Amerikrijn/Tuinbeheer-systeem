@@ -270,23 +270,23 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     if (day.tasks.length === 0) return null
 
     return (
-      <Card className={`mb-4 ${day.is_today ? 'ring-2 ring-blue-500' : ''}`}>
-        <CardHeader className="pb-3">
+      <Card className={`mb-3 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 ${day.is_today ? 'ring-2 ring-green-500' : ''}`}>
+        <CardHeader className="pb-2 pt-3 px-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl flex items-center gap-3 text-foreground">
-              <Calendar className="w-6 h-6 text-primary" />
+            <CardTitle className="text-lg flex items-center gap-2 text-green-800 dark:text-green-200">
+              <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
               {day.day_name} {new Date(day.date).getDate()}
-              {day.is_today && <Badge className="ml-2">Vandaag</Badge>}
+              {day.is_today && <Badge className="ml-2 bg-green-100 text-green-800 border-green-300">Vandaag</Badge>}
             </CardTitle>
             
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               {day.overdue_count > 0 && (
-                <Badge variant="destructive" className="text-sm">
+                <Badge variant="destructive" className="text-xs px-2 py-0.5">
                   {day.overdue_count} verlopen
                 </Badge>
               )}
               {day.completed_count > 0 && (
-                <Badge variant="secondary" className="text-sm">
+                <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-green-100 text-green-800 border-green-300">
                   {day.completed_count} klaar
                 </Badge>
               )}
@@ -313,15 +313,15 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     )
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="h-8 bg-muted rounded animate-pulse" />
-        <div className="h-32 bg-muted rounded animate-pulse" />
-        <div className="h-32 bg-muted rounded animate-pulse" />
-      </div>
-    )
-  }
+      if (loading) {
+      return (
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-green-100 dark:bg-green-900/30 rounded" />
+          <div className="h-32 bg-green-100 dark:bg-green-900/30 rounded" />
+          <div className="h-32 bg-green-100 dark:bg-green-900/30 rounded" />
+        </div>
+      )
+    }
 
   if (error) {
     return (

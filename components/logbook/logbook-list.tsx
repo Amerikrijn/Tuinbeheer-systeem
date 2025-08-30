@@ -63,24 +63,9 @@ export function LogbookList() {
 
   // 🚀 PERFORMANCE: Skeleton loading for better perceived performance
   const LogbookSkeleton = () => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-pulse">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <Card key={index} className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-5/6"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/6"></div>
-            </div>
-            <div className="mt-4">
-              <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="animate-pulse grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="h-32 bg-green-100 dark:bg-green-900/30 rounded" />
       ))}
     </div>
   )
@@ -134,7 +119,7 @@ export function LogbookList() {
               </p>
               <Button onClick={handleRefresh} disabled={refreshing}>
                 {refreshing ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                 ) : (
                   <Calendar className="w-4 h-4 mr-2" />
                 )}
@@ -161,7 +146,7 @@ export function LogbookList() {
             disabled={refreshing}
           >
             {refreshing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
             ) : (
               <Calendar className="w-4 h-4" />
             )}

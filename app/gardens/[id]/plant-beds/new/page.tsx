@@ -304,7 +304,7 @@ export default function NewPlantBedPage() {
                     </div>
                     <div className="flex-1">
                       <h4 className="font-bold text-gray-800 text-xl mb-1">Automatische Naamgeving</h4>
-                      <p className="text-gray-700 text-lg mb-2">
+                      <p className="text-foreground text-lg mb-2">
                         Dit plantvak krijgt automatisch de naam: <strong className="text-green-700 text-2xl">Plantvak {nextLetterCode}</strong>
                       </p>
                       <p className="text-muted-foreground text-sm">

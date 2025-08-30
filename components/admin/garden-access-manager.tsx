@@ -159,7 +159,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
         <div className="space-y-4 py-4">
           {loading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+              <div className="w-6 h-6 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
               <span className="ml-2 text-muted-foreground">Tuinen laden...</span>
             </div>
           ) : (
@@ -219,7 +219,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
             onClick={handleSave}
             disabled={saving || loading}
           >
-            {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {saving && <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />}
             Opslaan
           </Button>
         </DialogFooter>

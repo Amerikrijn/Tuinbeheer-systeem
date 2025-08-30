@@ -261,7 +261,7 @@ export function CreateUserDialog({
           >
             {creating ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                 Aanmaken...
               </>
             ) : (

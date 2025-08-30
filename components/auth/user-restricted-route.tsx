@@ -33,7 +33,7 @@ export function UserRestrictedRoute({ children }: UserRestrictedRouteProps) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-muted-foreground">Toegang controleren...</p>
         </div>
       </div>
