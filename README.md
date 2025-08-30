@@ -1,5 +1,3 @@
-hello
-
 # 🌱 Visual Garden App
 
 Lees altijd the AI agent rules. Hier staat je standaarden en je gedragsregels. WIJK hiet niet vnaa tenzij de opdracht je dat vertelt
