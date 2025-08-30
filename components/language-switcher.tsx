@@ -17,9 +17,9 @@ export function LanguageSwitcher() {
       variant="ghost"
       size="sm"
       onClick={() => setLanguage(nextLanguage)}
-      className=""text-white dark:text-black hover:bg-green-700"
+      className="text-white dark:text-black hover:bg-green-700"
     >
-      <Globe className=""h-4 w-4 mr-2" />
+      <Globe className="h-4 w-4 mr-2" />
       {displayText}
     </Button>
   )

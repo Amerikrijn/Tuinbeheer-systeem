@@ -76,75 +76,75 @@ export function BulkOperationsPanel({
   }
 
   return (
-    <Card className=""border-blue-200 bg-blue-50 dark:bg-blue-950">
+    <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950">
       <CardHeader>
-        <div className=""flex items-center justify-between">
-          <CardTitle className=""flex items-center gap-2 text-blue-800">
-            <Edit className=""h-5 w-5" />
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-blue-800">
+            <Edit className="h-5 w-5" />
             Bulk Operaties
-            <Badge variant="secondary" className=""ml-2">
+            <Badge variant="secondary" className="ml-2">
               {selectedCount} geselecteerd
             </Badge>
           </CardTitle>
           <Button variant="ghost" size="sm" onClick={onCancel}>
-            <X className=""h-4 w-4" />
+            <X className="h-4 w-4" />
           </Button>
         </div>
       </CardHeader>
       <CardContent>
         {!activeOperation ? (
-          <div className=""grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Button
               variant="outline"
-              className=""h-auto p-4 flex flex-col items-center gap-2 bg-card"
+              className="h-auto p-4 flex flex-col items-center gap-2 bg-card"
               onClick={() => setActiveOperation("move")}
               disabled={selectedCount === 0}
             >
-              <Move className=""h-6 w-6 text-primary" />
-              <div className=""text-center">
-                <div className=""font-medium text-foreground">Verplaatsen</div>
-                <div className=""text-sm text-muted-foreground">Naar ander plantvak</div>
+              <Move className="h-6 w-6 text-primary" />
+              <div className="text-center">
+                <div className="font-medium text-foreground">Verplaatsen</div>
+                <div className="text-sm text-muted-foreground">Naar ander plantvak</div>
               </div>
             </Button>
 
             <Button
               variant="outline"
-              className=""h-auto p-4 flex flex-col items-center gap-2 bg-card"
+              className="h-auto p-4 flex flex-col items-center gap-2 bg-card"
               onClick={() => setActiveOperation("update")}
               disabled={selectedCount === 0}
             >
-              <Edit className=""h-6 w-6 text-green-600 dark:text-green-400" />
-              <div className=""text-center">
-                <div className=""font-medium text-foreground">Bijwerken</div>
-                <div className=""text-sm text-muted-foreground">Eigenschappen wijzigen</div>
+              <Edit className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="text-center">
+                <div className="font-medium text-foreground">Bijwerken</div>
+                <div className="text-sm text-muted-foreground">Eigenschappen wijzigen</div>
               </div>
             </Button>
 
             <Button
               variant="outline"
-              className=""h-auto p-4 flex flex-col items-center gap-2 bg-card"
+              className="h-auto p-4 flex flex-col items-center gap-2 bg-card"
               onClick={() => setActiveOperation("delete")}
               disabled={selectedCount === 0}
             >
-              <Trash2 className=""h-6 w-6 text-destructive" />
-              <div className=""text-center">
-                <div className=""font-medium text-foreground">Verwijderen</div>
-                <div className=""text-sm text-muted-foreground">Permanent verwijderen</div>
+              <Trash2 className="h-6 w-6 text-destructive" />
+              <div className="text-center">
+                <div className="font-medium text-foreground">Verwijderen</div>
+                <div className="text-sm text-muted-foreground">Permanent verwijderen</div>
               </div>
             </Button>
           </div>
         ) : (
-          <div className=""space-y-4">
+          <div className="space-y-4">
             {activeOperation === "move" && (
-              <div className=""space-y-4">
-                <div className=""flex items-center gap-2">
-                  <Move className=""h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <h3 className=""font-medium">Planten verplaatsen</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Move className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <h3 className="font-medium">Planten verplaatsen</h3>
                 </div>
-                <p className=""text-sm text-gray-600 dark:text-gray-300">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Verplaats {selectedCount} geselecteerde planten naar een ander plantvak.
                 </p>
-                <div className=""space-y-2">
+                <div className="space-y-2">
                   <Label htmlFor="targetBed">Doel plantvak</Label>
                   <Select value={targetBedId} onValueChange={setTargetBedId}>
                     <SelectTrigger>
@@ -159,20 +159,20 @@ export function BulkOperationsPanel({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className=""flex gap-2">
+                <div className="flex gap-2">
                   <Button
                     onClick={handleMove}
                     disabled={!targetBedId || loading}
-                    className=""bg-blue-600 dark:bg-blue-700 hover:bg-blue-700"
+                    className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-700"
                   >
                     {loading ? (
                       <>
-                        <RefreshCw className=""h-4 w-4 mr-2 animate-spin" />
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                         Verplaatsen...
                       </>
                     ) : (
                       <>
-                        <Move className=""h-4 w-4 mr-2" />
+                        <Move className="h-4 w-4 mr-2" />
                         Verplaatsen
                       </>
                     )}
@@ -185,16 +185,16 @@ export function BulkOperationsPanel({
             )}
 
             {activeOperation === "update" && (
-              <div className=""space-y-4">
-                <div className=""flex items-center gap-2">
-                  <Edit className=""h-5 w-5 text-green-600" />
-                  <h3 className=""font-medium">Planten bijwerken</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Edit className="h-5 w-5 text-green-600" />
+                  <h3 className="font-medium">Planten bijwerken</h3>
                 </div>
-                <p className=""text-sm text-gray-600 dark:text-gray-300">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Werk eigenschappen bij van {selectedCount} geselecteerde planten.
                 </p>
-                <div className=""grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className=""space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
                     <Label htmlFor="bulkColor">Kleur</Label>
                     <Select
                       value={updateData.color}
@@ -212,7 +212,7 @@ export function BulkOperationsPanel({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className=""space-y-2">
+                  <div className="space-y-2">
                     <Label htmlFor="bulkStatus">Status</Label>
                     <Select
                       value={updateData.status}
@@ -231,7 +231,7 @@ export function BulkOperationsPanel({
                     </Select>
                   </div>
                 </div>
-                <div className=""space-y-2">
+                <div className="space-y-2">
                   <Label htmlFor="bulkNotes">Notities toevoegen</Label>
                   <Textarea
                     id="bulkNotes"
@@ -241,16 +241,16 @@ export function BulkOperationsPanel({
                     rows={3}
                   />
                 </div>
-                <div className=""flex gap-2">
-                  <Button onClick={handleUpdate} disabled={loading} className=""bg-green-600 dark:bg-green-700 hover:bg-green-700">
+                <div className="flex gap-2">
+                  <Button onClick={handleUpdate} disabled={loading} className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
                     {loading ? (
                       <>
-                        <RefreshCw className=""h-4 w-4 mr-2 animate-spin" />
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                         Bijwerken...
                       </>
                     ) : (
                       <>
-                        <Edit className=""h-4 w-4 mr-2" />
+                        <Edit className="h-4 w-4 mr-2" />
                         Bijwerken
                       </>
                     )}
@@ -263,28 +263,28 @@ export function BulkOperationsPanel({
             )}
 
             {activeOperation === "delete" && (
-              <div className=""space-y-4">
-                <div className=""flex items-center gap-2">
-                  <Trash2 className=""h-5 w-5 text-red-600 dark:text-red-400" />
-                  <h3 className=""font-medium text-red-700 dark:text-red-300">Planten verwijderen</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  <h3 className="font-medium text-red-700 dark:text-red-300">Planten verwijderen</h3>
                 </div>
-                <div className=""bg-red-50 dark:bg-red-950 border border-red-200 rounded-lg p-4">
-                  <p className=""text-red-800 font-medium mb-2">⚠️ Waarschuwing</p>
-                  <p className=""text-red-700 dark:text-red-300 text-sm">
+                <div className="bg-red-50 dark:bg-red-950 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-800 font-medium mb-2">⚠️ Waarschuwing</p>
+                  <p className="text-red-700 dark:text-red-300 text-sm">
                     Je staat op het punt om {selectedCount} planten permanent te verwijderen. Deze actie kan niet
                     ongedaan worden gemaakt.
                   </p>
                 </div>
-                <div className=""flex gap-2">
+                <div className="flex gap-2">
                   <Button variant="destructive" onClick={handleDelete} disabled={loading}>
                     {loading ? (
                       <>
-                        <RefreshCw className=""h-4 w-4 mr-2 animate-spin" />
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                         Verwijderen...
                       </>
                     ) : (
                       <>
-                        <Trash2 className=""h-4 w-4 mr-2" />
+                        <Trash2 className="h-4 w-4 mr-2" />
                         Ja, Verwijderen
                       </>
                     )}

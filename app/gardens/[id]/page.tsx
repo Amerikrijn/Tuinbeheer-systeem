@@ -948,26 +948,26 @@ export default function GardenDetailPage() {
 
   const getSunExposureIcon = (exposure: string) => {
     switch (exposure) {
-      case 'full-sun': return <Sun className=""h-4 w-4 text-yellow-500" />
-      case 'partial-sun': return <CloudSun className=""h-4 w-4 text-orange-500" />
-      case 'shade': return <Cloud className=""h-4 w-4 text-muted-foreground" />
-      default: return <Sun className=""h-4 w-4 text-yellow-500" />
+      case 'full-sun': return <Sun className="h-4 w-4 text-yellow-500" />
+      case 'partial-sun': return <CloudSun className="h-4 w-4 text-orange-500" />
+      case 'shade': return <Cloud className="h-4 w-4 text-muted-foreground" />
+      default: return <Sun className="h-4 w-4 text-yellow-500" />
     }
   }
 
   if (loading) {
     return (
-      <div className=""container mx-auto p-6 space-y-6">
-        <div className=""animate-pulse space-y-4">
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="animate-pulse space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className=""h-24 bg-green-100 dark:bg-green-900/30 rounded" />
+            <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded" />
           ))}
         </div>
-        <div className=""h-8 w-1/3 bg-green-100 dark:bg-green-900/30 rounded" />
-        <div className=""h-32 w-full bg-green-100 dark:bg-green-900/30 rounded" />
-        <div className=""grid gap-4">
-          <div className=""h-24 w-full bg-green-100 dark:bg-green-900/30 rounded" />
-          <div className=""h-24 w-full bg-green-100 dark:bg-green-900/30 rounded" />
+        <div className="h-8 w-1/3 bg-green-100 dark:bg-green-900/30 rounded" />
+        <div className="h-32 w-full bg-green-100 dark:bg-green-900/30 rounded" />
+        <div className="grid gap-4">
+          <div className="h-24 w-full bg-green-100 dark:bg-green-900/30 rounded" />
+          <div className="h-24 w-full bg-green-100 dark:bg-green-900/30 rounded" />
         </div>
       </div>
     )
@@ -975,16 +975,16 @@ export default function GardenDetailPage() {
 
   if (!garden) {
     return (
-      <div className=""container mx-auto p-6">
-        <div className=""text-center py-12">
-          <TreePine className=""h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-          <h3 className=""text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
-          <p className=""text-muted-foreground mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
+      <div className="container mx-auto p-6">
+        <div className="text-center py-12">
+          <TreePine className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
+          <p className="text-muted-foreground mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
           <Button onClick={() => {
 
             window.location.href = '/gardens'
-          }} className=""bg-green-600 dark:bg-green-700 hover:bg-green-700">
-            <ArrowLeft className=""h-4 w-4 mr-2" />
+          }} className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar Tuinen
           </Button>
         </div>
@@ -993,39 +993,39 @@ export default function GardenDetailPage() {
   }
 
   return (
-    <div className=""container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
       {/* Minimalist Header */}
-      <div className=""mb-6">
-        <div className=""flex items-center justify-between mb-4">
-          <div className=""flex items-center gap-3">
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="sm"
               onClick={goBack}
-              className=""h-10 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+              className="h-10 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
             >
-              <ArrowLeft className=""w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4 mr-2" />
               Terug
             </Button>
             
-            <div className=""flex items-center gap-3">
-              <div className=""p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                <TreePine className=""w-5 h-5 text-green-700 dark:text-green-400" />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                <TreePine className="w-5 h-5 text-green-700 dark:text-green-400" />
               </div>
-              <h1 className=""text-xl font-bold text-green-800 dark:text-green-200">
+              <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
                 {garden.name}
               </h1>
             </div>
           </div>
           
-          <div className=""flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsEditingGarden(true)}
-              className=""h-8 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+              className="h-8 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
             >
-              <Edit className=""w-4 h-4 mr-1" />
+              <Edit className="w-4 h-4 mr-1" />
               Bewerken
             </Button>
             
@@ -1039,7 +1039,7 @@ export default function GardenDetailPage() {
                   : "border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
               }`}
             >
-              <Grid3X3 className=""w-4 h-4 mr-1" />
+              <Grid3X3 className="w-4 h-4 mr-1" />
               {isVisualView ? "Lijst" : "Visueel"}
             </Button>
             
@@ -1057,21 +1057,21 @@ export default function GardenDetailPage() {
               setIsAddingPlantBed(open)
             }}>
               <DialogTrigger asChild>
-                <Button className=""h-8 px-3 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black">
-                  <Plus className=""w-4 h-4 mr-1" />
+                <Button className="h-8 px-3 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black">
+                  <Plus className="w-4 h-4 mr-1" />
                   Plantvak Toevoegen
                 </Button>
               </DialogTrigger>
-              <DialogContent className=""w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+              <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Nieuw Plantvak Toevoegen</DialogTitle>
                   <DialogDescription>
                     Voeg een nieuw plantvak toe aan je tuin. Geef de afmetingen in meters op voor een schaalgetrouwe weergave.
                   </DialogDescription>
                 </DialogHeader>
-                <div className=""grid gap-4 py-4">
-                  <div className=""grid gap-2">
-                    <label htmlFor="name" className=""text-sm font-medium">
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <label htmlFor="name" className="text-sm font-medium">
                       Naam *
                     </label>
                     <Input
@@ -1081,9 +1081,9 @@ export default function GardenDetailPage() {
                       placeholder="Bijvoorbeeld: Voorste border"
                     />
                   </div>
-                <div className=""grid grid-cols-2 gap-4">
-                  <div className=""grid gap-2">
-                    <label htmlFor="length" className=""text-sm font-medium">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <label htmlFor="length" className="text-sm font-medium">
                       Lengte (m) *
                     </label>
                     <Input
@@ -1096,8 +1096,8 @@ export default function GardenDetailPage() {
                       placeholder="2.0"
                     />
                   </div>
-                  <div className=""grid gap-2">
-                    <label htmlFor="width" className=""text-sm font-medium">
+                  <div className="grid gap-2">
+                    <label htmlFor="width" className="text-sm font-medium">
                       Breedte (m) *
                     </label>
                     <Input
@@ -1111,8 +1111,8 @@ export default function GardenDetailPage() {
                     />
                   </div>
                 </div>
-                <div className=""grid gap-2">
-                  <label htmlFor="sun_exposure" className=""text-sm font-medium">
+                <div className="grid gap-2">
+                  <label htmlFor="sun_exposure" className="text-sm font-medium">
                     Zonligging
                   </label>
                   <Select
@@ -1126,28 +1126,28 @@ export default function GardenDetailPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="full-sun">
-                        <div className=""flex items-center gap-2">
-                          <Sun className=""h-4 w-4 text-yellow-500" />
+                        <div className="flex items-center gap-2">
+                          <Sun className="h-4 w-4 text-yellow-500" />
                           Volle zon
                         </div>
                       </SelectItem>
                       <SelectItem value="partial-sun">
-                        <div className=""flex items-center gap-2">
-                          <CloudSun className=""h-4 w-4 text-orange-500" />
+                        <div className="flex items-center gap-2">
+                          <CloudSun className="h-4 w-4 text-orange-500" />
                           Halfschaduw
                         </div>
                       </SelectItem>
                       <SelectItem value="shade">
-                        <div className=""flex items-center gap-2">
-                          <Cloud className=""h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-2">
+                          <Cloud className="h-4 w-4 text-muted-foreground" />
                           Schaduw
                         </div>
                       </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className=""grid gap-2">
-                  <label htmlFor="soil_type" className=""text-sm font-medium">
+                <div className="grid gap-2">
+                  <label htmlFor="soil_type" className="text-sm font-medium">
                     Grondsoort
                   </label>
                   <Input
@@ -1158,8 +1158,8 @@ export default function GardenDetailPage() {
                   />
                 </div>
 
-                <div className=""grid gap-2">
-                  <label htmlFor="description" className=""text-sm font-medium">
+                <div className="grid gap-2">
+                  <label htmlFor="description" className="text-sm font-medium">
                     Beschrijving
                   </label>
                   <Textarea
@@ -1171,12 +1171,12 @@ export default function GardenDetailPage() {
                   />
                 </div>
               </div>
-              <div className=""flex justify-end gap-2">
+              <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsAddingPlantBed(false)}>
                   Annuleren
                 </Button>
-                <Button onClick={addPlantBed} className=""bg-green-600 dark:bg-green-700 hover:bg-green-700">
-                  <Plus className=""h-4 w-4 mr-2" />
+                <Button onClick={addPlantBed} className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
+                  <Plus className="h-4 w-4 mr-2" />
                   Toevoegen
                 </Button>
               </div>
@@ -1190,30 +1190,30 @@ export default function GardenDetailPage() {
         /* Visual Garden Layout */
         <Card>
           <CardHeader>
-            <div className=""flex flex-col gap-3">
-              <div className=""flex justify-between items-center">
-                <CardTitle className=""flex items-center gap-2">
-                  <Grid3X3 className=""h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  <Grid3X3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   Tuinoverzicht
                 </CardTitle>
-                <div className=""flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={zoomOut}>
-                    <ZoomOut className=""h-4 w-4" />
+                    <ZoomOut className="h-4 w-4" />
                   </Button>
                   <Button variant="outline" size="sm" onClick={zoomIn}>
-                    <ZoomIn className=""h-4 w-4" />
+                    <ZoomIn className="h-4 w-4" />
                   </Button>
                   <Button variant="outline" size="sm" onClick={resetView}>
-                    <RotateCcw className=""h-4 w-4" />
+                    <RotateCcw className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
               
               {/* Month Filter Controls */}
-              <div className=""flex flex-wrap items-center gap-2 p-3 bg-muted/30 rounded-lg">
-                <div className=""flex items-center gap-2">
-                  <Calendar className=""h-4 w-4 text-muted-foreground" />
-                  <span className=""text-sm font-medium">Filter op maand:</span>
+              <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/30 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Filter op maand:</span>
                 </div>
                 
                 <Select 
@@ -1224,7 +1224,7 @@ export default function GardenDetailPage() {
                     else if (filterMode === 'all') setFilterMode('blooming')
                   }}
                 >
-                  <SelectTrigger className=""w-32">
+                  <SelectTrigger className="w-32">
                     <SelectValue placeholder="Kies maand" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1245,12 +1245,12 @@ export default function GardenDetailPage() {
                 </Select>
                 
                 {selectedMonth && (
-                  <div className=""flex gap-1">
+                  <div className="flex gap-1">
                     <Button
                       size="sm"
                       variant={filterMode === 'sowing' ? 'default' : 'outline'}
                       onClick={() => setFilterMode('sowing')}
-                      className=""text-xs"
+                      className="text-xs"
                     >
                       🌱 Zaaien
                     </Button>
@@ -1258,7 +1258,7 @@ export default function GardenDetailPage() {
                       size="sm"
                       variant={filterMode === 'blooming' ? 'default' : 'outline'}
                       onClick={() => setFilterMode('blooming')}
-                      className=""text-xs"
+                      className="text-xs"
                     >
                       🌸 Bloeit
                     </Button>
@@ -1266,7 +1266,7 @@ export default function GardenDetailPage() {
                       size="sm"
                       variant={filterMode === 'all' ? 'default' : 'outline'}
                       onClick={() => setFilterMode('all')}
-                      className=""text-xs"
+                      className="text-xs"
                     >
                       Alles
                     </Button>
@@ -1277,24 +1277,24 @@ export default function GardenDetailPage() {
           </CardHeader>
           <CardContent>
             {/* Mobile help text */}
-            <div className=""mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg md:hidden">
-              <h4 className=""font-medium text-blue-900 mb-1">📱 Plantvak beheren:</h4>
-              <ul className=""text-sm text-blue-800 space-y-1">
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg md:hidden">
+              <h4 className="font-medium text-blue-900 mb-1">📱 Plantvak beheren:</h4>
+              <ul className="text-sm text-blue-800 space-y-1">
                 <li>• <strong>Sleep:</strong> Verplaats plantvak direct</li>
                 <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
                 <li>• <strong>🟠 Rotatie handvat:</strong> Sleep om te roteren</li>
               </ul>
-              <div className=""mt-2 pt-2 border-t border-blue-300 dark:border-blue-700">
-                <p className=""text-xs text-blue-700 dark:text-blue-300">
+              <div className="mt-2 pt-2 border-t border-blue-300 dark:border-blue-700">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
                   🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m
                 </p>
               </div>
             </div>
             
-            <div className=""relative overflow-auto rounded-lg border-2 border-dashed border-green-200" style={{ minHeight: "400px" }}>
+            <div className="relative overflow-auto rounded-lg border-2 border-dashed border-green-200" style={{ minHeight: "400px" }}>
               <div
                 ref={canvasRef}
-                className=""relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-green-950/30 cursor-crosshair"
+                className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-green-100 dark:from-green-950/20 dark:via-emerald-950/20 dark:to-green-950/30 cursor-crosshair"
                 style={{
                   width: CANVAS_WIDTH,
                   height: CANVAS_HEIGHT,
@@ -1307,7 +1307,7 @@ export default function GardenDetailPage() {
               >
                 {/* Grid - 1m = 80px */}
                 <div
-                  className=""absolute inset-0 pointer-events-none opacity-20"
+                  className="absolute inset-0 pointer-events-none opacity-20"
                   style={{
                     backgroundImage: `
                       linear-gradient(to right, #10b98120 1px, transparent 1px),
@@ -1338,7 +1338,7 @@ export default function GardenDetailPage() {
                   return (
                     <div
                       key={bed.id}
-                      className=""absolute"
+                      className="absolute"
                       style={{
                         left: bed.position_x || 100,
                         top: bed.position_y || 100,
@@ -1368,10 +1368,10 @@ export default function GardenDetailPage() {
                           isSelected ? 'bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700' : ''
                         }`}>
                           {/* Top corner elements */}
-                          <div className=""flex items-start justify-between">
-                            <div className=""flex items-center gap-1">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-1">
                               {bed.sun_exposure && (
-                                <div className=""bg-background/90 p-1 rounded shadow-sm">
+                                <div className="bg-background/90 p-1 rounded shadow-sm">
                                   {getSunExposureIcon(bed.sun_exposure)}
                                 </div>
                               )}
@@ -1386,19 +1386,19 @@ export default function GardenDetailPage() {
                               )}
                             </div>
                             {isDragging && (
-                              <div className=""text-xs font-bold text-green-600 bg-green-100 dark:bg-green-950 px-2 py-1 rounded shadow-sm animate-bounce">
+                              <div className="text-xs font-bold text-green-600 bg-green-100 dark:bg-green-950 px-2 py-1 rounded shadow-sm animate-bounce">
                                 🖱️ Verplaatsen
                               </div>
                             )}
                             {isRotating && (
-                              <div className=""text-xs font-bold text-orange-600 bg-orange-100 dark:bg-orange-950 px-2 py-1 rounded shadow-sm animate-pulse">
+                              <div className="text-xs font-bold text-orange-600 bg-orange-100 dark:bg-orange-950 px-2 py-1 rounded shadow-sm animate-pulse">
                                 🔄 Roteren
                               </div>
                             )}
                           </div>
 
                           {/* Main area - adaptive content based on size */}
-                          <div className=""w-full h-full p-2 overflow-y-auto relative">
+                          <div className="w-full h-full p-2 overflow-y-auto relative">
                             {(() => {
                               // Get filtered plants based on month filter
                               const filteredPlants = getFilteredPlants(bed)
@@ -1407,16 +1407,16 @@ export default function GardenDetailPage() {
                                 // Show message when no plants match the filter
                                 if (selectedMonth && filterMode !== 'all' && bed.plants.length > 0) {
                                   return (
-                                    <div className=""flex items-center justify-center h-full text-muted-foreground text-xs">
-                                      <div className=""text-center p-2">
-                                        <div className=""text-gray-400 dark:text-gray-500 mb-1">
+                                    <div className="flex items-center justify-center h-full text-muted-foreground text-xs">
+                                      <div className="text-center p-2">
+                                        <div className="text-gray-400 dark:text-gray-500 mb-1">
                                           {filterMode === 'sowing' ? '🌱' : '🌸'}
                                         </div>
-                                        <div className=""font-medium">Niet actief</div>
-                                        <div className=""text-[10px]">
+                                        <div className="font-medium">Niet actief</div>
+                                        <div className="text-[10px]">
                                           {filterMode === 'sowing' ? 'Geen zaaitijd' : 'Bloeit niet'}
                                         </div>
-                                        <div className=""text-[10px] mt-1 text-gray-500 dark:text-gray-400">
+                                        <div className="text-[10px] mt-1 text-gray-500 dark:text-gray-400">
                                           ({bed.plants.length} plant{bed.plants.length !== 1 ? 'en' : ''} totaal)
                                         </div>
                                       </div>
@@ -1425,14 +1425,14 @@ export default function GardenDetailPage() {
                                 }
                                 // Empty bed
                                 return (
-                                  <div className=""flex items-center justify-center h-full text-muted-foreground text-xs font-medium">
+                                  <div className="flex items-center justify-center h-full text-muted-foreground text-xs font-medium">
                                     Leeg plantvak
                                   </div>
                                 )
                               }
                               
                               return (
-                                <div className=""space-y-1">
+                                <div className="space-y-1">
                                   {/* Group plants by unique name */}
                                   {(() => {
                                     // Import Dutch flower data for bloom periods
@@ -1489,15 +1489,15 @@ export default function GardenDetailPage() {
                                   // For small plantvakken, show compact view
                                   if (isSmall) {
                                     return (
-                                      <div className=""flex flex-col items-center justify-center h-full">
-                                        <div className=""flex flex-wrap justify-center gap-1">
+                                      <div className="flex flex-col items-center justify-center h-full">
+                                        <div className="flex flex-wrap justify-center gap-1">
                                           {groups.slice(0, 4).map((group, idx) => (
-                                            <span key={idx} className=""text-base" title={group.name}>
+                                            <span key={idx} className="text-base" title={group.name}>
                                               {group.emoji || '🌸'}
                                             </span>
                                           ))}
                                         </div>
-                                        <div className=""text-xs text-center mt-1 text-muted-foreground">
+                                        <div className="text-xs text-center mt-1 text-muted-foreground">
                                           {bed.plants.length} plant{bed.plants.length !== 1 ? 'en' : ''}
                                         </div>
                                       </div>
@@ -1506,26 +1506,26 @@ export default function GardenDetailPage() {
                                   
                                   // For larger plantvakken, show detailed view with HIGH CONTRAST text
                                   return (
-                                    <div className=""space-y-1">
+                                    <div className="space-y-1">
                                       {groups.map((group, idx) => (
-                                        <div key={idx} className=""bg-white dark:bg-gray-900 rounded p-1.5 border border-gray-400 dark:border-gray-400 shadow-sm">
-                                          <div className=""flex items-start gap-1">
-                                            <span className=""text-lg">{group.emoji || '🌸'}</span>
-                                            <div className=""flex-1">
-                                              <div className=""flex items-center gap-1 flex-wrap">
-                                                <span className=""font-bold text-xs text-black dark:text-white dark:text-black">
+                                        <div key={idx} className="bg-white dark:bg-gray-900 rounded p-1.5 border border-gray-400 dark:border-gray-400 shadow-sm">
+                                          <div className="flex items-start gap-1">
+                                            <span className="text-lg">{group.emoji || '🌸'}</span>
+                                            <div className="flex-1">
+                                              <div className="flex items-center gap-1 flex-wrap">
+                                                <span className="font-bold text-xs text-black dark:text-white dark:text-black">
                                                   {group.count > 1 && `${group.count}x `}{group.name}
                                                 </span>
                                                 {group.color && (
                                                   <div 
-                                                    className=""w-3 h-3 rounded-full border border-black dark:border-white"
+                                                    className="w-3 h-3 rounded-full border border-black dark:border-white"
                                                     style={{ backgroundColor: group.color }}
                                                     title={`Kleur: ${group.color}`}
                                                   />
                                                 )}
                                               </div>
                                               {/* Show details with bloom data */}
-                                              <div className=""text-[10px] text-black dark:text-white dark:text-black font-medium space-y-0">
+                                              <div className="text-[10px] text-black dark:text-white dark:text-black font-medium space-y-0">
                                                 {group.planting_date && (
                                                   <div>🌱 Zaai: {group.planting_date}</div>
                                                 )}
@@ -1533,7 +1533,7 @@ export default function GardenDetailPage() {
                                                   <div>🌸 Bloei: {group.bloom_period}</div>
                                                 )}
                                                 {!group.planting_date && !group.bloom_period && (
-                                                  <div className=""text-gray-500 dark:text-gray-400 italic">Geen seizoensdata beschikbaar</div>
+                                                  <div className="text-gray-500 dark:text-gray-400 italic">Geen seizoensdata beschikbaar</div>
                                                 )}
                                               </div>
                                             </div>
@@ -1548,20 +1548,20 @@ export default function GardenDetailPage() {
                             })()}
                             
                             {/* Corner decorations */}
-                            <div className=""absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none opacity-50"></div>
-                            <div className=""absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none opacity-50"></div>
-                            <div className=""absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none opacity-50"></div>
-                            <div className=""absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none opacity-50"></div>
+                            <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none opacity-50"></div>
+                            <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none opacity-50"></div>
+                            <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none opacity-50"></div>
+                            <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none opacity-50"></div>
                           </div>
 
                           {isSelected && (
                             <>
-                              <div className=""absolute -top-1 -right-1 bg-blue-500 dark:bg-blue-600 text-white dark:text-black text-xs px-1 rounded">
+                              <div className="absolute -top-1 -right-1 bg-blue-500 dark:bg-blue-600 text-white dark:text-black text-xs px-1 rounded">
                                 Geselecteerd
                               </div>
                               {/* Rotation handle - improved */}
                               <div
-                                className=""absolute -top-2 -left-2 w-8 h-8 bg-orange-500 hover:bg-orange-600 text-white dark:text-black rounded-full flex items-center justify-center cursor-grab text-sm font-bold shadow-xl border-2 border-white dark:border-gray-800 z-20"
+                                className="absolute -top-2 -left-2 w-8 h-8 bg-orange-500 hover:bg-orange-600 text-white dark:text-black rounded-full flex items-center justify-center cursor-grab text-sm font-bold shadow-xl border-2 border-white dark:border-gray-800 z-20"
                                 onMouseDown={(e) => {
                                   e.stopPropagation()
                                   e.preventDefault()
@@ -1616,16 +1616,16 @@ export default function GardenDetailPage() {
                               </div>
                             </>
                           )}
-                          <div className=""absolute inset-0 bg-green-500/10 dark:bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
+                          <div className="absolute inset-0 bg-green-500/10 dark:bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
                         </div>
                         
                         {/* Plantvak info onder het vak */}
-                        <div className=""mt-1 text-center">
-                          <div className=""text-xs text-muted-foreground font-medium">{bed.name}</div>
-                          <div className=""text-xs text-muted-foreground">
+                        <div className="mt-1 text-center">
+                          <div className="text-xs text-muted-foreground font-medium">{bed.name}</div>
+                          <div className="text-xs text-muted-foreground">
                             {bed.size || `${(bedWidth / METERS_TO_PIXELS).toFixed(1)}m × ${(bedHeight / METERS_TO_PIXELS).toFixed(1)}m`} • {getFilteredPlants(bed).length} 🌸
                             {selectedMonth && filterMode !== 'all' && getFilteredPlants(bed).length < bed.plants.length && (
-                              <span className=""text-orange-600"> ({bed.plants.length} totaal)</span>
+                              <span className="text-orange-600"> ({bed.plants.length} totaal)</span>
                             )}
                           </div>
                         </div>
@@ -1636,16 +1636,16 @@ export default function GardenDetailPage() {
 
                 {/* Empty State */}
                 {plantBeds.length === 0 && (
-                  <div className=""absolute inset-0 flex items-center justify-center">
-                    <div className=""text-center bg-background/80 p-8 rounded-lg border-2 border-dashed border-border">
-                      <Leaf className=""h-20 w-20 mx-auto text-muted-foreground/50 mb-4" />
-                      <h3 className=""text-xl font-medium text-foreground mb-2">Nog geen plantvakken</h3>
-                      <p className=""text-muted-foreground mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center bg-background/80 p-8 rounded-lg border-2 border-dashed border-border">
+                      <Leaf className="h-20 w-20 mx-auto text-muted-foreground/50 mb-4" />
+                      <h3 className="text-xl font-medium text-foreground mb-2">Nog geen plantvakken</h3>
+                      <p className="text-muted-foreground mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
                       <Button 
-                        className=""bg-green-600 dark:bg-green-700 hover:bg-green-700"
+                        className="bg-green-600 dark:bg-green-700 hover:bg-green-700"
                         onClick={() => setIsAddingPlantBed(true)}
                       >
-                        <Plus className=""h-4 w-4 mr-2" />
+                        <Plus className="h-4 w-4 mr-2" />
                         Eerste Plantvak Maken
                       </Button>
                     </div>
@@ -1653,15 +1653,15 @@ export default function GardenDetailPage() {
                 )}
               </div>
             </div>
-            <div className=""mt-4 text-sm text-muted-foreground flex items-center justify-between">
+            <div className="mt-4 text-sm text-muted-foreground flex items-center justify-between">
               <p>💡 <strong>Tip:</strong> Selecteer plantvak → oranje handvat slepen = roteren</p>
-              <div className=""flex items-center gap-4">
-                <p className=""text-xs">Zoom: {Math.round(scale * 100)}%</p>
+              <div className="flex items-center gap-4">
+                <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                 {selectedBed && (
                   <>
-                    <Badge variant="secondary" className=""bg-blue-100 dark:bg-blue-900 text-blue-800">
+                    <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800">
                       {plantBeds.find(b => b.id === selectedBed)?.name} geselecteerd
-                      <span className=""ml-2 text-xs">
+                      <span className="ml-2 text-xs">
                         {plantBeds.find(b => b.id === selectedBed)?.rotation || 0}°
                       </span>
                     </Badge>
@@ -1669,15 +1669,15 @@ export default function GardenDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeletePlantBed(selectedBed)}
-                      className=""text-red-600 dark:text-red-400 border-red-200 hover:bg-red-50 dark:bg-red-950 hover:border-red-300 dark:border-red-700"
+                      className="text-red-600 dark:text-red-400 border-red-200 hover:bg-red-50 dark:bg-red-950 hover:border-red-300 dark:border-red-700"
                     >
-                      <Trash2 className=""h-3 w-3 mr-1" />
+                      <Trash2 className="h-3 w-3 mr-1" />
                       Verwijder
                     </Button>
                   </>
                 )}
                 {hasChanges && (
-                  <Badge variant="secondary" className=""bg-orange-100 text-orange-800">
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-800">
                     Niet opgeslagen wijzigingen
                   </Badge>
                 )}
@@ -1689,12 +1689,12 @@ export default function GardenDetailPage() {
         /* List View of Plant Beds */
         <div>
           {/* Month Filter for List View */}
-          <Card className=""mb-4">
-            <CardContent className=""pt-4">
-              <div className=""flex flex-wrap items-center gap-2">
-                <div className=""flex items-center gap-2">
-                  <Calendar className=""h-4 w-4 text-muted-foreground" />
-                  <span className=""text-sm font-medium">Filter op maand:</span>
+          <Card className="mb-4">
+            <CardContent className="pt-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">Filter op maand:</span>
                 </div>
                 
                 <Select 
@@ -1705,7 +1705,7 @@ export default function GardenDetailPage() {
                     else if (filterMode === 'all') setFilterMode('blooming')
                   }}
                 >
-                  <SelectTrigger className=""w-32">
+                  <SelectTrigger className="w-32">
                     <SelectValue placeholder="Kies maand" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1726,12 +1726,12 @@ export default function GardenDetailPage() {
                 </Select>
                 
                 {selectedMonth && (
-                  <div className=""flex gap-1">
+                  <div className="flex gap-1">
                     <Button
                       size="sm"
                       variant={filterMode === 'sowing' ? 'default' : 'outline'}
                       onClick={() => setFilterMode('sowing')}
-                      className=""text-xs"
+                      className="text-xs"
                     >
                       🌱 Zaaien
                     </Button>
@@ -1739,7 +1739,7 @@ export default function GardenDetailPage() {
                       size="sm"
                       variant={filterMode === 'blooming' ? 'default' : 'outline'}
                       onClick={() => setFilterMode('blooming')}
-                      className=""text-xs"
+                      className="text-xs"
                     >
                       🌸 Bloeit
                     </Button>
@@ -1747,7 +1747,7 @@ export default function GardenDetailPage() {
                       size="sm"
                       variant={filterMode === 'all' ? 'default' : 'outline'}
                       onClick={() => setFilterMode('all')}
-                      className=""text-xs"
+                      className="text-xs"
                     >
                       Alles
                     </Button>
@@ -1758,59 +1758,59 @@ export default function GardenDetailPage() {
           </Card>
           
           {plantBeds.length === 0 ? (
-            <Card className=""text-center py-8">
+            <Card className="text-center py-8">
               <CardContent>
-                <Leaf className=""h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-                <h3 className=""text-lg font-medium text-muted-foreground mb-2">
+                <Leaf className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">
                   Nog geen plantvakken
                 </h3>
-                <p className=""text-sm text-muted-foreground mb-4">
+                <p className="text-sm text-muted-foreground mb-4">
                   Voeg je eerste plantvak toe om planten te kunnen planten.
                 </p>
                 <Button 
-                  className=""bg-green-600 dark:bg-green-700 hover:bg-green-700 h-8 px-3 text-sm"
+                  className="bg-green-600 dark:bg-green-700 hover:bg-green-700 h-8 px-3 text-sm"
                   onClick={() => setIsAddingPlantBed(true)}
                 >
-                  <Plus className=""h-4 w-4 mr-2" />
+                  <Plus className="h-4 w-4 mr-2" />
                   Eerste Plantvak
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <div className=""grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {plantBeds.map((bed) => (
-                <Card key={bed.id} className=""border-green-200 dark:border-green-800 hover:border-green-300 dark:border-green-700 dark:hover:border-green-700 hover:shadow-md transition-colors duration-150">
-                <CardHeader className=""pb-2 pt-3 px-3">
-                  <div className=""flex items-start justify-between">
-                    <div className=""flex-1">
-                      <CardTitle className=""text-base text-green-800 dark:text-green-200 flex items-center gap-2">
+                <Card key={bed.id} className="border-green-200 dark:border-green-800 hover:border-green-300 dark:border-green-700 dark:hover:border-green-700 hover:shadow-md transition-colors duration-150">
+                <CardHeader className="pb-2 pt-3 px-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <CardTitle className="text-base text-green-800 dark:text-green-200 flex items-center gap-2">
                         {bed.name}
                         {bed.sun_exposure && getSunExposureIcon(bed.sun_exposure)}
                       </CardTitle>
-                      <div className=""flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                         {bed.size && (
-                          <div className=""flex items-center gap-1">
-                            <Leaf className=""h-3 w-3 text-green-600 dark:text-green-400" />
+                          <div className="flex items-center gap-1">
+                            <Leaf className="h-3 w-3 text-green-600 dark:text-green-400" />
                             {bed.size}
                           </div>
                         )}
-                        <div className=""text-green-700 dark:text-green-300">
+                        <div className="text-green-700 dark:text-green-300">
                           {bed.plants.length} planten
                         </div>
                       </div>
                     </div>
-                    <Badge variant="secondary" className=""bg-green-100 text-green-800 border-green-300 dark:border-green-700 text-xs">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 dark:border-green-700 text-xs">
                       {bed.plants.length > 0 ? 'Beplant' : 'Leeg'}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className=""pt-0 pb-3 px-3">
+                <CardContent className="pt-0 pb-3 px-3">
                   {bed.description && (
-                    <p className=""text-muted-foreground mb-2 text-xs line-clamp-2">{bed.description}</p>
+                    <p className="text-muted-foreground mb-2 text-xs line-clamp-2">{bed.description}</p>
                   )}
-                  <div className=""flex gap-2">
-                    <Link href={`/gardens/${garden.id}/plantvak-view/${bed.id}`} className=""flex-1">
-                      <Button className=""h-7 px-2 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black text-xs w-full">
+                  <div className="flex gap-2">
+                    <Link href={`/gardens/${garden.id}/plantvak-view/${bed.id}`} className="flex-1">
+                      <Button className="h-7 px-2 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black text-xs w-full">
                         Beheren
                       </Button>
                     </Link>
@@ -1818,9 +1818,9 @@ export default function GardenDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeletePlantBed(bed.id)}
-                      className=""h-7 px-2 text-red-600 dark:text-red-400 border-red-200 hover:bg-red-50 dark:bg-red-950 hover:border-red-300 dark:border-red-700 text-xs"
+                      className="h-7 px-2 text-red-600 dark:text-red-400 border-red-200 hover:bg-red-50 dark:bg-red-950 hover:border-red-300 dark:border-red-700 text-xs"
                     >
-                      <Trash2 className=""w-3 h-3" />
+                      <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
                 </CardContent>
@@ -1833,10 +1833,10 @@ export default function GardenDetailPage() {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className=""w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className=""flex items-center gap-2 text-red-600 dark:text-red-400">
-              <Trash2 className=""h-5 w-5" />
+            <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
+              <Trash2 className="h-5 w-5" />
               Plantvak Verwijderen
             </DialogTitle>
             <DialogDescription>
@@ -1844,30 +1844,30 @@ export default function GardenDetailPage() {
             </DialogDescription>
           </DialogHeader>
           {deletingBedId && (
-            <div className=""py-4">
-              <div className=""bg-red-50 dark:bg-red-950 border border-red-200 rounded-lg p-4">
-                <div className=""flex items-center gap-2 mb-2">
-                  <Leaf className=""h-4 w-4 text-red-600 dark:text-red-400" />
-                  <span className=""font-medium text-red-800">
+            <div className="py-4">
+              <div className="bg-red-50 dark:bg-red-950 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Leaf className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  <span className="font-medium text-red-800">
                     {plantBeds.find(bed => bed.id === deletingBedId)?.name}
                   </span>
                 </div>
-                <div className=""text-sm text-red-700 dark:text-red-300">
+                <div className="text-sm text-red-700 dark:text-red-300">
                   {plantBeds.find(bed => bed.id === deletingBedId)?.plants.length || 0} planten zullen ook worden verwijderd
                 </div>
               </div>
             </div>
           )}
-          <div className=""flex justify-end gap-2">
+          <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
               Annuleren
             </Button>
             <Button 
               variant="destructive" 
               onClick={confirmDeletePlantBed}
-              className=""bg-red-600 dark:bg-red-700 hover:bg-red-700"
+              className="bg-red-600 dark:bg-red-700 hover:bg-red-700"
             >
-              <Trash2 className=""h-4 w-4 mr-2" />
+              <Trash2 className="h-4 w-4 mr-2" />
               Verwijderen
             </Button>
           </div>
@@ -1876,14 +1876,14 @@ export default function GardenDetailPage() {
 
       {/* Edit Garden Dialog */}
       <Dialog open={isEditingGarden} onOpenChange={setIsEditingGarden}>
-        <DialogContent className=""w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>🏡 Tuin Bewerken</DialogTitle>
           </DialogHeader>
           
-          <div className=""space-y-4">
+          <div className="space-y-4">
             <div>
-              <label htmlFor="garden-name" className=""block text-sm font-medium text-foreground mb-1">
+              <label htmlFor="garden-name" className="block text-sm font-medium text-foreground mb-1">
                 Tuin Naam
               </label>
               <Input
@@ -1894,9 +1894,9 @@ export default function GardenDetailPage() {
               />
             </div>
 
-            <div className=""grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="garden-length" className=""block text-sm font-medium text-foreground mb-1">
+                <label htmlFor="garden-length" className="block text-sm font-medium text-foreground mb-1">
                   Lengte (m)
                 </label>
                 <Input
@@ -1910,7 +1910,7 @@ export default function GardenDetailPage() {
                 />
               </div>
               <div>
-                <label htmlFor="garden-width" className=""block text-sm font-medium text-foreground mb-1">
+                <label htmlFor="garden-width" className="block text-sm font-medium text-foreground mb-1">
                   Breedte (m)
                 </label>
                 <Input
@@ -1927,7 +1927,7 @@ export default function GardenDetailPage() {
 
             {gardenForm.length && gardenForm.width && (
               <>
-                <div className=""text-sm text-green-600 font-medium">
+                <div className="text-sm text-green-600 font-medium">
                   📐 Oppervlakte: {(parseFloat(gardenForm.length) * parseFloat(gardenForm.width)).toFixed(1)} m²
                 </div>
                 
@@ -1935,25 +1935,25 @@ export default function GardenDetailPage() {
                   const validation = validatePlantBedsInGarden(gardenForm.length, gardenForm.width)
                   if (!validation.fits) {
                     return (
-                      <div className=""bg-red-50 dark:bg-red-950 border border-red-200 rounded-lg p-3">
-                        <div className=""flex items-center gap-2 text-red-800 font-medium mb-2">
+                      <div className="bg-red-50 dark:bg-red-950 border border-red-200 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-red-800 font-medium mb-2">
                           <span>⚠️</span>
                           <span>Plantvakken passen niet meer!</span>
                         </div>
-                        <div className=""text-sm text-red-700 dark:text-red-300 space-y-1">
+                        <div className="text-sm text-red-700 dark:text-red-300 space-y-1">
                           {validation.warnings.map((warning, index) => (
                             <div key={index}>• {warning}</div>
                           ))}
                         </div>
-                        <div className=""text-xs text-red-600 dark:text-red-400 mt-2">
+                        <div className="text-xs text-red-600 dark:text-red-400 mt-2">
                           💡 Tip: Verplaats de plantvakken eerst of maak de tuin groter
                         </div>
                       </div>
                     )
                   } else if (plantBeds.length > 0) {
                     return (
-                      <div className=""bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
-                        <div className=""flex items-center gap-2 text-green-800 font-medium">
+                      <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-green-800 font-medium">
                           <span>✅</span>
                           <span>Alle plantvakken passen nog in de tuin</span>
                         </div>
@@ -1966,7 +1966,7 @@ export default function GardenDetailPage() {
             )}
 
             <div>
-              <label htmlFor="garden-description" className=""block text-sm font-medium text-foreground mb-1">
+              <label htmlFor="garden-description" className="block text-sm font-medium text-foreground mb-1">
                 Beschrijving (optioneel)
               </label>
               <Textarea
@@ -1979,7 +1979,7 @@ export default function GardenDetailPage() {
             </div>
           </div>
 
-          <div className=""flex justify-end space-x-2 mt-6">
+          <div className="flex justify-end space-x-2 mt-6">
             <Button
               variant="outline"
               onClick={() => setIsEditingGarden(false)}
@@ -1998,7 +1998,7 @@ export default function GardenDetailPage() {
 
       {/* Add Plant Bed Dialog */}
       <Dialog open={isAddingPlantBed} onOpenChange={setIsAddingPlantBed}>
-        <DialogContent className=""w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>🌱 Nieuw Plantvak Toevoegen</DialogTitle>
             <DialogDescription>
@@ -2006,26 +2006,26 @@ export default function GardenDetailPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className=""space-y-4">
-            <div className=""p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/30 dark:to-blue-950/30 border-2 border-green-200 dark:border-green-800 rounded-lg mb-4">
-              <div className=""flex items-center gap-3">
-                <div className=""w-12 h-12 bg-green-500 dark:bg-green-600 text-white dark:text-black text-xl font-bold rounded-full flex items-center justify-center">
+          <div className="space-y-4">
+            <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/30 dark:to-blue-950/30 border-2 border-green-200 dark:border-green-800 rounded-lg mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-green-500 dark:bg-green-600 text-white dark:text-black text-xl font-bold rounded-full flex items-center justify-center">
                   ?
                 </div>
                 <div>
-                  <p className=""text-green-800 font-semibold">
+                  <p className="text-green-800 font-semibold">
                     Automatische Naamgeving
                   </p>
-                  <p className=""text-green-700 text-sm">
+                  <p className="text-green-700 text-sm">
                     Dit plantvak krijgt automatisch een letter toegewezen (A, B, C, enz.)
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className=""grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="plantvak-length" className=""block text-sm font-medium text-foreground mb-1">
+                <label htmlFor="plantvak-length" className="block text-sm font-medium text-foreground mb-1">
                   Lengte (m) *
                 </label>
                 <Input
@@ -2039,7 +2039,7 @@ export default function GardenDetailPage() {
                 />
               </div>
               <div>
-                <label htmlFor="plantvak-width" className=""block text-sm font-medium text-foreground mb-1">
+                <label htmlFor="plantvak-width" className="block text-sm font-medium text-foreground mb-1">
                   Breedte (m) *
                 </label>
                 <Input
@@ -2055,14 +2055,14 @@ export default function GardenDetailPage() {
             </div>
 
             {newPlantBed.length && newPlantBed.width && (
-              <div className=""text-sm text-green-600 font-medium">
+              <div className="text-sm text-green-600 font-medium">
                 📐 Oppervlakte: {(parseFloat(newPlantBed.length) * parseFloat(newPlantBed.width)).toFixed(1)} m²
               </div>
             )}
 
-            <div className=""grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label htmlFor="plantvak-soil" className=""block text-sm font-medium text-foreground mb-1">
+                <label htmlFor="plantvak-soil" className="block text-sm font-medium text-foreground mb-1">
                   Bodemtype *
                 </label>
                 <Select value={newPlantBed.soil_type} onValueChange={(value) => 
@@ -2082,7 +2082,7 @@ export default function GardenDetailPage() {
               </div>
               
               <div>
-                <label htmlFor="plantvak-sun" className=""block text-sm font-medium text-foreground mb-1">
+                <label htmlFor="plantvak-sun" className="block text-sm font-medium text-foreground mb-1">
                   Zonligging *
                 </label>
                 <Select value={newPlantBed.sun_exposure} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
@@ -2093,20 +2093,20 @@ export default function GardenDetailPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="full-sun">
-                      <div className=""flex items-center gap-2">
-                        <Sun className=""h-4 w-4 text-yellow-500" />
+                      <div className="flex items-center gap-2">
+                        <Sun className="h-4 w-4 text-yellow-500" />
                         <span>Volle zon</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="partial-sun">
-                      <div className=""flex items-center gap-2">
-                        <CloudSun className=""h-4 w-4 text-yellow-400" />
+                      <div className="flex items-center gap-2">
+                        <CloudSun className="h-4 w-4 text-yellow-400" />
                         <span>Halfschaduw</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="shade">
-                      <div className=""flex items-center gap-2">
-                        <Cloud className=""h-4 w-4 text-muted-foreground" />
+                      <div className="flex items-center gap-2">
+                        <Cloud className="h-4 w-4 text-muted-foreground" />
                         <span>Schaduw</span>
                       </div>
                     </SelectItem>
@@ -2116,7 +2116,7 @@ export default function GardenDetailPage() {
             </div>
 
             <div>
-              <label htmlFor="plantvak-description" className=""block text-sm font-medium text-foreground mb-1">
+              <label htmlFor="plantvak-description" className="block text-sm font-medium text-foreground mb-1">
                 Beschrijving (optioneel)
               </label>
               <Textarea
@@ -2129,7 +2129,7 @@ export default function GardenDetailPage() {
             </div>
           </div>
 
-          <div className=""flex justify-end space-x-2 mt-6">
+          <div className="flex justify-end space-x-2 mt-6">
             <Button
               variant="outline"
               onClick={() => {
@@ -2148,9 +2148,9 @@ export default function GardenDetailPage() {
             <Button
               onClick={addPlantBed}
               disabled={!newPlantBed.length || !newPlantBed.width || !newPlantBed.soil_type || !newPlantBed.sun_exposure}
-              className=""bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black disabled:bg-gray-400 dark:bg-gray-500 disabled:cursor-not-allowed"
+              className="bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black disabled:bg-gray-400 dark:bg-gray-500 disabled:cursor-not-allowed"
             >
-              <Plus className=""h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" />
               Plantvak Toevoegen
             </Button>
           </div>

@@ -33,25 +33,25 @@ function TasksPageContent() {
   }
 
   return (
-    <div className=""container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-4xl">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-4xl">
       {/* Minimalist Header */}
-      <div className=""mb-6 flex items-center justify-between">
-        <div className=""flex items-center gap-3">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={goBack}
-            className=""h-10 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30"
+            className="h-10 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30"
           >
-            <ArrowLeft className=""w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Terug
           </Button>
           
-          <div className=""flex items-center gap-3">
-            <div className=""p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-              <Calendar className=""w-5 h-5 text-green-700 dark:text-green-300" />
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+              <Calendar className="w-5 h-5 text-green-700 dark:text-green-300" />
             </div>
-            <h1 className=""text-xl font-bold text-green-800 dark:text-green-200">
+            <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
               Taken
             </h1>
           </div>

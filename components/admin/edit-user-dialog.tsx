@@ -160,7 +160,7 @@ export function EditUserDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className=""max-w-lg">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Gebruiker Bewerken</DialogTitle>
           <DialogDescription>
@@ -168,8 +168,8 @@ export function EditUserDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <div className=""space-y-4 py-4">
-          <div className=""space-y-2">
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
             <Label htmlFor="editFullName">Volledige naam *</Label>
             <Input
               id="editFullName"
@@ -181,7 +181,7 @@ export function EditUserDialog({
             />
           </div>
           
-          <div className=""space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="editRole">Rol</Label>
             <Select 
               value={editForm.role} 
@@ -205,21 +205,21 @@ export function EditUserDialog({
           </div>
 
           {/* Garden Access Selection - For both users and admins */}
-          <div className=""space-y-2">
+          <div className="space-y-2">
             <Label>Tuin Toegang</Label>
-            <div className=""text-sm text-muted-foreground mb-2">
+            <div className="text-sm text-muted-foreground mb-2">
               {editForm.role === 'admin' 
                 ? 'Selecteer welke tuinen deze administrator kan beheren (leeg = alle tuinen)'
                 : 'Selecteer welke tuinen deze gebruiker kan beheren'
               }
             </div>
-            <div className=""border rounded-md p-3 max-h-32 overflow-y-auto">
+            <div className="border rounded-md p-3 max-h-32 overflow-y-auto">
               {gardens.length === 0 ? (
-                <p className=""text-sm text-muted-foreground">Geen tuinen beschikbaar</p>
+                <p className="text-sm text-muted-foreground">Geen tuinen beschikbaar</p>
               ) : (
-                <div className=""space-y-2">
+                <div className="space-y-2">
                   {gardens.map((garden) => (
-                    <div key={garden.id} className=""flex items-center space-x-2">
+                    <div key={garden.id} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
                         id={`edit-garden-${garden.id}`}
@@ -237,11 +237,11 @@ export function EditUserDialog({
                             }))
                           }
                         }}
-                        className=""rounded border-border"
+                        className="rounded border-border"
                       />
                       <label 
                         htmlFor={`edit-garden-${garden.id}`}
-                        className=""text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                       >
                         {garden.name}
                       </label>
@@ -253,22 +253,22 @@ export function EditUserDialog({
             
             {/* Role-specific warnings */}
             {editForm.role === 'user' && editForm.gardenAccess.length === 0 && (
-              <p className=""text-xs text-orange-600">
+              <p className="text-xs text-orange-600">
                 ⚠️ Gebruiker heeft geen tuin toegang - kan geen taken uitvoeren
               </p>
             )}
             
             {editForm.role === 'admin' && editForm.gardenAccess.length === 0 && (
-              <div className=""p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
-                <p className=""text-sm text-blue-700 dark:text-blue-300">
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
                   <strong>Super Administrator:</strong> Heeft automatisch toegang tot alle tuinen
                 </p>
               </div>
             )}
             
             {editForm.role === 'admin' && editForm.gardenAccess.length > 0 && (
-              <div className=""p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-md">
-                <p className=""text-sm text-yellow-700 dark:text-yellow-300">
+              <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-md">
+                <p className="text-sm text-yellow-700 dark:text-yellow-300">
                   <strong>Garden Administrator:</strong> Beperkte toegang tot {editForm.gardenAccess.length} tuin(en)
                 </p>
               </div>
@@ -276,14 +276,14 @@ export function EditUserDialog({
           </div>
 
           {/* Current Status Summary */}
-          <div className=""p-3 bg-muted rounded-md">
-            <p className=""text-sm font-medium text-foreground mb-1">Huidige Status:</p>
-            <div className=""text-xs text-muted-foreground space-y-1">
+          <div className="p-3 bg-muted rounded-md">
+            <p className="text-sm font-medium text-foreground mb-1">Huidige Status:</p>
+            <div className="text-xs text-muted-foreground space-y-1">
               <p>• Email: {user.email}</p>
               <p>• Huidige rol: {user.role === 'admin' ? 'Administrator' : 'Gebruiker'}</p>
               <p>• Status: {user.status === 'active' ? 'Actief' : 'Inactief'}</p>
               {user.force_password_change && (
-                <p className=""text-orange-600">• Moet wachtwoord wijzigen bij volgende login</p>
+                <p className="text-orange-600">• Moet wachtwoord wijzigen bij volgende login</p>
               )}
             </div>
           </div>
@@ -300,16 +300,16 @@ export function EditUserDialog({
           <Button 
             onClick={handleEditUser}
             disabled={!editForm.fullName || editing}
-            className=""min-w-[120px]"
+            className="min-w-[120px]"
           >
             {editing ? (
               <>
-                <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                 Opslaan...
               </>
             ) : (
               <>
-                <Edit className=""w-4 h-4 mr-2" />
+                <Edit className="w-4 h-4 mr-2" />
                 Wijzigingen Opslaan
               </>
             )}

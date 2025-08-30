@@ -64,9 +64,9 @@ export function PlantsList() {
 
   // 🚀 PERFORMANCE: Skeleton loading for better perceived performance
   const PlantsSkeleton = () => (
-    <div className=""animate-pulse grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="animate-pulse grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className=""h-32 bg-green-100 dark:bg-green-900/30 rounded" />
+        <div key={i} className="h-32 bg-green-100 dark:bg-green-900/30 rounded" />
       ))}
     </div>
   )
@@ -98,13 +98,13 @@ export function PlantsList() {
 
   if (loading) {
     return (
-      <div className=""space-y-6">
-        <div className=""flex justify-between items-center">
-          <h2 className=""text-xl font-semibold text-foreground dark:text-white dark:text-black">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-foreground dark:text-white dark:text-black">
             Mijn Planten
           </h2>
           <Button disabled>
-            <Plus className=""w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4 mr-2" />
             Nieuwe Plant
           </Button>
         </div>
@@ -115,34 +115,34 @@ export function PlantsList() {
 
   if (error) {
     return (
-      <div className=""space-y-6">
-        <div className=""flex justify-between items-center">
-          <h2 className=""text-xl font-semibold text-foreground dark:text-white dark:text-black">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-foreground dark:text-white dark:text-black">
             Mijn Planten
           </h2>
           <Link href="/plants/new">
             <Button>
-              <Plus className=""w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               Nieuwe Plant
             </Button>
           </Link>
         </div>
         
         <Card>
-          <CardContent className=""pt-6">
-            <div className=""text-center py-8">
-              <AlertCircle className=""w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
-              <h3 className=""text-lg font-medium text-foreground dark:text-white dark:text-black mb-2">
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <AlertCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground dark:text-white dark:text-black mb-2">
                 Fout bij laden
               </h3>
-              <p className=""text-muted-foreground dark:text-gray-400 mb-4">
+              <p className="text-muted-foreground dark:text-gray-400 mb-4">
                 {error}
               </p>
               <Button onClick={handleRefresh} disabled={refreshing}>
                 {refreshing ? (
-                  <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                  <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                 ) : (
-                  <Leaf className=""w-4 h-4 mr-2" />
+                  <Leaf className="w-4 h-4 mr-2" />
                 )}
                 Opnieuw proberen
               </Button>
@@ -154,12 +154,12 @@ export function PlantsList() {
   }
 
   return (
-    <div className=""space-y-6">
-      <div className=""flex justify-between items-center">
-        <h2 className=""text-xl font-semibold text-foreground dark:text-white dark:text-black">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-foreground dark:text-white dark:text-black">
           Mijn Planten
         </h2>
-        <div className=""flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Button 
             onClick={handleRefresh} 
             variant="outline" 
@@ -167,14 +167,14 @@ export function PlantsList() {
             disabled={refreshing}
           >
             {refreshing ? (
-              <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
             ) : (
-              <Leaf className=""w-4 h-4" />
+              <Leaf className="w-4 h-4" />
             )}
           </Button>
           <Link href="/plants/new">
             <Button>
-              <Plus className=""w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               Nieuwe Plant
             </Button>
           </Link>
@@ -183,18 +183,18 @@ export function PlantsList() {
 
       {plants.length === 0 ? (
         <Card>
-          <CardContent className=""pt-6">
-            <div className=""text-center py-8">
-              <Leaf className=""w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <h3 className=""text-lg font-medium text-foreground dark:text-white dark:text-black mb-2">
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <Leaf className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground dark:text-white dark:text-black mb-2">
                 Geen planten gevonden
               </h3>
-              <p className=""text-muted-foreground dark:text-gray-400 mb-4">
+              <p className="text-muted-foreground dark:text-gray-400 mb-4">
                 Begin met het toevoegen van je eerste plant om je tuin te beheren.
               </p>
               <Link href="/plants/new">
                 <Button>
-                  <Plus className=""w-4 h-4 mr-2" />
+                  <Plus className="w-4 h-4 mr-2" />
                   Eerste Plant Toevoegen
                 </Button>
               </Link>
@@ -202,36 +202,36 @@ export function PlantsList() {
           </CardContent>
         </Card>
       ) : (
-        <div className=""grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {plants.map((plant) => (
-            <Card key={plant.id} className=""hover:shadow-md transition-shadow">
+            <Card key={plant.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <CardTitle className=""text-lg">{plant.name}</CardTitle>
-                <p className=""text-sm text-muted-foreground dark:text-gray-400">{plant.species}</p>
+                <CardTitle className="text-lg">{plant.name}</CardTitle>
+                <p className="text-sm text-muted-foreground dark:text-gray-400">{plant.species}</p>
               </CardHeader>
               <CardContent>
-                <div className=""space-y-3">
-                  <div className=""flex items-center text-sm text-muted-foreground dark:text-gray-300">
-                    <Calendar className=""w-4 h-4 mr-2" />
+                <div className="space-y-3">
+                  <div className="flex items-center text-sm text-muted-foreground dark:text-gray-300">
+                    <Calendar className="w-4 h-4 mr-2" />
                     Geplant: {new Date(plant.planted_date).toLocaleDateString('nl-NL')}
                   </div>
                   
                   {plant.last_watered && (
-                    <div className=""flex items-center text-sm text-muted-foreground dark:text-gray-300">
-                      <Droplets className=""w-4 h-4 mr-2" />
+                    <div className="flex items-center text-sm text-muted-foreground dark:text-gray-300">
+                      <Droplets className="w-4 h-4 mr-2" />
                       Laatst bewaterd: {new Date(plant.last_watered).toLocaleDateString('nl-NL')}
                     </div>
                   )}
                   
-                  <div className=""flex items-center text-sm">
-                    <span className=""mr-2">Gezondheid:</span>
+                  <div className="flex items-center text-sm">
+                    <span className="mr-2">Gezondheid:</span>
                     <span className={{`font-medium ${getHealthColor(plant.health)}`}>
                       {getHealthLabel(plant.health)}
                     </span>
                   </div>
                 </div>
                 
-                <div className=""mt-4">
+                <div className="mt-4">
                   <Link href={`/plants/${plant.id}`}>
                     <Button variant="outline" size="sm">
                       Bekijk Details

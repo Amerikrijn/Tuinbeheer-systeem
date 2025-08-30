@@ -44,8 +44,8 @@ export function UnifiedCard({
           variant === 'compact' && "pb-2 pt-3 px-3 sm:px-3",
           variant === 'minimal' && "pb-2 pt-3 px-3 sm:px-3"
         )}>
-          <div className=""flex items-start justify-between">
-            <div className=""flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
               <CardTitle className={cn(
                 "font-semibold text-foreground group-hover:text-green-700 dark:text-green-300 dark:group-hover:text-green-400 transition-colors truncate",
                 variant === 'default' && "text-base sm:text-lg",
@@ -65,7 +65,7 @@ export function UnifiedCard({
                 </p>
               )}
             </div>
-            <div className=""flex items-center gap-2 ml-3 flex-shrink-0">
+            <div className="flex items-center gap-2 ml-3 flex-shrink-0">
               {header.badge}
               {header.actions}
             </div>

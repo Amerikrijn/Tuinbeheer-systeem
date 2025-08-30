@@ -33,7 +33,7 @@ export function ConnectionStatus({
           title={connection.getStatusMessage()}
         />
         {showDetails && (
-          <span className=""text-xs text-gray-600 dark:text-gray-300">
+          <span className="text-xs text-gray-600 dark:text-gray-300">
             {connection.latency ? `${connection.latency}ms` : ''}
           </span>
         )}
@@ -58,7 +58,7 @@ export function ConnectionStatus({
         )}
       />
       
-      <div className=""flex-1 min-w-0">
+      <div className="flex-1 min-w-0">
         <p className={cn(
           "text-sm font-medium",
           connection.getStatusColor() === 'green' && "text-green-800",
@@ -69,7 +69,7 @@ export function ConnectionStatus({
         </p>
         
         {showDetails && (
-          <div className=""text-xs text-gray-500 dark:text-gray-400 mt-1 space-y-1">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 space-y-1">
             {connection.latency && (
               <div>Reactietijd: {connection.latency}ms</div>
             )}
@@ -79,7 +79,7 @@ export function ConnectionStatus({
               </div>
             )}
             {connection.error && (
-              <div className=""text-red-600 dark:text-red-400">Fout: {connection.error}</div>
+              <div className="text-red-600 dark:text-red-400">Fout: {connection.error}</div>
             )}
           </div>
         )}
@@ -114,11 +114,11 @@ export function LoadingWithConnectionStatus({
 
   return (
     <div className={cn("flex flex-col items-center justify-center p-8 space-y-4", className)}>
-      <div className=""animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      <p className=""text-gray-600 dark:text-gray-300">{message}</p>
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <p className="text-gray-600 dark:text-gray-300">{message}</p>
       
       {!connection.isHealthy && (
-        <ConnectionStatus showDetails className=""max-w-md" />
+        <ConnectionStatus showDetails className="max-w-md" />
       )}
     </div>
   )

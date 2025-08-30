@@ -50,20 +50,20 @@ export function SupabaseStatus() {
   }
 
   return (
-    <div className=""fixed bottom-4 right-4 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-500 rounded-lg p-4 shadow-lg z-50 max-w-sm">
-      <h3 className=""font-semibold text-sm mb-2">🔧 Supabase Status</h3>
-      <div className=""text-xs space-y-1">
-        <div className=""flex items-center gap-2">
+    <div className="fixed bottom-4 right-4 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-500 rounded-lg p-4 shadow-lg z-50 max-w-sm">
+      <h3 className="font-semibold text-sm mb-2">🔧 Supabase Status</h3>
+      <div className="text-xs space-y-1">
+        <div className="flex items-center gap-2">
           <span className={{`w-2 h-2 rounded-full ${status.connected ? 'bg-green-500 dark:bg-green-600' : 'bg-red-500 dark:bg-red-600'}`} />
           <span>Connection: {status.connected ? 'Connected' : 'Failed'}</span>
         </div>
         <div>URL: {status.url}</div>
         <div>API Key: {status.hasKey ? '✅ Present' : '❌ Missing'}</div>
         {status.error && (
-          <div className=""text-red-600 dark:text-red-400">Error: {status.error}</div>
+          <div className="text-red-600 dark:text-red-400">Error: {status.error}</div>
         )}
       </div>
-      <div className=""mt-2 text-xs text-gray-500 dark:text-gray-400">
+      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
         This debug component only shows in development mode.
       </div>
     </div>

@@ -15,10 +15,10 @@ export default function GardensPage() {
   }, [router])
 
   return (
-    <div className=""container mx-auto p-6">
-      <div className=""flex items-center justify-center py-12">
-        <div className=""text-center">
-          <p className=""text-muted-foreground">Doorverwijzen naar tuinen overzicht...</p>
+    <div className="container mx-auto p-6">
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+          <p className="text-muted-foreground">Doorverwijzen naar tuinen overzicht...</p>
         </div>
       </div>
     </div>

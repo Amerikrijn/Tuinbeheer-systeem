@@ -31,10 +31,10 @@ export function UserRestrictedRoute({ children }: UserRestrictedRouteProps) {
   // Show loading while checking auth
   if (loading) {
     return (
-      <div className=""min-h-screen flex items-center justify-center">
-        <div className=""text-center">
-          <div className=""w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className=""text-muted-foreground">Toegang controleren...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Toegang controleren...</p>
         </div>
       </div>
     )
@@ -42,16 +42,16 @@ export function UserRestrictedRoute({ children }: UserRestrictedRouteProps) {
 
   if (!user || !isAdmin()) {
     return (
-      <div className=""min-h-screen flex items-center justify-center bg-background p-4">
-        <div className=""text-center p-8 bg-card rounded-lg shadow-lg max-w-md">
-          <AlertCircle className=""h-12 w-12 text-destructive mx-auto mb-4" />
-          <h2 className=""text-2xl font-bold text-foreground mb-4">Geen toegang</h2>
-          <p className=""text-muted-foreground mb-6">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="text-center p-8 bg-card rounded-lg shadow-lg max-w-md">
+          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-4">Geen toegang</h2>
+          <p className="text-muted-foreground mb-6">
             Je hebt geen toegang tot deze pagina. Neem contact op met een beheerder als je denkt dat dit een fout is.
           </p>
           <Button 
             onClick={() => router.push('/')}
-            className=""bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
+            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
           >
             Terug naar dashboard
           </Button>

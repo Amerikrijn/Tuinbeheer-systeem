@@ -89,13 +89,13 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
     <div className={{`space-y-4 ${className}`}>
       {/* Performance Overview Card */}
       <Card>
-        <CardHeader className=""pb-3">
-          <div className=""flex items-center justify-between">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
             <div>
-              <CardTitle className=""text-lg">Performance Dashboard</CardTitle>
+              <CardTitle className="text-lg">Performance Dashboard</CardTitle>
               <CardDescription>Real-time app performance metrics</CardDescription>
             </div>
-            <div className=""flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
               <Badge variant="outline" className={performanceStatus.color}>
                 {performanceStatus.text}
               </Badge>
@@ -103,51 +103,51 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
                 variant="ghost"
                 size="sm"
                 onClick={() => window.location.reload()}
-                className=""h-8 w-8 p-0"
+                className="h-8 w-8 p-0"
               >
-                <RefreshCw className=""h-4 w-4" />
+                <RefreshCw className="h-4 w-4" />
               </Button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className=""grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Database Queries */}
-            <div className=""text-center">
-              <div className=""flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg mx-auto mb-2">
-                <Database className=""h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg mx-auto mb-2">
+                <Database className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className=""text-2xl font-bold text-blue-600 dark:text-blue-400">{metrics.databaseQueries}</div>
-              <div className=""text-sm text-muted-foreground">Database Queries</div>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{metrics.databaseQueries}</div>
+              <div className="text-sm text-muted-foreground">Database Queries</div>
             </div>
 
             {/* Average Query Time */}
-            <div className=""text-center">
-              <div className=""flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg mx-auto mb-2">
-                <Clock className=""h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg mx-auto mb-2">
+                <Clock className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
-              <div className=""text-2xl font-bold text-green-600 dark:text-green-400">{metrics.averageQueryTime}ms</div>
-              <div className=""text-sm text-muted-foreground">Avg Query Time</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{metrics.averageQueryTime}ms</div>
+              <div className="text-sm text-muted-foreground">Avg Query Time</div>
             </div>
 
             {/* Memory Usage */}
-            <div className=""text-center">
-              <div className=""flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg mx-auto mb-2">
-                <Cpu className=""h-6 w-6 text-orange-600" />
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg mx-auto mb-2">
+                <Cpu className="h-6 w-6 text-orange-600" />
               </div>
-              <div className=""text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-bold text-orange-600">
                 {memoryUsage ? `${memoryUsage.used}MB` : 'N/A'}
               </div>
-              <div className=""text-sm text-muted-foreground">Memory Usage</div>
+              <div className="text-sm text-muted-foreground">Memory Usage</div>
             </div>
 
             {/* Slow Queries */}
-            <div className=""text-center">
-              <div className=""flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg mx-auto mb-2">
-                <AlertTriangle className=""h-6 w-6 text-red-600 dark:text-red-400" />
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg mx-auto mb-2">
+                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
-              <div className=""text-2xl font-bold text-red-600 dark:text-red-400">{metrics.slowQueries}</div>
-              <div className=""text-sm text-muted-foreground">Slow Queries</div>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{metrics.slowQueries}</div>
+              <div className="text-sm text-muted-foreground">Slow Queries</div>
             </div>
           </div>
         </CardContent>
@@ -155,58 +155,58 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
 
       {/* React Query Cache Status */}
       <Card>
-        <CardHeader className=""pb-3">
-          <div className=""flex items-center justify-between">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
             <div>
-              <CardTitle className=""text-lg">React Query Cache</CardTitle>
+              <CardTitle className="text-lg">React Query Cache</CardTitle>
               <CardDescription>Query and mutation cache status</CardDescription>
             </div>
             <Button
               variant="outline"
               size="sm"
               onClick={() => queryClient.clear()}
-              className=""text-xs"
+              className="text-xs"
             >
               Clear Cache
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <div className=""grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Active Queries */}
-            <div className=""text-center">
-              <div className=""flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-2">
-                <Activity className=""h-6 w-6 text-purple-600" />
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-2">
+                <Activity className="h-6 w-6 text-purple-600" />
               </div>
-              <div className=""text-2xl font-bold text-purple-600">{queryStats.activeQueries}</div>
-              <div className=""text-sm text-muted-foreground">Active Queries</div>
+              <div className="text-2xl font-bold text-purple-600">{queryStats.activeQueries}</div>
+              <div className="text-sm text-muted-foreground">Active Queries</div>
             </div>
 
             {/* Total Queries */}
-            <div className=""text-center">
-              <div className=""flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-lg mx-auto mb-2">
-                <BarChart3 className=""h-6 w-6 text-indigo-600" />
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-lg mx-auto mb-2">
+                <BarChart3 className="h-6 w-6 text-indigo-600" />
               </div>
-              <div className=""text-2xl font-bold text-indigo-600">{queryStats.totalQueries}</div>
-              <div className=""text-sm text-muted-foreground">Total Queries</div>
+              <div className="text-2xl font-bold text-indigo-600">{queryStats.totalQueries}</div>
+              <div className="text-sm text-muted-foreground">Total Queries</div>
             </div>
 
             {/* Active Mutations */}
-            <div className=""text-center">
-              <div className=""flex items-center justify-center w-12 h-12 bg-pink-100 rounded-lg mx-auto mb-2">
-                <TrendingUp className=""h-6 w-6 text-pink-600" />
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-pink-100 rounded-lg mx-auto mb-2">
+                <TrendingUp className="h-6 w-6 text-pink-600" />
               </div>
-              <div className=""text-2xl font-bold text-pink-600">{queryStats.activeMutations}</div>
-              <div className=""text-sm text-muted-foreground">Active Mutations</div>
+              <div className="text-2xl font-bold text-pink-600">{queryStats.activeMutations}</div>
+              <div className="text-sm text-muted-foreground">Active Mutations</div>
             </div>
 
             {/* Cache Size */}
-            <div className=""text-center">
-              <div className=""flex items-center justify-center w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg mx-auto mb-2">
-                <HardDrive className=""h-6 w-6 text-gray-600 dark:text-gray-300" />
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg mx-auto mb-2">
+                <HardDrive className="h-6 w-6 text-gray-600 dark:text-gray-300" />
               </div>
-              <div className=""text-2xl font-bold text-gray-600 dark:text-gray-300">{queryStats.cacheSize}</div>
-              <div className=""text-sm text-muted-foreground">Cache Size</div>
+              <div className="text-2xl font-bold text-gray-600 dark:text-gray-300">{queryStats.cacheSize}</div>
+              <div className="text-sm text-muted-foreground">Cache Size</div>
             </div>
           </div>
         </CardContent>
@@ -214,18 +214,18 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
 
       {/* Memory Management */}
       <Card>
-        <CardHeader className=""pb-3">
-          <div className=""flex items-center justify-between">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
             <div>
-              <CardTitle className=""text-lg">Memory Management</CardTitle>
+              <CardTitle className="text-lg">Memory Management</CardTitle>
               <CardDescription>Memory usage and cleanup tools</CardDescription>
             </div>
-            <div className=""flex items-center space-x-2">
+            <div className="flex items-center space-x-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={executeCleanup}
-                className=""text-xs"
+                className="text-xs"
               >
                 Cleanup
               </Button>
@@ -233,7 +233,7 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
                 variant="outline"
                 size="sm"
                 onClick={forceGarbageCollection}
-                className=""text-xs"
+                className="text-xs"
               >
                 GC
               </Button>
@@ -242,14 +242,14 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
         </CardHeader>
         <CardContent>
           {memoryUsage ? (
-            <div className=""space-y-4">
+            <div className="space-y-4">
               {/* Memory Usage Bar */}
               <div>
-                <div className=""flex justify-between text-sm mb-2">
+                <div className="flex justify-between text-sm mb-2">
                   <span>Memory Usage</span>
                   <span>{memoryUsage.used}MB / {memoryUsage.limit}MB ({memoryUsage.percentage}%)</span>
                 </div>
-                <div className=""w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div 
                     className={{`h-2 rounded-full transition-all duration-300 ${
                       memoryUsage.percentage > 80 ? 'bg-red-500 dark:bg-red-600' : 
@@ -261,23 +261,23 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
               </div>
 
               {/* Memory Stats */}
-              <div className=""grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className=""text-lg font-semibold text-blue-600 dark:text-blue-400">{memoryUsage.used}MB</div>
-                  <div className=""text-xs text-muted-foreground">Used</div>
+                  <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">{memoryUsage.used}MB</div>
+                  <div className="text-xs text-muted-foreground">Used</div>
                 </div>
                 <div>
-                  <div className=""text-lg font-semibold text-green-600 dark:text-green-400">{memoryUsage.total}MB</div>
-                  <div className=""text-xs text-muted-foreground">Total</div>
+                  <div className="text-lg font-semibold text-green-600 dark:text-green-400">{memoryUsage.total}MB</div>
+                  <div className="text-xs text-muted-foreground">Total</div>
                 </div>
                 <div>
-                  <div className=""text-lg font-semibold text-purple-600">{memoryUsage.limit}MB</div>
-                  <div className=""text-xs text-muted-foreground">Limit</div>
+                  <div className="text-lg font-semibold text-purple-600">{memoryUsage.limit}MB</div>
+                  <div className="text-xs text-muted-foreground">Limit</div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className=""text-center text-muted-foreground">
+            <div className="text-center text-muted-foreground">
               Memory metrics not available
             </div>
           )}
@@ -287,36 +287,36 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
       {/* Performance Events */}
       {showDetails && (
         <Card>
-          <CardHeader className=""pb-3">
-            <div className=""flex items-center justify-between">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
               <div>
-                <CardTitle className=""text-lg">Performance Events</CardTitle>
+                <CardTitle className="text-lg">Performance Events</CardTitle>
                 <CardDescription>Recent performance events and metrics</CardDescription>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={clearPerformanceData}
-                className=""text-xs"
+                className="text-xs"
               >
                 Clear Events
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className=""space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-2 max-h-64 overflow-y-auto">
               {events.length === 0 ? (
-                <div className=""text-center text-muted-foreground py-4">
+                <div className="text-center text-muted-foreground py-4">
                   No performance events recorded
                 </div>
               ) : (
                 events.slice(-10).reverse().map((event) => (
-                  <div key={event.id} className=""flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded">
-                    <div className=""flex items-center space-x-2">
-                      <span className=""text-xs font-mono">{event.type}</span>
-                      <span className=""text-sm">{event.name}</span>
+                  <div key={event.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs font-mono">{event.type}</span>
+                      <span className="text-sm">{event.name}</span>
                     </div>
-                    <div className=""text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       {event.duration ? `${event.duration}ms` : 'pending'}
                     </div>
                   </div>
@@ -329,27 +329,27 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
 
       {/* Performance Summary */}
       <Card>
-        <CardHeader className=""pb-3">
-          <CardTitle className=""text-lg">Performance Summary</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Performance Summary</CardTitle>
           <CardDescription>Overall performance metrics</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className=""grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className=""text-center">
-              <div className=""text-2xl font-bold text-blue-600 dark:text-blue-400">{completedEvents.length}</div>
-              <div className=""text-sm text-muted-foreground">Total Events</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{completedEvents.length}</div>
+              <div className="text-sm text-muted-foreground">Total Events</div>
             </div>
-            <div className=""text-center">
-              <div className=""text-2xl font-bold text-green-600 dark:text-green-400">{avgEventDuration}ms</div>
-              <div className=""text-sm text-muted-foreground">Avg Duration</div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{avgEventDuration}ms</div>
+              <div className="text-sm text-muted-foreground">Avg Duration</div>
             </div>
-            <div className=""text-center">
-              <div className=""text-2xl font-bold text-red-600 dark:text-red-400">{slowEvents}</div>
-              <div className=""text-sm text-muted-foreground">Slow Events</div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{slowEvents}</div>
+              <div className="text-sm text-muted-foreground">Slow Events</div>
             </div>
-            <div className=""text-center">
-              <div className=""text-2xl font-bold text-purple-600">{metrics.pageLoadTime}ms</div>
-              <div className=""text-sm text-muted-foreground">Page Load</div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-purple-600">{metrics.pageLoadTime}ms</div>
+              <div className="text-sm text-muted-foreground">Page Load</div>
             </div>
           </div>
         </CardContent>
@@ -365,22 +365,22 @@ export function PerformanceDashboardCompact({ className = '' }: { className?: st
 
   return (
     <div className={{`flex items-center space-x-4 text-sm ${className}`}>
-      <div className=""flex items-center space-x-1">
-        <Database className=""h-4 w-4 text-blue-500 dark:text-blue-400" />
-        <span className=""text-muted-foreground">{metrics.databaseQueries}</span>
+      <div className="flex items-center space-x-1">
+        <Database className="h-4 w-4 text-blue-500 dark:text-blue-400" />
+        <span className="text-muted-foreground">{metrics.databaseQueries}</span>
       </div>
-      <div className=""flex items-center space-x-1">
-        <Clock className=""h-4 w-4 text-green-500 dark:text-green-400" />
-        <span className=""text-muted-foreground">{metrics.averageQueryTime}ms</span>
+      <div className="flex items-center space-x-1">
+        <Clock className="h-4 w-4 text-green-500 dark:text-green-400" />
+        <span className="text-muted-foreground">{metrics.averageQueryTime}ms</span>
       </div>
-      <div className=""flex items-center space-x-1">
-        <Memory className=""h-4 w-4 text-orange-500" />
-        <span className=""text-muted-foreground">{metrics.memoryUsage}MB</span>
+      <div className="flex items-center space-x-1">
+        <Memory className="h-4 w-4 text-orange-500" />
+        <span className="text-muted-foreground">{metrics.memoryUsage}MB</span>
       </div>
       {metrics.slowQueries > 0 && (
-        <div className=""flex items-center space-x-1">
-          <AlertTriangle className=""h-4 w-4 text-red-500 dark:text-red-400" />
-          <span className=""text-red-600 dark:text-red-400">{metrics.slowQueries}</span>
+        <div className="flex items-center space-x-1">
+          <AlertTriangle className="h-4 w-4 text-red-500 dark:text-red-400" />
+          <span className="text-red-600 dark:text-red-400">{metrics.slowQueries}</span>
         </div>
       )}
     </div>

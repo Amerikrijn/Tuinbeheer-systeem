@@ -362,7 +362,7 @@ function LogbookPageContent() {
         action: (
           <button 
             onClick={() => window.location.reload()} 
-            className=""text-sm underline"
+            className="text-sm underline"
           >
             Pagina vernieuwen
           </button>
@@ -492,13 +492,13 @@ function LogbookPageContent() {
 
   if (state.error) {
     return (
-      <div className=""container mx-auto px-4 py-8">
-        <div className=""text-center">
-          <div className=""text-red-600 dark:text-red-400 mb-4">
-            <BookOpen className=""h-12 w-12 mx-auto mb-2" />
-            <h2 className=""text-xl font-semibold">Fout bij laden logboek</h2>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="text-red-600 dark:text-red-400 mb-4">
+            <BookOpen className="h-12 w-12 mx-auto mb-2" />
+            <h2 className="text-xl font-semibold">Fout bij laden logboek</h2>
           </div>
-          <p className=""text-muted-foreground mb-4">{state.error}</p>
+          <p className="text-muted-foreground mb-4">{state.error}</p>
           <Button onClick={() => loadEntries()} variant="outline">
             Opnieuw proberen
           </Button>
@@ -508,27 +508,27 @@ function LogbookPageContent() {
   }
 
   return (
-    <div className=""container mx-auto px-4 py-8 safe-area-px">
+    <div className="container mx-auto px-4 py-8 safe-area-px">
       {/* Minimalist Header */}
-      <div className=""mb-6">
-        <div className=""flex items-center justify-between mb-4">
-          <div className=""flex items-center gap-3">
-            <div className=""p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-              <BookOpen className=""w-5 h-5 text-green-700 dark:text-green-300" />
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+              <BookOpen className="w-5 h-5 text-green-700 dark:text-green-300" />
             </div>
-            <h1 className=""text-xl font-bold text-green-800 dark:text-green-200">
+            <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
               {viewingUser ? `Logboek ${viewingUser.full_name || viewingUser.email}` : 'Logboek'}
             </h1>
           </div>
           
           {viewingUser && (
-            <Badge variant="outline" className=""text-xs bg-blue-50 dark:bg-blue-950 text-blue-800 border-blue-300 dark:border-blue-700">
+            <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-950 text-blue-800 border-blue-300 dark:border-blue-700">
               Bekijkt: {viewingUser.full_name || viewingUser.email}
             </Badge>
           )}
         </div>
         
-        <div className=""flex items-center gap-2">
+        <div className="flex items-center gap-2">
           {/* Tasks button for users */}
           {!isAdmin() && (
             <Button 
@@ -538,16 +538,16 @@ function LogbookPageContent() {
             }}
               variant="outline"
               size="sm"
-              className=""h-8 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+              className="h-8 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
             >
-              <ClipboardList className=""w-4 h-4 mr-1" />
+              <ClipboardList className="w-4 h-4 mr-1" />
               Taken
             </Button>
           )}
           
-          <Button asChild size="sm" className=""h-8 px-3">
+          <Button asChild size="sm" className="h-8 px-3">
             <Link href="/logbook/new">
-              <Plus className=""h-4 w-4 mr-1" />
+              <Plus className="h-4 w-4 mr-1" />
               Nieuwe entry
             </Link>
           </Button>
@@ -555,25 +555,25 @@ function LogbookPageContent() {
       </div>
 
       {/* Compact Filters */}
-      <Card className=""mb-4 border-green-200 dark:border-green-800">
-        <CardContent className=""pt-4">
-          <div className=""flex flex-col lg:flex-row gap-3">
+      <Card className="mb-4 border-green-200 dark:border-green-800">
+        <CardContent className="pt-4">
+          <div className="flex flex-col lg:flex-row gap-3">
             {/* Search */}
-            <div className=""flex-1">
-              <div className=""relative">
-                <Search className=""absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
                   placeholder="Zoek in opmerkingen, plantvakken of planten..."
                   value={state.searchTerm}
                   onChange={(e) => handleSearchChange(e.target.value)}
-                  className=""pl-10"
+                  className="pl-10"
                 />
               </div>
             </div>
 
             {/* Garden filter */}
             <Select value={state.selectedGarden} onValueChange={handleGardenChange}>
-              <SelectTrigger className=""w-full lg:w-48">
+              <SelectTrigger className="w-full lg:w-48">
                 <SelectValue placeholder="Alle tuinen" />
               </SelectTrigger>
               <SelectContent>
@@ -588,7 +588,7 @@ function LogbookPageContent() {
 
             {/* Plant bed filter */}
             <Select value={state.selectedPlantBed} onValueChange={handlePlantBedChange}>
-              <SelectTrigger className=""w-full lg:w-48">
+              <SelectTrigger className="w-full lg:w-48">
                 <SelectValue placeholder="Alle plantvakken" />
               </SelectTrigger>
               <SelectContent>
@@ -603,7 +603,7 @@ function LogbookPageContent() {
 
             {/* Year filter */}
             <Select value={state.selectedYear} onValueChange={handleYearChange}>
-              <SelectTrigger className=""w-full lg:w-32">
+              <SelectTrigger className="w-full lg:w-32">
                 <SelectValue placeholder="Jaar" />
               </SelectTrigger>
               <SelectContent>
@@ -618,7 +618,7 @@ function LogbookPageContent() {
             {/* Clear filters */}
             {(state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString()) && (
               <Button variant="outline" onClick={clearFilters}>
-                <X className=""h-4 w-4 mr-2" />
+                <X className="h-4 w-4 mr-2" />
                 Wissen
               </Button>
             )}
@@ -628,17 +628,17 @@ function LogbookPageContent() {
 
       {/* Loading state */}
       {state.loading && state.entries.length === 0 && (
-        <div className=""grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
               <CardHeader>
-                <Skeleton className=""h-4 w-3/4" />
-                <Skeleton className=""h-3 w-1/2" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-1/2" />
               </CardHeader>
               <CardContent>
-                <Skeleton className=""h-20 w-full mb-3" />
-                <Skeleton className=""h-3 w-full mb-2" />
-                <Skeleton className=""h-3 w-2/3" />
+                <Skeleton className="h-20 w-full mb-3" />
+                <Skeleton className="h-3 w-full mb-2" />
+                <Skeleton className="h-3 w-2/3" />
               </CardContent>
             </Card>
           ))}
@@ -647,19 +647,19 @@ function LogbookPageContent() {
 
       {/* Empty state */}
       {!state.loading && state.entries.length === 0 && (
-        <div className=""text-center py-12">
-          <BookOpen className=""h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className=""text-lg font-medium text-foreground mb-2">
+        <div className="text-center py-12">
+          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             Geen logboek entries gevonden
           </h3>
-          <p className=""text-muted-foreground mb-6">
+          <p className="text-muted-foreground mb-6">
             {state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString()
               ? "Probeer je filters aan te passen of maak een nieuwe entry aan."
               : "Begin met het maken van je eerste logboek entry."}
           </p>
           <Button asChild>
             <Link href="/logbook/new">
-              <Plus className=""h-4 w-4 mr-2" />
+              <Plus className="h-4 w-4 mr-2" />
               Eerste entry maken
             </Link>
           </Button>
@@ -668,13 +668,13 @@ function LogbookPageContent() {
 
       {/* Logbook entries - redesigned for better emphasis */}
       {state.entries.length > 0 && (
-        <div className=""space-y-4">
-          <p className=""text-sm text-muted-foreground">
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
             💡 Klik op een entry om de details te bekijken
           </p>
           
           {/* Modern card-based layout instead of table */}
-          <div className=""space-y-4">
+          <div className="space-y-4">
             {state.entries.map((entry) => (
               <Card 
                 key={entry.id} 
@@ -688,59 +688,59 @@ function LogbookPageContent() {
                 }
               }}
               >
-                <CardContent className=""p-6">
-                  <div className=""flex gap-6">
+                <CardContent className="p-6">
+                  <div className="flex gap-6">
                     {/* Photo section - prominent display */}
-                    <div className=""flex-shrink-0">
+                    <div className="flex-shrink-0">
                       {entry.photo_url ? (
-                        <div className=""relative">
+                        <div className="relative">
                           <img 
                             src={entry.photo_url} 
                             alt="Logboek foto"
-                            className=""w-32 h-32 object-cover rounded-lg border shadow-sm hover:shadow-md transition-shadow"
+                            className="w-32 h-32 object-cover rounded-lg border shadow-sm hover:shadow-md transition-shadow"
                           />
-                          <div className=""absolute inset-0 bg-black dark:bg-white bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
-                            <Camera className=""w-6 h-6 text-white dark:text-black opacity-0 hover:opacity-100 transition-opacity" />
+                          <div className="absolute inset-0 bg-black dark:bg-white bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                            <Camera className="w-6 h-6 text-white dark:text-black opacity-0 hover:opacity-100 transition-opacity" />
                           </div>
                         </div>
                       ) : (
-                        <div className=""w-32 h-32 bg-muted border-2 border-dashed border-border rounded-lg flex items-center justify-center">
-                          <div className=""text-center text-muted-foreground">
-                            <Camera className=""w-8 h-8 mx-auto mb-1" />
-                            <span className=""text-xs">Geen foto</span>
+                        <div className="w-32 h-32 bg-muted border-2 border-dashed border-border rounded-lg flex items-center justify-center">
+                          <div className="text-center text-muted-foreground">
+                            <Camera className="w-8 h-8 mx-auto mb-1" />
+                            <span className="text-xs">Geen foto</span>
                           </div>
                         </div>
                       )}
                     </div>
 
                     {/* Content section - emphasis on description */}
-                    <div className=""flex-1 min-w-0">
+                    <div className="flex-1 min-w-0">
                       {/* Main description - large text like tasks */}
-                      <div className=""mb-3">
+                      <div className="mb-3">
                         {entry.is_completed_task ? (
-                          <div className=""flex items-start gap-3">
-                            <div className=""flex-shrink-0 mt-1">
-                              <CheckCircle2 className=""w-5 h-5 text-green-600 dark:text-green-400" />
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-1">
+                              <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                             </div>
-                            <div className=""flex-1">
-                              <p className=""text-lg font-medium text-green-800 dark:text-green-400 leading-relaxed">
+                            <div className="flex-1">
+                              <p className="text-lg font-medium text-green-800 dark:text-green-400 leading-relaxed">
                                 {entry.notes}
                               </p>
-                              <Badge variant="secondary" className=""mt-2 text-xs bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-300">
+                              <Badge variant="secondary" className="mt-2 text-xs bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-300">
                                 📋 Voltooide taak
                               </Badge>
                             </div>
                           </div>
                         ) : (
-                          <div className=""flex items-start gap-3">
-                            <div className=""flex-shrink-0 mt-1">
-                              <div className=""w-3 h-3 bg-blue-500 dark:bg-blue-600 rounded-full"></div>
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-1">
+                              <div className="w-3 h-3 bg-blue-500 dark:bg-blue-600 rounded-full"></div>
                             </div>
-                            <div className=""flex-1">
-                              <p className=""text-lg font-medium text-foreground leading-relaxed">
+                            <div className="flex-1">
+                              <p className="text-lg font-medium text-foreground leading-relaxed">
                                 {entry.notes}
                               </p>
-                              <Badge variant="outline" className=""mt-2 text-xs">
+                              <Badge variant="outline" className="mt-2 text-xs">
                                 📝 Logboek entry
                               </Badge>
                             </div>
@@ -749,32 +749,32 @@ function LogbookPageContent() {
                       </div>
 
                       {/* Metadata - smaller and smarter layout */}
-                      <div className=""flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                         {/* Date - prominent but smaller */}
-                        <div className=""flex items-center gap-1.5">
-                          <Calendar className=""w-4 h-4 text-muted-foreground" />
-                          <span className=""font-medium">{formatDate(entry.entry_date)}</span>
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-4 h-4 text-muted-foreground" />
+                          <span className="font-medium">{formatDate(entry.entry_date)}</span>
                         </div>
                         
                         {/* Location info - compact */}
-                        <div className=""flex items-center gap-1.5">
-                          <MapPin className=""w-4 h-4 text-blue-500 dark:text-blue-400" />
+                        <div className="flex items-center gap-1.5">
+                          <MapPin className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                           <span>{entry.plant_bed_name}</span>
                         </div>
                         
                         {/* Garden - as small badge */}
-                        <Badge variant="outline" className=""text-xs px-2 py-0.5">
+                        <Badge variant="outline" className="text-xs px-2 py-0.5">
                           {entry.garden_name}
                         </Badge>
                         
                         {/* Plant info - when available */}
                         {entry.plant_name && (
-                          <div className=""flex items-center gap-1.5">
-                            <Leaf className=""w-4 h-4 text-green-500 dark:text-green-400" />
-                            <span className=""text-sm">
+                          <div className="flex items-center gap-1.5">
+                            <Leaf className="w-4 h-4 text-green-500 dark:text-green-400" />
+                            <span className="text-sm">
                               {entry.plant_name}
                               {entry.plant_variety && (
-                                <span className=""text-muted-foreground ml-1">({entry.plant_variety})</span>
+                                <span className="text-muted-foreground ml-1">({entry.plant_variety})</span>
                               )}
                             </span>
                           </div>
@@ -791,7 +791,7 @@ function LogbookPageContent() {
 
       {/* Load more button */}
       {state.hasMore && (
-        <div className=""text-center mt-8">
+        <div className="text-center mt-8">
           <Button 
             onClick={loadMore} 
             disabled={state.loading}

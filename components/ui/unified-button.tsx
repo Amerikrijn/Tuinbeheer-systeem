@@ -53,15 +53,15 @@ export function UnifiedButton({
   const content = (
     <>
       {icon && iconPosition === 'left' && (
-        <span className=""flex-shrink-0">{icon}</span>
+        <span className="flex-shrink-0">{icon}</span>
       )}
       <span className={loading ? "opacity-0" : ""}>{children}</span>
       {icon && iconPosition === 'right' && (
-        <span className=""flex-shrink-0">{icon}</span>
+        <span className="flex-shrink-0">{icon}</span>
       )}
       {loading && (
-        <div className=""absolute inset-0 flex items-center justify-center">
-          <div className=""w-5 h-5 border-2 border-white dark:border-gray-800 border-t-transparent rounded-full animate-spin"></div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-5 h-5 border-2 border-white dark:border-gray-800 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
     </>

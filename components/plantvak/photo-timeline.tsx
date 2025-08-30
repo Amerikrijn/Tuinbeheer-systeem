@@ -127,15 +127,15 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
     return (
       <Card>
         <CardHeader>
-          <CardTitle className=""flex items-center gap-2">
-            <Camera className=""h-5 w-5" />
+          <CardTitle className="flex items-center gap-2">
+            <Camera className="h-5 w-5" />
             Foto Tijdlijn
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className=""animate-pulse space-y-4">
+          <div className="animate-pulse space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className=""h-24 bg-green-100 dark:bg-green-900/30 rounded" />
+              <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded" />
             ))}
           </div>
         </CardContent>
@@ -147,16 +147,16 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
     return (
       <Card>
         <CardHeader>
-          <CardTitle className=""flex items-center gap-2">
-            <Camera className=""h-5 w-5" />
+          <CardTitle className="flex items-center gap-2">
+            <Camera className="h-5 w-5" />
             Foto Tijdlijn
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className=""text-center py-8">
-            <ImageIcon className=""h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" />
-            <p className=""text-muted-foreground">Nog geen foto's in het logboek</p>
-            <p className=""text-sm text-muted-foreground mt-1">
+          <div className="text-center py-8">
+            <ImageIcon className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" />
+            <p className="text-muted-foreground">Nog geen foto's in het logboek</p>
+            <p className="text-sm text-muted-foreground mt-1">
               Voeg foto's toe aan je logboek entries om ze hier te zien
             </p>
           </div>
@@ -169,9 +169,9 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
     <>
       <Card>
         <CardHeader>
-          <div className=""flex items-center justify-between">
-            <CardTitle className=""flex items-center gap-2">
-              <Camera className=""h-5 w-5" />
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
               Foto Tijdlijn
             </CardTitle>
             <Badge variant="secondary">
@@ -179,30 +179,30 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
             </Badge>
           </div>
         </CardHeader>
-        <CardContent className=""space-y-4">
+        <CardContent className="space-y-4">
           {yearGroups.map((yearGroup) => (
-            <div key={yearGroup.year} className=""border rounded-lg overflow-hidden">
+            <div key={yearGroup.year} className="border rounded-lg overflow-hidden">
               {/* Year Header */}
               <button
                 onClick={() => toggleYear(yearGroup.year)}
-                className=""w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-10 dark:hover:bg-gray-100 dark:bg-gray-800 transition-colors flex items-center justify-between"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-10 dark:hover:bg-gray-100 dark:bg-gray-800 transition-colors flex items-center justify-between"
               >
-                <div className=""flex items-center gap-3">
+                <div className="flex items-center gap-3">
                   {yearGroup.isExpanded ? (
-                    <ChevronDown className=""h-4 w-4 text-muted-foreground" />
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   ) : (
-                    <ChevronRight className=""h-4 w-4 text-muted-foreground" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   )}
-                  <span className=""font-semibold text-lg">
+                  <span className="font-semibold text-lg">
                     {yearGroup.year}
                   </span>
                   {yearGroup.year === currentYear && (
-                    <Badge variant="default" className=""text-xs">
+                    <Badge variant="default" className="text-xs">
                       Huidig jaar
                     </Badge>
                   )}
                 </div>
-                <div className=""flex items-center gap-2">
+                <div className="flex items-center gap-2">
                   <Badge variant="outline">
                     {yearGroup.entries.length} foto's
                   </Badge>
@@ -211,72 +211,72 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
 
               {/* Year Content - Photo Grid */}
               {yearGroup.isExpanded && (
-                <div className=""p-4 bg-background">
-                  <div className=""grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                <div className="p-4 bg-background">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                     {yearGroup.entries.map((entry) => (
                       <div
                         key={entry.id}
-                        className=""group relative cursor-pointer"
+                        className="group relative cursor-pointer"
                         onClick={() => {
                           setSelectedPhoto(entry)
                           setShowFullscreen(true)
                         }}
                       >
                         {/* Photo Thumbnail */}
-                        <div className=""aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 group-hover:border-blue-400 transition-all">
+                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 group-hover:border-blue-400 transition-all">
                           <img
                             src={entry.photo_url}
                             alt={entry.notes}
-                            className=""w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                         </div>
                         
                         {/* Date Badge */}
-                        <div className=""absolute top-2 left-2 bg-black dark:bg-white/80 text-white dark:text-black text-xs px-2 py-1 rounded">
+                        <div className="absolute top-2 left-2 bg-black dark:bg-white/80 text-white dark:text-black text-xs px-2 py-1 rounded">
                           {formatDate(entry.entry_date)}
                         </div>
                         
                         {/* Season Indicator */}
-                        <div className=""absolute top-2 right-2 text-lg">
+                        <div className="absolute top-2 right-2 text-lg">
                           {getSeasonEmoji(entry.entry_date)}
                         </div>
                         
                         {/* Hover Overlay */}
-                        <div className=""absolute inset-0 bg-black dark:bg-white/0 group-hover:bg-black dark:bg-white/20 transition-colors rounded-lg flex items-center justify-center">
-                          <Maximize2 className=""h-6 w-6 text-white dark:text-black opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-black dark:bg-white/0 group-hover:bg-black dark:bg-white/20 transition-colors rounded-lg flex items-center justify-center">
+                          <Maximize2 className="h-6 w-6 text-white dark:text-black opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </div>
                     ))}
                   </div>
 
                   {/* Timeline View for Mobile */}
-                  <div className=""mt-6 lg:hidden">
-                    <div className=""border-l-2 border-gray-200 dark:border-gray-600 pl-4 space-y-6">
+                  <div className="mt-6 lg:hidden">
+                    <div className="border-l-2 border-gray-200 dark:border-gray-600 pl-4 space-y-6">
                       {yearGroup.entries.map((entry, index) => (
-                        <div key={entry.id} className=""relative">
+                        <div key={entry.id} className="relative">
                           {/* Timeline Dot */}
-                          <div className=""absolute -left-6 top-0 w-4 h-4 bg-blue-500 dark:bg-blue-600 rounded-full border-2 border-white dark:border-gray-800"></div>
+                          <div className="absolute -left-6 top-0 w-4 h-4 bg-blue-500 dark:bg-blue-600 rounded-full border-2 border-white dark:border-gray-800"></div>
                           
                           {/* Entry Card */}
                           <div 
-                            className=""cursor-pointer"
+                            className="cursor-pointer"
                             onClick={() => {
                               setSelectedPhoto(entry)
                               setShowFullscreen(true)
                             }}
                           >
-                            <div className=""text-sm text-muted-foreground mb-1">
+                            <div className="text-sm text-muted-foreground mb-1">
                               {format(parseISO(entry.entry_date), 'd MMMM yyyy', { locale: nl })}
                             </div>
-                            <div className=""bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
-                              <div className=""flex gap-3">
+                            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
+                              <div className="flex gap-3">
                                 <img
                                   src={entry.photo_url}
                                   alt={entry.notes}
-                                  className=""w-20 h-20 object-cover rounded"
+                                  className="w-20 h-20 object-cover rounded"
                                 />
-                                <div className=""flex-1">
-                                  <p className=""text-sm text-foreground line-clamp-3">
+                                <div className="flex-1">
+                                  <p className="text-sm text-foreground line-clamp-3">
                                     {entry.notes}
                                   </p>
                                 </div>
@@ -296,54 +296,54 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
 
       {/* Fullscreen Photo Dialog */}
       <Dialog open={showFullscreen} onOpenChange={setShowFullscreen}>
-        <DialogContent className=""max-w-4xl w-[95vw] max-h-[90vh]">
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className=""flex items-center justify-between">
+            <DialogTitle className="flex items-center justify-between">
               <span>Logboek Foto</span>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowFullscreen(false)}
               >
-                <X className=""h-4 w-4" />
+                <X className="h-4 w-4" />
               </Button>
             </DialogTitle>
           </DialogHeader>
           
           {selectedPhoto && (
-            <div className=""space-y-4">
+            <div className="space-y-4">
               {/* Full Size Photo */}
-              <div className=""relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
+              <div className="relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
                 <img
                   src={selectedPhoto.photo_url}
                   alt={selectedPhoto.notes}
-                  className=""w-full h-auto max-h-[60vh] object-contain"
+                  className="w-full h-auto max-h-[60vh] object-contain"
                 />
               </div>
               
               {/* Photo Details */}
-              <div className=""space-y-3">
-                <div className=""flex items-center gap-4 text-sm text-muted-foreground">
-                  <div className=""flex items-center gap-1">
-                    <Calendar className=""h-4 w-4" />
+              <div className="space-y-3">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
                     <span>{format(parseISO(selectedPhoto.entry_date), 'dd MMMM yyyy', { locale: nl })}</span>
                   </div>
-                  <div className=""flex items-center gap-1">
-                    <Clock className=""h-4 w-4" />
+                  <div className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
                     <span>{format(parseISO(selectedPhoto.entry_date), 'HH:mm', { locale: nl })}</span>
                   </div>
-                  <span className=""text-lg">{getSeasonEmoji(selectedPhoto.entry_date)}</span>
+                  <span className="text-lg">{getSeasonEmoji(selectedPhoto.entry_date)}</span>
                 </div>
                 
                 {/* Notes */}
-                <div className=""bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                  <h4 className=""font-medium text-foreground mb-2">Notities</h4>
-                                          <p className=""text-foreground whitespace-pre-wrap">{selectedPhoto.notes}</p>
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
+                  <h4 className="font-medium text-foreground mb-2">Notities</h4>
+                                          <p className="text-foreground whitespace-pre-wrap">{selectedPhoto.notes}</p>
                 </div>
                 
                 {/* Metadata */}
                 {selectedPhoto.plant_name && (
-                  <div className=""flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-sm">
                     <Badge variant="outline">
                       🌱 {selectedPhoto.plant_name}
                     </Badge>

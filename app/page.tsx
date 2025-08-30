@@ -260,14 +260,14 @@ function HomePageContent() {
   }, [gardens, state.searchTerm])
 
   return (
-    <div className=""container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl safe-area-px">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl safe-area-px">
       {/* Simple Header */}
-      <div className=""mb-6 flex items-center justify-between">
-        <div className=""flex items-center gap-3">
-          <div className=""p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-            <TreePine className=""w-6 h-6 text-green-700 dark:text-green-400" />
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+            <TreePine className="w-6 h-6 text-green-700 dark:text-green-400" />
           </div>
-          <h1 className=""text-xl font-bold text-green-800 dark:text-green-200">
+          <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
             Tuinen
           </h1>
         </div>
@@ -277,27 +277,27 @@ function HomePageContent() {
 
             window.location.href = '/gardens/new'
           }}
-          className=""h-10 px-4 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black"
+          className="h-10 px-4 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black"
         >
-          <Plus className=""w-4 h-4 mr-2" />
+          <Plus className="w-4 h-4 mr-2" />
           Toevoegen
         </Button>
       </div>
 
       {/* Simple Search */}
-      <div className=""mb-4">
-        <div className=""max-w-md mx-auto">
-          <div className=""relative">
-            <Search className=""absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 dark:text-green-400 w-4 h-4" />
+      <div className="mb-4">
+        <div className="max-w-md mx-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 dark:text-green-400 w-4 h-4" />
             <Input
               placeholder="🔍 Zoek tuinen..."
               value={state.searchTerm}
               onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
-              className=""pl-9 border-green-300 focus:border-green-500"
+              className="pl-9 border-green-300 focus:border-green-500"
             />
           </div>
           {state.searchTerm && (
-            <p className=""text-center text-xs text-muted-foreground mt-2">
+            <p className="text-center text-xs text-muted-foreground mt-2">
               {filteredGardens.length} tuin{filteredGardens.length !== 1 ? 'en' : ''} gevonden
             </p>
           )}
@@ -306,17 +306,17 @@ function HomePageContent() {
 
       {/* Compact Error State */}
       {gardensError && (
-        <div className=""bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
-          <div className=""flex items-center gap-2 mb-2">
-            <AlertCircle className=""h-4 w-4 text-destructive" />
-            <span className=""text-sm font-medium text-destructive">Fout bij laden tuinen</span>
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <span className="text-sm font-medium text-destructive">Fout bij laden tuinen</span>
           </div>
-          <p className=""text-destructive text-xs mb-2">{gardensError.message}</p>
+          <p className="text-destructive text-xs mb-2">{gardensError.message}</p>
           <UnifiedButton
             onClick={() => refetchGardens()}
             variant="outline"
             size="compact"
-            className=""h-8 px-3 text-xs border-destructive text-destructive hover:bg-destructive/10"
+            className="h-8 px-3 text-xs border-destructive text-destructive hover:bg-destructive/10"
           >
             Opnieuw proberen
           </UnifiedButton>
@@ -325,25 +325,25 @@ function HomePageContent() {
 
       {/* Compact Loading State */}
       {gardensLoading && gardens.length === 0 && (
-        <div className=""space-y-4">
-          <div className=""text-center mb-3">
-            <div className=""inline-flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full mb-2">
-                              <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+        <div className="space-y-4">
+          <div className="text-center mb-3">
+            <div className="inline-flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full mb-2">
+                              <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
             </div>
-            <p className=""text-sm text-muted-foreground">Tuinen laden...</p>
+            <p className="text-sm text-muted-foreground">Tuinen laden...</p>
           </div>
           
-                    <div className=""grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 6 }).map((_, index) => (
-              <Card key={index} className=""overflow-hidden">
-                <CardHeader className=""pb-2 pt-3 px-3">
-                  <Skeleton className=""h-4 w-3/4 mb-2" />
-                  <Skeleton className=""h-3 w-1/2" />
+              <Card key={index} className="overflow-hidden">
+                <CardHeader className="pb-2 pt-3 px-3">
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-3 w-1/2" />
                 </CardHeader>
-                <CardContent className=""pt-0 pb-3 px-3">
-                  <div className=""flex flex-wrap gap-1.5">
+                <CardContent className="pt-0 pb-3 px-3">
+                  <div className="flex flex-wrap gap-1.5">
                     {Array.from({ length: 4 }).map((_, i) => (
-                      <Skeleton key={i} className=""h-6 w-16 rounded" />
+                      <Skeleton key={i} className="h-6 w-16 rounded" />
                     ))}
                   </div>
                 </CardContent>
@@ -357,12 +357,12 @@ function HomePageContent() {
       {!gardensLoading || gardens.length > 0 ? (
         <>
           {filteredGardens.length === 0 && !gardensLoading ? (
-            <div className=""text-center py-4">
-              <TreePine className=""h-8 w-8 text-muted-foreground mx-auto mb-2" />
-              <h3 className=""text-sm font-medium text-foreground mb-1">
+            <div className="text-center py-4">
+              <TreePine className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+              <h3 className="text-sm font-medium text-foreground mb-1">
                 {state.searchTerm ? 'Geen tuinen gevonden' : 'Nog geen tuinen'}
               </h3>
-              <p className=""text-muted-foreground mb-2 text-xs">
+              <p className="text-muted-foreground mb-2 text-xs">
                 {state.searchTerm 
                   ? `Geen resultaten voor "${state.searchTerm}"`
                   : 'Maak je eerste tuin aan'
@@ -373,16 +373,16 @@ function HomePageContent() {
                   onClick={() => router.push('/gardens/new')}
                   variant="primary"
                   size="compact"
-                  icon={<Plus className=""w-4 h-4" />}
-                  className=""h-8 px-3 text-xs"
+                  icon={<Plus className="w-4 h-4" />}
+                  className="h-8 px-3 text-xs"
                 >
                   Aanmaken
                 </UnifiedButton>
               )}
             </div>
           ) : (
-            <div className=""space-y-4 sm:space-y-6">
-                          <div className=""grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="space-y-4 sm:space-y-6">
+                          <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredGardens.map((garden) => (
                 <GardenCard
                   key={garden.id}
@@ -394,12 +394,12 @@ function HomePageContent() {
 
               {/* Load More Button */}
               {hasMore && !state.searchTerm && (
-                <div className=""text-center pt-4">
+                <div className="text-center pt-4">
                   <Button
                     onClick={handleLoadMore}
                     disabled={gardensLoading}
                     variant="outline"
-                    className=""w-full sm:w-auto min-w-32 border-green-300 text-green-700 hover:bg-green-50 dark:bg-green-950"
+                    className="w-full sm:w-auto min-w-32 border-green-300 text-green-700 hover:bg-green-50 dark:bg-green-950"
                   >
                     {gardensLoading ? 'Laden...' : 'Meer laden'}
                   </Button>
@@ -498,60 +498,60 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
   }
 
   return (
-    <Link href={`/gardens/${garden.id}`} className=""block">
+    <Link href={`/gardens/${garden.id}`} className="block">
       <Card 
-        className=""group hover:shadow-md transition-colors duration-150 border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 overflow-hidden relative cursor-pointer"
+        className="group hover:shadow-md transition-colors duration-150 border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 overflow-hidden relative cursor-pointer"
       >
-      <CardHeader className=""pb-2 pt-3 px-3">
-        <div className=""flex items-start justify-between">
-          <div className=""flex-1 min-w-0">
-            <CardTitle className=""text-sm font-medium text-foreground group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors truncate">
+      <CardHeader className="pb-2 pt-3 px-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-sm font-medium text-foreground group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors truncate">
               {garden.name}
             </CardTitle>
-            <div className=""flex items-center text-xs text-muted-foreground mt-1">
-              <MapPin className=""h-3 w-3 mr-1 flex-shrink-0" />
-              <span className=""truncate">{garden.location}</span>
+            <div className="flex items-center text-xs text-muted-foreground mt-1">
+              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+              <span className="truncate">{garden.location}</span>
             </div>
           </div>
-          <Badge variant="secondary" className=""text-xs px-2 py-0.5 h-5 bg-green-100 text-green-800 border-green-300">
+          <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5 bg-green-100 text-green-800 border-green-300">
             {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)}
           </Badge>
         </div>
       </CardHeader>
       
-      <CardContent className=""pt-0 pb-3 px-3">
+      <CardContent className="pt-0 pb-3 px-3">
         {/* Plant Preview */}
         {allFlowers.length > 0 ? (
-          <div className=""flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             {allFlowers.slice(0, 6).map((flower, index) => (
               <div
                 key={`${flower.id}-${index}`}
-                className=""inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 rounded-lg px-2 py-1.5 text-xs border border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors duration-150"
+                className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 rounded-lg px-2 py-1.5 text-xs border border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors duration-150"
                 title={flower.name}
               >
-                <span className=""text-sm">{getPlantEmoji(flower.name, flower.emoji)}</span>
-                <span className=""truncate max-w-16 font-medium text-green-800 dark:text-green-200">{flower.name}</span>
+                <span className="text-sm">{getPlantEmoji(flower.name, flower.emoji)}</span>
+                <span className="truncate max-w-16 font-medium text-green-800 dark:text-green-200">{flower.name}</span>
               </div>
             ))}
             {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-              <div className=""text-xs text-green-700 dark:text-green-300 px-2 py-1 bg-green-200 dark:bg-green-800/50 rounded-lg border border-green-300 dark:border-green-600 font-medium">
+              <div className="text-xs text-green-700 dark:text-green-300 px-2 py-1 bg-green-200 dark:bg-green-800/50 rounded-lg border border-green-300 dark:border-green-600 font-medium">
                 +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6} meer
               </div>
             )}
           </div>
         ) : (
-          <div className=""text-xs text-muted-foreground italic py-2 text-center">
+          <div className="text-xs text-muted-foreground italic py-2 text-center">
             Geen planten
           </div>
         )}
       </CardContent>
       
       {/* Footer met acties */}
-      <div className=""px-3 pb-3 flex items-center justify-between">
+      <div className="px-3 pb-3 flex items-center justify-between">
         <Button
           variant="ghost"
           size="sm"
-          className=""text-green-600 hover:text-green-700 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30 text-xs flex items-center"
+          className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30 text-xs flex items-center"
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
@@ -559,18 +559,18 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
             window.location.href = `/gardens/${garden.id}`
           }}
         >
-          <Leaf className=""h-4 w-4 mr-2" />
-          <span className=""text-sm font-medium">Beheren</span>
+          <Leaf className="h-4 w-4 mr-2" />
+          <span className="text-sm font-medium">Beheren</span>
         </Button>
         
         <Button
           onClick={handleDeleteClick}
           variant="ghost"
           size="sm"
-          className=""text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
           onMouseDown={(e) => e.preventDefault()}
         >
-          <Trash2 className=""h-3 w-3 mr-1" />
+          <Trash2 className="h-3 w-3 mr-1" />
           Verwijderen
         </Button>
       </div>
@@ -600,23 +600,23 @@ function RoleBasedHomeContent() {
   } else {
     // Users get the exact same task interface as admin /tasks page
     return (
-      <div className=""container mx-auto p-4 max-w-4xl">
+      <div className="container mx-auto p-4 max-w-4xl">
         {/* Header with Logbook button */}
-        <div className=""mb-6">
-          <div className=""flex justify-between items-center mb-4">
-            <div className=""flex items-center gap-3">
-              <Calendar className=""w-7 h-7 text-green-700" />
-              <h1 className=""text-3xl font-extrabold text-foreground tracking-tight">Mijn Taken</h1>
+        <div className="mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-7 h-7 text-green-700" />
+              <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Mijn Taken</h1>
             </div>
             <Button 
               onClick={() => router.push('/logbook')}
               variant="outline"
-              className=""text-sm"
+              className="text-sm"
             >
               Logboek
             </Button>
           </div>
-          <p className=""text-muted-foreground">
+          <p className="text-muted-foreground">
             Bekijk en beheer je tuintaken per week. Zie welke planten aandacht nodig hebben.
           </p>
         </div>

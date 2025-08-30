@@ -73,7 +73,7 @@ export function FlowerVisualization({
 
   return (
     <div 
-      className=""relative"
+      className="relative"
       style={{ width: containerWidth, height: containerHeight }}
     >
       {flowerInstances.map((flower) => (

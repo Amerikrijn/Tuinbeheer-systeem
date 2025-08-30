@@ -17,12 +17,12 @@ export function BankingLoadingState({
   
   return (
     <div 
-      className=""banking-loading"
+      className="banking-loading"
       role="status" 
       aria-live="polite"
       aria-label={message}
     >
-      <div className=""skeleton-container space-y-2">
+      <div className="skeleton-container space-y-2">
         {Array.from({ length: config.rows }, (_, i) => (
           <div 
             key={i}
@@ -32,7 +32,7 @@ export function BankingLoadingState({
         ))}
       </div>
       
-      <span className=""sr-only">{message}</span>
+      <span className="sr-only">{message}</span>
     </div>
   );
 }

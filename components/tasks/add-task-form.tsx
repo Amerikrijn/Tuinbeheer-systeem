@@ -190,10 +190,10 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className=""max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className=""flex items-center gap-2">
-            <Plus className=""w-5 h-5" />
+          <DialogTitle className="flex items-center gap-2">
+            <Plus className="w-5 h-5" />
             Nieuwe Taak Toevoegen
           </DialogTitle>
           <DialogDescription>
@@ -201,10 +201,10 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className=""space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Task Level Selection */}
           {!preselectedPlantId && !preselectedPlantBedId && (
-            <div className=""space-y-2">
+            <div className="space-y-2">
               <Label>Taak Niveau *</Label>
               <Select
                 value={taskLevel}
@@ -230,7 +230,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
 
           {/* Plant Selection (when task level is 'plant') */}
           {taskLevel === 'plant' && (
-            <div className=""space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="plant">Bloem *</Label>
               <Select
                 value={formData.plant_id || ''}
@@ -243,9 +243,9 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
                 <SelectContent>
                   {plants.map((plant) => (
                     <SelectItem key={plant.id} value={plant.id}>
-                      <div className=""flex flex-col">
-                        <span className=""font-medium">{plant.name}</span>
-                        <span className=""text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{plant.name}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {plant.plant_beds.name} • {plant.plant_beds.gardens.name}
                         </span>
                       </div>
@@ -258,7 +258,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
 
           {/* Plant Bed Selection (when task level is 'plantbed') */}
           {taskLevel === 'plantbed' && (
-            <div className=""space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="plantbed">Plantvak *</Label>
               <Select
                 value={formData.plant_bed_id || ''}
@@ -271,9 +271,9 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
                 <SelectContent>
                   {plantBeds.map((bed) => (
                     <SelectItem key={bed.id} value={bed.id}>
-                      <div className=""flex flex-col">
-                        <span className=""font-medium">{bed.name}</span>
-                        <span className=""text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{bed.name}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {bed.gardens.name}
                         </span>
                       </div>
@@ -285,7 +285,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
           )}
 
           {/* Task Type */}
-          <div className=""space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="task_type">Type Taak *</Label>
             <Select
               value={formData.task_type}
@@ -298,7 +298,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
               <SelectContent>
                 {TASK_TYPE_CONFIGS.map((config) => (
                   <SelectItem key={config.value} value={config.value}>
-                    <div className=""flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                       <span>{config.icon}</span>
                       <span>{config.label}</span>
                     </div>
@@ -309,7 +309,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
           </div>
 
           {/* Title */}
-          <div className=""space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="title">Taak Titel *</Label>
             <Input
               id="title"
@@ -321,7 +321,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
           </div>
 
           {/* Due Date */}
-          <div className=""space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="due_date">Uitvoerdatum *</Label>
             <Input
               id="due_date"
@@ -333,7 +333,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
           </div>
 
           {/* Priority */}
-          <div className=""space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="priority">Prioriteit</Label>
             <Select
               value={formData.priority}
@@ -353,7 +353,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
           </div>
 
           {/* Description */}
-          <div className=""space-y-2">
+          <div className="space-y-2">
             <Label htmlFor="description">Beschrijving</Label>
             <Textarea
               id="description"
@@ -365,19 +365,19 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
           </div>
 
           {/* Actions */}
-          <div className=""flex gap-2 pt-4">
+          <div className="flex gap-2 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className=""flex-1"
+              className="flex-1"
             >
               Annuleren
             </Button>
             <Button
               type="submit"
               disabled={loading || (!formData.plant_id && !formData.plant_bed_id) || !formData.title.trim()}
-              className=""flex-1 bg-green-600 dark:bg-green-700 hover:bg-green-700"
+              className="flex-1 bg-green-600 dark:bg-green-700 hover:bg-green-700"
             >
               {loading ? 'Toevoegen...' : 'Taak Toevoegen'}
             </Button>

@@ -61,9 +61,9 @@ export function LogbookList() {
 
   // 🚀 PERFORMANCE: Skeleton loading for better perceived performance
   const LogbookSkeleton = () => (
-    <div className=""animate-pulse grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="animate-pulse grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className=""h-32 bg-green-100 dark:bg-green-900/30 rounded" />
+        <div key={i} className="h-32 bg-green-100 dark:bg-green-900/30 rounded" />
       ))}
     </div>
   )
@@ -75,13 +75,13 @@ export function LogbookList() {
 
   if (loading) {
     return (
-      <div className=""space-y-6">
-        <div className=""flex justify-between items-center">
-          <h2 className=""text-xl font-semibold text-foreground dark:text-white dark:text-black">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-foreground dark:text-white dark:text-black">
             Recente Logboek Entries
           </h2>
           <Button disabled>
-            <Plus className=""w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4 mr-2" />
             Nieuwe Entry
           </Button>
         </div>
@@ -92,34 +92,34 @@ export function LogbookList() {
 
   if (error) {
     return (
-      <div className=""space-y-6">
-        <div className=""flex justify-between items-center">
-          <h2 className=""text-xl font-semibold text-foreground dark:text-white dark:text-black">
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-foreground dark:text-white dark:text-black">
             Recente Logboek Entries
           </h2>
           <Link href="/logbook/new">
             <Button>
-              <Plus className=""w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               Nieuwe Entry
             </Button>
           </Link>
         </div>
         
         <Card>
-          <CardContent className=""pt-6">
-            <div className=""text-center py-8">
-              <AlertCircle className=""w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
-              <h3 className=""text-lg font-medium text-foreground dark:text-white dark:text-black mb-2">
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <AlertCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground dark:text-white dark:text-black mb-2">
                 Fout bij laden
               </h3>
-              <p className=""text-muted-foreground dark:text-gray-400 mb-4">
+              <p className="text-muted-foreground dark:text-gray-400 mb-4">
                 {error}
               </p>
               <Button onClick={handleRefresh} disabled={refreshing}>
                 {refreshing ? (
-                  <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                  <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                 ) : (
-                  <Calendar className=""w-4 h-4 mr-2" />
+                  <Calendar className="w-4 h-4 mr-2" />
                 )}
                 Opnieuw proberen
               </Button>
@@ -131,12 +131,12 @@ export function LogbookList() {
   }
 
   return (
-    <div className=""space-y-6">
-      <div className=""flex justify-between items-center">
-        <h2 className=""text-xl font-semibold text-foreground dark:text-white dark:text-black">
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold text-foreground dark:text-white dark:text-black">
           Recente Logboek Entries
         </h2>
-        <div className=""flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Button 
             onClick={handleRefresh} 
             variant="outline" 
@@ -144,14 +144,14 @@ export function LogbookList() {
             disabled={refreshing}
           >
             {refreshing ? (
-              <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
             ) : (
-              <Calendar className=""w-4 h-4" />
+              <Calendar className="w-4 h-4" />
             )}
           </Button>
           <Link href="/logbook/new">
             <Button>
-              <Plus className=""w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               Nieuwe Entry
             </Button>
           </Link>
@@ -160,18 +160,18 @@ export function LogbookList() {
 
       {entries.length === 0 ? (
         <Card>
-          <CardContent className=""pt-6">
-            <div className=""text-center py-8">
-              <FileText className=""w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
-              <h3 className=""text-lg font-medium text-foreground dark:text-white dark:text-black mb-2">
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <FileText className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground dark:text-white dark:text-black mb-2">
                 Geen logboek entries gevonden
               </h3>
-              <p className=""text-muted-foreground dark:text-gray-400 mb-4">
+              <p className="text-muted-foreground dark:text-gray-400 mb-4">
                 Begin met het maken van je eerste logboek entry om bij te houden wat er gebeurt in je tuin.
               </p>
               <Link href="/logbook/new">
                 <Button>
-                  <Plus className=""w-4 h-4 mr-2" />
+                  <Plus className="w-4 h-4 mr-2" />
                   Eerste Entry Maken
                 </Button>
               </Link>
@@ -179,21 +179,21 @@ export function LogbookList() {
           </CardContent>
         </Card>
       ) : (
-        <div className=""grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {entries.map((entry) => (
-            <Card key={entry.id} className=""hover:shadow-md transition-shadow">
+            <Card key={entry.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <CardTitle className=""text-lg">{entry.notes ? (entry.notes.length > 50 ? entry.notes.slice(0, 50) + '…' : entry.notes) : 'Logboek entry'}</CardTitle>
-                <div className=""flex items-center text-sm text-muted-foreground dark:text-gray-400">
-                  <Calendar className=""w-4 h-4 mr-1" />
+                <CardTitle className="text-lg">{entry.notes ? (entry.notes.length > 50 ? entry.notes.slice(0, 50) + '…' : entry.notes) : 'Logboek entry'}</CardTitle>
+                <div className="flex items-center text-sm text-muted-foreground dark:text-gray-400">
+                  <Calendar className="w-4 h-4 mr-1" />
                   {new Date(entry.created_at).toLocaleDateString('nl-NL')}
                 </div>
               </CardHeader>
               <CardContent>
-                <p className=""text-muted-foreground dark:text-gray-300 line-clamp-3">
+                <p className="text-muted-foreground dark:text-gray-300 line-clamp-3">
                   {entry.notes}
                 </p>
-                <div className=""mt-4">
+                <div className="mt-4">
                   <Link href={`/logbook/${entry.id}`}>
                     <Button variant="outline" size="sm">
                       Bekijk Details

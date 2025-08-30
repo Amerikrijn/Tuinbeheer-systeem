@@ -135,11 +135,11 @@ export function PlantVisualization({ plantBed, plants, containerWidth, container
   }
 
   return (
-    <div className=""absolute inset-0 pointer-events-none overflow-hidden">
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
       {flowerInstances.map((flower: FlowerInstance, index: number) => (
         <div
           key={flower.id}
-          className=""absolute transition-all duration-500 ease-in-out"
+          className="absolute transition-all duration-500 ease-in-out"
           style={{
             left: flower.x - flower.size / 2,
             top: flower.y - flower.size / 2,
@@ -152,7 +152,7 @@ export function PlantVisualization({ plantBed, plants, containerWidth, container
         >
           {/* Simple flower box */}
           <div
-            className=""w-full h-full border-2 border-gray-400 dark:border-gray-400 dark:border-gray-300 rounded-lg bg-background/95 shadow-md flex flex-col items-center justify-center"
+            className="w-full h-full border-2 border-gray-400 dark:border-gray-400 dark:border-gray-300 rounded-lg bg-background/95 shadow-md flex flex-col items-center justify-center"
             style={{
               borderColor: `${flower.color}80`,
               backgroundColor: `${flower.color}25`,
@@ -160,7 +160,7 @@ export function PlantVisualization({ plantBed, plants, containerWidth, container
           >
             {/* Flower emoji */}
             <span 
-              className=""select-none"
+              className="select-none"
               style={{
                 fontSize: Math.max(12, flower.size * 0.4),
                 filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))',
@@ -172,7 +172,7 @@ export function PlantVisualization({ plantBed, plants, containerWidth, container
             {/* Flower name - only show if there's space */}
             {flower.size > 30 && (
               <div 
-                className=""text-xs font-medium text-gray-800 dark:text-gray-100 mt-1 text-center select-none"
+                className="text-xs font-medium text-gray-800 dark:text-gray-100 mt-1 text-center select-none"
                 style={{
                   fontSize: Math.max(6, flower.size * 0.2),
                   maxWidth: flower.size * 0.9,
@@ -190,7 +190,7 @@ export function PlantVisualization({ plantBed, plants, containerWidth, container
           {/* Glow effect for main flowers */}
           {flower.isMainFlower && (
             <div
-              className=""absolute inset-0 rounded-full opacity-20 blur-sm -z-10"
+              className="absolute inset-0 rounded-full opacity-20 blur-sm -z-10"
               style={{
                 backgroundColor: flower.color,
                 transform: 'scale(1.5)',
@@ -202,11 +202,11 @@ export function PlantVisualization({ plantBed, plants, containerWidth, container
 
       {/* Subtle natural particles */}
       {containerWidth > 150 && containerHeight > 150 && plants.length > 0 && (
-        <div className=""absolute inset-0 pointer-events-none">
+        <div className="absolute inset-0 pointer-events-none">
           {[...Array(Math.min(1, Math.floor(plants.length / 3)))].map((_, i) => (
             <div
               key={`particle-${i}`}
-              className=""absolute opacity-10"
+              className="absolute opacity-10"
               style={{
                 fontSize: '8px',
                 left: Math.random() * (containerWidth - 16),

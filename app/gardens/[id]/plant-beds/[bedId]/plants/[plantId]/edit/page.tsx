@@ -256,14 +256,14 @@ export default function EditPlantPage() {
 
   if (loading) {
     return (
-      <div className=""container mx-auto p-6">
-        <div className=""animate-pulse space-y-6">
-          <div className=""h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
-          <div className=""h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-          <div className=""space-y-4">
-            <div className=""h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className=""h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className=""h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+          <div className="space-y-4">
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </div>
         </div>
       </div>
@@ -272,13 +272,13 @@ export default function EditPlantPage() {
 
   if (!plant) {
     return (
-      <div className=""container mx-auto p-6">
-        <div className=""text-center">
-          <h2 className=""text-2xl font-bold text-foreground mb-4">Plant niet gevonden</h2>
-          <p className=""text-muted-foreground mb-6">De opgevraagde plant bestaat niet of is verwijderd.</p>
+      <div className="container mx-auto p-6">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-foreground mb-4">Plant niet gevonden</h2>
+          <p className="text-muted-foreground mb-6">De opgevraagde plant bestaat niet of is verwijderd.</p>
           <Button asChild>
             <Link href={`/gardens/${params.id}/plantvak-view/${params.bedId}`}>
-              <ArrowLeft className=""h-4 w-4 mr-2" />
+              <ArrowLeft className="h-4 w-4 mr-2" />
               Terug naar plantvak
             </Link>
           </Button>
@@ -288,29 +288,29 @@ export default function EditPlantPage() {
   }
 
   return (
-    <div className=""container mx-auto p-6 max-w-4xl">
+    <div className="container mx-auto p-6 max-w-4xl">
       {/* Back button */}
-      <Button asChild variant="ghost" className=""mb-6">
+      <Button asChild variant="ghost" className="mb-6">
         <Link href={`/gardens/${params.id}/plantvak-view/${params.bedId}`}>
-          <ArrowLeft className=""h-4 w-4 mr-2" />
+          <ArrowLeft className="h-4 w-4 mr-2" />
           Terug naar plantvak
         </Link>
       </Button>
 
       {/* Header */}
-      <div className=""mb-8">
-        <h1 className=""text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
-          <Leaf className=""h-8 w-8 text-green-600 dark:text-green-400" />
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
+          <Leaf className="h-8 w-8 text-green-600 dark:text-green-400" />
           Plant Bewerken
         </h1>
-        <div className=""text-muted-foreground">
+        <div className="text-muted-foreground">
           <p>{plant.name}</p>
         </div>
       </div>
 
-      <div className=""grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Plant Form */}
-        <div className=""lg:col-span-2">
+        <div className="lg:col-span-2">
                       <Card>
               <CardHeader>
                 <CardTitle>Plant Details</CardTitle>
@@ -330,16 +330,16 @@ export default function EditPlantPage() {
         </div>
 
         {/* Sidebar */}
-        <div className=""space-y-6">
+        <div className="space-y-6">
           {/* Actions */}
           <Card>
             <CardHeader>
               <CardTitle>Acties</CardTitle>
             </CardHeader>
-            <CardContent className=""space-y-3">
+            <CardContent className="space-y-3">
               <Button
                 onClick={() => setShowAddTask(true)}
-                className=""w-full"
+                className="w-full"
                 variant="outline"
               >
                 Taak toevoegen
@@ -348,10 +348,10 @@ export default function EditPlantPage() {
               <Button 
                 onClick={handleDelete}
                 variant="destructive" 
-                className=""w-full"
+                className="w-full"
                 disabled={deleting}
               >
-                <Trash2 className=""h-4 w-4 mr-2" />
+                <Trash2 className="h-4 w-4 mr-2" />
                 {deleting ? 'Verwijderen...' : 'Plant verwijderen'}
               </Button>
             </CardContent>
@@ -364,9 +364,9 @@ export default function EditPlantPage() {
                 <CardTitle>Taken ({tasks.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className=""space-y-2">
+                <div className="space-y-2">
                   {tasks.slice(0, 3).map((task) => (
-                    <div key={task.id} className=""flex items-center gap-2 text-sm">
+                    <div key={task.id} className="flex items-center gap-2 text-sm">
                       <div className={{`w-2 h-2 rounded-full ${
                         task.completed ? 'bg-green-500 dark:bg-green-600' : 
                         task.priority === 'high' ? 'bg-red-500 dark:bg-red-600' : 
@@ -378,7 +378,7 @@ export default function EditPlantPage() {
                     </div>
                   ))}
                   {tasks.length > 3 && (
-                    <p className=""text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       En {tasks.length - 3} meer...
                     </p>
                   )}

@@ -325,23 +325,23 @@ function NewLogbookPageContent() {
 
   if (state.loading) {
     return (
-      <div className=""container mx-auto px-4 py-8">
-        <div className=""max-w-2xl mx-auto">
-          <div className=""mb-6">
-            <div className=""h-8 w-32 bg-muted rounded animate-pulse mb-4" />
-            <div className=""h-10 w-3/4 bg-muted rounded animate-pulse mb-2" />
-            <div className=""h-4 w-1/2 bg-muted rounded animate-pulse" />
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="mb-6">
+            <div className="h-8 w-32 bg-muted rounded animate-pulse mb-4" />
+            <div className="h-10 w-3/4 bg-muted rounded animate-pulse mb-2" />
+            <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
           </div>
           
           <Card>
             <CardHeader>
-              <div className=""h-6 w-1/3 bg-muted rounded animate-pulse" />
+              <div className="h-6 w-1/3 bg-muted rounded animate-pulse" />
             </CardHeader>
-            <CardContent className=""space-y-4">
+            <CardContent className="space-y-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i}>
-                  <div className=""h-4 w-1/4 bg-muted rounded animate-pulse mb-2" />
-                  <div className=""h-10 w-full bg-muted rounded animate-pulse" />
+                  <div className="h-4 w-1/4 bg-muted rounded animate-pulse mb-2" />
+                  <div className="h-10 w-full bg-muted rounded animate-pulse" />
                 </div>
               ))}
             </CardContent>
@@ -353,20 +353,20 @@ function NewLogbookPageContent() {
 
   if (state.error) {
     return (
-      <div className=""container mx-auto px-4 py-8">
-        <div className=""max-w-2xl mx-auto text-center">
-          <div className=""text-red-600 dark:text-red-400 mb-4">
-            <Calendar className=""h-12 w-12 mx-auto mb-2" />
-            <h2 className=""text-xl font-semibold">Fout bij laden gegevens</h2>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="text-red-600 dark:text-red-400 mb-4">
+            <Calendar className="h-12 w-12 mx-auto mb-2" />
+            <h2 className="text-xl font-semibold">Fout bij laden gegevens</h2>
           </div>
-          <p className=""text-muted-foreground mb-4">{state.error}</p>
-          <div className=""flex gap-2 justify-center">
+          <p className="text-muted-foreground mb-4">{state.error}</p>
+          <div className="flex gap-2 justify-center">
             <Button onClick={loadData} variant="outline">
               Opnieuw proberen
             </Button>
             <Button asChild variant="ghost">
               <Link href="/logbook">
-                <ArrowLeft className=""h-4 w-4 mr-2" />
+                <ArrowLeft className="h-4 w-4 mr-2" />
                 Terug naar logboek
               </Link>
             </Button>
@@ -377,22 +377,22 @@ function NewLogbookPageContent() {
   }
 
   return (
-    <div className=""container mx-auto px-4 py-8 safe-area-px">
-      <div className=""max-w-2xl mx-auto">
+    <div className="container mx-auto px-4 py-8 safe-area-px">
+      <div className="max-w-2xl mx-auto">
         {/* Back button */}
-        <Button asChild variant="ghost" className=""mb-6">
+        <Button asChild variant="ghost" className="mb-6">
           <Link href="/logbook">
-            <ArrowLeft className=""h-4 w-4 mr-2" />
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar logboek
           </Link>
         </Button>
 
         {/* Header */}
-        <div className=""mb-8">
-          <h1 className=""text-3xl font-bold text-foreground mb-2">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Nieuwe Logboek Entry
           </h1>
-          <p className=""text-muted-foreground">
+          <p className="text-muted-foreground">
             Voeg een nieuwe entry toe aan het logboek voor je tuin.
           </p>
         </div>
@@ -403,11 +403,11 @@ function NewLogbookPageContent() {
             <CardTitle>Entry Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className=""space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               {/* Plant bed selection */}
-              <div className=""space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="plant_bed_id">
-                  Plantvak <span className=""text-red-500 dark:text-red-400">*</span>
+                  Plantvak <span className="text-red-500 dark:text-red-400">*</span>
                 </Label>
                 <Select 
                   value={state.formData.plant_bed_id} 
@@ -428,7 +428,7 @@ function NewLogbookPageContent() {
 
               {/* Plant selection (optional) */}
               {state.formData.plant_bed_id && state.plants.length > 0 && (
-                <div className=""space-y-2">
+                <div className="space-y-2">
                   <Label htmlFor="plant_id">Plant (optioneel)</Label>
                   <Select 
                     value={state.formData.plant_id} 
@@ -451,9 +451,9 @@ function NewLogbookPageContent() {
               )}
 
               {/* Date */}
-              <div className=""space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="entry_date">
-                  Datum <span className=""text-red-500 dark:text-red-400">*</span>
+                  Datum <span className="text-red-500 dark:text-red-400">*</span>
                 </Label>
                 <Input
                   id="entry_date"
@@ -465,9 +465,9 @@ function NewLogbookPageContent() {
               </div>
 
               {/* Notes */}
-              <div className=""space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="notes">
-                  Opmerkingen <span className=""text-red-500 dark:text-red-400">*</span>
+                  Opmerkingen <span className="text-red-500 dark:text-red-400">*</span>
                 </Label>
                 <Textarea
                   id="notes"
@@ -477,36 +477,36 @@ function NewLogbookPageContent() {
                   rows={6}
                   required
                 />
-                <p className=""text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   {state.formData.notes.length} karakters
                 </p>
               </div>
 
               {/* Photo upload */}
-              <div className=""space-y-2">
+              <div className="space-y-2">
                 <Label htmlFor="photo">Foto (optioneel)</Label>
                 
                 {state.photoPreview ? (
-                  <div className=""relative">
+                  <div className="relative">
                     <img 
                       src={state.photoPreview} 
                       alt="Preview"
-                      className=""w-full max-h-64 object-cover rounded-lg"
+                      className="w-full max-h-64 object-cover rounded-lg"
                     />
                     <Button
                       type="button"
                       variant="destructive"
                       size="sm"
-                      className=""absolute top-2 right-2"
+                      className="absolute top-2 right-2"
                       onClick={removePhoto}
                     >
-                      <X className=""h-4 w-4" />
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ) : (
-                  <div className=""border-2 border-dashed border-gray-300 dark:border-gray-500 rounded-lg p-6 text-center">
-                    <Camera className=""h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-                    <p className=""text-sm text-muted-foreground mb-2">
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-500 rounded-lg p-6 text-center">
+                    <Camera className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground mb-2">
                       Klik om een foto toe te voegen
                     </p>
                     <Input
@@ -514,7 +514,7 @@ function NewLogbookPageContent() {
                       type="file"
                       accept="image/*"
                       onChange={handlePhotoChange}
-                      className=""hidden"
+                      className="hidden"
                     />
                     <Button
                       type="button"
@@ -524,28 +524,28 @@ function NewLogbookPageContent() {
                     >
                       {state.uploadingPhoto ? (
                         <>
-                          <div className=""h-4 w-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                          <div className="h-4 w-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                           Uploaden...
                         </>
                       ) : (
                         <>
-                          <Upload className=""h-4 w-4 mr-2" />
+                          <Upload className="h-4 w-4 mr-2" />
                           Foto selecteren
                         </>
                       )}
                     </Button>
                   </div>
                 )}
-                <p className=""text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Ondersteunde formaten: JPG, PNG, GIF. Maximaal 5MB.
                 </p>
               </div>
 
               {/* Preview */}
               {selectedPlantBed && (
-                <div className=""bg-muted rounded-lg p-4">
-                  <h3 className=""font-medium text-foreground mb-2">Preview</h3>
-                  <div className=""text-sm text-muted-foreground space-y-1">
+                <div className="bg-muted rounded-lg p-4">
+                  <h3 className="font-medium text-foreground mb-2">Preview</h3>
+                  <div className="text-sm text-muted-foreground space-y-1">
                     <p><strong>Plantvak:</strong> {selectedPlantBed.name}</p>
                     {selectedPlant && (
                       <p><strong>Plant:</strong> {selectedPlant.name}
@@ -563,15 +563,15 @@ function NewLogbookPageContent() {
               )}
 
               {/* Submit buttons */}
-              <div className=""flex gap-3 pt-4">
+              <div className="flex gap-3 pt-4">
                 <Button
                   type="submit"
                   disabled={state.submitting || state.uploadingPhoto || !state.formData.plant_bed_id || !state.formData.notes.trim()}
-                  className=""flex-1"
+                  className="flex-1"
                 >
                   {state.submitting ? (
                     <>
-                      <div className=""h-4 w-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                      <div className="h-4 w-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                       Opslaan...
                     </>
                   ) : (
