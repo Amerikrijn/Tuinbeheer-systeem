@@ -15,11 +15,8 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive, X, Trash2 } from "lucide-react"
-import { UnifiedHeader } from "@/components/ui/unified-header"
-import { UnifiedCard } from "@/components/ui/unified-card"
-import { UnifiedButton } from "@/components/ui/unified-button"
-import { MobileFirstGrid } from "@/components/ui/unified-grid"
-import { MobileSearch } from "@/components/ui/unified-search"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { TuinService, TuinServiceEnhanced, PlantBedService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { getPlantBedsOptimized } from "@/lib/database-optimized"
@@ -273,7 +270,7 @@ function HomePageContent() {
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl safe-area-px">
-      {/* Minimalist Header - Space Efficient */}
+      {/* Simple Header */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
@@ -284,26 +281,27 @@ function HomePageContent() {
           </h1>
         </div>
         
-        <UnifiedButton
-          variant="primary"
-          size="compact"
+        <Button
           onClick={() => router.push('/gardens/new')}
-          icon={<Plus className="w-4 h-4" />}
-          className="h-10 px-4"
+          className="h-10 px-4 bg-green-600 hover:bg-green-700 text-white"
         >
+          <Plus className="w-4 h-4 mr-2" />
           Toevoegen
-        </UnifiedButton>
+        </Button>
       </div>
 
-      {/* Compact Search */}
+      {/* Simple Search */}
       <div className="mb-4">
         <div className="max-w-md mx-auto">
-          <MobileSearch
-            value={state.searchTerm}
-            onChange={(value) => setState(prev => ({ ...prev, searchTerm: value }))}
-            placeholder="🔍 Zoek tuinen..."
-            fullWidth={true}
-          />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 dark:text-green-400 w-4 h-4" />
+            <Input
+              placeholder="🔍 Zoek tuinen..."
+              value={state.searchTerm}
+              onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
+              className="pl-9 border-green-300 focus:border-green-500"
+            />
+          </div>
           {state.searchTerm && (
             <p className="text-center text-xs text-muted-foreground mt-2">
               {filteredGardens.length} tuin{filteredGardens.length !== 1 ? 'en' : ''} gevonden
@@ -341,7 +339,7 @@ function HomePageContent() {
             <p className="text-sm text-muted-foreground">Tuinen laden...</p>
           </div>
           
-                    <MobileFirstGrid>
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 6 }).map((_, index) => (
               <Card key={index} className="overflow-hidden">
                 <CardHeader className="pb-2 pt-3 px-3">
@@ -357,7 +355,7 @@ function HomePageContent() {
                 </CardContent>
               </Card>
             ))}
-          </MobileFirstGrid>
+          </div>
         </div>
       )}
 
@@ -390,7 +388,7 @@ function HomePageContent() {
             </div>
           ) : (
             <div className="space-y-4 sm:space-y-6">
-                          <MobileFirstGrid>
+                          <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredGardens.map((garden) => (
                 <GardenCard
                   key={garden.id}
@@ -398,22 +396,19 @@ function HomePageContent() {
                   onDelete={handleDeleteGarden}
                 />
               ))}
-            </MobileFirstGrid>
+            </div>
 
-              {/* Unified Load More Button */}
+              {/* Load More Button */}
               {hasMore && !state.searchTerm && (
                 <div className="text-center pt-4">
-                  <UnifiedButton
+                  <Button
                     onClick={handleLoadMore}
                     disabled={gardensLoading}
                     variant="outline"
-                    size="compact"
-                    loading={gardensLoading}
-                    fullWidth={true}
-                    className="sm:w-auto min-w-32"
+                    className="w-full sm:w-auto min-w-32 border-green-300 text-green-700 hover:bg-green-50"
                   >
                     {gardensLoading ? 'Laden...' : 'Meer laden'}
-                  </UnifiedButton>
+                  </Button>
                 </div>
               )}
             </div>
@@ -509,64 +504,72 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
   }
 
   return (
-    <div onClick={() => router.push(`/gardens/${garden.id}`)} className="cursor-pointer">
-      <UnifiedCard
-        variant="compact"
-        hover={true}
-        header={{
-          title: garden.name,
-          subtitle: garden.location,
-          badge: (
-            <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5 bg-green-100 text-green-800 border-green-300">
-              {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)}
-            </Badge>
-          )
-        }}
-        footer={
-          <div className="flex items-center justify-between">
-            <div className="flex items-center text-green-600 dark:text-green-400">
-              <Leaf className="h-4 w-4 mr-2" />
-              <span className="text-sm font-medium">Beheren</span>
+    <Card 
+      className="group hover:shadow-md transition-colors duration-150 border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 overflow-hidden relative cursor-pointer"
+      onClick={() => router.push(`/gardens/${garden.id}`)}
+    >
+      <CardHeader className="pb-2 pt-3 px-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-sm font-medium text-foreground group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors truncate">
+              {garden.name}
+            </CardTitle>
+            <div className="flex items-center text-xs text-muted-foreground mt-1">
+              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+              <span className="truncate">{garden.location}</span>
             </div>
-            
-            <Button
-              onClick={handleDeleteClick}
-              variant="ghost"
-              size="sm"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-            >
-              <Trash2 className="h-3 w-3 mr-1" />
-              Verwijderen
-            </Button>
           </div>
-        }
-      >
-      {/* Plant Preview */}
-      {allFlowers.length > 0 ? (
-        <div className="flex flex-wrap gap-1.5">
-          {allFlowers.slice(0, 6).map((flower, index) => (
-            <div
-              key={`${flower.id}-${index}`}
-              className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 rounded-lg px-2 py-1.5 text-xs border border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors duration-150"
-              title={flower.name}
-            >
-              <span className="text-sm">{getPlantEmoji(flower.name, flower.emoji)}</span>
-              <span className="truncate max-w-16 font-medium text-green-800 dark:text-green-200">{flower.name}</span>
-            </div>
-          ))}
-          {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-            <div className="text-xs text-green-700 dark:text-green-300 px-2 py-1 bg-green-200 dark:bg-green-800/50 rounded-lg border border-green-300 dark:border-green-600 font-medium">
-              +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6} meer
-            </div>
-          )}
+          <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5 bg-green-100 text-green-800 border-green-300">
+            {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)}
+          </Badge>
         </div>
-      ) : (
-        <div className="text-xs text-muted-foreground italic py-2 text-center">
-          Geen planten
+      </CardHeader>
+      
+      <CardContent className="pt-0 pb-3 px-3">
+        {/* Plant Preview */}
+        {allFlowers.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {allFlowers.slice(0, 6).map((flower, index) => (
+              <div
+                key={`${flower.id}-${index}`}
+                className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 rounded-lg px-2 py-1.5 text-xs border border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors duration-150"
+                title={flower.name}
+              >
+                <span className="text-sm">{getPlantEmoji(flower.name, flower.emoji)}</span>
+                <span className="truncate max-w-16 font-medium text-green-800 dark:text-green-200">{flower.name}</span>
+              </div>
+            ))}
+            {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
+              <div className="text-xs text-green-700 dark:text-green-300 px-2 py-1 bg-green-200 dark:bg-green-800/50 rounded-lg border border-green-300 dark:border-green-600 font-medium">
+                +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6} meer
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-xs text-muted-foreground italic py-2 text-center">
+            Geen planten
+          </div>
+        )}
+      </CardContent>
+      
+      {/* Footer met acties */}
+      <div className="px-3 pb-3 flex items-center justify-between">
+        <div className="flex items-center text-green-600 dark:text-green-400">
+          <Leaf className="h-4 w-4 mr-2" />
+          <span className="text-sm font-medium">Beheren</span>
         </div>
-      )}
-      </UnifiedCard>
-    </div>
+        
+        <Button
+          onClick={handleDeleteClick}
+          variant="ghost"
+          size="sm"
+          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+        >
+          <Trash2 className="h-3 w-3 mr-1" />
+          Verwijderen
+        </Button>
+      </div>
+    </Card>
   )
 }
 
