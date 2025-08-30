@@ -13,15 +13,18 @@ export function QueryClientProvider({ children }: QueryClientProviderProps) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
-        retry: 2,
+        staleTime: 30 * 60 * 1000, // 30 minutes - increased to reduce refetches
+        gcTime: 60 * 60 * 1000, // 60 minutes - keep data longer in cache
+        retry: 1, // Reduced retries to prevent hanging
         refetchOnWindowFocus: false,
         retryOnMount: false,
         refetchOnReconnect: false,
+        structuralSharing: true, // Enable structural sharing for better performance
+        networkMode: 'offlineFirst', // Prioritize cached data
       },
       mutations: { 
-        retry: false 
+        retry: false,
+        networkMode: 'offlineFirst', // Prioritize offline operations
       },
     },
   }))

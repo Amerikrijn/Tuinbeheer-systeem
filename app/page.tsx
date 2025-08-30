@@ -30,6 +30,7 @@ import { sortTasks, getTaskUrgency, getTaskUrgencyStyles } from "@/lib/utils/tas
 import { WeeklyTaskList } from "@/components/tasks/weekly-task-list"
 import { SimpleTasksView } from "@/components/user/simple-tasks-view"
 import { getUserFriendlyErrorMessage } from "@/lib/errors"
+import { performanceMonitor, useRenderTracking, measurePerformance } from "@/lib/utils/performance-monitor"
 
 interface HomePageState {
   searchTerm: string
@@ -43,6 +44,9 @@ function HomePageContent() {
   const { toast } = useToast()
   const { user, isAdmin } = useAuth()
   
+  // Track component renders in development
+  useRenderTracking('HomePageContent')
+  
   const [state, setState] = React.useState<HomePageState>({
     searchTerm: "",
     page: 1,
@@ -53,14 +57,16 @@ function HomePageContent() {
     data: gardensData,
     isLoading: gardensLoading,
     error: gardensError,
-    refetch: refetchGardens
+    refetch: refetchGardens,
+    isFetching: gardensFetching
   } = useQuery({
     queryKey: ['gardens', state.page, state.searchTerm],
     queryFn: async () => {
-      const operationId = `loadGardensOptimized-${Date.now()}`
-      const performanceStart = performance.now()
-      
-      try {
+      return measurePerformance('loadGardens', async () => {
+        const operationId = `loadGardensOptimized-${Date.now()}`
+        const performanceStart = performance.now()
+        
+        try {
         uiLogger.info('Loading gardens with OPTIMIZED JOIN queries', { 
           page: state.page, 
           searchTerm: state.searchTerm, 
@@ -136,40 +142,51 @@ function HomePageContent() {
           }
         )
 
-        return data
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
-        const performanceDuration = performance.now() - performanceStart
-        
-        uiLogger.error('Failed to load gardens (optimized)', error as Error, { 
-          page: state.page, 
-          searchTerm: state.searchTerm, 
-          operationId,
-          performanceDuration
-        })
-        
-        throw error
-      }
+          return data
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
+          const performanceDuration = performance.now() - performanceStart
+          
+          uiLogger.error('Failed to load gardens (optimized)', error as Error, { 
+            page: state.page, 
+            searchTerm: state.searchTerm, 
+            operationId,
+            performanceDuration
+          })
+          
+          throw error
+        }
+      }, { page: state.page, searchTerm: state.searchTerm })
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    staleTime: 30 * 60 * 1000, // 30 minutes - increased to reduce refetches
+    gcTime: 60 * 60 * 1000, // 60 minutes - keep data longer in cache
+    retry: 1, // Reduced retries to prevent hanging
     refetchOnWindowFocus: false,
+    refetchOnMount: false, // Don't refetch on component mount if data exists
+    refetchOnReconnect: false, // Don't refetch on reconnect
+    keepPreviousData: true, // Keep previous data while fetching new page
   })
 
-  // Search with debouncing
-  const debouncedSearch = React.useMemo(
-    () => {
-      let timeoutId: NodeJS.Timeout
-      return (searchTerm: string) => {
-        clearTimeout(timeoutId)
-        timeoutId = setTimeout(() => {
-          setState(prev => ({ ...prev, searchTerm, page: 1 }))
-        }, 300) // 300ms debounce
+  // Search with debouncing - optimized with useCallback and ref
+  const searchTimeoutRef = React.useRef<NodeJS.Timeout>()
+  
+  const debouncedSearch = React.useCallback((searchTerm: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      setState(prev => ({ ...prev, searchTerm, page: 1 }))
+    }, 500) // Increased to 500ms to reduce API calls
+  }, [])
+  
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
       }
-    },
-    []
-  )
+    }
+  }, [])
 
   // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,10 +206,10 @@ function HomePageContent() {
     }
   }
 
-  // Extract data for easier access
-  const gardens = gardensData?.data || []
-  const totalPages = gardensData?.total_pages || 1
-  const hasMore = state.page < totalPages
+  // Extract and memoize data for better performance
+  const gardens = React.useMemo(() => gardensData?.data || [], [gardensData?.data])
+  const totalPages = React.useMemo(() => gardensData?.total_pages || 1, [gardensData?.total_pages])
+  const hasMore = React.useMemo(() => state.page < totalPages, [state.page, totalPages])
 
   // Show error toast if query fails
   React.useEffect(() => {
@@ -245,19 +262,9 @@ function HomePageContent() {
     }
   }, [toast, refetchGardens])
 
-  // Filter gardens based on search term (client-side filtering for immediate feedback)
-  const filteredGardens = React.useMemo(() => {
-    if (!state.searchTerm.trim()) {
-      return gardens
-    }
-    
-    const searchLower = state.searchTerm.toLowerCase()
-    return gardens.filter(garden =>
-      garden.name.toLowerCase().includes(searchLower) ||
-      garden.description?.toLowerCase().includes(searchLower) ||
-      garden.location?.toLowerCase().includes(searchLower)
-    )
-  }, [gardens, state.searchTerm])
+    // Remove client-side filtering - let server handle it for better performance
+  // Server already filters based on searchTerm in the query
+  const filteredGardens = gardens
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl safe-area-px">
@@ -413,15 +420,17 @@ function HomePageContent() {
   )
 }
 
-// Garden Card Component - OPTIMIZED VERSION
+// Garden Card Component - OPTIMIZED VERSION with React.memo
 interface GardenCardProps {
   garden: TuinWithPlantvakken
   onDelete: (gardenId: string, gardenName: string) => void
 }
 
-function GardenCard({ garden, onDelete }: GardenCardProps) {
+const GardenCard = React.memo(function GardenCard({ garden, onDelete }: GardenCardProps) {
+  // Track renders in development
+  useRenderTracking(`GardenCard-${garden.id}`)
   // 🚀 NO MORE N+1 QUERIES! Plant beds are already loaded via JOIN
-  const plantBeds = React.useMemo(() => garden.plant_beds || [], [garden.plant_beds])
+  const plantBeds = garden.plant_beds || [] // Direct access, no need for useMemo here
   const loadingFlowers = false // Always false since data is pre-loaded
 
   // Helper function to get emoji based on plant name
@@ -458,25 +467,26 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
     return '🌸'
   }
 
-  // 🚀 PERFORMANCE OPTIMIZATION: No more individual useEffect calls!
+  // 🚀 PERFORMANCE OPTIMIZATION: Removed unnecessary useEffect
   // Plant beds are now pre-loaded via optimized JOIN query in the parent component
-  // This eliminates the N+1 query problem completely
-  React.useEffect(() => {
-    // Log performance improvement for this garden card
-    if (plantBeds.length > 0) {
-      const totalPlants = plantBeds.reduce((sum, bed) => sum + (bed.plants?.length || 0), 0)
 
-    }
-  }, [garden.name, plantBeds])
-
-  // Get all unique flowers from all plant beds
+  // Get all unique flowers from all plant beds - optimized with early exit
   const allFlowers = React.useMemo(() => {
+    if (!plantBeds || plantBeds.length === 0) return []
+    
     const flowers = plantBeds.flatMap(bed => bed.plants || [])
-    // Remove duplicates based on name and get first 6 for preview
-    const uniqueFlowers = flowers.filter((flower, index, arr) => 
-      arr.findIndex(f => f.name.toLowerCase() === flower.name.toLowerCase()) === index
-    ).slice(0, 6)
-    return uniqueFlowers
+    if (flowers.length === 0) return []
+    
+    // Use Map for O(1) duplicate checking instead of findIndex O(n)
+    const seen = new Map<string, typeof flowers[0]>()
+    for (const flower of flowers) {
+      const key = flower.name.toLowerCase()
+      if (!seen.has(key)) {
+        seen.set(key, flower)
+        if (seen.size >= 6) break // Early exit when we have enough
+      }
+    }
+    return Array.from(seen.values())
   }, [plantBeds])
 
   const formatDate = (dateString: string) => {
@@ -579,7 +589,16 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
       </Card>
     </Link>
   )
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison for React.memo - only re-render if essential props change
+  return (
+    prevProps.garden.id === nextProps.garden.id &&
+    prevProps.garden.name === nextProps.garden.name &&
+    prevProps.garden.location === nextProps.garden.location &&
+    prevProps.garden.plant_beds?.length === nextProps.garden.plant_beds?.length &&
+    JSON.stringify(prevProps.garden.plant_beds) === JSON.stringify(nextProps.garden.plant_beds)
+  )
+})
 
 // Main page component with error boundary and auth protection
 export default function HomePage() {

@@ -111,7 +111,7 @@ function validateId(id: string, resource: string): void {
 
 function validatePaginationParams(page?: number, pageSize?: number): { page: number; pageSize: number } {
   const validatedPage = Math.max(1, page || 1)
-  const validatedPageSize = Math.min(Math.max(1, pageSize || 10), 100) // Max 100 items per page
+  const validatedPageSize = Math.min(Math.max(1, pageSize || 10), 50) // Reduced max from 100 to 50 items per page for better performance
   
   return { page: validatedPage, pageSize: validatedPageSize }
 }
@@ -1177,14 +1177,30 @@ export class TuinServiceEnhanced extends TuinService {
         throw new DatabaseError('Failed to count gardens', countError.code, countError)
       }
       
-      // Now get the actual data with plant beds and plants
+      // Now get the actual data with plant beds and plants - optimized query with specific fields
       let query = supabase
         .from('gardens')
         .select(`
-          *,
+          id,
+          name,
+          location,
+          description,
+          created_at,
+          updated_at,
+          is_active,
           plant_beds!left(
-            *,
-            plants(*)
+            id,
+            name,
+            letter_code,
+            garden_id,
+            created_at,
+            plants(
+              id,
+              name,
+              emoji,
+              plant_bed_id,
+              created_at
+            )
           )
         `)
         .eq('is_active', true)
@@ -1211,12 +1227,13 @@ export class TuinServiceEnhanced extends TuinService {
       }
       
       // Transform data to ensure plant_beds is always an array and plants are included
-      const transformedData = (data || []).map(garden => ({
+      // Optimize with Object.freeze to prevent mutations and improve performance
+      const transformedData = (data || []).map(garden => Object.freeze({
         ...garden,
-        plant_beds: (garden.plant_beds || []).map(bed => ({
+        plant_beds: Object.freeze((garden.plant_beds || []).map(bed => Object.freeze({
           ...bed,
-          plants: bed.plants || []
-        }))
+          plants: Object.freeze(bed.plants || [])
+        })))
       }))
       
       AuditLogger.logDataAccess(null, 'READ', 'gardens', undefined, { 
