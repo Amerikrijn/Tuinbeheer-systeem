@@ -36,7 +36,7 @@ import {
   Filter,
   Flower2,
 } from "lucide-react"
-import { getGarden, getPlantBeds, updatePlantBed, deletePlantBed } from "@/lib/database"
+import { getGarden, getPlantBeds, updatePlantBed, deletePlantBed, updateGarden } from "@/lib/database"
 import { PlantvakService } from "@/lib/services/plantvak.service"
 import { executeSaveWithRetry } from "@/lib/utils/save-handler"
 import type { Garden, PlantBedWithPlants, PlantWithPosition, Plant } from "@/lib/supabase"
@@ -412,8 +412,7 @@ export default function GardenDetailPage() {
     
     try {
       // Update garden in database
-      const updatedGarden = {
-        ...garden,
+      const updates = {
         name: gardenForm.name,
         length: gardenForm.length,
         width: gardenForm.width,
@@ -422,15 +421,31 @@ export default function GardenDetailPage() {
           (parseFloat(gardenForm.length) * parseFloat(gardenForm.width)).toString() : garden.total_area
       }
       
-      // You'll need to implement updateGarden function in database.ts
-      // For now, we'll simulate the update
-      setGarden(updatedGarden)
-      setIsEditingGarden(false)
+      // Actually save to database
+      const updatedGarden = await updateGarden(garden.id, updates)
       
-        // Removed toast notification
+      if (updatedGarden) {
+        setGarden(updatedGarden)
+        setIsEditingGarden(false)
+        console.log('Garden settings saved successfully:', updatedGarden)
+        
+        // Show success feedback (temporary alert since toast was removed)
+        // In production, you might want to use a proper notification system
+        if (typeof window !== 'undefined') {
+          // Use a subtle visual feedback instead of alert
+          const successBanner = document.createElement('div')
+          successBanner.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-pulse'
+          successBanner.textContent = '✅ Tuin instellingen opgeslagen!'
+          document.body.appendChild(successBanner)
+          setTimeout(() => successBanner.remove(), 3000)
+        }
+      } else {
+        console.error('Failed to save garden settings')
+        alert('Er is een fout opgetreden bij het opslaan van de tuin instellingen. Probeer het opnieuw.')
+      }
     } catch (error) {
-
-        // Removed toast notification
+      console.error('Error saving garden settings:', error)
+      // Keep the form open so user can try again
     }
   }
 
@@ -1040,7 +1055,18 @@ export default function GardenDetailPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsEditingGarden(true)}
+              onClick={() => {
+                // Re-initialize form with current garden data when opening edit dialog
+                if (garden) {
+                  setGardenForm({
+                    name: garden.name || '',
+                    length: garden.length || '',
+                    width: garden.width || '',
+                    description: garden.description || ''
+                  })
+                }
+                setIsEditingGarden(true)
+              }}
               className="h-8 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
             >
               <Edit className="w-4 h-4 mr-1" />
