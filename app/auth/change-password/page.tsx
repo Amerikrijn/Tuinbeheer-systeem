@@ -135,9 +135,9 @@ export default function ChangePasswordPage() {
 
   if (!isFirstLogin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
-        <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+      <div className=""min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+        <div className=""flex items-center gap-2">
+                            <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
           <span>Laden...</span>
         </div>
       </div>
@@ -145,22 +145,22 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className=""min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+      <div className=""w-full max-w-md space-y-6">
         {/* Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-600 rounded-full">
-              <TreePine className="w-8 h-8 text-white" />
+        <div className=""text-center">
+          <div className=""flex justify-center mb-4">
+            <div className=""flex items-center justify-center w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full">
+              <TreePine className=""w-8 h-8 text-white dark:text-black" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Wachtwoord Wijzigen</h1>
-          <p className="text-muted-foreground mt-2">Stel een nieuw wachtwoord in voor je account</p>
+          <h1 className=""text-2xl font-bold text-foreground">Wachtwoord Wijzigen</h1>
+          <p className=""text-muted-foreground mt-2">Stel een nieuw wachtwoord in voor je account</p>
         </div>
 
         {/* Info Alert */}
         <Alert>
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircle className=""h-4 w-4" />
           <AlertDescription>
             Dit is je eerste keer inloggen. Je moet een nieuw wachtwoord instellen om door te gaan.
           </AlertDescription>
@@ -175,67 +175,67 @@ export default function ChangePasswordPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className=""space-y-4">
               {/* New Password Field */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label htmlFor="newPassword">Nieuw Wachtwoord</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <div className=""relative">
+                  <Lock className=""absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                   <Input
                     id="newPassword"
                     type={showPasswords.new ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={formData.newPassword}
                     onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                    className={`pl-10 pr-10 ${errors.newPassword ? 'border-red-500' : ''}`}
+                    className={{`pl-10 pr-10 ${errors.newPassword ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
+                    className=""absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
-                    {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPasswords.new ? <EyeOff className=""w-4 h-4" /> : <Eye className=""w-4 h-4" />}
                   </button>
                 </div>
                 {errors.newPassword && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
+                  <p className=""text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <AlertCircle className=""w-4 h-4" />
                     {errors.newPassword}
                   </p>
                 )}
-                <p className="text-xs text-muted-foreground">
+                <p className=""text-xs text-muted-foreground">
                   Minimaal 8 karakters, met hoofdletter, kleine letter en cijfer
                 </p>
               </div>
 
               {/* Confirm Password Field */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label htmlFor="confirmPassword">Bevestig Wachtwoord</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <div className=""relative">
+                  <Lock className=""absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                   <Input
                     id="confirmPassword"
                     type={showPasswords.confirm ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className={`pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                    className={{`pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
+                    className=""absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
-                    {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPasswords.confirm ? <EyeOff className=""w-4 h-4" /> : <Eye className=""w-4 h-4" />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
+                  <p className=""text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <AlertCircle className=""w-4 h-4" />
                     {errors.confirmPassword}
                   </p>
                 )}
@@ -244,17 +244,17 @@ export default function ChangePasswordPage() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full"
+                className=""w-full"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                    <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                     Wachtwoord wijzigen...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <CheckCircle className=""w-4 h-4 mr-2" />
                     Wachtwoord wijzigen
                   </>
                 )}
@@ -262,12 +262,12 @@ export default function ChangePasswordPage() {
             </form>
 
             {/* Logout Option */}
-            <div className="mt-6 text-center">
+            <div className=""mt-6 text-center">
               <Button
                 variant="outline"
                 onClick={handleLogout}
                 disabled={isSubmitting}
-                className="text-sm"
+                className=""text-sm"
               >
                 Uitloggen en later terugkomen
               </Button>

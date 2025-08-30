@@ -77,59 +77,59 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className=""space-y-4">
           {/* Email Field */}
-          <div className="space-y-2">
+          <div className=""space-y-2">
             <Label htmlFor="email">E-mailadres</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <div className=""relative">
+              <Mail className=""absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
               <Input
                 id="email"
                 type="email"
                 placeholder="je@email.com"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                className={{`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                 disabled={isFormDisabled}
                 data-testid="email-input"
               />
             </div>
             {errors.email && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
+              <p className=""text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <AlertCircle className=""w-4 h-4" />
                 {errors.email}
               </p>
             )}
           </div>
 
           {/* Password Field */}
-          <div className="space-y-2">
+          <div className=""space-y-2">
             <Label htmlFor="password">Wachtwoord</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <div className=""relative">
+              <Lock className=""absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                className={{`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
                 disabled={isFormDisabled}
                 data-testid="password-input"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className=""absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-60 dark:hover:text-gray-600 dark:text-gray-300"
                 disabled={isFormDisabled}
                 data-testid="toggle-password"
               >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {showPassword ? <EyeOff className=""w-4 h-4" /> : <Eye className=""w-4 h-4" />}
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-4 h-4" />
+              <p className=""text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                <AlertCircle className=""w-4 h-4" />
                 {errors.password}
               </p>
             )}
@@ -138,7 +138,7 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
           {/* Error Display */}
           {error && (
             <Alert variant="destructive" data-testid="error-alert">
-              <AlertCircle className="h-4 w-4" />
+              <AlertCircle className=""h-4 w-4" />
               <AlertDescription>
                 {error}
               </AlertDescription>
@@ -148,13 +148,13 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full"
+            className=""w-full"
             disabled={isFormDisabled}
             data-testid="login-button"
           >
             {isSubmitting || loading ? (
               <>
-                <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                 Inloggen...
               </>
             ) : (

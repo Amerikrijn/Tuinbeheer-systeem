@@ -235,11 +235,11 @@ export default function EditLogbookPage() {
 
   if (state.loading) {
     return (
-      <div className="container mx-auto px-4 py-8 safe-area-px">
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center">
-            <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Logboek entry laden...</p>
+      <div className=""container mx-auto px-4 py-8 safe-area-px">
+        <div className=""max-w-2xl mx-auto">
+          <div className=""text-center">
+            <div className=""w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className=""text-muted-foreground">Logboek entry laden...</p>
           </div>
         </div>
       </div>
@@ -248,17 +248,17 @@ export default function EditLogbookPage() {
 
   if (state.error || !state.entry) {
     return (
-      <div className="container mx-auto px-4 py-8 safe-area-px">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-foreground mb-4">
+      <div className=""container mx-auto px-4 py-8 safe-area-px">
+        <div className=""max-w-2xl mx-auto text-center">
+          <h2 className=""text-2xl font-bold text-foreground mb-4">
             Entry niet gevonden
           </h2>
-          <p className="text-muted-foreground mb-6">
+          <p className=""text-muted-foreground mb-6">
             {state.error || 'De opgevraagde logboek entry bestaat niet of is verwijderd.'}
           </p>
           <Button asChild>
             <Link href="/logbook">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeft className=""h-4 w-4 mr-2" />
               Terug naar logboek
             </Link>
           </Button>
@@ -268,22 +268,22 @@ export default function EditLogbookPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 safe-area-px">
-      <div className="max-w-2xl mx-auto">
+    <div className=""container mx-auto px-4 py-8 safe-area-px">
+      <div className=""max-w-2xl mx-auto">
         {/* Back button */}
-        <Button asChild variant="ghost" className="mb-6">
+        <Button asChild variant="ghost" className=""mb-6">
           <Link href={`/logbook/${state.entry.id}`}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeft className=""h-4 w-4 mr-2" />
             Terug naar entry
           </Link>
         </Button>
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+        <div className=""mb-8">
+          <h1 className=""text-3xl font-bold text-foreground mb-2">
             Logboek Entry Bewerken
           </h1>
-          <p className="text-muted-foreground">
+          <p className=""text-muted-foreground">
             Bewerk de details van deze logboek entry
           </p>
         </div>
@@ -294,9 +294,9 @@ export default function EditLogbookPage() {
             <CardTitle>Entry Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className=""space-y-6">
               {/* Plant bed selection */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label htmlFor="plant_bed">Plantvak *</Label>
                 <Select 
                   value={formData.plant_bed_id} 
@@ -322,7 +322,7 @@ export default function EditLogbookPage() {
               </div>
 
               {/* Plant selection */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label htmlFor="plant">Plant (optioneel)</Label>
                 <Select 
                   value={formData.plant_id || 'none'} 
@@ -349,7 +349,7 @@ export default function EditLogbookPage() {
               </div>
 
               {/* Entry date */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label htmlFor="entry_date">Datum *</Label>
                 <Input
                   id="entry_date"
@@ -361,48 +361,48 @@ export default function EditLogbookPage() {
               </div>
 
               {/* Photo */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label>Foto (optioneel)</Label>
-                <div className="space-y-3">
+                <div className=""space-y-3">
                   {formData.photo_url ? (
-                    <div className="relative group">
+                    <div className=""relative group">
                       <img 
                         src={formData.photo_url} 
                         alt="Logboek foto"
-                        className="w-full max-h-64 object-cover rounded-lg border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
+                        className=""w-full max-h-64 object-cover rounded-lg border shadow-sm cursor-pointer transition-transform hover:scale-[1.02]"
                         onClick={() => formData.photo_url && window.open(formData.photo_url, '_blank')}
                       />
                       <Button
                         type="button"
                         variant="destructive"
                         size="sm"
-                        className="absolute top-2 right-2 opacity-80 hover:opacity-100"
+                        className=""absolute top-2 right-2 opacity-80 hover:opacity-100"
                         onClick={removePhoto}
                       >
-                        <X className="h-4 w-4" />
+                        <X className=""h-4 w-4" />
                       </Button>
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
+                      <div className=""absolute inset-0 bg-black dark:bg-white bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                        <div className=""opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white dark:text-black text-xs bg-black dark:bg-white bg-opacity-50 px-2 py-1 rounded">
                           Klik om te vergroten
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-                      <ImageIcon className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground mb-2">Geen foto geselecteerd</p>
-                      <p className="text-xs text-muted-foreground">Klik op 'Foto uploaden' om een afbeelding toe te voegen</p>
+                    <div className=""border-2 border-dashed border-gray-300 dark:border-gray-500 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                      <ImageIcon className=""h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
+                      <p className=""text-sm text-muted-foreground mb-2">Geen foto geselecteerd</p>
+                      <p className=""text-xs text-muted-foreground">Klik op 'Foto uploaden' om een afbeelding toe te voegen</p>
                     </div>
                   )}
                   
-                  <div className="flex gap-2">
+                  <div className=""flex gap-2">
                     <Button
                       type="button"
                       variant="outline"
                       onClick={() => fileInputRef.current?.click()}
                       disabled={state.uploadingPhoto}
                     >
-                      <Upload className="h-4 w-4 mr-2" />
+                      <Upload className=""h-4 w-4 mr-2" />
                       {state.uploadingPhoto ? 'Uploaden...' : formData.photo_url ? 'Foto vervangen' : 'Foto uploaden'}
                     </Button>
                     {formData.photo_url && (
@@ -411,7 +411,7 @@ export default function EditLogbookPage() {
                         variant="outline"
                         onClick={removePhoto}
                       >
-                        <X className="h-4 w-4 mr-2" />
+                        <X className=""h-4 w-4 mr-2" />
                         Verwijderen
                       </Button>
                     )}
@@ -422,13 +422,13 @@ export default function EditLogbookPage() {
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
-                    className="hidden"
+                    className=""hidden"
                   />
                 </div>
               </div>
 
               {/* Notes */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label htmlFor="notes">Opmerkingen *</Label>
                 <Textarea
                   id="notes"
@@ -441,13 +441,13 @@ export default function EditLogbookPage() {
               </div>
 
               {/* Submit buttons */}
-              <div className="flex gap-3 pt-6">
+              <div className=""flex gap-3 pt-6">
                 <Button 
                   type="submit" 
                   disabled={state.saving || !formData.notes.trim()}
-                  className="flex-1"
+                  className=""flex-1"
                 >
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className=""h-4 w-4 mr-2" />
                   {state.saving ? 'Opslaan...' : 'Wijzigingen opslaan'}
                 </Button>
                 <Button asChild variant="outline">

@@ -186,11 +186,11 @@ function ResetPasswordContent() {
   // Loading state during token validation
   if (isValidating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col items-center justify-center py-8">
-            <div className="h-8 w-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mb-4" />
-            <p className="text-muted-foreground">Reset link valideren...</p>
+      <div className=""min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+        <Card className=""w-full max-w-md">
+          <CardContent className=""flex flex-col items-center justify-center py-8">
+            <div className=""h-8 w-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mb-4" />
+            <p className=""text-muted-foreground">Reset link valideren...</p>
           </CardContent>
         </Card>
       </div>
@@ -200,22 +200,22 @@ function ResetPasswordContent() {
   // Error state for invalid tokens
   if (!isValidToken || tokenError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50 p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <XCircle className="h-12 w-12 text-red-500 mx-auto mb-2" />
-            <CardTitle className="text-red-700">Ongeldige Reset Link</CardTitle>
-            <CardDescription className="text-red-600">
+      <div className=""min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50 p-4">
+        <Card className=""w-full max-w-md">
+          <CardHeader className=""text-center">
+            <XCircle className=""h-12 w-12 text-red-500 dark:text-red-400 mx-auto mb-2" />
+            <CardTitle className=""text-red-700 dark:text-red-300">Ongeldige Reset Link</CardTitle>
+            <CardDescription className=""text-red-600 dark:text-red-400">
               {tokenError || 'Deze reset link is niet geldig of verlopen'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <Alert className="border-red-200 bg-red-50">
-                <XCircle className="h-4 w-4 text-red-500" />
-                <AlertDescription className="text-red-700">
+            <div className=""space-y-4">
+              <Alert className=""border-red-200 bg-red-50 dark:bg-red-950">
+                <XCircle className=""h-4 w-4 text-red-500 dark:text-red-400" />
+                <AlertDescription className=""text-red-700 dark:text-red-300">
                   Mogelijke oorzaken:
-                  <ul className="list-disc list-inside mt-2 space-y-1">
+                  <ul className=""list-disc list-inside mt-2 space-y-1">
                     <li>De reset link is verlopen (na 1 uur)</li>
                     <li>De reset link is al gebruikt</li>
                     <li>De link is beschadigd</li>
@@ -224,7 +224,7 @@ function ResetPasswordContent() {
                 </AlertDescription>
               </Alert>
               
-              <div className="flex flex-col space-y-2">
+              <div className=""flex flex-col space-y-2">
                 <Button asChild>
                   <Link href="/auth/forgot-password">
                     Nieuwe Reset Link Aanvragen
@@ -245,23 +245,23 @@ function ResetPasswordContent() {
 
   // Main reset password form
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className=""min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
+      <div className=""w-full max-w-md space-y-6">
         {/* Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-600 rounded-full">
-              <TreePine className="w-8 h-8 text-white" />
+        <div className=""text-center">
+          <div className=""flex justify-center mb-4">
+            <div className=""flex items-center justify-center w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full">
+              <TreePine className=""w-8 h-8 text-white dark:text-black" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Nieuw Wachtwoord Instellen</h1>
-          <p className="text-muted-foreground mt-2">Kies een sterk wachtwoord voor je account</p>
+          <h1 className=""text-2xl font-bold text-foreground">Nieuw Wachtwoord Instellen</h1>
+          <p className=""text-muted-foreground mt-2">Kies een sterk wachtwoord voor je account</p>
         </div>
 
         {/* Success Alert */}
-        <Alert className="border-green-200 bg-green-50">
-          <CheckCircle className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-700">
+        <Alert className=""border-green-200 bg-green-50 dark:bg-green-950">
+          <CheckCircle className=""h-4 w-4 text-green-600 dark:text-green-400" />
+          <AlertDescription className=""text-green-700 dark:text-green-300">
             Je reset link is geldig. Stel hieronder een nieuw wachtwoord in.
           </AlertDescription>
         </Alert>
@@ -275,69 +275,69 @@ function ResetPasswordContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className=""space-y-4">
               {/* New Password Field */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label htmlFor="password">Nieuw Wachtwoord</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <div className=""relative">
+                  <Lock className=""absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                   <Input
                     id="password"
                     type={showPasswords.password ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                    className={{`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, password: !prev.password }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
+                    className=""absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
-                    {showPasswords.password ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPasswords.password ? <EyeOff className=""w-4 h-4" /> : <Eye className=""w-4 h-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
+                  <p className=""text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <AlertCircle className=""w-4 h-4" />
                     {errors.password}
                   </p>
                 )}
-                <p className="text-xs text-muted-foreground">
+                <p className=""text-xs text-muted-foreground">
                   Minimaal 8 karakters, met hoofdletter, kleine letter en cijfer
                 </p>
               </div>
 
               {/* Confirm Password Field */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label htmlFor="confirmPassword">Bevestig Wachtwoord</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <div className=""relative">
+                  <Lock className=""absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                   <Input
                     id="confirmPassword"
                     type={showPasswords.confirm ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className={`pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                    className={{`pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
+                    className=""absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
-                    {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPasswords.confirm ? <EyeOff className=""w-4 h-4" /> : <Eye className=""w-4 h-4" />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
+                  <p className=""text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <AlertCircle className=""w-4 h-4" />
                     {errors.confirmPassword}
                   </p>
                 )}
@@ -345,18 +345,18 @@ function ResetPasswordContent() {
 
               {/* Password Strength Indicator */}
               {formData.password && (
-                <div className="space-y-2">
-                  <div className="text-xs text-muted-foreground">Wachtwoord sterkte:</div>
-                  <div className="space-y-1">
+                <div className=""space-y-2">
+                  <div className=""text-xs text-muted-foreground">Wachtwoord sterkte:</div>
+                  <div className=""space-y-1">
                     {[
                       { test: formData.password.length >= 8, label: 'Minimaal 8 karakters' },
                       { test: /[A-Z]/.test(formData.password), label: 'Hoofdletter' },
                       { test: /[a-z]/.test(formData.password), label: 'Kleine letter' },
                       { test: /[0-9]/.test(formData.password), label: 'Cijfer' }
                     ].map((requirement, index) => (
-                      <div key={index} className="flex items-center space-x-2 text-xs">
-                        <div className={`w-2 h-2 rounded-full ${requirement.test ? 'bg-green-500' : 'bg-gray-300'}`} />
-                        <span className={requirement.test ? 'text-green-600' : 'text-muted-foreground'}>
+                      <div key={index} className=""flex items-center space-x-2 text-xs">
+                        <div className={{`w-2 h-2 rounded-full ${requirement.test ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                        <span className={requirement.test ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
                           {requirement.label}
                         </span>
                       </div>
@@ -368,17 +368,17 @@ function ResetPasswordContent() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full"
+                className=""w-full"
                 disabled={isSubmitting || !formData.password || !formData.confirmPassword}
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                    <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                     Wachtwoord wijzigen...
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
+                    <CheckCircle className=""w-4 h-4 mr-2" />
                     Wachtwoord wijzigen
                   </>
                 )}
@@ -386,10 +386,10 @@ function ResetPasswordContent() {
             </form>
 
             {/* Footer Links */}
-            <div className="mt-6 text-center">
+            <div className=""mt-6 text-center">
               <Link 
                 href="/auth/login" 
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className=""text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800"
               >
                 Terug naar login
               </Link>
@@ -405,11 +405,11 @@ export default function ResetPasswordPage() {
   return (
     <Suspense 
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
-          <Card className="w-full max-w-md">
-            <CardContent className="flex flex-col items-center justify-center py-8">
-              <div className="h-8 w-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mb-4" />
-              <p className="text-muted-foreground">Pagina laden...</p>
+        <div className=""min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+          <Card className=""w-full max-w-md">
+            <CardContent className=""flex flex-col items-center justify-center py-8">
+              <div className=""h-8 w-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mb-4" />
+              <p className=""text-muted-foreground">Pagina laden...</p>
             </CardContent>
           </Card>
         </div>

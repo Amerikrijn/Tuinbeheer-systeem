@@ -91,10 +91,10 @@ function ProtectedRouteComponent({
   // Show loading during SSR, mounting, or auth loading (but only briefly)
   if (!mounted || (loading && !user) || !authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Laden...</p>
+      <div className=""min-h-screen flex items-center justify-center bg-background">
+        <div className=""text-center">
+          <div className=""w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className=""text-muted-foreground">Laden...</p>
         </div>
       </div>
     )
@@ -102,10 +102,10 @@ function ProtectedRouteComponent({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Authenticatie controleren...</p>
+      <div className=""min-h-screen flex items-center justify-center bg-background">
+        <div className=""text-center">
+          <div className=""w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className=""text-muted-foreground">Authenticatie controleren...</p>
         </div>
       </div>
     )
@@ -113,25 +113,25 @@ function ProtectedRouteComponent({
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="bg-card rounded-lg shadow-lg p-8">
-            <TreePine className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-foreground mb-4">Inloggen vereist</h2>
-            <p className="text-muted-foreground mb-6">
+      <div className=""min-h-screen flex items-center justify-center bg-background">
+        <div className=""text-center max-w-md mx-auto p-6">
+          <div className=""bg-card rounded-lg shadow-lg p-8">
+            <TreePine className=""h-12 w-12 text-primary mx-auto mb-4" />
+            <h2 className=""text-2xl font-bold text-foreground mb-4">Inloggen vereist</h2>
+            <p className=""text-muted-foreground mb-6">
               Je moet ingelogd zijn om deze pagina te bekijken.
             </p>
-            <div className="space-y-3">
+            <div className=""space-y-3">
               <Button 
                 onClick={() => router.push('/auth/login')}
-                className="w-full"
+                className=""w-full"
               >
                 Inloggen
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => router.push('/')}
-                className="w-full"
+                className=""w-full"
               >
                 Terug naar home
               </Button>
@@ -144,10 +144,10 @@ function ProtectedRouteComponent({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Laden...</p>
+      <div className=""min-h-screen flex items-center justify-center bg-background">
+        <div className=""text-center">
+          <div className=""w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className=""text-muted-foreground">Laden...</p>
         </div>
       </div>
     )
@@ -160,10 +160,10 @@ function ProtectedRouteComponent({
 export const ProtectedRoute = dynamic(() => Promise.resolve(ProtectedRouteComponent), {
   ssr: false,
   loading: () => (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="text-center">
-        <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
-        <p className="text-muted-foreground">Laden...</p>
+    <div className=""min-h-screen flex items-center justify-center bg-background">
+      <div className=""text-center">
+        <div className=""w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <p className=""text-muted-foreground">Laden...</p>
       </div>
     </div>
   )

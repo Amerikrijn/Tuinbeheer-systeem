@@ -76,7 +76,7 @@ export function UnifiedSearch({
           paddingClasses[variant],
           "border-2 border-green-200 dark:border-green-800 focus:border-green-500 dark:focus:border-green-600",
           "focus:ring-2 focus:ring-green-500/20 focus:ring-offset-0",
-          "bg-white dark:bg-gray-900 placeholder:text-green-500/60 dark:placeholder:text-green-400/60",
+          "bg-white dark:bg-gray-900 dark:bg-gray-900 placeholder:text-green-500 dark:text-green-400/60 dark:placeholder:text-green-400/60",
           "transition-all duration-200",
           fullWidth && "w-full"
         )}
@@ -91,7 +91,7 @@ export function UnifiedSearch({
           className={cn(
             "absolute right-2 top-1/2 transform -translate-y-1/2",
             "h-8 w-8 sm:h-7 sm:w-7 p-0",
-            "text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30",
+            "text-green-600 hover:text-green-700 dark:text-green-300 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30",
             "transition-all duration-200"
           )}
         >

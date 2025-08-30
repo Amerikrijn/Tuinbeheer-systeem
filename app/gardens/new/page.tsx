@@ -175,9 +175,9 @@ export default function NewGardenPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-4 p-4">
+    <div className=""container mx-auto space-y-4 p-4">
       {/* Minimalist Header */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className=""flex items-center gap-3 mb-4">
         <Button 
           variant="ghost" 
           size="sm" 
@@ -185,33 +185,33 @@ export default function NewGardenPage() {
 
             window.location.href = "/gardens"
           }} 
-          className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30"
+          className=""h-8 px-3 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className=""h-4 w-4" />
           Terug
         </Button>
 
-        <div className="flex items-center gap-2">
-          <Plus className="h-6 w-6 text-green-600" />
-          <h1 className="text-xl font-semibold">Nieuwe Tuin</h1>
+        <div className=""flex items-center gap-2">
+          <Plus className=""h-6 w-6 text-green-600 dark:text-green-400" />
+          <h1 className=""text-xl font-semibold">Nieuwe Tuin</h1>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <Card className="border-2 border-green-200 dark:border-green-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <TreePine className="h-5 w-5 text-green-600" />
+      <div className=""grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className=""lg:col-span-2">
+          <Card className=""border-2 border-green-200 dark:border-green-800">
+            <CardHeader className=""pb-3">
+              <CardTitle className=""flex items-center gap-2 text-lg">
+                <TreePine className=""h-5 w-5 text-green-600 dark:text-green-400" />
                 Tuin Informatie
               </CardTitle>
             </CardHeader>
 
             <CardContent>
-              <form onSubmit={handleSubmit} onReset={handleReset} className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="name" className="text-sm font-medium">Tuinnaam *</Label>
+              <form onSubmit={handleSubmit} onReset={handleReset} className=""space-y-4">
+                <div className=""grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className=""space-y-2 md:col-span-2">
+                    <Label htmlFor="name" className=""text-sm font-medium">Tuinnaam *</Label>
                     <Input
                       id="name"
                       placeholder="Bijv. Gemeenschapstuin De Bloementuin"
@@ -226,15 +226,15 @@ export default function NewGardenPage() {
                       required
                     />
                     {errors.name && (
-                      <div className="flex items-center gap-1 text-destructive text-xs">
-                        <AlertCircle className="h-3 w-3" />
+                      <div className=""flex items-center gap-1 text-destructive text-xs">
+                        <AlertCircle className=""h-3 w-3" />
                         {errors.name}
                       </div>
                     )}
                   </div>
 
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="location" className="text-sm font-medium">Locatie *</Label>
+                  <div className=""space-y-2 md:col-span-2">
+                    <Label htmlFor="location" className=""text-sm font-medium">Locatie *</Label>
                     <Input
                       id="location"
                       placeholder="Bijv. Parkstraat 123, Amsterdam"
@@ -249,15 +249,15 @@ export default function NewGardenPage() {
                       required
                     />
                     {errors.location && (
-                      <div className="flex items-center gap-1 text-destructive text-xs">
-                        <AlertCircle className="h-3 w-3" />
+                      <div className=""flex items-center gap-1 text-destructive text-xs">
+                        <AlertCircle className=""h-3 w-3" />
                         {errors.location}
                       </div>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="length" className="text-sm font-medium">Lengte (meter)</Label>
+                  <div className=""space-y-2">
+                    <Label htmlFor="length" className=""text-sm font-medium">Lengte (meter)</Label>
                     <Input
                       id="length"
                       type="number"
@@ -271,15 +271,15 @@ export default function NewGardenPage() {
                       className={errors.length ? "border-destructive" : ""}
                     />
                     {errors.length && (
-                      <div className="flex items-center gap-1 text-destructive text-xs">
-                        <AlertCircle className="h-3 w-3" />
+                      <div className=""flex items-center gap-1 text-destructive text-xs">
+                        <AlertCircle className=""h-3 w-3" />
                         {errors.length}
                       </div>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="width" className="text-sm font-medium">Breedte (meter)</Label>
+                  <div className=""space-y-2">
+                    <Label htmlFor="width" className=""text-sm font-medium">Breedte (meter)</Label>
                     <Input
                       id="width"
                       type="number"
@@ -293,18 +293,18 @@ export default function NewGardenPage() {
                       className={errors.width ? "border-destructive" : ""}
                     />
                     {errors.width && (
-                      <div className="flex items-center gap-1 text-destructive text-xs">
-                        <AlertCircle className="h-3 w-3" />
+                      <div className=""flex items-center gap-1 text-destructive text-xs">
+                        <AlertCircle className=""h-3 w-3" />
                         {errors.width}
                       </div>
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="totalArea" className="text-sm font-medium">
+                  <div className=""space-y-2">
+                    <Label htmlFor="totalArea" className=""text-sm font-medium">
                       Totale oppervlakte (m²)
                       {newGarden.length && newGarden.width && !newGarden.totalArea && (
-                        <span className="text-sm text-green-600 ml-2">
+                        <span className=""text-sm text-green-600 dark:text-green-400 ml-2">
                           (Berekend: {(parseFloat(newGarden.length) * parseFloat(newGarden.width)).toFixed(1)} m²)
                         </span>
                       )}
@@ -327,8 +327,8 @@ export default function NewGardenPage() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="gardenType" className="text-sm font-medium">Tuintype</Label>
+                  <div className=""space-y-2">
+                    <Label htmlFor="gardenType" className=""text-sm font-medium">Tuintype</Label>
                     <Select
                       value={newGarden.gardenType}
                       onValueChange={(value) =>
@@ -351,8 +351,8 @@ export default function NewGardenPage() {
                     </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="establishedDate" className="text-sm font-medium">Oprichtingsdatum</Label>
+                  <div className=""space-y-2">
+                    <Label htmlFor="establishedDate" className=""text-sm font-medium">Oprichtingsdatum</Label>
                     <Input
                       id="establishedDate"
                       type="date"
@@ -367,8 +367,8 @@ export default function NewGardenPage() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-sm font-medium">Beschrijving</Label>
+                <div className=""space-y-2">
+                  <Label htmlFor="description" className=""text-sm font-medium">Beschrijving</Label>
                   <Textarea
                     id="description"
                     rows={3}
@@ -383,8 +383,8 @@ export default function NewGardenPage() {
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="notes" className="text-sm font-medium">Notities</Label>
+                <div className=""space-y-2">
+                  <Label htmlFor="notes" className=""text-sm font-medium">Notities</Label>
                   <Textarea
                     id="notes"
                     rows={2}
@@ -399,11 +399,11 @@ export default function NewGardenPage() {
                   />
                 </div>
 
-                <div className="flex gap-3 pt-2">
-                  <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700 h-9 px-4">
+                <div className=""flex gap-3 pt-2">
+                  <Button type="submit" disabled={loading} className=""bg-green-600 dark:bg-green-700 hover:bg-green-700 h-9 px-4">
                     {loading ? "Opslaan…" : "Tuin Aanmaken"}
                   </Button>
-                  <Button type="reset" variant="outline" disabled={loading} className="h-9 px-4">
+                  <Button type="reset" variant="outline" disabled={loading} className=""h-9 px-4">
                     Reset
                   </Button>
                 </div>
@@ -412,35 +412,35 @@ export default function NewGardenPage() {
           </Card>
         </div>
 
-        <aside className="space-y-3">
-          <Card className="border-2 border-green-200 dark:border-green-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Tips</CardTitle>
+        <aside className=""space-y-3">
+          <Card className=""border-2 border-green-200 dark:border-green-800">
+            <CardHeader className=""pb-3">
+              <CardTitle className=""text-base">Tips</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm space-y-3">
+            <CardContent className=""text-sm space-y-3">
               <div>
-                <strong className="text-green-700 dark:text-green-300">Verplichte velden:</strong>
-                <ul className="list-disc list-inside mt-1 space-y-1 text-xs">
+                <strong className=""text-green-700 dark:text-green-300">Verplichte velden:</strong>
+                <ul className=""list-disc list-inside mt-1 space-y-1 text-xs">
                   <li>Tuinnaam - Kies een herkenbare naam</li>
                   <li>Locatie - Volledig adres of beschrijving</li>
                 </ul>
               </div>
               <div>
-                <strong className="text-green-700 dark:text-green-300">Afmetingen:</strong>
-                <p className="text-xs">Vul lengte en breedte in voor betere planning van plantvakken.</p>
+                <strong className=""text-green-700 dark:text-green-300">Afmetingen:</strong>
+                <p className=""text-xs">Vul lengte en breedte in voor betere planning van plantvakken.</p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-green-200 dark:border-green-800">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Calendar className="h-4 w-4" />
+          <Card className=""border-2 border-green-200 dark:border-green-800">
+            <CardHeader className=""pb-3">
+              <CardTitle className=""flex items-center gap-2 text-base">
+                <Calendar className=""h-4 w-4" />
                 Na het aanmaken
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-sm">
-              <ul className="list-disc list-inside space-y-1 text-xs">
+            <CardContent className=""text-sm">
+              <ul className=""list-disc list-inside space-y-1 text-xs">
                 <li>Plantvakken toevoegen</li>
                 <li>Planten per vak beheren</li>
                 <li>Verzorgingsschema's opstellen</li>

@@ -251,13 +251,13 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
 
   if (loading || !gardenAccessLoaded) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
-        <div className="max-w-4xl mx-auto">
+      <div className=""min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+        <div className=""max-w-4xl mx-auto">
           {/* Header with Logbook button - always visible */}
-          <div className="flex justify-between items-center mb-6">
+          <div className=""flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Mijn Taken</h1>
-              <p className="text-muted-foreground mt-1">Laden...</p>
+              <h1 className=""text-2xl font-bold text-foreground">Mijn Taken</h1>
+              <p className=""text-muted-foreground mt-1">Laden...</p>
             </div>
             <Button 
               onClick={() => {
@@ -265,16 +265,16 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
                 window.location.href = '/logbook'
               }}
               variant="outline"
-              className="flex items-center gap-2"
+              className=""flex items-center gap-2"
             >
-              <BookOpen className="w-4 h-4" />
+              <BookOpen className=""w-4 h-4" />
               Logboek
             </Button>
           </div>
           
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-green-100 dark:bg-green-900/30 rounded w-48"></div>
-            <div className="h-64 bg-green-100 dark:bg-green-900/30 rounded"></div>
+          <div className=""animate-pulse space-y-4">
+            <div className=""h-8 bg-green-100 dark:bg-green-900/30 rounded w-48"></div>
+            <div className=""h-64 bg-green-100 dark:bg-green-900/30 rounded"></div>
           </div>
         </div>
       </div>
@@ -282,14 +282,14 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className=""min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
+      <div className=""max-w-4xl mx-auto">
         {/* Header with Logbook button */}
-        <div className="flex justify-between items-center mb-6">
+        <div className=""flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Mijn Taken</h1>
+            <h1 className=""text-2xl font-bold text-foreground">Mijn Taken</h1>
             {gardenNames.length > 0 && (
-              <p className="text-muted-foreground mt-1">{gardenNames.join(', ')}</p>
+              <p className=""text-muted-foreground mt-1">{gardenNames.join(', ')}</p>
             )}
           </div>
           <Button 
@@ -298,28 +298,28 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
               window.location.href = '/logbook'
             }}
             variant="outline"
-            className="flex items-center gap-2"
+            className=""flex items-center gap-2"
           >
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className=""w-4 h-4" />
             Logboek
           </Button>
         </div>
 
         {/* Week Navigation */}
-        <Card className="mb-6">
+        <Card className=""mb-6">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className=""flex items-center justify-between">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigateWeek('prev')}
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className=""w-4 h-4" />
               </Button>
               
-              <div className="text-center">
-                <CardTitle className="flex items-center gap-2 justify-center">
-                  <Calendar className="w-5 h-5" />
+              <div className=""text-center">
+                <CardTitle className=""flex items-center gap-2 justify-center">
+                  <Calendar className=""w-5 h-5" />
                   Week {formatWeekRange(startOfWeek, endOfWeek)}
                 </CardTitle>
               </div>
@@ -329,7 +329,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
                 size="sm"
                 onClick={() => navigateWeek('next')}
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className=""w-4 h-4" />
               </Button>
             </div>
           </CardHeader>
@@ -342,20 +342,20 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           </CardHeader>
           <CardContent>
             {tasks.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <Calendar className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                <h3 className="text-lg font-medium mb-2">Geen taken deze week</h3>
+              <div className=""text-center py-12 text-muted-foreground">
+                <Calendar className=""w-16 h-16 mx-auto mb-4 opacity-30" />
+                <h3 className=""text-lg font-medium mb-2">Geen taken deze week</h3>
                 <p>Je hebt geen openstaande taken voor deze periode.</p>
                 {gardenNames.length === 0 && (
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-sm text-yellow-800">
+                  <div className=""mt-4 p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 rounded-lg">
+                    <p className=""text-sm text-yellow-800">
                       ⚠️ Je hebt nog geen tuinen toegewezen gekregen. Neem contact op met de beheerder.
                     </p>
                   </div>
                 )}
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className=""space-y-3">
                 {tasks.map((task) => {
                   const urgency = getTaskUrgency(task)
                   const styles = getTaskUrgencyStyles(urgency)
@@ -364,29 +364,29 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
                   const taskTitle = task.description || `${task.task_type} taak` || 'Taak'
                   
                   return (
-                    <div key={task.id} className={`p-4 border rounded-lg ${styles.container}`}>
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className={`font-medium ${styles.title}`}>
+                    <div key={task.id} className={{`p-4 border rounded-lg ${styles.container}`}>
+                      <div className=""flex items-start justify-between mb-2">
+                        <h4 className={{`font-medium ${styles.title}`}>
                           {taskTitle}
                         </h4>
-                        <Badge className={`text-xs ${styles.badge}`}>
+                        <Badge className={{`text-xs ${styles.badge}`}>
                           {styles.badgeText}
                         </Badge>
                       </div>
                       
                       {/* Show task type if no description */}
                       {!task.description && task.task_type && (
-                        <p className="text-sm text-foreground mb-2 capitalize">
+                        <p className=""text-sm text-foreground mb-2 capitalize">
                           Type: {task.task_type}
                         </p>
                       )}
                       
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <div className=""flex items-center justify-between text-xs text-muted-foreground">
                         <span>
                           Deadline: {task.due_date ? new Date(task.due_date).toLocaleDateString('nl-NL') : 'Geen deadline'}
                         </span>
                         {task.priority && task.priority !== 'medium' && (
-                          <span className="font-medium">
+                          <span className=""font-medium">
                             Prioriteit: {task.priority === 'high' ? '🔴 Hoog' : '🔵 Laag'}
                           </span>
                         )}

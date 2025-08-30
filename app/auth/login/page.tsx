@@ -123,17 +123,17 @@ function LoginContent() {
   // Demo credentials removed for production security
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="w-full max-w-md space-y-6">
+    <div className=""min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className=""w-full max-w-md space-y-6">
         {/* Header */}
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full">
-              <TreePine className="w-8 h-8 text-white" />
+        <div className=""text-center">
+          <div className=""flex justify-center mb-4">
+            <div className=""flex items-center justify-center w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full">
+              <TreePine className=""w-8 h-8 text-white dark:text-black" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-foreground dark:text-gray-100">Tuinbeheer Systeem</h1>
-          <p className="text-muted-foreground dark:text-gray-300 mt-2">Meld je aan om door te gaan</p>
+          <h1 className=""text-2xl font-bold text-foreground dark:text-gray-100">Tuinbeheer Systeem</h1>
+          <p className=""text-muted-foreground dark:text-gray-300 mt-2">Meld je aan om door te gaan</p>
         </div>
 
         {/* Login Form */}
@@ -145,56 +145,56 @@ function LoginContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className=""space-y-4">
               {/* Email Field */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label htmlFor="email">E-mailadres</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <div className=""relative">
+                  <Mail className=""absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="je@email.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                    className={{`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
+                  <p className=""text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <AlertCircle className=""w-4 h-4" />
                     {errors.email}
                   </p>
                 )}
               </div>
 
               {/* Password Field */}
-              <div className="space-y-2">
+              <div className=""space-y-2">
                 <Label htmlFor="password">Wachtwoord</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <div className=""relative">
+                  <Lock className=""absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                    className={{`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
+                    className=""absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className=""w-4 h-4" /> : <Eye className=""w-4 h-4" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
+                  <p className=""text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
+                    <AlertCircle className=""w-4 h-4" />
                     {errors.password}
                   </p>
                 )}
@@ -203,12 +203,12 @@ function LoginContent() {
               {/* Submit Button */}
               <Button
                 type="submit"
-                className="w-full"
+                className=""w-full"
                 disabled={isSubmitting || loading}
               >
                 {isSubmitting || loading ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                    <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                     Inloggen...
                   </>
                 ) : (
@@ -220,10 +220,10 @@ function LoginContent() {
             {/* Demo credentials section removed for production security */}
 
             {/* Footer Links */}
-            <div className="mt-6 text-center space-y-2">
+            <div className=""mt-6 text-center space-y-2">
               <Link 
                 href="/auth/forgot-password" 
-                className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                className=""text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
               >
                 Wachtwoord vergeten?
               </Link>
@@ -233,7 +233,7 @@ function LoginContent() {
 
         {/* Info Alert */}
         <Alert>
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircle className=""h-4 w-4" />
           <AlertDescription>
             Dit is een preview van het gebruikerssysteem. In productie werkt dit met echte Supabase authenticatie.
           </AlertDescription>
@@ -247,9 +247,9 @@ export default function LoginPage() {
   return (
     <Suspense 
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
-          <div className="flex items-center gap-2">
-                              <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+        <div className=""min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
+          <div className=""flex items-center gap-2">
+                              <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
             <span>Laden...</span>
           </div>
         </div>

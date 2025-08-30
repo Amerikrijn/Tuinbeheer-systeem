@@ -88,51 +88,51 @@ export function InstagramIntegration({
   }
 
   return (
-    <Card className="border-pink-200">
+    <Card className=""border-pink-200">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Instagram className="h-5 w-5 text-pink-600" />
+        <CardTitle className=""flex items-center gap-2">
+          <Instagram className=""h-5 w-5 text-pink-600" />
           Instagram Integratie
-          <Badge variant="outline" className="bg-pink-100 text-pink-700">
+          <Badge variant="outline" className=""bg-pink-100 text-pink-700">
             Admin Only
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className=""space-y-4">
         {/* Auto-post toggle */}
-        <div className="flex items-center justify-between">
+        <div className=""flex items-center justify-between">
           <div>
-            <div className="font-medium text-sm">Automatisch Posten</div>
-            <div className="text-xs text-gray-600">Post automatisch bij voltooide sessies</div>
+            <div className=""font-medium text-sm">Automatisch Posten</div>
+            <div className=""text-xs text-gray-600 dark:text-gray-300">Post automatisch bij voltooide sessies</div>
           </div>
           <Switch checked={autoPost} onCheckedChange={setAutoPost} />
         </div>
 
         {/* Caption preview/editor */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Instagram Caption</label>
+        <div className=""space-y-2">
+          <label className=""text-sm font-medium">Instagram Caption</label>
           <Textarea
             value={customCaption || defaultCaption}
             onChange={(e) => setCustomCaption(e.target.value)}
             placeholder="Bewerk de caption..."
             rows={6}
-            className="text-sm"
+            className=""text-sm"
           />
-          <div className="text-xs text-gray-500">{(customCaption || defaultCaption).length}/2200 karakters</div>
+          <div className=""text-xs text-gray-500 dark:text-gray-400">{(customCaption || defaultCaption).length}/2200 karakters</div>
         </div>
 
         {/* Image preview */}
         {imageUrl && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Foto Preview</label>
-            <div className="relative">
+          <div className=""space-y-2">
+            <label className=""text-sm font-medium">Foto Preview</label>
+            <div className=""relative">
               <img
                 src={imageUrl || "/placeholder.svg"}
                 alt="Instagram post preview"
-                className="w-full h-48 object-cover rounded border"
+                className=""w-full h-48 object-cover rounded border"
               />
-              <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                <ImageIcon className="h-3 w-3 inline mr-1" />
+              <div className=""absolute top-2 right-2 bg-black dark:bg-white/50 text-white dark:text-black px-2 py-1 rounded text-xs">
+                <ImageIcon className=""h-3 w-3 inline mr-1" />
                 Instagram Ready
               </div>
             </div>
@@ -143,16 +143,16 @@ export function InstagramIntegration({
         <Button
           onClick={handlePost}
           disabled={isPosting || !imageUrl}
-          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+          className=""w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
         >
           {isPosting ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+              <div className=""animate-spin rounded-full h-4 w-4 border-b-2 border-white dark:border-gray-800 mr-2" />
               Posten naar Instagram...
             </>
           ) : (
             <>
-              <Send className="h-4 w-4 mr-2" />
+              <Send className=""h-4 w-4 mr-2" />
               Deel op Instagram
             </>
           )}
@@ -160,27 +160,27 @@ export function InstagramIntegration({
 
         {/* Recent posts */}
         {recentPosts.length > 0 && (
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Recente Instagram Posts</label>
-            <div className="space-y-2">
+          <div className=""space-y-2">
+            <label className=""text-sm font-medium">Recente Instagram Posts</label>
+            <div className=""space-y-2">
               {recentPosts.map((post) => (
-                <div key={post.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                <div key={post.id} className=""flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-900 rounded">
                   <img
                     src={post.media_url || "/placeholder.svg"}
                     alt={post.caption}
-                    className="w-12 h-12 object-cover rounded"
+                    className=""w-12 h-12 object-cover rounded"
                   />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{post.caption}</div>
-                    <div className="text-xs text-gray-500">{new Date(post.timestamp).toLocaleDateString()}</div>
+                  <div className=""flex-1 min-w-0">
+                    <div className=""font-medium text-sm truncate">{post.caption}</div>
+                    <div className=""text-xs text-gray-500 dark:text-gray-400">{new Date(post.timestamp).toLocaleDateString()}</div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Heart className="h-3 w-3" />
+                  <div className=""flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <span className=""flex items-center gap-1">
+                      <Heart className=""h-3 w-3" />
                       0
                     </span>
-                    <span className="flex items-center gap-1">
-                      <MessageCircle className="h-3 w-3" />
+                    <span className=""flex items-center gap-1">
+                      <MessageCircle className=""h-3 w-3" />
                       0
                     </span>
                   </div>

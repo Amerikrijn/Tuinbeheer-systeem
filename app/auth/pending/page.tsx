@@ -31,19 +31,19 @@ export default function PendingPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-md safe-area-px">
-      <Card className="text-center">
+    <div className=""container mx-auto px-4 py-6 max-w-md safe-area-px">
+      <Card className=""text-center">
         <CardHeader>
-          <div className="mx-auto mb-4 p-3 bg-amber-100 rounded-full w-fit">
-            <Clock className="w-8 h-8 text-amber-600" />
+          <div className=""mx-auto mb-4 p-3 bg-amber-100 rounded-full w-fit">
+            <Clock className=""w-8 h-8 text-amber-600" />
           </div>
-          <CardTitle className="text-2xl">Account In Afwachting</CardTitle>
+          <CardTitle className=""text-2xl">Account In Afwachting</CardTitle>
           <CardDescription>
             Je account moet nog geactiveerd worden door een administrator
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="text-sm text-muted-foreground space-y-2">
+        <CardContent className=""space-y-4">
+          <div className=""text-sm text-muted-foreground space-y-2">
             <p>
               <strong>Email:</strong> {user?.email}
             </p>
@@ -52,12 +52,12 @@ export default function PendingPage() {
             </p>
           </div>
           
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm">
-            <div className="flex items-start space-x-2">
-              <Mail className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-              <div className="text-left">
-                <p className="font-medium text-amber-800">Wat nu?</p>
-                <p className="text-amber-700">
+          <div className=""bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm">
+            <div className=""flex items-start space-x-2">
+              <Mail className=""w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+              <div className=""text-left">
+                <p className=""font-medium text-amber-800">Wat nu?</p>
+                <p className=""text-amber-700">
                   Een administrator moet je account activeren voordat je het systeem kunt gebruiken. 
                   Je ontvangt een email zodra dit gebeurd is.
                 </p>
@@ -65,19 +65,19 @@ export default function PendingPage() {
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className=""flex gap-2">
             <Button 
               variant="outline" 
               onClick={handleRefresh}
-              className="flex-1"
+              className=""flex-1"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <RefreshCw className=""w-4 h-4 mr-2" />
               Status Vernieuwen
             </Button>
             <Button 
               variant="outline" 
               onClick={handleSignOut}
-              className="flex-1"
+              className=""flex-1"
             >
               Uitloggen
             </Button>

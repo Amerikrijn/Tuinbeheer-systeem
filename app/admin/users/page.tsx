@@ -224,40 +224,40 @@ function AdminUsersPageContent() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
-          <span className="ml-2 text-muted-foreground">Gebruikers laden...</span>
+      <div className=""container mx-auto px-4 py-6 max-w-6xl safe-area-px">
+        <div className=""flex items-center justify-center py-12">
+          <div className=""w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+          <span className=""ml-2 text-muted-foreground">Gebruikers laden...</span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
+    <div className=""container mx-auto px-4 py-6 max-w-6xl safe-area-px">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className=""flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Gebruikersbeheer</h1>
-          <p className="text-muted-foreground mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
+          <h1 className=""text-3xl font-bold text-foreground">Gebruikersbeheer</h1>
+          <p className=""text-muted-foreground mt-1">Beheer gebruikers, rollen en toegang tot tuinen</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className=""flex gap-2 flex-wrap">
           <Button 
             onClick={() => setIsCreateDialogOpen(true)} 
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 min-w-0 flex-1 sm:min-w-[160px] sm:flex-initial"
+            className=""flex items-center gap-2 bg-green-600 dark:bg-green-700 hover:bg-green-700 min-w-0 flex-1 sm:min-w-[160px] sm:flex-initial"
           >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Gebruiker Aanmaken</span>
-            <span className="sm:hidden">Aanmaken</span>
+            <Plus className=""w-4 h-4" />
+            <span className=""hidden sm:inline">Gebruiker Aanmaken</span>
+            <span className=""sm:hidden">Aanmaken</span>
           </Button>
           <Button 
             variant="outline" 
             onClick={() => window.location.href = '/admin/trash'}
-            className="flex items-center gap-2 min-w-0 flex-1 sm:min-w-[140px] sm:flex-initial"
+            className=""flex items-center gap-2 min-w-0 flex-1 sm:min-w-[140px] sm:flex-initial"
           >
-            <Trash2 className="w-4 h-4" />
-            <span className="hidden sm:inline">Prullenbak</span>
-            <span className="sm:hidden">Trash</span>
+            <Trash2 className=""w-4 h-4" />
+            <span className=""hidden sm:inline">Prullenbak</span>
+            <span className=""sm:hidden">Trash</span>
           </Button>
         </div>
       </div>
@@ -265,8 +265,8 @@ function AdminUsersPageContent() {
       {/* Users Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserCheck className="w-5 h-5" />
+          <CardTitle className=""flex items-center gap-2">
+            <UserCheck className=""w-5 h-5" />
             Gebruikers ({users.length})
           </CardTitle>
           <CardDescription>
@@ -289,16 +289,16 @@ function AdminUsersPageContent() {
               {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
+                    <div className=""flex items-center space-x-3">
+                      <Avatar className=""h-8 w-8">
                         <AvatarImage src={user.avatar_url} />
-                        <AvatarFallback className="text-xs">
+                        <AvatarFallback className=""text-xs">
                           {getInitials(user.full_name, user.email)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">{user.full_name || 'Geen naam'}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className=""font-medium">{user.full_name || 'Geen naam'}</p>
+                        <p className=""text-sm text-muted-foreground">{user.email}</p>
                       </div>
                     </div>
                   </TableCell>
@@ -308,7 +308,7 @@ function AdminUsersPageContent() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
+                    <div className=""flex items-center gap-2">
                       <Badge variant={
                         user.status === 'active' ? 'default' : 
                         user.status === 'pending' ? 'secondary' : 'destructive'
@@ -317,23 +317,23 @@ function AdminUsersPageContent() {
                          user.status === 'pending' ? 'In afwachting' : 'Inactief'}
                       </Badge>
                       {user.force_password_change && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className=""text-xs">
                           Wachtwoord wijzigen vereist
                         </Badge>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className=""text-sm text-muted-foreground">
                     {formatDate(user.last_login)}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className=""text-sm text-muted-foreground">
                     {formatDate(user.created_at)}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
+                        <Button variant="ghost" className=""h-8 w-8 p-0">
+                          <MoreHorizontal className=""h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -342,25 +342,25 @@ function AdminUsersPageContent() {
                             setSelectedUser(user)
                             setIsEditDialogOpen(true)
                           }}
-                          className="text-blue-600 hover:text-blue-700"
+                          className=""text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:text-blue-300"
                         >
-                          <Edit className="w-4 h-4 mr-2" />
+                          <Edit className=""w-4 h-4 mr-2" />
                           Gebruiker Bewerken
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleResetPassword(user)}
                           disabled={user.id === currentUser?.id || resetting}
-                          className="text-orange-600 hover:text-orange-700"
+                          className=""text-orange-600 hover:text-orange-700"
                         >
-                          <Key className="w-4 h-4 mr-2" />
+                          <Key className=""w-4 h-4 mr-2" />
                           Wachtwoord Resetten
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user)}
-                          className="text-red-600 hover:text-red-700"
+                          className=""text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300"
                           disabled={user.id === currentUser?.id}
                         >
-                          <Trash2 className="w-4 h-4 mr-2" />
+                          <Trash2 className=""w-4 h-4 mr-2" />
                           Naar Prullenbak
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -372,18 +372,18 @@ function AdminUsersPageContent() {
           </Table>
           
           {users.length === 0 && (
-            <Card className="text-center py-12">
+            <Card className=""text-center py-12">
               <CardContent>
-                <UserCheck className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">Nog geen gebruikers</h3>
-                <p className="text-muted-foreground mb-4">
+                <UserCheck className=""w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className=""text-xl font-semibold text-foreground mb-2">Nog geen gebruikers</h3>
+                <p className=""text-muted-foreground mb-4">
                   Maak je eerste gebruiker aan om te beginnen met gebruikersbeheer.
                 </p>
                 <Button 
                   onClick={() => setIsCreateDialogOpen(true)}
-                  className="bg-green-600 hover:bg-green-700"
+                  className=""bg-green-600 dark:bg-green-700 hover:bg-green-700"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className=""w-4 h-4 mr-2" />
                   Eerste Gebruiker Aanmaken
                 </Button>
               </CardContent>
@@ -417,7 +417,7 @@ function AdminUsersPageContent() {
 
       {/* Password Display Dialog */}
       <Dialog open={showPassword} onOpenChange={setShowPassword}>
-        <DialogContent className="max-w-md">
+        <DialogContent className=""max-w-md">
           <DialogHeader>
             <DialogTitle>Tijdelijk Wachtwoord</DialogTitle>
             <DialogDescription>
@@ -425,24 +425,24 @@ function AdminUsersPageContent() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="flex items-center justify-between">
-                <code className="text-lg font-mono">{tempPassword}</code>
+          <div className=""space-y-4 py-4">
+            <div className=""p-4 bg-muted rounded-lg">
+              <div className=""flex items-center justify-between">
+                <code className=""text-lg font-mono">{tempPassword}</code>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={copyPassword}
-                  className="ml-2"
+                  className=""ml-2"
                 >
-                  {passwordCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {passwordCopied ? <Check className=""w-4 h-4" /> : <Copy className=""w-4 h-4" />}
                 </Button>
               </div>
             </div>
             
-            <div className="text-sm text-muted-foreground">
+            <div className=""text-sm text-muted-foreground">
               <p><strong>Belangrijk:</strong></p>
-              <ul className="list-disc list-inside mt-1 space-y-1">
+              <ul className=""list-disc list-inside mt-1 space-y-1">
                 <li>Deel dit wachtwoord veilig (niet via email)</li>
                 <li>Gebruiker moet dit bij eerste login wijzigen</li>
                 <li>Wachtwoord is 16 karakters lang voor extra beveiliging</li>
@@ -463,7 +463,7 @@ function AdminUsersPageContent() {
 
       {/* Password Reset Dialog */}
       <Dialog open={isPasswordResetDialogOpen} onOpenChange={setIsPasswordResetDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className=""max-w-md">
           <DialogHeader>
             <DialogTitle>Wachtwoord Gereset</DialogTitle>
             <DialogDescription>
@@ -471,22 +471,22 @@ function AdminUsersPageContent() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="flex items-center justify-between">
-                <code className="text-lg font-mono">{tempPassword}</code>
+          <div className=""space-y-4 py-4">
+            <div className=""p-4 bg-muted rounded-lg">
+              <div className=""flex items-center justify-between">
+                <code className=""text-lg font-mono">{tempPassword}</code>
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={copyPassword}
-                  className="ml-2"
+                  className=""ml-2"
                 >
-                  {passwordCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                  {passwordCopied ? <Check className=""w-4 h-4" /> : <Copy className=""w-4 h-4" />}
                 </Button>
               </div>
             </div>
             
-            <div className="text-sm text-muted-foreground">
+            <div className=""text-sm text-muted-foreground">
               <p>De gebruiker moet dit nieuwe wachtwoord bij de volgende login wijzigen.</p>
             </div>
           </div>

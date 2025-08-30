@@ -125,7 +125,7 @@ export function CreateUserDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className=""max-w-md">
         <DialogHeader>
           <DialogTitle>Nieuwe Gebruiker Aanmaken</DialogTitle>
           <DialogDescription>
@@ -133,8 +133,8 @@ export function CreateUserDialog({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
+        <div className=""space-y-4 py-4">
+          <div className=""space-y-2">
             <Label htmlFor="email">Email adres *</Label>
             <Input
               id="email"
@@ -146,7 +146,7 @@ export function CreateUserDialog({
             />
           </div>
 
-          <div className="space-y-2">
+          <div className=""space-y-2">
             <Label htmlFor="fullName">Volledige naam *</Label>
             <Input
               id="fullName"
@@ -158,7 +158,7 @@ export function CreateUserDialog({
             />
           </div>
           
-          <div className="space-y-2">
+          <div className=""space-y-2">
             <Label htmlFor="role">Rol</Label>
             <Select 
               value={createForm.role} 
@@ -175,21 +175,21 @@ export function CreateUserDialog({
           </div>
 
           {/* Garden Access Selection - For both users and admins */}
-          <div className="space-y-2">
+          <div className=""space-y-2">
             <Label>Tuin Toegang</Label>
-            <div className="text-sm text-muted-foreground mb-2">
+            <div className=""text-sm text-muted-foreground mb-2">
               {createForm.role === 'admin' 
                 ? 'Selecteer welke tuinen deze administrator kan beheren (leeg = alle tuinen)'
                 : 'Selecteer welke tuinen deze gebruiker kan beheren'
               }
             </div>
-            <div className="border rounded-md p-3 max-h-32 overflow-y-auto">
+            <div className=""border rounded-md p-3 max-h-32 overflow-y-auto">
               {gardens.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Geen tuinen beschikbaar</p>
+                <p className=""text-sm text-muted-foreground">Geen tuinen beschikbaar</p>
               ) : (
-                <div className="space-y-2">
+                <div className=""space-y-2">
                   {gardens.map((garden) => (
-                    <div key={garden.id} className="flex items-center space-x-2">
+                    <div key={garden.id} className=""flex items-center space-x-2">
                       <input
                         type="checkbox"
                         id={`garden-${garden.id}`}
@@ -207,11 +207,11 @@ export function CreateUserDialog({
                             }))
                           }
                         }}
-                        className="rounded border-border"
+                        className=""rounded border-border"
                       />
                       <label 
                         htmlFor={`garden-${garden.id}`}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className=""text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                       >
                         {garden.name}
                       </label>
@@ -223,22 +223,22 @@ export function CreateUserDialog({
             
             {/* Role-specific warnings */}
             {createForm.role === 'user' && createForm.gardenAccess.length === 0 && (
-              <p className="text-xs text-orange-600">
+              <p className=""text-xs text-orange-600">
                 ⚠️ Gebruiker heeft geen tuin toegang - kan geen taken uitvoeren
               </p>
             )}
             
             {createForm.role === 'admin' && createForm.gardenAccess.length === 0 && (
-              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
+              <div className=""p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md">
+                <p className=""text-sm text-blue-700 dark:text-blue-300">
                   <strong>Super Administrator:</strong> Heeft automatisch toegang tot alle tuinen
                 </p>
               </div>
             )}
             
             {createForm.role === 'admin' && createForm.gardenAccess.length > 0 && (
-              <div className="p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-md">
-                <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              <div className=""p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-md">
+                <p className=""text-sm text-yellow-700 dark:text-yellow-300">
                   <strong>Garden Administrator:</strong> Beperkte toegang tot {createForm.gardenAccess.length} tuin(en)
                 </p>
               </div>
@@ -257,16 +257,16 @@ export function CreateUserDialog({
           <Button 
             onClick={handleCreateUser}
             disabled={!createForm.email || !createForm.fullName || creating}
-            className="min-w-[140px]"
+            className=""min-w-[140px]"
           >
             {creating ? (
               <>
-                <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                 Aanmaken...
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className=""w-4 h-4 mr-2" />
                 Gebruiker Aanmaken
               </>
             )}

@@ -221,10 +221,10 @@ export default function NewPlantBedPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-96 bg-gray-200 rounded"></div>
+      <div className=""container mx-auto p-6">
+        <div className=""animate-pulse space-y-6">
+          <div className=""h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+          <div className=""h-96 bg-gray-200 dark:bg-gray-700 rounded"></div>
         </div>
       </div>
     )
@@ -232,11 +232,11 @@ export default function NewPlantBedPage() {
 
   if (!garden) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600">Tuin niet gevonden</h1>
-          <p className="text-muted-foreground mt-2">De opgevraagde tuin bestaat niet.</p>
-          <Button onClick={goBack} className="mt-4">
+      <div className=""container mx-auto p-6">
+        <div className=""text-center">
+          <h1 className=""text-2xl font-bold text-red-600 dark:text-red-400">Tuin niet gevonden</h1>
+          <p className=""text-muted-foreground mt-2">De opgevraagde tuin bestaat niet.</p>
+          <Button onClick={goBack} className=""mt-4">
             Terug
           </Button>
         </div>
@@ -245,61 +245,61 @@ export default function NewPlantBedPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-6 p-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+    <div className=""container mx-auto space-y-6 p-6">
+      <div className=""flex flex-wrap items-center justify-between gap-4">
+        <div className=""flex items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={goBack}
-            className="flex items-center gap-2"
+            className=""flex items-center gap-2"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className=""h-4 w-4" />
             Terug
           </Button>
 
           <div>
-            <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-              <Plus className="h-7 w-7 text-green-600" />
+            <h1 className=""flex items-center gap-2 text-2xl font-bold md:text-3xl">
+              <Plus className=""h-7 w-7 text-green-600 dark:text-green-400" />
               Nieuw Plantvak Toevoegen
             </h1>
-            <p className="text-muted-foreground">Voeg een nieuw plantvak toe aan {garden.name}</p>
+            <p className=""text-muted-foreground">Voeg een nieuw plantvak toe aan {garden.name}</p>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+      <div className=""grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className=""lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Leaf className="h-5 w-5 text-green-600" />
+              <CardTitle className=""flex items-center gap-2">
+                <Leaf className=""h-5 w-5 text-green-600 dark:text-green-400" />
                 Plantvak Informatie
               </CardTitle>
             </CardHeader>
 
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className=""space-y-6">
                 {/* Automatic Letter Code Assignment - Prominent Display */}
-                <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 text-white text-4xl font-bold rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-800">
+                <div className=""p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-950/30 dark:to-green-950/30 border-2 border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className=""flex items-center gap-4">
+                    <div className=""w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 text-white dark:text-black text-4xl font-bold rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-800">
                       {nextLetterCode}
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-800 text-xl mb-1">Automatische Naamgeving</h4>
-                      <p className="text-foreground text-lg mb-2">
-                        Dit plantvak krijgt automatisch de naam: <strong className="text-green-700 text-2xl">Plantvak {nextLetterCode}</strong>
+                    <div className=""flex-1">
+                      <h4 className=""font-bold text-gray-800 dark:text-gray-100 text-xl mb-1">Automatische Naamgeving</h4>
+                      <p className=""text-foreground text-lg mb-2">
+                        Dit plantvak krijgt automatisch de naam: <strong className=""text-green-700 dark:text-green-300 text-2xl">Plantvak {nextLetterCode}</strong>
                       </p>
-                      <p className="text-muted-foreground text-sm">
+                      <p className=""text-muted-foreground text-sm">
                         Geen handmatige invoer nodig - het systeem wijst automatisch letters toe.
                       </p>
                       
                       {/* Show existing plantvakken */}
                       {existingPlantvakken.length > 0 && (
-                        <div className="mt-3">
-                          <p className="text-sm text-blue-600 mb-2">Bestaande plantvakken in deze tuin:</p>
-                          <div className="flex flex-wrap gap-2">
+                        <div className=""mt-3">
+                          <p className=""text-sm text-blue-600 dark:text-blue-400 mb-2">Bestaande plantvakken in deze tuin:</p>
+                          <div className=""flex flex-wrap gap-2">
                             {existingPlantvakken
                               .sort((a, b) => {
                                 const aCode = a.letter_code || a.name || ''
@@ -313,7 +313,7 @@ export default function NewPlantBedPage() {
                               .map((plantvak) => (
                               <span 
                                 key={plantvak.id}
-                                className="inline-flex items-center justify-center min-w-[2rem] h-8 px-2 bg-green-100 text-green-800 text-sm font-bold rounded-full border-2 border-green-300"
+                                className=""inline-flex items-center justify-center min-w-[2rem] h-8 px-2 bg-green-100 dark:bg-green-900 text-green-800 text-sm font-bold rounded-full border-2 border-green-300 dark:border-green-700"
                                 title={`Plantvak ${plantvak.letter_code || plantvak.name}`}
                               >
                                 {plantvak.letter_code || plantvak.name || '?'}
@@ -324,7 +324,7 @@ export default function NewPlantBedPage() {
                       )}
                       
                       {existingPlantvakken.length === 0 && (
-                        <p className="text-sm text-green-600 mt-2">
+                        <p className=""text-sm text-green-600 dark:text-green-400 mt-2">
                           🎉 Dit is het eerste plantvak in deze tuin!
                         </p>
                       )}
@@ -332,11 +332,11 @@ export default function NewPlantBedPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
+                <div className=""grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className=""space-y-2">
                     <Label htmlFor="location">Locatie (optioneel)</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <div className=""relative">
+                      <MapPin className=""absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <Input
                         id="location"
                         placeholder="Bijv. Noordwest hoek, achter de schuur"
@@ -344,15 +344,15 @@ export default function NewPlantBedPage() {
                         onChange={(e) =>
                           setNewPlantBed((p) => ({ ...p, location: e.target.value }))
                         }
-                        className="pl-10"
+                        className=""pl-10"
                       />
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className=""space-y-2">
                     <Label htmlFor="size">Grootte *</Label>
-                    <div className="relative">
-                      <Ruler className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <div className=""relative">
+                      <Ruler className=""absolute left-3 top-3 h-4 w-4 text-gray-400 dark:text-gray-500" />
                       <Input
                         id="size"
                         placeholder="Bijv. 2x3 meter, 6m²"
@@ -360,15 +360,15 @@ export default function NewPlantBedPage() {
                         onChange={(e) =>
                           setNewPlantBed((p) => ({ ...p, size: e.target.value }))
                         }
-                        className={`pl-10 ${errors.size ? "border-red-500" : ""}`}
+                        className={{`pl-10 ${errors.size ? "border-red-500" : ""}`}
                       />
                     </div>
                     {errors.size && (
-                      <p className="text-sm text-red-500">{errors.size}</p>
+                      <p className=""text-sm text-red-500 dark:text-red-400">{errors.size}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
+                  <div className=""space-y-2">
                     <Label htmlFor="soilType">Bodemtype *</Label>
                     <Select
                       value={newPlantBed.soilType}
@@ -382,8 +382,8 @@ export default function NewPlantBedPage() {
                       <SelectContent>
                         {soilTypeOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
-                            <div className="flex items-center gap-2">
-                              <Droplets className="h-4 w-4 text-blue-500" />
+                            <div className=""flex items-center gap-2">
+                              <Droplets className=""h-4 w-4 text-blue-500 dark:text-blue-400" />
                               {option.label}
                             </div>
                           </SelectItem>
@@ -391,11 +391,11 @@ export default function NewPlantBedPage() {
                       </SelectContent>
                     </Select>
                     {errors.soilType && (
-                      <p className="text-sm text-red-500">{errors.soilType}</p>
+                      <p className=""text-sm text-red-500 dark:text-red-400">{errors.soilType}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2">
+                  <div className=""space-y-2">
                     <Label htmlFor="sunExposure">Zonligging *</Label>
                     <Select
                       value={newPlantBed.sunExposure}
@@ -412,9 +412,9 @@ export default function NewPlantBedPage() {
                       <SelectContent>
                         {sunExposureOptions.map((option) => (
                           <SelectItem key={option.value} value={option.value}>
-                            <div className="flex items-center gap-2">
+                            <div className=""flex items-center gap-2">
                               <Sun
-                                className={`h-4 w-4 ${
+                                className={{`h-4 w-4 ${
                                   option.value === "full-sun"
                                     ? "text-yellow-500"
                                     : option.value === "partial-sun"
@@ -429,11 +429,11 @@ export default function NewPlantBedPage() {
                       </SelectContent>
                     </Select>
                     {errors.sunExposure && (
-                      <p className="text-sm text-red-500">{errors.sunExposure}</p>
+                      <p className=""text-sm text-red-500 dark:text-red-400">{errors.sunExposure}</p>
                     )}
                   </div>
 
-                  <div className="space-y-2 md:col-span-2">
+                  <div className=""space-y-2 md:col-span-2">
                     <Label htmlFor="description">Beschrijving</Label>
                     <Textarea
                       id="description"
@@ -449,11 +449,11 @@ export default function NewPlantBedPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-3">
+                <div className=""flex gap-3">
                   <Button
                     type="submit" 
                     disabled={loading}
-                    className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
+                    className=""bg-green-600 dark:bg-green-700 hover:bg-green-700 disabled:bg-gray-400 dark:bg-gray-500"
                   >
                     {loading ? "Aanmaken..." : "Plantvak Aanmaken"}
                   </Button>
@@ -468,7 +468,7 @@ export default function NewPlantBedPage() {
                   </Button>
                   
                   {/* Debug info */}
-                  <div className="text-xs text-muted-foreground ml-4 flex items-center">
+                  <div className=""text-xs text-muted-foreground ml-4 flex items-center">
                     Loading: {loading ? "true" : "false"} | 
                     Size: {newPlantBed.size ? "✓" : "✗"} |
                     Soil: {newPlantBed.soilType ? "✓" : "✗"} |
@@ -480,15 +480,15 @@ export default function NewPlantBedPage() {
           </Card>
         </div>
 
-        <aside className="space-y-4">
+        <aside className=""space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Automatische Letter Codes</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm leading-relaxed space-y-3">
+            <CardContent className=""text-sm leading-relaxed space-y-3">
               <div>
                 <strong>Hoe het werkt:</strong>
-                <ul className="list-disc list-inside mt-2 space-y-1 text-muted-foreground">
+                <ul className=""list-disc list-inside mt-2 space-y-1 text-muted-foreground">
                   <li>Eerste plantvak → <strong>A</strong></li>
                   <li>Tweede plantvak → <strong>B</strong></li>
                   <li>Derde plantvak → <strong>C</strong></li>
@@ -498,7 +498,7 @@ export default function NewPlantBedPage() {
               </div>
               <div>
                 <strong>Voordelen:</strong>
-                <ul className="list-disc list-inside mt-2 space-y-1 text-muted-foreground">
+                <ul className=""list-disc list-inside mt-2 space-y-1 text-muted-foreground">
                   <li>Geen handmatige invoer nodig</li>
                   <li>Altijd unieke codes</li>
                   <li>Logische volgorde</li>

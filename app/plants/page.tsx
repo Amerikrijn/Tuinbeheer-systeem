@@ -8,12 +8,12 @@ export const metadata: Metadata = {
 
 export default function PlantsPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground">
+    <div className=""container mx-auto px-4 py-8">
+      <div className=""mb-8">
+        <h1 className=""text-3xl font-bold text-foreground">
           Planten
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className=""text-muted-foreground mt-2">
           Beheer je planten collectie en houd bij van je planten
         </p>
       </div>

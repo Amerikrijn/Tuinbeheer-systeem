@@ -148,7 +148,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className=""max-w-md">
         <DialogHeader>
           <DialogTitle>Tuin Toegang Beheren</DialogTitle>
           <DialogDescription>
@@ -156,33 +156,33 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
+        <div className=""space-y-4 py-4">
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="w-6 h-6 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
-              <span className="ml-2 text-muted-foreground">Tuinen laden...</span>
+            <div className=""flex items-center justify-center py-8">
+              <div className=""w-6 h-6 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+              <span className=""ml-2 text-muted-foreground">Tuinen laden...</span>
             </div>
           ) : (
-            <div className="space-y-3 max-h-96 overflow-y-auto">
+            <div className=""space-y-3 max-h-96 overflow-y-auto">
               {gardens.map((garden) => (
-                <div key={garden.id} className="flex items-center space-x-3">
+                <div key={garden.id} className=""flex items-center space-x-3">
                   <input
                     type="checkbox"
                     id={`garden-${garden.id}`}
                     checked={userGardenAccess.includes(garden.id)}
                     onChange={() => toggleGardenAccess(garden.id)}
-                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    className=""rounded border-gray-300 dark:border-gray-500 text-green-600 dark:text-green-400 focus:ring-green-500"
                   />
                   <label 
                     htmlFor={`garden-${garden.id}`}
-                    className="flex-1 cursor-pointer"
+                    className=""flex-1 cursor-pointer"
                   >
-                    <div className="flex items-center space-x-2">
-                      <TreePine className="w-4 h-4 text-green-600" />
+                    <div className=""flex items-center space-x-2">
+                      <TreePine className=""w-4 h-4 text-green-600 dark:text-green-400" />
                       <div>
-                        <p className="font-medium">{garden.name}</p>
+                        <p className=""font-medium">{garden.name}</p>
                         {garden.description && (
-                          <p className="text-sm text-muted-foreground">{garden.description}</p>
+                          <p className=""text-sm text-muted-foreground">{garden.description}</p>
                         )}
                       </div>
                     </div>
@@ -193,15 +193,15 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
           )}
           
           {!loading && gardens.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <TreePine className="w-12 h-12 mx-auto mb-2 opacity-50" />
+            <div className=""text-center py-8 text-muted-foreground">
+              <TreePine className=""w-12 h-12 mx-auto mb-2 opacity-50" />
               <p>Nog geen tuinen beschikbaar</p>
-              <p className="text-sm">Maak eerst tuinen aan voordat je toegang kunt toewijzen</p>
+              <p className=""text-sm">Maak eerst tuinen aan voordat je toegang kunt toewijzen</p>
             </div>
           )}
           
           {!loading && userGardenAccess.length === 0 && gardens.length > 0 && (
-            <div className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
+            <div className=""text-sm text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-200">
               ⚠️ Deze gebruiker heeft geen toegang tot tuinen en kan geen taken uitvoeren.
             </div>
           )}
@@ -219,7 +219,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
             onClick={handleSave}
             disabled={saving || loading}
           >
-            {saving && <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />}
+            {saving && <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />}
             Opslaan
           </Button>
         </DialogFooter>

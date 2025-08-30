@@ -152,7 +152,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     
     return (
       <Card 
-        className={`mb-3 transition-all duration-200 cursor-pointer hover:shadow-md ${task.completed ? 'opacity-70 bg-muted border-muted-foreground' : 'bg-card border-border'} ${compact ? 'p-2' : ''}`}
+        className={{`mb-3 transition-all duration-200 cursor-pointer hover:shadow-md ${task.completed ? 'opacity-70 bg-muted border-muted-foreground' : 'bg-card border-border'} ${compact ? 'p-2' : ''}`}
         onClick={() => onTaskEdit?.(task)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -164,14 +164,14 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
         role="button"
         aria-label={`Taak: ${task.title}. ${task.completed ? 'Voltooid' : 'Niet voltooid'}. Klik om details te bekijken.`}
       >
-        <div className={`${compact ? 'p-2' : 'p-4'} flex items-start gap-3`}>
-          <div className="flex-shrink-0 mt-1">
+        <div className={{`${compact ? 'p-2' : 'p-4'} flex items-start gap-3`}>
+          <div className=""flex-shrink-0 mt-1">
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 handleTaskComplete(task.id, !task.completed)
               }}
-              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
+              className={{`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
                 task.completed 
                   ? 'bg-primary border-primary' 
                   : 'border-muted-foreground hover:border-primary hover:bg-primary/10'
@@ -180,7 +180,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             >
               {task.completed && (
                 <CheckCircle2 
-                  className={`w-3 h-3 ${
+                  className={{`w-3 h-3 ${
                     task.completed 
                       ? 'text-primary-foreground' 
                       : 'text-muted-foreground hover:text-primary'
@@ -190,33 +190,33 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             </button>
           </div>
           
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1 text-base text-foreground leading-snug">
-              <span className="font-medium text-sm text-muted-foreground">{task.garden_name}</span>
+          <div className=""flex-1 min-w-0">
+            <div className=""flex items-center gap-2 mb-1 text-base text-foreground leading-snug">
+              <span className=""font-medium text-sm text-muted-foreground">{task.garden_name}</span>
               {task.garden_name && task.plant_bed_name && (
-                <span className="text-muted-foreground" aria-hidden>→</span>
+                <span className=""text-muted-foreground" aria-hidden>→</span>
               )}
-              <span className="font-medium text-sm text-muted-foreground">{task.plant_bed_name}</span>
-              <span className="text-muted-foreground" aria-hidden>•</span>
-              <div className="flex items-center gap-1">
-                <Leaf className="h-3 w-3 text-primary" />
-                <span className={`font-semibold truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</span>
+              <span className=""font-medium text-sm text-muted-foreground">{task.plant_bed_name}</span>
+              <span className=""text-muted-foreground" aria-hidden>•</span>
+              <div className=""flex items-center gap-1">
+                <Leaf className=""h-3 w-3 text-primary" />
+                <span className={{`font-semibold truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</span>
               </div>
             </div>
             
             {task.description && (
-              <p className={`text-sm mb-2 line-clamp-2 ${
+              <p className={{`text-sm mb-2 line-clamp-2 ${
                 task.completed ? 'text-muted-foreground' : 'text-muted-foreground'
               }`}>
                 {task.description}
               </p>
             )}
             
-            <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
+            <div className=""flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
               {task.priority && (
                 <Badge 
                   variant="outline" 
-                  className={`text-xs px-2 py-0.5 ${
+                  className={{`text-xs px-2 py-0.5 ${
                     task.completed 
                       ? 'opacity-60 bg-muted text-muted-foreground' 
                       : priorityConfig?.badge_color || 'bg-muted text-muted-foreground'
@@ -227,15 +227,15 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               )}
               
               {task.due_date && (
-                <span className={`flex items-center gap-1 ${
+                <span className={{`flex items-center gap-1 ${
                   task.completed ? 'opacity-60 border-muted text-muted-foreground' : 'text-muted-foreground'
                 }`}>
-                  <Calendar className="h-3 w-3" />
+                  <Calendar className=""h-3 w-3" />
                   {formatTaskDate(task.due_date)}
                 </span>
               )}
               
-              <span className={`${
+              <span className={{`${
                 task.completed ? 'text-muted-foreground' : 'text-muted-foreground'
               }`}>
                 {task.plant_name}
@@ -270,23 +270,23 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     if (day.tasks.length === 0) return null
 
     return (
-      <Card className={`mb-3 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 ${day.is_today ? 'ring-2 ring-green-500' : ''}`}>
-        <CardHeader className="pb-2 pt-3 px-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2 text-green-800 dark:text-green-200">
-              <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
+      <Card className={{`mb-3 border-green-200 dark:border-green-800 hover:border-green-300 dark:border-green-700 dark:hover:border-green-700 ${day.is_today ? 'ring-2 ring-green-500' : ''}`}>
+        <CardHeader className=""pb-2 pt-3 px-3">
+          <div className=""flex items-center justify-between">
+            <CardTitle className=""text-lg flex items-center gap-2 text-green-800 dark:text-green-200">
+              <Calendar className=""w-4 h-4 text-green-600 dark:text-green-400" />
               {day.day_name} {new Date(day.date).getDate()}
-              {day.is_today && <Badge className="ml-2 bg-green-100 text-green-800 border-green-300">Vandaag</Badge>}
+              {day.is_today && <Badge className=""ml-2 bg-green-100 text-green-800 border-green-300 dark:border-green-700">Vandaag</Badge>}
             </CardTitle>
             
-            <div className="flex gap-1">
+            <div className=""flex gap-1">
               {day.overdue_count > 0 && (
-                <Badge variant="destructive" className="text-xs px-2 py-0.5">
+                <Badge variant="destructive" className=""text-xs px-2 py-0.5">
                   {day.overdue_count} verlopen
                 </Badge>
               )}
               {day.completed_count > 0 && (
-                <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-green-100 text-green-800 border-green-300">
+                <Badge variant="secondary" className=""text-xs px-2 py-0.5 bg-green-100 text-green-800 border-green-300 dark:border-green-700">
                   {day.completed_count} klaar
                 </Badge>
               )}
@@ -294,8 +294,8 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
           </div>
         </CardHeader>
         
-        <CardContent className="pt-0">
-          <div className="space-y-3">
+        <CardContent className=""pt-0">
+          <div className=""space-y-3">
             {/* Show active tasks first */}
             {sortedActiveTasks.map(task => (
               <TaskCard key={task.id} task={task} showPlantInfo />
@@ -303,7 +303,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             
                      {/* Show completed tasks at the bottom with strikethrough */}
          {completedTasks.map(task => (
-           <div key={task.id} className="opacity-60">
+           <div key={task.id} className=""opacity-60">
              <TaskCard task={task} showPlantInfo />
            </div>
          ))}
@@ -315,10 +315,10 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
 
       if (loading) {
       return (
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-green-100 dark:bg-green-900/30 rounded" />
-          <div className="h-32 bg-green-100 dark:bg-green-900/30 rounded" />
-          <div className="h-32 bg-green-100 dark:bg-green-900/30 rounded" />
+        <div className=""animate-pulse space-y-4">
+          <div className=""h-8 bg-green-100 dark:bg-green-900/30 rounded" />
+          <div className=""h-32 bg-green-100 dark:bg-green-900/30 rounded" />
+          <div className=""h-32 bg-green-100 dark:bg-green-900/30 rounded" />
         </div>
       )
     }
@@ -326,10 +326,10 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
   if (error) {
     return (
       <Card>
-        <CardContent className="p-6 text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">Fout bij laden</h3>
-          <p className="text-muted-foreground mb-4">{error}</p>
+        <CardContent className=""p-6 text-center">
+          <AlertCircle className=""w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
+          <h3 className=""text-lg font-medium text-foreground mb-2">Fout bij laden</h3>
+          <p className=""text-muted-foreground mb-4">{error}</p>
           <Button onClick={() => loadWeeklyCalendar(currentWeekStart)}>
             Opnieuw proberen
           </Button>
@@ -341,25 +341,25 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
   if (!calendar) return null
 
   return (
-    <div className="space-y-4">
+    <div className=""space-y-4">
       {/* Header with navigation */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className=""flex items-center justify-between">
+            <div className=""flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={goToPreviousWeek}
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className=""w-4 h-4" />
               </Button>
               
-              <div className="text-center">
-                <h2 className="text-lg font-semibold">
+              <div className=""text-center">
+                <h2 className=""text-lg font-semibold">
                   Week {calendar.week_number}, {calendar.year}
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className=""text-sm text-muted-foreground">
                   {new Date(calendar.week_start).toLocaleDateString('nl-NL', { 
                     day: 'numeric', 
                     month: 'short' 
@@ -375,11 +375,11 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 size="sm"
                 onClick={goToNextWeek}
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className=""w-4 h-4" />
               </Button>
             </div>
 
-            <div className="flex gap-2">
+            <div className=""flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -392,9 +392,9 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 <Button
                   size="sm"
                   onClick={() => onTaskAdd()}
-                  className="bg-green-600 hover:bg-green-700"
+                  className=""bg-green-600 dark:bg-green-700 hover:bg-green-700"
                 >
-                  <Plus className="w-4 h-4 mr-1" />
+                  <Plus className=""w-4 h-4 mr-1" />
                   Taak
                 </Button>
               )}
@@ -405,22 +405,22 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
 
       {/* Filter controls */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center gap-4 flex-wrap">
-            <label className="flex items-center gap-2 cursor-pointer">
+        <CardContent className=""p-4">
+          <div className=""flex items-center gap-4 flex-wrap">
+            <label className=""flex items-center gap-2 cursor-pointer">
               <button
                 onClick={() => setConfig(prev => ({ ...prev, show_completed: !prev.show_completed }))}
-                className="transition-colors"
+                className=""transition-colors"
               >
                 <CheckCircle
-                  className={`h-4 w-4 ${
+                  className={{`h-4 w-4 ${
                     config.show_completed 
                       ? 'text-green-600 fill-green-100' 
                       : 'text-muted-foreground'
                   }`}
                 />
               </button>
-              <span className="text-sm">Toon afgeronde taken</span>
+              <span className=""text-sm">Toon afgeronde taken</span>
             </label>
 
           </div>
@@ -430,8 +430,8 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       {/* Weekly task list */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
+          <CardTitle className=""flex items-center gap-2">
+            <Calendar className=""w-5 h-5" />
             Alle taken deze week
           </CardTitle>
         </CardHeader>
@@ -443,9 +443,9 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             
             if (tasksToShow.length === 0) {
               return (
-                <div className="text-center py-8">
-                  <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
-                  <p className="text-muted-foreground">Geen taken deze week!</p>
+                <div className=""text-center py-8">
+                  <CheckCircle2 className=""w-12 h-12 text-green-500 dark:text-green-400 mx-auto mb-4" />
+                  <p className=""text-muted-foreground">Geen taken deze week!</p>
                 </div>
               )
             }
@@ -473,7 +473,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             })
             
             return (
-              <div className="space-y-3">
+              <div className=""space-y-3">
                 {sortedTasks.map(task => (
                   <TaskCard key={task.id} task={task} showPlantInfo />
                 ))}
@@ -486,20 +486,20 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       {/* Empty state */}
       {calendar.days.every(day => day.tasks.length === 0) && (
         <Card>
-          <CardContent className="p-8 text-center">
-            <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-xl font-medium text-foreground mb-2">
+          <CardContent className=""p-8 text-center">
+            <CheckCircle2 className=""w-16 h-16 text-green-500 dark:text-green-400 mx-auto mb-4" />
+            <h3 className=""text-xl font-medium text-foreground mb-2">
               Geen taken deze week!
             </h3>
-            <p className="text-muted-foreground mb-4">
+            <p className=""text-muted-foreground mb-4">
               Je hebt geen taken gepland voor deze week.
             </p>
             {onTaskAdd && (
               <Button
                 onClick={() => onTaskAdd()}
-                className="bg-green-600 hover:bg-green-700"
+                className=""bg-green-600 dark:bg-green-700 hover:bg-green-700"
               >
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className=""w-4 h-4 mr-2" />
                 Eerste taak toevoegen
               </Button>
             )}

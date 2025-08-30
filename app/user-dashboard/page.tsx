@@ -229,11 +229,11 @@ function UserDashboardContent() {
 
   const getEntryTypeColor = (type: LogbookEntry['entry_type']) => {
     switch (type) {
-      case 'planting': return 'bg-green-100 text-green-800'
-      case 'maintenance': return 'bg-blue-100 text-blue-800'
+      case 'planting': return 'bg-green-100 dark:bg-green-900 text-green-800'
+      case 'maintenance': return 'bg-blue-100 dark:bg-blue-900 text-blue-800'
       case 'harvest': return 'bg-orange-100 text-orange-800'
       case 'observation': return 'bg-purple-100 text-purple-800'
-      case 'problem': return 'bg-red-100 text-red-800'
+      case 'problem': return 'bg-red-100 dark:bg-red-900 text-red-800'
       default: return 'bg-muted text-muted-foreground'
     }
   }
@@ -251,20 +251,20 @@ function UserDashboardContent() {
 
   const getWeatherIcon = (weather?: LogbookEntry['weather']) => {
     switch (weather) {
-      case 'sunny': return <Sun className="w-4 h-4 text-yellow-500" />
-      case 'cloudy': return <CloudDrizzle className="w-4 h-4 text-muted-foreground" />
-      case 'rainy': return <CloudRain className="w-4 h-4 text-blue-500" />
-      case 'snowy': return <Snowflake className="w-4 h-4 text-blue-300" />
+      case 'sunny': return <Sun className=""w-4 h-4 text-yellow-500" />
+      case 'cloudy': return <CloudDrizzle className=""w-4 h-4 text-muted-foreground" />
+      case 'rainy': return <CloudRain className=""w-4 h-4 text-blue-500 dark:text-blue-400" />
+      case 'snowy': return <Snowflake className=""w-4 h-4 text-blue-300" />
       default: return null
     }
   }
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
-        <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
-          <span className="ml-2 text-muted-foreground">Dashboard laden...</span>
+      <div className=""container mx-auto px-4 py-6 max-w-6xl">
+        <div className=""flex items-center justify-center py-12">
+          <div className=""w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+          <span className=""ml-2 text-muted-foreground">Dashboard laden...</span>
         </div>
       </div>
     )
@@ -272,9 +272,9 @@ function UserDashboardContent() {
 
   if (!user) {
     return (
-      <div className="container mx-auto px-4 py-6 max-w-6xl">
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">Geen gebruiker ingelogd</p>
+      <div className=""container mx-auto px-4 py-6 max-w-6xl">
+        <div className=""text-center py-12">
+          <p className=""text-muted-foreground">Geen gebruiker ingelogd</p>
         </div>
       </div>
     )
@@ -284,50 +284,50 @@ function UserDashboardContent() {
   const completedTasks = tasks.filter(task => task.status === 'completed')
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
+    <div className=""container mx-auto px-4 py-6 max-w-6xl safe-area-px">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">Mijn Dashboard</h1>
-        <p className="text-muted-foreground mt-1">
+      <div className=""mb-6">
+        <h1 className=""text-3xl font-bold text-foreground">Mijn Dashboard</h1>
+        <p className=""text-muted-foreground mt-1">
           Welkom {user.full_name || user.email}! Hier zijn jouw taken en logboek items.
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className=""grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Open Taken</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className=""flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className=""text-sm font-medium">Open Taken</CardTitle>
+            <Clock className=""h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{pendingTasks.length}</div>
+            <div className=""text-2xl font-bold">{pendingTasks.length}</div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Voltooide Taken</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className=""flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className=""text-sm font-medium">Voltooide Taken</CardTitle>
+            <CheckCircle className=""h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{completedTasks.length}</div>
+            <div className=""text-2xl font-bold">{completedTasks.length}</div>
           </CardContent>
         </Card>
         
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Logboek Items</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className=""flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className=""text-sm font-medium">Logboek Items</CardTitle>
+            <Calendar className=""h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{logbookEntries.length}</div>
+            <div className=""text-2xl font-bold">{logbookEntries.length}</div>
           </CardContent>
         </Card>
       </div>
 
       {/* Tabs for Tasks and Logbook */}
-      <Tabs defaultValue="tasks" className="space-y-4">
+      <Tabs defaultValue="tasks" className=""space-y-4">
         <TabsList>
           <TabsTrigger value="tasks">Taken ({pendingTasks.length})</TabsTrigger>
           <TabsTrigger value="logbook">Logboek ({logbookEntries.length})</TabsTrigger>
@@ -343,19 +343,19 @@ function UserDashboardContent() {
             </CardHeader>
             <CardContent>
               {pendingTasks.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <CheckCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium">Geen openstaande taken</p>
+                <div className=""text-center py-8 text-muted-foreground">
+                  <CheckCircle className=""w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className=""text-lg font-medium">Geen openstaande taken</p>
                   <p>Alle taken zijn voltooid! 🎉</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className=""space-y-4">
                   {pendingTasks.map((task) => (
-                    <div key={task.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h3 className="font-semibold">{task.title}</h3>
+                    <div key={task.id} className=""border rounded-lg p-4 hover:bg-gray-5 dark:hover:bg-gray-50 dark:bg-gray-900 transition-colors">
+                      <div className=""flex items-start justify-between">
+                        <div className=""flex-1">
+                          <div className=""flex items-center gap-2 mb-2">
+                            <h3 className=""font-semibold">{task.title}</h3>
                             <Badge variant={getPriorityColor(task.priority)}>
                               {task.priority === 'high' ? 'Hoog' : 
                                task.priority === 'medium' ? 'Gemiddeld' : 'Laag'}
@@ -366,17 +366,17 @@ function UserDashboardContent() {
                             </Badge>
                           </div>
                           {task.description && (
-                            <p className="text-muted-foreground mb-2">{task.description}</p>
+                            <p className=""text-muted-foreground mb-2">{task.description}</p>
                           )}
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className=""flex items-center gap-4 text-sm text-muted-foreground">
                             {task.garden_name && (
-                              <span className="flex items-center gap-1">
+                              <span className=""flex items-center gap-1">
                                 🌱 {task.garden_name}
                               </span>
                             )}
                             {task.due_date && (
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
+                              <span className=""flex items-center gap-1">
+                                <Calendar className=""w-4 h-4" />
                                 {new Date(task.due_date).toLocaleDateString('nl-NL')}
                               </span>
                             )}
@@ -386,9 +386,9 @@ function UserDashboardContent() {
                           <Button 
                             size="sm" 
                             onClick={() => markTaskCompleted(task.id)}
-                            className="ml-4"
+                            className=""ml-4"
                           >
-                            <CheckCircle className="w-4 h-4 mr-1" />
+                            <CheckCircle className=""w-4 h-4 mr-1" />
                             Voltooien
                           </Button>
                         )}
@@ -411,18 +411,18 @@ function UserDashboardContent() {
             </CardHeader>
             <CardContent>
               {logbookEntries.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p className="text-lg font-medium">Geen logboek items</p>
+                <div className=""text-center py-8 text-muted-foreground">
+                  <Calendar className=""w-12 h-12 mx-auto mb-4 opacity-50" />
+                  <p className=""text-lg font-medium">Geen logboek items</p>
                   <p>Nog geen activiteiten geregistreerd</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className=""space-y-4">
                   {logbookEntries.map((entry) => (
-                    <div key={entry.id} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">{entry.title}</h3>
+                    <div key={entry.id} className=""border rounded-lg p-4">
+                      <div className=""flex items-start justify-between mb-2">
+                        <div className=""flex items-center gap-2">
+                          <h3 className=""font-semibold">{entry.title}</h3>
                           <Badge className={getEntryTypeColor(entry.entry_type)}>
                             {getEntryTypeLabel(entry.entry_type)}
                           </Badge>
@@ -430,20 +430,20 @@ function UserDashboardContent() {
                         {getWeatherIcon(entry.weather)}
                       </div>
                       
-                      <p className="text-muted-foreground mb-3">{entry.description}</p>
+                      <p className=""text-muted-foreground mb-3">{entry.description}</p>
                       
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className=""flex items-center gap-4 text-sm text-muted-foreground">
                         {entry.garden_name && (
-                          <span className="flex items-center gap-1">
+                          <span className=""flex items-center gap-1">
                             🌱 {entry.garden_name}
                           </span>
                         )}
-                        <span className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
+                        <span className=""flex items-center gap-1">
+                          <Calendar className=""w-4 h-4" />
                           {new Date(entry.created_at).toLocaleDateString('nl-NL')}
                         </span>
                         {entry.created_by && (
-                          <span className="flex items-center gap-1">
+                          <span className=""flex items-center gap-1">
                             👤 {entry.created_by}
                           </span>
                         )}

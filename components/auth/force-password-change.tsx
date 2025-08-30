@@ -100,24 +100,24 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
   // Success state
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <div className="p-3 bg-green-100 dark:bg-green-900/20 rounded-full">
-                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+      <div className=""min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className=""w-full max-w-md">
+          <CardHeader className=""text-center">
+            <div className=""flex items-center justify-center mb-4">
+              <div className=""p-3 bg-green-100 dark:bg-green-900/20 rounded-full">
+                <CheckCircle className=""w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-foreground">
+            <CardTitle className=""text-2xl font-bold text-foreground">
               Password Changed Successfully
             </CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardDescription className=""text-muted-foreground">
               You will now be redirected to login with your new password.
             </CardDescription>
           </CardHeader>
-          <CardContent className="text-center">
-            <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto" />
-            <p className="mt-4 text-sm text-muted-foreground">Redirecting...</p>
+          <CardContent className=""text-center">
+            <div className=""w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto" />
+            <p className=""mt-4 text-sm text-muted-foreground">Redirecting...</p>
           </CardContent>
         </Card>
       </div>
@@ -125,62 +125,62 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex items-center justify-center mb-4">
-            <div className="p-3 bg-orange-100 dark:bg-orange-900/20 rounded-full">
-              <AlertTriangle className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+    <div className=""min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className=""w-full max-w-md">
+        <CardHeader className=""text-center">
+          <div className=""flex items-center justify-center mb-4">
+            <div className=""p-3 bg-orange-100 dark:bg-orange-900/20 rounded-full">
+              <AlertTriangle className=""w-8 h-8 text-orange-600 dark:text-orange-400" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-foreground">
+          <CardTitle className=""text-2xl font-bold text-foreground">
             Password Change Required
           </CardTitle>
-          <CardDescription className="text-muted-foreground">
+          <CardDescription className=""text-muted-foreground">
             For security reasons, you must change your password before continuing.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-password" className="text-foreground">
+          <form onSubmit={handleSubmit} className=""space-y-4">
+            <div className=""space-y-2">
+              <Label htmlFor="new-password" className=""text-foreground">
                 New Password
               </Label>
-              <div className="relative">
+              <div className=""relative">
                 <Input
                   id="new-password"
                   type={showPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => handlePasswordChange(e.target.value)}
-                  className="pr-10"
+                  className=""pr-10"
                   placeholder="Enter new password"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className=""absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className=""w-4 h-4" /> : <Eye className=""w-4 h-4" />}
                 </button>
               </div>
               
               {/* Real-time password strength indicator */}
               {validation && newPassword.length > 0 && (
-                <div className="mt-2">
-                  <div className="flex items-center gap-2 text-xs">
-                    <div className={`h-2 w-full rounded-full ${
+                <div className=""mt-2">
+                  <div className=""flex items-center gap-2 text-xs">
+                    <div className={{`h-2 w-full rounded-full ${
                       validation.strength === 'strong' ? 'bg-green-200' :
                       validation.strength === 'medium' ? 'bg-yellow-200' : 'bg-red-200'
                     }`}>
-                      <div className={`h-full rounded-full transition-all duration-300 ${
-                        validation.strength === 'strong' ? 'bg-green-600 w-full' :
-                        validation.strength === 'medium' ? 'bg-yellow-600 w-2/3' : 'bg-red-600 w-1/3'
+                      <div className={{`h-full rounded-full transition-all duration-300 ${
+                        validation.strength === 'strong' ? 'bg-green-600 dark:bg-green-700 w-full' :
+                        validation.strength === 'medium' ? 'bg-yellow-600 w-2/3' : 'bg-red-600 dark:bg-red-700 w-1/3'
                       }`} />
                     </div>
-                    <span className={`font-medium ${
+                    <span className={{`font-medium ${
                       validation.strength === 'strong' ? 'text-green-600' :
-                      validation.strength === 'medium' ? 'text-yellow-600' : 'text-red-600'
+                      validation.strength === 'medium' ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
                     }`}>
                       {validation.strength.toUpperCase()}
                     </span>
@@ -189,8 +189,8 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password" className="text-foreground">
+            <div className=""space-y-2">
+              <Label htmlFor="confirm-password" className=""text-foreground">
                 Confirm Password
               </Label>
               <Input
@@ -205,11 +205,11 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
 
             {/* Validation errors */}
             {validation && !validation.isValid && (newPassword.length > 0 || confirmPassword.length > 0) && (
-              <div className="p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-md">
-                <ul className="text-sm text-orange-700 dark:text-orange-300 space-y-1">
+              <div className=""p-3 bg-orange-50 dark:bg-orange-950/20 border border-orange-200 dark:border-orange-800 rounded-md">
+                <ul className=""text-sm text-orange-700 dark:text-orange-300 space-y-1">
                   {validation.errors.map((error, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-orange-500 mt-0.5">•</span>
+                    <li key={index} className=""flex items-start gap-2">
+                      <span className=""text-orange-500 mt-0.5">•</span>
                       {error}
                     </li>
                   ))}
@@ -219,24 +219,24 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
 
             {/* System errors */}
             {error && (
-              <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-                <p className="text-sm text-destructive">{error}</p>
+              <div className=""p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                <p className=""text-sm text-destructive">{error}</p>
               </div>
             )}
 
             <Button
               type="submit"
               disabled={loading || !validation?.isValid || !newPassword || !confirmPassword}
-              className="w-full"
+              className=""w-full"
             >
               {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                <div className=""flex items-center gap-2">
+                  <div className=""w-4 h-4 border-2 border-white dark:border-gray-800/20 border-t-white rounded-full animate-spin" />
                   Changing Password...
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
+                <div className=""flex items-center gap-2">
+                  <Lock className=""w-4 h-4" />
                   Change Password
                 </div>
               )}
@@ -244,12 +244,12 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
           </form>
 
           {/* Banking compliance info */}
-          <div className="mt-6 p-3 bg-muted rounded-md">
-            <div className="flex items-start gap-2">
-              <Shield className="w-4 h-4 text-blue-600 mt-0.5" />
-              <div className="text-sm text-muted-foreground">
-                <p className="font-medium text-foreground mb-1">Banking Security Requirements:</p>
-                <ul className="space-y-1 text-xs">
+          <div className=""mt-6 p-3 bg-muted rounded-md">
+            <div className=""flex items-start gap-2">
+              <Shield className=""w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div className=""text-sm text-muted-foreground">
+                <p className=""font-medium text-foreground mb-1">Banking Security Requirements:</p>
+                <ul className=""space-y-1 text-xs">
                   <li>• Minimum 8 characters</li>
                   <li>• At least 2 of: uppercase, lowercase, numbers, symbols</li>
                   <li>• Different from temporary password</li>

@@ -173,10 +173,10 @@ export function TaskDetailsDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className=""max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-green-600" />
+          <DialogTitle className=""flex items-center gap-2">
+            <Calendar className=""h-5 w-5 text-green-600 dark:text-green-400" />
             Taak Details
           </DialogTitle>
           <DialogDescription>
@@ -184,10 +184,10 @@ export function TaskDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className=""space-y-6">
           {/* Task Status and Actions */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          <div className=""flex items-center justify-between">
+            <div className=""flex items-center gap-2">
               <Badge variant={task.completed ? "default" : "secondary"}>
                 {task.completed ? "Voltooid" : "Actief"}
               </Badge>
@@ -198,14 +198,14 @@ export function TaskDetailsDialog({
                   {taskTypeConfig?.label}
                 </Badge>
             </div>
-            <div className="flex items-center gap-2">
+            <div className=""flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 disabled={isLoading}
                 onClick={() => setIsEditing(!isEditing)}
               >
-                <Edit2 className="w-4 h-4" />
+                <Edit2 className=""w-4 h-4" />
                 {isEditing ? 'Stop bewerken' : 'Bewerken'}
               </Button>
               {!isEditing ? (
@@ -215,17 +215,17 @@ export function TaskDetailsDialog({
                   disabled={isLoading}
                   onClick={handleToggleComplete}
                 >
-                  {isLoading ? <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" /> : null}
+                  {isLoading ? <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" /> : null}
                   {task.completed ? 'Markeer als niet voltooid' : 'Markeer als voltooid'}
                 </Button>
               ) : (
-                <div className="flex gap-1">
+                <div className=""flex gap-1">
                   <Button
                     size="sm"
                     onClick={handleSave}
                     disabled={isLoading}
                   >
-                    {isLoading ? <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isLoading ? <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" /> : <Save className=""w-4 h-4" />}
                     {isLoading ? 'Opslaan...' : 'Opslaan'}
                   </Button>
                   <Button
@@ -234,7 +234,7 @@ export function TaskDetailsDialog({
                     onClick={() => setIsEditing(false)}
                     disabled={isLoading}
                   >
-                    <X className="w-4 h-4" />
+                    <X className=""w-4 h-4" />
                     Annuleren
                   </Button>
                 </div>
@@ -245,31 +245,31 @@ export function TaskDetailsDialog({
                 onClick={handleDelete}
                 disabled={isLoading}
               >
-                                  {isLoading ? <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                  {isLoading ? <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" /> : <Trash2 className=""w-4 h-4" />}
                 {isLoading ? 'Verwijderen...' : 'Verwijderen'}
               </Button>
             </div>
           </div>
 
           {/* Plant Information */}
-          <div className="bg-green-50 rounded-lg p-4">
-            <h3 className="font-medium text-green-800 mb-2">Plant Informatie</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className=""bg-green-50 dark:bg-green-950 rounded-lg p-4">
+            <h3 className=""font-medium text-green-800 mb-2">Plant Informatie</h3>
+            <div className=""grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-green-600 font-medium">Plant:</span>
-                <p className="text-green-800">{task.plant_name}</p>
+                <span className=""text-green-600 dark:text-green-400 font-medium">Plant:</span>
+                <p className=""text-green-800">{task.plant_name}</p>
               </div>
               <div>
-                <span className="text-green-600 font-medium">Plantvak:</span>
-                <p className="text-green-800">{task.plant_bed_name}</p>
+                <span className=""text-green-600 dark:text-green-400 font-medium">Plantvak:</span>
+                <p className=""text-green-800">{task.plant_bed_name}</p>
               </div>
               <div>
-                <span className="text-green-600 font-medium">Tuin:</span>
-                <p className="text-green-800">{task.garden_name}</p>
+                <span className=""text-green-600 dark:text-green-400 font-medium">Tuin:</span>
+                <p className=""text-green-800">{task.garden_name}</p>
               </div>
               <div>
-                <span className="text-green-600 font-medium">Vervaldatum:</span>
-                <p className="text-green-800">
+                <span className=""text-green-600 dark:text-green-400 font-medium">Vervaldatum:</span>
+                <p className=""text-green-800">
                   {new Date(task.due_date).toLocaleDateString('nl-NL', {
                     weekday: 'long',
                     year: 'numeric',
@@ -282,7 +282,7 @@ export function TaskDetailsDialog({
           </div>
 
           {/* Task Details Form */}
-          <div className="space-y-4">
+          <div className=""space-y-4">
             <div>
               <Label htmlFor="title">Titel</Label>
               {isEditing ? (
@@ -293,7 +293,7 @@ export function TaskDetailsDialog({
                   disabled={isLoading}
                 />
               ) : (
-                <p className="text-lg font-medium mt-1">{task.title}</p>
+                <p className=""text-lg font-medium mt-1">{task.title}</p>
               )}
             </div>
 
@@ -308,13 +308,13 @@ export function TaskDetailsDialog({
                   rows={3}
                 />
               ) : (
-                                        <p className="mt-1 text-foreground">{task.description || "Geen beschrijving"}</p>
+                                        <p className=""mt-1 text-foreground">{task.description || "Geen beschrijving"}</p>
               )}
             </div>
 
             {isEditing && (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                <div className=""grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="due_date">Vervaldatum</Label>
                     <Input
@@ -383,25 +383,25 @@ export function TaskDetailsDialog({
                   rows={3}
                 />
               ) : (
-                                        <p className="mt-1 text-foreground">{task.notes || "Geen opmerkingen"}</p>
+                                        <p className=""mt-1 text-foreground">{task.notes || "Geen opmerkingen"}</p>
               )}
             </div>
           </div>
 
           {/* Timestamps */}
-          <div className="text-sm text-gray-500 border-t pt-4">
-            <div className="grid grid-cols-2 gap-4">
+          <div className=""text-sm text-gray-500 dark:text-gray-400 border-t pt-4">
+            <div className=""grid grid-cols-2 gap-4">
               <div>
-                <span className="font-medium">Aangemaakt:</span>
+                <span className=""font-medium">Aangemaakt:</span>
                 <p>{new Date(task.created_at).toLocaleString('nl-NL')}</p>
               </div>
               <div>
-                <span className="font-medium">Laatst bijgewerkt:</span>
+                <span className=""font-medium">Laatst bijgewerkt:</span>
                 <p>{new Date(task.updated_at).toLocaleString('nl-NL')}</p>
               </div>
               {task.completed_at && (
-                <div className="col-span-2">
-                  <span className="font-medium">Voltooid op:</span>
+                <div className=""col-span-2">
+                  <span className=""font-medium">Voltooid op:</span>
                   <p>{new Date(task.completed_at).toLocaleString('nl-NL')}</p>
                 </div>
               )}

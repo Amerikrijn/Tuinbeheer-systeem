@@ -57,35 +57,35 @@ export default function ForgotPasswordPage() {
 
   if (emailSent) {
     return (
-      <div className="container mx-auto px-4 py-6 max-w-md">
+      <div className=""container mx-auto px-4 py-6 max-w-md">
         <Card>
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-3 bg-green-100 rounded-full w-fit">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+          <CardHeader className=""text-center">
+            <div className=""mx-auto mb-4 p-3 bg-green-100 dark:bg-green-900 rounded-full w-fit">
+              <CheckCircle className=""w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
             <CardTitle>Email Verzonden</CardTitle>
             <CardDescription>
               We hebben een wachtwoord reset link naar {email} gestuurd
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className=""space-y-4">
             <Alert>
-              <Mail className="h-4 w-4" />
+              <Mail className=""h-4 w-4" />
               <AlertDescription>
                 Check je inbox en spam folder voor de reset email. De link is 1 uur geldig.
               </AlertDescription>
             </Alert>
             
-            <div className="flex gap-2">
+            <div className=""flex gap-2">
               <Button 
                 variant="outline" 
                 onClick={() => setEmailSent(false)}
-                className="flex-1"
+                className=""flex-1"
               >
                 Andere Email
               </Button>
-              <Link href="/auth/login" className="flex-1">
-                <Button className="w-full">
+              <Link href="/auth/login" className=""flex-1">
+                <Button className=""w-full">
                   Terug naar Login
                 </Button>
               </Link>
@@ -97,13 +97,13 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-md safe-area-px">
+    <div className=""container mx-auto px-4 py-6 max-w-md safe-area-px">
       <Card>
         <CardHeader>
-          <div className="flex items-center gap-2 mb-4">
+          <div className=""flex items-center gap-2 mb-4">
             <Link href="/auth/login">
               <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className=""w-4 h-4" />
               </Button>
             </Link>
             <div>
@@ -115,8 +115,8 @@ export default function ForgotPasswordPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleResetPassword} className="space-y-4">
-            <div className="space-y-2">
+          <form onSubmit={handleResetPassword} className=""space-y-4">
+            <div className=""space-y-2">
               <Label htmlFor="email">Email adres</Label>
               <Input
                 id="email"
@@ -131,10 +131,10 @@ export default function ForgotPasswordPage() {
             
             <Button 
               type="submit" 
-              className="w-full"
+              className=""w-full"
               disabled={loading}
             >
-              {loading && <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />}
+              {loading && <div className=""w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />}
               Reset Link Versturen
             </Button>
           </form>

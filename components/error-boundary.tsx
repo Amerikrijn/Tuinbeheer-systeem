@@ -57,25 +57,25 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
       }
 
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4">
-          <Card className="max-w-2xl w-full border-destructive/20 bg-destructive/5">
+        <div className=""min-h-screen bg-background flex items-center justify-center p-4">
+          <Card className=""max-w-2xl w-full border-destructive/20 bg-destructive/5">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-destructive">
-                <AlertCircle className="h-6 w-6" />
+              <CardTitle className=""flex items-center gap-2 text-destructive">
+                <AlertCircle className=""h-6 w-6" />
                 Applicatie Fout
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-destructive">
-                <p className="font-medium mb-2">Er is iets misgegaan bij het laden van de applicatie.</p>
-                <p className="text-sm">
+            <CardContent className=""space-y-4">
+              <div className=""text-destructive">
+                <p className=""font-medium mb-2">Er is iets misgegaan bij het laden van de applicatie.</p>
+                <p className=""text-sm">
                   {this.state.error?.message || 'Er is een onverwachte fout opgetreden'}
                 </p>
               </div>
 
-              <div className="bg-card p-4 rounded-lg border border-destructive/20">
-                <h3 className="font-semibold mb-2 text-destructive">Mogelijke oorzaken:</h3>
-                <ul className="text-sm text-destructive space-y-1">
+              <div className=""bg-card p-4 rounded-lg border border-destructive/20">
+                <h3 className=""font-semibold mb-2 text-destructive">Mogelijke oorzaken:</h3>
+                <ul className=""text-sm text-destructive space-y-1">
                   <li>• Ontbrekende of ongeldige omgevingsvariabelen</li>
                   <li>• Database verbindingsproblemen</li>
                   <li>• Netwerkverbindingsproblemen</li>
@@ -84,42 +84,42 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                 </ul>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button onClick={this.handleReset} className="flex-1">
-                  <RefreshCw className="mr-2 h-4 w-4" />
+              <div className=""flex flex-col sm:flex-row gap-2">
+                <Button onClick={this.handleReset} className=""flex-1">
+                  <RefreshCw className=""mr-2 h-4 w-4" />
                   Opnieuw Proberen
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => window.location.href = '/'}
-                  className="flex-1"
+                  className=""flex-1"
                 >
-                  <Home className="mr-2 h-4 w-4" />
+                  <Home className=""mr-2 h-4 w-4" />
                   Naar Home
                 </Button>
                 <Button 
                   variant="outline" 
                   onClick={() => window.location.reload()}
-                  className="flex-1"
+                  className=""flex-1"
                 >
-                  <RefreshCw className="mr-2 h-4 w-4" />
+                  <RefreshCw className=""mr-2 h-4 w-4" />
                   Pagina Herladen
                 </Button>
               </div>
 
               {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
-                <details className="mt-4">
-                  <summary className="cursor-pointer text-sm font-medium text-destructive hover:text-destructive/80">
-                    <Bug className="inline mr-1 h-4 w-4" />
+                <details className=""mt-4">
+                  <summary className=""cursor-pointer text-sm font-medium text-destructive hover:text-destructive/80">
+                    <Bug className=""inline mr-1 h-4 w-4" />
                     Toon Technische Details
                   </summary>
-                  <div className="mt-2 p-3 bg-destructive/10 rounded text-xs font-mono text-destructive overflow-auto">
-                    <div className="mb-2">
+                  <div className=""mt-2 p-3 bg-destructive/10 rounded text-xs font-mono text-destructive overflow-auto">
+                    <div className=""mb-2">
                       <strong>Fout:</strong> {this.state.error?.toString()}
                     </div>
                     <div>
                       <strong>Stack Trace:</strong>
-                      <pre className="whitespace-pre-wrap mt-1">
+                      <pre className=""whitespace-pre-wrap mt-1">
                         {this.state.errorInfo.componentStack}
                       </pre>
                     </div>

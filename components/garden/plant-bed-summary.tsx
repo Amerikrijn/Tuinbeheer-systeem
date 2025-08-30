@@ -88,9 +88,9 @@ const getSowingMonths = (plant: PlantWithPosition): number[] => {
 
 const getSunExposureIcon = (exposure?: string) => {
   switch (exposure) {
-    case 'full-sun': return <Sun className="h-3 w-3 text-yellow-500" />
-    case 'partial-sun': return <CloudSun className="h-3 w-3 text-orange-500" />
-    case 'shade': return <Cloud className="h-3 w-3 text-gray-500" />
+    case 'full-sun': return <Sun className=""h-3 w-3 text-yellow-500" />
+    case 'partial-sun': return <CloudSun className=""h-3 w-3 text-orange-500" />
+    case 'shade': return <Cloud className=""h-3 w-3 text-gray-500 dark:text-gray-400" />
     default: return null
   }
 }
@@ -199,9 +199,9 @@ export function PlantBedSummary({
   
   if (plantBed.plants.length === 0) {
     return (
-      <div className="text-center py-4 text-muted-foreground">
-        <Flower2 className="h-8 w-8 mx-auto mb-2 opacity-30" />
-        <p className="text-xs">Nog geen planten</p>
+      <div className=""text-center py-4 text-muted-foreground">
+        <Flower2 className=""h-8 w-8 mx-auto mb-2 opacity-30" />
+        <p className=""text-xs">Nog geen planten</p>
       </div>
     )
   }
@@ -209,26 +209,26 @@ export function PlantBedSummary({
   // Show message when no plants match the filter but bed has plants
   if (selectedMonth && filterMode !== 'all' && !hasRelevantPlants && plantBed.plants.length > 0) {
     return (
-      <div className="space-y-2">
+      <div className=""space-y-2">
         {/* Header with basic info */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{plantBed.name}</span>
+        <div className=""flex items-center justify-between">
+          <div className=""flex items-center gap-2">
+            <span className=""text-sm font-medium">{plantBed.name}</span>
             {getSunExposureIcon(plantBed.sun_exposure)}
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className=""text-xs">
               {plantBed.plants.length} planten
             </Badge>
-            <Badge variant="outline" className="text-xs bg-gray-100">
+            <Badge variant="outline" className=""text-xs bg-gray-100 dark:bg-gray-800">
               {filterMode === 'sowing' ? '🌱 Geen zaaitijd' : '🌸 Bloeit niet'}
             </Badge>
           </div>
         </div>
-        <div className="text-center py-2 text-muted-foreground bg-gray-50 dark:bg-gray-900 rounded">
-          <div className="text-gray-400 mb-1">
+        <div className=""text-center py-2 text-muted-foreground bg-gray-50 dark:bg-gray-900 rounded">
+          <div className=""text-gray-400 dark:text-gray-500 mb-1">
             {filterMode === 'sowing' ? '🌱' : '🌸'}
           </div>
-          <p className="text-xs">Niet actief in deze maand</p>
-          <p className="text-[10px] text-gray-500 mt-1">
+          <p className=""text-xs">Niet actief in deze maand</p>
+          <p className=""text-[10px] text-gray-500 dark:text-gray-400 mt-1">
             {plantBed.plants.length} plant{plantBed.plants.length !== 1 ? 'en' : ''} in dit plantvak
           </p>
         </div>
@@ -238,50 +238,50 @@ export function PlantBedSummary({
   
   return (
     <TooltipProvider>
-      <div className={`space-y-2 ${isHighlighted ? 'ring-2 ring-green-400 rounded-lg p-2' : ''}`}>
+      <div className={{`space-y-2 ${isHighlighted ? 'ring-2 ring-green-400 rounded-lg p-2' : ''}`}>
         {/* Header with basic info */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-green-800 dark:text-green-200">{plantBed.name}</span>
+        <div className=""flex items-center justify-between">
+          <div className=""flex items-center gap-2">
+            <span className=""text-sm font-medium text-green-800 dark:text-green-200">{plantBed.name}</span>
             {getSunExposureIcon(plantBed.sun_exposure)}
-            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
+            <Badge variant="secondary" className=""text-xs bg-green-100 dark:bg-green-900 text-green-800 border-green-300 dark:border-green-700">
               {plantBed.plants.length} planten
             </Badge>
           </div>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors duration-150"
+            className=""p-1 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-900/30 rounded transition-colors duration-150"
           >
-            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {isExpanded ? <ChevronUp className=""h-4 w-4" /> : <ChevronDown className=""h-4 w-4" />}
           </button>
         </div>
         
         {/* Compact view - show first 3 plants */}
         {!isExpanded && (
-          <div className="space-y-1">
+          <div className=""space-y-1">
             {filteredPlants.slice(0, 3).map((group, idx) => (
-              <div key={idx} className="flex items-center gap-2 text-xs">
-                <span className="text-lg">{group.emoji || '🌸'}</span>
-                <span className="font-medium truncate flex-1">{group.name}</span>
-                <div className="flex gap-1">
+              <div key={idx} className=""flex items-center gap-2 text-xs">
+                <span className=""text-lg">{group.emoji || '🌸'}</span>
+                <span className=""font-medium truncate flex-1">{group.name}</span>
+                <div className=""flex gap-1">
                   {Array.from(group.colors).slice(0, 3).map((color, i) => (
                     <div
                       key={i}
-                      className="w-3 h-3 rounded-full border border-gray-300"
+                      className=""w-3 h-3 rounded-full border border-gray-300 dark:border-gray-500"
                       style={{ backgroundColor: color }}
                       title={color}
                     />
                   ))}
                 </div>
                 {group.count > 1 && (
-                  <Badge variant="outline" className="text-xs px-1">
+                  <Badge variant="outline" className=""text-xs px-1">
                     {group.count}x
                   </Badge>
                 )}
               </div>
             ))}
             {filteredPlants.length > 3 && (
-              <p className="text-xs text-muted-foreground pl-6">
+              <p className=""text-xs text-muted-foreground pl-6">
                 +{filteredPlants.length - 3} meer...
               </p>
             )}
@@ -290,20 +290,20 @@ export function PlantBedSummary({
         
         {/* Expanded view - show all plants with details */}
         {isExpanded && (
-          <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
+          <div className=""space-y-2 max-h-64 overflow-y-auto pr-2">
             {filteredPlants.map((group, idx) => (
-              <div key={idx} className="border rounded-lg p-2 bg-muted/30">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xl">{group.emoji || '🌸'}</span>
+              <div key={idx} className=""border rounded-lg p-2 bg-muted/30">
+                <div className=""flex items-start justify-between">
+                  <div className=""flex items-center gap-2">
+                    <span className=""text-xl">{group.emoji || '🌸'}</span>
                     <div>
-                      <p className="font-medium text-sm">{group.name}</p>
-                      <div className="flex gap-1 mt-1">
+                      <p className=""font-medium text-sm">{group.name}</p>
+                      <div className=""flex gap-1 mt-1">
                         {Array.from(group.colors).map((color, i) => (
                           <Tooltip key={i}>
                             <TooltipTrigger>
                               <div
-                                className="w-4 h-4 rounded-full border border-gray-300"
+                                className=""w-4 h-4 rounded-full border border-gray-300 dark:border-gray-500"
                                 style={{ backgroundColor: color }}
                               />
                             </TooltipTrigger>
@@ -316,23 +316,23 @@ export function PlantBedSummary({
                     </div>
                   </div>
                   {group.count > 1 && (
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className=""text-xs">
                       {group.count}x
                     </Badge>
                   )}
                 </div>
                 
                 {/* Timing info */}
-                <div className="mt-2 space-y-1">
+                <div className=""mt-2 space-y-1">
                   {group.sowingMonths.length > 0 && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Droplets className="h-3 w-3" />
+                    <div className=""flex items-center gap-1 text-xs text-muted-foreground">
+                      <Droplets className=""h-3 w-3" />
                       <span>Zaaien: {group.sowingMonths.map(getMonthName).join(', ')}</span>
                     </div>
                   )}
                   {group.bloomPeriod && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
+                    <div className=""flex items-center gap-1 text-xs text-muted-foreground">
+                      <Calendar className=""h-3 w-3" />
                       <span>Bloeit: {group.bloomPeriod}</span>
                     </div>
                   )}
@@ -344,10 +344,10 @@ export function PlantBedSummary({
         
         {/* Month indicator when filtered */}
         {selectedMonth && hasRelevantPlants && (
-          <div className="pt-1 border-t">
+          <div className=""pt-1 border-t">
             <Badge 
               variant={filterMode === 'sowing' ? 'default' : 'secondary'}
-              className="text-xs"
+              className=""text-xs"
             >
               {filterMode === 'sowing' ? '🌱 Zaaien' : '🌸 Bloeit'} in {getMonthName(selectedMonth)}
             </Badge>
