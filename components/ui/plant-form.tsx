@@ -269,34 +269,34 @@ export function PlantForm({
       {showAdvanced && (
         <Collapsible open={isAdvancedOpen} onOpenChange={setIsAdvancedOpen}>
           <CollapsibleTrigger asChild>
-            <Card className="cursor-pointer hover:shadow-md transition-shadow border-gray-200 bg-gray-50/30">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Settings className="h-5 w-5 text-muted-foreground" />
-                    <CardTitle className="text-gray-800">
-                      Aanvullende Informatie
-                      <span className="text-sm font-normal text-muted-foreground ml-2">(optioneel)</span>
-                    </CardTitle>
-                    {filledOptionalFields > 0 && (
-                      <span className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                        {filledOptionalFields} ingevuld
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">
-                      {isAdvancedOpen ? 'Inklappen' : 'Uitklappen'}
-                    </span>
-                    {isAdvancedOpen ? (
-                      <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                    )}
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
+                    <Card className="cursor-pointer hover:shadow-md transition-colors duration-150 border-green-200 dark:border-green-800 bg-green-50/30 dark:bg-green-950/20">
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Settings className="h-5 w-5 text-green-700 dark:text-green-400" />
+                <CardTitle className="text-green-800 dark:text-green-200">
+                  Aanvullende Informatie
+                  <span className="text-sm font-normal text-muted-foreground ml-2">(optioneel)</span>
+                </CardTitle>
+                {filledOptionalFields > 0 && (
+                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full border border-green-300">
+                    {filledOptionalFields} ingevuld
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {isAdvancedOpen ? 'Inklappen' : 'Uitklappen'}
+                </span>
+                {isAdvancedOpen ? (
+                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                )}
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
           </CollapsibleTrigger>
           
           <CollapsibleContent className="mt-4">
@@ -310,7 +310,7 @@ export function PlantForm({
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="scientificName" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="scientificName" className="text-sm font-medium text-foreground">
                         Wetenschappelijke naam
                       </Label>
                       <Input
@@ -324,7 +324,7 @@ export function PlantForm({
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="variety" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="variety" className="text-sm font-medium text-foreground">
                         Variëteit
                       </Label>
                       <Input
@@ -347,7 +347,7 @@ export function PlantForm({
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="plantsPerSqm" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="plantsPerSqm" className="text-sm font-medium text-foreground">
                         Planten per m²
                       </Label>
                       <Input
@@ -364,7 +364,7 @@ export function PlantForm({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="sunPreference" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="sunPreference" className="text-sm font-medium text-foreground">
                         Zonvoorkeur
                       </Label>
                       <Select 
@@ -394,7 +394,7 @@ export function PlantForm({
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="plantingDate" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="plantingDate" className="text-sm font-medium text-foreground">
                         Plantdatum
                       </Label>
                       <Input
@@ -407,7 +407,7 @@ export function PlantForm({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="expectedHarvestDate" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="expectedHarvestDate" className="text-sm font-medium text-foreground">
                         Bloeiperiode
                       </Label>
                       <Input
@@ -421,7 +421,7 @@ export function PlantForm({
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="status" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="status" className="text-sm font-medium text-foreground">
                         Status
                       </Label>
                       <Select 
@@ -453,7 +453,7 @@ export function PlantForm({
                   </div>
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="notes" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="notes" className="text-sm font-medium text-foreground">
                         Opmerkingen
                       </Label>
                       <Textarea
@@ -467,7 +467,7 @@ export function PlantForm({
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="careInstructions" className="text-sm font-medium text-gray-700">
+                      <Label htmlFor="careInstructions" className="text-sm font-medium text-foreground">
                         Verzorgingsinstructies
                       </Label>
                       <Textarea
@@ -482,7 +482,7 @@ export function PlantForm({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="wateringFrequency" className="text-sm font-medium text-gray-700">
+                        <Label htmlFor="wateringFrequency" className="text-sm font-medium text-foreground">
                           Water frequentie (dagen)
                         </Label>
                         <Input
@@ -499,7 +499,7 @@ export function PlantForm({
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="fertilizerSchedule" className="text-sm font-medium text-gray-700">
+                        <Label htmlFor="fertilizerSchedule" className="text-sm font-medium text-foreground">
                           Bemestingsschema
                         </Label>
                         <Input
@@ -530,7 +530,7 @@ export function PlantForm({
         >
           {isSubmitting ? (
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
               Bezig...
             </div>
           ) : (

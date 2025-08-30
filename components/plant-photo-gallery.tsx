@@ -86,13 +86,13 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
             Foto's van {plantName}
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="aspect-square bg-green-100 rounded-lg animate-pulse" />
-            ))}
-          </div>
-        </CardContent>
+                  <CardContent>
+            <div className="animate-pulse grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="aspect-square bg-green-100 dark:bg-green-900/30 rounded-lg" />
+              ))}
+            </div>
+          </CardContent>
       </Card>
     )
   }

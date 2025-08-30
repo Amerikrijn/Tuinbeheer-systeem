@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive } from "lucide-react"
+import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive, X, Trash2 } from "lucide-react"
 import { TuinService, TuinServiceEnhanced, PlantBedService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
 import { getPlantBedsOptimized } from "@/lib/database-optimized"
@@ -267,87 +267,96 @@ function HomePageContent() {
   }, [gardens, state.searchTerm])
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <TreePine className="w-7 h-7 text-green-700" />
-            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Tuinbeheer Systeem</h1>
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl safe-area-px">
+      {/* Simple Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+            <TreePine className="w-6 h-6 text-green-700 dark:text-green-400" />
           </div>
-          <div className="flex items-center space-x-2">
-            <Button 
-              onClick={() => router.push('/logbook')}
-              variant="outline"
-              className="text-sm"
-            >
-              <BookOpen className="w-4 h-4 mr-2" />
-              Logboek
-            </Button>
-            <Button 
-              onClick={() => router.push('/tasks')}
-              variant="outline"
-              className="text-sm"
-            >
-              <ClipboardList className="w-4 h-4 mr-2" />
-              Taken
-            </Button>
-            <Button 
-              onClick={() => router.push('/gardens/new')}
-              className="text-sm"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Nieuwe Tuin
-            </Button>
-          </div>
+          <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
+            Tuinen
+          </h1>
         </div>
-        <p className="text-muted-foreground">
-          Beheer je tuinen, planten en taken op één centrale plek.
-        </p>
+        
+        <Button
+          onClick={() => {
+            console.log('Navigating to new garden form')
+            window.location.href = '/gardens/new'
+          }}
+          className="h-10 px-4 bg-green-600 hover:bg-green-700 text-white"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Toevoegen
+        </Button>
       </div>
 
-      {/* Search Bar */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Zoek tuinen..."
-            value={state.searchTerm}
-            onChange={handleSearchChange}
-            className="pl-10"
-          />
+      {/* Simple Search */}
+      <div className="mb-4">
+        <div className="max-w-md mx-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 dark:text-green-400 w-4 h-4" />
+            <Input
+              placeholder="🔍 Zoek tuinen..."
+              value={state.searchTerm}
+              onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
+              className="pl-9 border-green-300 focus:border-green-500"
+            />
+          </div>
+          {state.searchTerm && (
+            <p className="text-center text-xs text-muted-foreground mt-2">
+              {filteredGardens.length} tuin{filteredGardens.length !== 1 ? 'en' : ''} gevonden
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Error State */}
+      {/* Compact Error State */}
       {gardensError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <AlertCircle className="h-6 w-6 text-destructive" />
-            <h3 className="text-lg font-semibold text-destructive">Er is een fout opgetreden</h3>
+        <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertCircle className="h-4 w-4 text-destructive" />
+            <span className="text-sm font-medium text-destructive">Fout bij laden tuinen</span>
           </div>
-          <p className="text-destructive mb-4">{gardensError.message}</p>
-          <Button onClick={() => refetchGardens()} variant="outline" className="border-destructive text-destructive hover:bg-destructive/10">
+          <p className="text-destructive text-xs mb-2">{gardensError.message}</p>
+          <UnifiedButton
+            onClick={() => refetchGardens()}
+            variant="outline"
+            size="compact"
+            className="h-8 px-3 text-xs border-destructive text-destructive hover:bg-destructive/10"
+          >
             Opnieuw proberen
-          </Button>
+          </UnifiedButton>
         </div>
       )}
 
-      {/* Loading State */}
+      {/* Compact Loading State */}
       {gardensLoading && gardens.length === 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-          {Array.from({ length: 6 }).map((_, index) => (
-            <Card key={index} className="overflow-hidden">
-              <CardHeader className="pb-3">
-                <Skeleton className="h-6 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </CardHeader>
-              <CardContent className="pt-3">
-                <Skeleton className="h-4 w-full mb-3" />
-                <Skeleton className="h-4 w-2/3" />
-              </CardContent>
-            </Card>
-          ))}
+        <div className="space-y-4">
+          <div className="text-center mb-3">
+            <div className="inline-flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full mb-2">
+                              <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+            </div>
+            <p className="text-sm text-muted-foreground">Tuinen laden...</p>
+          </div>
+          
+                    <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Card key={index} className="overflow-hidden">
+                <CardHeader className="pb-2 pt-3 px-3">
+                  <Skeleton className="h-4 w-3/4 mb-2" />
+                  <Skeleton className="h-3 w-1/2" />
+                </CardHeader>
+                <CardContent className="pt-0 pb-3 px-3">
+                  <div className="flex flex-wrap gap-1.5">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <Skeleton key={i} className="h-6 w-16 rounded" />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
 
@@ -355,44 +364,49 @@ function HomePageContent() {
       {!gardensLoading || gardens.length > 0 ? (
         <>
           {filteredGardens.length === 0 && !gardensLoading ? (
-            <div className="text-center py-12">
-              <TreePine className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-foreground mb-2">
+            <div className="text-center py-4">
+              <TreePine className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+              <h3 className="text-sm font-medium text-foreground mb-1">
                 {state.searchTerm ? 'Geen tuinen gevonden' : 'Nog geen tuinen'}
               </h3>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-2 text-xs">
                 {state.searchTerm 
-                  ? `Geen tuinen gevonden voor "${state.searchTerm}". Probeer een andere zoekterm.`
-                  : 'Maak je eerste tuin aan om te beginnen.'
+                  ? `Geen resultaten voor "${state.searchTerm}"`
+                  : 'Maak je eerste tuin aan'
                 }
               </p>
               {!state.searchTerm && (
-                <Button onClick={() => router.push('/gardens/new')}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Eerste Tuin Aanmaken
-                </Button>
+                <UnifiedButton
+                  onClick={() => router.push('/gardens/new')}
+                  variant="primary"
+                  size="compact"
+                  icon={<Plus className="w-4 h-4" />}
+                  className="h-8 px-3 text-xs"
+                >
+                  Aanmaken
+                </UnifiedButton>
               )}
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-                {filteredGardens.map((garden) => (
-                  <GardenCard
-                    key={garden.id}
-                    garden={garden}
-                    onDelete={handleDeleteGarden}
-                  />
-                ))}
-              </div>
+            <div className="space-y-4 sm:space-y-6">
+                          <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredGardens.map((garden) => (
+                <GardenCard
+                  key={garden.id}
+                  garden={garden}
+                  onDelete={handleDeleteGarden}
+                />
+              ))}
+            </div>
 
               {/* Load More Button */}
               {hasMore && !state.searchTerm && (
-                <div className="text-center">
-                  <Button 
-                    onClick={handleLoadMore} 
+                <div className="text-center pt-4">
+                  <Button
+                    onClick={handleLoadMore}
                     disabled={gardensLoading}
                     variant="outline"
-                    className="min-w-32"
+                    className="w-full sm:w-auto min-w-32 border-green-300 text-green-700 hover:bg-green-50"
                   >
                     {gardensLoading ? 'Laden...' : 'Meer laden'}
                   </Button>
@@ -491,105 +505,84 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
   }
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-200 border-2 hover:border-green-200 overflow-hidden">
-      <Link href={`/gardens/${garden.id}`} className="block">
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <CardTitle className={`font-semibold text-card-foreground group-hover:text-primary transition-colors truncate ${
-                  garden.name.length > 20 ? 'text-sm' : 'text-base'
-                }`}>
-                {garden.name}
-              </CardTitle>
-              <div className="flex items-center text-sm text-muted-foreground mt-1">
-                <MapPin className="h-3 w-3 mr-1" />
-                <span className="truncate">{garden.location}</span>
-              </div>
+    <Link href={`/gardens/${garden.id}`} className="block">
+      <Card 
+        className="group hover:shadow-md transition-colors duration-150 border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 overflow-hidden relative cursor-pointer"
+      >
+      <CardHeader className="pb-2 pt-3 px-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <CardTitle className="text-sm font-medium text-foreground group-hover:text-green-700 dark:group-hover:text-green-300 transition-colors truncate">
+              {garden.name}
+            </CardTitle>
+            <div className="flex items-center text-xs text-muted-foreground mt-1">
+              <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+              <span className="truncate">{garden.location}</span>
             </div>
-            <Badge variant="secondary" className="ml-2 flex-shrink-0">
-              Actief
-            </Badge>
           </div>
-        </CardHeader>
+          <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5 bg-green-100 text-green-800 border-green-300">
+            {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)}
+          </Badge>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="pt-0 pb-3 px-3">
+        {/* Plant Preview */}
+        {allFlowers.length > 0 ? (
+          <div className="flex flex-wrap gap-1.5">
+            {allFlowers.slice(0, 6).map((flower, index) => (
+              <div
+                key={`${flower.id}-${index}`}
+                className="inline-flex items-center gap-1 bg-green-100 dark:bg-green-900/30 rounded-lg px-2 py-1.5 text-xs border border-green-300 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800/50 transition-colors duration-150"
+                title={flower.name}
+              >
+                <span className="text-sm">{getPlantEmoji(flower.name, flower.emoji)}</span>
+                <span className="truncate max-w-16 font-medium text-green-800 dark:text-green-200">{flower.name}</span>
+              </div>
+            ))}
+            {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
+              <div className="text-xs text-green-700 dark:text-green-300 px-2 py-1 bg-green-200 dark:bg-green-800/50 rounded-lg border border-green-300 dark:border-green-600 font-medium">
+                +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6} meer
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-xs text-muted-foreground italic py-2 text-center">
+            Geen planten
+          </div>
+        )}
+      </CardContent>
+      
+      {/* Footer met acties */}
+      <div className="px-3 pb-3 flex items-center justify-between">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30 text-xs flex items-center"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            console.log(`Navigating to garden: ${garden.id}`)
+            window.location.href = `/gardens/${garden.id}`
+          }}
+        >
+          <Leaf className="h-4 w-4 mr-2" />
+          <span className="text-sm font-medium">Beheren</span>
+        </Button>
         
-        <CardContent className="pt-3">
-          {garden.description && (
-            <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
-              {garden.description}
-            </p>
-          )}
-
-          {/* Flower Preview Section */}
-          <div className="mb-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-card-foreground">Planten in deze tuin:</span>
-                <span className="text-xs text-muted-foreground">
-                  {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)} planten
-                </span>
-              </div>
-              
-              {loadingFlowers ? (
-                <div className="grid grid-cols-2 gap-2">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
-                  ))}
-                </div>
-              ) : allFlowers.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2">
-                  {allFlowers.slice(0, 6).map((flower, index) => (
-                    <div
-                      key={`${flower.id}-${index}`}
-                      className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-lg px-3 py-2 hover:bg-green-100 transition-colors"
-                      title={flower.name}
-                    >
-                      <span className="text-lg">
-                        {getPlantEmoji(flower.name, flower.emoji)}
-                      </span>
-                      <span className="text-xs font-medium text-green-800 truncate flex-1">
-                        {flower.name}
-                      </span>
-                    </div>
-                  ))}
-                  {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) > 6 && (
-                    <div className="col-span-2 flex items-center justify-center bg-gray-100 border border-gray-200 rounded-lg px-3 py-2">
-                      <span className="text-xs text-muted-foreground font-medium">
-                        +{plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0) - 6} meer planten
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-xs text-muted-foreground italic">
-                  Nog geen planten geplant
-                </div>
-              )}
-            </div>
-
-          <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
-            <div className="flex items-center">
-              <Calendar className="h-4 w-4 mr-1" />
-              <span>Aangemaakt {formatDate(garden.created_at)}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div className="flex items-center text-green-600">
-              <Leaf className="h-4 w-4 mr-1" />
-              <span className="text-sm font-medium">Beheren</span>
-            </div>
-            
-            <Button
-              onClick={handleDeleteClick}
-              variant="ghost"
-              size="sm"
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              Verwijderen
-            </Button>
-          </div>
-        </CardContent>
-      </Link>
-    </Card>
+        <Button
+          onClick={handleDeleteClick}
+          variant="ghost"
+          size="sm"
+          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <Trash2 className="h-3 w-3 mr-1" />
+          Verwijderen
+        </Button>
+      </div>
+      </Card>
+    </Link>
   )
 }
 

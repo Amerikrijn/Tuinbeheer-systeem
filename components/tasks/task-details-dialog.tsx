@@ -215,7 +215,7 @@ export function TaskDetailsDialog({
                   disabled={isLoading}
                   onClick={handleToggleComplete}
                 >
-                  {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {isLoading ? <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" /> : null}
                   {task.completed ? 'Markeer als niet voltooid' : 'Markeer als voltooid'}
                 </Button>
               ) : (
@@ -225,7 +225,7 @@ export function TaskDetailsDialog({
                     onClick={handleSave}
                     disabled={isLoading}
                   >
-                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isLoading ? <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" /> : <Save className="w-4 h-4" />}
                     {isLoading ? 'Opslaan...' : 'Opslaan'}
                   </Button>
                   <Button
@@ -245,7 +245,7 @@ export function TaskDetailsDialog({
                 onClick={handleDelete}
                 disabled={isLoading}
               >
-                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                  {isLoading ? <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" /> : <Trash2 className="w-4 h-4" />}
                 {isLoading ? 'Verwijderen...' : 'Verwijderen'}
               </Button>
             </div>
@@ -308,7 +308,7 @@ export function TaskDetailsDialog({
                   rows={3}
                 />
               ) : (
-                <p className="mt-1 text-gray-700">{task.description || "Geen beschrijving"}</p>
+                                        <p className="mt-1 text-foreground">{task.description || "Geen beschrijving"}</p>
               )}
             </div>
 
@@ -383,7 +383,7 @@ export function TaskDetailsDialog({
                   rows={3}
                 />
               ) : (
-                <p className="mt-1 text-gray-700">{task.notes || "Geen opmerkingen"}</p>
+                                        <p className="mt-1 text-foreground">{task.notes || "Geen opmerkingen"}</p>
               )}
             </div>
           </div>

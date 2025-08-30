@@ -208,7 +208,7 @@ function LoginContent() {
               >
                 {isSubmitting || loading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
                     Inloggen...
                   </>
                 ) : (
@@ -249,7 +249,7 @@ export default function LoginPage() {
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
           <div className="flex items-center gap-2">
-            <Loader2 className="w-4 h-4 animate-spin" />
+                              <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
             <span>Laden...</span>
           </div>
         </div>
