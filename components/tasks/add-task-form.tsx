@@ -149,8 +149,6 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
         alert(`Fout bij het toevoegen van taak: ${error}`)
         return
       }
-
-      console.log('Task created successfully')
       // Reset form
       setFormData({
         plant_id: preselectedPlantId || undefined,

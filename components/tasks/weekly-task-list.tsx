@@ -43,7 +43,7 @@ interface WeeklyTaskListProps {
 }
 
 export function WeeklyTaskList({ onTaskEdit, onTaskAdd, refreshTrigger }: WeeklyTaskListProps) {
-  const { user } = useAuth()
+  const { user, loadGardenAccess } = useAuth()
   const [calendar, setCalendar] = useState<WeeklyCalendar | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -66,7 +66,6 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd, refreshTrigger }: Weekly
 
   // Load weekly calendar
   const loadWeeklyCalendar = async (weekStart: Date) => {
-    console.log('Loading weekly calendar for week starting:', weekStart.toISOString())
     setLoading(true)
     setError(null)
     
@@ -79,7 +78,6 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd, refreshTrigger }: Weekly
         return
       }
       
-      console.log('Calendar loaded successfully, tasks:', data?.total_tasks)
       setCalendar(data)
     } catch (err) {
       console.error('Exception loading calendar:', err)
@@ -143,7 +141,10 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd, refreshTrigger }: Weekly
   // Load data when component mounts, week changes, refresh is triggered, or user changes
   useEffect(() => {
     if (user) {
-      loadWeeklyCalendar(currentWeekStart)
+      // Ensure garden access is loaded before fetching tasks
+      loadGardenAccess().then(() => {
+        loadWeeklyCalendar(currentWeekStart)
+      })
     }
   }, [currentWeekStart, refreshTrigger, user])
 

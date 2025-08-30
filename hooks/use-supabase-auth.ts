@@ -308,6 +308,24 @@ export function useSupabaseAuth(): AuthContextType {
           })
       }
 
+      // Load garden access for non-admin users
+      let gardenAccess: string[] = []
+      if (role !== 'admin') {
+        try {
+          const { data: accessData, error: accessError } = await supabase
+            .from('user_garden_access')
+            .select('garden_id')
+            .eq('user_id', supabaseUser.id)
+          
+          if (!accessError && accessData) {
+            gardenAccess = accessData.map(row => row.garden_id)
+            console.log('Loaded garden access for user:', gardenAccess)
+          }
+        } catch (error) {
+          console.error('Error loading garden access:', error)
+        }
+      }
+
       // 🏦 BANKING-GRADE USER OBJECT: Complete with all security fields
       const user: User = {
         id: supabaseUser.id,
@@ -316,7 +334,7 @@ export function useSupabaseAuth(): AuthContextType {
         role: role,
         status: status,
         permissions: [],
-        garden_access: [], // Load separately to avoid blocking login
+        garden_access: gardenAccess, // Now loaded with user profile
         created_at: userProfile?.created_at || new Date().toISOString(),
         force_password_change: userProfile?.force_password_change || false // 🏦 BANKING REQUIREMENT
       }
@@ -589,9 +607,15 @@ export function useSupabaseAuth(): AuthContextType {
     }
   }
 
-  // Load garden access separately after login
+  // Load garden access separately after login or when needed
   const loadGardenAccess = async (): Promise<void> => {
-    if (!state.user || state.user.role === 'admin') return
+    if (!state.user) return
+    
+    // Admin has access to all gardens, no need to load
+    if (state.user.role === 'admin') {
+      console.log('User is admin, has access to all gardens')
+      return
+    }
     
     try {
       const { data: accessData, error: accessError } = await supabase
@@ -601,14 +625,19 @@ export function useSupabaseAuth(): AuthContextType {
       
       if (!accessError && accessData) {
         const gardenAccess = accessData.map(row => row.garden_id)
+        console.log('Refreshed garden access for user:', gardenAccess)
         
+        const updatedUser = { ...state.user, garden_access: gardenAccess }
         setState(prev => ({
           ...prev,
-          user: prev.user ? { ...prev.user, garden_access: gardenAccess } : null
+          user: updatedUser
         }))
+        
+        // Update cache as well
+        setCachedUserProfile(updatedUser)
       }
     } catch (error) {
-
+      console.error('Error loading garden access:', error)
     }
   }
 

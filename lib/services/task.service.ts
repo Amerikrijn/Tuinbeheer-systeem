@@ -280,10 +280,8 @@ export class TaskService {
     // If specific garden filter is provided (e.g., from tuin page), use that for both admin and users
     if (gardenFilter && gardenFilter.length > 0) {
       accessibleGardens = gardenFilter
-      console.log('Using provided garden filter:', accessibleGardens)
     } else if (user.role === 'admin') {
       // Admin has access to all tasks ONLY when no specific garden filter is applied
-      console.log('User is admin, showing all tasks')
       return tasks
     } else {
       // Get user's garden access from user_garden_access table
@@ -311,13 +309,11 @@ export class TaskService {
       return []
     }
 
-    console.log(`Filtering ${tasks.length} tasks for gardens:`, accessibleGardens)
     const filteredTasks = tasks.filter(task => {
       // For plant tasks: check via plant -> plant_bed -> garden
       if (task.plants?.plant_beds?.gardens?.id) {
         const gardenId = task.plants.plant_beds.gardens.id
         const hasAccess = accessibleGardens.includes(gardenId)
-        console.log(`Task ${task.id} (plant): garden ${gardenId}, access: ${hasAccess}`)
         return hasAccess
       }
 
@@ -325,15 +321,14 @@ export class TaskService {
       if (task.plant_beds?.gardens?.id) {
         const gardenId = task.plant_beds.gardens.id
         const hasAccess = accessibleGardens.includes(gardenId)
-        console.log(`Task ${task.id} (plant bed): garden ${gardenId}, access: ${hasAccess}`)
         return hasAccess
       }
 
       // If no garden relationship found, exclude for security
-      console.log(`Task ${task.id}: no garden relationship found, excluding`)
       return false
     })
 
+    console.log(`Filtered ${tasks.length} tasks to ${filteredTasks.length} accessible tasks`)
     return filteredTasks
   }
 
