@@ -66,25 +66,9 @@ export function PlantsList() {
 
   // 🚀 PERFORMANCE: Skeleton loading for better perceived performance
   const PlantsSkeleton = () => (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="h-32 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
-          ))}
-        </div>
-      {Array.from({ length: 6 }).map((_, index) => (
-        <Card key={index} className="hover:shadow-md transition-shadow">
-          <CardHeader>
-            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-4/5"></div>
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/5"></div>
-            </div>
-          </CardContent>
-        </Card>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="h-32 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
       ))}
     </div>
   )

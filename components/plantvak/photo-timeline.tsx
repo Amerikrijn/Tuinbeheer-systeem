@@ -134,12 +134,9 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
-          ))}
-        </div>
-            <div className="h-20 bg-gray-200 rounded"></div>
-            <div className="h-20 bg-gray-200 rounded"></div>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+            ))}
           </div>
         </CardContent>
       </Card>

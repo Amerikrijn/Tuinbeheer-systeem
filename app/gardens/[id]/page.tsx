@@ -993,12 +993,11 @@ export default function GardenDetailPage() {
             <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
           ))}
         </div>
-          <Skeleton className="h-8 w-1/3" />
-          <Skeleton className="h-32 w-full" />
-          <div className="grid gap-4">
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-24 w-full" />
-          </div>
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-32 w-full" />
+        <div className="grid gap-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
         </div>
       </div>
     )
