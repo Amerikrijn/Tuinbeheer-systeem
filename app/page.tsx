@@ -335,7 +335,7 @@ function HomePageContent() {
         <div className="space-y-4">
           <div className="text-center mb-3">
             <div className="inline-flex items-center justify-center w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full mb-2">
-              <Loader2 className="w-4 h-4 text-green-600 dark:text-green-400 animate-spin" />
+                              <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
             </div>
             <p className="text-sm text-muted-foreground">Tuinen laden...</p>
           </div>
