@@ -1603,42 +1603,42 @@ export default function PlantBedViewPage() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background border border-gray-200 shadow-xl">
-              <DialogHeader>
-                <DialogTitle>Nieuwe Plant Toevoegen</DialogTitle>
-                <DialogDescription>
-                  Voeg een nieuwe plant toe aan dit plantvak. Je kunt het later verplaatsen door te slepen.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                <PlantForm
-                  data={newFlower}
-                  errors={newFlowerErrors}
-                  onChange={setNewFlower}
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    addFlower()
-                  }}
-                  onReset={() => {
-                    setNewFlower(createInitialPlantFormData())
-                    setNewFlowerErrors({})
-                  }}
-                  submitLabel="Bloem toevoegen"
-                  isSubmitting={false}
-                  showAdvanced={true}
-                />
-                <div className="flex gap-2 mt-4">
-                  <Button variant="outline" onClick={() => {
-                    setIsAddingFlower(false)
-                    setNewFlower(createInitialPlantFormData())
-                    setNewFlowerErrors({})
-                    setIsCustomFlower(false)
-                  }}>
-                    Annuleren
-                  </Button>
+                <DialogHeader>
+                  <DialogTitle>Nieuwe Plant Toevoegen</DialogTitle>
+                  <DialogDescription>
+                    Voeg een nieuwe plant toe aan dit plantvak. Je kunt het later verplaatsen door te slepen.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <PlantForm
+                    data={newFlower}
+                    errors={newFlowerErrors}
+                    onChange={setNewFlower}
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      addFlower()
+                    }}
+                    onReset={() => {
+                      setNewFlower(createInitialPlantFormData())
+                      setNewFlowerErrors({})
+                    }}
+                    submitLabel="Bloem toevoegen"
+                    isSubmitting={false}
+                    showAdvanced={true}
+                  />
+                  <div className="flex gap-2 mt-4">
+                    <Button variant="outline" onClick={() => {
+                      setIsAddingFlower(false)
+                      setNewFlower(createInitialPlantFormData())
+                      setNewFlowerErrors({})
+                      setIsCustomFlower(false)
+                    }}>
+                      Annuleren
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
 
           {/* Edit Flower Dialog */}
           <Dialog open={isEditingFlower} onOpenChange={(open) => {
