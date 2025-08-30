@@ -276,7 +276,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                                   className="w-20 h-20 object-cover rounded"
                                 />
                                 <div className="flex-1">
-                                  <p className="text-sm text-gray-700 line-clamp-3">
+                                  <p className="text-sm text-foreground line-clamp-3">
                                     {entry.notes}
                                   </p>
                                 </div>
@@ -338,7 +338,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                 {/* Notes */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-medium text-foreground mb-2">Notities</h4>
-                  <p className="text-gray-700 whitespace-pre-wrap">{selectedPhoto.notes}</p>
+                                          <p className="text-foreground whitespace-pre-wrap">{selectedPhoto.notes}</p>
                 </div>
                 
                 {/* Metadata */}

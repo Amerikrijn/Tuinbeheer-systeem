@@ -1790,39 +1790,39 @@ export default function GardenDetailPage() {
           </Card>
           
           {plantBeds.length === 0 ? (
-            <Card className="text-center py-12">
+            <Card className="text-center py-8">
               <CardContent>
-                <Leaf className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-                <h3 className="text-xl font-medium text-muted-foreground mb-2">
+                <Leaf className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                <h3 className="text-lg font-medium text-muted-foreground mb-2">
                   Nog geen plantvakken
                 </h3>
-                <p className="text-muted-foreground mb-6">
+                <p className="text-sm text-muted-foreground mb-4">
                   Voeg je eerste plantvak toe om planten te kunnen planten.
                 </p>
                 <Button 
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 hover:bg-green-700 h-8 px-3 text-sm"
                   onClick={() => setIsAddingPlantBed(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Eerste Plantvak Maken
+                  Eerste Plantvak
                 </Button>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-3">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {plantBeds.map((bed) => (
                 <Card key={bed.id} className="border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 hover:shadow-md transition-colors duration-150">
                 <CardHeader className="pb-2 pt-3 px-3">
                   <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg text-green-800 dark:text-green-200 flex items-center gap-2">
+                    <div className="flex-1">
+                      <CardTitle className="text-base text-green-800 dark:text-green-200 flex items-center gap-2">
                         {bed.name}
                         {bed.sun_exposure && getSunExposureIcon(bed.sun_exposure)}
                       </CardTitle>
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                         {bed.size && (
                           <div className="flex items-center gap-1">
-                            <Leaf className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            <Leaf className="h-3 w-3 text-green-600 dark:text-green-400" />
                             {bed.size}
                           </div>
                         )}
@@ -1830,39 +1830,29 @@ export default function GardenDetailPage() {
                           {bed.plants.length} planten
                         </div>
                       </div>
-                      
-                      {/* Use PlantBedSummary component for consistent display */}
-                      <div className="mt-2">
-                        <PlantBedSummary
-                          plantBed={bed}
-                          selectedMonth={selectedMonth}
-                          filterMode={filterMode}
-                          isHighlighted={shouldHighlightBed(bed)}
-                        />
-                      </div>
                     </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 text-xs">
                       {bed.plants.length > 0 ? 'Beplant' : 'Leeg'}
                     </Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0 pb-3 px-3">
                   {bed.description && (
-                    <p className="text-muted-foreground mb-3 text-sm">{bed.description}</p>
+                    <p className="text-muted-foreground mb-2 text-xs line-clamp-2">{bed.description}</p>
                   )}
                   <div className="flex gap-2">
-                    <Link href={`/gardens/${garden.id}/plantvak-view/${bed.id}`}>
-                      <Button className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white text-sm">
-                        Plantvak Beheren
+                    <Link href={`/gardens/${garden.id}/plantvak-view/${bed.id}`} className="flex-1">
+                      <Button className="h-7 px-2 bg-green-600 hover:bg-green-700 text-white text-xs w-full">
+                        Beheren
                       </Button>
                     </Link>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeletePlantBed(bed.id)}
-                      className="h-8 px-3 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 text-sm"
+                      className="h-7 px-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 text-xs"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </Button>
                   </div>
                 </CardContent>

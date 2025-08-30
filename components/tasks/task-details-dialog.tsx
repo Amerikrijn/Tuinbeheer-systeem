@@ -308,7 +308,7 @@ export function TaskDetailsDialog({
                   rows={3}
                 />
               ) : (
-                <p className="mt-1 text-gray-700">{task.description || "Geen beschrijving"}</p>
+                                        <p className="mt-1 text-foreground">{task.description || "Geen beschrijving"}</p>
               )}
             </div>
 
@@ -383,7 +383,7 @@ export function TaskDetailsDialog({
                   rows={3}
                 />
               ) : (
-                <p className="mt-1 text-gray-700">{task.notes || "Geen opmerkingen"}</p>
+                                        <p className="mt-1 text-foreground">{task.notes || "Geen opmerkingen"}</p>
               )}
             </div>
           </div>
