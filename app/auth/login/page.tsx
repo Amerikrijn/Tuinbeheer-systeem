@@ -123,17 +123,17 @@ function LoginContent() {
   // Demo credentials removed for production security
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 dark:from-background dark:to-background/95 p-4">
       <div className="w-full max-w-md space-y-6">
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full">
-              <TreePine className="w-8 h-8 text-white dark:text-black" />
+            <div className="flex items-center justify-center w-16 h-16 bg-primary rounded-full">
+              <TreePine className="w-8 h-8 text-primary-foreground" />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-foreground dark:text-gray-100">Tuinbeheer Systeem</h1>
-          <p className="text-muted-foreground dark:text-gray-300 mt-2">Meld je aan om door te gaan</p>
+          <h1 className="text-2xl font-bold text-foreground">Tuinbeheer Systeem</h1>
+          <p className="text-muted-foreground mt-2">Meld je aan om door te gaan</p>
         </div>
 
         {/* Login Form */}
@@ -150,7 +150,7 @@ function LoginContent() {
               <div className="space-y-2">
                 <Label htmlFor="email">E-mailadres</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     id="email"
                     type="email"
@@ -173,7 +173,7 @@ function LoginContent() {
               <div className="space-y-2">
                 <Label htmlFor="password">Wachtwoord</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
@@ -186,7 +186,7 @@ function LoginContent() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-muted-foreground"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     disabled={isSubmitting}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}

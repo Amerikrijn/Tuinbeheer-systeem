@@ -21,6 +21,7 @@ import type { LogbookEntryFormData, Plantvak, Plant, PlantvakWithPlanten } from 
 import { ErrorBoundary } from "@/components/error-boundary"
 import { useToast } from "@/hooks/use-toast"
 import { format } from "date-fns"
+import { executeSaveWithRetry } from "@/lib/utils/save-handler"
 
 interface NewLogbookPageState {
   plantBeds: PlantvakWithPlanten[]
@@ -271,38 +272,49 @@ function NewLogbookPageContent() {
         plant_id: state.formData.plant_id === "none" ? "" : state.formData.plant_id
       }
       
-      const response = await LogbookService.create(submitData)
-      
-      if (!response.success || !response.data) {
-        throw new Error(response.error || 'Failed to create logbook entry')
-      }
+      // Use save handler with retry logic
+      const saveResult = await executeSaveWithRetry(
+        async () => {
+          const response = await LogbookService.create(submitData)
+          
+          if (!response.success || !response.data) {
+            throw new Error(response.error || 'Failed to create logbook entry')
+          }
 
-      // Update logbook entry with photo URL if present
-      if (state.formData.photo_url) {
-        const updateResponse = await LogbookService.update(response.data.id, {
-          photo_url: state.formData.photo_url
-        })
-        
-        if (!updateResponse.success) {
-          uiLogger.warn('Failed to update logbook entry with photo URL', { 
-            entryId: response.data.id, 
-            photoUrl: state.formData.photo_url 
-          })
+          // Update logbook entry with photo URL if present
+          if (state.formData.photo_url) {
+            const updateResponse = await LogbookService.update(response.data.id, {
+              photo_url: state.formData.photo_url
+            })
+            
+            if (!updateResponse.success) {
+              uiLogger.warn('Failed to update logbook entry with photo URL', { 
+                entryId: response.data.id, 
+                photoUrl: state.formData.photo_url 
+              })
+            }
+          }
+          
+          return response.data
+        },
+        {
+          loadingMessage: 'Logboek entry opslaan...',
+          successMessage: 'Logboek entry succesvol toegevoegd!',
+          errorMessage: 'Kon logboek entry niet opslaan'
         }
+      )
+
+      if (saveResult.success && saveResult.data) {
+        uiLogger.info('Logbook entry created successfully', { 
+          id: saveResult.data.id,
+          operationId 
+        })
+
+        // Redirect back to logbook overview instead of detail page
+        router.push('/logbook')
+      } else {
+        setState(prev => ({ ...prev, submitting: false }))
       }
-
-      toast({
-        title: "Logboek entry aangemaakt",
-        description: "De entry is succesvol toegevoegd aan het logboek.",
-      })
-
-      uiLogger.info('Logbook entry created successfully', { 
-        id: response.data.id,
-        operationId 
-      })
-
-      // Redirect back to logbook overview instead of detail page
-      router.push('/logbook')
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Er is een onbekende fout opgetreden'

@@ -38,6 +38,7 @@ import {
 } from "lucide-react"
 import { getGarden, getPlantBeds, updatePlantBed, deletePlantBed } from "@/lib/database"
 import { PlantvakService } from "@/lib/services/plantvak.service"
+import { executeSaveWithRetry } from "@/lib/utils/save-handler"
 import type { Garden, PlantBedWithPlants, PlantWithPosition, Plant } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS, 
@@ -867,24 +868,41 @@ export default function GardenDetailPage() {
 
       const sizeString = `${length}m x ${width}m`
 
-      // Gebruik PlantvakService voor automatische letter toewijzing
-      const plantBed = await PlantvakService.create({
-        garden_id: garden.id,
-        size: sizeString,
-        description: newPlantBed.description?.trim() || undefined,
-        sun_exposure: newPlantBed.sun_exposure,
-        soil_type: newPlantBed.soil_type?.trim() || 'gemengd', // Default soil type
-      })
+      // Gebruik PlantvakService voor automatische letter toewijzing met retry logic
+      const saveResult = await executeSaveWithRetry(
+        async () => {
+          const plantBed = await PlantvakService.create({
+            garden_id: garden.id,
+            size: sizeString,
+            description: newPlantBed.description?.trim() || undefined,
+            sun_exposure: newPlantBed.sun_exposure,
+            soil_type: newPlantBed.soil_type?.trim() || 'gemengd', // Default soil type
+          })
+          
+          if (!plantBed) throw new Error('Failed to create plant bed')
+          
+          // Update the plant bed with position and calculated dimensions
+          const updatedBed = await updatePlantBed(plantBed.id, {
+            position_x: newX,
+            position_y: newY,
+            visual_width: visualWidth,
+            visual_height: visualHeight,
+            rotation: 0
+          })
+          
+          if (!updatedBed) throw new Error('Failed to update plant bed position')
+          
+          return updatedBed
+        },
+        {
+          loadingMessage: 'Plantvak aanmaken...',
+          successMessage: 'Plantvak succesvol toegevoegd!',
+          errorMessage: 'Kon plantvak niet toevoegen'
+        }
+      )
 
-      if (plantBed) {
-        // Update the plant bed with position and calculated dimensions
-        const updatedBed = await updatePlantBed(plantBed.id, {
-          position_x: newX,
-          position_y: newY,
-          visual_width: visualWidth,
-          visual_height: visualHeight,
-          rotation: 0
-        })
+      if (saveResult.success && saveResult.data) {
+        const updatedBed = saveResult.data
 
         if (updatedBed) {
           // No default flowers - start with empty plant bed
@@ -1035,7 +1053,7 @@ export default function GardenDetailPage() {
               onClick={toggleView}
               className={`h-8 px-3 ${
                 isVisualView 
-                  ? "bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black" 
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground" 
                   : "border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
               }`}
             >
@@ -1057,7 +1075,7 @@ export default function GardenDetailPage() {
               setIsAddingPlantBed(open)
             }}>
               <DialogTrigger asChild>
-                <Button className="h-8 px-3 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black">
+                <Button className="h-8 px-3 bg-primary hover:bg-primary/90 text-primary-foreground">
                   <Plus className="w-4 h-4 mr-1" />
                   Plantvak Toevoegen
                 </Button>
@@ -1364,7 +1382,7 @@ export default function GardenDetailPage() {
                         onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                         onClick={(e) => handlePlantBedClick(e, bed.id)}
                       >
-                        <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 dark:border-gray-600 ${
+                        <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-accent transition-colors relative border border-border ${
                           isSelected ? 'bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700' : ''
                         }`}>
                           {/* Top corner elements */}

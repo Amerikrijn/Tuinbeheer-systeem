@@ -367,7 +367,9 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
             <PhotoUpload
               folder={`plants/${plantId}`}
               onUploadComplete={handlePhotoUpload}
-              onUploadError={(error) => console.error('Upload error:', error)}
+              onUploadError={(error) => {
+                // Error is already handled by toast in PhotoUpload component
+              }}
               showPreview={true}
               maxSizeMB={10}
             />
