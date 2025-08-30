@@ -1535,13 +1535,13 @@ export default function PlantBedViewPage() {
   if (loading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <div className="space-y-4">
+        <div className="animate-pulse space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+            <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded" />
           ))}
         </div>
-        <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-        <div className="h-64 bg-gray-200 rounded"></div>
+        <div className="h-8 bg-green-100 dark:bg-green-900/30 rounded w-1/3 mb-4"></div>
+        <div className="h-64 bg-green-100 dark:bg-green-900/30 rounded"></div>
       </div>
     )
   }

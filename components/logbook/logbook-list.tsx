@@ -63,9 +63,9 @@ export function LogbookList() {
 
   // 🚀 PERFORMANCE: Skeleton loading for better perceived performance
   const LogbookSkeleton = () => (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="animate-pulse grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} className="h-32 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+        <div key={i} className="h-32 bg-green-100 dark:bg-green-900/30 rounded" />
       ))}
     </div>
   )

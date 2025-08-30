@@ -148,26 +148,26 @@ export default function PlantDetailPage() {
   if (loading) {
     return (
       <div className="container mx-auto p-4 max-w-4xl">
-        <div className="space-y-4">
+        <div className="animate-pulse space-y-4">
           {/* Header skeleton */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-20 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
-              <div className="h-6 w-32 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+              <div className="h-8 w-20 bg-green-100 dark:bg-green-900/30 rounded" />
+              <div className="h-6 w-32 bg-green-100 dark:bg-green-900/30 rounded" />
             </div>
-            <div className="h-8 w-20 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+            <div className="h-8 w-20 bg-green-100 dark:bg-green-900/30 rounded" />
           </div>
           
           {/* Content skeleton */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2 space-y-4">
-              <div className="h-32 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
-              <div className="h-24 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
-              <div className="h-40 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+              <div className="h-32 bg-green-100 dark:bg-green-900/30 rounded" />
+              <div className="h-24 bg-green-100 dark:bg-green-900/30 rounded" />
+              <div className="h-40 bg-green-100 dark:bg-green-900/30 rounded" />
             </div>
             <div className="space-y-4">
-              <div className="h-24 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
-              <div className="h-32 bg-green-100 dark:bg-green-900/30 rounded animate-pulse" />
+              <div className="h-24 bg-green-100 dark:bg-green-900/30 rounded" />
+              <div className="h-32 bg-green-100 dark:bg-green-900/30 rounded" />
             </div>
           </div>
         </div>
