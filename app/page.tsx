@@ -280,7 +280,10 @@ function HomePageContent() {
         </div>
         
         <Button
-          onClick={() => router.push('/gardens/new')}
+          onClick={() => {
+            console.log('Navigating to new garden form')
+            window.location.href = '/gardens/new'
+          }}
           className="h-10 px-4 bg-green-600 hover:bg-green-700 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -552,10 +555,20 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
       
       {/* Footer met acties */}
       <div className="px-3 pb-3 flex items-center justify-between">
-        <div className="flex items-center text-green-600 dark:text-green-400">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30 text-xs flex items-center"
+          onClick={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            console.log(`Navigating to garden: ${garden.id}`)
+            window.location.href = `/gardens/${garden.id}`
+          }}
+        >
           <Leaf className="h-4 w-4 mr-2" />
           <span className="text-sm font-medium">Beheren</span>
-        </div>
+        </Button>
         
         <Button
           onClick={handleDeleteClick}
