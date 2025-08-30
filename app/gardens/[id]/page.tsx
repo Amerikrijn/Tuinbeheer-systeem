@@ -1087,12 +1087,12 @@ export default function GardenDetailPage() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Nieuw Plantvak Toevoegen</DialogTitle>
-                <DialogDescription>
-                  Voeg een nieuw plantvak toe aan je tuin. Geef de afmetingen in meters op voor een schaalgetrouwe weergave.
-                </DialogDescription>
-              </DialogHeader>
+                <DialogHeader>
+                  <DialogTitle>Nieuw Plantvak Toevoegen</DialogTitle>
+                  <DialogDescription>
+                    Voeg een nieuw plantvak toe aan je tuin. Geef de afmetingen in meters op voor een schaalgetrouwe weergave.
+                  </DialogDescription>
+                </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
                   <label htmlFor="name" className="text-sm font-medium">
