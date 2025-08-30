@@ -39,9 +39,10 @@ import {
 interface WeeklyTaskListProps {
   onTaskEdit?: (task: WeeklyTask) => void
   onTaskAdd?: (plantId?: string) => void
+  refreshTrigger?: number
 }
 
-export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
+export function WeeklyTaskList({ onTaskEdit, onTaskAdd, refreshTrigger }: WeeklyTaskListProps) {
   const { user } = useAuth()
   const [calendar, setCalendar] = useState<WeeklyCalendar | null>(null)
   const [loading, setLoading] = useState(true)
@@ -65,6 +66,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
 
   // Load weekly calendar
   const loadWeeklyCalendar = async (weekStart: Date) => {
+    console.log('Loading weekly calendar for week starting:', weekStart.toISOString())
     setLoading(true)
     setError(null)
     
@@ -72,12 +74,15 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       const { data, error } = await TaskService.getWeeklyCalendar(weekStart, user)
       
       if (error) {
+        console.error('Error loading calendar:', error)
         setError(error)
         return
       }
       
+      console.log('Calendar loaded successfully, tasks:', data?.total_tasks)
       setCalendar(data)
     } catch (err) {
+      console.error('Exception loading calendar:', err)
       setError(err instanceof Error ? err.message : 'Er ging iets mis')
     } finally {
       setLoading(false)
@@ -135,10 +140,12 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     setCurrentWeekStart(getWeekStartDate())
   }
 
-  // Load data when week changes
+  // Load data when component mounts, week changes, refresh is triggered, or user changes
   useEffect(() => {
-    loadWeeklyCalendar(currentWeekStart)
-  }, [currentWeekStart])
+    if (user) {
+      loadWeeklyCalendar(currentWeekStart)
+    }
+  }, [currentWeekStart, refreshTrigger, user])
 
   // Task Card Component
   const TaskCard = ({ task, compact = false, showPlantInfo = false }: { task: WeeklyTask; compact?: boolean; showPlantInfo?: boolean }) => {

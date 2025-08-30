@@ -145,10 +145,12 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
       const { error } = await TaskService.createTask(formData)
       
       if (error) {
-
+        console.error('Error creating task:', error)
+        alert(`Fout bij het toevoegen van taak: ${error}`)
         return
       }
 
+      console.log('Task created successfully')
       // Reset form
       setFormData({
         plant_id: preselectedPlantId || undefined,
@@ -161,8 +163,11 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
         notes: ''
       })
 
-      onTaskAdded()
-      onClose()
+      // Add a small delay to ensure database has updated before refreshing
+      setTimeout(() => {
+        onTaskAdded()
+        onClose()
+      }, 100)
     } catch (error) {
 
     } finally {

@@ -271,7 +271,7 @@ export class TaskService {
   // Apply garden access filtering to tasks
   private static async applyGardenAccessFilter(tasks: any[], user: User | null, gardenFilter?: string[]): Promise<any[]> {
     if (!user) {
-
+      console.log('No user provided for garden access filter')
       return []
     }
 
@@ -280,9 +280,10 @@ export class TaskService {
     // If specific garden filter is provided (e.g., from tuin page), use that for both admin and users
     if (gardenFilter && gardenFilter.length > 0) {
       accessibleGardens = gardenFilter
-
+      console.log('Using provided garden filter:', accessibleGardens)
     } else if (user.role === 'admin') {
       // Admin has access to all tasks ONLY when no specific garden filter is applied
+      console.log('User is admin, showing all tasks')
       return tasks
     } else {
       // Get user's garden access from user_garden_access table
@@ -293,29 +294,30 @@ export class TaskService {
           .eq('user_id', user.id)
         
         if (error) {
-
+          console.error('Error fetching garden access:', error)
           return []
         }
         
         accessibleGardens = gardenAccess?.map(access => access.garden_id) || []
-
+        console.log('User garden access:', accessibleGardens)
       } catch (error) {
-
+        console.error('Exception fetching garden access:', error)
         return []
       }
     }
 
     if (accessibleGardens.length === 0) {
-
+      console.log('User has no accessible gardens')
       return []
     }
 
+    console.log(`Filtering ${tasks.length} tasks for gardens:`, accessibleGardens)
     const filteredTasks = tasks.filter(task => {
       // For plant tasks: check via plant -> plant_bed -> garden
       if (task.plants?.plant_beds?.gardens?.id) {
         const gardenId = task.plants.plant_beds.gardens.id
         const hasAccess = accessibleGardens.includes(gardenId)
-
+        console.log(`Task ${task.id} (plant): garden ${gardenId}, access: ${hasAccess}`)
         return hasAccess
       }
 
@@ -323,12 +325,12 @@ export class TaskService {
       if (task.plant_beds?.gardens?.id) {
         const gardenId = task.plant_beds.gardens.id
         const hasAccess = accessibleGardens.includes(gardenId)
-
+        console.log(`Task ${task.id} (plant bed): garden ${gardenId}, access: ${hasAccess}`)
         return hasAccess
       }
 
       // If no garden relationship found, exclude for security
-
+      console.log(`Task ${task.id}: no garden relationship found, excluding`)
       return false
     })
 

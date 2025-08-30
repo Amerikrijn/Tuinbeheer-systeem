@@ -61,6 +61,7 @@ function TasksPageContent() {
       {/* Weekly Task List */}
       <WeeklyTaskList 
         key={refreshKey}
+        refreshTrigger={refreshKey}
         onTaskEdit={(task) => {
           // Open task details dialog for editing
           setSelectedTask(task)
