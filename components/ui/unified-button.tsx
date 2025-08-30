@@ -27,7 +27,7 @@ export function UnifiedButton({
   disabled = false,
   loading = false
 }: UnifiedButtonProps) {
-  const baseClasses = "font-medium transition-all duration-150 focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+  const baseClasses = "font-medium transition-colors duration-150 focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
   
   // Mobile-first sizing - larger on mobile for better touch targets
   const sizeClasses = {

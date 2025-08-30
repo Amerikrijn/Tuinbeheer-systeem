@@ -45,7 +45,7 @@ export function BankingNavigation() {
   });
   
   return (
-    <nav className="bg-background/95 backdrop-blur-md border-b-2 border-green-200 dark:border-green-800 sticky top-0 z-50 supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)]" role="navigation" aria-label="Hoofdnavigatie">
+    <nav className="bg-background border-b-2 border-green-200 dark:border-green-800 sticky top-0 z-50 supports-[padding:max(0px)]:pb-[env(safe-area-inset-bottom)]" role="navigation" aria-label="Hoofdnavigatie">
       <div className="container mx-auto px-4 safe-area-px">
         <div className="flex justify-between items-center h-16 touch-pan-y">
           {/* Logo */}
@@ -66,7 +66,7 @@ export function BankingNavigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 flex items-center gap-2 ${
                     isActive
                       ? "bg-green-600 text-white shadow-lg shadow-green-600/25"
                       : "text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
@@ -100,7 +100,7 @@ export function BankingNavigation() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden h-8 w-8 rounded-lg border border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/30 active:scale-[0.98] transition-all duration-200"
+              className="md:hidden h-8 w-8 rounded-lg border border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/30 active:scale-[0.98] transition-colors duration-150"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Menu openen"
             >
@@ -111,7 +111,7 @@ export function BankingNavigation() {
         
         {/* Compact Mobile Navigation Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-green-200 dark:border-green-800 bg-background/95 backdrop-blur-md">
+          <div className="md:hidden border-t border-green-200 dark:border-green-800 bg-background">
             <div className="px-2 pt-2 pb-3 space-y-1" role="menu" aria-label="Mobiele navigatie">
               {visibleItems.map((item) => {
                 const isActive = pathname === item.href || 
@@ -121,7 +121,7 @@ export function BankingNavigation() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex items-center gap-2 ${
                       isActive
                         ? "bg-green-600 text-white shadow-lg shadow-green-600/25"
                         : "text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"

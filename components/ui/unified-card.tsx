@@ -27,7 +27,7 @@ export function UnifiedCard({
   onClick
 }: UnifiedCardProps) {
   const cardClasses = cn(
-    "group transition-all duration-200 overflow-hidden relative",
+    "group transition-colors duration-150 overflow-hidden relative",
     variant === 'default' && "border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700",
     variant === 'compact' && "border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700",
     variant === 'minimal' && "border border-green-200/50 dark:border-green-800/50 hover:border-green-300/70 dark:hover:border-green-700/70",
