@@ -509,38 +509,38 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
   }
 
   return (
-    <UnifiedCard
-      variant="compact"
-      hover={true}
-      onClick={() => router.push(`/gardens/${garden.id}`)}
-      header={{
-        title: garden.name,
-        subtitle: garden.location,
-        badge: (
-          <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5 bg-green-100 text-green-800 border-green-300">
-            {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)}
-          </Badge>
-        )
-      }}
-      footer={
-        <div className="flex items-center justify-between">
-          <div className="flex items-center text-green-600 dark:text-green-400">
-            <Leaf className="h-4 w-4 mr-2" />
-            <span className="text-sm font-medium">Beheren</span>
+    <div onClick={() => router.push(`/gardens/${garden.id}`)} className="cursor-pointer">
+      <UnifiedCard
+        variant="compact"
+        hover={true}
+        header={{
+          title: garden.name,
+          subtitle: garden.location,
+          badge: (
+            <Badge variant="secondary" className="text-xs px-2 py-0.5 h-5 bg-green-100 text-green-800 border-green-300">
+              {plantBeds.reduce((total, bed) => total + (bed.plants?.length || 0), 0)}
+            </Badge>
+          )
+        }}
+        footer={
+          <div className="flex items-center justify-between">
+            <div className="flex items-center text-green-600 dark:text-green-400">
+              <Leaf className="h-4 w-4 mr-2" />
+              <span className="text-sm font-medium">Beheren</span>
+            </div>
+            
+            <Button
+              onClick={handleDeleteClick}
+              variant="ghost"
+              size="sm"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              Verwijderen
+            </Button>
           </div>
-          
-          <Button
-            onClick={handleDeleteClick}
-            variant="ghost"
-            size="sm"
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
-          >
-            <Trash2 className="h-3 w-3 mr-1" />
-            Verwijderen
-          </Button>
-        </div>
-      }
-    >
+        }
+      >
       {/* Plant Preview */}
       {allFlowers.length > 0 ? (
         <div className="flex flex-wrap gap-1.5">
@@ -565,7 +565,8 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
           Geen planten
         </div>
       )}
-    </UnifiedCard>
+      </UnifiedCard>
+    </div>
   )
 }
 
