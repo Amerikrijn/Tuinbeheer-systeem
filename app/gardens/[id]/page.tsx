@@ -1007,7 +1007,10 @@ export default function GardenDetailPage() {
           <TreePine className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
           <p className="text-muted-foreground mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
-          <Button onClick={() => navigateTo("/gardens")} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={() => {
+            console.log('Navigating back to gardens')
+            window.location.href = '/gardens'
+          }} className="bg-green-600 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar Tuinen
           </Button>

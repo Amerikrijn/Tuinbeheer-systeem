@@ -538,7 +538,10 @@ function LogbookPageContent() {
           {/* Tasks button for users */}
           {!isAdmin() && (
             <Button 
-              onClick={() => router.push('/')}
+              onClick={() => {
+              console.log('Navigating to home')
+              window.location.href = '/'
+            }}
               variant="outline"
               size="sm"
               className="h-8 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
@@ -684,7 +687,12 @@ function LogbookPageContent() {
                 className={`cursor-pointer hover:shadow-md transition-shadow ${
                   entry.is_completed_task ? 'bg-green-50 dark:bg-green-950/20 border-l-4 border-l-green-500' : 'hover:bg-muted/50'
                 }`}
-                onClick={() => entry.is_completed_task ? null : router.push(`/logbook/${entry.id}`)}
+                onClick={() => {
+                if (!entry.is_completed_task) {
+                  console.log(`Navigating to logbook entry: ${entry.id}`)
+                  window.location.href = `/logbook/${entry.id}`
+                }
+              }}
               >
                 <CardContent className="p-6">
                   <div className="flex gap-6">

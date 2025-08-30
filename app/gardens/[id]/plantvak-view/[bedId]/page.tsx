@@ -959,7 +959,8 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       
       // Navigate back to garden
-      router.push(`/gardens/${params.id}`)
+              console.log(`Navigating back to garden: ${params.id}`)
+        window.location.href = `/gardens/${params.id}`
     } catch (error) {
       console.error("Error deleting plant bed:", error)
         // Removed toast notification
@@ -1006,8 +1007,9 @@ export default function PlantBedViewPage() {
     console.log('Double click on flower:', flower.name, '- navigating to details')
     
     // Navigate to plant details page
-    router.push(`/plants/${flower.id}`)
-    }, [router])
+    console.log(`Navigating to plant: ${flower.id}`)
+    window.location.href = `/plants/${flower.id}`
+    }, [])
 
   // Handle flower resize via interface - supports flower fields
   const handleFlowerResize = useCallback(async (flowerId: string, sizeChange: number) => {
@@ -2512,7 +2514,10 @@ export default function PlantBedViewPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => router.push(`/plants/${flower.id}`)}
+                            onClick={() => {
+                console.log(`Navigating to plant: ${flower.id}`)
+                window.location.href = `/plants/${flower.id}`
+              }}
                             className="flex-1"
                           >
                             Details

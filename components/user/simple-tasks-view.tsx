@@ -280,7 +280,10 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
               <p className="text-muted-foreground mt-1">Laden...</p>
             </div>
             <Button 
-              onClick={() => router.push('/logbook')}
+              onClick={() => {
+                console.log('Navigating to logbook')
+                window.location.href = '/logbook'
+              }}
               variant="outline"
               className="flex items-center gap-2"
             >
@@ -310,7 +313,10 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
             )}
           </div>
           <Button 
-            onClick={() => router.push('/logbook')}
+            onClick={() => {
+              console.log('Navigating to logbook')
+              window.location.href = '/logbook'
+            }}
             variant="outline"
             className="flex items-center gap-2"
           >
