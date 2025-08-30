@@ -1093,18 +1093,18 @@ export default function GardenDetailPage() {
                     Voeg een nieuw plantvak toe aan je tuin. Geef de afmetingen in meters op voor een schaalgetrouwe weergave.
                   </DialogDescription>
                 </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <label htmlFor="name" className="text-sm font-medium">
-                    Naam *
-                  </label>
-                  <Input
-                    id="name"
-                    value={newPlantBed.name}
-                    onChange={(e) => setNewPlantBed(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Bijvoorbeeld: Voorste border"
-                  />
-                </div>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <label htmlFor="name" className="text-sm font-medium">
+                      Naam *
+                    </label>
+                    <Input
+                      id="name"
+                      value={newPlantBed.name}
+                      onChange={(e) => setNewPlantBed(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Bijvoorbeeld: Voorste border"
+                    />
+                  </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <label htmlFor="length" className="text-sm font-medium">
