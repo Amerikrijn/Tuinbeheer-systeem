@@ -1017,75 +1017,75 @@ export default function GardenDetailPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 space-y-4">
-      {/* Compact Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={goBack}
-            className="flex items-center gap-1 px-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Terug
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <TreePine className="h-6 w-6 text-green-600" />
-              {garden.name}
-            </h1>
-            {(garden.total_area || (garden.length && garden.width)) && (
-              <p className="text-xs text-muted-foreground">
-                {garden.length}m × {garden.width}m • {garden.total_area || 
-                  (garden.length && garden.width && 
-                    `${(parseFloat(garden.length) * parseFloat(garden.width)).toFixed(1)} m²`
-                  )
-              }
-              </p>
-            )}
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
+      {/* Minimalist Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goBack}
+              className="h-10 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Terug
+            </Button>
+            
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                <TreePine className="w-5 h-5 text-green-700 dark:text-green-400" />
+              </div>
+              <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
+                {garden.name}
+              </h1>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsEditingGarden(true)}
-            className="px-2"
-          >
-            <Edit className="h-4 w-4 mr-1" />
-            Bewerken
-          </Button>
           
-          <Button
-            variant={isVisualView ? "default" : "outline"}
-            size="sm"
-            onClick={toggleView}
-            className="px-2"
-          >
-            <Grid3X3 className="h-4 w-4 mr-1" />
-            {isVisualView ? "Lijst" : "Visueel"}
-          </Button>
-          
-          <Dialog open={isAddingPlantBed} onOpenChange={(open) => {
-            if (open) {
-              // Reset form when dialog opens
-              setNewPlantBed({
-                length: '',
-                width: '',
-                description: '',
-                sun_exposure: 'full-sun',
-                soil_type: ''
-              })
-            }
-            setIsAddingPlantBed(open)
-          }}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="px-2">
-                <Plus className="h-4 w-4 mr-1" />
-                Toevoegen
-              </Button>
-            </DialogTrigger>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsEditingGarden(true)}
+              className="h-8 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+            >
+              <Edit className="w-4 h-4 mr-1" />
+              Bewerken
+            </Button>
+            
+            <Button
+              variant={isVisualView ? "default" : "outline"}
+              size="sm"
+              onClick={toggleView}
+              className={`h-8 px-3 ${
+                isVisualView 
+                  ? "bg-green-600 hover:bg-green-700 text-white" 
+                  : "border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+              }`}
+            >
+              <Grid3X3 className="w-4 h-4 mr-1" />
+              {isVisualView ? "Lijst" : "Visueel"}
+            </Button>
+            
+            <Dialog open={isAddingPlantBed} onOpenChange={(open) => {
+              if (open) {
+                // Reset form when dialog opens
+                setNewPlantBed({
+                  length: '',
+                  width: '',
+                  description: '',
+                  sun_exposure: 'full-sun',
+                  soil_type: ''
+                })
+              }
+              setIsAddingPlantBed(open)
+            }}>
+              <DialogTrigger asChild>
+                <Button className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Plantvak Toevoegen
+                </Button>
+              </DialogTrigger>
             <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nieuw Plantvak Toevoegen</DialogTitle>
@@ -1803,30 +1803,30 @@ export default function GardenDetailPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4">
+            <div className="grid gap-3">
               {plantBeds.map((bed) => (
-                <Card key={bed.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
+                <Card key={bed.id} className="border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 hover:shadow-md transition-colors duration-150">
+                <CardHeader className="pb-2 pt-3 px-3">
                   <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="text-xl text-green-700 flex items-center gap-2">
+                      <CardTitle className="text-lg text-green-800 dark:text-green-200 flex items-center gap-2">
                         {bed.name}
                         {bed.sun_exposure && getSunExposureIcon(bed.sun_exposure)}
                       </CardTitle>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
                         {bed.size && (
                           <div className="flex items-center gap-1">
-                            <Leaf className="h-4 w-4" />
+                            <Leaf className="h-4 w-4 text-green-600 dark:text-green-400" />
                             {bed.size}
                           </div>
                         )}
-                        <div>
+                        <div className="text-green-700 dark:text-green-300">
                           {bed.plants.length} planten
                         </div>
                       </div>
                       
                       {/* Use PlantBedSummary component for consistent display */}
-                      <div className="mt-3">
+                      <div className="mt-2">
                         <PlantBedSummary
                           plantBed={bed}
                           selectedMonth={selectedMonth}
@@ -1835,18 +1835,18 @@ export default function GardenDetailPage() {
                         />
                       </div>
                     </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300">
                       {bed.plants.length > 0 ? 'Beplant' : 'Leeg'}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="pt-0">
+                <CardContent className="pt-0 pb-3 px-3">
                   {bed.description && (
-                    <p className="text-muted-foreground mb-4">{bed.description}</p>
+                    <p className="text-muted-foreground mb-3 text-sm">{bed.description}</p>
                   )}
                   <div className="flex gap-2">
                     <Link href={`/gardens/${garden.id}/plantvak-view/${bed.id}`}>
-                      <Button className="bg-green-600 hover:bg-green-700">
+                      <Button className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white text-sm">
                         Plantvak Beheren
                       </Button>
                     </Link>
@@ -1854,9 +1854,9 @@ export default function GardenDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeletePlantBed(bed.id)}
-                      className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                      className="h-8 px-3 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 text-sm"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 </CardContent>

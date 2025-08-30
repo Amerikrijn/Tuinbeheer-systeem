@@ -242,15 +242,15 @@ export function PlantBedSummary({
         {/* Header with basic info */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">{plantBed.name}</span>
+            <span className="text-sm font-medium text-green-800 dark:text-green-200">{plantBed.name}</span>
             {getSunExposureIcon(plantBed.sun_exposure)}
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
               {plantBed.plants.length} planten
             </Badge>
           </div>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 hover:bg-muted rounded transition-colors"
+            className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors duration-150"
           >
             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>

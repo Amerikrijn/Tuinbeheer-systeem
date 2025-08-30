@@ -1558,46 +1558,50 @@ export default function PlantBedViewPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={goBack}
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Terug
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Flower className="h-8 w-8 text-pink-600" />
-              {plantBed.name}
-            </h1>
-
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
+      {/* Minimalist Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goBack}
+              className="h-10 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Terug
+            </Button>
+            
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+                <Flower className="w-5 h-5 text-green-700 dark:text-green-400" />
+              </div>
+              <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
+                {plantBed.name}
+              </h1>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Dialog open={isAddingFlower} onOpenChange={(open) => {
-            setIsAddingFlower(open)
-            if (!open) {
-              // Reset form when dialog closes
-              setNewFlower(createInitialPlantFormData())
-              setIsCustomFlower(false)
-            }
-          }}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" onClick={() => {
-                // Reset form when opening dialog
+          
+          <div className="flex items-center gap-2">
+            <Dialog open={isAddingFlower} onOpenChange={(open) => {
+              setIsAddingFlower(open)
+              if (!open) {
+                // Reset form when dialog closes
                 setNewFlower(createInitialPlantFormData())
                 setIsCustomFlower(false)
-              }}>
-                <Plus className="h-4 w-4 mr-2" />
-                Plant Toevoegen
-              </Button>
-                          </DialogTrigger>
+              }
+            }}>
+              <DialogTrigger asChild>
+                <Button className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white text-sm" onClick={() => {
+                  // Reset form when opening dialog
+                  setNewFlower(createInitialPlantFormData())
+                  setIsCustomFlower(false)
+                }}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Plant Toevoegen
+                </Button>
+              </DialogTrigger>
             <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background border border-gray-200 shadow-xl">
               <DialogHeader>
                 <DialogTitle>Nieuwe Plant Toevoegen</DialogTitle>
