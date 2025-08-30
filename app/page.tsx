@@ -502,10 +502,10 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
   }
 
   return (
-    <Card 
-      className="group hover:shadow-md transition-colors duration-150 border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 overflow-hidden relative cursor-pointer"
-      onClick={() => router.push(`/gardens/${garden.id}`)}
-    >
+    <Link href={`/gardens/${garden.id}`} className="block">
+      <Card 
+        className="group hover:shadow-md transition-colors duration-150 border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 overflow-hidden relative cursor-pointer"
+      >
       <CardHeader className="pb-2 pt-3 px-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
@@ -562,12 +562,14 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
           variant="ghost"
           size="sm"
           className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+          onMouseDown={(e) => e.preventDefault()}
         >
           <Trash2 className="h-3 w-3 mr-1" />
           Verwijderen
         </Button>
       </div>
-    </Card>
+      </Card>
+    </Link>
   )
 }
 
