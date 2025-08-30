@@ -515,52 +515,52 @@ function LogbookPageContent() {
 
   return (
     <div className="container mx-auto px-4 py-8 safe-area-px">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-            <BookOpen className="h-8 w-8" />
-            {viewingUser ? `Logboek van ${viewingUser.full_name || viewingUser.email}` : 'Logboek'}
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            {viewingUser 
-              ? `Logboek entries van ${viewingUser.full_name || viewingUser.email}`
-              : 'Overzicht van alle logboek entries voor je tuinen'
-            }
-          </p>
-          {viewingUser && (
-            <div className="mt-2">
-              <Badge variant="outline" className="text-xs">
-                Bekijkt logboek van: {viewingUser.full_name || viewingUser.email}
-              </Badge>
+      {/* Minimalist Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+              <BookOpen className="w-5 h-5 text-green-700 dark:text-green-400" />
             </div>
+            <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
+              {viewingUser ? `Logboek ${viewingUser.full_name || viewingUser.email}` : 'Logboek'}
+            </h1>
+          </div>
+          
+          {viewingUser && (
+            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-800 border-blue-300">
+              Bekijkt: {viewingUser.full_name || viewingUser.email}
+            </Badge>
           )}
         </div>
-
-        {/* Tasks button for users */}
-        {!isAdmin() && (
-          <Button 
-            onClick={() => router.push('/')}
-            variant="outline"
-            className="flex items-center gap-2"
-          >
-            <ClipboardList className="w-4 h-4" />
-            Taken
-          </Button>
-        )}
         
-        <Button asChild>
-          <Link href="/logbook/new">
-            <Plus className="h-4 w-4 mr-2" />
-            Nieuwe entry
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Tasks button for users */}
+          {!isAdmin() && (
+            <Button 
+              onClick={() => router.push('/')}
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+            >
+              <ClipboardList className="w-4 h-4 mr-1" />
+              Taken
+            </Button>
+          )}
+          
+          <Button asChild size="sm" className="h-8 px-3">
+            <Link href="/logbook/new">
+              <Plus className="h-4 w-4 mr-1" />
+              Nieuwe entry
+            </Link>
+          </Button>
+        </div>
       </div>
 
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="flex flex-col lg:flex-row gap-4">
+      {/* Compact Filters */}
+      <Card className="mb-4 border-green-200 dark:border-green-800">
+        <CardContent className="pt-4">
+          <div className="flex flex-col lg:flex-row gap-3">
             {/* Search */}
             <div className="flex-1">
               <div className="relative">
