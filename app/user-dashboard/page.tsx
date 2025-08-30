@@ -351,7 +351,7 @@ function UserDashboardContent() {
               ) : (
                 <div className="space-y-4">
                   {pendingTasks.map((task) => (
-                    <div key={task.id} className="border rounded-lg p-4 hover:bg-gray-5 dark:hover:bg-gray-50 dark:bg-gray-900 transition-colors">
+                    <div key={task.id} className="border rounded-lg p-4 hover:bg-accent dark:hover:bg-accent transition-colors">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
