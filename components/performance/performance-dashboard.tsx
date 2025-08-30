@@ -86,7 +86,7 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
   const memoryUsage = getCurrentMemoryUsage()
 
   return (
-    <div className={{`space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className}`}>
       {/* Performance Overview Card */}
       <Card>
         <CardHeader className="pb-3">
@@ -251,7 +251,7 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div 
-                    className={{`h-2 rounded-full transition-all duration-300 ${
+                    className={`h-2 rounded-full transition-all duration-300 ${
                       memoryUsage.percentage > 80 ? 'bg-red-500 dark:bg-red-600' : 
                       memoryUsage.percentage > 60 ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-green-500 dark:bg-green-600'
                     }`}
@@ -364,7 +364,7 @@ export function PerformanceDashboardCompact({ className = '' }: { className?: st
   const { metrics } = performanceMonitor
 
   return (
-    <div className={{`flex items-center space-x-4 text-sm ${className}`}>
+    <div className={`flex items-center space-x-4 text-sm ${className}`}>
       <div className="flex items-center space-x-1">
         <Database className="h-4 w-4 text-blue-500 dark:text-blue-400" />
         <span className="text-muted-foreground">{metrics.databaseQueries}</span>

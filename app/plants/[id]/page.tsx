@@ -510,7 +510,7 @@ export default function PlantDetailPage() {
                               </Badge>
                               <Badge 
                                 variant="outline" 
-                                className={{`text-xs ${priorityConfig?.badge_color}`}
+                                className={`text-xs ${priorityConfig?.badge_color}`}
                               >
                                 {priorityConfig?.label}
                               </Badge>

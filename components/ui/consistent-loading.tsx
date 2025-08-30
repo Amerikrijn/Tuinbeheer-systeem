@@ -20,10 +20,10 @@ export function ConsistentLoading({ size = 'md', text, className = '' }: Consist
   }
 
   return (
-    <div className={{`flex flex-col items-center justify-center gap-2 ${className}`}>
-      <div className={{`${sizeClasses[size]} border-2 border-green-200 border-t-green-600 rounded-full animate-spin`} />
+    <div className={`flex flex-col items-center justify-center gap-2 ${className}`}>
+      <div className={`${sizeClasses[size]} border-2 border-green-200 border-t-green-600 rounded-full animate-spin`} />
       {text && (
-        <p className={{`${textSizes[size]} text-muted-foreground text-center`}>
+        <p className={`${textSizes[size]} text-muted-foreground text-center`}>
           {text}
         </p>
       )}
@@ -35,7 +35,7 @@ export function ConsistentLoading({ size = 'md', text, className = '' }: Consist
 export function ConsistentSkeleton({ className = '', ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div 
-      className={{`bg-green-100 dark:bg-green-900/30 rounded-md ${className}`}
+      className={`bg-green-100 dark:bg-green-900/30 rounded-md ${className}`}
       {...props}
     />
   )

@@ -1033,7 +1033,7 @@ export default function GardenDetailPage() {
               variant={isVisualView ? "default" : "outline"}
               size="sm"
               onClick={toggleView}
-              className={{`h-8 px-3 ${
+              className={`h-8 px-3 ${
                 isVisualView 
                   ? "bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black" 
                   : "border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
@@ -1346,7 +1346,7 @@ export default function GardenDetailPage() {
                     >
                       {/* Plantvak container */}
                       <div
-                        className={{`border-3 rounded-lg transition-all duration-200 group shadow-lg ${
+                        className={`border-3 rounded-lg transition-all duration-200 group shadow-lg ${
                           isDragging ? 'shadow-2xl scale-105 border-green-600 z-50 cursor-grabbing ring-4 ring-green-300' : 
                           isRotating ? 'shadow-2xl border-orange-600 z-50 ring-4 ring-orange-200' :
                           isSelected ? 'border-blue-600 shadow-xl ring-3 ring-blue-300 cursor-grab' :
@@ -1364,7 +1364,7 @@ export default function GardenDetailPage() {
                         onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                         onClick={(e) => handlePlantBedClick(e, bed.id)}
                       >
-                        <div className={{`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 dark:border-gray-600 ${
+                        <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 dark:border-gray-600 ${
                           isSelected ? 'bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700' : ''
                         }`}>
                           {/* Top corner elements */}
@@ -1378,7 +1378,7 @@ export default function GardenDetailPage() {
                               {selectedMonth && filterMode !== 'all' && (
                                 <Badge 
                                   variant={isHighlighted ? "default" : "outline"} 
-                                  className={{`text-xs ${isHighlighted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}
+                                  className={`text-xs ${isHighlighted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}
                                 >
                                   {filterMode === 'sowing' ? '🌱' : '🌸'}
                                   {!isHighlighted && ' -'}

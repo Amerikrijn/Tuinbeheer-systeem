@@ -360,7 +360,7 @@ export default function NewPlantBedPage() {
                         onChange={(e) =>
                           setNewPlantBed((p) => ({ ...p, size: e.target.value }))
                         }
-                        className={{`pl-10 ${errors.size ? "border-red-500" : ""}`}
+                        className={`pl-10 ${errors.size ? "border-red-500" : ""}`}
                       />
                     </div>
                     {errors.size && (
@@ -414,7 +414,7 @@ export default function NewPlantBedPage() {
                           <SelectItem key={option.value} value={option.value}>
                             <div className="flex items-center gap-2">
                               <Sun
-                                className={{`h-4 w-4 ${
+                                className={`h-4 w-4 ${
                                   option.value === "full-sun"
                                     ? "text-yellow-500"
                                     : option.value === "partial-sun"

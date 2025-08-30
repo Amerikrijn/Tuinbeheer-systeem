@@ -2113,7 +2113,7 @@ export default function PlantBedViewPage() {
                 return (
                   <div
                     key={flower.id}
-                    className={{`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'gezond')} ${
+                    className={`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'gezond')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105 cursor-grabbing" : 
                       isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab" :
                       isSelected && isResizeMode ? "ring-4 ring-blue-500 shadow-xl cursor-default" :
@@ -2431,7 +2431,7 @@ export default function PlantBedViewPage() {
                               )}
                             </div>
                           </div>
-                          <div className={{`w-3 h-3 rounded-full border-2 ${getStatusColor(flower.status || 'gezond')}`}></div>
+                          <div className={`w-3 h-3 rounded-full border-2 ${getStatusColor(flower.status || 'gezond')}`}></div>
                         </div>
                         
                         <div className="space-y-2 text-sm text-muted-foreground mb-4">
@@ -2581,7 +2581,7 @@ export default function PlantBedViewPage() {
                       const isToday = task.due_date === new Date().toISOString().split('T')[0]
                       
                       return (
-                        <Card key={task.id} className={{`transition-all duration-200 ${task.completed ? 'opacity-60' : ''} ${isOverdue ? 'border-red-200 bg-red-50 dark:bg-red-950/30' : isToday ? 'border-orange-200 bg-orange-50 dark:bg-orange-950/30' : ''}`}>
+                        <Card key={task.id} className={`transition-all duration-200 ${task.completed ? 'opacity-60' : ''} ${isOverdue ? 'border-red-200 bg-red-50 dark:bg-red-950/30' : isToday ? 'border-orange-200 bg-orange-50 dark:bg-orange-950/30' : ''}`}>
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               {/* Checkbox */}
@@ -2591,7 +2591,7 @@ export default function PlantBedViewPage() {
                                   checked={task.completed}
                                   onChange={(e) => handleTaskComplete(task.id, e.target.checked)}
                                   disabled={updatingTasks.has(task.id)}
-                                  className={{`w-4 h-4 text-blue-600 bg-muted border-border rounded focus:ring-blue-500 transition-opacity ${
+                                  className={`w-4 h-4 text-blue-600 bg-muted border-border rounded focus:ring-blue-500 transition-opacity ${
                                     updatingTasks.has(task.id) ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
                                   }`}
                                 />
@@ -2609,10 +2609,10 @@ export default function PlantBedViewPage() {
                                       {/* Header: Plantvak → Bloem • Taak (one row) */}
                                       <div className="flex items-center gap-2 mb-1 text-base text-foreground leading-snug">
                                         <span className="text-gray-300 dark:text-gray-600" aria-hidden>•</span>
-                                        <span className={{`font-semibold truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</span>
+                                        <span className={`font-semibold truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</span>
                                       </div>
                                       {task.description && (
-                                        <p className={{`text-sm mt-1 ${task.completed ? 'text-muted-foreground' : 'text-foreground'}`}>
+                                        <p className={`text-sm mt-1 ${task.completed ? 'text-muted-foreground' : 'text-foreground'}`}>
                                             {task.description}
                                           </p>
                                       )}
@@ -2651,7 +2651,7 @@ export default function PlantBedViewPage() {
                                   
                                   {/* Priority Badge */}
                                   {priorityConfig && (
-                                    <Badge className={{`ml-2 ${priorityConfig.badge_color} text-xs py-0.5 px-1.5`}>
+                                    <Badge className={`ml-2 ${priorityConfig.badge_color} text-xs py-0.5 px-1.5`}>
                                       {priorityConfig.label}
                                     </Badge>
                                   )}

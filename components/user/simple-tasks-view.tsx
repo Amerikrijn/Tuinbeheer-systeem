@@ -364,12 +364,12 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
                   const taskTitle = task.description || `${task.task_type} taak` || 'Taak'
                   
                   return (
-                    <div key={task.id} className={{`p-4 border rounded-lg ${styles.container}`}>
+                    <div key={task.id} className={`p-4 border rounded-lg ${styles.container}`}>
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className={{`font-medium ${styles.title}`}>
+                        <h4 className={`font-medium ${styles.title}`}>
                           {taskTitle}
                         </h4>
-                        <Badge className={{`text-xs ${styles.badge}`}>
+                        <Badge className={`text-xs ${styles.badge}`}>
                           {styles.badgeText}
                         </Badge>
                       </div>

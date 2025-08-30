@@ -388,7 +388,7 @@ function AcceptInvitationContent() {
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
                       <span>Wachtwoord sterkte:</span>
-                      <span className={{`font-medium ${
+                      <span className={`font-medium ${
                         getPasswordStrengthText(formData.password) === 'Sterk' ? 'text-green-600 dark:text-green-400' :
                         getPasswordStrengthText(formData.password) === 'Goed' ? 'text-blue-600 dark:text-blue-400' :
                         getPasswordStrengthText(formData.password) === 'Matig' ? 'text-yellow-600 dark:text-yellow-400' :
@@ -399,7 +399,7 @@ function AcceptInvitationContent() {
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
-                        className={{`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(formData.password)}`}
+                        className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(formData.password)}`}
                         style={{ 
                           width: `${Math.max(20, 100 - (validatePassword(formData.password).length * 20))}%` 
                         }}
@@ -454,23 +454,23 @@ function AcceptInvitationContent() {
                 <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Wachtwoord vereisten:</p>
                 <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
                   <li className="flex items-center space-x-2">
-                    <div className={{`w-2 h-2 rounded-full ${formData.password.length >= 8 ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                    <div className={`w-2 h-2 rounded-full ${formData.password.length >= 8 ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <span>Minimaal 8 karakters</span>
                   </li>
                   <li className="flex items-center space-x-2">
-                    <div className={{`w-2 h-2 rounded-full ${/[A-Z]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                    <div className={`w-2 h-2 rounded-full ${/[A-Z]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <span>Minimaal 1 hoofdletter</span>
                   </li>
                   <li className="flex items-center space-x-2">
-                    <div className={{`w-2 h-2 rounded-full ${/[a-z]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                    <div className={`w-2 h-2 rounded-full ${/[a-z]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <span>Minimaal 1 kleine letter</span>
                   </li>
                   <li className="flex items-center space-x-2">
-                    <div className={{`w-2 h-2 rounded-full ${/[0-9]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                    <div className={`w-2 h-2 rounded-full ${/[0-9]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <span>Minimaal 1 cijfer</span>
                   </li>
                   <li className="flex items-center space-x-2">
-                    <div className={{`w-2 h-2 rounded-full ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\?]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                    <div className={`w-2 h-2 rounded-full ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\?]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <span>Minimaal 1 speciaal teken</span>
                   </li>
                 </ul>

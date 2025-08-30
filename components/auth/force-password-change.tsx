@@ -169,16 +169,16 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
               {validation && newPassword.length > 0 && (
                 <div className="mt-2">
                   <div className="flex items-center gap-2 text-xs">
-                    <div className={{`h-2 w-full rounded-full ${
+                    <div className={`h-2 w-full rounded-full ${
                       validation.strength === 'strong' ? 'bg-green-200' :
                       validation.strength === 'medium' ? 'bg-yellow-200' : 'bg-red-200'
                     }`}>
-                      <div className={{`h-full rounded-full transition-all duration-300 ${
+                      <div className={`h-full rounded-full transition-all duration-300 ${
                         validation.strength === 'strong' ? 'bg-green-600 dark:bg-green-700 w-full' :
                         validation.strength === 'medium' ? 'bg-yellow-600 w-2/3' : 'bg-red-600 dark:bg-red-700 w-1/3'
                       }`} />
                     </div>
-                    <span className={{`font-medium ${
+                    <span className={`font-medium ${
                       validation.strength === 'strong' ? 'text-green-600' :
                       validation.strength === 'medium' ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
                     }`}>

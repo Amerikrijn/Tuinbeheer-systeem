@@ -66,7 +66,7 @@ export function BankingNavigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={{`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 flex items-center gap-2 ${
+                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 flex items-center gap-2 ${
                     isActive
                       ? "bg-green-600 dark:bg-green-700 text-white dark:text-black shadow-lg shadow-green-600/25"
                       : "text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
@@ -121,7 +121,7 @@ export function BankingNavigation() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={{`block px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex items-center gap-2 ${
+                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex items-center gap-2 ${
                       isActive
                         ? "bg-green-600 dark:bg-green-700 text-white dark:text-black shadow-lg shadow-green-600/25"
                         : "text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"

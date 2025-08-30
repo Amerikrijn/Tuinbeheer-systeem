@@ -225,7 +225,7 @@ export function PlantsList() {
                   
                   <div className="flex items-center text-sm">
                     <span className="mr-2">Gezondheid:</span>
-                    <span className={{`font-medium ${getHealthColor(plant.health)}`}>
+                    <span className={`font-medium ${getHealthColor(plant.health)}`}>
                       {getHealthLabel(plant.health)}
                     </span>
                   </div>

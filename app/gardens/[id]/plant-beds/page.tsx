@@ -216,7 +216,7 @@ export default function PlantBedsPage() {
           : "space-y-4"
         }>
           {filteredPlantBeds.map((bed) => (
-            <Card key={bed.id} className={{`hover:shadow-md transition-shadow ${
+            <Card key={bed.id} className={`hover:shadow-md transition-shadow ${
               !isVisualView ? 'mb-2' : ''
             }`}>
               <CardContent className={isVisualView ? "p-4" : "p-3"}>
@@ -238,7 +238,7 @@ export default function PlantBedsPage() {
                           )}
                         </div>
                       </div>
-                      <div className={{`w-3 h-3 rounded-full border-2 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 dark:border-gray-400 shadow-gray-200'}`}></div>
+                      <div className={`w-3 h-3 rounded-full border-2 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 dark:border-gray-400 shadow-gray-200'}`}></div>
                     </div>
                     
                     <div className="space-y-2 text-sm text-muted-foreground mb-4">
@@ -319,7 +319,7 @@ export default function PlantBedsPage() {
                         )}
                       </div>
                     </div>
-                    <div className={{`w-3 h-3 rounded-full border-2 ml-3 flex-shrink-0 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 dark:border-gray-400 shadow-gray-200'}`}></div>
+                    <div className={`w-3 h-3 rounded-full border-2 ml-3 flex-shrink-0 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 dark:border-gray-400 shadow-gray-200'}`}></div>
                   </div>
                 )}
 

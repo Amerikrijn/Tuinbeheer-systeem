@@ -157,7 +157,7 @@ function LoginContent() {
                     placeholder="je@email.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={{`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                    className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -180,7 +180,7 @@ function LoginContent() {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className={{`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                    className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                   />
                   <button

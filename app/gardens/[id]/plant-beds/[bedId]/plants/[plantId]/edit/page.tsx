@@ -367,7 +367,7 @@ export default function EditPlantPage() {
                 <div className="space-y-2">
                   {tasks.slice(0, 3).map((task) => (
                     <div key={task.id} className="flex items-center gap-2 text-sm">
-                      <div className={{`w-2 h-2 rounded-full ${
+                      <div className={`w-2 h-2 rounded-full ${
                         task.completed ? 'bg-green-500 dark:bg-green-600' : 
                         task.priority === 'high' ? 'bg-red-500 dark:bg-red-600' : 
                         task.priority === 'medium' ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-gray-500 dark:bg-gray-400 dark:bg-gray-300'

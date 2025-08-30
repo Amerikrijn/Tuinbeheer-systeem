@@ -287,7 +287,7 @@ function ResetPasswordContent() {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={(e) => handleInputChange('password', e.target.value)}
-                    className={{`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                    className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                     required
                   />
@@ -322,7 +322,7 @@ function ResetPasswordContent() {
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className={{`pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                    className={`pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                     required
                   />
@@ -355,7 +355,7 @@ function ResetPasswordContent() {
                       { test: /[0-9]/.test(formData.password), label: 'Cijfer' }
                     ].map((requirement, index) => (
                       <div key={index} className="flex items-center space-x-2 text-xs">
-                        <div className={{`w-2 h-2 rounded-full ${requirement.test ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                        <div className={`w-2 h-2 rounded-full ${requirement.test ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                         <span className={requirement.test ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
                           {requirement.label}
                         </span>

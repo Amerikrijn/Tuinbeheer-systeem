@@ -89,7 +89,7 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
                 placeholder="je@email.com"
                 value={formData.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
-                className={{`pl-10 ${errors.email ? 'border-red-500' : ''}`}
+                className={`pl-10 ${errors.email ? 'border-red-500' : ''}`}
                 disabled={isFormDisabled}
                 data-testid="email-input"
               />
@@ -113,7 +113,7 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
                 placeholder="••••••••"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
-                className={{`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                className={`pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
                 disabled={isFormDisabled}
                 data-testid="password-input"
               />

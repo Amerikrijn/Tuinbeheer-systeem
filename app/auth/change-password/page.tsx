@@ -187,7 +187,7 @@ export default function ChangePasswordPage() {
                     placeholder="••••••••"
                     value={formData.newPassword}
                     onChange={(e) => handleInputChange('newPassword', e.target.value)}
-                    className={{`pl-10 pr-10 ${errors.newPassword ? 'border-red-500' : ''}`}
+                    className={`pl-10 pr-10 ${errors.newPassword ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                   />
                   <button
@@ -221,7 +221,7 @@ export default function ChangePasswordPage() {
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                    className={{`pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                    className={`pl-10 pr-10 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                     disabled={isSubmitting}
                   />
                   <button

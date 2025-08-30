@@ -96,7 +96,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
 
   if (loading) {
     return (
-      <Card className={{`${className} border-2 border-green-200 bg-green-50 dark:bg-green-950/30`}>
+      <Card className={`${className} border-2 border-green-200 bg-green-50 dark:bg-green-950/30`}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-800">
             <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -116,7 +116,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
 
   if (error) {
     return (
-      <Card className={{`${className} border-2 border-green-200 bg-green-50 dark:bg-green-950/30`}>
+      <Card className={`${className} border-2 border-green-200 bg-green-50 dark:bg-green-950/30`}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-800">
             <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -142,7 +142,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
 
   if (!photoData || photoData.photos.length === 0) {
     return (
-      <Card className={{`${className} border-2 border-green-200 bg-green-50 dark:bg-green-950/30`}>
+      <Card className={`${className} border-2 border-green-200 bg-green-50 dark:bg-green-950/30`}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-green-800">
             <Camera className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -170,7 +170,7 @@ export function PlantPhotoGallery({ plantId, plantName, className }: PlantPhotoG
 
   return (
     <>
-      <Card className={{`${className} border-2 border-green-200 bg-green-50 dark:bg-green-950/30`}>
+      <Card className={`${className} border-2 border-green-200 bg-green-50 dark:bg-green-950/30`}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-green-800">

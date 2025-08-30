@@ -152,7 +152,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     
     return (
       <Card 
-        className={{`mb-3 transition-all duration-200 cursor-pointer hover:shadow-md ${task.completed ? 'opacity-70 bg-muted border-muted-foreground' : 'bg-card border-border'} ${compact ? 'p-2' : ''}`}
+        className={`mb-3 transition-all duration-200 cursor-pointer hover:shadow-md ${task.completed ? 'opacity-70 bg-muted border-muted-foreground' : 'bg-card border-border'} ${compact ? 'p-2' : ''}`}
         onClick={() => onTaskEdit?.(task)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
@@ -164,14 +164,14 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
         role="button"
         aria-label={`Taak: ${task.title}. ${task.completed ? 'Voltooid' : 'Niet voltooid'}. Klik om details te bekijken.`}
       >
-        <div className={{`${compact ? 'p-2' : 'p-4'} flex items-start gap-3`}>
+        <div className={`${compact ? 'p-2' : 'p-4'} flex items-start gap-3`}>
           <div className="flex-shrink-0 mt-1">
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 handleTaskComplete(task.id, !task.completed)
               }}
-              className={{`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
+              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 ${
                 task.completed 
                   ? 'bg-primary border-primary' 
                   : 'border-muted-foreground hover:border-primary hover:bg-primary/10'
@@ -180,7 +180,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             >
               {task.completed && (
                 <CheckCircle2 
-                  className={{`w-3 h-3 ${
+                  className={`w-3 h-3 ${
                     task.completed 
                       ? 'text-primary-foreground' 
                       : 'text-muted-foreground hover:text-primary'
@@ -200,12 +200,12 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               <span className="text-muted-foreground" aria-hidden>•</span>
               <div className="flex items-center gap-1">
                 <Leaf className="h-3 w-3 text-primary" />
-                <span className={{`font-semibold truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</span>
+                <span className={`font-semibold truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</span>
               </div>
             </div>
             
             {task.description && (
-              <p className={{`text-sm mb-2 line-clamp-2 ${
+              <p className={`text-sm mb-2 line-clamp-2 ${
                 task.completed ? 'text-muted-foreground' : 'text-muted-foreground'
               }`}>
                 {task.description}
@@ -216,7 +216,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               {task.priority && (
                 <Badge 
                   variant="outline" 
-                  className={{`text-xs px-2 py-0.5 ${
+                  className={`text-xs px-2 py-0.5 ${
                     task.completed 
                       ? 'opacity-60 bg-muted text-muted-foreground' 
                       : priorityConfig?.badge_color || 'bg-muted text-muted-foreground'
@@ -227,7 +227,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               )}
               
               {task.due_date && (
-                <span className={{`flex items-center gap-1 ${
+                <span className={`flex items-center gap-1 ${
                   task.completed ? 'opacity-60 border-muted text-muted-foreground' : 'text-muted-foreground'
                 }`}>
                   <Calendar className="h-3 w-3" />
@@ -235,7 +235,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 </span>
               )}
               
-              <span className={{`${
+              <span className={`${
                 task.completed ? 'text-muted-foreground' : 'text-muted-foreground'
               }`}>
                 {task.plant_name}
@@ -270,7 +270,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     if (day.tasks.length === 0) return null
 
     return (
-      <Card className={{`mb-3 border-green-200 dark:border-green-800 hover:border-green-300 dark:border-green-700 dark:hover:border-green-700 ${day.is_today ? 'ring-2 ring-green-500' : ''}`}>
+      <Card className={`mb-3 border-green-200 dark:border-green-800 hover:border-green-300 dark:border-green-700 dark:hover:border-green-700 ${day.is_today ? 'ring-2 ring-green-500' : ''}`}>
         <CardHeader className="pb-2 pt-3 px-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2 text-green-800 dark:text-green-200">
@@ -413,7 +413,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 className="transition-colors"
               >
                 <CheckCircle
-                  className={{`h-4 w-4 ${
+                  className={`h-4 w-4 ${
                     config.show_completed 
                       ? 'text-green-600 fill-green-100' 
                       : 'text-muted-foreground'

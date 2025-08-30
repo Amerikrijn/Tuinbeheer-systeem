@@ -238,7 +238,7 @@ export function PlantBedSummary({
   
   return (
     <TooltipProvider>
-      <div className={{`space-y-2 ${isHighlighted ? 'ring-2 ring-green-400 rounded-lg p-2' : ''}`}>
+      <div className={`space-y-2 ${isHighlighted ? 'ring-2 ring-green-400 rounded-lg p-2' : ''}`}>
         {/* Header with basic info */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">

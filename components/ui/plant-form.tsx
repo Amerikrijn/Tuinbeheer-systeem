@@ -166,7 +166,7 @@ export function PlantForm({
                 onChange={(e) => handleNameChange(e.target.value)}
                 onFocus={handleNameFocus}
                 onBlur={handleNameBlur}
-                className={{`${errors.name ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-500 focus:border-green-500"} text-base`}
+                className={`${errors.name ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-500 focus:border-green-500"} text-base`}
                 required
                 autoComplete="off"
               />
@@ -225,7 +225,7 @@ export function PlantForm({
               placeholder="Bijv. Rood, Geel, Wit, Roze"
               value={data.color}
               onChange={(e) => handleFieldChange('color', e.target.value)}
-              className={{`${errors.color ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-500 focus:border-green-500"} text-base`}
+              className={`${errors.color ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-500 focus:border-green-500"} text-base`}
               required
               autoComplete="off"
             />
@@ -249,7 +249,7 @@ export function PlantForm({
               placeholder="Bijv. 30, 60, 150"
               value={data.height}
               onChange={(e) => handleFieldChange('height', e.target.value)}
-              className={{`${errors.height ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-500 focus:border-green-500"} text-base`}
+              className={`${errors.height ? "border-red-500 focus:border-red-500" : "border-gray-300 dark:border-gray-500 focus:border-green-500"} text-base`}
               required
               min="1"
               max="500"

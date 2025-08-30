@@ -54,7 +54,7 @@ export function SupabaseStatus() {
       <h3 className="font-semibold text-sm mb-2">🔧 Supabase Status</h3>
       <div className="text-xs space-y-1">
         <div className="flex items-center gap-2">
-          <span className={{`w-2 h-2 rounded-full ${status.connected ? 'bg-green-500 dark:bg-green-600' : 'bg-red-500 dark:bg-red-600'}`} />
+          <span className={`w-2 h-2 rounded-full ${status.connected ? 'bg-green-500 dark:bg-green-600' : 'bg-red-500 dark:bg-red-600'}`} />
           <span>Connection: {status.connected ? 'Connected' : 'Failed'}</span>
         </div>
         <div>URL: {status.url}</div>

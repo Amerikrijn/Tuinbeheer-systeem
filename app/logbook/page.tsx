@@ -678,7 +678,7 @@ function LogbookPageContent() {
             {state.entries.map((entry) => (
               <Card 
                 key={entry.id} 
-                className={{`cursor-pointer hover:shadow-md transition-shadow ${
+                className={`cursor-pointer hover:shadow-md transition-shadow ${
                   entry.is_completed_task ? 'bg-green-50 dark:bg-green-950/20 border-l-4 border-l-green-500' : 'hover:bg-muted/50'
                 }`}
                 onClick={() => {
