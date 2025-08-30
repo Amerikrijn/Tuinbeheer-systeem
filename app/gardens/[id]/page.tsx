@@ -449,12 +449,12 @@ export default function GardenDetailPage() {
   const getPlantBedColor = (bedId: string) => {
     const index = plantBeds.findIndex(bed => bed.id === bedId)
     const colors = [
-      'bg-green-50 dark:bg-green-950/20 border-green-400 shadow-green-100',
-      'bg-blue-50 dark:bg-blue-950/20 border-blue-400 shadow-blue-100',
-      'bg-purple-50 dark:bg-purple-950/20 border-purple-400 shadow-purple-100',
-      'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-400 shadow-yellow-100',
-      'bg-pink-50 border-pink-400 shadow-pink-100',
-      'bg-indigo-50 border-indigo-400 shadow-indigo-100',
+      'bg-green-50 dark:bg-green-950/20',
+      'bg-blue-50 dark:bg-blue-950/20',
+      'bg-purple-50 dark:bg-purple-950/20',
+      'bg-yellow-50 dark:bg-yellow-950/20',
+      'bg-pink-50 dark:bg-pink-950/20',
+      'bg-indigo-50 dark:bg-indigo-950/20',
     ]
     return colors[index % colors.length]
   }
@@ -1324,16 +1324,29 @@ export default function GardenDetailPage() {
                 onTouchMove={handleTouchMove}
               >
                 {/* Grid - 1m = 80px */}
-                <div
-                  className="absolute inset-0 pointer-events-none opacity-20"
-                  style={{
-                    backgroundImage: `
-                      linear-gradient(to right, #10b98120 1px, transparent 1px),
-                      linear-gradient(to bottom, #10b98120 1px, transparent 1px)
-                    `,
-                    backgroundSize: `${METERS_TO_PIXELS}px ${METERS_TO_PIXELS}px`,
-                  }}
-                />
+                <svg 
+                  className="absolute inset-0 pointer-events-none opacity-10"
+                  width="100%"
+                  height="100%"
+                >
+                  <defs>
+                    <pattern 
+                      id="grid" 
+                      width={METERS_TO_PIXELS} 
+                      height={METERS_TO_PIXELS} 
+                      patternUnits="userSpaceOnUse"
+                    >
+                      <path 
+                        d={`M ${METERS_TO_PIXELS} 0 L 0 0 0 ${METERS_TO_PIXELS}`} 
+                        fill="none" 
+                        stroke="rgb(34, 197, 94)" 
+                        strokeWidth="1"
+                        strokeOpacity="0.3"
+                      />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#grid)" />
+                </svg>
 
                 {/* Plant Beds */}
                 {plantBeds.map((bed) => {
@@ -1364,12 +1377,12 @@ export default function GardenDetailPage() {
                     >
                       {/* Plantvak container */}
                       <div
-                        className={`border-3 rounded-lg transition-all duration-200 group shadow-lg ${
+                        className={`border-2 rounded-lg transition-all duration-200 group shadow-lg ${
                           isDragging ? 'shadow-2xl scale-105 border-green-600 z-50 cursor-grabbing ring-4 ring-green-300' : 
                           isRotating ? 'shadow-2xl border-orange-600 z-50 ring-4 ring-orange-200' :
-                          isSelected ? 'border-blue-600 shadow-xl ring-3 ring-blue-300 cursor-grab' :
-                          'cursor-grab hover:shadow-xl hover:scale-102 hover:border-green-500 hover:ring-2 hover:ring-green-300'
-                        }`}
+                          isSelected ? 'border-blue-600 shadow-xl ring-2 ring-blue-300 cursor-grab' :
+                          'border-green-400 cursor-grab hover:shadow-xl hover:scale-[1.02] hover:border-green-500 hover:ring-2 hover:ring-green-300'
+                        } ${getPlantBedColor(bed.id)}`}
                         style={{
                           width: bedWidth,
                           height: bedHeight,
@@ -1382,11 +1395,11 @@ export default function GardenDetailPage() {
                         onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                         onClick={(e) => handlePlantBedClick(e, bed.id)}
                       >
-                        <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-accent transition-colors relative border border-border ${
-                          isSelected ? 'bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700' : ''
+                        <div className={`w-full h-full rounded-lg transition-colors relative flex flex-col ${
+                          isSelected ? 'bg-blue-100/50 dark:bg-blue-900/50' : ''
                         }`}>
                           {/* Top corner elements */}
-                          <div className="flex items-start justify-between">
+                          <div className="flex items-start justify-between p-1 flex-shrink-0">
                             <div className="flex items-center gap-1">
                               {bed.sun_exposure && (
                                 <div className="bg-background/90 p-1 rounded shadow-sm">
@@ -1416,7 +1429,7 @@ export default function GardenDetailPage() {
                           </div>
 
                           {/* Main area - adaptive content based on size */}
-                          <div className="w-full h-full p-2 overflow-y-auto relative">
+                          <div className="flex-1 p-2 overflow-hidden relative">
                             {(() => {
                               // Get filtered plants based on month filter
                               const filteredPlants = getFilteredPlants(bed)
@@ -1524,26 +1537,26 @@ export default function GardenDetailPage() {
                                   
                                   // For larger plantvakken, show detailed view with HIGH CONTRAST text
                                   return (
-                                    <div className="space-y-1">
+                                    <div className="space-y-1 max-h-full overflow-y-auto">
                                       {groups.map((group, idx) => (
-                                        <div key={idx} className="bg-white dark:bg-gray-900 rounded p-1.5 border border-gray-400 dark:border-gray-400 shadow-sm">
+                                        <div key={idx} className="bg-white/90 dark:bg-gray-900/90 rounded p-1.5 border border-gray-300 dark:border-gray-600 shadow-sm">
                                           <div className="flex items-start gap-1">
-                                            <span className="text-lg">{group.emoji || '🌸'}</span>
-                                            <div className="flex-1">
+                                            <span className="text-base flex-shrink-0">{group.emoji || '🌸'}</span>
+                                            <div className="flex-1 min-w-0">
                                               <div className="flex items-center gap-1 flex-wrap">
-                                                <span className="font-bold text-xs text-black dark:text-white dark:text-black">
+                                                <span className="font-semibold text-xs text-gray-900 dark:text-gray-100 truncate">
                                                   {group.count > 1 && `${group.count}x `}{group.name}
                                                 </span>
                                                 {group.color && (
                                                   <div 
-                                                    className="w-3 h-3 rounded-full border border-black dark:border-white"
+                                                    className="w-3 h-3 rounded-full border border-gray-600 dark:border-gray-400 flex-shrink-0"
                                                     style={{ backgroundColor: group.color }}
                                                     title={`Kleur: ${group.color}`}
                                                   />
                                                 )}
                                               </div>
                                               {/* Show details with bloom data */}
-                                              <div className="text-[10px] text-black dark:text-white dark:text-black font-medium space-y-0">
+                                              <div className="text-[10px] text-gray-700 dark:text-gray-300 space-y-0 mt-0.5">
                                                 {group.planting_date && (
                                                   <div>🌱 Zaai: {group.planting_date}</div>
                                                 )}
@@ -1551,7 +1564,7 @@ export default function GardenDetailPage() {
                                                   <div>🌸 Bloei: {group.bloom_period}</div>
                                                 )}
                                                 {!group.planting_date && !group.bloom_period && (
-                                                  <div className="text-gray-500 dark:text-gray-400 italic">Geen seizoensdata beschikbaar</div>
+                                                  <div className="text-gray-500 dark:text-gray-500 italic">Geen seizoensdata</div>
                                                 )}
                                               </div>
                                             </div>
@@ -1564,12 +1577,6 @@ export default function GardenDetailPage() {
                                 </div>
                               )
                             })()}
-                            
-                            {/* Corner decorations */}
-                            <div className="absolute top-1 left-1 w-3 h-3 border-l-2 border-t-2 border-green-400 rounded-tl-lg pointer-events-none opacity-50"></div>
-                            <div className="absolute top-1 right-1 w-3 h-3 border-r-2 border-t-2 border-green-400 rounded-tr-lg pointer-events-none opacity-50"></div>
-                            <div className="absolute bottom-1 left-1 w-3 h-3 border-l-2 border-b-2 border-green-400 rounded-bl-lg pointer-events-none opacity-50"></div>
-                            <div className="absolute bottom-1 right-1 w-3 h-3 border-r-2 border-b-2 border-green-400 rounded-br-lg pointer-events-none opacity-50"></div>
                           </div>
 
                           {isSelected && (
@@ -1634,7 +1641,6 @@ export default function GardenDetailPage() {
                               </div>
                             </>
                           )}
-                          <div className="absolute inset-0 bg-green-500/10 dark:bg-green-400/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg pointer-events-none" />
                         </div>
                         
                         {/* Plantvak info onder het vak */}
