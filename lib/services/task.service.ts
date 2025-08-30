@@ -271,7 +271,7 @@ export class TaskService {
   // Apply garden access filtering to tasks
   private static async applyGardenAccessFilter(tasks: any[], user: User | null, gardenFilter?: string[]): Promise<any[]> {
     if (!user) {
-
+      console.log('No user provided for garden access filter')
       return []
     }
 
@@ -280,7 +280,6 @@ export class TaskService {
     // If specific garden filter is provided (e.g., from tuin page), use that for both admin and users
     if (gardenFilter && gardenFilter.length > 0) {
       accessibleGardens = gardenFilter
-
     } else if (user.role === 'admin') {
       // Admin has access to all tasks ONLY when no specific garden filter is applied
       return tasks
@@ -293,20 +292,20 @@ export class TaskService {
           .eq('user_id', user.id)
         
         if (error) {
-
+          console.error('Error fetching garden access:', error)
           return []
         }
         
         accessibleGardens = gardenAccess?.map(access => access.garden_id) || []
-
+        console.log('User garden access:', accessibleGardens)
       } catch (error) {
-
+        console.error('Exception fetching garden access:', error)
         return []
       }
     }
 
     if (accessibleGardens.length === 0) {
-
+      console.log('User has no accessible gardens')
       return []
     }
 
@@ -315,7 +314,6 @@ export class TaskService {
       if (task.plants?.plant_beds?.gardens?.id) {
         const gardenId = task.plants.plant_beds.gardens.id
         const hasAccess = accessibleGardens.includes(gardenId)
-
         return hasAccess
       }
 
@@ -323,15 +321,14 @@ export class TaskService {
       if (task.plant_beds?.gardens?.id) {
         const gardenId = task.plant_beds.gardens.id
         const hasAccess = accessibleGardens.includes(gardenId)
-
         return hasAccess
       }
 
       // If no garden relationship found, exclude for security
-
       return false
     })
 
+    console.log(`Filtered ${tasks.length} tasks to ${filteredTasks.length} accessible tasks`)
     return filteredTasks
   }
 

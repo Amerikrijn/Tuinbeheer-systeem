@@ -114,16 +114,22 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
           user_id: user.id,
           garden_id: gardenId,
           granted_by: null, // In real implementation, this would be current admin user ID
-          granted_at: new Date().toISOString()
+          granted_at: new Date().toISOString(),
+          access_level: 'admin', // Add required field
+          is_active: true, // Add required field
+          created_at: new Date().toISOString()
         }))
 
+        console.log('Inserting garden access entries:', accessEntries)
         const { error: insertError } = await supabase
           .from('user_garden_access')
           .insert(accessEntries)
 
         if (insertError) {
+          console.error('Error inserting garden access:', insertError)
           throw insertError
         }
+        console.log('Garden access saved successfully')
       }
 
       toast({

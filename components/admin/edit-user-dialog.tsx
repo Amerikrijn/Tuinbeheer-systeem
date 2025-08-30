@@ -138,9 +138,11 @@ export function EditUserDialog({
 
       toast({
         title: "Gebruiker bijgewerkt",
-        description: `${editForm.fullName} is succesvol bijgewerkt`,
+        description: `${editForm.fullName} is succesvol bijgewerkt met ${editForm.gardenAccess.length} tuin(en) toegang`,
       })
 
+      // If the updated user is currently logged in, they should refresh their session
+      // This is handled by the parent component through onUserUpdated
       onUserUpdated()
       onClose()
       
