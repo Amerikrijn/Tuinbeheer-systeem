@@ -12,7 +12,7 @@ permissions:
   pull-requests: write
 
 env:
-  NODE_VERSION: '18'  # Fix: Gebruik Node.js 18.x voor compatibiliteit
+  NODE_VERSION: '18'
   CI: true
 
 concurrency:
@@ -48,7 +48,6 @@ jobs:
           echo "Collecting real test data for detailed analysis..."
           
           # Run tests with Jest for comprehensive data collection
-          # Custom processor will handle results output
           npm run test:ci || {
             echo "⚠️ Tests completed with some failures - collecting failure data..."
             echo "exit_code=$?" >> $GITHUB_OUTPUT
@@ -99,251 +98,107 @@ jobs:
                 totalPassed: testResults.numPassedTests || 0,
                 totalFailed: testResults.numFailedTests || 0,
                 totalPending: testResults.numPendingTests || 0,
-                totalSuites: testResults.numTotalTestSuites || 0,
-                totalPassedSuites: testResults.numPassedTestSuites || 0,
-                totalFailedSuites: testResults.numFailedTestSuites || 0,
-                testResults: testResults
+                successRate: testResults.numTotalTests > 0 ? 
+                  Math.round((testResults.numPassedTests / testResults.numTotalTests) * 100) : 0,
+                testDuration: testResults.testResults ? 
+                  testResults.testResults.reduce((total, result) => total + (result.duration || 0), 0) : 0
               };
-            } else {
-              console.log('⚠️ Jest results file not found, checking for coverage data...');
             }
             
-            // Parse coverage data - check both possible locations
+            // Parse coverage data
             let coverageData = {};
-            let coveragePath = '';
-            
             if (fs.existsSync('coverage/coverage-summary.json')) {
-              coveragePath = 'coverage/coverage-summary.json';
-            } else if (fs.existsSync('test-results/coverage/coverage-summary.json')) {
-              coveragePath = 'test-results/coverage/coverage-summary.json';
-            }
-            
-            if (coveragePath) {
-              const coverage = JSON.parse(fs.readFileSync(coveragePath, 'utf8'));
+              const coverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
               coverageData = {
-                total: coverage.total || {},
-                files: Object.keys(coverage).filter(key => key !== 'total')
+                lines: coverage.total.lines.pct || 0,
+                branches: coverage.total.branches.pct || 0,
+                functions: coverage.total.functions.pct || 0,
+                statements: coverage.total.statements.pct || 0
               };
-              console.log('✅ Coverage data found and parsed');
-              console.log(`📈 Line coverage: ${coverage.total?.lines?.pct || 'N/A'}%`);
-              console.log(`📈 Branch coverage: ${coverage.total?.branches?.pct || 'N/A'}%`);
-              console.log(`📈 Function coverage: ${coverage.total?.functions?.pct || 'N/A'}%`);
-            } else {
-              console.log('⚠️ Coverage data not found');
             }
-            
-            // If no test data, try to get basic info from Jest output
-            if (testData.totalTests === 0) {
-              console.log('🔍 Attempting to extract test info from Jest output...');
-              
-              // Check if there are any test files
-              const testDirs = ['__tests__', 'src', 'app', 'components', 'lib'];
-              let testFileCount = 0;
-              
-              testDirs.forEach(dir => {
-                if (fs.existsSync(dir)) {
-                  const countFiles = (dirPath) => {
-                    try {
-                      const items = fs.readdirSync(dirPath, { withFileTypes: true });
-                      items.forEach(item => {
-                        if (item.isDirectory()) {
-                          countFiles(path.join(dirPath, item.name));
-                        } else if (item.name.includes('.test.') || item.name.includes('.spec.')) {
-                          testFileCount++;
-                        }
-                      });
-                    } catch (err) {
-                      // Ignore permission errors
-                    }
-                  };
-                  countFiles(dir);
-                }
-              });
-              
-              if (testFileCount > 0) {
-                testData = {
-                  totalTests: testFileCount,
-                  totalPassed: testFileCount,
-                  totalFailed: 0,
-                  totalPending: 0,
-                  totalSuites: testFileCount,
-                  totalPassedSuites: testFileCount,
-                  totalFailedSuites: 0,
-                  note: 'Test count estimated from test files found'
-                };
-                console.log(`📁 Found ${testFileCount} test files`);
-              }
-            }
-            
-            // Calculate success rate
-            const successRate = testData.totalTests > 0 ? 
-              Math.round((testData.totalPassed / testData.totalTests) * 100) : 0;
-            
-            // Generate analysis
-            const analysis = {
-              timestamp: new Date().toISOString(),
-              commit: process.env.GITHUB_SHA || 'unknown',
-              branch: process.env.GITHUB_REF_NAME || 'unknown',
-              summary: {
-                totalTests: testData.totalTests,
-                passedTests: testData.totalPassed,
-                failedTests: testData.totalFailed,
-                pendingTests: testData.totalPending,
-                totalSuites: testData.totalSuites,
-                passedSuites: testData.totalPassedSuites,
-                failedSuites: testData.totalFailedSuites,
-                successRate: successRate
-              },
-              coverage: coverageData,
-              testResults: testData,
-              note: testData.note || null
-            };
-            
-            // Write analysis to file
-            fs.writeFileSync('test-results/analysis.json', JSON.stringify(analysis, null, 2));
             
             // Generate detailed markdown report
-            const report = generateDetailedReport(analysis);
+            const report = `# 🧪 PROFESSIONAL TEST REPORT
+
+## 📊 EXECUTIVE SUMMARY
+
+**Status**: ${testData.totalFailed > 0 ? '⚠️ TESTS FAILED' : '✅ ALL TESTS PASSED'}
+**Success Rate**: ${testData.successRate}%
+**Total Tests**: ${testData.totalTests}
+**Passed**: ${testData.totalPassed} ✅
+**Failed**: ${testData.totalFailed} ❌
+**Pending**: ${testData.totalPending} ⏳
+**Duration**: ${Math.round(testData.testDuration / 1000)}s
+
+## 📈 COVERAGE ANALYSIS
+
+**Line Coverage**: ${coverageData.lines}%
+**Branch Coverage**: ${coverageData.branches}%
+**Function Coverage**: ${coverageData.functions}%
+**Statement Coverage**: ${coverageData.statements}%
+
+## 🎯 QUALITY METRICS
+
+- **Test Coverage**: ${coverageData.lines >= 80 ? '🟢 Excellent' : coverageData.lines >= 60 ? '🟡 Good' : '🔴 Needs Improvement'}
+- **Test Success**: ${testData.successRate >= 95 ? '🟢 Excellent' : testData.successRate >= 80 ? '🟡 Good' : '🔴 Needs Improvement'}
+- **Test Count**: ${testData.totalTests >= 100 ? '🟢 Comprehensive' : testData.totalTests >= 50 ? '🟡 Adequate' : '🔴 Limited'}
+
+## 📋 DETAILED BREAKDOWN
+
+### Test Results
+- **Total Tests Executed**: ${testData.totalTests}
+- **Successful Tests**: ${testData.totalPassed}
+- **Failed Tests**: ${testData.totalFailed}
+- **Pending Tests**: ${testData.totalPending}
+- **Success Rate**: ${testData.successRate}%
+
+### Coverage Details
+- **Lines**: ${coverageData.lines}% covered
+- **Branches**: ${coverageData.branches}% covered
+- **Functions**: ${coverageData.functions}% covered
+- **Statements**: ${coverageData.statements}% covered
+
+## 🚀 RECOMMENDATIONS
+
+${testData.totalFailed > 0 ? '- **Immediate Action Required**: Fix failed tests before merging' : '- **All tests passing**: Ready for deployment'}
+${coverageData.lines < 80 ? '- **Improve Coverage**: Aim for at least 80% line coverage' : '- **Coverage**: Meeting quality standards'}
+${testData.totalTests < 100 ? '- **Expand Tests**: Add more test cases for better coverage' : '- **Test Coverage**: Comprehensive test suite'}
+
+---
+
+**Report Generated**: ${new Date().toISOString()}
+**Pipeline**: Enhanced Test Report Workflow
+**Status**: ${testData.totalFailed > 0 ? 'FAILED' : 'SUCCESS'}`;
+
+            // Write detailed report
             fs.writeFileSync('test-results/detailed-report.md', report);
             
+            // Write summary for GitHub Actions
+            const summary = `## 🧪 TEST EXECUTION SUMMARY
+
+**Status**: ${testData.totalFailed > 0 ? '⚠️ TESTS FAILED' : '✅ ALL TESTS PASSED'}
+**Success Rate**: ${testData.successRate}%
+**Total Tests**: ${testData.totalTests}
+**Coverage**: ${coverageData.lines}% lines, ${coverageData.branches}% branches
+
+${testData.totalFailed > 0 ? '**⚠️ ACTION REQUIRED**: Fix failed tests before merging' : '**✅ READY**: All tests passing, ready for deployment'}`;
+
+            fs.writeFileSync('test-results/github-summary.md', summary);
+            
             console.log('✅ Test analysis completed successfully');
-            console.log(`📊 Success Rate: ${successRate}%`);
-            console.log(`📁 Total Tests: ${testData.totalTests}`);
-            console.log(`📈 Coverage: ${Object.keys(coverageData).length > 0 ? 'Available' : 'Not available'}`);
+            console.log('📊 Test Data:', JSON.stringify(testData, null, 2));
+            console.log('📈 Coverage Data:', JSON.stringify(coverageData, null, 2));
             
           } catch (error) {
             console.error('❌ Error parsing test results:', error);
-            // Generate fallback report
-            const fallbackReport = generateFallbackReport();
-            fs.writeFileSync('test-results/detailed-report.md', fallbackReport);
-            console.log('⚠️ Generated fallback report due to parsing error');
-            process.exit(0); // Don't fail the workflow
-          }
-          
-          function generateDetailedReport(analysis) {
-            return `# 🧪 PROFESSIONAL TEST REPORT
+            
+            // Fallback report
+            const fallbackReport = `# 🧪 TEST REPORT - FALLBACK MODE
 
-## 📊 **EXECUTIVE SUMMARY**
+## ⚠️ ANALYSIS FAILED
 
-### **Test Results Overview**
-- **Total Tests**: ${analysis.summary.totalTests}
-- **Passed**: ${analysis.summary.passedTests} ✅
-- **Failed**: ${analysis.summary.failedTests} ❌
-- **Pending**: ${analysis.summary.pendingTests} ⏸️
-- **Test Suites**: ${analysis.summary.totalSuites}
-- **📊 Success Rate**: ${analysis.summary.successRate}%
-
-${analysis.note ? `**Note**: ${analysis.note}` : ''}
-
-### **Priority Assessment**
-${analysis.summary.successRate >= 90 ? 
-  '🟢 **LOW PRIORITY** - Test suite is in excellent condition. Focus on maintaining quality and adding new tests.' :
-  analysis.summary.successRate >= 80 ?
-  '🟡 **MEDIUM PRIORITY** - Some issues need attention. Plan improvements in next sprint.' :
-  analysis.summary.successRate >= 70 ?
-  '🟠 **HIGH PRIORITY** - Significant issues detected. Allocate resources for test improvements.' :
-  '🔴 **CRITICAL PRIORITY** - Major test suite issues. Immediate action required.'
-}
-
----
-
-## 💰 **BUSINESS IMPACT ASSESSMENT**
-
-### **Quality Metrics**
-- **Release Confidence**: ${analysis.summary.successRate >= 90 ? 'High' : analysis.summary.successRate >= 80 ? 'Medium' : 'Low'}
-- **Bug Detection**: ${analysis.summary.successRate >= 90 ? 'Excellent' : analysis.summary.successRate >= 80 ? 'Good' : 'Poor'}
-- **Development Velocity**: ${analysis.summary.successRate >= 90 ? 'Optimal' : analysis.summary.successRate >= 80 ? 'Good' : 'Reduced'}
-
-### **Risk Assessment**
-${analysis.summary.successRate >= 90 ? 
-  '🟢 **LOW RISK** - Test suite provides excellent quality assurance.' :
-  analysis.summary.successRate >= 80 ?
-  '🟡 **MEDIUM RISK** - Some quality concerns, but manageable.' :
-  analysis.summary.successRate >= 70 ?
-  '🟠 **HIGH RISK** - Quality issues may impact product reliability.' :
-  '🔴 **CRITICAL RISK** - Significant quality issues pose business risks.'
-}
-
----
-
-## 🚀 **RECOMMENDED ACTIONS**
-
-### **Immediate Actions (This Week)**
-${analysis.summary.successRate >= 90 ? 
-  '1. **Maintain Quality** - Continue current testing practices\n2. **Add New Tests** - Expand coverage for new features\n3. **Performance Optimization** - Improve test execution speed' :
-  analysis.summary.successRate >= 80 ?
-  '1. **Investigate Failures** - Identify root causes of failing tests\n2. **Fix Critical Issues** - Address high-impact failures\n3. **Improve Coverage** - Add tests for uncovered code paths' :
-  analysis.summary.successRate >= 70 ?
-  '1. **Allocate Resources** - Dedicate developer time to test improvements\n2. **Fix Infrastructure** - Resolve test environment issues\n3. **Review Test Strategy** - Assess testing approach and tools' :
-  '1. **Emergency Response** - Allocate immediate resources to test fixes\n2. **Infrastructure Overhaul** - Complete test environment rebuild\n3. **Quality Gates** - Implement strict quality requirements'
-}
-
-### **Short-term Goals (Next 2-4 Weeks)**
-- **Target Success Rate**: 90%+
-- **Target Coverage**: 85%+
-- **Test Stability**: 95%+ consistency
-
----
-
-## 📋 **SUCCESS CRITERIA**
-
-### **Quality Targets**
-- [ ] **Success Rate**: 90%+ (currently ${analysis.summary.successRate}%)
-- [ ] **Line Coverage**: 90%+ (currently ${analysis.coverage.total?.lines?.pct || 'N/A'}%)
-- [ ] **Branch Coverage**: 85%+ (currently ${analysis.coverage.total?.branches?.pct || 'N/A'}%)
-- [ ] **Test Stability**: 95%+ consistency
-
----
-
-## 🔍 **TECHNICAL DETAILS**
-
-### **Test Execution Environment**
-- **Framework**: Jest
-- **Coverage Tool**: Jest built-in coverage
-- **Reporters**: JSON, HTML, LCOV
-- **Environment**: GitHub Actions (Ubuntu Latest)
-
-### **Data Collection**
-- **Test Results**: ${Object.keys(analysis.testResults).length > 0 ? 'Available' : 'Not available'}
-- **Coverage Data**: ${Object.keys(analysis.coverage).length > 0 ? 'Available' : 'Not available'}
-
----
-
-**Report Generated**: ${new Date(analysis.timestamp).toLocaleString()}  
-**Commit**: ${analysis.commit.substring(0, 8)}  
-**Branch**: ${analysis.branch}  
-**Pipeline**: Enhanced Test Report Workflow
-
----
-
-*This report provides real-time analysis of your test suite based on actual execution data. All metrics are calculated from real test results and coverage data.*`;
-          }
-          
-          function generateFallbackReport() {
-            return `# 🧪 TEST REPORT - FALLBACK MODE
-
-## ⚠️ **ATTENTION**
-
-This report was generated in fallback mode due to an issue parsing the test results. This usually indicates:
-
-1. **No tests were executed** - Check if your test files are properly configured
-2. **Jest configuration issue** - Verify jest.config.js and package.json scripts
-3. **Test environment problem** - Ensure all dependencies are properly installed
-
-## 🔧 **TROUBLESHOOTING STEPS**
-
-1. **Check test files exist**: Look in \`__tests__/\`, \`src/\`, \`app/\` directories
-2. **Verify Jest config**: Ensure jest.config.js is properly configured
-3. **Check package.json scripts**: Verify test:ci script exists and works
-4. **Run tests locally**: Try \`npm run test:ci\` to see any errors
-5. **Check dependencies**: Ensure all dev dependencies are installed
-
-## 📁 **PROJECT STRUCTURE**
-
-Your project appears to have the following test structure:
-- \`__tests__/\` - Main test directory
-- \`jest.config.js\` - Jest configuration
-- \`package.json\` - Contains test scripts
+**Error**: ${error.message}
+**Status**: Manual investigation required
 
 ## 🚀 **NEXT STEPS**
 
@@ -355,6 +210,9 @@ Your project appears to have the following test structure:
 
 **Report Generated**: ${new Date().toISOString()}  
 **Status**: Fallback Mode - Manual Investigation Required`;
+            
+            fs.writeFileSync('test-results/detailed-report.md', fallbackReport);
+            fs.writeFileSync('test-results/github-summary.md', '## ⚠️ Test analysis failed - check logs for details');
           }
           EOF
           
@@ -363,8 +221,14 @@ Your project appears to have the following test structure:
 
       - name: Generate GitHub Actions Summary
         run: |
-          if [ -f "test-results/detailed-report.md" ]; then
-            cat test-results/detailed-report.md >> $GITHUB_STEP_SUMMARY
+          echo "📊 Generating GitHub Actions Summary..."
+          if [ -f "test-results/github-summary.md" ]; then
+            cat test-results/github-summary.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ GitHub summary not found, using detailed report"
+            if [ -f "test-results/detailed-report.md" ]; then
+              cat test-results/detailed-report.md >> $GITHUB_STEP_SUMMARY
+            fi
           fi
 
       - name: Comment on PR with detailed test report
@@ -417,7 +281,9 @@ Your project appears to have the following test structure:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: test-results/
+          path: |
+            test-results/
+            coverage/
           retention-days: 30
 
       - name: Final status
