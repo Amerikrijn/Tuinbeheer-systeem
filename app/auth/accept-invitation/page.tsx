@@ -252,7 +252,7 @@ function AcceptInvitationContent() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center py-8">
-            <div className="h-8 w-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mb-4" />
+            <Loader2 className="h-8 w-8 animate-spin text-green-600 mb-4" />
             <p className="text-gray-600">Uitnodiging verifiëren...</p>
           </CardContent>
         </Card>
@@ -486,7 +486,7 @@ function AcceptInvitationContent() {
               >
                 {accepting ? (
                   <>
-                    <div className="h-4 w-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     Uitnodiging Accepteren...
                   </>
                 ) : (
@@ -524,7 +524,7 @@ export default function AcceptInvitationPage() {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50">
           <Card className="w-full max-w-md">
             <CardContent className="flex flex-col items-center justify-center py-8">
-              <div className="h-8 w-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mb-4" />
+              <Loader2 className="h-8 w-8 animate-spin text-green-600 mb-4" />
               <p className="text-gray-600">Pagina laden...</p>
             </CardContent>
           </Card>

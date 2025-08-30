@@ -116,7 +116,7 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto" />
+            <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto" />
             <p className="mt-4 text-sm text-muted-foreground">Redirecting...</p>
           </CardContent>
         </Card>

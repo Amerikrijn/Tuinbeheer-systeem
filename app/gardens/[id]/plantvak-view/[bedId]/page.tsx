@@ -959,8 +959,7 @@ export default function PlantBedViewPage() {
         // Removed toast notification
       
       // Navigate back to garden
-              console.log(`Navigating back to garden: ${params.id}`)
-        window.location.href = `/gardens/${params.id}`
+      router.push(`/gardens/${params.id}`)
     } catch (error) {
       console.error("Error deleting plant bed:", error)
         // Removed toast notification
@@ -1007,9 +1006,8 @@ export default function PlantBedViewPage() {
     console.log('Double click on flower:', flower.name, '- navigating to details')
     
     // Navigate to plant details page
-    console.log(`Navigating to plant: ${flower.id}`)
-    window.location.href = `/plants/${flower.id}`
-    }, [])
+    router.push(`/plants/${flower.id}`)
+    }, [router])
 
   // Handle flower resize via interface - supports flower fields
   const handleFlowerResize = useCallback(async (flowerId: string, sizeChange: number) => {
@@ -1535,13 +1533,10 @@ export default function PlantBedViewPage() {
   if (loading) {
     return (
       <div className="container mx-auto p-6 space-y-6">
-        <div className="animate-pulse space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded" />
-          ))}
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-64 bg-gray-200 rounded"></div>
         </div>
-        <div className="h-8 bg-green-100 dark:bg-green-900/30 rounded w-1/3 mb-4"></div>
-        <div className="h-64 bg-green-100 dark:bg-green-900/30 rounded"></div>
       </div>
     )
   }
@@ -1563,87 +1558,83 @@ export default function PlantBedViewPage() {
   }
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl">
-      {/* Minimalist Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={goBack}
-              className="h-10 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Terug
-            </Button>
-            
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                <Flower className="w-5 h-5 text-green-700 dark:text-green-400" />
-              </div>
-              <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
-                {plantBed.name}
-              </h1>
-            </div>
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={goBack}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Terug
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Flower className="h-8 w-8 text-pink-600" />
+              {plantBed.name}
+            </h1>
+
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Dialog open={isAddingFlower} onOpenChange={(open) => {
-              setIsAddingFlower(open)
-              if (!open) {
-                // Reset form when dialog closes
+        </div>
+        <div className="flex items-center gap-2">
+          <Dialog open={isAddingFlower} onOpenChange={(open) => {
+            setIsAddingFlower(open)
+            if (!open) {
+              // Reset form when dialog closes
+              setNewFlower(createInitialPlantFormData())
+              setIsCustomFlower(false)
+            }
+          }}>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="sm" onClick={() => {
+                // Reset form when opening dialog
                 setNewFlower(createInitialPlantFormData())
                 setIsCustomFlower(false)
-              }
-            }}>
-              <DialogTrigger asChild>
-                <Button className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white text-sm" onClick={() => {
-                  // Reset form when opening dialog
-                  setNewFlower(createInitialPlantFormData())
-                  setIsCustomFlower(false)
-                }}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Plant Toevoegen
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background border border-gray-200 shadow-xl">
-                <DialogHeader>
-                  <DialogTitle>Nieuwe Plant Toevoegen</DialogTitle>
-                  <DialogDescription>
-                    Voeg een nieuwe plant toe aan dit plantvak. Je kunt het later verplaatsen door te slepen.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                  <PlantForm
-                    data={newFlower}
-                    errors={newFlowerErrors}
-                    onChange={setNewFlower}
-                    onSubmit={(e) => {
-                      e.preventDefault()
-                      addFlower()
-                    }}
-                    onReset={() => {
-                      setNewFlower(createInitialPlantFormData())
-                      setNewFlowerErrors({})
-                    }}
-                    submitLabel="Bloem toevoegen"
-                    isSubmitting={false}
-                    showAdvanced={true}
-                  />
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" onClick={() => {
-                      setIsAddingFlower(false)
-                      setNewFlower(createInitialPlantFormData())
-                      setNewFlowerErrors({})
-                      setIsCustomFlower(false)
-                    }}>
-                      Annuleren
-                    </Button>
-                  </div>
+              }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Plant Toevoegen
+              </Button>
+                          </DialogTrigger>
+            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background border border-gray-200 shadow-xl">
+              <DialogHeader>
+                <DialogTitle>Nieuwe Plant Toevoegen</DialogTitle>
+                <DialogDescription>
+                  Voeg een nieuwe plant toe aan dit plantvak. Je kunt het later verplaatsen door te slepen.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <PlantForm
+                  data={newFlower}
+                  errors={newFlowerErrors}
+                  onChange={setNewFlower}
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    addFlower()
+                  }}
+                  onReset={() => {
+                    setNewFlower(createInitialPlantFormData())
+                    setNewFlowerErrors({})
+                  }}
+                  submitLabel="Bloem toevoegen"
+                  isSubmitting={false}
+                  showAdvanced={true}
+                />
+                <div className="flex gap-2 mt-4">
+                  <Button variant="outline" onClick={() => {
+                    setIsAddingFlower(false)
+                    setNewFlower(createInitialPlantFormData())
+                    setNewFlowerErrors({})
+                    setIsCustomFlower(false)
+                  }}>
+                    Annuleren
+                  </Button>
                 </div>
-              </DialogContent>
-            </Dialog>
+              </div>
+            </DialogContent>
+          </Dialog>
 
           {/* Edit Flower Dialog */}
           <Dialog open={isEditingFlower} onOpenChange={(open) => {
@@ -2123,7 +2114,7 @@ export default function PlantBedViewPage() {
                     }}
                   >
                     {/* Plantvak info - always within the plantvak area */}
-                    <div className="absolute top-2 left-2 bg-background/95 px-3 py-1 rounded-lg shadow-sm border">
+                    <div className="absolute top-2 left-2 bg-background/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border">
                       <div className="text-xs text-green-600">
                         {plantBed.size} • {flowerPositions.length} bloemen
                       </div>
@@ -2143,11 +2134,11 @@ export default function PlantBedViewPage() {
                     key={flower.id}
                     className={`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'gezond')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105 cursor-grabbing" : 
-                      isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab" :
+                      isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab animate-pulse" :
                       isSelected && isResizeMode ? "ring-4 ring-blue-500 shadow-xl cursor-default" :
                       isSelected ? "ring-4 ring-blue-500 shadow-xl cursor-pointer" :
                       "shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
-                    } transition-transform duration-150 flex items-center justify-center text-white relative overflow-hidden bg-opacity-0 border-opacity-50`}
+                    } transition-all duration-200 flex items-center justify-center text-white relative overflow-hidden bg-opacity-0 border-opacity-50`}
                     style={{
                       left: flower.position_x,
                       top: flower.position_y,
@@ -2222,13 +2213,13 @@ export default function PlantBedViewPage() {
 
                     {/* Mode indicators */}
                     {isSelected && isDragMode && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white text-xs px-2 py-1 rounded shadow-lg font-bold z-20">
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
                         🖱️ Sleep me!
                       </div>
                     )}
                     
                     {isSelected && isResizeMode && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-blue-600 text-white text-xs px-2 py-1 rounded shadow-lg font-bold z-20">
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-blue-600 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
                         📏 Resize actief!
                       </div>
                     )}
@@ -2517,10 +2508,7 @@ export default function PlantBedViewPage() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                console.log(`Navigating to plant: ${flower.id}`)
-                window.location.href = `/plants/${flower.id}`
-              }}
+                            onClick={() => router.push(`/plants/${flower.id}`)}
                             className="flex-1"
                           >
                             Details
@@ -2564,9 +2552,9 @@ export default function PlantBedViewPage() {
 
               {/* Tasks Section - Only in List View */}
               <div className="mt-8">
-                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
+                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg mb-4">
                   <div className="flex items-center gap-3">
-                      <Calendar className="h-6 w-6 text-blue-700 dark:text-blue-400" />
+                      <Calendar className="h-6 w-6 text-blue-700" />
                       <span className="font-semibold text-foreground text-xl leading-snug">Taken voor dit Plantvak</span>
                       <Badge variant="secondary" className="text-sm">{tasks.length} taken</Badge>
                     </div>
@@ -2597,7 +2585,7 @@ export default function PlantBedViewPage() {
                 {/* Tasks List */}
                 {loadingTasks ? (
                   <div className="text-center py-8">
-                    <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="text-muted-foreground mt-2">Taken laden...</p>
                   </div>
                 ) : tasks.length === 0 ? (
@@ -2615,7 +2603,7 @@ export default function PlantBedViewPage() {
                       const isToday = task.due_date === new Date().toISOString().split('T')[0]
                       
                       return (
-                        <Card key={task.id} className={`transition-all duration-200 ${task.completed ? 'opacity-60' : ''} ${isOverdue ? 'border-red-200 bg-red-50 dark:bg-red-950/30' : isToday ? 'border-orange-200 bg-orange-50 dark:bg-orange-950/30' : ''}`}>
+                        <Card key={task.id} className={`transition-all duration-200 ${task.completed ? 'opacity-60' : ''} ${isOverdue ? 'border-red-200 bg-red-50' : isToday ? 'border-orange-200 bg-orange-50' : ''}`}>
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               {/* Checkbox */}
@@ -2631,7 +2619,7 @@ export default function PlantBedViewPage() {
                                 />
                                 {updatingTasks.has(task.id) && (
                                   <div className="absolute mt-1 ml-1">
-                                    <div className="w-2 h-2 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+                                    <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                                   </div>
                                 )}
                               </div>
@@ -2784,7 +2772,6 @@ export default function PlantBedViewPage() {
       )}
 
       
-    </div>
     </div>
   )
 }

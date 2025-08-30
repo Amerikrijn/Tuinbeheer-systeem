@@ -363,7 +363,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
                 <div>
-                                          <span className="font-medium text-foreground">Locatie:</span>
+                  <span className="font-medium text-gray-700">Locatie:</span>
                   <div className="mt-1 flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-blue-500" />
                     <span>{state.entry.plant_bed_name}</span>
@@ -375,7 +375,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                 
                 {state.entry.plant_name && (
                   <div>
-                                            <span className="font-medium text-foreground">Plant:</span>
+                    <span className="font-medium text-gray-700">Plant:</span>
                     <div className="mt-1 flex items-center gap-2">
                       <Leaf className="w-4 h-4 text-green-500" />
                       <span>{state.entry.plant_name}</span>
@@ -394,7 +394,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                 )}
                 
                 <div>
-                                          <span className="font-medium text-foreground">Datum:</span>
+                  <span className="font-medium text-gray-700">Datum:</span>
                   <div className="mt-1 flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-400" />
                     <span>{formatDate(state.entry.entry_date)}</span>

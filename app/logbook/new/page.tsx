@@ -524,7 +524,7 @@ function NewLogbookPageContent() {
                     >
                       {state.uploadingPhoto ? (
                         <>
-                          <div className="h-4 w-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           Uploaden...
                         </>
                       ) : (
@@ -571,7 +571,7 @@ function NewLogbookPageContent() {
                 >
                   {state.submitting ? (
                     <>
-                      <div className="h-4 w-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Opslaan...
                     </>
                   ) : (

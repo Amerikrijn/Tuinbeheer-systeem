@@ -33,29 +33,23 @@ function TasksPageContent() {
   }
 
   return (
-    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-4xl">
-      {/* Minimalist Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={goBack}
-            className="h-10 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+    <div className="container mx-auto p-4 max-w-4xl">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-center gap-4 mb-4">
+          <Button variant="outline" size="sm" onClick={goBack}>
+            <ArrowLeft className="w-5 h-5 mr-2" />
             Terug
           </Button>
           
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-              <Calendar className="w-5 h-5 text-green-700 dark:text-green-400" />
-            </div>
-            <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
-              Taken
-            </h1>
+            <Calendar className="w-7 h-7 text-green-700" />
+            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Taken Overzicht</h1>
           </div>
         </div>
+        <p className="text-muted-foreground text-lg leading-relaxed">
+          Beheer en voltooi je tuintaken voor optimale plantenverzorging
+        </p>
       </div>
 
       {/* Weekly Task List */}

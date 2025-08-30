@@ -104,7 +104,7 @@ export function BankingForm({
         >
           {isSubmitting ? (
             <>
-              <div className="h-4 w-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" aria-hidden="true" />
+              <Loader2 className="h-4 w-4 animate-spin mr-2" aria-hidden="true" />
               <span>Bezig met opslaan...</span>
             </>
           ) : (

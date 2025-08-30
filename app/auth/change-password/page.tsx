@@ -137,7 +137,7 @@ export default function ChangePasswordPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
         <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+          <Loader2 className="w-4 h-4 animate-spin" />
           <span>Laden...</span>
         </div>
       </div>
@@ -249,7 +249,7 @@ export default function ChangePasswordPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mr-2" />
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Wachtwoord wijzigen...
                   </>
                 ) : (

@@ -35,7 +35,7 @@ export function Flower({ flower }: FlowerProps) {
       }}
     >
       <div
-        className="w-full h-full border-2 border-gray-400 dark:border-gray-600 rounded-lg bg-background/95 shadow-md flex flex-col items-center justify-center"
+        className="w-full h-full border-2 border-gray-400 dark:border-gray-600 rounded-lg bg-background/90 backdrop-blur-sm shadow-md flex flex-col items-center justify-center"
         style={{
           borderColor: `${flower.color}80`,
           backgroundColor: `${flower.color}25`,

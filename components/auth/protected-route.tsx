@@ -93,7 +93,7 @@ function ProtectedRouteComponent({
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Laden...</p>
         </div>
       </div>
@@ -104,7 +104,7 @@ function ProtectedRouteComponent({
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Authenticatie controleren...</p>
         </div>
       </div>
@@ -146,7 +146,7 @@ function ProtectedRouteComponent({
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Laden...</p>
         </div>
       </div>
@@ -162,7 +162,7 @@ export const ProtectedRoute = dynamic(() => Promise.resolve(ProtectedRouteCompon
   loading: () => (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="text-center">
-        <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
         <p className="text-muted-foreground">Laden...</p>
       </div>
     </div>

@@ -228,7 +228,7 @@ function AdminUsersPageContent() {
     return (
       <div className="container mx-auto px-4 py-6 max-w-6xl safe-area-px">
         <div className="flex items-center justify-center py-12">
-          <div className="w-8 h-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin" />
+          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
           <span className="ml-2 text-muted-foreground">Gebruikers laden...</span>
         </div>
       </div>

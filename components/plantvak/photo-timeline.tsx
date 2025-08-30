@@ -134,9 +134,8 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
         </CardHeader>
         <CardContent>
           <div className="animate-pulse space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded" />
-            ))}
+            <div className="h-20 bg-gray-200 rounded"></div>
+            <div className="h-20 bg-gray-200 rounded"></div>
           </div>
         </CardContent>
       </Card>
@@ -232,7 +231,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                         </div>
                         
                         {/* Date Badge */}
-                        <div className="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                        <div className="absolute top-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
                           {formatDate(entry.entry_date)}
                         </div>
                         
@@ -276,7 +275,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                                   className="w-20 h-20 object-cover rounded"
                                 />
                                 <div className="flex-1">
-                                  <p className="text-sm text-foreground line-clamp-3">
+                                  <p className="text-sm text-gray-700 line-clamp-3">
                                     {entry.notes}
                                   </p>
                                 </div>
@@ -338,7 +337,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                 {/* Notes */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h4 className="font-medium text-foreground mb-2">Notities</h4>
-                                          <p className="text-foreground whitespace-pre-wrap">{selectedPhoto.notes}</p>
+                  <p className="text-gray-700 whitespace-pre-wrap">{selectedPhoto.notes}</p>
                 </div>
                 
                 {/* Metadata */}
