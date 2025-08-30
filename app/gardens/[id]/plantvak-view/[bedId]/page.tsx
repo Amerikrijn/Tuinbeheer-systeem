@@ -2564,9 +2564,9 @@ export default function PlantBedViewPage() {
 
               {/* Tasks Section - Only in List View */}
               <div className="mt-8">
-                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg mb-4">
+                <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
                   <div className="flex items-center gap-3">
-                      <Calendar className="h-6 w-6 text-blue-700" />
+                      <Calendar className="h-6 w-6 text-blue-700 dark:text-blue-400" />
                       <span className="font-semibold text-foreground text-xl leading-snug">Taken voor dit Plantvak</span>
                       <Badge variant="secondary" className="text-sm">{tasks.length} taken</Badge>
                     </div>
@@ -2597,7 +2597,7 @@ export default function PlantBedViewPage() {
                 {/* Tasks List */}
                 {loadingTasks ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <div className="w-8 h-8 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
                     <p className="text-muted-foreground mt-2">Taken laden...</p>
                   </div>
                 ) : tasks.length === 0 ? (
@@ -2615,7 +2615,7 @@ export default function PlantBedViewPage() {
                       const isToday = task.due_date === new Date().toISOString().split('T')[0]
                       
                       return (
-                        <Card key={task.id} className={`transition-all duration-200 ${task.completed ? 'opacity-60' : ''} ${isOverdue ? 'border-red-200 bg-red-50' : isToday ? 'border-orange-200 bg-orange-50' : ''}`}>
+                        <Card key={task.id} className={`transition-all duration-200 ${task.completed ? 'opacity-60' : ''} ${isOverdue ? 'border-red-200 bg-red-50 dark:bg-red-950/30' : isToday ? 'border-orange-200 bg-orange-50 dark:bg-orange-950/30' : ''}`}>
                           <CardContent className="p-4">
                             <div className="flex items-start gap-3">
                               {/* Checkbox */}
@@ -2631,7 +2631,7 @@ export default function PlantBedViewPage() {
                                 />
                                 {updatingTasks.has(task.id) && (
                                   <div className="absolute mt-1 ml-1">
-                                    <div className="w-2 h-2 border border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                    <div className="w-2 h-2 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
                                   </div>
                                 )}
                               </div>
