@@ -82,18 +82,15 @@ export function BankingNavigation() {
             })}
           </div>
 
-          {/* User Menu & Theme Toggle */}
-          <div className="flex items-center gap-3">
+          {/* Compact User Menu & Theme Toggle */}
+          <div className="flex items-center gap-2">
             {user && (
-              <div className="hidden md:flex items-center gap-3 text-sm">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
-                  <User className="h-4 w-4 text-green-700 dark:text-green-400" />
-                  <span className="text-green-800 dark:text-green-300 font-medium">{user.full_name || user.email}</span>
-                  {isAdmin() && (
-                    <Badge variant="secondary" className="text-xs bg-green-200 text-green-800 border-green-300">
-                      Admin
-                    </Badge>
-                  )}
+              <div className="hidden md:flex items-center gap-2">
+                <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
+                  <User className="h-3.5 w-3.5 text-green-700 dark:text-green-400" />
+                  <span className="text-xs text-green-800 dark:text-green-300 font-medium">
+                    {user.full_name || user.email}
+                  </span>
                 </div>
               </div>
             )}
@@ -103,19 +100,19 @@ export function BankingNavigation() {
             <Button
               variant="ghost"
               size="icon"
-              className="md:hidden h-10 w-10 rounded-xl border-2 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/30 active:scale-[0.98] transition-all duration-200"
+              className="md:hidden h-8 w-8 rounded-lg border border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/30 active:scale-[0.98] transition-all duration-200"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Menu openen"
             >
-              {mobileMenuOpen ? <X className="h-5 w-5 text-green-700 dark:text-green-400" /> : <Menu className="h-5 w-5 text-green-700 dark:text-green-400" />}
+              {mobileMenuOpen ? <X className="h-4 w-4 text-green-700 dark:text-green-400" /> : <Menu className="h-4 w-4 text-green-700 dark:text-green-400" />}
             </Button>
           </div>
         </div>
         
-        {/* Mobile Navigation Menu */}
+        {/* Compact Mobile Navigation Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t-2 border-green-200 dark:border-green-800 bg-background/95 backdrop-blur-md">
-            <div className="px-3 pt-3 pb-4 space-y-2" role="menu" aria-label="Mobiele navigatie">
+          <div className="md:hidden border-t border-green-200 dark:border-green-800 bg-background/95 backdrop-blur-md">
+            <div className="px-2 pt-2 pb-3 space-y-1" role="menu" aria-label="Mobiele navigatie">
               {visibleItems.map((item) => {
                 const isActive = pathname === item.href || 
                   (item.href !== "/" && pathname.startsWith(item.href));
@@ -124,7 +121,7 @@ export function BankingNavigation() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`block px-4 py-3 rounded-xl text-base font-medium transition-all duration-200 flex items-center gap-3 ${
+                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                       isActive
                         ? "bg-green-600 text-white shadow-lg shadow-green-600/25"
                         : "text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
