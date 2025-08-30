@@ -273,7 +273,7 @@ function HomePageContent() {
 
   return (
     <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 max-w-6xl safe-area-px">
-      {/* Clean Header - No Duplicate Navigation */}
+      {/* Clean Header - No Duplicate Navigation - Build v3 */}
       <UnifiedHeader
         title="🌱 Tuinbeheer"
         subtitle="Beheer je tuinen, planten en taken op één centrale plek"
