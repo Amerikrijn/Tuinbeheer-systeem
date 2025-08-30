@@ -2143,11 +2143,11 @@ export default function PlantBedViewPage() {
                     key={flower.id}
                     className={`absolute rounded-lg border-4 ${getStatusColor(flower.status || 'gezond')} ${
                       isDragging ? "shadow-2xl ring-4 ring-pink-500 z-10 scale-105 cursor-grabbing" : 
-                      isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab animate-pulse" :
+                      isSelected && isDragMode ? "ring-4 ring-green-500 shadow-xl cursor-grab" :
                       isSelected && isResizeMode ? "ring-4 ring-blue-500 shadow-xl cursor-default" :
                       isSelected ? "ring-4 ring-blue-500 shadow-xl cursor-pointer" :
                       "shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
-                    } transition-all duration-200 flex items-center justify-center text-white relative overflow-hidden bg-opacity-0 border-opacity-50`}
+                    } transition-transform duration-150 flex items-center justify-center text-white relative overflow-hidden bg-opacity-0 border-opacity-50`}
                     style={{
                       left: flower.position_x,
                       top: flower.position_y,
@@ -2222,13 +2222,13 @@ export default function PlantBedViewPage() {
 
                     {/* Mode indicators */}
                     {isSelected && isDragMode && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white text-xs px-2 py-1 rounded shadow-lg font-bold z-20">
                         🖱️ Sleep me!
                       </div>
                     )}
                     
                     {isSelected && isResizeMode && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-blue-600 text-white text-xs px-2 py-1 rounded shadow-lg animate-bounce font-bold z-20">
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-blue-600 text-white text-xs px-2 py-1 rounded shadow-lg font-bold z-20">
                         📏 Resize actief!
                       </div>
                     )}
