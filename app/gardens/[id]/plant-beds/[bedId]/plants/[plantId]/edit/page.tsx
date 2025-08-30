@@ -258,12 +258,12 @@ export default function EditPlantPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
           <div className="space-y-4">
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </div>
         </div>
       </div>
@@ -300,7 +300,7 @@ export default function EditPlantPage() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-2">
-          <Leaf className="h-8 w-8 text-green-600" />
+          <Leaf className="h-8 w-8 text-green-600 dark:text-green-400" />
           Plant Bewerken
         </h1>
         <div className="text-muted-foreground">
@@ -370,15 +370,15 @@ export default function EditPlantPage() {
                       <div className={`w-2 h-2 rounded-full ${
                         task.completed ? 'bg-green-500 dark:bg-green-600' : 
                         task.priority === 'high' ? 'bg-red-500 dark:bg-red-600' : 
-                        task.priority === 'medium' ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-gray-500 dark:bg-gray-600'
+                        task.priority === 'medium' ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-gray-500 dark:bg-gray-400 dark:bg-gray-300'
                       }`} />
-                      <span className={task.completed ? 'line-through text-gray-500' : ''}>
+                      <span className={task.completed ? 'line-through text-gray-500 dark:text-gray-400' : ''}>
                         {task.title}
                       </span>
                     </div>
                   ))}
                   {tasks.length > 3 && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       En {tasks.length - 3} meer...
                     </p>
                   )}

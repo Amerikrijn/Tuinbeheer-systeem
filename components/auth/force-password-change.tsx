@@ -174,13 +174,13 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
                       validation.strength === 'medium' ? 'bg-yellow-200' : 'bg-red-200'
                     }`}>
                       <div className={`h-full rounded-full transition-all duration-300 ${
-                        validation.strength === 'strong' ? 'bg-green-600 w-full' :
-                        validation.strength === 'medium' ? 'bg-yellow-600 w-2/3' : 'bg-red-600 w-1/3'
+                        validation.strength === 'strong' ? 'bg-green-600 dark:bg-green-700 w-full' :
+                        validation.strength === 'medium' ? 'bg-yellow-600 w-2/3' : 'bg-red-600 dark:bg-red-700 w-1/3'
                       }`} />
                     </div>
                     <span className={`font-medium ${
                       validation.strength === 'strong' ? 'text-green-600' :
-                      validation.strength === 'medium' ? 'text-yellow-600' : 'text-red-600'
+                      validation.strength === 'medium' ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
                     }`}>
                       {validation.strength.toUpperCase()}
                     </span>
@@ -231,7 +231,7 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
             >
               {loading ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-white dark:border-gray-800/20 border-t-white rounded-full animate-spin" />
                   Changing Password...
                 </div>
               ) : (
@@ -246,7 +246,7 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
           {/* Banking compliance info */}
           <div className="mt-6 p-3 bg-muted rounded-md">
             <div className="flex items-start gap-2">
-              <Shield className="w-4 h-4 text-blue-600 mt-0.5" />
+              <Shield className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5" />
               <div className="text-sm text-muted-foreground">
                 <p className="font-medium text-foreground mb-1">Banking Security Requirements:</p>
                 <ul className="space-y-1 text-xs">

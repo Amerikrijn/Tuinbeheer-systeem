@@ -270,13 +270,13 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     if (day.tasks.length === 0) return null
 
     return (
-      <Card className={`mb-3 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 ${day.is_today ? 'ring-2 ring-green-500' : ''}`}>
+      <Card className={`mb-3 border-green-200 dark:border-green-800 hover:border-green-300 dark:border-green-700 dark:hover:border-green-700 ${day.is_today ? 'ring-2 ring-green-500' : ''}`}>
         <CardHeader className="pb-2 pt-3 px-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2 text-green-800 dark:text-green-200">
               <Calendar className="w-4 h-4 text-green-600 dark:text-green-400" />
               {day.day_name} {new Date(day.date).getDate()}
-              {day.is_today && <Badge className="ml-2 bg-green-100 text-green-800 border-green-300">Vandaag</Badge>}
+              {day.is_today && <Badge className="ml-2 bg-green-100 text-green-800 border-green-300 dark:border-green-700">Vandaag</Badge>}
             </CardTitle>
             
             <div className="flex gap-1">
@@ -286,7 +286,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 </Badge>
               )}
               {day.completed_count > 0 && (
-                <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-green-100 text-green-800 border-green-300">
+                <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-green-100 text-green-800 border-green-300 dark:border-green-700">
                   {day.completed_count} klaar
                 </Badge>
               )}
@@ -327,7 +327,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <AlertCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">Fout bij laden</h3>
           <p className="text-muted-foreground mb-4">{error}</p>
           <Button onClick={() => loadWeeklyCalendar(currentWeekStart)}>
@@ -392,7 +392,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
                 <Button
                   size="sm"
                   onClick={() => onTaskAdd()}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 dark:bg-green-700 hover:bg-green-700"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Taak
@@ -444,7 +444,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             if (tasksToShow.length === 0) {
               return (
                 <div className="text-center py-8">
-                  <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                  <CheckCircle2 className="w-12 h-12 text-green-500 dark:text-green-400 mx-auto mb-4" />
                   <p className="text-muted-foreground">Geen taken deze week!</p>
                 </div>
               )
@@ -487,7 +487,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       {calendar.days.every(day => day.tasks.length === 0) && (
         <Card>
           <CardContent className="p-8 text-center">
-            <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <CheckCircle2 className="w-16 h-16 text-green-500 dark:text-green-400 mx-auto mb-4" />
             <h3 className="text-xl font-medium text-foreground mb-2">
               Geen taken deze week!
             </h3>
@@ -497,7 +497,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
             {onTaskAdd && (
               <Button
                 onClick={() => onTaskAdd()}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-600 dark:bg-green-700 hover:bg-green-700"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Eerste taak toevoegen

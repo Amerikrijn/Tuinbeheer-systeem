@@ -244,7 +244,7 @@ function AdminUsersPageContent() {
         <div className="flex gap-2 flex-wrap">
           <Button 
             onClick={() => setIsCreateDialogOpen(true)} 
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 min-w-0 flex-1 sm:min-w-[160px] sm:flex-initial"
+            className="flex items-center gap-2 bg-green-600 dark:bg-green-700 hover:bg-green-700 min-w-0 flex-1 sm:min-w-[160px] sm:flex-initial"
           >
             <Plus className="w-4 h-4" />
             <span className="hidden sm:inline">Gebruiker Aanmaken</span>
@@ -342,7 +342,7 @@ function AdminUsersPageContent() {
                             setSelectedUser(user)
                             setIsEditDialogOpen(true)
                           }}
-                          className="text-blue-600 hover:text-blue-700"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:text-blue-300"
                         >
                           <Edit className="w-4 h-4 mr-2" />
                           Gebruiker Bewerken
@@ -357,7 +357,7 @@ function AdminUsersPageContent() {
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           onClick={() => handleDeleteUser(user)}
-                          className="text-red-600 hover:text-red-700"
+                          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300"
                           disabled={user.id === currentUser?.id}
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
@@ -381,7 +381,7 @@ function AdminUsersPageContent() {
                 </p>
                 <Button 
                   onClick={() => setIsCreateDialogOpen(true)}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 dark:bg-green-700 hover:bg-green-700"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Eerste Gebruiker Aanmaken

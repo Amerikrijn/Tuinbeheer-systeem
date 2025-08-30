@@ -130,10 +130,10 @@ export default function PlantBedsPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-64 bg-gray-200 rounded"></div>
+              <div key={i} className="h-64 bg-gray-200 dark:bg-gray-700 rounded"></div>
             ))}
           </div>
         </div>
@@ -149,7 +149,7 @@ export default function PlantBedsPage() {
           <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
           <p className="text-muted-foreground mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
           <Link href="/gardens">
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Terug naar Tuinen
             </Button>
@@ -170,7 +170,7 @@ export default function PlantBedsPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Leaf className="h-8 w-8 text-green-600" />
+              <Leaf className="h-8 w-8 text-green-600 dark:text-green-400" />
               Plantvakken - {garden.name}
             </h1>
             <div className="flex items-center gap-2 text-muted-foreground mt-1">
@@ -190,7 +190,7 @@ export default function PlantBedsPage() {
             {isVisualView ? "Lijst" : "Visueel"}
           </Button>
           <Link href={`/gardens/${garden.id}/plant-beds/new`}>
-            <Button className="bg-green-600 hover:bg-green-700">
+            <Button className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
               <Plus className="h-4 w-4 mr-2" />
               Nieuw Plantvak
             </Button>
@@ -228,7 +228,7 @@ export default function PlantBedsPage() {
                         <span className="text-2xl">🌱</span>
                         <div>
                           <h3 className="font-medium text-foreground">
-                            <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-800 font-bold rounded-full mr-2">
+                            <span className="inline-flex items-center justify-center w-8 h-8 bg-blue-100 dark:bg-blue-900 text-blue-800 font-bold rounded-full mr-2">
                               {bed.letter_code || bed.name}
                             </span>
                             Plantvak {bed.letter_code || bed.name}
@@ -238,7 +238,7 @@ export default function PlantBedsPage() {
                           )}
                         </div>
                       </div>
-                      <div className={`w-3 h-3 rounded-full border-2 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 shadow-gray-200'}`}></div>
+                      <div className={`w-3 h-3 rounded-full border-2 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 dark:border-gray-400 shadow-gray-200'}`}></div>
                     </div>
                     
                     <div className="space-y-2 text-sm text-muted-foreground mb-4">
@@ -290,7 +290,7 @@ export default function PlantBedsPage() {
                       <span className="text-xl">🌱</span>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-medium text-foreground truncate">
-                          <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-800 text-sm font-bold rounded-full mr-2">
+                          <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 dark:bg-blue-900 text-blue-800 text-sm font-bold rounded-full mr-2">
                             {bed.letter_code || bed.name}
                           </span>
                           Plantvak {bed.letter_code || bed.name}
@@ -319,7 +319,7 @@ export default function PlantBedsPage() {
                         )}
                       </div>
                     </div>
-                    <div className={`w-3 h-3 rounded-full border-2 ml-3 flex-shrink-0 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 shadow-gray-200'}`}></div>
+                    <div className={`w-3 h-3 rounded-full border-2 ml-3 flex-shrink-0 ${bed.plants.length > 0 ? 'border-green-500 shadow-green-200' : 'border-gray-500 dark:border-gray-400 shadow-gray-200'}`}></div>
                   </div>
                 )}
 
@@ -352,7 +352,7 @@ export default function PlantBedsPage() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex gap-1 justify-end mt-3 pt-2 border-t border-gray-100">
+                  <div className="flex gap-1 justify-end mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
                     <Button
                       size="sm"
                       variant="outline"
@@ -399,13 +399,13 @@ export default function PlantBedsPage() {
           {!searchTerm && (
             <div className="flex gap-2 justify-center">
               <Link href="/plant-beds/new">
-                <Button className="bg-green-600 hover:bg-green-700">
+                <Button className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
                   Plantvak Toevoegen
                 </Button>
               </Link>
               <Link href={`/gardens/${garden.id}/plant-beds/new`}>
-                <Button className="bg-green-600 hover:bg-green-700">
+                <Button className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
                   Eerste Plantvak Toevoegen
                 </Button>
@@ -424,11 +424,11 @@ export default function PlantBedsPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-green-600">{plantBeds.length}</div>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{plantBeds.length}</div>
                 <div className="text-sm text-muted-foreground">Totaal Plantvakken</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {plantBeds.reduce((sum, bed) => sum + Math.max(1, bed.plants.length), 0)}
                 </div>
                 <div className="text-sm text-muted-foreground">Totaal Planten</div>
@@ -458,7 +458,7 @@ export default function PlantBedsPage() {
             <AlertDialogDescription>
               Weet je zeker dat je plantvak <strong>{plantBedToDelete?.letter_code || plantBedToDelete?.name}</strong> wilt verwijderen?
               {plantBedToDelete?.plants && plantBedToDelete.plants.length > 0 && (
-                <span className="block mt-2 text-red-600">
+                <span className="block mt-2 text-red-600 dark:text-red-400">
                   Let op: Dit plantvak bevat {plantBedToDelete.plants.length} plant{plantBedToDelete.plants.length === 1 ? '' : 'en'}. 
                   Deze zullen ook worden verwijderd.
                 </span>
@@ -469,7 +469,7 @@ export default function PlantBedsPage() {
             <AlertDialogCancel>Annuleren</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 dark:bg-red-700 hover:bg-red-700"
             >
               Verwijderen
             </AlertDialogAction>

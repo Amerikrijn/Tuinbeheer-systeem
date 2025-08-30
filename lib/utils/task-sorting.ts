@@ -122,7 +122,7 @@ export function getTaskUrgencyStyles(urgency: ReturnType<typeof getTaskUrgency>)
       return {
         container: 'border-border bg-card',
         title: 'text-foreground',
-        badge: 'bg-red-100 text-red-800 border-red-300',
+        badge: 'bg-red-100 dark:bg-red-900 text-red-800 border-red-300 dark:border-red-700',
         badgeText: '🚨 Verlopen'
       }
     case 'urgent':
@@ -136,14 +136,14 @@ export function getTaskUrgencyStyles(urgency: ReturnType<typeof getTaskUrgency>)
       return {
         container: 'border-border bg-card',
         title: 'text-foreground',
-        badge: 'bg-green-100 text-green-800 border-green-300',
+        badge: 'bg-green-100 dark:bg-green-900 text-green-800 border-green-300 dark:border-green-700',
         badgeText: '✅ Voltooid'
       }
     default:
       return {
         container: 'border-border bg-card',
         title: 'text-foreground',
-        badge: 'bg-blue-100 text-blue-800 border-blue-300',
+        badge: 'bg-blue-100 dark:bg-blue-900 text-blue-800 border-blue-300 dark:border-blue-700',
         badgeText: '📋 Actief'
       }
   }

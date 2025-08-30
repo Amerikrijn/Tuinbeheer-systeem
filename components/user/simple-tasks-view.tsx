@@ -251,7 +251,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
 
   if (loading || !gardenAccessLoaded) {
     return (
-      <div className="min-h-screen bg-gray-50 p-4">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
         <div className="max-w-4xl mx-auto">
           {/* Header with Logbook button - always visible */}
           <div className="flex justify-between items-center mb-6">
@@ -282,7 +282,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Header with Logbook button */}
         <div className="flex justify-between items-center mb-6">
@@ -347,7 +347,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
                 <h3 className="text-lg font-medium mb-2">Geen taken deze week</h3>
                 <p>Je hebt geen openstaande taken voor deze periode.</p>
                 {gardenNames.length === 0 && (
-                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 rounded-lg">
                     <p className="text-sm text-yellow-800">
                       ⚠️ Je hebt nog geen tuinen toegewezen gekregen. Neem contact op met de beheerder.
                     </p>

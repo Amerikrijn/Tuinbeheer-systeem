@@ -26,14 +26,14 @@ export function ConnectionStatus({
         <div 
           className={cn(
             "w-2 h-2 rounded-full",
-            connection.getStatusColor() === 'green' && "bg-green-500",
-            connection.getStatusColor() === 'yellow' && "bg-yellow-500", 
-            connection.getStatusColor() === 'red' && "bg-red-500"
+            connection.getStatusColor() === 'green' && "bg-green-500 dark:bg-green-600",
+            connection.getStatusColor() === 'yellow' && "bg-yellow-500 dark:bg-yellow-600", 
+            connection.getStatusColor() === 'red' && "bg-red-500 dark:bg-red-600"
           )}
           title={connection.getStatusMessage()}
         />
         {showDetails && (
-          <span className="text-xs text-gray-600">
+          <span className="text-xs text-gray-600 dark:text-gray-300">
             {connection.latency ? `${connection.latency}ms` : ''}
           </span>
         )}
@@ -44,17 +44,17 @@ export function ConnectionStatus({
   return (
     <div className={cn(
       "flex items-center gap-3 p-3 rounded-lg border",
-      connection.getStatusColor() === 'green' && "bg-green-50 border-green-200",
-      connection.getStatusColor() === 'yellow' && "bg-yellow-50 border-yellow-200",
-      connection.getStatusColor() === 'red' && "bg-red-50 border-red-200",
+      connection.getStatusColor() === 'green' && "bg-green-50 dark:bg-green-950 border-green-200",
+      connection.getStatusColor() === 'yellow' && "bg-yellow-50 dark:bg-yellow-950 border-yellow-200",
+      connection.getStatusColor() === 'red' && "bg-red-50 dark:bg-red-950 border-red-200",
       className
     )}>
       <div 
         className={cn(
           "w-3 h-3 rounded-full",
-          connection.getStatusColor() === 'green' && "bg-green-500",
-          connection.getStatusColor() === 'yellow' && "bg-yellow-500",
-          connection.getStatusColor() === 'red' && "bg-red-500"
+          connection.getStatusColor() === 'green' && "bg-green-500 dark:bg-green-600",
+          connection.getStatusColor() === 'yellow' && "bg-yellow-500 dark:bg-yellow-600",
+          connection.getStatusColor() === 'red' && "bg-red-500 dark:bg-red-600"
         )}
       />
       
@@ -69,7 +69,7 @@ export function ConnectionStatus({
         </p>
         
         {showDetails && (
-          <div className="text-xs text-gray-500 mt-1 space-y-1">
+          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 space-y-1">
             {connection.latency && (
               <div>Reactietijd: {connection.latency}ms</div>
             )}
@@ -79,7 +79,7 @@ export function ConnectionStatus({
               </div>
             )}
             {connection.error && (
-              <div className="text-red-600">Fout: {connection.error}</div>
+              <div className="text-red-600 dark:text-red-400">Fout: {connection.error}</div>
             )}
           </div>
         )}
@@ -90,9 +90,9 @@ export function ConnectionStatus({
           onClick={() => connection.checkConnection()}
           className={cn(
             "px-3 py-1 text-xs rounded border font-medium",
-            "hover:bg-white transition-colors",
-            connection.getStatusColor() === 'yellow' && "border-yellow-300 text-yellow-700",
-            connection.getStatusColor() === 'red' && "border-red-300 text-red-700"
+            "hover:bg-white dark:bg-gray-900 transition-colors",
+            connection.getStatusColor() === 'yellow' && "border-yellow-300 dark:border-yellow-700 text-yellow-700 dark:text-yellow-300",
+            connection.getStatusColor() === 'red' && "border-red-300 dark:border-red-700 text-red-700 dark:text-red-300"
           )}
         >
           Opnieuw proberen
@@ -115,7 +115,7 @@ export function LoadingWithConnectionStatus({
   return (
     <div className={cn("flex flex-col items-center justify-center p-8 space-y-4", className)}>
       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      <p className="text-gray-600">{message}</p>
+      <p className="text-gray-600 dark:text-gray-300">{message}</p>
       
       {!connection.isHealthy && (
         <ConnectionStatus showDetails className="max-w-md" />

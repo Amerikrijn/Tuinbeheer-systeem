@@ -87,7 +87,7 @@ export function BankingForm({
       {submitError && (
         <div 
           id="submit-error"
-          className="error-message bg-red-50 border border-red-200 rounded-md p-4 text-red-700" 
+          className="error-message bg-red-50 dark:bg-red-950 border border-red-200 rounded-md p-4 text-red-700 dark:text-red-300" 
           role="alert"
           aria-live="polite"
         >
@@ -95,11 +95,11 @@ export function BankingForm({
         </div>
       )}
       
-      <div className="form-actions pt-6 border-t border-gray-200">
+      <div className="form-actions pt-6 border-t border-gray-200 dark:border-gray-600">
         <Button
           type="submit"
           disabled={!isValid || isSubmitting}
-          className="w-full sm:w-auto bg-green-600 hover:bg-green-700 focus:ring-green-500"
+          className="w-full sm:w-auto bg-green-600 dark:bg-green-700 hover:bg-green-700 focus:ring-green-500"
           aria-describedby={submitError ? "submit-error" : undefined}
         >
           {isSubmitting ? (

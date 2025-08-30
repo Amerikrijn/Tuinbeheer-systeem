@@ -296,19 +296,19 @@ export const PRIORITY_CONFIGS: PriorityConfig[] = [
     value: 'low',
     label: 'Laag',
     color: '#6B7280',
-    badge_color: 'bg-gray-100 text-gray-800'
+    badge_color: 'bg-gray-100 dark:bg-gray-800 dark:bg-gray-100 text-gray-800 dark:text-gray-100'
   },
   {
     value: 'medium',
     label: 'Gemiddeld',
     color: '#F59E0B',
-    badge_color: 'bg-yellow-100 text-yellow-800'
+    badge_color: 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800'
   },
   {
     value: 'high',
     label: 'Hoog',
     color: '#EF4444',
-    badge_color: 'bg-red-100 text-red-800'
+    badge_color: 'bg-red-100 dark:bg-red-900 text-red-800'
   }
 ]
 

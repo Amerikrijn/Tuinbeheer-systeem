@@ -229,11 +229,11 @@ function AcceptInvitationContent() {
 
   const getPasswordStrengthColor = (password: string) => {
     const errors = validatePassword(password)
-    if (password.length === 0) return 'bg-gray-200'
-    if (errors.length > 3) return 'bg-red-500'
-    if (errors.length > 1) return 'bg-yellow-500'
-    if (errors.length === 1) return 'bg-blue-500'
-    return 'bg-green-500'
+    if (password.length === 0) return 'bg-gray-200 dark:bg-gray-700'
+    if (errors.length > 3) return 'bg-red-500 dark:bg-red-600'
+    if (errors.length > 1) return 'bg-yellow-500 dark:bg-yellow-600'
+    if (errors.length === 1) return 'bg-blue-500 dark:bg-blue-600'
+    return 'bg-green-500 dark:bg-green-600'
   }
 
   const getPasswordStrengthText = (password: string) => {
@@ -251,7 +251,7 @@ function AcceptInvitationContent() {
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center py-8">
             <div className="h-8 w-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mb-4" />
-            <p className="text-gray-600">Uitnodiging verifiëren...</p>
+            <p className="text-gray-600 dark:text-gray-300">Uitnodiging verifiëren...</p>
           </CardContent>
         </Card>
       </div>
@@ -263,17 +263,17 @@ function AcceptInvitationContent() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <XCircle className="h-12 w-12 text-red-500 mx-auto mb-2" />
-            <CardTitle className="text-red-700">Ongeldige Uitnodiging</CardTitle>
-            <CardDescription className="text-red-600">
+            <XCircle className="h-12 w-12 text-red-500 dark:text-red-400 mx-auto mb-2" />
+            <CardTitle className="text-red-700 dark:text-red-300">Ongeldige Uitnodiging</CardTitle>
+            <CardDescription className="text-red-600 dark:text-red-400">
               {error || 'Deze uitnodiging is niet geldig of verlopen'}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <Alert className="border-red-200 bg-red-50">
-                <XCircle className="h-4 w-4 text-red-500" />
-                <AlertDescription className="text-red-700">
+              <Alert className="border-red-200 bg-red-50 dark:bg-red-950">
+                <XCircle className="h-4 w-4 text-red-500 dark:text-red-400" />
+                <AlertDescription className="text-red-700 dark:text-red-300">
                   Mogelijke oorzaken:
                   <ul className="list-disc list-inside mt-2 space-y-1">
                     <li>De uitnodiging is verlopen (na 72 uur)</li>
@@ -310,8 +310,8 @@ function AcceptInvitationContent() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-2" />
-          <CardTitle className="text-green-700">Uitnodiging Accepteren</CardTitle>
+          <CheckCircle className="h-12 w-12 text-green-500 dark:text-green-400 mx-auto mb-2" />
+          <CardTitle className="text-green-700 dark:text-green-300">Uitnodiging Accepteren</CardTitle>
           <CardDescription>
             Welkom! Je bent uitgenodigd voor het tuinbeheer systeem.
           </CardDescription>
@@ -319,29 +319,29 @@ function AcceptInvitationContent() {
         
         <CardContent className="space-y-6">
           {/* Invitation Details */}
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+          <div className="bg-green-50 dark:bg-green-950 p-4 rounded-lg border border-green-200">
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Email:</span>
+                <span className="text-gray-600 dark:text-gray-300">Email:</span>
                 <span className="font-medium">{invitation.email}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Naam:</span>
+                <span className="text-gray-600 dark:text-gray-300">Naam:</span>
                 <span className="font-medium">{invitation.full_name}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Rol:</span>
+                <span className="text-gray-600 dark:text-gray-300">Rol:</span>
                 <div className="flex items-center space-x-1">
                   {invitation.role === 'admin' ? (
                     <Shield className="h-4 w-4 text-purple-500" />
                   ) : (
-                    <UserCheck className="h-4 w-4 text-blue-500" />
+                    <UserCheck className="h-4 w-4 text-blue-500 dark:text-blue-400" />
                   )}
                   <span className="font-medium capitalize">{invitation.role}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-gray-600">Verloopt:</span>
+                <span className="text-gray-600 dark:text-gray-300">Verloopt:</span>
                 <div className="flex items-center space-x-1">
                   <Clock className="h-4 w-4 text-orange-500" />
                   <span className="font-medium">
@@ -353,9 +353,9 @@ function AcceptInvitationContent() {
           </div>
 
           {isExpired ? (
-            <Alert className="border-red-200 bg-red-50">
-              <XCircle className="h-4 w-4 text-red-500" />
-              <AlertDescription className="text-red-700">
+            <Alert className="border-red-200 bg-red-50 dark:bg-red-950">
+              <XCircle className="h-4 w-4 text-red-500 dark:text-red-400" />
+              <AlertDescription className="text-red-700 dark:text-red-300">
                 Deze uitnodiging is verlopen. Neem contact op met een administrator voor een nieuwe uitnodiging.
               </AlertDescription>
             </Alert>
@@ -377,7 +377,7 @@ function AcceptInvitationContent() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-60 dark:hover:text-gray-600 dark:text-gray-300"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -389,15 +389,15 @@ function AcceptInvitationContent() {
                     <div className="flex items-center justify-between text-xs">
                       <span>Wachtwoord sterkte:</span>
                       <span className={`font-medium ${
-                        getPasswordStrengthText(formData.password) === 'Sterk' ? 'text-green-600' :
-                        getPasswordStrengthText(formData.password) === 'Goed' ? 'text-blue-600' :
-                        getPasswordStrengthText(formData.password) === 'Matig' ? 'text-yellow-600' :
-                        'text-red-600'
+                        getPasswordStrengthText(formData.password) === 'Sterk' ? 'text-green-600 dark:text-green-400' :
+                        getPasswordStrengthText(formData.password) === 'Goed' ? 'text-blue-600 dark:text-blue-400' :
+                        getPasswordStrengthText(formData.password) === 'Matig' ? 'text-yellow-600 dark:text-yellow-400' :
+                        'text-red-600 dark:text-red-400'
                       }`}>
                         {getPasswordStrengthText(formData.password)}
                       </span>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div 
                         className={`h-2 rounded-full transition-all duration-300 ${getPasswordStrengthColor(formData.password)}`}
                         style={{ 
@@ -425,7 +425,7 @@ function AcceptInvitationContent() {
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-60 dark:hover:text-gray-600 dark:text-gray-300"
                   >
                     {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
@@ -436,13 +436,13 @@ function AcceptInvitationContent() {
                   <div className="flex items-center space-x-2 text-xs">
                     {formData.password === formData.confirmPassword ? (
                       <>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-green-600">Wachtwoorden komen overeen</span>
+                        <CheckCircle className="h-4 w-4 text-green-500 dark:text-green-400" />
+                        <span className="text-green-600 dark:text-green-400">Wachtwoorden komen overeen</span>
                       </>
                     ) : (
                       <>
-                        <XCircle className="h-4 w-4 text-red-500" />
-                        <span className="text-red-600">Wachtwoorden komen niet overeen</span>
+                        <XCircle className="h-4 w-4 text-red-500 dark:text-red-400" />
+                        <span className="text-red-600 dark:text-red-400">Wachtwoorden komen niet overeen</span>
                       </>
                     )}
                   </div>
@@ -450,27 +450,27 @@ function AcceptInvitationContent() {
               </div>
 
               {/* Password Requirements */}
-              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                <p className="text-sm font-medium text-blue-700 mb-2">Wachtwoord vereisten:</p>
-                <ul className="text-xs text-blue-600 space-y-1">
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg border border-blue-200">
+                <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">Wachtwoord vereisten:</p>
+                <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1">
                   <li className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${formData.password.length >= 8 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <div className={`w-2 h-2 rounded-full ${formData.password.length >= 8 ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <span>Minimaal 8 karakters</span>
                   </li>
                   <li className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${/[A-Z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <div className={`w-2 h-2 rounded-full ${/[A-Z]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <span>Minimaal 1 hoofdletter</span>
                   </li>
                   <li className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${/[a-z]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <div className={`w-2 h-2 rounded-full ${/[a-z]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <span>Minimaal 1 kleine letter</span>
                   </li>
                   <li className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${/[0-9]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <div className={`w-2 h-2 rounded-full ${/[0-9]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <span>Minimaal 1 cijfer</span>
                   </li>
                   <li className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\?]/.test(formData.password) ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    <div className={`w-2 h-2 rounded-full ${/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\?]/.test(formData.password) ? 'bg-green-500 dark:bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`} />
                     <span>Minimaal 1 speciaal teken</span>
                   </li>
                 </ul>
@@ -499,13 +499,13 @@ function AcceptInvitationContent() {
 
           {/* Footer Links */}
           <div className="text-center space-y-2">
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Heb je al een account?{' '}
-              <Link href="/auth/login" className="text-green-600 hover:underline">
+              <Link href="/auth/login" className="text-green-600 dark:text-green-400 hover:underline">
                 Inloggen
               </Link>
             </p>
-            <p className="text-xs text-gray-400">
+            <p className="text-xs text-gray-400 dark:text-gray-500">
               Door je account aan te maken ga je akkoord met onze voorwaarden.
             </p>
           </div>
@@ -523,7 +523,7 @@ export default function AcceptInvitationPage() {
           <Card className="w-full max-w-md">
             <CardContent className="flex flex-col items-center justify-center py-8">
               <div className="h-8 w-8 border-2 border-green-200 border-t-green-600 rounded-full animate-spin mb-4" />
-              <p className="text-gray-600">Pagina laden...</p>
+              <p className="text-gray-600 dark:text-gray-300">Pagina laden...</p>
             </CardContent>
           </Card>
         </div>

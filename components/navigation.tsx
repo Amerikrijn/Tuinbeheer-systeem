@@ -49,7 +49,7 @@ export function BankingNavigation() {
       <div className="container mx-auto px-4 safe-area-px">
         <div className="flex justify-between items-center h-16 touch-pan-y">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3 text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 transition-colors group">
+          <Link href="/" className="flex items-center space-x-3 text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-300 transition-colors group">
             <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl group-hover:bg-green-200 dark:group-hover:bg-green-800/50 transition-colors">
               <TreePine className="h-6 w-6" />
             </div>
@@ -68,8 +68,8 @@ export function BankingNavigation() {
                   href={item.href}
                   className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 flex items-center gap-2 ${
                     isActive
-                      ? "bg-green-600 text-white shadow-lg shadow-green-600/25"
-                      : "text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
+                      ? "bg-green-600 dark:bg-green-700 text-white dark:text-black shadow-lg shadow-green-600/25"
+                      : "text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
                   }`}
                   role="menuitem"
                   aria-current={isActive ? "page" : undefined}
@@ -87,7 +87,7 @@ export function BankingNavigation() {
             {user && (
               <div className="hidden md:flex items-center gap-2">
                 <div className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800">
-                  <User className="h-3.5 w-3.5 text-green-700 dark:text-green-400" />
+                  <User className="h-3.5 w-3.5 text-green-700 dark:text-green-300" />
                   <span className="text-xs text-green-800 dark:text-green-300 font-medium">
                     {user.full_name || user.email}
                   </span>
@@ -104,7 +104,7 @@ export function BankingNavigation() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Menu openen"
             >
-              {mobileMenuOpen ? <X className="h-4 w-4 text-green-700 dark:text-green-400" /> : <Menu className="h-4 w-4 text-green-700 dark:text-green-400" />}
+              {mobileMenuOpen ? <X className="h-4 w-4 text-green-700 dark:text-green-300" /> : <Menu className="h-4 w-4 text-green-700 dark:text-green-300" />}
             </Button>
           </div>
         </div>
@@ -123,8 +123,8 @@ export function BankingNavigation() {
                     href={item.href}
                     className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-150 flex items-center gap-2 ${
                       isActive
-                        ? "bg-green-600 text-white shadow-lg shadow-green-600/25"
-                        : "text-green-700 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
+                        ? "bg-green-600 dark:bg-green-700 text-white dark:text-black shadow-lg shadow-green-600/25"
+                        : "text-green-700 dark:text-green-300 hover:text-green-800 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
                     }`}
                     onClick={() => setMobileMenuOpen(false)}
                     role="menuitem"

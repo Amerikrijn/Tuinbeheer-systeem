@@ -1501,7 +1501,7 @@ export default function PlantBedViewPage() {
       case 'ziek':
         return 'border-red-500 shadow-red-200'
       default:
-        return 'border-gray-500 shadow-gray-200'
+        return 'border-gray-500 dark:border-gray-400 shadow-gray-200'
     }
   }
 
@@ -1523,10 +1523,10 @@ export default function PlantBedViewPage() {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center py-12">
-          <Leaf className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+          <Leaf className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">Plantvak niet gevonden</h3>
           <p className="text-muted-foreground mb-4">Het plantvak dat je zoekt bestaat niet.</p>
-          <Button onClick={goBack} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={goBack} className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug
           </Button>
@@ -1545,7 +1545,7 @@ export default function PlantBedViewPage() {
               variant="outline"
               size="sm"
               onClick={goBack}
-              className="h-10 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+              className="h-10 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Terug
@@ -1553,7 +1553,7 @@ export default function PlantBedViewPage() {
             
             <div className="flex items-center gap-3">
               <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                <Flower className="w-5 h-5 text-green-700 dark:text-green-400" />
+                <Flower className="w-5 h-5 text-green-700 dark:text-green-300" />
               </div>
               <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
                 {plantBed.name}
@@ -1571,7 +1571,7 @@ export default function PlantBedViewPage() {
               }
             }}>
               <DialogTrigger asChild>
-                <Button className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white text-sm" onClick={() => {
+                <Button className="h-8 px-3 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black text-sm" onClick={() => {
                   // Reset form when opening dialog
                   setNewFlower(createInitialPlantFormData())
                   setIsCustomFlower(false)
@@ -1580,7 +1580,7 @@ export default function PlantBedViewPage() {
                   Plant Toevoegen
                 </Button>
               </DialogTrigger>
-              <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background border border-gray-200 shadow-xl">
+              <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background border border-gray-200 dark:border-gray-600 shadow-xl">
                 <DialogHeader>
                   <DialogTitle>Nieuwe Plant Toevoegen</DialogTitle>
                   <DialogDescription>
@@ -1627,7 +1627,7 @@ export default function PlantBedViewPage() {
               setSelectedFlower(null)
             }
           }}>
-            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background z-50 border border-gray-200 shadow-xl">
+            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background z-50 border border-gray-200 dark:border-gray-600 shadow-xl">
               <DialogHeader>
                 <DialogTitle>Plant Bewerken</DialogTitle>
                 <DialogDescription>
@@ -1655,7 +1655,7 @@ export default function PlantBedViewPage() {
                   <Button 
                     variant="outline" 
                     onClick={() => selectedFlower && removeFlower(selectedFlower.id)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Verwijderen
@@ -1871,7 +1871,7 @@ export default function PlantBedViewPage() {
               <Button 
                 variant="outline" 
                 onClick={() => setShowDeletePlantBedDialog(true)}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 hover:bg-red-50"
               >
                 <Trash2 className="h-4 w-4 mr-1" />
                 Verwijderen
@@ -1888,7 +1888,7 @@ export default function PlantBedViewPage() {
       <Dialog open={showDeletePlantBedDialog} onOpenChange={setShowDeletePlantBedDialog}>
         <DialogContent className="w-[95vw] max-w-md">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
+            <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
               <Trash2 className="h-5 w-5" />
               Plantvak Verwijderen
             </DialogTitle>
@@ -1900,13 +1900,13 @@ export default function PlantBedViewPage() {
           <div className="space-y-4">
             <div className="bg-red-50 border border-red-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-red-500 dark:bg-red-600 rounded-full"></div>
                 <span className="font-medium text-red-800">Te verwijderen:</span>
               </div>
-              <p className="text-sm text-red-700">
+              <p className="text-sm text-red-700 dark:text-red-300">
                 <strong>{plantBed?.name}</strong> ({plantBed?.size || 'Onbekende grootte'})
               </p>
-              <p className="text-sm text-red-700">
+              <p className="text-sm text-red-700 dark:text-red-300">
                 {flowerPositions.length} bloemen worden ook verwijderd
               </p>
             </div>
@@ -2031,7 +2031,7 @@ export default function PlantBedViewPage() {
                   <li>• <strong>Knoppen:</strong> Gebruik knoppen hierboven</li>
                 </ul>
                 <div className="mt-2 pt-2 border-t border-blue-300">
-                  <p className="text-xs text-blue-700">
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
                     🌱 <strong>Plantvak:</strong> {plantBed?.size || 'Onbekend'}
                   </p>
                 </div>
@@ -2086,7 +2086,7 @@ export default function PlantBedViewPage() {
                 
                 return (
                   <div
-                    className="absolute border-2 border-dashed border-green-400 bg-green-50/20 dark:bg-green-950/10 rounded-lg pointer-events-none"
+                    className="absolute border-2 border-dashed border-green-400 bg-green-50 dark:bg-green-950/20 dark:bg-green-950/10 rounded-lg pointer-events-none"
                     style={{
                       left: plantvakStartX,
                       top: plantvakStartY,
@@ -2119,7 +2119,7 @@ export default function PlantBedViewPage() {
                       isSelected && isResizeMode ? "ring-4 ring-blue-500 shadow-xl cursor-default" :
                       isSelected ? "ring-4 ring-blue-500 shadow-xl cursor-pointer" :
                       "shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer"
-                    } transition-transform duration-150 flex items-center justify-center text-white relative overflow-hidden bg-opacity-0 border-opacity-50`}
+                    } transition-transform duration-150 flex items-center justify-center text-white dark:text-black relative overflow-hidden bg-opacity-0 border-opacity-50`}
                     style={{
                       left: flower.position_x,
                       top: flower.position_y,
@@ -2162,7 +2162,7 @@ export default function PlantBedViewPage() {
                         ) : flower.emoji ? (
                           flower.emoji
                         ) : (
-                          <div className="text-center text-white font-bold leading-tight" style={{ 
+                          <div className="text-center text-white dark:text-black font-bold leading-tight" style={{ 
                             fontSize: Math.max(8, Math.min(16, flower.visual_width * 0.2)) + 'px',
                             textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
                           }}>
@@ -2174,7 +2174,7 @@ export default function PlantBedViewPage() {
                       {/* Toon naam als er genoeg ruimte is */}
                       {flower.visual_width > 60 && (
                         <div 
-                          className="text-center text-white font-bold mt-1 px-1 leading-tight"
+                          className="text-center text-white dark:text-black font-bold mt-1 px-1 leading-tight"
                           style={{ 
                             fontSize: Math.max(8, Math.min(16, flower.visual_width * 0.15)) + 'px',
                             textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
@@ -2194,13 +2194,13 @@ export default function PlantBedViewPage() {
 
                     {/* Mode indicators */}
                     {isSelected && isDragMode && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white text-xs px-2 py-1 rounded shadow-lg font-bold z-20">
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white dark:text-black text-xs px-2 py-1 rounded shadow-lg font-bold z-20">
                         🖱️ Sleep me!
                       </div>
                     )}
                     
                     {isSelected && isResizeMode && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-blue-600 text-white text-xs px-2 py-1 rounded shadow-lg font-bold z-20">
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-blue-500 dark:bg-blue-600 text-white dark:text-black text-xs px-2 py-1 rounded shadow-lg font-bold z-20">
                         📏 Resize actief!
                       </div>
                     )}
@@ -2228,10 +2228,10 @@ export default function PlantBedViewPage() {
                           )
                         })()}
                         
-                        <div className="absolute -top-16 -right-2 bg-purple-500 text-white text-sm px-3 py-1 rounded z-10 animate-bounce font-bold">
+                        <div className="absolute -top-16 -right-2 bg-purple-500 text-white dark:text-black text-sm px-3 py-1 rounded z-10 animate-bounce font-bold">
                           🖱️💻📱 UNIVERSEEL SYSTEEM
                         </div>
-                        <div className="absolute -top-10 -right-2 bg-orange-500 text-white text-xs px-2 py-1 rounded z-10 font-bold">
+                        <div className="absolute -top-10 -right-2 bg-orange-500 text-white dark:text-black text-xs px-2 py-1 rounded z-10 font-bold">
                           Muis • Trackpad • Mobiel
                         </div>
                         
@@ -2243,7 +2243,7 @@ export default function PlantBedViewPage() {
                         
                         {/* DRAG HANDLE VOOR MEER BLOEMEN */}
                         <div 
-                          className="absolute -bottom-8 -right-8 w-20 h-20 bg-yellow-400 border-4 border-black rounded-full cursor-se-resize hover:bg-yellow-300 flex items-center justify-center z-50 shadow-2xl animate-bounce"
+                          className="absolute -bottom-8 -right-8 w-20 h-20 bg-yellow-400 border-4 border-black dark:border-white rounded-full cursor-se-resize hover:bg-yellow-300 flex items-center justify-center z-50 shadow-2xl animate-bounce"
                           onMouseDown={(e) => {
                             e.preventDefault()
                             e.stopPropagation()
@@ -2340,7 +2340,7 @@ export default function PlantBedViewPage() {
 
                         {/* Show live area info during resize */}
                         {isBeingResized && (
-                          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white text-sm px-3 py-2 rounded-full z-10 animate-bounce shadow-lg">
+                          <div className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-green-500 dark:bg-green-600 text-white dark:text-black text-sm px-3 py-2 rounded-full z-10 animate-bounce shadow-lg">
                             🌸 Gebied: {(() => {
                               const areaSize = flower.notes?.includes('area_size:') 
                                 ? parseInt(flower.notes.split('area_size:')[1]) || FLOWER_SIZE * 3
@@ -2370,7 +2370,7 @@ export default function PlantBedViewPage() {
               {flowerPositions.length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="text-center">
-                    <Flower className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                    <Flower className="h-16 w-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
                     <h3 className="text-lg font-medium text-foreground mb-2">Nog geen bloemen</h3>
                     <p className="text-muted-foreground mb-4">Voeg bloemen toe aan dit plantvak.</p>
                     <Button onClick={() => setIsAddingFlower(true)} className="bg-pink-600 hover:bg-pink-700">
@@ -2408,7 +2408,7 @@ export default function PlantBedViewPage() {
               {/* Flowers List */}
               {flowerPositions.length === 0 ? (
                 <div className="text-center py-12">
-                  <Flower className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                  <Flower className="h-16 w-16 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
                   <h3 className="text-lg font-medium text-foreground mb-2">Nog geen bloemen</h3>
                   <p className="text-muted-foreground mb-4">Voeg bloemen toe aan dit plantvak.</p>
                   <Button onClick={() => setIsAddingFlower(true)} className="bg-pink-600 hover:bg-pink-700">
@@ -2445,7 +2445,7 @@ export default function PlantBedViewPage() {
                                 <span>Kleur:</span>
                                 <div className="flex items-center gap-1">
                                   <div
-                                    className="w-3 h-3 rounded-full border border-gray-300"
+                                    className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-500"
                                     style={{ backgroundColor: flower.color || flower.plant_color }}
                                   />
                                   <span className="text-xs">{flower.plant_color}</span>
@@ -2532,7 +2532,7 @@ export default function PlantBedViewPage() {
               <div className="mt-8">
                 <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
                   <div className="flex items-center gap-3">
-                      <Calendar className="h-6 w-6 text-blue-700 dark:text-blue-400" />
+                      <Calendar className="h-6 w-6 text-blue-700 dark:text-blue-300" />
                       <span className="font-semibold text-foreground text-xl leading-snug">Taken voor dit Plantvak</span>
                       <Badge variant="secondary" className="text-sm">{tasks.length} taken</Badge>
                     </div>
@@ -2551,7 +2551,7 @@ export default function PlantBedViewPage() {
                         size="sm"
                         variant="outline"
                         onClick={() => handleAddTask(flowerPositions[0].id)}
-                        className="text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-950/30"
+                        className="text-green-600 dark:text-green-400 border-green-200 dark:border-green-800 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30"
                       >
                         <Plus className="h-4 w-4 mr-1" />
                         Bloem Taak
@@ -2568,7 +2568,7 @@ export default function PlantBedViewPage() {
                   </div>
                 ) : tasks.length === 0 ? (
                   <div className="text-center py-8">
-                    <Calendar className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <Calendar className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" />
                     <h3 className="text-lg font-medium text-foreground mb-2">Nog geen taken</h3>
                     <p className="text-muted-foreground mb-4">Voeg taken toe voor dit plantvak of specifieke bloemen.</p>
                   </div>
@@ -2608,7 +2608,7 @@ export default function PlantBedViewPage() {
                                   <div className="flex-1 min-w-0">
                                       {/* Header: Plantvak → Bloem • Taak (one row) */}
                                       <div className="flex items-center gap-2 mb-1 text-base text-foreground leading-snug">
-                                        <span className="text-gray-300" aria-hidden>•</span>
+                                        <span className="text-gray-300 dark:text-gray-600" aria-hidden>•</span>
                                         <span className={`font-semibold truncate ${task.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{task.title}</span>
                                       </div>
                                       {task.description && (
@@ -2630,7 +2630,7 @@ export default function PlantBedViewPage() {
                                       
                                       <div className="flex items-center gap-1.5">
                                           <Clock className="h-3.5 w-3.5" />
-                                          <span className={isOverdue ? 'text-red-700 font-semibold' : isToday ? 'text-orange-700 font-semibold' : 'text-foreground'}>
+                                          <span className={isOverdue ? 'text-red-700 dark:text-red-300 font-semibold' : isToday ? 'text-orange-700 font-semibold' : 'text-foreground'}>
                                             {formatTaskDate(task.due_date)}
                                           </span>
                                         </div>

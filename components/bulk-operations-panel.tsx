@@ -76,7 +76,7 @@ export function BulkOperationsPanel({
   }
 
   return (
-    <Card className="border-blue-200 bg-blue-50">
+    <Card className="border-blue-200 bg-blue-50 dark:bg-blue-950">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-blue-800">
@@ -138,10 +138,10 @@ export function BulkOperationsPanel({
             {activeOperation === "move" && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Move className="h-5 w-5 text-blue-600" />
+                  <Move className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   <h3 className="font-medium">Planten verplaatsen</h3>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Verplaats {selectedCount} geselecteerde planten naar een ander plantvak.
                 </p>
                 <div className="space-y-2">
@@ -163,7 +163,7 @@ export function BulkOperationsPanel({
                   <Button
                     onClick={handleMove}
                     disabled={!targetBedId || loading}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-blue-600 dark:bg-blue-700 hover:bg-blue-700"
                   >
                     {loading ? (
                       <>
@@ -190,7 +190,7 @@ export function BulkOperationsPanel({
                   <Edit className="h-5 w-5 text-green-600" />
                   <h3 className="font-medium">Planten bijwerken</h3>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Werk eigenschappen bij van {selectedCount} geselecteerde planten.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -242,7 +242,7 @@ export function BulkOperationsPanel({
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={handleUpdate} disabled={loading} className="bg-green-600 hover:bg-green-700">
+                  <Button onClick={handleUpdate} disabled={loading} className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
                     {loading ? (
                       <>
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
@@ -265,12 +265,12 @@ export function BulkOperationsPanel({
             {activeOperation === "delete" && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Trash2 className="h-5 w-5 text-red-600" />
-                  <h3 className="font-medium text-red-700">Planten verwijderen</h3>
+                  <Trash2 className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  <h3 className="font-medium text-red-700 dark:text-red-300">Planten verwijderen</h3>
                 </div>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="bg-red-50 dark:bg-red-950 border border-red-200 rounded-lg p-4">
                   <p className="text-red-800 font-medium mb-2">⚠️ Waarschuwing</p>
-                  <p className="text-red-700 text-sm">
+                  <p className="text-red-700 dark:text-red-300 text-sm">
                     Je staat op het punt om {selectedCount} planten permanent te verwijderen. Deze actie kan niet
                     ongedaan worden gemaakt.
                   </p>

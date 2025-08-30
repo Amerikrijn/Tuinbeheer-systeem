@@ -15,14 +15,14 @@ export default function NotFound() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold md:text-3xl">
-            <TreePine className="h-7 w-7 text-green-600" />
+            <TreePine className="h-7 w-7 text-green-600 dark:text-green-400" />
             Tuinbeheer Systeem
           </h1>
           <p className="text-muted-foreground">Page Not Found</p>
         </div>
       </div>
 
-      <Card className="border-red-200 bg-red-50">
+      <Card className="border-red-200 bg-red-50 dark:bg-red-950">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-red-800">
             <AlertCircle className="h-5 w-5" />
@@ -30,7 +30,7 @@ export default function NotFound() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-red-700 mb-4">
+          <p className="text-red-700 dark:text-red-300 mb-4">
             The page you're looking for doesn't exist. It may have been moved, deleted, or you entered an incorrect URL.
           </p>
           
@@ -69,7 +69,7 @@ export default function NotFound() {
             <div className="bg-card p-4 rounded-lg border border-border">
               <h3 className="font-semibold mb-2">Quick Actions:</h3>
               <div className="space-y-2">
-                <Button asChild className="w-full bg-green-600 hover:bg-green-700">
+                <Button asChild className="w-full bg-green-600 dark:bg-green-700 hover:bg-green-700">
                   <Link href="/">
                     <Home className="mr-2 h-4 w-4" />
                     Go to Home Page

@@ -82,7 +82,7 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
           <div className="space-y-2">
             <Label htmlFor="email">E-mailadres</Label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
               <Input
                 id="email"
                 type="email"
@@ -95,7 +95,7 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
               />
             </div>
             {errors.email && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
+              <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
                 <AlertCircle className="w-4 h-4" />
                 {errors.email}
               </p>
@@ -106,7 +106,7 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
           <div className="space-y-2">
             <Label htmlFor="password">Wachtwoord</Label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
               <Input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -120,7 +120,7 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-60 dark:hover:text-gray-600 dark:text-gray-300"
                 disabled={isFormDisabled}
                 data-testid="toggle-password"
               >
@@ -128,7 +128,7 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
               </button>
             </div>
             {errors.password && (
-              <p className="text-sm text-red-600 flex items-center gap-1">
+              <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
                 <AlertCircle className="w-4 h-4" />
                 {errors.password}
               </p>

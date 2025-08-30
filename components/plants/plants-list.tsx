@@ -82,7 +82,7 @@ export function PlantsList() {
       case 'good': return 'text-blue-600 dark:text-blue-400'
       case 'fair': return 'text-yellow-600 dark:text-yellow-400'
       case 'poor': return 'text-red-600 dark:text-red-400'
-      default: return 'text-muted-foreground dark:text-gray-400'
+      default: return 'text-muted-foreground dark:text-gray-400 dark:text-gray-400'
     }
   }
 
@@ -100,7 +100,7 @@ export function PlantsList() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-foreground dark:text-white">
+          <h2 className="text-xl font-semibold text-foreground dark:text-white dark:text-black">
             Mijn Planten
           </h2>
           <Button disabled>
@@ -117,7 +117,7 @@ export function PlantsList() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-foreground dark:text-white">
+          <h2 className="text-xl font-semibold text-foreground dark:text-white dark:text-black">
             Mijn Planten
           </h2>
           <Link href="/plants/new">
@@ -131,8 +131,8 @@ export function PlantsList() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground dark:text-white mb-2">
+              <AlertCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground dark:text-white dark:text-black mb-2">
                 Fout bij laden
               </h3>
               <p className="text-muted-foreground dark:text-gray-400 mb-4">
@@ -156,7 +156,7 @@ export function PlantsList() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-foreground dark:text-white">
+        <h2 className="text-xl font-semibold text-foreground dark:text-white dark:text-black">
           Mijn Planten
         </h2>
         <div className="flex items-center gap-2">
@@ -185,8 +185,8 @@ export function PlantsList() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-center py-8">
-              <Leaf className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-foreground dark:text-white mb-2">
+              <Leaf className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-foreground dark:text-white dark:text-black mb-2">
                 Geen planten gevonden
               </h3>
               <p className="text-muted-foreground dark:text-gray-400 mb-4">

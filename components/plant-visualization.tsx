@@ -152,7 +152,7 @@ export function PlantVisualization({ plantBed, plants, containerWidth, container
         >
           {/* Simple flower box */}
           <div
-            className="w-full h-full border-2 border-gray-400 dark:border-gray-600 rounded-lg bg-background/95 shadow-md flex flex-col items-center justify-center"
+            className="w-full h-full border-2 border-gray-400 dark:border-gray-400 dark:border-gray-300 rounded-lg bg-background/95 shadow-md flex flex-col items-center justify-center"
             style={{
               borderColor: `${flower.color}80`,
               backgroundColor: `${flower.color}25`,
@@ -172,7 +172,7 @@ export function PlantVisualization({ plantBed, plants, containerWidth, container
             {/* Flower name - only show if there's space */}
             {flower.size > 30 && (
               <div 
-                className="text-xs font-medium text-gray-800 mt-1 text-center select-none"
+                className="text-xs font-medium text-gray-800 dark:text-gray-100 mt-1 text-center select-none"
                 style={{
                   fontSize: Math.max(6, flower.size * 0.2),
                   maxWidth: flower.size * 0.9,

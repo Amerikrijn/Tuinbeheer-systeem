@@ -381,14 +381,14 @@ export default function EditLogbookPage() {
                       >
                         <X className="h-4 w-4" />
                       </Button>
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-xs bg-black bg-opacity-50 px-2 py-1 rounded">
+                      <div className="absolute inset-0 bg-black dark:bg-white bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white dark:text-black text-xs bg-black dark:bg-white bg-opacity-50 px-2 py-1 rounded">
                           Klik om te vergroten
                         </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-500 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
                       <ImageIcon className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
                       <p className="text-sm text-muted-foreground mb-2">Geen foto geselecteerd</p>
                       <p className="text-xs text-muted-foreground">Klik op 'Foto uploaden' om een afbeelding toe te voegen</p>

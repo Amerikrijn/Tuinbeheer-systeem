@@ -171,14 +171,14 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
                     id={`garden-${garden.id}`}
                     checked={userGardenAccess.includes(garden.id)}
                     onChange={() => toggleGardenAccess(garden.id)}
-                    className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    className="rounded border-gray-300 dark:border-gray-500 text-green-600 dark:text-green-400 focus:ring-green-500"
                   />
                   <label 
                     htmlFor={`garden-${garden.id}`}
                     className="flex-1 cursor-pointer"
                   >
                     <div className="flex items-center space-x-2">
-                      <TreePine className="w-4 h-4 text-green-600" />
+                      <TreePine className="w-4 h-4 text-green-600 dark:text-green-400" />
                       <div>
                         <p className="font-medium">{garden.name}</p>
                         {garden.description && (

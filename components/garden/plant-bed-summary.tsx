@@ -90,7 +90,7 @@ const getSunExposureIcon = (exposure?: string) => {
   switch (exposure) {
     case 'full-sun': return <Sun className="h-3 w-3 text-yellow-500" />
     case 'partial-sun': return <CloudSun className="h-3 w-3 text-orange-500" />
-    case 'shade': return <Cloud className="h-3 w-3 text-gray-500" />
+    case 'shade': return <Cloud className="h-3 w-3 text-gray-500 dark:text-gray-400" />
     default: return null
   }
 }
@@ -218,17 +218,17 @@ export function PlantBedSummary({
             <Badge variant="secondary" className="text-xs">
               {plantBed.plants.length} planten
             </Badge>
-            <Badge variant="outline" className="text-xs bg-gray-100">
+            <Badge variant="outline" className="text-xs bg-gray-100 dark:bg-gray-800">
               {filterMode === 'sowing' ? '🌱 Geen zaaitijd' : '🌸 Bloeit niet'}
             </Badge>
           </div>
         </div>
         <div className="text-center py-2 text-muted-foreground bg-gray-50 dark:bg-gray-900 rounded">
-          <div className="text-gray-400 mb-1">
+          <div className="text-gray-400 dark:text-gray-500 mb-1">
             {filterMode === 'sowing' ? '🌱' : '🌸'}
           </div>
           <p className="text-xs">Niet actief in deze maand</p>
-          <p className="text-[10px] text-gray-500 mt-1">
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
             {plantBed.plants.length} plant{plantBed.plants.length !== 1 ? 'en' : ''} in dit plantvak
           </p>
         </div>
@@ -244,13 +244,13 @@ export function PlantBedSummary({
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-green-800 dark:text-green-200">{plantBed.name}</span>
             {getSunExposureIcon(plantBed.sun_exposure)}
-            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 border-green-300">
+            <Badge variant="secondary" className="text-xs bg-green-100 dark:bg-green-900 text-green-800 border-green-300 dark:border-green-700">
               {plantBed.plants.length} planten
             </Badge>
           </div>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="p-1 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors duration-150"
+            className="p-1 hover:bg-green-100 dark:bg-green-900 dark:hover:bg-green-900/30 rounded transition-colors duration-150"
           >
             {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </button>
@@ -267,7 +267,7 @@ export function PlantBedSummary({
                   {Array.from(group.colors).slice(0, 3).map((color, i) => (
                     <div
                       key={i}
-                      className="w-3 h-3 rounded-full border border-gray-300"
+                      className="w-3 h-3 rounded-full border border-gray-300 dark:border-gray-500"
                       style={{ backgroundColor: color }}
                       title={color}
                     />
@@ -303,7 +303,7 @@ export function PlantBedSummary({
                           <Tooltip key={i}>
                             <TooltipTrigger>
                               <div
-                                className="w-4 h-4 rounded-full border border-gray-300"
+                                className="w-4 h-4 rounded-full border border-gray-300 dark:border-gray-500"
                                 style={{ backgroundColor: color }}
                               />
                             </TooltipTrigger>

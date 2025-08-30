@@ -74,12 +74,12 @@ export const colors = {
   // Banking-compliant semantic colors that adapt to light/dark mode
   green: {
     50: 'bg-green-50 dark:bg-green-950/20 text-green-900 dark:text-green-100',
-    100: 'bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-200',
+    100: 'bg-green-100 dark:bg-green-900 dark:bg-green-950/30 text-green-800 dark:text-green-200',
     200: 'bg-green-200 dark:bg-green-950/40 text-green-800 dark:text-green-200',
     300: 'bg-green-300 dark:bg-green-950/50 text-green-700 dark:text-green-300',
-    500: 'bg-green-500 text-white dark:text-white',
-    600: 'bg-green-600 text-white dark:text-white',
-    700: 'bg-green-700 text-white dark:text-white',
+    500: 'bg-green-500 dark:bg-green-600 dark:bg-green-700 text-white dark:text-black dark:text-white dark:text-black',
+    600: 'bg-green-600 dark:bg-green-700 text-white dark:text-black dark:text-white dark:text-black',
+    700: 'bg-green-700 text-white dark:text-black dark:text-white dark:text-black',
   },
   
   // Semantic grays that adapt to theme
@@ -126,11 +126,11 @@ export const textContrast = {
 // ===================================================================
 
 export const buttonVariants = {
-  primary: 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500',
-  secondary: 'bg-gray-200 hover:bg-gray-300 text-gray-900 focus:ring-gray-500',
-  outline: 'border border-green-600 text-green-600 hover:bg-green-50 focus:ring-green-500',
-  ghost: 'text-green-600 hover:bg-green-50 focus:ring-green-500',
-  danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
+  primary: 'bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black focus:ring-green-500',
+  secondary: 'bg-gray-200 dark:bg-gray-700 dark:bg-gray-200 hover:bg-gray-300 dark:bg-gray-600 dark:bg-gray-300 text-gray-900 dark:text-gray-50 dark:text-gray-900 focus:ring-gray-500 dark:ring-gray-400',
+  outline: 'border border-green-600 text-green-600 dark:text-green-400 hover:bg-green-50 focus:ring-green-500',
+  ghost: 'text-green-600 dark:text-green-400 hover:bg-green-50 focus:ring-green-500',
+  danger: 'bg-red-600 dark:bg-red-700 hover:bg-red-700 text-white dark:text-black focus:ring-red-500',
 } as const;
 
 export const cardVariants = {
@@ -140,9 +140,9 @@ export const cardVariants = {
 } as const;
 
 export const inputVariants = {
-  default: 'border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500',
-  error: 'border border-red-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500',
-  success: 'border border-green-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500',
+  default: 'border border-gray-300 dark:border-gray-500 dark:border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500',
+  error: 'border border-red-300 dark:border-red-700 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500',
+  success: 'border border-green-300 dark:border-green-700 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500',
 } as const;
 
 // ===================================================================
@@ -157,15 +157,15 @@ export const accessibility = {
   touchTarget: 'min-h-[44px] min-w-[44px]',
   
   // Text contrast (4.5:1 ratio)
-  highContrast: 'text-gray-900',
-  mediumContrast: 'text-gray-700',
-  lowContrast: 'text-gray-600',
+  highContrast: 'text-gray-900 dark:text-gray-50 dark:text-gray-900',
+  mediumContrast: 'text-gray-700 dark:text-gray-200',
+  lowContrast: 'text-gray-600 dark:text-gray-300',
   
   // Screen reader only
   srOnly: 'sr-only',
   
   // Loading states
-  loading: 'animate-pulse bg-gray-200',
+  loading: 'animate-pulse bg-gray-200 dark:bg-gray-700 dark:bg-gray-200',
 } as const;
 
 // ===================================================================

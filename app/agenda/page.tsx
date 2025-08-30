@@ -16,13 +16,13 @@ export default function AgendaPage() {
 				{/* Minimalist Header */}
 				<div className="flex items-center justify-between mb-4">
 					<div className="flex items-center gap-2">
-						<Calendar className="h-5 w-5 text-green-600" />
+						<Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
 						<h1 className="text-xl font-semibold">Agenda</h1>
 					</div>
 					<Button 
 						asChild 
 						variant="ghost"
-						className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30"
+						className="h-8 px-3 text-green-600 dark:text-green-400 hover:text-green-700 dark:text-green-300 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30"
 					>
 						<Link href="/">
 							<ArrowLeft className="h-4 w-4 mr-2" />

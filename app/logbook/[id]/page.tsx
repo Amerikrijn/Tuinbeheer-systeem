@@ -169,7 +169,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
     return (
       <div className="container mx-auto px-4 py-8 safe-area-px">
         <div className="max-w-4xl mx-auto text-center">
-          <div className="text-red-600 mb-4">
+          <div className="text-red-600 dark:text-red-400 mb-4">
             <BookOpen className="h-12 w-12 mx-auto mb-2" />
             <h2 className="text-xl font-semibold">Fout bij laden logboek entry</h2>
           </div>
@@ -258,7 +258,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
               <span className="font-medium">{formatDate(state.entry.entry_date)}</span>
             </div>
             <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-blue-500" />
+              <MapPin className="h-4 w-4 text-blue-500 dark:text-blue-400" />
               <span>{state.entry.plant_bed_name}</span>
             </div>
             <Badge variant="outline" className="text-xs">
@@ -266,7 +266,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
             </Badge>
             {state.entry.plant_name && (
               <div className="flex items-center gap-2">
-                <Leaf className="h-4 w-4 text-green-500" />
+                <Leaf className="h-4 w-4 text-green-500 dark:text-green-400" />
                 <span>
                   {state.entry.plant_name}
                   {state.entry.plant_variety && ` (${state.entry.plant_variety})`}
@@ -299,8 +299,8 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                     className="w-full max-h-[600px] object-cover rounded-lg border shadow-lg cursor-pointer transition-transform hover:scale-[1.01]"
                     onClick={() => state.entry?.photo_url && window.open(state.entry.photo_url, '_blank')}
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white text-sm bg-black bg-opacity-50 px-4 py-2 rounded-lg">
+                  <div className="absolute inset-0 bg-black dark:bg-white bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-white dark:text-black text-sm bg-black dark:bg-white bg-opacity-50 px-4 py-2 rounded-lg">
                       🔍 Klik om te vergroten
                     </div>
                   </div>
@@ -365,7 +365,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                 <div>
                                           <span className="font-medium text-foreground">Locatie:</span>
                   <div className="mt-1 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-blue-500" />
+                    <MapPin className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                     <span>{state.entry.plant_bed_name}</span>
                   </div>
                   <div className="mt-1 text-muted-foreground">
@@ -377,7 +377,7 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                   <div>
                                             <span className="font-medium text-foreground">Plant:</span>
                     <div className="mt-1 flex items-center gap-2">
-                      <Leaf className="w-4 h-4 text-green-500" />
+                      <Leaf className="w-4 h-4 text-green-500 dark:text-green-400" />
                       <span>{state.entry.plant_name}</span>
                     </div>
                     {state.entry.plant_variety && (
@@ -396,13 +396,13 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
                 <div>
                                           <span className="font-medium text-foreground">Datum:</span>
                   <div className="mt-1 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <Calendar className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                     <span>{formatDate(state.entry.entry_date)}</span>
                   </div>
                 </div>
                 
                 {!state.entry.photo_url && (
-                  <div className="text-center py-4 text-gray-400 border border-dashed border-gray-200 rounded-lg">
+                  <div className="text-center py-4 text-gray-400 dark:text-gray-500 border border-dashed border-gray-200 dark:border-gray-600 rounded-lg">
                     <Camera className="h-6 w-6 mx-auto mb-2" />
                     <p className="text-xs">Geen foto toegevoegd</p>
                   </div>

@@ -21,7 +21,7 @@ export default function Error({
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 flex items-center justify-center p-6">
       <div className="container max-w-2xl">
         <div className="text-center mb-8">
-          <TreePine className="h-16 w-16 text-green-600 mx-auto mb-4" data-testid="tree-pine-icon" />
+          <TreePine className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-4" data-testid="tree-pine-icon" />
           <h1 className="text-3xl font-bold text-foreground mb-2">
             Tuinbeheer Systeem
           </h1>
@@ -61,7 +61,7 @@ export default function Error({
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={reset}
-                className="flex-1 bg-green-600 hover:bg-green-700"
+                className="flex-1 bg-green-600 dark:bg-green-700 hover:bg-green-700"
                 data-testid="retry-button"
               >
                 <RefreshCw className="h-4 w-4 mr-2" data-testid="refresh-cw-icon" />

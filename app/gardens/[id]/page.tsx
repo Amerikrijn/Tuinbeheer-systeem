@@ -983,7 +983,7 @@ export default function GardenDetailPage() {
           <Button onClick={() => {
 
             window.location.href = '/gardens'
-          }} className="bg-green-600 hover:bg-green-700">
+          }} className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar Tuinen
           </Button>
@@ -1002,7 +1002,7 @@ export default function GardenDetailPage() {
               variant="outline"
               size="sm"
               onClick={goBack}
-              className="h-10 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+              className="h-10 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Terug
@@ -1023,7 +1023,7 @@ export default function GardenDetailPage() {
               variant="outline"
               size="sm"
               onClick={() => setIsEditingGarden(true)}
-              className="h-8 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+              className="h-8 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
             >
               <Edit className="w-4 h-4 mr-1" />
               Bewerken
@@ -1035,8 +1035,8 @@ export default function GardenDetailPage() {
               onClick={toggleView}
               className={`h-8 px-3 ${
                 isVisualView 
-                  ? "bg-green-600 hover:bg-green-700 text-white" 
-                  : "border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+                  ? "bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black" 
+                  : "border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
               }`}
             >
               <Grid3X3 className="w-4 h-4 mr-1" />
@@ -1057,7 +1057,7 @@ export default function GardenDetailPage() {
               setIsAddingPlantBed(open)
             }}>
               <DialogTrigger asChild>
-                <Button className="h-8 px-3 bg-green-600 hover:bg-green-700 text-white">
+                <Button className="h-8 px-3 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black">
                   <Plus className="w-4 h-4 mr-1" />
                   Plantvak Toevoegen
                 </Button>
@@ -1175,7 +1175,7 @@ export default function GardenDetailPage() {
                 <Button variant="outline" onClick={() => setIsAddingPlantBed(false)}>
                   Annuleren
                 </Button>
-                <Button onClick={addPlantBed} className="bg-green-600 hover:bg-green-700">
+                <Button onClick={addPlantBed} className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
                   <Plus className="h-4 w-4 mr-2" />
                   Toevoegen
                 </Button>
@@ -1193,7 +1193,7 @@ export default function GardenDetailPage() {
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
-                  <Grid3X3 className="h-5 w-5 text-blue-600" />
+                  <Grid3X3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   Tuinoverzicht
                 </CardTitle>
                 <div className="flex items-center gap-2">
@@ -1284,8 +1284,8 @@ export default function GardenDetailPage() {
                 <li>• <strong>Dubbel tikken:</strong> Plantvak openen</li>
                 <li>• <strong>🟠 Rotatie handvat:</strong> Sleep om te roteren</li>
               </ul>
-              <div className="mt-2 pt-2 border-t border-blue-300">
-                <p className="text-xs text-blue-700">
+              <div className="mt-2 pt-2 border-t border-blue-300 dark:border-blue-700">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
                   🏡 <strong>Tuin:</strong> {widthMeters.toFixed(1)}m × {heightMeters.toFixed(1)}m
                 </p>
               </div>
@@ -1364,8 +1364,8 @@ export default function GardenDetailPage() {
                         onTouchEnd={(e) => handlePlantBedTouchEnd(e, bed.id)}
                         onClick={(e) => handlePlantBedClick(e, bed.id)}
                       >
-                        <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 ${
-                          isSelected ? 'bg-blue-100 border-blue-300' : ''
+                        <div className={`w-full h-full rounded-lg ${getPlantBedColor(bed.id)} group-hover:bg-green-100 transition-colors relative border border-gray-200 dark:border-gray-600 ${
+                          isSelected ? 'bg-blue-100 dark:bg-blue-900 border-blue-300 dark:border-blue-700' : ''
                         }`}>
                           {/* Top corner elements */}
                           <div className="flex items-start justify-between">
@@ -1378,7 +1378,7 @@ export default function GardenDetailPage() {
                               {selectedMonth && filterMode !== 'all' && (
                                 <Badge 
                                   variant={isHighlighted ? "default" : "outline"} 
-                                  className={`text-xs ${isHighlighted ? 'bg-green-500' : 'bg-gray-200 text-gray-500'}`}
+                                  className={`text-xs ${isHighlighted ? 'bg-green-500' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400'}`}
                                 >
                                   {filterMode === 'sowing' ? '🌱' : '🌸'}
                                   {!isHighlighted && ' -'}
@@ -1409,14 +1409,14 @@ export default function GardenDetailPage() {
                                   return (
                                     <div className="flex items-center justify-center h-full text-muted-foreground text-xs">
                                       <div className="text-center p-2">
-                                        <div className="text-gray-400 mb-1">
+                                        <div className="text-gray-400 dark:text-gray-500 mb-1">
                                           {filterMode === 'sowing' ? '🌱' : '🌸'}
                                         </div>
                                         <div className="font-medium">Niet actief</div>
                                         <div className="text-[10px]">
                                           {filterMode === 'sowing' ? 'Geen zaaitijd' : 'Bloeit niet'}
                                         </div>
-                                        <div className="text-[10px] mt-1 text-gray-500">
+                                        <div className="text-[10px] mt-1 text-gray-500 dark:text-gray-400">
                                           ({bed.plants.length} plant{bed.plants.length !== 1 ? 'en' : ''} totaal)
                                         </div>
                                       </div>
@@ -1508,24 +1508,24 @@ export default function GardenDetailPage() {
                                   return (
                                     <div className="space-y-1">
                                       {groups.map((group, idx) => (
-                                        <div key={idx} className="bg-white rounded p-1.5 border border-gray-400 shadow-sm">
+                                        <div key={idx} className="bg-white dark:bg-gray-900 rounded p-1.5 border border-gray-400 dark:border-gray-400 shadow-sm">
                                           <div className="flex items-start gap-1">
                                             <span className="text-lg">{group.emoji || '🌸'}</span>
                                             <div className="flex-1">
                                               <div className="flex items-center gap-1 flex-wrap">
-                                                <span className="font-bold text-xs text-black">
+                                                <span className="font-bold text-xs text-black dark:text-white dark:text-black">
                                                   {group.count > 1 && `${group.count}x `}{group.name}
                                                 </span>
                                                 {group.color && (
                                                   <div 
-                                                    className="w-3 h-3 rounded-full border border-black"
+                                                    className="w-3 h-3 rounded-full border border-black dark:border-white"
                                                     style={{ backgroundColor: group.color }}
                                                     title={`Kleur: ${group.color}`}
                                                   />
                                                 )}
                                               </div>
                                               {/* Show details with bloom data */}
-                                              <div className="text-[10px] text-black font-medium space-y-0">
+                                              <div className="text-[10px] text-black dark:text-white dark:text-black font-medium space-y-0">
                                                 {group.planting_date && (
                                                   <div>🌱 Zaai: {group.planting_date}</div>
                                                 )}
@@ -1533,7 +1533,7 @@ export default function GardenDetailPage() {
                                                   <div>🌸 Bloei: {group.bloom_period}</div>
                                                 )}
                                                 {!group.planting_date && !group.bloom_period && (
-                                                  <div className="text-gray-500 italic">Geen seizoensdata beschikbaar</div>
+                                                  <div className="text-gray-500 dark:text-gray-400 italic">Geen seizoensdata beschikbaar</div>
                                                 )}
                                               </div>
                                             </div>
@@ -1556,12 +1556,12 @@ export default function GardenDetailPage() {
 
                           {isSelected && (
                             <>
-                              <div className="absolute -top-1 -right-1 bg-blue-500 dark:bg-blue-600 text-white text-xs px-1 rounded">
+                              <div className="absolute -top-1 -right-1 bg-blue-500 dark:bg-blue-600 text-white dark:text-black text-xs px-1 rounded">
                                 Geselecteerd
                               </div>
                               {/* Rotation handle - improved */}
                               <div
-                                className="absolute -top-2 -left-2 w-8 h-8 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center cursor-grab text-sm font-bold shadow-xl border-2 border-white z-20"
+                                className="absolute -top-2 -left-2 w-8 h-8 bg-orange-500 hover:bg-orange-600 text-white dark:text-black rounded-full flex items-center justify-center cursor-grab text-sm font-bold shadow-xl border-2 border-white dark:border-gray-800 z-20"
                                 onMouseDown={(e) => {
                                   e.stopPropagation()
                                   e.preventDefault()
@@ -1642,7 +1642,7 @@ export default function GardenDetailPage() {
                       <h3 className="text-xl font-medium text-foreground mb-2">Nog geen plantvakken</h3>
                       <p className="text-muted-foreground mb-4">Voeg je eerste plantvak toe om te beginnen met tuinieren.</p>
                       <Button 
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-green-600 dark:bg-green-700 hover:bg-green-700"
                         onClick={() => setIsAddingPlantBed(true)}
                       >
                         <Plus className="h-4 w-4 mr-2" />
@@ -1659,7 +1659,7 @@ export default function GardenDetailPage() {
                 <p className="text-xs">Zoom: {Math.round(scale * 100)}%</p>
                 {selectedBed && (
                   <>
-                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                    <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900 text-blue-800">
                       {plantBeds.find(b => b.id === selectedBed)?.name} geselecteerd
                       <span className="ml-2 text-xs">
                         {plantBeds.find(b => b.id === selectedBed)?.rotation || 0}°
@@ -1669,7 +1669,7 @@ export default function GardenDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeletePlantBed(selectedBed)}
-                      className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                      className="text-red-600 dark:text-red-400 border-red-200 hover:bg-red-50 dark:bg-red-950 hover:border-red-300 dark:border-red-700"
                     >
                       <Trash2 className="h-3 w-3 mr-1" />
                       Verwijder
@@ -1768,7 +1768,7 @@ export default function GardenDetailPage() {
                   Voeg je eerste plantvak toe om planten te kunnen planten.
                 </p>
                 <Button 
-                  className="bg-green-600 hover:bg-green-700 h-8 px-3 text-sm"
+                  className="bg-green-600 dark:bg-green-700 hover:bg-green-700 h-8 px-3 text-sm"
                   onClick={() => setIsAddingPlantBed(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -1779,7 +1779,7 @@ export default function GardenDetailPage() {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {plantBeds.map((bed) => (
-                <Card key={bed.id} className="border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700 hover:shadow-md transition-colors duration-150">
+                <Card key={bed.id} className="border-green-200 dark:border-green-800 hover:border-green-300 dark:border-green-700 dark:hover:border-green-700 hover:shadow-md transition-colors duration-150">
                 <CardHeader className="pb-2 pt-3 px-3">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -1799,7 +1799,7 @@ export default function GardenDetailPage() {
                         </div>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 text-xs">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-300 dark:border-green-700 text-xs">
                       {bed.plants.length > 0 ? 'Beplant' : 'Leeg'}
                     </Badge>
                   </div>
@@ -1810,7 +1810,7 @@ export default function GardenDetailPage() {
                   )}
                   <div className="flex gap-2">
                     <Link href={`/gardens/${garden.id}/plantvak-view/${bed.id}`} className="flex-1">
-                      <Button className="h-7 px-2 bg-green-600 hover:bg-green-700 text-white text-xs w-full">
+                      <Button className="h-7 px-2 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black text-xs w-full">
                         Beheren
                       </Button>
                     </Link>
@@ -1818,7 +1818,7 @@ export default function GardenDetailPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDeletePlantBed(bed.id)}
-                      className="h-7 px-2 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 text-xs"
+                      className="h-7 px-2 text-red-600 dark:text-red-400 border-red-200 hover:bg-red-50 dark:bg-red-950 hover:border-red-300 dark:border-red-700 text-xs"
                     >
                       <Trash2 className="w-3 h-3" />
                     </Button>
@@ -1835,7 +1835,7 @@ export default function GardenDetailPage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
+            <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
               <Trash2 className="h-5 w-5" />
               Plantvak Verwijderen
             </DialogTitle>
@@ -1845,14 +1845,14 @@ export default function GardenDetailPage() {
           </DialogHeader>
           {deletingBedId && (
             <div className="py-4">
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="bg-red-50 dark:bg-red-950 border border-red-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Leaf className="h-4 w-4 text-red-600" />
+                  <Leaf className="h-4 w-4 text-red-600 dark:text-red-400" />
                   <span className="font-medium text-red-800">
                     {plantBeds.find(bed => bed.id === deletingBedId)?.name}
                   </span>
                 </div>
-                <div className="text-sm text-red-700">
+                <div className="text-sm text-red-700 dark:text-red-300">
                   {plantBeds.find(bed => bed.id === deletingBedId)?.plants.length || 0} planten zullen ook worden verwijderd
                 </div>
               </div>
@@ -1865,7 +1865,7 @@ export default function GardenDetailPage() {
             <Button 
               variant="destructive" 
               onClick={confirmDeletePlantBed}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 dark:bg-red-700 hover:bg-red-700"
             >
               <Trash2 className="h-4 w-4 mr-2" />
               Verwijderen
@@ -1935,17 +1935,17 @@ export default function GardenDetailPage() {
                   const validation = validatePlantBedsInGarden(gardenForm.length, gardenForm.width)
                   if (!validation.fits) {
                     return (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <div className="bg-red-50 dark:bg-red-950 border border-red-200 rounded-lg p-3">
                         <div className="flex items-center gap-2 text-red-800 font-medium mb-2">
                           <span>⚠️</span>
                           <span>Plantvakken passen niet meer!</span>
                         </div>
-                        <div className="text-sm text-red-700 space-y-1">
+                        <div className="text-sm text-red-700 dark:text-red-300 space-y-1">
                           {validation.warnings.map((warning, index) => (
                             <div key={index}>• {warning}</div>
                           ))}
                         </div>
-                        <div className="text-xs text-red-600 mt-2">
+                        <div className="text-xs text-red-600 dark:text-red-400 mt-2">
                           💡 Tip: Verplaats de plantvakken eerst of maak de tuin groter
                         </div>
                       </div>
@@ -2009,7 +2009,7 @@ export default function GardenDetailPage() {
           <div className="space-y-4">
             <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950/30 dark:to-blue-950/30 border-2 border-green-200 dark:border-green-800 rounded-lg mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-500 dark:bg-green-600 text-white text-xl font-bold rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-green-500 dark:bg-green-600 text-white dark:text-black text-xl font-bold rounded-full flex items-center justify-center">
                   ?
                 </div>
                 <div>
@@ -2148,7 +2148,7 @@ export default function GardenDetailPage() {
             <Button
               onClick={addPlantBed}
               disabled={!newPlantBed.length || !newPlantBed.width || !newPlantBed.soil_type || !newPlantBed.sun_exposure}
-              className="bg-green-600 hover:bg-green-700 text-white disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black disabled:bg-gray-400 dark:bg-gray-500 disabled:cursor-not-allowed"
             >
               <Plus className="h-4 w-4 mr-2" />
               Plantvak Toevoegen

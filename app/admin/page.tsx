@@ -30,9 +30,9 @@ export default function AdminPage() {
     return (
       <div className="container mx-auto p-4 max-w-4xl">
         <div className="text-center py-12">
-          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-red-600 mb-2">Toegang Geweigerd</h1>
-          <p className="text-gray-600">
+          <Shield className="w-16 h-16 text-red-500 dark:text-red-400 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-2">Toegang Geweigerd</h1>
+          <p className="text-gray-600 dark:text-gray-300">
             Je hebt geen beheerdersrechten om deze pagina te bekijken.
           </p>
         </div>
@@ -98,7 +98,7 @@ export default function AdminPage() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">98%</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">98%</div>
               <p className="text-xs text-muted-foreground">
                 +2% deze week
               </p>
@@ -119,7 +119,7 @@ export default function AdminPage() {
               <div className="flex items-center space-x-2">
                 <Badge 
                   variant={serviceWorker.isActive ? "default" : "secondary"}
-                  className={serviceWorker.isActive ? "bg-green-500" : "bg-gray-500"}
+                  className={serviceWorker.isActive ? "bg-green-500 dark:bg-green-600" : "bg-gray-500 dark:bg-gray-400"}
                 >
                   {serviceWorker.isActive ? 'Actief' : 'Inactief'}
                 </Badge>
@@ -132,20 +132,20 @@ export default function AdminPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
-                <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-2">
-                  <HardDrive className="h-6 w-6 text-blue-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg mx-auto mb-2">
+                  <HardDrive className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {Object.keys(serviceWorker.cacheInfo).length}
                 </div>
                 <div className="text-sm text-muted-foreground">Cache Groepen</div>
               </div>
 
               <div className="text-center">
-                <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mx-auto mb-2">
-                  <HardDrive className="h-6 w-6 text-green-600" />
+                <div className="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg mx-auto mb-2">
+                  <HardDrive className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                   {Object.values(serviceWorker.cacheInfo).reduce((sum, count) => sum + count, 0)}
                 </div>
                 <div className="text-sm text-muted-foreground">Gecachte Items</div>

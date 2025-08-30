@@ -245,7 +245,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
                     <SelectItem key={plant.id} value={plant.id}>
                       <div className="flex flex-col">
                         <span className="font-medium">{plant.name}</span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {plant.plant_beds.name} • {plant.plant_beds.gardens.name}
                         </span>
                       </div>
@@ -273,7 +273,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
                     <SelectItem key={bed.id} value={bed.id}>
                       <div className="flex flex-col">
                         <span className="font-medium">{bed.name}</span>
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {bed.gardens.name}
                         </span>
                       </div>
@@ -377,7 +377,7 @@ export function AddTaskForm({ isOpen, onClose, onTaskAdded, preselectedPlantId, 
             <Button
               type="submit"
               disabled={loading || (!formData.plant_id && !formData.plant_bed_id) || !formData.title.trim()}
-              className="flex-1 bg-green-600 hover:bg-green-700"
+              className="flex-1 bg-green-600 dark:bg-green-700 hover:bg-green-700"
             >
               {loading ? 'Toevoegen...' : 'Taak Toevoegen'}
             </Button>

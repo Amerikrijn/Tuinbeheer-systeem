@@ -103,7 +103,7 @@ export function InstagramIntegration({
         <div className="flex items-center justify-between">
           <div>
             <div className="font-medium text-sm">Automatisch Posten</div>
-            <div className="text-xs text-gray-600">Post automatisch bij voltooide sessies</div>
+            <div className="text-xs text-gray-600 dark:text-gray-300">Post automatisch bij voltooide sessies</div>
           </div>
           <Switch checked={autoPost} onCheckedChange={setAutoPost} />
         </div>
@@ -118,7 +118,7 @@ export function InstagramIntegration({
             rows={6}
             className="text-sm"
           />
-          <div className="text-xs text-gray-500">{(customCaption || defaultCaption).length}/2200 karakters</div>
+          <div className="text-xs text-gray-500 dark:text-gray-400">{(customCaption || defaultCaption).length}/2200 karakters</div>
         </div>
 
         {/* Image preview */}
@@ -131,7 +131,7 @@ export function InstagramIntegration({
                 alt="Instagram post preview"
                 className="w-full h-48 object-cover rounded border"
               />
-              <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
+              <div className="absolute top-2 right-2 bg-black dark:bg-white/50 text-white dark:text-black px-2 py-1 rounded text-xs">
                 <ImageIcon className="h-3 w-3 inline mr-1" />
                 Instagram Ready
               </div>
@@ -147,7 +147,7 @@ export function InstagramIntegration({
         >
           {isPosting ? (
             <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white dark:border-gray-800 mr-2" />
               Posten naar Instagram...
             </>
           ) : (
@@ -164,7 +164,7 @@ export function InstagramIntegration({
             <label className="text-sm font-medium">Recente Instagram Posts</label>
             <div className="space-y-2">
               {recentPosts.map((post) => (
-                <div key={post.id} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                <div key={post.id} className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-900 rounded">
                   <img
                     src={post.media_url || "/placeholder.svg"}
                     alt={post.caption}
@@ -172,9 +172,9 @@ export function InstagramIntegration({
                   />
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{post.caption}</div>
-                    <div className="text-xs text-gray-500">{new Date(post.timestamp).toLocaleDateString()}</div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">{new Date(post.timestamp).toLocaleDateString()}</div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                     <span className="flex items-center gap-1">
                       <Heart className="h-3 w-3" />
                       0

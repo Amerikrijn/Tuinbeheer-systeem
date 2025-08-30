@@ -60,8 +60,8 @@ export default function ForgotPasswordPage() {
       <div className="container mx-auto px-4 py-6 max-w-md">
         <Card>
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 p-3 bg-green-100 rounded-full w-fit">
-              <CheckCircle className="w-8 h-8 text-green-600" />
+            <div className="mx-auto mb-4 p-3 bg-green-100 dark:bg-green-900 rounded-full w-fit">
+              <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
             </div>
             <CardTitle>Email Verzonden</CardTitle>
             <CardDescription>

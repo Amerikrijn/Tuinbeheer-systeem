@@ -84,9 +84,9 @@ export function EnhancedTaskCard({
   const getTaskIcon = (type: string) => {
     switch (type) {
       case 'watering':
-        return <Droplets className="w-4 h-4 text-blue-500" />
+        return <Droplets className="w-4 h-4 text-blue-500 dark:text-blue-400" />
       case 'fertilizing':
-        return <div className="w-4 h-4 bg-green-500 rounded-full" />
+        return <div className="w-4 h-4 bg-green-500 dark:bg-green-600 rounded-full" />
       case 'pruning':
         return <Scissors className="w-4 h-4 text-orange-500" />
       case 'harvesting':
@@ -94,7 +94,7 @@ export function EnhancedTaskCard({
       case 'planting':
         return <div className="w-4 h-4 bg-purple-500 rounded" />
       case 'pest_control':
-        return <Bug className="w-4 h-4 text-red-500" />
+        return <Bug className="w-4 h-4 text-red-500 dark:text-red-400" />
       default:
         return <Circle className="w-4 h-4 text-muted-foreground" />
     }
@@ -103,11 +103,11 @@ export function EnhancedTaskCard({
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-red-100 dark:bg-red-950/20 text-red-800 dark:text-red-400'
+        return 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-400'
       case 'high':
         return 'bg-orange-100 dark:bg-orange-950/20 text-orange-800 dark:text-orange-400'
       case 'medium':
-        return 'bg-yellow-100 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-400'
+        return 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400'
       default:
         return 'bg-muted text-muted-foreground'
     }
@@ -121,7 +121,7 @@ export function EnhancedTaskCard({
 
     if (task.completed) {
       return {
-        color: 'text-green-600',
+        color: 'text-green-600 dark:text-green-400',
         label: 'Voltooid',
         icon: CheckCircle2
       }
@@ -129,7 +129,7 @@ export function EnhancedTaskCard({
 
     if (dueDate < today) {
       return {
-        color: 'text-red-600',
+        color: 'text-red-600 dark:text-red-400',
         label: 'Achterstallig',
         icon: AlertTriangle
       }
@@ -145,7 +145,7 @@ export function EnhancedTaskCard({
 
     if (dueDate.toDateString() === tomorrow.toDateString()) {
       return {
-        color: 'text-blue-600',
+        color: 'text-blue-600 dark:text-blue-400',
         label: 'Morgen',
         icon: Calendar
       }
@@ -271,7 +271,7 @@ export function EnhancedTaskCard({
             <div className="space-y-2">
               {/* Completed By */}
               {task.completed && task.completed_by && (
-                <div className="flex items-center space-x-2 text-sm text-green-700 bg-green-50 rounded-lg p-2">
+                <div className="flex items-center space-x-2 text-sm text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950 rounded-lg p-2">
                   <CheckCircle2 className="w-4 h-4" />
                   <Avatar className="h-5 w-5">
                     <AvatarImage src={task.completed_by.avatar_url || undefined} />
@@ -284,7 +284,7 @@ export function EnhancedTaskCard({
                       Voltooid door {task.completed_by.full_name || task.completed_by.email}
                     </p>
                     {task.completed_at && (
-                      <p className="text-xs text-green-600">
+                      <p className="text-xs text-green-600 dark:text-green-400">
                         {formatDateTime(task.completed_at)}
                       </p>
                     )}
@@ -352,7 +352,7 @@ export function EnhancedTaskCard({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(task.id)}
-                    className="text-red-600 hover:text-red-700"
+                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300"
                   >
                     Verwijderen
                   </Button>

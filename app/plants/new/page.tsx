@@ -13,7 +13,7 @@ export default function NewPlantPage() {
 				<Button 
 					asChild 
 					variant="ghost" 
-					className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30"
+					className="h-8 px-3 text-green-600 dark:text-green-400 hover:text-green-700 dark:text-green-300 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30"
 				>
 					<Link href="/plants">
 						<ArrowLeft className="h-4 w-4 mr-2" />
@@ -22,7 +22,7 @@ export default function NewPlantPage() {
 				</Button>
 
 				<div className="flex items-center gap-2">
-					<Leaf className="h-6 w-6 text-green-600" />
+					<Leaf className="h-6 w-6 text-green-600 dark:text-green-400" />
 					<h1 className="text-xl font-semibold">Nieuwe Plant</h1>
 				</div>
 			</div>
@@ -30,7 +30,7 @@ export default function NewPlantPage() {
 			<Card className="border-2 border-green-200 dark:border-green-800">
 				<CardHeader className="pb-3">
 					<CardTitle className="flex items-center gap-2 text-lg">
-						<Leaf className="h-5 w-5 text-green-600" />
+						<Leaf className="h-5 w-5 text-green-600 dark:text-green-400" />
 						Plant Toevoegen
 					</CardTitle>
 				</CardHeader>

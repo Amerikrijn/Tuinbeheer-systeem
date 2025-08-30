@@ -74,11 +74,11 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
     const memory = getCurrentMemoryUsage()
     const queryStats = getQueryCacheStats()
     
-    if (memory && memory.percentage > 80) return { status: 'error', text: 'High Memory Usage', color: 'bg-red-500' }
-    if (metrics.slowQueries > 0) return { status: 'warning', text: 'Attention Needed', color: 'bg-yellow-500' }
-    if (metrics.averageQueryTime > 500) return { status: 'warning', text: 'Medium Performance', color: 'bg-yellow-500' }
-    if (metrics.averageQueryTime > 1000) return { status: 'error', text: 'Poor Performance', color: 'bg-red-500' }
-    return { status: 'success', text: 'Excellent', color: 'bg-green-500' }
+    if (memory && memory.percentage > 80) return { status: 'error', text: 'High Memory Usage', color: 'bg-red-500 dark:bg-red-600' }
+    if (metrics.slowQueries > 0) return { status: 'warning', text: 'Attention Needed', color: 'bg-yellow-500 dark:bg-yellow-600' }
+    if (metrics.averageQueryTime > 500) return { status: 'warning', text: 'Medium Performance', color: 'bg-yellow-500 dark:bg-yellow-600' }
+    if (metrics.averageQueryTime > 1000) return { status: 'error', text: 'Poor Performance', color: 'bg-red-500 dark:bg-red-600' }
+    return { status: 'success', text: 'Excellent', color: 'bg-green-500 dark:bg-green-600' }
   }
 
   const performanceStatus = getPerformanceStatus()
@@ -114,19 +114,19 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {/* Database Queries */}
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-2">
-                <Database className="h-6 w-6 text-blue-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg mx-auto mb-2">
+                <Database className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
-              <div className="text-2xl font-bold text-blue-600">{metrics.databaseQueries}</div>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{metrics.databaseQueries}</div>
               <div className="text-sm text-muted-foreground">Database Queries</div>
             </div>
 
             {/* Average Query Time */}
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mx-auto mb-2">
-                <Clock className="h-6 w-6 text-green-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg mx-auto mb-2">
+                <Clock className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
-              <div className="text-2xl font-bold text-green-600">{metrics.averageQueryTime}ms</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{metrics.averageQueryTime}ms</div>
               <div className="text-sm text-muted-foreground">Avg Query Time</div>
             </div>
 
@@ -143,10 +143,10 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
 
             {/* Slow Queries */}
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-lg mx-auto mb-2">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg mx-auto mb-2">
+                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
-              <div className="text-2xl font-bold text-red-600">{metrics.slowQueries}</div>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{metrics.slowQueries}</div>
               <div className="text-sm text-muted-foreground">Slow Queries</div>
             </div>
           </div>
@@ -202,10 +202,10 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
 
             {/* Cache Size */}
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-gray-100 rounded-lg mx-auto mb-2">
-                <HardDrive className="h-6 w-6 text-gray-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg mx-auto mb-2">
+                <HardDrive className="h-6 w-6 text-gray-600 dark:text-gray-300" />
               </div>
-              <div className="text-2xl font-bold text-gray-600">{queryStats.cacheSize}</div>
+              <div className="text-2xl font-bold text-gray-600 dark:text-gray-300">{queryStats.cacheSize}</div>
               <div className="text-sm text-muted-foreground">Cache Size</div>
             </div>
           </div>
@@ -249,11 +249,11 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
                   <span>Memory Usage</span>
                   <span>{memoryUsage.used}MB / {memoryUsage.limit}MB ({memoryUsage.percentage}%)</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                   <div 
                     className={`h-2 rounded-full transition-all duration-300 ${
-                      memoryUsage.percentage > 80 ? 'bg-red-500' : 
-                      memoryUsage.percentage > 60 ? 'bg-yellow-500' : 'bg-green-500'
+                      memoryUsage.percentage > 80 ? 'bg-red-500 dark:bg-red-600' : 
+                      memoryUsage.percentage > 60 ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-green-500 dark:bg-green-600'
                     }`}
                     style={{ width: `${memoryUsage.percentage}%` }}
                   ></div>
@@ -263,11 +263,11 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
               {/* Memory Stats */}
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <div className="text-lg font-semibold text-blue-600">{memoryUsage.used}MB</div>
+                  <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">{memoryUsage.used}MB</div>
                   <div className="text-xs text-muted-foreground">Used</div>
                 </div>
                 <div>
-                  <div className="text-lg font-semibold text-green-600">{memoryUsage.total}MB</div>
+                  <div className="text-lg font-semibold text-green-600 dark:text-green-400">{memoryUsage.total}MB</div>
                   <div className="text-xs text-muted-foreground">Total</div>
                 </div>
                 <div>
@@ -311,7 +311,7 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
                 </div>
               ) : (
                 events.slice(-10).reverse().map((event) => (
-                  <div key={event.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div key={event.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded">
                     <div className="flex items-center space-x-2">
                       <span className="text-xs font-mono">{event.type}</span>
                       <span className="text-sm">{event.name}</span>
@@ -336,15 +336,15 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{completedEvents.length}</div>
+              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{completedEvents.length}</div>
               <div className="text-sm text-muted-foreground">Total Events</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{avgEventDuration}ms</div>
+              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{avgEventDuration}ms</div>
               <div className="text-sm text-muted-foreground">Avg Duration</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-red-600">{slowEvents}</div>
+              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{slowEvents}</div>
               <div className="text-sm text-muted-foreground">Slow Events</div>
             </div>
             <div className="text-center">
@@ -366,11 +366,11 @@ export function PerformanceDashboardCompact({ className = '' }: { className?: st
   return (
     <div className={`flex items-center space-x-4 text-sm ${className}`}>
       <div className="flex items-center space-x-1">
-        <Database className="h-4 w-4 text-blue-500" />
+        <Database className="h-4 w-4 text-blue-500 dark:text-blue-400" />
         <span className="text-muted-foreground">{metrics.databaseQueries}</span>
       </div>
       <div className="flex items-center space-x-1">
-        <Clock className="h-4 w-4 text-green-500" />
+        <Clock className="h-4 w-4 text-green-500 dark:text-green-400" />
         <span className="text-muted-foreground">{metrics.averageQueryTime}ms</span>
       </div>
       <div className="flex items-center space-x-1">
@@ -379,8 +379,8 @@ export function PerformanceDashboardCompact({ className = '' }: { className?: st
       </div>
       {metrics.slowQueries > 0 && (
         <div className="flex items-center space-x-1">
-          <AlertTriangle className="h-4 w-4 text-red-500" />
-          <span className="text-red-600">{metrics.slowQueries}</span>
+          <AlertTriangle className="h-4 w-4 text-red-500 dark:text-red-400" />
+          <span className="text-red-600 dark:text-red-400">{metrics.slowQueries}</span>
         </div>
       )}
     </div>

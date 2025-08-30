@@ -229,11 +229,11 @@ function UserDashboardContent() {
 
   const getEntryTypeColor = (type: LogbookEntry['entry_type']) => {
     switch (type) {
-      case 'planting': return 'bg-green-100 text-green-800'
-      case 'maintenance': return 'bg-blue-100 text-blue-800'
+      case 'planting': return 'bg-green-100 dark:bg-green-900 text-green-800'
+      case 'maintenance': return 'bg-blue-100 dark:bg-blue-900 text-blue-800'
       case 'harvest': return 'bg-orange-100 text-orange-800'
       case 'observation': return 'bg-purple-100 text-purple-800'
-      case 'problem': return 'bg-red-100 text-red-800'
+      case 'problem': return 'bg-red-100 dark:bg-red-900 text-red-800'
       default: return 'bg-muted text-muted-foreground'
     }
   }
@@ -253,7 +253,7 @@ function UserDashboardContent() {
     switch (weather) {
       case 'sunny': return <Sun className="w-4 h-4 text-yellow-500" />
       case 'cloudy': return <CloudDrizzle className="w-4 h-4 text-muted-foreground" />
-      case 'rainy': return <CloudRain className="w-4 h-4 text-blue-500" />
+      case 'rainy': return <CloudRain className="w-4 h-4 text-blue-500 dark:text-blue-400" />
       case 'snowy': return <Snowflake className="w-4 h-4 text-blue-300" />
       default: return null
     }
@@ -351,7 +351,7 @@ function UserDashboardContent() {
               ) : (
                 <div className="space-y-4">
                   {pendingTasks.map((task) => (
-                    <div key={task.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div key={task.id} className="border rounded-lg p-4 hover:bg-gray-5 dark:hover:bg-gray-50 dark:bg-gray-900 transition-colors">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">

@@ -494,7 +494,7 @@ function LogbookPageContent() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <div className="text-red-600 mb-4">
+          <div className="text-red-600 dark:text-red-400 mb-4">
             <BookOpen className="h-12 w-12 mx-auto mb-2" />
             <h2 className="text-xl font-semibold">Fout bij laden logboek</h2>
           </div>
@@ -514,7 +514,7 @@ function LogbookPageContent() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-              <BookOpen className="w-5 h-5 text-green-700 dark:text-green-400" />
+              <BookOpen className="w-5 h-5 text-green-700 dark:text-green-300" />
             </div>
             <h1 className="text-xl font-bold text-green-800 dark:text-green-200">
               {viewingUser ? `Logboek ${viewingUser.full_name || viewingUser.email}` : 'Logboek'}
@@ -522,7 +522,7 @@ function LogbookPageContent() {
           </div>
           
           {viewingUser && (
-            <Badge variant="outline" className="text-xs bg-blue-50 text-blue-800 border-blue-300">
+            <Badge variant="outline" className="text-xs bg-blue-50 dark:bg-blue-950 text-blue-800 border-blue-300 dark:border-blue-700">
               Bekijkt: {viewingUser.full_name || viewingUser.email}
             </Badge>
           )}
@@ -538,7 +538,7 @@ function LogbookPageContent() {
             }}
               variant="outline"
               size="sm"
-              className="h-8 px-3 border-green-300 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
+              className="h-8 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
             >
               <ClipboardList className="w-4 h-4 mr-1" />
               Taken
@@ -699,8 +699,8 @@ function LogbookPageContent() {
                             alt="Logboek foto"
                             className="w-32 h-32 object-cover rounded-lg border shadow-sm hover:shadow-md transition-shadow"
                           />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
-                            <Camera className="w-6 h-6 text-white opacity-0 hover:opacity-100 transition-opacity" />
+                          <div className="absolute inset-0 bg-black dark:bg-white bg-opacity-0 hover:bg-opacity-10 transition-all duration-200 rounded-lg flex items-center justify-center">
+                            <Camera className="w-6 h-6 text-white dark:text-black opacity-0 hover:opacity-100 transition-opacity" />
                           </div>
                         </div>
                       ) : (
@@ -720,13 +720,13 @@ function LogbookPageContent() {
                         {entry.is_completed_task ? (
                           <div className="flex items-start gap-3">
                             <div className="flex-shrink-0 mt-1">
-                              <CheckCircle2 className="w-5 h-5 text-green-600" />
+                              <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
                             </div>
                             <div className="flex-1">
                               <p className="text-lg font-medium text-green-800 dark:text-green-400 leading-relaxed">
                                 {entry.notes}
                               </p>
-                              <Badge variant="secondary" className="mt-2 text-xs bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400">
+                              <Badge variant="secondary" className="mt-2 text-xs bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-300">
                                 📋 Voltooide taak
                               </Badge>
                             </div>
@@ -734,7 +734,7 @@ function LogbookPageContent() {
                         ) : (
                           <div className="flex items-start gap-3">
                             <div className="flex-shrink-0 mt-1">
-                              <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                              <div className="w-3 h-3 bg-blue-500 dark:bg-blue-600 rounded-full"></div>
                             </div>
                             <div className="flex-1">
                               <p className="text-lg font-medium text-foreground leading-relaxed">
@@ -758,7 +758,7 @@ function LogbookPageContent() {
                         
                         {/* Location info - compact */}
                         <div className="flex items-center gap-1.5">
-                          <MapPin className="w-4 h-4 text-blue-500" />
+                          <MapPin className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                           <span>{entry.plant_bed_name}</span>
                         </div>
                         
@@ -770,7 +770,7 @@ function LogbookPageContent() {
                         {/* Plant info - when available */}
                         {entry.plant_name && (
                           <div className="flex items-center gap-1.5">
-                            <Leaf className="w-4 h-4 text-green-500" />
+                            <Leaf className="w-4 h-4 text-green-500 dark:text-green-400" />
                             <span className="text-sm">
                               {entry.plant_name}
                               {entry.plant_variety && (

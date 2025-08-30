@@ -185,14 +185,14 @@ export default function NewGardenPage() {
 
             window.location.href = "/gardens"
           }} 
-          className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30"
+          className="h-8 px-3 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30"
         >
           <ArrowLeft className="h-4 w-4" />
           Terug
         </Button>
 
         <div className="flex items-center gap-2">
-          <Plus className="h-6 w-6 text-green-600" />
+          <Plus className="h-6 w-6 text-green-600 dark:text-green-400" />
           <h1 className="text-xl font-semibold">Nieuwe Tuin</h1>
         </div>
       </div>
@@ -202,7 +202,7 @@ export default function NewGardenPage() {
           <Card className="border-2 border-green-200 dark:border-green-800">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <TreePine className="h-5 w-5 text-green-600" />
+                <TreePine className="h-5 w-5 text-green-600 dark:text-green-400" />
                 Tuin Informatie
               </CardTitle>
             </CardHeader>
@@ -304,7 +304,7 @@ export default function NewGardenPage() {
                     <Label htmlFor="totalArea" className="text-sm font-medium">
                       Totale oppervlakte (m²)
                       {newGarden.length && newGarden.width && !newGarden.totalArea && (
-                        <span className="text-sm text-green-600 ml-2">
+                        <span className="text-sm text-green-600 dark:text-green-400 ml-2">
                           (Berekend: {(parseFloat(newGarden.length) * parseFloat(newGarden.width)).toFixed(1)} m²)
                         </span>
                       )}
@@ -400,7 +400,7 @@ export default function NewGardenPage() {
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700 h-9 px-4">
+                  <Button type="submit" disabled={loading} className="bg-green-600 dark:bg-green-700 hover:bg-green-700 h-9 px-4">
                     {loading ? "Opslaan…" : "Tuin Aanmaken"}
                   </Button>
                   <Button type="reset" variant="outline" disabled={loading} className="h-9 px-4">

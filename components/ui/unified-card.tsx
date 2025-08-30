@@ -28,9 +28,9 @@ export function UnifiedCard({
 }: UnifiedCardProps) {
   const cardClasses = cn(
     "group transition-colors duration-150 overflow-hidden relative",
-    variant === 'default' && "border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700",
-    variant === 'compact' && "border border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700",
-    variant === 'minimal' && "border border-green-200/50 dark:border-green-800/50 hover:border-green-300/70 dark:hover:border-green-700/70",
+    variant === 'default' && "border-2 border-green-200 dark:border-green-800 hover:border-green-300 dark:border-green-700 dark:hover:border-green-700",
+    variant === 'compact' && "border border-green-200 dark:border-green-800 hover:border-green-300 dark:border-green-700 dark:hover:border-green-700",
+    variant === 'minimal' && "border border-green-200/50 dark:border-green-800/50 hover:border-green-300 dark:border-green-700/70 dark:hover:border-green-700/70",
     hover && "hover:shadow-lg hover:shadow-green-200/50 dark:hover:shadow-green-800/20",
     onClick && "cursor-pointer active:scale-[0.98] sm:active:scale-100",
     className
@@ -47,7 +47,7 @@ export function UnifiedCard({
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <CardTitle className={cn(
-                "font-semibold text-foreground group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors truncate",
+                "font-semibold text-foreground group-hover:text-green-700 dark:text-green-300 dark:group-hover:text-green-400 transition-colors truncate",
                 variant === 'default' && "text-base sm:text-lg",
                 variant === 'compact' && "text-sm sm:text-base",
                 variant === 'minimal' && "text-sm"

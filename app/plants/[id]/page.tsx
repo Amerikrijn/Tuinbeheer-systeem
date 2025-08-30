@@ -126,10 +126,10 @@ export default function PlantDetailPage() {
   const getStatusColor = (status?: string) => {
     switch (status) {
       case 'gezond': return 'bg-green-100 text-green-800'
-      case 'aandacht_nodig': return 'bg-yellow-100 text-yellow-800'
-      case 'ziek': return 'bg-red-100 text-red-800'
+      case 'aandacht_nodig': return 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800'
+      case 'ziek': return 'bg-red-100 dark:bg-red-900 text-red-800'
       case 'dood': return 'bg-muted text-muted-foreground'
-      case 'geoogst': return 'bg-blue-100 text-blue-800'
+      case 'geoogst': return 'bg-blue-100 dark:bg-blue-900 text-blue-800'
       default: return 'bg-muted text-muted-foreground'
     }
   }
@@ -180,7 +180,7 @@ export default function PlantDetailPage() {
       <div className="container mx-auto p-4 max-w-4xl">
         <Card>
           <CardContent className="p-8 text-center">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <AlertCircle className="w-12 h-12 text-red-500 dark:text-red-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">Plant niet gevonden</h3>
             <p className="text-muted-foreground mb-4">De plant die je zoekt bestaat niet of is verwijderd.</p>
             <Button asChild>
@@ -212,7 +212,7 @@ export default function PlantDetailPage() {
               asChild 
               variant="outline" 
               size="sm"
-              className="h-8 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30"
+              className="h-8 px-3 text-green-600 dark:text-green-400 hover:text-green-700 dark:text-green-300 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30"
             >
               <Link href="/">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -221,7 +221,7 @@ export default function PlantDetailPage() {
             </Button>
             
             <div className="flex items-center gap-2">
-              <Leaf className="w-5 h-5 text-green-600" />
+              <Leaf className="w-5 h-5 text-green-600 dark:text-green-400" />
               <h1 className="text-xl font-semibold text-foreground">{plant.name}</h1>
               <Badge className={getStatusColor(plant.status)}>
                 {getStatusLabel(plant.status)}
@@ -233,7 +233,7 @@ export default function PlantDetailPage() {
           <Button 
             asChild
             size="sm"
-            className="h-8 px-3 bg-green-600 hover:bg-green-700"
+            className="h-8 px-3 bg-green-600 dark:bg-green-700 hover:bg-green-700"
           >
             <Link href={`/gardens/${plant.plant_beds?.gardens?.id}/plant-beds/${plant.plant_bed_id}/plants/${plant.id}/edit`}>
               <Edit className="w-4 h-4 mr-2" />
@@ -247,7 +247,7 @@ export default function PlantDetailPage() {
         {/* Plant Details */}
         <div className="lg:col-span-2 space-y-4">
           {/* Basic Info */}
-          <Card className="border-2 border-green-200 dark:border-green-800 bg-green-50/30">
+          <Card className="border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950/30">
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-lg text-green-800">
                 <Leaf className="w-5 h-5" />
@@ -293,7 +293,7 @@ export default function PlantDetailPage() {
             <Card className="border-2 border-green-200 dark:border-green-800">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <span className="w-5 h-5 text-blue-600">🔬</span>
+                  <span className="w-5 h-5 text-blue-600 dark:text-blue-400">🔬</span>
                   Wetenschappelijke Informatie
                 </CardTitle>
               </CardHeader>
@@ -340,7 +340,7 @@ export default function PlantDetailPage() {
 
                   {plant.plants_per_sqm && (
                     <div className="flex items-center gap-3">
-                      <Users className="w-5 h-5 text-green-500" />
+                      <Users className="w-5 h-5 text-green-500 dark:text-green-400" />
                       <div>
                         <p className="text-xs text-muted-foreground">Planten per m²</p>
                         <p className="font-medium text-foreground text-sm">{plant.plants_per_sqm} stuks</p>
@@ -351,7 +351,7 @@ export default function PlantDetailPage() {
                   {(plant.planting_date || plant.expected_harvest_date) && (
                     <div className="md:col-span-2">
                       <div className="flex items-center gap-3 mb-2">
-                        <Calendar className="w-5 h-5 text-blue-500" />
+                        <Calendar className="w-5 h-5 text-blue-500 dark:text-blue-400" />
                         <p className="text-sm font-medium text-foreground">Planning</p>
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ml-8">
@@ -384,7 +384,7 @@ export default function PlantDetailPage() {
             <Card className="border-2 border-green-200 dark:border-green-800">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <span className="w-5 h-5 text-green-600">🌿</span>
+                  <span className="w-5 h-5 text-green-600 dark:text-green-400">🌿</span>
                   Verzorging
                 </CardTitle>
               </CardHeader>
@@ -401,8 +401,8 @@ export default function PlantDetailPage() {
                     <h4 className="font-medium mb-3 text-foreground text-sm">Verzorgingsschema</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {plant.watering_frequency && (
-                        <div className="flex items-center gap-3 bg-blue-50 p-3 rounded-md">
-                          <span className="text-blue-600">💧</span>
+                        <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-950 p-3 rounded-md">
+                          <span className="text-blue-600 dark:text-blue-400">💧</span>
                           <div>
                             <p className="text-xs text-muted-foreground">Water frequentie</p>
                             <p className="font-medium text-foreground text-sm">Elke {plant.watering_frequency} dagen</p>
@@ -410,8 +410,8 @@ export default function PlantDetailPage() {
                         </div>
                       )}
                       {plant.fertilizer_schedule && (
-                        <div className="flex items-center gap-3 bg-green-50 p-3 rounded-md">
-                          <span className="text-green-600">🧪</span>
+                        <div className="flex items-center gap-3 bg-green-50 dark:bg-green-950 p-3 rounded-md">
+                          <span className="text-green-600 dark:text-green-400">🧪</span>
                           <div>
                             <p className="text-xs text-muted-foreground">Bemesting</p>
                             <p className="font-medium text-foreground text-sm">{plant.fertilizer_schedule}</p>
@@ -425,7 +425,7 @@ export default function PlantDetailPage() {
                 {plant.notes && (
                   <div>
                     <h4 className="font-medium mb-2 text-foreground text-sm">Opmerkingen</h4>
-                    <p className="text-foreground bg-yellow-50 p-3 rounded-md border-l-4 border-yellow-400 text-sm">{plant.notes}</p>
+                    <p className="text-foreground bg-yellow-50 dark:bg-yellow-950 p-3 rounded-md border-l-4 border-yellow-400 text-sm">{plant.notes}</p>
                   </div>
                 )}
               </CardContent>
@@ -452,7 +452,7 @@ export default function PlantDetailPage() {
                 <Button
                   size="sm"
                   onClick={() => setShowAddTask(true)}
-                  className="bg-green-600 hover:bg-green-700 h-8 px-3"
+                  className="bg-green-600 dark:bg-green-700 hover:bg-green-700 h-8 px-3"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Toevoegen
@@ -552,7 +552,7 @@ export default function PlantDetailPage() {
                 </p>
                 <Button
                   onClick={() => setShowAddTask(true)}
-                  className="bg-green-600 hover:bg-green-700 h-8 px-3 text-xs"
+                  className="bg-green-600 dark:bg-green-700 hover:bg-green-700 h-8 px-3 text-xs"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Eerste taak toevoegen

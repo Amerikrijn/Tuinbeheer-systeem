@@ -176,7 +176,7 @@ export function TaskDetailsDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-green-600" />
+            <Calendar className="h-5 w-5 text-green-600 dark:text-green-400" />
             Taak Details
           </DialogTitle>
           <DialogDescription>
@@ -252,23 +252,23 @@ export function TaskDetailsDialog({
           </div>
 
           {/* Plant Information */}
-          <div className="bg-green-50 rounded-lg p-4">
+          <div className="bg-green-50 dark:bg-green-950 rounded-lg p-4">
             <h3 className="font-medium text-green-800 mb-2">Plant Informatie</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-green-600 font-medium">Plant:</span>
+                <span className="text-green-600 dark:text-green-400 font-medium">Plant:</span>
                 <p className="text-green-800">{task.plant_name}</p>
               </div>
               <div>
-                <span className="text-green-600 font-medium">Plantvak:</span>
+                <span className="text-green-600 dark:text-green-400 font-medium">Plantvak:</span>
                 <p className="text-green-800">{task.plant_bed_name}</p>
               </div>
               <div>
-                <span className="text-green-600 font-medium">Tuin:</span>
+                <span className="text-green-600 dark:text-green-400 font-medium">Tuin:</span>
                 <p className="text-green-800">{task.garden_name}</p>
               </div>
               <div>
-                <span className="text-green-600 font-medium">Vervaldatum:</span>
+                <span className="text-green-600 dark:text-green-400 font-medium">Vervaldatum:</span>
                 <p className="text-green-800">
                   {new Date(task.due_date).toLocaleDateString('nl-NL', {
                     weekday: 'long',
@@ -389,7 +389,7 @@ export function TaskDetailsDialog({
           </div>
 
           {/* Timestamps */}
-          <div className="text-sm text-gray-500 border-t pt-4">
+          <div className="text-sm text-gray-500 dark:text-gray-400 border-t pt-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <span className="font-medium">Aangemaakt:</span>

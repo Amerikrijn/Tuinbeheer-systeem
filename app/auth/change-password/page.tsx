@@ -150,8 +150,8 @@ export default function ChangePasswordPage() {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-16 h-16 bg-green-600 rounded-full">
-              <TreePine className="w-8 h-8 text-white" />
+            <div className="flex items-center justify-center w-16 h-16 bg-green-600 dark:bg-green-700 rounded-full">
+              <TreePine className="w-8 h-8 text-white dark:text-black" />
             </div>
           </div>
           <h1 className="text-2xl font-bold text-foreground">Wachtwoord Wijzigen</h1>
@@ -180,7 +180,7 @@ export default function ChangePasswordPage() {
               <div className="space-y-2">
                 <Label htmlFor="newPassword">Nieuw Wachtwoord</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                   <Input
                     id="newPassword"
                     type={showPasswords.new ? 'text' : 'password'}
@@ -193,14 +193,14 @@ export default function ChangePasswordPage() {
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, new: !prev.new }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
                     {showPasswords.new ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.newPassword && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
+                  <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
                     <AlertCircle className="w-4 h-4" />
                     {errors.newPassword}
                   </p>
@@ -214,7 +214,7 @@ export default function ChangePasswordPage() {
               <div className="space-y-2">
                 <Label htmlFor="confirmPassword">Bevestig Wachtwoord</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
                   <Input
                     id="confirmPassword"
                     type={showPasswords.confirm ? 'text' : 'password'}
@@ -227,14 +227,14 @@ export default function ChangePasswordPage() {
                   <button
                     type="button"
                     onClick={() => setShowPasswords(prev => ({ ...prev, confirm: !prev.confirm }))}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-muted-foreground"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-muted-foreground"
                     disabled={isSubmitting}
                   >
                     {showPasswords.confirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-sm text-red-600 flex items-center gap-1">
+                  <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-1">
                     <AlertCircle className="w-4 h-4" />
                     {errors.confirmPassword}
                   </p>

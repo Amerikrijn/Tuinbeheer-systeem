@@ -29,8 +29,8 @@ export function AuthNavigation() {
         <div className="container mx-auto px-4 safe-area-px">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 rounded-md">
-              <div className="flex items-center justify-center w-8 h-8 bg-green-600 rounded-full">
-                <TreePine className="w-5 h-5 text-white" aria-hidden="true" />
+              <div className="flex items-center justify-center w-8 h-8 bg-green-600 dark:bg-green-700 rounded-full">
+                <TreePine className="w-5 h-5 text-white dark:text-black" aria-hidden="true" />
               </div>
               <span className="font-semibold text-lg">Tuinbeheer</span>
             </Link>

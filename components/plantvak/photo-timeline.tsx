@@ -154,7 +154,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+            <ImageIcon className="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" />
             <p className="text-muted-foreground">Nog geen foto's in het logboek</p>
             <p className="text-sm text-muted-foreground mt-1">
               Voeg foto's toe aan je logboek entries om ze hier te zien
@@ -185,7 +185,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
               {/* Year Header */}
               <button
                 onClick={() => toggleYear(yearGroup.year)}
-                className="w-full px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-between"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-10 dark:hover:bg-gray-100 dark:bg-gray-800 transition-colors flex items-center justify-between"
               >
                 <div className="flex items-center gap-3">
                   {yearGroup.isExpanded ? (
@@ -223,7 +223,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                         }}
                       >
                         {/* Photo Thumbnail */}
-                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 border border-gray-200 group-hover:border-blue-400 transition-all">
+                        <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 group-hover:border-blue-400 transition-all">
                           <img
                             src={entry.photo_url}
                             alt={entry.notes}
@@ -232,7 +232,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                         </div>
                         
                         {/* Date Badge */}
-                        <div className="absolute top-2 left-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
+                        <div className="absolute top-2 left-2 bg-black dark:bg-white/80 text-white dark:text-black text-xs px-2 py-1 rounded">
                           {formatDate(entry.entry_date)}
                         </div>
                         
@@ -242,8 +242,8 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                         </div>
                         
                         {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-lg flex items-center justify-center">
-                          <Maximize2 className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-black dark:bg-white/0 group-hover:bg-black dark:bg-white/20 transition-colors rounded-lg flex items-center justify-center">
+                          <Maximize2 className="h-6 w-6 text-white dark:text-black opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </div>
                     ))}
@@ -251,11 +251,11 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
 
                   {/* Timeline View for Mobile */}
                   <div className="mt-6 lg:hidden">
-                    <div className="border-l-2 border-gray-200 pl-4 space-y-6">
+                    <div className="border-l-2 border-gray-200 dark:border-gray-600 pl-4 space-y-6">
                       {yearGroup.entries.map((entry, index) => (
                         <div key={entry.id} className="relative">
                           {/* Timeline Dot */}
-                          <div className="absolute -left-6 top-0 w-4 h-4 bg-blue-500 rounded-full border-2 border-white"></div>
+                          <div className="absolute -left-6 top-0 w-4 h-4 bg-blue-500 dark:bg-blue-600 rounded-full border-2 border-white dark:border-gray-800"></div>
                           
                           {/* Entry Card */}
                           <div 
@@ -268,7 +268,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                             <div className="text-sm text-muted-foreground mb-1">
                               {format(parseISO(entry.entry_date), 'd MMMM yyyy', { locale: nl })}
                             </div>
-                            <div className="bg-gray-50 rounded-lg p-3">
+                            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3">
                               <div className="flex gap-3">
                                 <img
                                   src={entry.photo_url}
@@ -313,7 +313,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
           {selectedPhoto && (
             <div className="space-y-4">
               {/* Full Size Photo */}
-              <div className="relative bg-gray-100 rounded-lg overflow-hidden">
+              <div className="relative bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
                 <img
                   src={selectedPhoto.photo_url}
                   alt={selectedPhoto.notes}
@@ -336,7 +336,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
                 </div>
                 
                 {/* Notes */}
-                <div className="bg-gray-50 rounded-lg p-4">
+                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                   <h4 className="font-medium text-foreground mb-2">Notities</h4>
                                           <p className="text-foreground whitespace-pre-wrap">{selectedPhoto.notes}</p>
                 </div>

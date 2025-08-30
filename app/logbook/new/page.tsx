@@ -355,7 +355,7 @@ function NewLogbookPageContent() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center">
-          <div className="text-red-600 mb-4">
+          <div className="text-red-600 dark:text-red-400 mb-4">
             <Calendar className="h-12 w-12 mx-auto mb-2" />
             <h2 className="text-xl font-semibold">Fout bij laden gegevens</h2>
           </div>
@@ -407,7 +407,7 @@ function NewLogbookPageContent() {
               {/* Plant bed selection */}
               <div className="space-y-2">
                 <Label htmlFor="plant_bed_id">
-                  Plantvak <span className="text-red-500">*</span>
+                  Plantvak <span className="text-red-500 dark:text-red-400">*</span>
                 </Label>
                 <Select 
                   value={state.formData.plant_bed_id} 
@@ -453,7 +453,7 @@ function NewLogbookPageContent() {
               {/* Date */}
               <div className="space-y-2">
                 <Label htmlFor="entry_date">
-                  Datum <span className="text-red-500">*</span>
+                  Datum <span className="text-red-500 dark:text-red-400">*</span>
                 </Label>
                 <Input
                   id="entry_date"
@@ -467,7 +467,7 @@ function NewLogbookPageContent() {
               {/* Notes */}
               <div className="space-y-2">
                 <Label htmlFor="notes">
-                  Opmerkingen <span className="text-red-500">*</span>
+                  Opmerkingen <span className="text-red-500 dark:text-red-400">*</span>
                 </Label>
                 <Textarea
                   id="notes"
@@ -504,7 +504,7 @@ function NewLogbookPageContent() {
                     </Button>
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-500 rounded-lg p-6 text-center">
                     <Camera className="h-8 w-8 text-muted-foreground/50 mx-auto mb-2" />
                     <p className="text-sm text-muted-foreground mb-2">
                       Klik om een foto toe te voegen

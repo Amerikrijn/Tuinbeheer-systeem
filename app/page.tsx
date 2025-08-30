@@ -277,7 +277,7 @@ function HomePageContent() {
 
             window.location.href = '/gardens/new'
           }}
-          className="h-10 px-4 bg-green-600 hover:bg-green-700 text-white"
+          className="h-10 px-4 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black"
         >
           <Plus className="w-4 h-4 mr-2" />
           Toevoegen
@@ -399,7 +399,7 @@ function HomePageContent() {
                     onClick={handleLoadMore}
                     disabled={gardensLoading}
                     variant="outline"
-                    className="w-full sm:w-auto min-w-32 border-green-300 text-green-700 hover:bg-green-50"
+                    className="w-full sm:w-auto min-w-32 border-green-300 text-green-700 hover:bg-green-50 dark:bg-green-950"
                   >
                     {gardensLoading ? 'Laden...' : 'Meer laden'}
                   </Button>
@@ -551,7 +551,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-950/30 text-xs flex items-center"
+          className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30 text-xs flex items-center"
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
@@ -567,7 +567,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
           onClick={handleDeleteClick}
           variant="ghost"
           size="sm"
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
+          className="text-red-600 dark:text-red-400 hover:text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 opacity-0 group-hover:opacity-100 transition-opacity text-xs"
           onMouseDown={(e) => e.preventDefault()}
         >
           <Trash2 className="h-3 w-3 mr-1" />
