@@ -38,6 +38,7 @@ import {
 } from "lucide-react"
 import { getGarden, getPlantBeds, updatePlantBed, deletePlantBed } from "@/lib/database"
 import { PlantvakService } from "@/lib/services/plantvak.service"
+import { executeSaveWithRetry } from "@/lib/utils/save-handler"
 import type { Garden, PlantBedWithPlants, PlantWithPosition, Plant } from "@/lib/supabase"
 import { 
   METERS_TO_PIXELS, 
@@ -867,24 +868,41 @@ export default function GardenDetailPage() {
 
       const sizeString = `${length}m x ${width}m`
 
-      // Gebruik PlantvakService voor automatische letter toewijzing
-      const plantBed = await PlantvakService.create({
-        garden_id: garden.id,
-        size: sizeString,
-        description: newPlantBed.description?.trim() || undefined,
-        sun_exposure: newPlantBed.sun_exposure,
-        soil_type: newPlantBed.soil_type?.trim() || 'gemengd', // Default soil type
-      })
+      // Gebruik PlantvakService voor automatische letter toewijzing met retry logic
+      const saveResult = await executeSaveWithRetry(
+        async () => {
+          const plantBed = await PlantvakService.create({
+            garden_id: garden.id,
+            size: sizeString,
+            description: newPlantBed.description?.trim() || undefined,
+            sun_exposure: newPlantBed.sun_exposure,
+            soil_type: newPlantBed.soil_type?.trim() || 'gemengd', // Default soil type
+          })
+          
+          if (!plantBed) throw new Error('Failed to create plant bed')
+          
+          // Update the plant bed with position and calculated dimensions
+          const updatedBed = await updatePlantBed(plantBed.id, {
+            position_x: newX,
+            position_y: newY,
+            visual_width: visualWidth,
+            visual_height: visualHeight,
+            rotation: 0
+          })
+          
+          if (!updatedBed) throw new Error('Failed to update plant bed position')
+          
+          return updatedBed
+        },
+        {
+          loadingMessage: 'Plantvak aanmaken...',
+          successMessage: 'Plantvak succesvol toegevoegd!',
+          errorMessage: 'Kon plantvak niet toevoegen'
+        }
+      )
 
-      if (plantBed) {
-        // Update the plant bed with position and calculated dimensions
-        const updatedBed = await updatePlantBed(plantBed.id, {
-          position_x: newX,
-          position_y: newY,
-          visual_width: visualWidth,
-          visual_height: visualHeight,
-          rotation: 0
-        })
+      if (saveResult.success && saveResult.data) {
+        const updatedBed = saveResult.data
 
         if (updatedBed) {
           // No default flowers - start with empty plant bed

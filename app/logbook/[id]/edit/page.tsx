@@ -16,6 +16,7 @@ import { getPlantBeds } from "@/lib/database"
 import { uploadImage, type UploadResult } from "@/lib/storage"
 import type { LogbookEntryWithDetails, PlantvakWithBloemen } from "@/lib/types/index"
 import { format } from "date-fns"
+import { executeSaveWithRetry } from "@/lib/utils/save-handler"
 
 interface EditLogbookState {
   entry: LogbookEntryWithDetails | null
@@ -127,26 +128,30 @@ export default function EditLogbookPage() {
         photo_url: formData.photo_url || undefined,
       }
 
-      const response = await LogbookService.update(state.entry.id, updateData)
-      
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to update logbook entry')
+      // Use save handler with retry logic
+      const saveResult = await executeSaveWithRetry(
+        async () => {
+          const response = await LogbookService.update(state.entry.id, updateData)
+          
+          if (!response.success) {
+            throw new Error(response.error || 'Failed to update logbook entry')
+          }
+          
+          return response.data
+        },
+        {
+          loadingMessage: 'Logboek entry bijwerken...',
+          successMessage: 'Logboek entry succesvol bijgewerkt!',
+          errorMessage: 'Kon logboek entry niet bijwerken'
+        }
+      )
+
+      if (saveResult.success) {
+        router.push(`/logbook/${state.entry.id}`)
       }
 
-      toast({
-        title: "Logboek entry bijgewerkt",
-        description: "De entry is succesvol bijgewerkt.",
-      })
-
-      router.push(`/logbook/${state.entry.id}`)
-
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update entry'
-      toast({
-        title: "Fout bij bijwerken",
-        description: errorMessage,
-        variant: "destructive",
-      })
+      // Error is already handled by save handler
     } finally {
       setState(prev => ({ ...prev, saving: false }))
     }
