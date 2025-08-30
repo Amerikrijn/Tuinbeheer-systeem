@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 import React, { useState } from 'react'
 import { useNavigation } from '@/hooks/use-navigation'
-import { WeeklyTaskList } from '@/components/tasks/weekly-task-list'
+import { WeeklyTaskListOptimized } from '@/components/tasks/weekly-task-list-optimized'
 import { AddTaskForm } from '@/components/tasks/add-task-form'
 import { TaskDetailsDialog } from '@/components/tasks/task-details-dialog'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -52,9 +52,8 @@ function TasksPageContent() {
         </p>
       </div>
 
-      {/* Weekly Task List */}
-      <WeeklyTaskList 
-        key={refreshKey}
+      {/* Weekly Task List - Using optimized version with React Query */}
+      <WeeklyTaskListOptimized
         onTaskEdit={(task) => {
           // Open task details dialog for editing
           setSelectedTask(task)

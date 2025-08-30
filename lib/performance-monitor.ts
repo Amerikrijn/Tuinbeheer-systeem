@@ -1,275 +1,301 @@
 /**
- * Performance Monitoring Utility
- * Tracks and reports on database query performance and authentication metrics
+ * Performance monitoring utilities for detecting and preventing memory leaks
  */
-
-interface PerformanceMetric {
-  name: string
-  startTime: number
-  endTime?: number
-  duration?: number
-  success: boolean
-  error?: string
-  metadata?: Record<string, any>
-}
 
 class PerformanceMonitor {
-  private metrics: PerformanceMetric[] = []
-  private readonly maxMetrics = 100 // Keep last 100 metrics in memory
-  private readonly slowQueryThreshold = 3000 // 3 seconds
-  private readonly criticalQueryThreshold = 10000 // 10 seconds
+  private observers: Set<PerformanceObserver> = new Set()
+  private metrics: Map<string, number[]> = new Map()
+  private eventListeners: Map<string, Set<EventListener>> = new Set()
+  private activeTimers: Set<NodeJS.Timeout> = new Set()
+  private activeIntervals: Set<NodeJS.Timeout> = new Set()
 
   /**
-   * Start tracking a new metric
+   * Track component mount/unmount to detect memory leaks
    */
-  startMetric(name: string, metadata?: Record<string, any>): PerformanceMetric {
-    const metric: PerformanceMetric = {
-      name,
-      startTime: performance.now(),
-      success: false,
-      metadata,
+  trackComponent(componentName: string, action: 'mount' | 'unmount') {
+    if (process.env.NODE_ENV !== 'development') return
+
+    const key = `component:${componentName}`
+    const counts = this.metrics.get(key) || [0, 0]
+    
+    if (action === 'mount') {
+      counts[0]++
+    } else {
+      counts[1]++
     }
-
-    this.metrics.push(metric)
-
-    // Keep only the last maxMetrics entries
-    if (this.metrics.length > this.maxMetrics) {
-      this.metrics.shift()
-    }
-
-    return metric
-  }
-
-  /**
-   * Complete a metric tracking
-   */
-  endMetric(metric: PerformanceMetric, success: boolean, error?: string): void {
-    metric.endTime = performance.now()
-    metric.duration = metric.endTime - metric.startTime
-    metric.success = success
-    metric.error = error
-
-    // Log performance warnings
-    if (metric.duration > this.criticalQueryThreshold) {
-      console.error(`🚨 CRITICAL: ${metric.name} took ${metric.duration.toFixed(2)}ms`, {
-        ...metric.metadata,
-        error: metric.error,
-      })
-    } else if (metric.duration > this.slowQueryThreshold) {
-      console.warn(`⚠️ SLOW: ${metric.name} took ${metric.duration.toFixed(2)}ms`, {
-        ...metric.metadata,
-        error: metric.error,
-      })
-    } else if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ ${metric.name} completed in ${metric.duration.toFixed(2)}ms`)
-    }
-
-    // Send to analytics if available
-    this.sendToAnalytics(metric)
-  }
-
-  /**
-   * Track an async operation
-   */
-  async track<T>(
-    name: string,
-    operation: () => Promise<T>,
-    metadata?: Record<string, any>
-  ): Promise<T> {
-    const metric = this.startMetric(name, metadata)
-
-    try {
-      const result = await operation()
-      this.endMetric(metric, true)
-      return result
-    } catch (error) {
-      this.endMetric(metric, false, error instanceof Error ? error.message : String(error))
-      throw error
+    
+    this.metrics.set(key, counts)
+    
+    // Warn if there's a significant imbalance (potential memory leak)
+    const [mounts, unmounts] = counts
+    if (mounts - unmounts > 10) {
+      console.warn(`⚠️ Potential memory leak in ${componentName}: ${mounts} mounts, ${unmounts} unmounts`)
     }
   }
 
   /**
-   * Get performance statistics
+   * Track event listeners to ensure cleanup
    */
-  getStats() {
-    const successfulMetrics = this.metrics.filter(m => m.success && m.duration)
-    const failedMetrics = this.metrics.filter(m => !m.success)
+  trackEventListener(
+    element: EventTarget,
+    type: string,
+    listener: EventListener,
+    action: 'add' | 'remove'
+  ) {
+    if (process.env.NODE_ENV !== 'development') return
 
-    if (successfulMetrics.length === 0) {
-      return {
-        avgDuration: 0,
-        minDuration: 0,
-        maxDuration: 0,
-        p50Duration: 0,
-        p95Duration: 0,
-        p99Duration: 0,
-        successRate: 0,
-        totalRequests: this.metrics.length,
-        slowQueries: 0,
-        criticalQueries: 0,
-      }
+    const key = `${element.constructor.name}:${type}`
+    
+    if (!this.eventListeners.has(key)) {
+      this.eventListeners.set(key, new Set())
     }
+    
+    const listeners = this.eventListeners.get(key)!
+    
+    if (action === 'add') {
+      listeners.add(listener)
+    } else {
+      listeners.delete(listener)
+    }
+    
+    // Warn if too many listeners (potential leak)
+    if (listeners.size > 20) {
+      console.warn(`⚠️ Many event listeners (${listeners.size}) for ${key}`)
+    }
+  }
 
-    const durations = successfulMetrics
-      .map(m => m.duration!)
-      .sort((a, b) => a - b)
+  /**
+   * Track timers to ensure cleanup
+   */
+  trackTimer(timer: NodeJS.Timeout, type: 'timeout' | 'interval', action: 'set' | 'clear') {
+    if (process.env.NODE_ENV !== 'development') return
 
-    const p50Index = Math.floor(durations.length * 0.5)
-    const p95Index = Math.floor(durations.length * 0.95)
-    const p99Index = Math.floor(durations.length * 0.99)
+    const set = type === 'timeout' ? this.activeTimers : this.activeIntervals
+    
+    if (action === 'set') {
+      set.add(timer)
+    } else {
+      set.delete(timer)
+    }
+    
+    // Warn if too many active timers
+    if (set.size > 10) {
+      console.warn(`⚠️ Many active ${type}s: ${set.size}`)
+    }
+  }
 
+  /**
+   * Measure render performance
+   */
+  measureRender(componentName: string, startTime: number) {
+    if (process.env.NODE_ENV !== 'development') return
+
+    const duration = performance.now() - startTime
+    
+    const key = `render:${componentName}`
+    const durations = this.metrics.get(key) || []
+    durations.push(duration)
+    
+    // Keep only last 100 measurements
+    if (durations.length > 100) {
+      durations.shift()
+    }
+    
+    this.metrics.set(key, durations)
+    
+    // Warn if render is slow
+    if (duration > 16) { // More than one frame (60fps = 16.67ms per frame)
+      console.warn(`⚠️ Slow render in ${componentName}: ${duration.toFixed(2)}ms`)
+    }
+    
+    // Log average render time periodically
+    if (durations.length === 100) {
+      const avg = durations.reduce((a, b) => a + b, 0) / durations.length
+      console.log(`📊 Average render time for ${componentName}: ${avg.toFixed(2)}ms`)
+    }
+  }
+
+  /**
+   * Monitor memory usage
+   */
+  monitorMemory() {
+    if (process.env.NODE_ENV !== 'development') return
+    if (typeof window === 'undefined') return
+    if (!(performance as any).memory) return
+
+    const memory = (performance as any).memory
+    const usedMB = Math.round(memory.usedJSHeapSize / 1048576)
+    const totalMB = Math.round(memory.totalJSHeapSize / 1048576)
+    const limitMB = Math.round(memory.jsHeapSizeLimit / 1048576)
+    
+    // Warn if memory usage is high
+    const usage = (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100
+    if (usage > 90) {
+      console.error(`🚨 Critical memory usage: ${usedMB}MB / ${limitMB}MB (${usage.toFixed(1)}%)`)
+    } else if (usage > 70) {
+      console.warn(`⚠️ High memory usage: ${usedMB}MB / ${limitMB}MB (${usage.toFixed(1)}%)`)
+    }
+    
     return {
-      avgDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
-      minDuration: durations[0],
-      maxDuration: durations[durations.length - 1],
-      p50Duration: durations[p50Index],
-      p95Duration: durations[p95Index],
-      p99Duration: durations[p99Index],
-      successRate: (successfulMetrics.length / this.metrics.length) * 100,
-      totalRequests: this.metrics.length,
-      slowQueries: this.metrics.filter(m => m.duration && m.duration > this.slowQueryThreshold).length,
-      criticalQueries: this.metrics.filter(m => m.duration && m.duration > this.criticalQueryThreshold).length,
-      recentFailures: failedMetrics.slice(-5).map(m => ({
-        name: m.name,
-        error: m.error,
-        metadata: m.metadata,
-      })),
+      used: usedMB,
+      total: totalMB,
+      limit: limitMB,
+      percentage: usage
     }
   }
 
   /**
-   * Send metrics to analytics service (if configured)
+   * Start monitoring performance
    */
-  private sendToAnalytics(metric: PerformanceMetric): void {
-    // Only send critical metrics to avoid noise
-    if (!metric.duration || metric.duration < this.slowQueryThreshold) {
-      return
-    }
+  startMonitoring() {
+    if (process.env.NODE_ENV !== 'development') return
+    if (typeof window === 'undefined') return
 
-    // Check if we have analytics available
-    if (typeof window !== 'undefined' && (window as any).analytics) {
+    // Monitor memory every 30 seconds
+    setInterval(() => {
+      this.monitorMemory()
+    }, 30000)
+
+    // Monitor long tasks
+    if ('PerformanceObserver' in window) {
       try {
-        (window as any).analytics.track('Database Performance Issue', {
-          metricName: metric.name,
-          duration: metric.duration,
-          success: metric.success,
-          error: metric.error,
-          ...metric.metadata,
+        const observer = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (entry.duration > 50) {
+              console.warn(`⚠️ Long task detected: ${entry.duration.toFixed(2)}ms`, entry)
+            }
+          }
         })
-      } catch (error) {
-        console.debug('Failed to send analytics:', error)
+        
+        observer.observe({ entryTypes: ['longtask'] })
+        this.observers.add(observer)
+      } catch (e) {
+        // Long task observer not supported
       }
     }
+
+    console.log('🚀 Performance monitoring started')
   }
 
   /**
-   * Export metrics for debugging
+   * Stop monitoring and clean up
    */
-  exportMetrics(): string {
-    return JSON.stringify(this.metrics, null, 2)
+  stopMonitoring() {
+    this.observers.forEach(observer => observer.disconnect())
+    this.observers.clear()
+    this.metrics.clear()
+    this.eventListeners.clear()
+    this.activeTimers.clear()
+    this.activeIntervals.clear()
   }
 
   /**
-   * Clear all metrics
+   * Get performance report
    */
-  clearMetrics(): void {
-    this.metrics = []
+  getReport() {
+    const report: any = {
+      components: {},
+      eventListeners: {},
+      timers: {
+        timeouts: this.activeTimers.size,
+        intervals: this.activeIntervals.size
+      },
+      memory: this.monitorMemory()
+    }
+    
+    // Component mount/unmount balance
+    this.metrics.forEach((value, key) => {
+      if (key.startsWith('component:')) {
+        const name = key.replace('component:', '')
+        const [mounts, unmounts] = value
+        report.components[name] = {
+          mounts,
+          unmounts,
+          leaked: mounts - unmounts
+        }
+      }
+    })
+    
+    // Event listeners
+    this.eventListeners.forEach((listeners, key) => {
+      report.eventListeners[key] = listeners.size
+    })
+    
+    return report
   }
 }
 
-// Create singleton instance
+// Singleton instance
 export const performanceMonitor = new PerformanceMonitor()
 
-/**
- * React Hook for performance monitoring
- */
-export function usePerformanceMonitor() {
-  return {
-    track: performanceMonitor.track.bind(performanceMonitor),
-    getStats: performanceMonitor.getStats.bind(performanceMonitor),
-    exportMetrics: performanceMonitor.exportMetrics.bind(performanceMonitor),
-    clearMetrics: performanceMonitor.clearMetrics.bind(performanceMonitor),
+// Helper hooks
+export function useComponentTracking(componentName: string) {
+  if (process.env.NODE_ENV !== 'development') return
+
+  // Track mount
+  performanceMonitor.trackComponent(componentName, 'mount')
+  
+  // Track unmount on cleanup
+  return () => {
+    performanceMonitor.trackComponent(componentName, 'unmount')
   }
 }
 
-/**
- * Circuit Breaker implementation for preventing cascading failures
- */
-export class CircuitBreaker {
-  private failures = 0
-  private lastFailureTime = 0
-  private state: 'closed' | 'open' | 'half-open' = 'closed'
-  private successCount = 0
+export function useRenderTracking(componentName: string) {
+  if (process.env.NODE_ENV !== 'development') return
 
-  constructor(
-    private name: string,
-    private threshold = 5,
-    private timeout = 60000, // 1 minute
-    private halfOpenSuccessThreshold = 3
-  ) {}
+  const startTime = performance.now()
+  performanceMonitor.measureRender(componentName, startTime)
+}
 
-  async execute<T>(fn: () => Promise<T>): Promise<T> {
-    // Check if circuit should be reset
-    if (this.state === 'open') {
-      const timeSinceLastFailure = Date.now() - this.lastFailureTime
-      if (timeSinceLastFailure > this.timeout) {
-        console.log(`🔄 Circuit breaker ${this.name} entering half-open state`)
-        this.state = 'half-open'
-        this.successCount = 0
-      } else {
-        const timeRemaining = Math.ceil((this.timeout - timeSinceLastFailure) / 1000)
-        throw new Error(`Circuit breaker ${this.name} is open. Retry in ${timeRemaining}s`)
-      }
-    }
-
-    try {
-      const result = await fn()
-
-      // Handle successful execution
-      if (this.state === 'half-open') {
-        this.successCount++
-        if (this.successCount >= this.halfOpenSuccessThreshold) {
-          console.log(`✅ Circuit breaker ${this.name} closed after successful recovery`)
-          this.state = 'closed'
-          this.failures = 0
-        }
-      } else if (this.state === 'closed') {
-        // Reset failure count on success
-        this.failures = 0
-      }
-
-      return result
-    } catch (error) {
-      this.failures++
-      this.lastFailureTime = Date.now()
-
-      if (this.state === 'half-open') {
-        console.error(`🚨 Circuit breaker ${this.name} reopened due to failure in half-open state`)
-        this.state = 'open'
-      } else if (this.failures >= this.threshold) {
-        console.error(`🚨 Circuit breaker ${this.name} opened after ${this.failures} failures`)
-        this.state = 'open'
-      }
-
-      throw error
-    }
-  }
-
-  getState() {
-    return {
-      state: this.state,
-      failures: this.failures,
-      lastFailureTime: this.lastFailureTime,
-    }
-  }
-
-  reset() {
-    this.state = 'closed'
-    this.failures = 0
-    this.successCount = 0
-    console.log(`🔧 Circuit breaker ${this.name} manually reset`)
+// Safe event listener wrapper
+export function addTrackedEventListener(
+  element: EventTarget,
+  type: string,
+  listener: EventListener,
+  options?: boolean | AddEventListenerOptions
+) {
+  performanceMonitor.trackEventListener(element, type, listener, 'add')
+  element.addEventListener(type, listener, options)
+  
+  return () => {
+    performanceMonitor.trackEventListener(element, type, listener, 'remove')
+    element.removeEventListener(type, listener, options)
   }
 }
 
-// Export default circuit breaker for auth operations
-export const authCircuitBreaker = new CircuitBreaker('auth', 5, 60000, 3)
+// Safe timer wrappers
+export function setTrackedTimeout(callback: () => void, delay: number) {
+  const timer = setTimeout(() => {
+    performanceMonitor.trackTimer(timer, 'timeout', 'clear')
+    callback()
+  }, delay)
+  
+  performanceMonitor.trackTimer(timer, 'timeout', 'set')
+  return timer
+}
+
+export function clearTrackedTimeout(timer: NodeJS.Timeout) {
+  performanceMonitor.trackTimer(timer, 'timeout', 'clear')
+  clearTimeout(timer)
+}
+
+export function setTrackedInterval(callback: () => void, delay: number) {
+  const timer = setInterval(callback, delay)
+  performanceMonitor.trackTimer(timer, 'interval', 'set')
+  return timer
+}
+
+export function clearTrackedInterval(timer: NodeJS.Timeout) {
+  performanceMonitor.trackTimer(timer, 'interval', 'clear')
+  clearInterval(timer)
+}
+
+// Auto-start monitoring in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  performanceMonitor.startMonitoring()
+  
+  // Expose to window for debugging
+  (window as any).__performanceMonitor = performanceMonitor
+  console.log('💡 Performance monitor available at window.__performanceMonitor.getReport()')
+}
