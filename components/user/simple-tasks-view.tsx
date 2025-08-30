@@ -149,8 +149,6 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
         
         const accessibleGardens = getAccessibleGardens()
         const { startOfWeek, endOfWeek } = getWeekDates(currentWeek)
-
-        console.log('🔍 SimpleTasksView - Week range:', { startOfWeek: startOfWeek.toISOString(), endOfWeek: endOfWeek.toISOString() })
         
         if (accessibleGardens.length === 0) {
 
