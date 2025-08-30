@@ -221,7 +221,7 @@ function NewLogbookPageContent() {
       })
 
     } catch (error) {
-      console.error('Photo upload error:', error)
+
       const errorMessage = error instanceof Error ? error.message : 'Onbekende fout bij uploaden'
       setState(prev => ({ ...prev, uploadingPhoto: false }))
       

@@ -14,7 +14,7 @@ export function useNavigationHistory() {
         window.history.back()
         return
       } catch (e) {
-        console.log('Browser back navigation failed, using fallback')
+
       }
     }
     

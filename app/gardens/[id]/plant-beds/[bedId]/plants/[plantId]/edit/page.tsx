@@ -59,7 +59,7 @@ export default function EditPlantPage() {
           })
         }
       } catch (error) {
-        console.error('Error loading plant:', error)
+
         toast({
           title: "Fout bij laden",
           description: "Kon de plant gegevens niet laden.",
@@ -79,7 +79,7 @@ export default function EditPlantPage() {
           setTasks(tasksData)
         }
       } catch (error) {
-        console.error('Error loading tasks:', error)
+
       }
     }
 
@@ -196,7 +196,7 @@ export default function EditPlantPage() {
 
       router.push(`/gardens/${params.id}/plantvak-view/${params.bedId}`)
     } catch (error) {
-      console.error('Error updating plant:', error)
+
       toast({
         title: "Fout bij bijwerken",
         description: "Er ging iets mis bij het bijwerken van de plant.",
@@ -226,7 +226,7 @@ export default function EditPlantPage() {
 
       router.push(`/gardens/${params.id}/plantvak-view/${params.bedId}`)
     } catch (error) {
-      console.error('Error deleting plant:', error)
+
       toast({
         title: "Fout bij verwijderen",
         description: "Er ging iets mis bij het verwijderen van de plant.",
@@ -248,7 +248,7 @@ export default function EditPlantPage() {
           setTasks(tasksData)
         }
       } catch (error) {
-        console.error('Error loading tasks:', error)
+
       }
     }
     loadTasks()

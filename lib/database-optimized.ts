@@ -27,8 +27,7 @@ type PlantBedWithPlants = PlantvakWithBloemen & {
  * Gebruikt één query in plaats van meerdere
  */
 export async function getGardensOptimized(): Promise<Garden[]> {
-  console.log("🚀 Fetching gardens with optimized query...")
-  
+
   try {
     // ✅ Eén query met subquery voor plant bed count
     const { data, error } = await supabase
@@ -41,14 +40,13 @@ export async function getGardensOptimized(): Promise<Garden[]> {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error("❌ Error fetching gardens:", error)
+
       return []
     }
 
-    console.log("✅ Gardens fetched successfully:", data?.length || 0)
     return data || []
   } catch (error) {
-    console.error("❌ Unexpected error:", error)
+
     return []
   }
 }
@@ -58,8 +56,7 @@ export async function getGardensOptimized(): Promise<Garden[]> {
  * Lost het N+1 query probleem volledig op
  */
 export async function getGardenWithPlantBedsOptimized(gardenId: string): Promise<Garden | null> {
-  console.log("🚀 Fetching garden with plant beds using JOINs...")
-  
+
   try {
     // ✅ Eén query met nested JOINs - geen N+1 probleem!
     const { data, error } = await supabase
@@ -76,14 +73,13 @@ export async function getGardenWithPlantBedsOptimized(gardenId: string): Promise
       .single()
 
     if (error) {
-      console.error("❌ Error fetching garden:", error)
+
       return null
     }
 
-    console.log("✅ Garden with plant beds fetched successfully")
     return data
   } catch (error) {
-    console.error("❌ Unexpected error:", error)
+
     return null
   }
 }
@@ -93,8 +89,7 @@ export async function getGardenWithPlantBedsOptimized(gardenId: string): Promise
  * Gebruikt één query in plaats van N+1 queries
  */
 export async function getPlantBedsOptimized(gardenId?: string): Promise<PlantBedWithPlants[]> {
-  console.log("🚀 Fetching plant beds with optimized JOIN query...")
-  
+
   try {
     let query = supabase
       .from('plant_beds')
@@ -112,14 +107,13 @@ export async function getPlantBedsOptimized(gardenId?: string): Promise<PlantBed
     const { data, error } = await query
 
     if (error) {
-      console.error("❌ Error fetching plant beds:", error)
+
       return []
     }
 
-    console.log("✅ Plant beds with plants fetched successfully:", data?.length || 0)
     return data || []
   } catch (error) {
-    console.error("❌ Unexpected error:", error)
+
     return []
   }
 }
@@ -129,8 +123,7 @@ export async function getPlantBedsOptimized(gardenId?: string): Promise<PlantBed
  * Gebruikt één query in plaats van twee aparte queries
  */
 export async function getPlantBedOptimized(id: string): Promise<PlantBedWithPlants | null> {
-  console.log("🚀 Fetching plant bed with plants using JOIN...")
-  
+
   try {
     const { data, error } = await supabase
       .from('plant_beds')
@@ -143,14 +136,13 @@ export async function getPlantBedOptimized(id: string): Promise<PlantBedWithPlan
       .single()
 
     if (error) {
-      console.error("❌ Error fetching plant bed:", error)
+
       return null
     }
 
-    console.log("✅ Plant bed with plants fetched successfully")
     return data
   } catch (error) {
-    console.error("❌ Unexpected error:", error)
+
     return null
   }
 }
@@ -160,8 +152,7 @@ export async function getPlantBedOptimized(id: string): Promise<PlantBedWithPlan
  * Gebruikt PostgreSQL full-text search met indexen
  */
 export async function searchGardensOptimized(searchTerm: string): Promise<Garden[]> {
-  console.log("🚀 Searching gardens with full-text search...")
-  
+
   try {
     const { data, error } = await supabase
       .from('gardens')
@@ -174,14 +165,13 @@ export async function searchGardensOptimized(searchTerm: string): Promise<Garden
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error("❌ Error searching gardens:", error)
+
       return []
     }
 
-    console.log("✅ Gardens search completed:", data?.length || 0)
     return data || []
   } catch (error) {
-    console.error("❌ Unexpected error:", error)
+
     return []
   }
 }
@@ -191,8 +181,7 @@ export async function searchGardensOptimized(searchTerm: string): Promise<Garden
  * Gebruikt één query in plaats van meerdere queries
  */
 export async function getTasksOptimized(gardenId?: string, userId?: string): Promise<Task[]> {
-  console.log("🚀 Fetching tasks with optimized query...")
-  
+
   try {
     let query = supabase
       .from('tasks')
@@ -214,14 +203,13 @@ export async function getTasksOptimized(gardenId?: string, userId?: string): Pro
     const { data, error } = await query
 
     if (error) {
-      console.error("❌ Error fetching tasks:", error)
+
       return []
     }
 
-    console.log("✅ Tasks fetched successfully:", data?.length || 0)
     return data || []
   } catch (error) {
-    console.error("❌ Unexpected error:", error)
+
     return []
   }
 }
@@ -231,8 +219,7 @@ export async function getTasksOptimized(gardenId?: string, userId?: string): Pro
  * Gebruikt één query in plaats van meerdere queries
  */
 export async function getLogbookEntriesOptimized(gardenId?: string, plantBedId?: string): Promise<LogbookEntry[]> {
-  console.log("🚀 Fetching logbook entries with optimized query...")
-  
+
   try {
     let query = supabase
       .from('logbook_entries')
@@ -255,14 +242,13 @@ export async function getLogbookEntriesOptimized(gardenId?: string, plantBedId?:
     const { data, error } = await query
 
     if (error) {
-      console.error("❌ Error fetching logbook entries:", error)
+
       return []
     }
 
-    console.log("✅ Logbook entries fetched successfully:", data?.length || 0)
     return data || []
   } catch (error) {
-    console.error("❌ Unexpected error:", error)
+
     return []
   }
 }
@@ -278,8 +264,7 @@ export async function getDashboardStatsOptimized(gardenId?: string): Promise<{
   activeTasks: number
   recentLogbookEntries: number
 }> {
-  console.log("🚀 Fetching dashboard stats with optimized queries...")
-  
+
   try {
     // ✅ Eén query voor alle statistieken
     const { data, error } = await supabase
@@ -296,7 +281,7 @@ export async function getDashboardStatsOptimized(gardenId?: string): Promise<{
       .eq(gardenId ? 'id' : 'id', gardenId || '')
 
     if (error) {
-      console.error("❌ Error fetching dashboard stats:", error)
+
       return {
         totalGardens: 0,
         totalPlantBeds: 0,
@@ -317,10 +302,9 @@ export async function getDashboardStatsOptimized(gardenId?: string): Promise<{
       recentLogbookEntries: 0 // Wordt apart opgehaald indien nodig
     }
 
-    console.log("✅ Dashboard stats calculated successfully:", stats)
     return stats
   } catch (error) {
-    console.error("❌ Unexpected error:", error)
+
     return {
       totalGardens: 0,
       totalPlantBeds: 0,
@@ -345,8 +329,7 @@ export async function updatePlantBedPositionsBatch(updates: Array<{
   z_index?: number
   color_code?: string
 }>): Promise<boolean> {
-  console.log("🚀 Batch updating plant bed positions...")
-  
+
   try {
     // ✅ Batch update met één query
     const { error } = await supabase
@@ -357,14 +340,13 @@ export async function updatePlantBedPositionsBatch(updates: Array<{
       })
 
     if (error) {
-      console.error("❌ Error batch updating positions:", error)
+
       return false
     }
 
-    console.log("✅ Plant bed positions updated successfully:", updates.length)
     return true
   } catch (error) {
-    console.error("❌ Unexpected error:", error)
+
     return false
   }
 }
@@ -388,50 +370,24 @@ export async function measureQueryPerformance<T>(
     
     // Log performance metrics
     if (duration > 1000) {
-      console.warn(`⚠️ Slow query: ${queryName} took ${duration.toFixed(2)}ms`)
+
     } else if (duration > 500) {
-      console.info(`ℹ️ Medium query: ${queryName} took ${duration.toFixed(2)}ms`)
+
     } else {
-      console.log(`✅ Fast query: ${queryName} took ${duration.toFixed(2)}ms`)
+
     }
     
     return { data, duration }
   } catch (error) {
     const duration = performance.now() - start
-    console.error(`❌ Query failed: ${queryName} took ${duration.toFixed(2)}ms`, error)
-    throw error
-  }
-}
 
-/**
- * Vergelijk performance van oude vs nieuwe functies
- */
-export async function comparePerformance() {
-  console.log("🚀 Performance comparison starting...")
-  
-  // Test oude functie (als die nog bestaat)
-  try {
-    const oldStart = performance.now()
-    // const oldResult = await getPlantBeds() // Oude functie
-    const oldDuration = performance.now() - oldStart
-    
-    // Test nieuwe functie
-    const newStart = performance.now()
-    const newResult = await getPlantBedsOptimized()
-    const newDuration = performance.now() - newStart
-    
-    console.log("📊 Performance Comparison:")
-    console.log(`Old function: ${oldDuration.toFixed(2)}ms`)
-    console.log(`New function: ${newDuration.toFixed(2)}ms`)
-    console.log(`Improvement: ${((oldDuration - newDuration) / oldDuration * 100).toFixed(1)}%`)
-    
     return {
       oldDuration,
       newDuration,
       improvement: ((oldDuration - newDuration) / oldDuration * 100).toFixed(1)
     }
   } catch (error) {
-    console.error("❌ Performance comparison failed:", error)
+
     return null
   }
 }

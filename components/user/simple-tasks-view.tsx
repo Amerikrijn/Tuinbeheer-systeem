@@ -41,7 +41,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
         .eq('id', taskId)
       
       if (error) {
-        console.error('Error updating task:', error)
+
         return
       }
       
@@ -55,7 +55,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
       )
       
     } catch (error) {
-      console.error('Error completing task:', error)
+
     } finally {
       setCompletingTasks(prev => {
         const newSet = new Set(prev)
@@ -89,23 +89,16 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
   useEffect(() => {
     async function ensureGardenAccess() {
       if (!user) return
-      
-      console.log('🔍 SimpleTasksView - Initial user state:', {
-        email: user.email,
-        role: user.role,
-        garden_access: user.garden_access,
-        hasAccess: user.garden_access?.length > 0
-      })
-      
+
       // For users, ensure garden access is loaded
       if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
-        console.log('🔍 SimpleTasksView - Loading garden access for user...')
+
         try {
           await loadGardenAccess()
           setGardenAccessLoaded(true)
-          console.log('✅ SimpleTasksView - Garden access loaded')
+
         } catch (error) {
-          console.error('❌ SimpleTasksView - Failed to load garden access:', error)
+
           setGardenAccessLoaded(true) // Still mark as loaded to avoid infinite loop
         }
       } else {
@@ -132,7 +125,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           setGardenNames(gardens?.map((g: { name: string }) => g.name) || [])
         }
       } catch (error) {
-        console.error('Error loading garden names:', error)
+
       }
     }
     
@@ -148,7 +141,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
       try {
         // Check if user garden access is loaded
         if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
-          console.log('🔍 SimpleTasksView - User has no garden access loaded')
+
           setTasks([])
           setLoading(false)
           return
@@ -156,14 +149,11 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
         
         const accessibleGardens = getAccessibleGardens()
         const { startOfWeek, endOfWeek } = getWeekDates(currentWeek)
-        
-        console.log('🔍 SimpleTasksView - User:', user?.email)
-        console.log('🔍 SimpleTasksView - Garden access:', user?.garden_access)
-        console.log('🔍 SimpleTasksView - Accessible gardens:', accessibleGardens)
+
         console.log('🔍 SimpleTasksView - Week range:', { startOfWeek: startOfWeek.toISOString(), endOfWeek: endOfWeek.toISOString() })
         
         if (accessibleGardens.length === 0) {
-          console.log('⚠️ SimpleTasksView - No accessible gardens, showing empty state')
+
           setTasks([])
           setLoading(false)
           return
@@ -219,13 +209,6 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
 
         const allTasks = [...plantTasks, ...plantBedTasks]
 
-        console.log('🔍 SimpleTasksView - Raw tasks loaded:', {
-          plantTasks: plantTasks.length,
-          plantBedTasks: plantBedTasks.length,
-          total: allTasks.length,
-          sampleTask: allTasks[0] // Show first task for debugging
-        })
-
         if (allTasks) {
           const sortedTasks = sortTasks(allTasks)
           
@@ -246,13 +229,10 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           })
           
           setTasks(weeklyTasks)
-          console.log('🔍 SimpleTasksView - Final tasks set:', {
-            weeklyTasks: weeklyTasks.length,
-            sampleTask: weeklyTasks[0]
-          })
+
         }
       } catch (error) {
-        console.error('Error loading weekly tasks:', error)
+
       } finally {
         setLoading(false)
       }
@@ -281,7 +261,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
             </div>
             <Button 
               onClick={() => {
-                console.log('Navigating to logbook')
+
                 window.location.href = '/logbook'
               }}
               variant="outline"
@@ -314,7 +294,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           </div>
           <Button 
             onClick={() => {
-              console.log('Navigating to logbook')
+
               window.location.href = '/logbook'
             }}
             variant="outline"

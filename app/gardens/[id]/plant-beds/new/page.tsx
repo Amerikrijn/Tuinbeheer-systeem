@@ -103,9 +103,9 @@ export default function NewPlantBedPage() {
         const nextCode = generateNextLetterCode(existingCodes)
         
         setNextLetterCode(nextCode)
-        console.log('🔤 Next letter code calculated:', nextCode)
+
       } catch (error) {
-        console.error('Error loading garden:', error)
+
         toast({
           title: "Fout",
           description: "Kon tuin niet laden.",
@@ -138,34 +138,18 @@ export default function NewPlantBedPage() {
       newErrors.sunExposure = "Zonligging is verplicht"
     }
 
-    console.log("🔍 Validation errors:", newErrors)
-    console.log("🔍 Form values during validation:", {
-      size: newPlantBed.size,
-      soilType: newPlantBed.soilType,
-      sunExposure: newPlantBed.sunExposure
-    })
-    
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    console.log("🔍 Form submitted, current state:", {
-      size: newPlantBed.size,
-      soilType: newPlantBed.soilType,
-      sunExposure: newPlantBed.sunExposure,
-      location: newPlantBed.location,
-      description: newPlantBed.description
-    })
-    
+
     if (!validateForm()) {
-      console.log("❌ Form validation failed")
+
       return
     }
-    
-    console.log("✅ Form validation passed")
+
     setLoading(true)
 
     try {
@@ -180,13 +164,13 @@ export default function NewPlantBedPage() {
       }
       
       console.log('🔍 Form data being sent to PlantvakService:', JSON.stringify(plantvakData, null, 2))
-      console.log('🔍 Garden ID type:', typeof gardenId, 'Value:', gardenId)
+
       console.log('🔍 Garden ID valid UUID:', /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(gardenId))
 
       const plantBed = await PlantvakService.create(plantvakData)
 
       if (plantBed) {
-        console.log('✅ Plantvak created successfully:', plantBed)
+
         toast({
           title: "Plantvak aangemaakt!",
           description: `Plantvak "${plantBed.name}" is succesvol aangemaakt met letter code ${plantBed.letter_code}.`,
@@ -202,11 +186,11 @@ export default function NewPlantBedPage() {
         
         router.push(`/gardens/${gardenId}/plant-beds/${plantBed.id}`)
       } else {
-        console.error('❌ PlantvakService.create returned null')
+
         throw new Error('Failed to create plantvak - service returned null')
       }
     } catch (err) {
-      console.error("❌ Error creating plant bed:", err)
+
       if (err && typeof err === 'object' && 'message' in err) {
         console.error("❌ Error details:", {
           message: (err as any).message,

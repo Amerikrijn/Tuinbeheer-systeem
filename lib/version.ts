@@ -17,6 +17,6 @@ export const clearStaleCache = () => {
       }
     })
     localStorage.setItem('app_version', APP_VERSION)
-    console.log('🧹 Cleared stale cache due to version update:', APP_VERSION)
+
   }
 }

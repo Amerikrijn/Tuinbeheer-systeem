@@ -34,9 +34,7 @@ export function PlantsList() {
       }
       
       setError(null)
-      
-    
-      
+
       // 🚀 PERFORMANCE: Optimized query with pagination and sorting
       const { data, error: fetchError } = await supabase
         .from('plants')
@@ -51,7 +49,7 @@ export function PlantsList() {
       setPlants(data || [])
       
     } catch (err) {
-      console.error('❌ ERROR: Failed to fetch plants:', err)
+
       setError(err instanceof Error ? err.message : 'Er ging iets mis bij het laden van de planten')
     } finally {
       setLoading(false)

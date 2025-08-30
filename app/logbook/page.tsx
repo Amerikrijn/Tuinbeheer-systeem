@@ -65,13 +65,13 @@ function LogbookPageContent() {
       
       // For users, ensure garden access is loaded
       if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
-        console.log('🔍 Logbook - Loading garden access for user...')
+
         try {
           await loadGardenAccess()
           setGardenAccessLoaded(true)
-          console.log('✅ Logbook - Garden access loaded')
+
         } catch (error) {
-          console.error('❌ Logbook - Failed to load garden access:', error)
+
           setGardenAccessLoaded(true) // Still mark as loaded to avoid infinite loop
         }
       } else {
@@ -109,7 +109,7 @@ function LogbookPageContent() {
       if (error) throw error
       setViewingUser(userData)
     } catch (error) {
-      console.error('Error loading user:', error)
+
       toast({
         title: "Fout bij laden gebruiker",
         description: "Kon gebruikersgegevens niet laden",
@@ -127,7 +127,7 @@ function LogbookPageContent() {
       
       // Wait for garden access to be loaded for regular users
       if (user?.role === 'user' && !gardenAccessLoaded) {
-        console.log('🔍 Logbook - Waiting for garden access to be loaded...')
+
         return
       }
       
@@ -144,18 +144,18 @@ function LogbookPageContent() {
             .eq('user_id', viewingUser.id)
           
           if (error) {
-            console.error('Error fetching user garden access:', error)
+
             accessibleGardens = []
           } else {
             accessibleGardens = gardenAccess?.map(access => access.garden_id) || []
           }
         } catch (error) {
-          console.error('Exception fetching user garden access:', error)
+
           accessibleGardens = []
         }
         
         hasGardenRestriction = accessibleGardens.length > 0
-        console.log('🔍 Admin viewing user logbook:', { user: viewingUser.email, gardens: accessibleGardens })
+
       } else {
         // Regular user or admin viewing own logbook
         accessibleGardens = getAccessibleGardens()
@@ -215,12 +215,12 @@ function LogbookPageContent() {
           timeoutPromise
         ]) as any
       } catch (error) {
-        console.error('🔥 Logbook query error:', error)
+
         throw new Error(`Logbook query failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
       
       if (!response || !response.success) {
-        console.error('🔥 Logbook response invalid:', response)
+
         // Handle the case where response is valid but indicates an error
         if (response && response.error) {
           throw new Error(response.error)
@@ -260,7 +260,7 @@ function LogbookPageContent() {
         // Apply same garden filtering as logbook entries
         if (!isAdmin()) {
           if (accessibleGardens.length === 0) {
-            console.log('🔍 Logbook - No garden access, skipping tasks query')
+
             completedTasksData = []
           } else {
             if (filters.garden_id) {
@@ -295,7 +295,7 @@ function LogbookPageContent() {
           }))
         }
       } catch (error) {
-        console.warn('Failed to load completed tasks for logbook:', error)
+
         completedTasksData = []
       }
 
@@ -303,12 +303,6 @@ function LogbookPageContent() {
       const logbookEntries = Array.isArray(logbookData) ? logbookData : []
       const completedTasks = Array.isArray(completedTasksData) ? completedTasksData : []
       const allEntries = [...logbookEntries, ...completedTasks]
-
-      console.log('🔍 Logbook - Combined entries:', {
-        logbookCount: logbookEntries.length,
-        tasksCount: completedTasks.length,
-        totalCount: allEntries.length
-      })
 
       // Sort by entry_date descending FIRST (most recent first - chronological order)
       allEntries.sort((a, b) => {
@@ -539,7 +533,7 @@ function LogbookPageContent() {
           {!isAdmin() && (
             <Button 
               onClick={() => {
-              console.log('Navigating to home')
+
               window.location.href = '/'
             }}
               variant="outline"
@@ -689,7 +683,7 @@ function LogbookPageContent() {
                 }`}
                 onClick={() => {
                 if (!entry.is_completed_task) {
-                  console.log(`Navigating to logbook entry: ${entry.id}`)
+
                   window.location.href = `/logbook/${entry.id}`
                 }
               }}

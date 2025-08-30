@@ -85,7 +85,7 @@ export function PhotoTimeline({ plantBedId, plantBedName }: PhotoTimelineProps) 
           setLogbookEntries(entriesWithPhotos)
         }
       } catch (error) {
-        console.error('Error fetching logbook photos:', error)
+
       } finally {
         setLoading(false)
       }

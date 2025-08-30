@@ -49,8 +49,7 @@ export const parsePlantBedDimensions = (sizeString: string) => {
       widthPixels: metersToPixels(parseFloat(match[2]))
     }
   }
-  
-  console.warn("Could not parse plant bed dimensions from:", sizeString)
+
   return null
 }
 

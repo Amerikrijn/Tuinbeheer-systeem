@@ -10,8 +10,7 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
 }
 
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('🚨 CRITICAL: SUPABASE_SERVICE_ROLE_KEY not found in environment variables')
-  console.error('This API requires service role access for admin operations')
+
 }
 
 // Banking-grade admin client with service role
@@ -55,7 +54,7 @@ export async function GET() {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Users fetch error:', error)
+
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
     }
 
@@ -63,7 +62,7 @@ export async function GET() {
 
     return NextResponse.json({ users })
   } catch (error) {
-    console.error('GET users error:', error)
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -126,7 +125,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (authError || !authData.user) {
-      console.error('Auth user creation failed:', authError)
+
       return NextResponse.json(
         { error: `Failed to create auth user: ${authError?.message || 'Unknown error'}` },
         { status: 500 }
@@ -149,8 +148,7 @@ export async function POST(request: NextRequest) {
       })
 
     if (profileError) {
-      console.error('Profile creation failed:', profileError)
-      
+
       // CRITICAL: Cleanup auth user if profile fails
       await supabaseAdmin.auth.admin.deleteUser(authData.user.id)
       
@@ -174,8 +172,7 @@ export async function POST(request: NextRequest) {
         .insert(gardenAccessRecords)
 
       if (accessError) {
-        console.error('Garden access creation failed:', accessError)
-        
+
         // Don't fail the user creation, just log the issue
         auditLog('GARDEN_ACCESS_CREATION_FAILED', {
           userId: authData.user.id,
@@ -224,7 +221,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('POST users error:', error)
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -267,7 +264,7 @@ export async function PUT(request: NextRequest) {
       })
 
       if (authError) {
-        console.error('Auth password reset failed:', authError)
+
         return NextResponse.json(
           { error: `Password reset failed: ${authError.message}` },
           { status: 500 }
@@ -285,7 +282,7 @@ export async function PUT(request: NextRequest) {
         .eq('id', userId)
 
       if (profileError) {
-        console.error('Profile update failed:', profileError)
+
         return NextResponse.json(
           { error: `Profile update failed: ${profileError.message}` },
           { status: 500 }
@@ -335,7 +332,7 @@ export async function PUT(request: NextRequest) {
         .eq('id', userId)
 
       if (profileError) {
-        console.error('Profile update failed:', profileError)
+
         return NextResponse.json(
           { error: `Profile update failed: ${profileError.message}` },
           { status: 500 }
@@ -350,7 +347,7 @@ export async function PUT(request: NextRequest) {
         .eq('user_id', userId)
 
       if (deleteError) {
-        console.error('Garden access deletion failed:', deleteError)
+
         // Don't fail the whole operation
       }
 
@@ -368,7 +365,7 @@ export async function PUT(request: NextRequest) {
           .insert(gardenAccessRecords)
 
         if (insertError) {
-          console.error('Garden access creation failed:', insertError)
+
           // Don't fail the user update
           auditLog('GARDEN_ACCESS_UPDATE_FAILED', {
             userId: userId,
@@ -427,7 +424,7 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
 
   } catch (error) {
-    console.error('PUT users error:', error)
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -463,7 +460,7 @@ export async function DELETE(request: NextRequest) {
       .eq('id', userId)
 
     if (deleteError) {
-      console.error('User soft delete failed:', deleteError)
+
       return NextResponse.json(
         { error: `Delete failed: ${deleteError.message}` },
         { status: 500 }
@@ -481,7 +478,7 @@ export async function DELETE(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('DELETE users error:', error)
+
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

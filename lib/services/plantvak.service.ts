@@ -60,7 +60,7 @@ export class PlantvakService {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error fetching plantvakken:', error);
+
       return [];
     }
   }
@@ -86,7 +86,7 @@ export class PlantvakService {
       
       // Get existing letter codes for this garden
       const existingPlantvakken = await this.getByGarden(plantvakData.garden_id);
-      console.log('📊 Existing plantvakken count:', existingPlantvakken.length);
+
       console.log('📊 Existing plantvakken details:', existingPlantvakken.map(p => ({
         id: p.id,
         name: p.name,
@@ -97,12 +97,10 @@ export class PlantvakService {
       const existingCodes = existingPlantvakken
         .map(p => p.letter_code || p.name) // Fallback naar name als letter_code null is
         .filter(Boolean);
-      console.log('🔤 Existing letter codes:', existingCodes);
-      
+
       // Generate next available letter code
       const nextLetterCode = this.generateNextLetterCode(existingCodes.filter(Boolean) as string[]);
-      console.log('✨ Next letter code:', nextLetterCode);
-      
+
       // WERKENDE VERSIE - gebaseerd op database tests
       // Database genereert automatisch: id, timestamps, defaults
       const newPlantvak: any = {
@@ -137,21 +135,13 @@ export class PlantvakService {
         .single();
 
       if (error) {
-        console.error('❌ Supabase error:', error);
-        console.error('❌ Error details:', {
-          message: error.message,
-          code: error.code,
-          details: error.details,
-          hint: error.hint
-        });
+
         throw error;
       }
-      
-      console.log(`✅ Plantvak created with letter code: ${nextLetterCode}`);
-      console.log('📊 Created plantvak data:', data);
+
       return data;
     } catch (error) {
-      console.error('❌ Error creating plantvak:', error);
+
       if (error && typeof error === 'object' && 'message' in error) {
         console.error('❌ Error details:', {
           message: (error as any).message,
@@ -183,7 +173,7 @@ export class PlantvakService {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error updating plantvak:', error);
+
       return null;
     }
   }
@@ -201,7 +191,7 @@ export class PlantvakService {
       if (error) throw error;
       return true;
     } catch (error) {
-      console.error('Error deleting plantvak:', error);
+
       return false;
     }
   }
@@ -220,7 +210,7 @@ export class PlantvakService {
       if (error) throw error;
       return data;
     } catch (error) {
-      console.error('Error fetching plantvak:', error);
+
       return null;
     }
   }

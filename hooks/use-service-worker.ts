@@ -65,14 +65,11 @@ export function useServiceWorker() {
     }
 
     try {
-      console.log('🚀 Registering Service Worker...')
-      
+
       const registration = await navigator.serviceWorker.register('/sw.js', {
         scope: '/',
         updateViaCache: 'none'
       })
-
-      console.log('✅ Service Worker registered successfully:', registration)
 
       // Set up message channel for communication
       messageChannel.current = new MessageChannel()
@@ -82,7 +79,7 @@ export function useServiceWorker() {
         const { type, data, error } = event.data
         
         if (error) {
-          console.error('❌ Service Worker error:', error)
+
           return
         }
         
@@ -91,10 +88,10 @@ export function useServiceWorker() {
             setCacheInfo(data)
             break
           case 'BACKGROUND_SYNC':
-            console.log('🔄 Background sync completed:', data)
+
             break
           default:
-            console.log('📨 Service Worker message:', { type, data })
+
         }
       }
 
@@ -116,10 +113,10 @@ export function useServiceWorker() {
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              console.log('🔄 New Service Worker available')
+
               setState(prev => ({ ...prev, isWaiting: true }))
             } else if (newWorker.state === 'activated') {
-              console.log('✅ New Service Worker activated')
+
               setState(prev => ({ 
                 ...prev, 
                 isActive: true, 
@@ -133,13 +130,13 @@ export function useServiceWorker() {
 
       // Listen for controller change
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        console.log('🔄 Service Worker controller changed')
+
         setState(prev => ({ ...prev, isControlling: true }))
       })
 
       return registration
     } catch (error) {
-      console.error('❌ Service Worker registration failed:', error)
+
       setState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Registration failed' }))
       throw error
     }
@@ -152,12 +149,11 @@ export function useServiceWorker() {
     }
 
     try {
-      console.log('🗑️ Unregistering Service Worker...')
-      
+
       const unregistered = await state.registration.unregister()
       
       if (unregistered) {
-        console.log('✅ Service Worker unregistered successfully')
+
         setState(prev => ({
           ...prev,
           registration: null,
@@ -170,7 +166,7 @@ export function useServiceWorker() {
         throw new Error('Failed to unregister Service Worker')
       }
     } catch (error) {
-      console.error('❌ Service Worker unregistration failed:', error)
+
       setState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Unregistration failed' }))
       throw error
     }
@@ -183,12 +179,11 @@ export function useServiceWorker() {
     }
 
     try {
-      console.log('🔄 Updating Service Worker...')
-      
+
       await state.registration.update()
-      console.log('✅ Service Worker update initiated')
+
     } catch (error) {
-      console.error('❌ Service Worker update failed:', error)
+
       setState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Update failed' }))
       throw error
     }
@@ -201,8 +196,7 @@ export function useServiceWorker() {
     }
 
     try {
-      console.log('⏭️ Skipping waiting...')
-      
+
       // Send skip waiting message
       if (messageChannel.current) {
         messageChannel.current.port2.postMessage({ type: 'SKIP_WAITING' })
@@ -210,10 +204,9 @@ export function useServiceWorker() {
       
       // Also call skipWaiting directly
       state.registration.waiting.postMessage({ type: 'SKIP_WAITING' })
-      
-      console.log('✅ Skip waiting message sent')
+
     } catch (error) {
-      console.error('❌ Skip waiting failed:', error)
+
       setState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Skip waiting failed' }))
       throw error
     }
@@ -226,8 +219,7 @@ export function useServiceWorker() {
     }
 
     try {
-      console.log('🗑️ Clearing caches...')
-      
+
       // Send clear cache message
       if (messageChannel.current) {
         messageChannel.current.port2.postMessage({ type: 'CLEAR_CACHE' })
@@ -240,9 +232,9 @@ export function useServiceWorker() {
       )
       
       setCacheInfo({})
-      console.log('✅ All caches cleared')
+
     } catch (error) {
-      console.error('❌ Cache clearing failed:', error)
+
       setState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Cache clearing failed' }))
       throw error
     }
@@ -255,8 +247,7 @@ export function useServiceWorker() {
     }
 
     try {
-      console.log('📊 Getting cache info...')
-      
+
       // Send get cache info message
       if (messageChannel.current) {
         messageChannel.current.port2.postMessage({ type: 'GET_CACHE_INFO' })
@@ -275,7 +266,7 @@ export function useServiceWorker() {
       setCacheInfo(info)
       return info
     } catch (error) {
-      console.error('❌ Getting cache info failed:', error)
+
       setState(prev => ({ ...prev, error: error instanceof Error ? error.message : 'Cache info failed' }))
       throw error
     }

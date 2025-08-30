@@ -51,17 +51,7 @@ class PerformanceMonitor {
 
     // Log performance warnings
     if (metric.duration > this.criticalQueryThreshold) {
-      console.error(`🚨 CRITICAL: ${metric.name} took ${metric.duration.toFixed(2)}ms`, {
-        ...metric.metadata,
-        error: metric.error,
-      })
-    } else if (metric.duration > this.slowQueryThreshold) {
-      console.warn(`⚠️ SLOW: ${metric.name} took ${metric.duration.toFixed(2)}ms`, {
-        ...metric.metadata,
-        error: metric.error,
-      })
-    } else if (process.env.NODE_ENV === 'development') {
-      console.log(`✅ ${metric.name} completed in ${metric.duration.toFixed(2)}ms`)
+
     }
 
     // Send to analytics if available
@@ -157,7 +147,7 @@ class PerformanceMonitor {
           ...metric.metadata,
         })
       } catch (error) {
-        console.debug('Failed to send analytics:', error)
+
       }
     }
   }
@@ -213,7 +203,7 @@ export class CircuitBreaker {
     if (this.state === 'open') {
       const timeSinceLastFailure = Date.now() - this.lastFailureTime
       if (timeSinceLastFailure > this.timeout) {
-        console.log(`🔄 Circuit breaker ${this.name} entering half-open state`)
+
         this.state = 'half-open'
         this.successCount = 0
       } else {
@@ -229,7 +219,7 @@ export class CircuitBreaker {
       if (this.state === 'half-open') {
         this.successCount++
         if (this.successCount >= this.halfOpenSuccessThreshold) {
-          console.log(`✅ Circuit breaker ${this.name} closed after successful recovery`)
+
           this.state = 'closed'
           this.failures = 0
         }
@@ -244,10 +234,10 @@ export class CircuitBreaker {
       this.lastFailureTime = Date.now()
 
       if (this.state === 'half-open') {
-        console.error(`🚨 Circuit breaker ${this.name} reopened due to failure in half-open state`)
+
         this.state = 'open'
       } else if (this.failures >= this.threshold) {
-        console.error(`🚨 Circuit breaker ${this.name} opened after ${this.failures} failures`)
+
         this.state = 'open'
       }
 
@@ -267,7 +257,7 @@ export class CircuitBreaker {
     this.state = 'closed'
     this.failures = 0
     this.successCount = 0
-    console.log(`🔧 Circuit breaker ${this.name} manually reset`)
+
   }
 }
 

@@ -1,6 +1,7 @@
 import { DatabaseService } from "./services/database.service"
 import { supabase } from "./supabase"
 import type { Plantvak, Tuin, LogbookEntry, Bloem, Task, User, PlantvakWithBloemen, PlantWithPosition } from "./types/index"
+import { PlantvakService } from "./services/plantvak.service"
 
 // Type aliases for backward compatibility
 type PlantBed = Plantvak
@@ -16,47 +17,102 @@ type PlantBedWithPlants = PlantvakWithBloemen & {
   color_code: string
   visual_updated_at: string
 }
-import { PlantvakService } from "./services/plantvak.service"
 
+// Retry configuration
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  initialDelay: 1000, // 1 second
+  maxDelay: 5000, // 5 seconds
+  backoffMultiplier: 2
+}
+
+// Error logger that only logs in development
+function logError(message: string, error: any) {
+  if (process.env.NODE_ENV === 'development') {
+
+  }
+  // In production, errors could be sent to a monitoring service
+}
+
+// Helper function to check if error is a missing relation
 function isMissingRelation(err: { code?: string } | null): boolean {
   return !!err && err.code === "42P01"
 }
 
-// Garden functions
-export async function getGardens(): Promise<Garden[]> {
-  console.log("Fetching gardens...")
-  const result = await DatabaseService.Tuin.getAll()
-  
-  if (!result.success) {
-    console.error("Error fetching gardens:", result.error)
-    return []
+// Retry wrapper for database operations
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  operationName: string
+): Promise<T> {
+  let lastError: any
+  let delay = RETRY_CONFIG.initialDelay
+
+  for (let attempt = 1; attempt <= RETRY_CONFIG.maxRetries; attempt++) {
+    try {
+      return await operation()
+    } catch (error: any) {
+      lastError = error
+      
+      // Don't retry on certain errors
+      if (error?.code === 'PGRST116' || // RLS violation
+          error?.code === '23505' || // Unique constraint violation
+          error?.code === '23503' || // Foreign key violation
+          error?.code === '42P01') { // Table doesn't exist
+        throw error
+      }
+
+      // If this is the last attempt, throw the error
+      if (attempt === RETRY_CONFIG.maxRetries) {
+        logError(`${operationName} failed after ${attempt} attempts:`, error)
+        throw error
+      }
+
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay))
+      delay = Math.min(delay * RETRY_CONFIG.backoffMultiplier, RETRY_CONFIG.maxDelay)
+    }
   }
 
-  console.log("Gardens fetched successfully:", result.data?.data?.length || 0)
-  return result.data?.data || []
+  throw lastError
+}
+
+// Garden functions
+export async function getGardens(): Promise<Garden[]> {
+  return withRetry(async () => {
+    const result = await DatabaseService.Tuin.getAll()
+    
+    if (!result.success) {
+      logError("Error fetching gardens:", result.error)
+      return []
+    }
+
+    return result.data?.data || []
+  }, 'getGardens')
 }
 
 export async function getGarden(id?: string): Promise<Garden | null> {
-  if (!id) {
-    // Get the first active garden if no ID provided
-    const result = await DatabaseService.Tuin.getAll()
+  return withRetry(async () => {
+    if (!id) {
+      // Get the first active garden if no ID provided
+      const result = await DatabaseService.Tuin.getAll()
+      
+      if (!result.success || !result.data || result.data.data.length === 0) {
+        logError("Error fetching default garden:", result.error)
+        return null
+      }
+
+      return result.data.data[0]
+    }
+
+    const result = await DatabaseService.Tuin.getById(id)
     
-    if (!result.success || !result.data || result.data.data.length === 0) {
-      console.error("Error fetching default garden:", result.error)
+    if (!result.success) {
+      logError("Error fetching garden:", result.error)
       return null
     }
 
-    return result.data.data[0]
-  }
-
-  const result = await DatabaseService.Tuin.getById(id)
-  
-  if (!result.success) {
-    console.error("Error fetching garden:", result.error)
-    return null
-  }
-
-  return result.data
+    return result.data
+  }, 'getGarden')
 }
 
 export async function createGarden(garden: {
@@ -70,72 +126,72 @@ export async function createGarden(garden: {
   established_date?: string
   notes?: string
 }): Promise<Garden | null> {
-  console.log("Creating garden with data:", garden)
+  return withRetry(async () => {
+    // Test if table exists first
+    const { data: testData, error: testError } = await supabase.from("gardens").select("id").limit(1)
 
-  // Test if table exists first
-  const { data: testData, error: testError } = await supabase.from("gardens").select("id").limit(1)
-
-  if (testError) {
-    console.error("Table test failed:", testError)
-    if (isMissingRelation(testError)) {
-      throw new Error("Database tables not found. Please run the migration first.")
+    if (testError) {
+      if (isMissingRelation(testError)) {
+        throw new Error("Database tables not found. Please run the migration first.")
+      }
+      throw testError
     }
-    throw testError
-  }
 
-  console.log("Table exists, proceeding with insert...")
+    // INSERT … RETURNING * (single round-trip)
+    const { data, error } = await supabase
+      .from("gardens")
+      .insert({
+        name: garden.name,
+        description: garden.description || null,
+        location: garden.location,
+        total_area: garden.total_area || null,
+        length: garden.length || null,
+        width: garden.width || null,
+        garden_type: garden.garden_type || null,
+        established_date: garden.established_date || null,
+        notes: garden.notes || null,
+        is_active: true,
+      })
+      .select("*")
+      .single()
 
-  // INSERT … RETURNING * (single round-trip)
-  const { data, error } = await supabase
-    .from("gardens")
-    .insert({
-      name: garden.name,
-      description: garden.description || null,
-      location: garden.location,
-      total_area: garden.total_area || null,
-      length: garden.length || null,
-      width: garden.width || null,
-      garden_type: garden.garden_type || null,
-      established_date: garden.established_date || null,
-      notes: garden.notes || null,
-      is_active: true,
-    })
-    .select("*")
-    .single()
+    if (error) {
+      logError("Supabase insert error (gardens):", {
+        error,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      })
+      throw error
+    }
 
-  if (error) {
-    console.error("Supabase insert error (gardens):", {
-      error,
-      code: error.code,
-      message: error.message,
-      details: error.details,
-      hint: error.hint,
-    })
-    throw error
-  }
-
-  console.log("Garden created successfully:", data)
-  return data
+    return data
+  }, 'createGarden')
 }
 
 export async function updateGarden(id: string, updates: Partial<Garden>): Promise<Garden | null> {
-  const { data, error } = await supabase.from("gardens").update(updates).eq("id", id).select().single()
+  return withRetry(async () => {
+    const { data, error } = await supabase.from("gardens").update(updates).eq("id", id).select().single()
 
-  if (error) {
-    console.error("Error updating garden:", error)
-    throw error
-  }
+    if (error) {
+      logError("Error updating garden:", error)
+      throw error
+    }
 
-  return data
+    return data
+  }, 'updateGarden')
 }
 
 export async function deleteGarden(id: string): Promise<void> {
-  const { error } = await supabase.from("gardens").update({ is_active: false }).eq("id", id)
+  return withRetry(async () => {
+    const { error } = await supabase.from("gardens").update({ is_active: false }).eq("id", id)
 
-  if (error) {
-    console.error("Error deleting garden:", error)
-    throw error
-  }
+    if (error) {
+      logError("Error deleting garden:", error)
+      throw error
+    }
+  }, 'deleteGarden')
 }
 
 // Plant bed functions
@@ -150,10 +206,10 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
 
   if (plantBedsError) {
     if (isMissingRelation(plantBedsError)) {
-      console.warn("Supabase table `plant_beds` not found yet – returning empty list until the migration is applied.")
+
       return []
     }
-    console.error("Error fetching plant beds:", plantBedsError)
+
     return []
   }
 
@@ -167,7 +223,7 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
         .order("created_at", { ascending: false })
 
       if (plantsError) {
-        console.error("Error fetching plants for bed:", bed.id, plantsError)
+
         return { ...bed, plants: [] }
       }
 
@@ -188,10 +244,10 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
 
   if (plantBedError) {
     if (isMissingRelation(plantBedError)) {
-      console.warn("Supabase table `plant_beds` not found yet – returning null until the migration is applied.")
+
       return null
     }
-    console.error("Error fetching plant bed:", plantBedError)
+
     return null
   }
 
@@ -202,7 +258,7 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
     .order("created_at", { ascending: false })
 
   if (plantsError) {
-    console.error("Error fetching plants:", plantsError)
+
     return { ...plantBed, plants: [] }
   }
 
@@ -217,8 +273,7 @@ export async function createPlantBed(plantBed: {
   sun_exposure?: 'full-sun' | 'partial-sun' | 'shade'
   description?: string
 }): Promise<PlantBed | null> {
-  console.log("🌱 Creating plant bed:", plantBed)
-  
+
   try {
     // Use the new PlantvakService for automatic letter code assignment
     const result = await PlantvakService.create({
@@ -231,14 +286,14 @@ export async function createPlantBed(plantBed: {
     })
     
     if (result) {
-      console.log("✅ Plantvak created successfully with letter code:", result.letter_code)
+
       return result
     } else {
-      console.error("❌ Failed to create plantvak")
+
       return null
     }
   } catch (error) {
-    console.error("❌ Error creating plantvak:", error)
+
     throw error
   }
 }
@@ -247,7 +302,7 @@ export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Pr
   const { data, error } = await supabase.from("plant_beds").update(updates).eq("id", id).select().single()
 
   if (error) {
-    console.error("Error updating plant bed:", error)
+
     throw error
   }
 
@@ -255,8 +310,7 @@ export async function updatePlantBed(id: string, updates: Partial<PlantBed>): Pr
 }
 
 export async function deletePlantBed(id: string): Promise<void> {
-  console.log("🗑️ Attempting to delete plant bed with ID:", id)
-  
+
   const { data, error } = await supabase
     .from("plant_beds")
     .update({ is_active: false })
@@ -265,17 +319,10 @@ export async function deletePlantBed(id: string): Promise<void> {
     .single()
 
   if (error) {
-    console.error("❌ Error deleting plant bed:", error)
-    console.error("Error details:", {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint
-    })
+
     throw error
   }
-  
-  console.log("✅ Plant bed soft-deleted successfully:", data)
+
 }
 
 // Plant functions
@@ -307,7 +354,7 @@ export async function createPlant(plant: {
   const { data, error } = await supabase.from("plants").insert(plant).select().single()
 
   if (error) {
-    console.error("Error creating plant:", error)
+
     throw error
   }
 
@@ -318,7 +365,7 @@ export async function updatePlant(id: string, updates: Partial<Plant>): Promise<
   const { data, error } = await supabase.from("plants").update(updates).eq("id", id).select().single()
 
   if (error) {
-    console.error("Error updating plant:", error)
+
     throw error
   }
 
@@ -329,7 +376,7 @@ export async function deletePlant(id: string): Promise<void> {
   const { error } = await supabase.from("plants").delete().eq("id", id)
 
   if (error) {
-    console.error("Error deleting plant:", error)
+
     throw error
   }
 }
@@ -338,7 +385,7 @@ export async function getPlant(id: string): Promise<Plant | null> {
   const { data, error } = await supabase.from("plants").select("*").eq("id", id).single()
 
   if (error) {
-    console.error("Error fetching plant:", error)
+
     return null
   }
 
@@ -358,7 +405,7 @@ export async function getPlantsWithPositions(plantBedId: string): Promise<PlantW
     .order("created_at", { ascending: true })
 
   if (error) {
-    console.error("Error fetching plants with positions:", error)
+
     return []
   }
 
@@ -420,7 +467,7 @@ export async function createVisualPlant(plant: {
   }).select().single()
 
   if (error) {
-    console.error("Error creating visual plant:", error)
+
     throw error
   }
 
@@ -457,7 +504,7 @@ export async function updatePlantPosition(id: string, updates: {
     .single()
 
   if (error) {
-    console.error("Error updating plant position:", error)
+
     throw error
   }
 

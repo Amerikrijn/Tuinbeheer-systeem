@@ -49,11 +49,11 @@ export async function logClientSecurityEvent(
     });
     
     if (error) {
-      console.error('Failed to log security event:', error);
+
     }
   } catch (err) {
     // Silent fail for logging - don't break user experience
-    console.warn('Security logging failed:', err);
+
   }
 }
 
@@ -543,7 +543,7 @@ export async function checkRateLimit(
       .single();
 
     if (selectError && selectError.message !== 'No rows found') {
-      console.error('Rate limit check error:', selectError);
+
       return false; // Fail closed for security
     }
 
@@ -559,7 +559,7 @@ export async function checkRateLimit(
         });
 
       if (insertError) {
-        console.error('Rate limit insert error:', insertError);
+
         return false;
       }
 
@@ -586,13 +586,13 @@ export async function checkRateLimit(
       .gte('timestamp', windowStart);
 
     if (updateError) {
-      console.error('Rate limit update error:', updateError);
+
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error('Rate limit error:', error);
+
     return false; // Fail closed for security
   }
 }

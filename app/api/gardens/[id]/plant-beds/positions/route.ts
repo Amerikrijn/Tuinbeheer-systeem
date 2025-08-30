@@ -117,7 +117,7 @@ async function checkBulkCollisions(
       .eq('garden_id', gardenId);
     
     if (error) {
-      console.error('Error fetching current plant beds:', error);
+
       return { hasCollision: false, conflicts: [] };
     }
     
@@ -166,7 +166,7 @@ async function checkBulkCollisions(
     return { hasCollision: conflicts.length > 0, conflicts };
     
   } catch (error) {
-    console.error('Bulk collision check error:', error);
+
     return { hasCollision: false, conflicts: [] };
   }
 }
@@ -190,7 +190,7 @@ async function checkBulkCanvasBoundaries(
       .single();
     
     if (error || !garden) {
-      console.error('Error fetching garden:', error);
+
       return { allWithinBounds: false, violations: ['Garden not found'] };
     }
     
@@ -214,7 +214,7 @@ async function checkBulkCanvasBoundaries(
     return { allWithinBounds: violations.length === 0, violations };
     
   } catch (error) {
-    console.error('Bulk canvas boundaries check error:', error);
+
     return { allWithinBounds: false, violations: ['Canvas boundaries check failed'] };
   }
 }
@@ -247,7 +247,7 @@ export async function GET(
       .order('created_at', { ascending: true });
     
     if (error) {
-      console.error('Database error:', error);
+
       return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
         data: null,
         error: 'Failed to fetch plant beds',
@@ -262,7 +262,7 @@ export async function GET(
     });
     
   } catch (error) {
-    console.error('GET positions error:', error);
+
     return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
       data: null,
       error: 'Internal server error',
@@ -311,7 +311,7 @@ export async function PUT(
       .in('id', plantBedIds);
     
     if (fetchError) {
-      console.error('Database fetch error:', fetchError);
+
       return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
         data: null,
         error: 'Failed to verify plant beds',
@@ -386,7 +386,7 @@ export async function PUT(
           .single();
         
         if (updateError) {
-          console.error(`Update error for plant bed ${position.id}:`, updateError);
+
           return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
             data: null,
             error: `Failed to update plant bed ${position.id}`,
@@ -407,7 +407,7 @@ export async function PUT(
     });
     
   } catch (error) {
-    console.error('Bulk position update error:', error);
+
     return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
       data: null,
       error: 'Internal server error',
@@ -457,7 +457,7 @@ export async function PATCH(
       .eq('garden_id', gardenId);
     
     if (fetchError) {
-      console.error('Database fetch error:', fetchError);
+
       return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
         data: null,
         error: 'Failed to fetch current plant beds',
@@ -539,7 +539,7 @@ export async function PATCH(
         .single();
       
       if (updateError) {
-        console.error(`Update error for plant bed ${position.id}:`, updateError);
+
         return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
           data: null,
           error: `Failed to update plant bed ${position.id}`,
@@ -559,7 +559,7 @@ export async function PATCH(
     });
     
   } catch (error) {
-    console.error('Bulk partial position update error:', error);
+
     return NextResponse.json<ApiResponse<PlantBedWithPosition[]>>({
       data: null,
       error: 'Internal server error',

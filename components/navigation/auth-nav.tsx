@@ -18,7 +18,7 @@ export function AuthNavigation() {
       await signOut()
       router.push('/auth/login')
     } catch (error) {
-      console.error('Sign out failed:', error)
+
     }
   }
 

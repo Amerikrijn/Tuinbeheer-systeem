@@ -85,7 +85,7 @@ function ResetPasswordContent() {
         })
 
       } catch (error) {
-        console.error('Token validation error:', error)
+
         setTokenError(error instanceof Error ? error.message : 'Onbekende fout bij validatie')
         setIsValidToken(false)
       } finally {
@@ -173,7 +173,7 @@ function ResetPasswordContent() {
       }, 1500)
       
     } catch (error) {
-      console.error('Password reset error:', error)
+
       toast({
         title: "Wachtwoord wijzigen mislukt",
         description: error instanceof Error ? error.message : 'Er is een fout opgetreden',

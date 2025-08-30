@@ -99,7 +99,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       const { error } = await TaskService.updateTask(taskId, { completed })
       
       if (error) {
-        console.error('Error updating task:', error)
+
         return
       }
       
@@ -107,7 +107,7 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
       await loadWeeklyCalendar(currentWeekStart)
       
     } catch (err) {
-      console.error('Error completing task:', err)
+
     } finally {
       // Always remove task from updating set
       setUpdatingTasks(prev => {
@@ -422,7 +422,6 @@ export function WeeklyTaskList({ onTaskEdit, onTaskAdd }: WeeklyTaskListProps) {
               </button>
               <span className="text-sm">Toon afgeronde taken</span>
             </label>
-            
 
           </div>
         </CardContent>

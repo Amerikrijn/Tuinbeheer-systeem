@@ -9,14 +9,14 @@ export async function ensureBucketExists(bucket: string = 'plant-images', isPubl
     })
     
     if (!res.ok) {
-      console.error(`Storage bucket check failed: ${res.status} ${res.statusText}`)
+
       return false
     }
     
     const json = await res.json()
     return Boolean(json?.exists || json?.created)
   } catch (error) {
-    console.error('Storage bucket check error:', error)
+
     return false
   }
 }
@@ -81,8 +81,7 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
       })
 
     if (error) {
-      console.error('Storage upload error:', error)
-      
+
       // Provide specific error messages based on error type
       let userMessage = 'Upload mislukt'
       if (error.message.includes('bucket')) {
@@ -112,8 +111,7 @@ export async function uploadImage(file: File, folder: string = 'plants'): Promis
       url: publicUrl
     }
   } catch (error) {
-    console.error('Upload error:', error)
-    
+
     // Handle specific error types
     if (error instanceof TypeError && error.message.includes('fetch')) {
       return {
@@ -154,8 +152,7 @@ export async function deleteImage(url: string): Promise<{ success: boolean; erro
       .remove([filePath])
 
     if (error) {
-      console.error('Storage delete error:', error)
-      
+
       let userMessage = 'Verwijderen mislukt'
       if (error.message.includes('not found')) {
         userMessage = 'Afbeelding bestaat niet meer in storage.'
@@ -171,7 +168,7 @@ export async function deleteImage(url: string): Promise<{ success: boolean; erro
 
     return { success: true }
   } catch (error) {
-    console.error('Delete error:', error)
+
     return {
       success: false,
       error: 'Onverwachte fout bij verwijderen van afbeelding.'

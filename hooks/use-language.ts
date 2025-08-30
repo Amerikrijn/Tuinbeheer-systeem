@@ -50,7 +50,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         // Silently fail if localStorage is not available or throws an error
         // The language change is still applied in memory
-        console.warn('Failed to persist language to localStorage:', error)
+
       }
     }
   }

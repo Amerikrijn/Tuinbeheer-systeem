@@ -58,7 +58,7 @@ export function useActivityTimeout(authOverride?: any) {
       })
       router.push('/auth/login')
     } catch (error) {
-      console.error('Auto logout failed:', error)
+
     }
   }, [signOut, toast, router])
 

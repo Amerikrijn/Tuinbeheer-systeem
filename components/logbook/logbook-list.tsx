@@ -31,9 +31,7 @@ export function LogbookList() {
       }
       
       setError(null)
-      
-    
-      
+
       // 🚀 PERFORMANCE: Optimized query with pagination and sorting
       const { data, error: fetchError } = await supabase
         .from('logbook_entries')
@@ -48,7 +46,7 @@ export function LogbookList() {
       setEntries((data as LogbookEntry[]) || [])
       
     } catch (err) {
-      console.error('❌ ERROR: Failed to fetch logbook entries:', err)
+
       setError(err instanceof Error ? err.message : 'Er ging iets mis bij het laden van de logboek entries')
     } finally {
       setLoading(false)

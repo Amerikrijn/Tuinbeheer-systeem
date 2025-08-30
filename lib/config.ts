@@ -76,10 +76,7 @@ export function validateSecurityConfiguration(): { valid: boolean; errors: strin
     const env = getCurrentEnvironment();
     
     // Log configuration validation (without exposing credentials)
-    console.log(`🔒 Security validation for ${env} environment`);
-    console.log(`🔗 URL configured: ${config.url.substring(0, 30)}...`);
-    console.log(`🔑 Key configured: ${config.anonKey.substring(0, 20)}...`);
-    
+
     return { valid: true, errors: [] };
   } catch (error) {
     errors.push(error instanceof Error ? error.message : 'Unknown configuration error');

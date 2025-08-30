@@ -48,7 +48,7 @@ export default function PlantBedsPage() {
         setGarden(gardenData)
         setPlantBeds(plantBedsData)
       } catch (error) {
-        console.error("Error loading data:", error)
+
         toast({
           title: "Fout",
           description: "Kon gegevens niet laden.",
@@ -88,7 +88,7 @@ export default function PlantBedsPage() {
         description: `Plantvak ${plantBedToDelete.letter_code || plantBedToDelete.name} is succesvol verwijderd.`,
       })
     } catch (error) {
-      console.error("Error deleting plant bed:", error)
+
       toast({
         title: "Fout",
         description: "Kon het plantvak niet verwijderen.",

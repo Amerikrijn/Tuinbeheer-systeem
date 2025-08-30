@@ -69,17 +69,17 @@ class NextJSLogger {
 
     switch (level) {
       case 'error':
-        console.error(logString)
+
         break
       case 'warn':
-        console.warn(logString)
+
         break
       case 'info':
-        console.info(logString)
+
         break
       case 'debug':
       case 'trace':
-        console.log(logString)
+
         break
     }
   }

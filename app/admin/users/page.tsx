@@ -82,14 +82,14 @@ function AdminUsersPageContent() {
         .order('name')
       
       if (gardensError) {
-        console.error('Gardens loading error:', gardensError)
+
         setGardens([])
       } else {
         setGardens(gardensData || [])
       }
       
     } catch (error) {
-      console.error('Error loading data:', error)
+
       toast({
         title: "Fout bij laden",
         description: "Kon gebruikers niet laden",
@@ -134,8 +134,7 @@ function AdminUsersPageContent() {
       loadData()
       
     } catch (error: any) {
-      console.error('Error resetting password:', error)
-      
+
       // Provide more specific error messages for admins
       let errorMessage = "Kon wachtwoord niet resetten"
       if (error.message.includes('permission')) {
@@ -182,8 +181,7 @@ function AdminUsersPageContent() {
       loadData()
       
     } catch (error: any) {
-      console.error('Error deleting user:', error)
-      
+
       // Provide more specific error messages for admins
       let errorMessage = "Kon gebruiker niet verwijderen"
       if (error.message.includes('foreign key')) {

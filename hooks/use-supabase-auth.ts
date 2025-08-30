@@ -121,7 +121,7 @@ export function useSupabaseAuth(): AuthContextType {
         }
         
         const delay = baseDelay * Math.pow(2, i)
-        console.warn(`Attempt ${i + 1} failed, retrying in ${delay}ms...`, error)
+
         await new Promise(resolve => setTimeout(resolve, delay))
       }
     }
@@ -136,7 +136,7 @@ export function useSupabaseAuth(): AuthContextType {
       const currentHost = window.location.host
       const cachedHost = localStorage.getItem('tuinbeheer_cached_host')
       if (cachedHost && cachedHost !== currentHost) {
-        console.log('🔧 PRODUCTION: Host changed, clearing cache', { old: cachedHost, new: currentHost })
+
         localStorage.removeItem(SESSION_CACHE_KEY)
         localStorage.setItem('tuinbeheer_cached_host', currentHost)
         useCache = false
@@ -149,7 +149,7 @@ export function useSupabaseAuth(): AuthContextType {
     if (useCache) {
       const cached = getCachedUserProfile()
       if (cached && cached.id === supabaseUser.id) {
-        console.log('🚀 Using cached user profile for faster loading')
+
         return cached
       }
     }
@@ -185,7 +185,7 @@ export function useSupabaseAuth(): AuthContextType {
             ])
             
             // Success - return the result
-            console.log(`✅ Database query succeeded on attempt ${i + 1}`)
+
             return result
           } catch (error: any) {
             lastError = error
@@ -194,16 +194,16 @@ export function useSupabaseAuth(): AuthContextType {
             if (error?.message?.includes('No internet connection') || 
                 error?.code === 'PGRST116' || // Row not found - don't retry
                 error?.message?.includes('JWT')) { // Auth issues - don't retry
-              console.error(`❌ Non-retryable error: ${error.message}`)
+
               throw error
             }
             
             if (i < timeouts.length - 1) {
-              console.warn(`⏱️ Database query attempt ${i + 1} failed with ${timeouts[i]}ms timeout, retrying in ${1000 * (i + 1)}ms...`)
+
               // Add exponential backoff delay between retries
               await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)))
             } else {
-              console.error(`🚨 All database query attempts failed. Last error:`, error)
+
             }
           }
         }
@@ -237,12 +237,10 @@ export function useSupabaseAuth(): AuthContextType {
         }
         
         // Log to console for immediate debugging
-        console.error('🏦 BANKING AUDIT: Authentication failed', auditData)
-        
+
                  // 🚨 GODELIEVE FIX: Auto-create missing profile for known admin
          if (supabaseUser.email?.toLowerCase().includes('godelieve')) {
-           console.log('🔧 GODELIEVE FIX: Creating missing admin profile')
-           
+
            try {
              const { error: createError } = await supabase
                .from('users')
@@ -259,16 +257,16 @@ export function useSupabaseAuth(): AuthContextType {
                })
              
              if (!createError) {
-               console.log('✅ GODELIEVE FIX: Profile created successfully')
+
                role = 'admin'
                fullName = 'Godelieve Ochtendster'
                status = 'active'
              } else {
-               console.error('🚨 GODELIEVE FIX: Creation failed', createError)
+
                throw new Error('Access denied: User not found in system. Contact admin to create your account.')
              }
            } catch (error) {
-             console.error('🚨 GODELIEVE FIX: Error', error)
+
              throw new Error('Access denied: User not found in system. Contact admin to create your account.')
            }
          } else {
@@ -292,9 +290,7 @@ export function useSupabaseAuth(): AuthContextType {
           userAgent: typeof window !== 'undefined' ? window.navigator?.userAgent : 'N/A',
           sessionId: supabaseUser.id + '_' + Date.now()
         }
-        
-        console.log('🏦 BANKING AUDIT: Successful authentication', loginAuditData)
-        
+
         // Update last_login asynchronously (non-blocking)
         supabase
           .from('users')
@@ -305,9 +301,9 @@ export function useSupabaseAuth(): AuthContextType {
           .eq('id', userProfile.id)
           .then(({ error }) => {
             if (error) {
-              console.error('🏦 BANKING AUDIT: Failed to update last_login:', error)
+
             } else {
-              console.log('🏦 BANKING AUDIT: Last login timestamp updated')
+
             }
           })
       }
@@ -331,8 +327,7 @@ export function useSupabaseAuth(): AuthContextType {
       return user
 
     } catch (error) {
-      console.error('Error in loadUserProfile:', error)
-      
+
       // 🏦 ENHANCED FALLBACK: Try to use cached data with connection awareness
       if (useCache) {
         const cached = getCachedUserProfile()
@@ -342,7 +337,7 @@ export function useSupabaseAuth(): AuthContextType {
                                    error.message?.includes('fetch');
           
           if (isConnectionError) {
-            console.warn('⚠️ Using cached profile due to connection issues:', error.message)
+
             // Show user that we're using cached data
             setState(prev => ({
               ...prev,
@@ -350,7 +345,7 @@ export function useSupabaseAuth(): AuthContextType {
             }))
             return cached
           } else {
-            console.warn('⚠️ Using cached profile due to database error:', error.message)
+
             return cached
           }
         }
@@ -418,7 +413,7 @@ export function useSupabaseAuth(): AuthContextType {
           })
         }
       } catch (error) {
-        console.error('Auth initialization error:', error)
+
         clearCachedUserProfile()
         setState({
           user: null,
@@ -585,7 +580,7 @@ export function useSupabaseAuth(): AuthContextType {
     clearCachedUserProfile()
     if (typeof window !== 'undefined') {
       localStorage.removeItem('tuinbeheer_cached_host')
-      console.log('🔧 PRODUCTION: Cleared all user cache including host tracking')
+
     }
     
     if (state.session?.user) {
@@ -613,7 +608,7 @@ export function useSupabaseAuth(): AuthContextType {
         }))
       }
     } catch (error) {
-      console.warn('Garden access loading failed:', error)
+
     }
   }
 
@@ -635,7 +630,7 @@ export function useSupabaseAuth(): AuthContextType {
 
   const getAccessibleGardens = (): string[] => {
     if (!state.user) {
-      console.warn('⚠️ SECURITY: getAccessibleGardens called without user')
+
       return []
     }
     if (state.user.role === 'admin') {

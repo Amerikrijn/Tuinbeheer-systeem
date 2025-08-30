@@ -1,6 +1,5 @@
 
 
-
 import { createClient } from '@supabase/supabase-js';
 import { getSupabaseConfig } from './config';
 
@@ -51,17 +50,17 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         
         // Log performance metrics
         if (responseTime > 10000) {
-          console.error(`🚨 CRITICAL: Supabase request took ${responseTime.toFixed(0)}ms: ${url}`);
+
         } else if (responseTime > 3000) {
-          console.warn(`⚠️ SLOW: Supabase request took ${responseTime.toFixed(0)}ms: ${url}`);
+
         } else if (process.env.NODE_ENV === 'development' && responseTime > 1000) {
-          console.log(`📊 Supabase request: ${responseTime.toFixed(0)}ms - ${url}`);
+
         }
         
         // Check response status
         if (!response.ok) {
           const errorText = await response.text().catch(() => 'Unknown error');
-          console.error(`🚨 Supabase HTTP ${response.status}:`, errorText);
+
           throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
         }
         
@@ -71,7 +70,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         const responseTime = performance.now() - startTime;
         
         if (error.name === 'AbortError') {
-          console.error(`🚨 Supabase request timeout after ${timeoutMs}ms:`, url);
+
           throw new Error(`Verbinding time-out na ${timeoutMs/1000}s - probeer opnieuw`);
         }
         
@@ -97,7 +96,7 @@ const getAdminClient = () => {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
   if (!serviceRoleKey) {
-    console.error('SUPABASE_SERVICE_ROLE_KEY not found in environment variables');
+
     return null;
   }
   
