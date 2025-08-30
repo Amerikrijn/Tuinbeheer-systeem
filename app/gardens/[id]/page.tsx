@@ -1086,7 +1086,7 @@ export default function GardenDetailPage() {
                   Plantvak Toevoegen
                 </Button>
               </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
+              <DialogContent className="w-[95vw] max-w-[425px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Nieuw Plantvak Toevoegen</DialogTitle>
                 <DialogDescription>

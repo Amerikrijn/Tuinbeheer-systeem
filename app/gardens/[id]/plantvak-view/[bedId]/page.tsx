@@ -1602,7 +1602,7 @@ export default function PlantBedViewPage() {
                   Plant Toevoegen
                 </Button>
               </DialogTrigger>
-            <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background border border-gray-200 shadow-xl">
+              <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] overflow-y-auto bg-background border border-gray-200 shadow-xl">
               <DialogHeader>
                 <DialogTitle>Nieuwe Plant Toevoegen</DialogTitle>
                 <DialogDescription>
