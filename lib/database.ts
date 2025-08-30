@@ -201,7 +201,7 @@ export async function deleteGarden(id: string): Promise<void> {
 
 // Plant bed functions
 export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlants[]> {
-  let query = supabase.from("plant_beds").select("*").eq("is_active", true).order("id")
+  let query = supabase.from("plant_beds").select("*").eq("is_active", true).order("id").limit(100) // Added limit for performance
 
   if (gardenId) {
     query = query.eq("garden_id", gardenId)
@@ -226,6 +226,7 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
         .select("*")
         .eq("plant_bed_id", bed.id)
         .order("created_at", { ascending: false })
+        .limit(50) // Added limit - max 50 plants per bed
 
       if (plantsError) {
 
@@ -261,6 +262,7 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
     .select("*")
     .eq("plant_bed_id", id)
     .order("created_at", { ascending: false })
+    .limit(100) // Added limit for performance
 
   if (plantsError) {
 
@@ -408,6 +410,7 @@ export async function getPlantsWithPositions(plantBedId: string): Promise<PlantW
     .select("*")
     .eq("plant_bed_id", plantBedId)
     .order("created_at", { ascending: true })
+    .limit(200) // Added limit - max 200 plants for visual designer
 
   if (error) {
 

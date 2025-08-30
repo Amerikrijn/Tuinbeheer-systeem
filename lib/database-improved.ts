@@ -218,6 +218,7 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
       .select("*")
       .eq("is_active", true)
       .order("id")
+      .limit(100) // Added limit for performance
 
     if (gardenId) {
       query = query.eq("garden_id", gardenId)
@@ -241,6 +242,7 @@ export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlant
           .select("*")
           .eq("plant_bed_id", bed.id)
           .order("created_at", { ascending: false })
+          .limit(50) // Added limit - max 50 plants per bed
 
         if (plantsError) {
           logError("Error fetching plants for bed:", plantsError)
@@ -277,6 +279,7 @@ export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null
       .select("*")
       .eq("plant_bed_id", id)
       .order("created_at", { ascending: false })
+      .limit(100) // Added limit for performance
 
     if (plantsError) {
       logError("Error fetching plants:", plantsError)
@@ -361,7 +364,7 @@ export async function getPlants(plantBedId?: string): Promise<Plant[]> {
       query = query.eq("plant_bed_id", plantBedId)
     }
 
-    const { data, error } = await query.order("created_at", { ascending: false })
+    const { data, error } = await query.order("created_at", { ascending: false }).limit(200) // Added limit
 
     if (error) {
       if (isMissingRelation(error)) {
@@ -453,7 +456,7 @@ export async function getLogbookEntries(plantBedId?: string): Promise<LogbookEnt
       query = query.eq("plant_bed_id", plantBedId)
     }
 
-    const { data, error } = await query.order("entry_date", { ascending: false })
+    const { data, error } = await query.order("entry_date", { ascending: false }).limit(100) // Added limit
 
     if (error) {
       if (isMissingRelation(error)) {
@@ -547,7 +550,7 @@ export async function getTasks(gardenId?: string): Promise<Task[]> {
       query = query.eq("garden_id", gardenId)
     }
 
-    const { data, error } = await query.order("due_date", { ascending: true })
+    const { data, error } = await query.order("due_date", { ascending: true }).limit(100) // Added limit
 
     if (error) {
       if (isMissingRelation(error)) {
@@ -617,6 +620,7 @@ export async function getUsers(): Promise<User[]> {
       .from("users")
       .select("*")
       .order("created_at", { ascending: false })
+      .limit(500) // Added limit - reasonable for user management
 
     if (error) {
       logError("Error fetching users:", error)
