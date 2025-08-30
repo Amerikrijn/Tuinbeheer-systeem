@@ -24,7 +24,7 @@ jobs:
     name: "🧪 Run Tests & Generate Summary"
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,7 +59,7 @@ jobs:
           echo "📊 TEST EXECUTION SUMMARY"
           echo "========================="
           echo ""
-          
+
           if [ -f "test-results/summary.md" ]; then
             cat test-results/summary.md >> $GITHUB_STEP_SUMMARY
           else
@@ -76,9 +76,9 @@ jobs:
             const fs = require('fs');
             const summaryPath = 'test-results/summary.md';
             const detailedPath = 'test-results/detailed-report.md';
-            
+
             let commentBody = '';
-            
+
             if (fs.existsSync(summaryPath)) {
               commentBody = fs.readFileSync(summaryPath, 'utf8');
             } else if (fs.existsSync(detailedPath)) {
@@ -86,22 +86,22 @@ jobs:
             } else {
               commentBody = '## ⚠️ Test Summary Not Available\n\nTest execution completed but summary generation failed. Check the workflow logs for details.';
             }
-            
+
             // Add workflow info
             commentBody += `\n\n---\n\n**Workflow**: [Test Summary & Report](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
-            
+
             // Find existing test summary comment and update it, or create new one
             const { data: comments } = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
             });
-            
-            const existingComment = comments.find(comment => 
-              comment.user.type === 'Bot' && 
+
+            const existingComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
               comment.body.includes('TEST SUMMARY REPORT')
             );
-            
+
             if (existingComment) {
               // Update existing comment
               await github.rest.issues.updateComment({
