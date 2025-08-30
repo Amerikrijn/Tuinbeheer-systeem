@@ -2193,5 +2193,6 @@ export default function GardenDetailPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </div>
   )
 }

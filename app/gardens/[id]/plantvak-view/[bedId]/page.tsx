@@ -2777,5 +2777,6 @@ export default function PlantBedViewPage() {
 
       
     </div>
+    </div>
   )
 }
