@@ -3,7 +3,7 @@
 import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase } from '@/lib/supabase'
 import { clearStaleCache } from '@/lib/version'
-import { performanceMonitor, authCircuitBreaker } from '@/lib/performance-monitor'
+import { performanceMonitor } from '@/lib/performance-monitor'
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js'
 
 // Enhanced User interface with garden access and permissions
@@ -211,13 +211,10 @@ export function useSupabaseAuth(): AuthContextType {
         throw lastError
       }
 
-      // Execute query with circuit breaker, retry logic and performance monitoring
-      const { data: userProfile, error: userError } = await authCircuitBreaker.execute(
-        () => performanceMonitor.track(
-          'loadUserProfile',
-          () => retryWithBackoff(performDatabaseQuery, 2, 1000),
-          { email: supabaseUser.email, userId: supabaseUser.id }
-        )
+      // Execute query with retry logic and performance monitoring
+      const { data: userProfile, error: userError } = await performanceMonitor.time(
+        'loadUserProfile',
+        () => retryWithBackoff(performDatabaseQuery, 2, 1000)
       ) as { data: any, error: any }
 
       let role: 'admin' | 'user' = 'user'
