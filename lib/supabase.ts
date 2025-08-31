@@ -28,64 +28,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     headers: {
       'X-Client-Info': 'tuinbeheer-systeem',
-      'X-Request-Id': (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'server-side',
     },
-    fetch: async (url, options = {}) => {
-      // Add request timeout and retry logic with progressive timeouts
-      const controller = new AbortController();
-      const isHealthCheck = url.includes('/rest/v1/gardens?select=count');
-      const timeoutMs = isHealthCheck ? 5000 : 20000; // Shorter timeout for health checks
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-      
-      const startTime = performance.now();
-      
-      try {
-        const response = await fetch(url, {
-          ...options,
-          headers: {
-            ...options.headers, // CRITICAL: Include all original headers (including API key!)
-          },
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-        
-        const responseTime = performance.now() - startTime;
-        
-        // Log performance metrics
-        if (responseTime > 10000) {
-
-        } else if (responseTime > 3000) {
-
-        } else if (process.env.NODE_ENV === 'development' && responseTime > 1000) {
-
-        }
-        
-        // Check response status
-        if (!response.ok) {
-          const errorText = await response.text().catch(() => 'Unknown error');
-
-          throw new Error(`HTTP ${response.status}: ${errorText || response.statusText}`);
-        }
-        
-        return response;
-      } catch (error: any) {
-        clearTimeout(timeoutId);
-        const responseTime = performance.now() - startTime;
-        
-        if (error.name === 'AbortError') {
-
-          throw new Error(`Verbinding time-out na ${timeoutMs/1000}s - probeer opnieuw`);
-        }
-        
-        // Network errors
-        if (!navigator.onLine) {
-          throw new Error('Geen internetverbinding - controleer je netwerk');
-        }
-        
-        console.error(`🚨 Supabase request failed after ${responseTime.toFixed(0)}ms:`, error.message);
-        throw error;
-      }
-    },
+    // SIMPLIFIED: Remove ALL custom fetch logic to prevent API key issues
+    // Let Supabase handle its own requests properly
   },
   realtime: {
     params: {
