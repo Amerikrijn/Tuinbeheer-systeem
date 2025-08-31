@@ -37,7 +37,7 @@ export default function OfflinePage() {
   }
 
   const handleGoHome = () => {
-    window.location.href = '/'
+    router.push('/')
   }
 
   return (

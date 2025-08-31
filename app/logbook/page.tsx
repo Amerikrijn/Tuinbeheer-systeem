@@ -534,7 +534,7 @@ function LogbookPageContent() {
             <Button 
               onClick={() => {
 
-              window.location.href = '/'
+              router.push('/')
             }}
               variant="outline"
               size="sm"
@@ -684,7 +684,7 @@ function LogbookPageContent() {
                 onClick={() => {
                 if (!entry.is_completed_task) {
 
-                  window.location.href = `/logbook/${entry.id}`
+                  router.push(`/logbook/${entry.id}`)
                 }
               }}
               >

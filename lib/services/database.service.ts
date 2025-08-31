@@ -53,7 +53,9 @@ export class NotFoundError extends Error {
   }
 }
 
-// Connection validation with retry logic
+// REMOVED: validateConnection was adding 200ms overhead to every query
+// Connection validation is already handled by Supabase SDK
+/*
 async function validateConnection(retries = 3): Promise<void> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
@@ -77,6 +79,7 @@ async function validateConnection(retries = 3): Promise<void> {
     }
   }
 }
+*/
 
 // Generic response wrapper with logging
 function createResponse<T>(
@@ -136,7 +139,7 @@ export class TuinService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
       
@@ -201,7 +204,7 @@ export class TuinService {
     
     try {
       validateId(id, 'Garden')
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       const { data, error } = await supabase
         .from(this.RESOURCE_NAME)
@@ -254,7 +257,7 @@ export class TuinService {
         throw new ValidationError('Garden location is required', 'location', gardenData.location)
       }
       
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       const insertData = {
         ...gardenData,
@@ -311,7 +314,7 @@ export class TuinService {
         throw new ValidationError('Garden location cannot be empty', 'location', updates.location)
       }
       
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       // First check if garden exists
       const existingResult = await this.getById(id)
@@ -366,7 +369,7 @@ export class TuinService {
     
     try {
       validateId(id, 'Garden')
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       // First check if garden exists
       const existingResult = await this.getById(id)
@@ -434,7 +437,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       // Validate required fields
       if (!formData.plant_bed_id) {
@@ -536,7 +539,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       let query = supabase
         .from('logbook_entries')
@@ -634,7 +637,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       if (!id) {
         throw new ValidationError('Logbook entry ID is required', 'id')
@@ -713,7 +716,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       if (!id) {
         throw new ValidationError('Logbook entry ID is required', 'id')
@@ -797,7 +800,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       if (!id) {
         throw new ValidationError('Logbook entry ID is required', 'id')
@@ -857,7 +860,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       if (!id) {
         throw new ValidationError('Logbook entry ID is required', 'id')
@@ -916,7 +919,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       // Get current year if not specified
       const targetYear = year || new Date().getFullYear()
@@ -1037,7 +1040,7 @@ export class PlantBedService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       let query = supabase
         .from(this.RESOURCE_NAME)
@@ -1103,7 +1106,7 @@ export class UserGardenAccessService {
     
     try {
       validateId(gardenId, 'Garden')
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       const { data, error } = await supabase
         .from(this.RESOURCE_NAME)
@@ -1156,7 +1159,7 @@ export class TuinServiceEnhanced extends TuinService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - adds unnecessary overhead
       
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
       

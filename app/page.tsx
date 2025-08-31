@@ -274,8 +274,7 @@ function HomePageContent() {
         
         <Button
           onClick={() => {
-
-            window.location.href = '/gardens/new'
+            router.push('/gardens/new')
           }}
           className="h-10 px-4 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black"
         >
@@ -292,7 +291,7 @@ function HomePageContent() {
             <Input
               placeholder="🔍 Zoek tuinen..."
               value={state.searchTerm}
-              onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
+              onChange={handleSearchChange}
               className="pl-9 border-green-300 focus:border-green-500"
             />
           </div>
@@ -558,7 +557,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
             e.preventDefault()
             e.stopPropagation()
 
-            window.location.href = `/gardens/${garden.id}`
+            router.push(`/gardens/${garden.id}`)
           }}
         >
           <Leaf className="h-4 w-4 mr-2" />

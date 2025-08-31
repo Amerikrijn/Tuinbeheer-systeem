@@ -260,7 +260,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
             <Button 
               onClick={() => {
 
-                window.location.href = '/logbook'
+                router.push = '/logbook'
               }}
               variant="outline"
               className="flex items-center gap-2"
@@ -293,7 +293,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           <Button 
             onClick={() => {
 
-              window.location.href = '/logbook'
+              router.push = '/logbook'
             }}
             variant="outline"
             className="flex items-center gap-2"

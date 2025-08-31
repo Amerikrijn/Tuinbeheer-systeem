@@ -143,9 +143,9 @@ export default function NewGardenPage() {
       })
 
       if (garden) {
-        window.location.href = `/gardens/${garden.id}`
+        router.push(`/gardens/${garden.id}`)
       } else {
-        window.location.href = "/gardens"
+        router.push("/gardens")
       }
     } catch (err) {
       console.error("Supabase createGarden error:", JSON.stringify(err, null, 2))
@@ -182,8 +182,7 @@ export default function NewGardenPage() {
           variant="ghost" 
           size="sm" 
           onClick={() => {
-
-            window.location.href = "/gardens"
+            router.push("/gardens")
           }} 
           className="h-8 px-3 text-green-600 dark:text-green-400 hover:text-green-700 hover:bg-green-50 dark:bg-green-950 dark:hover:bg-green-950/30"
         >
