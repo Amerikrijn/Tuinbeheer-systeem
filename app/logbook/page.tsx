@@ -97,7 +97,7 @@ function LogbookPageContent() {
 
   // Load specific user data if viewing for another user (admin only)
   const loadViewingUser = React.useCallback(async () => {
-    if (!viewingUserId || !isAdmin() return
+    if (!viewingUserId || !isAdmin()) return
     
     try {
       const { data: userData, error } = await supabase

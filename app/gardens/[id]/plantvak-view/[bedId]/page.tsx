@@ -214,7 +214,7 @@ export default function PlantBedViewPage() {
   const [isEditCustomFlower, setIsEditCustomFlower] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('')
-  const [newFlower, setNewFlower] = useState<PlantFormData>(createInitialPlantFormData()
+  const [newFlower, setNewFlower] = useState<PlantFormData>(createInitialPlantFormData())
   const [newFlowerErrors, setNewFlowerErrors] = useState<PlantFormErrors>({})
   const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
   const [showDeletePlantBedDialog, setShowDeletePlantBedDialog] = useState(false)
