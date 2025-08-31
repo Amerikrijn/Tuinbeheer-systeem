@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive, X, Trash2 } from "lucide-react"
 import { TuinService, TuinServiceEnhanced, PlantBedService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
-import { getPlantBedsOptimized } from "@/lib/database-optimized"
+import { testJoinSupport, useOptimizedQueries, getPlantBedsOptimized } from '@/lib/database-optimized'
 
 import { uiLogger, AuditLogger } from "@/lib/logger"
 import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen, TuinWithPlantvakken } from "@/lib/types/index"
@@ -47,6 +47,13 @@ function HomePageContent() {
     searchTerm: "",
     page: 1,
   })
+  
+  // Test JOIN support on mount
+  React.useEffect(() => {
+    testJoinSupport().then(supported => {
+      console.log('🚀 JOIN query support:', supported ? '✅ Enabled - using optimized queries' : '⚠️ Disabled - using fallback N+1 queries')
+    })
+  }, [])
 
   // React Query for gardens data - PERFORMANCE OPTIMIZATION
   const {
