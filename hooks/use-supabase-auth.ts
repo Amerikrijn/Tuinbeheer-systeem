@@ -445,6 +445,8 @@ export function useSupabaseAuth(): AuthContextType {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state change:', event)
+      
       if (event === 'SIGNED_IN' && session?.user) {
         // Only load profile if we don't already have it or it's a different user
         if (!state.user || state.user.id !== session.user.id) {
@@ -463,7 +465,7 @@ export function useSupabaseAuth(): AuthContextType {
             loading: false
           }))
         }
-      } else if (event === 'SIGNED_OUT') {
+      } else if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
         clearCachedUserProfile()
         setState({
           user: null,
@@ -471,12 +473,32 @@ export function useSupabaseAuth(): AuthContextType {
           loading: false,
           error: null
         })
+      } else if (event === 'TOKEN_REFRESHED' && session) {
+        // Update session when token is refreshed
+        console.log('Token refreshed successfully')
+        setState(prev => ({
+          ...prev,
+          session,
+          error: null
+        }))
       }
     })
+
+    // Set up session refresh interval (every 30 minutes)
+    const refreshInterval = setInterval(async () => {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      if (session && !error) {
+        console.log('Session still valid, checking if refresh needed...')
+        // Supabase will auto-refresh if needed
+      } else if (error) {
+        console.error('Session refresh check failed:', error)
+      }
+    }, 30 * 60 * 1000) // 30 minutes
 
     return () => {
       subscription.unsubscribe()
       clearTimeout(loadingTimeout)
+      clearInterval(refreshInterval)
     }
   }, [])
 
