@@ -47,6 +47,9 @@ function HomePageContent() {
     searchTerm: "",
     page: 1,
   })
+  
+  // Separate state for input display (immediate) vs search (debounced)
+  const [searchInput, setSearchInput] = React.useState("")
 
   // React Query for gardens data - PERFORMANCE OPTIMIZATION
   const {
@@ -171,9 +174,12 @@ function HomePageContent() {
     []
   )
 
-  // Handle search input change
+  // Handle search input change - update display immediately, search debounced
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
+    // Update display immediately for responsive feel
+    setSearchInput(value)
+    // But debounce the actual search query
     debouncedSearch(value)
   }
 
@@ -291,8 +297,8 @@ function HomePageContent() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-600 dark:text-green-400 w-4 h-4" />
             <Input
               placeholder="🔍 Zoek tuinen..."
-              value={state.searchTerm}
-              onChange={(e) => setState(prev => ({ ...prev, searchTerm: e.target.value }))}
+              value={searchInput}
+              onChange={handleSearchChange}
               className="pl-9 border-green-300 focus:border-green-500"
             />
           </div>
