@@ -99,13 +99,15 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       const startTime = performance.now();
       
       try {
+        // IMPORTANT: Don't override headers, just add X-Request-Id
+        // The apikey is already in options.headers from Supabase client
         const response = await fetch(url, {
           ...options,
+          signal: controller.signal,
           headers: {
             ...options.headers,
             'X-Request-Id': requestId,
           },
-          signal: controller.signal,
         });
         clearTimeout(timeoutId);
         activeRequests.delete(requestId);
