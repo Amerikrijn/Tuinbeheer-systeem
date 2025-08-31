@@ -351,12 +351,18 @@ export function useSupabaseAuth(): AuthContextType {
         }
       }
       
-      // Enhanced error messaging
+      // Enhanced error messaging with original error for debugging
+      console.error('Auth error details:', error.message, error);
+      
       const userFriendlyError = error.message?.includes('timeout') 
         ? 'Verbinding time-out - probeer het later opnieuw'
         : error.message?.includes('network') || error.message?.includes('fetch')
         ? 'Netwerkfout - controleer je internetverbinding' 
-        : 'Database fout - neem contact op met de beheerder';
+        : error.message?.includes('Invalid login credentials')
+        ? 'Ongeldige inloggegevens'
+        : error.message?.includes('Email not confirmed')
+        ? 'E-mail niet bevestigd'
+        : `Database fout - ${error.message}`;
       
       throw new Error(userFriendlyError)
     }
