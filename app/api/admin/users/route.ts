@@ -58,9 +58,48 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch users' }, { status: 500 })
     }
 
-    auditLog('LIST_USERS', { count: users.length })
+    // 🏦 BANKING-GRADE: Load garden access for all users
+    const usersWithGardenAccess = await Promise.all(
+      users.map(async (user) => {
+        try {
+          const { data: gardenAccess, error: accessError } = await supabaseAdmin
+            .from('user_garden_access')
+            .select('garden_id')
+            .eq('user_id', user.id)
 
-    return NextResponse.json({ users })
+          if (accessError) {
+            // Log error but don't fail the whole operation
+            auditLog('GARDEN_ACCESS_LOAD_FAILED', {
+              userId: user.id,
+              error: accessError.message
+            })
+            return {
+              ...user,
+              garden_access: []
+            }
+          }
+
+          return {
+            ...user,
+            garden_access: gardenAccess?.map(item => item.garden_id) || []
+          }
+        } catch (error) {
+          // Log error but don't fail the whole operation
+          auditLog('GARDEN_ACCESS_LOAD_ERROR', {
+            userId: user.id,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          })
+          return {
+            ...user,
+            garden_access: []
+          }
+        }
+      })
+    )
+
+    auditLog('LIST_USERS', { count: usersWithGardenAccess.length })
+
+    return NextResponse.json({ users: usersWithGardenAccess })
   } catch (error) {
 
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -164,7 +203,7 @@ export async function POST(request: NextRequest) {
         user_id: authData.user.id,
         garden_id: gardenId,
         granted_by: 'admin', // Track who granted access
-        created_at: new Date().toISOString()
+        granted_at: new Date().toISOString()
       }))
 
       const { error: accessError } = await supabaseAdmin
@@ -357,7 +396,7 @@ export async function PUT(request: NextRequest) {
           user_id: userId,
           garden_id: gardenId,
           granted_by: 'admin',
-          created_at: new Date().toISOString()
+          granted_at: new Date().toISOString()
         }))
 
         const { error: insertError } = await supabaseAdmin

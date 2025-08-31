@@ -63,39 +63,12 @@ export function EditUserDialog({
       setEditForm({
         fullName: user.full_name || '',
         role: user.role,
-        gardenAccess: []
+        gardenAccess: user.garden_access || []
       })
-      
-      // Load current garden access for users
-      if (user.role === 'user') {
-        loadUserGardenAccess(user.id)
-      }
     }
   }, [user, isOpen])
 
-  const loadUserGardenAccess = async (userId: string) => {
-    try {
-      const { data: accessData, error } = await supabase
-        .from('user_garden_access')
-        .select('garden_id')
-        .eq('user_id', userId)
-      
-      if (!error && accessData) {
-        const currentGardenAccess = accessData.map(row => row.garden_id)
-        setEditForm(prev => ({
-          ...prev,
-          gardenAccess: currentGardenAccess
-        }))
-      }
-    } catch (error) {
 
-      toast({
-        title: "Waarschuwing",
-        description: "Kon huidige tuin toegang niet laden",
-        variant: "destructive"
-      })
-    }
-  }
 
   const handleClose = () => {
     if (!editing) {

@@ -26,7 +26,7 @@ interface User {
   created_at: string
   last_login?: string
   force_password_change?: boolean
-  garden_access?: string[]
+  garden_access: string[]
 }
 
 interface Garden {
