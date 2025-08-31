@@ -12,7 +12,44 @@ const config = getSupabaseConfig();
 const supabaseUrl = config.url;
 const supabaseAnonKey = config.anonKey;
 
-// Create Supabase client with optimized settings and improved error handling
+// Track active requests for cleanup
+const activeRequests = new Map<string, AbortController>();
+let requestCounter = 0;
+
+// Cleanup function for pending requests
+export function cleanupPendingRequests() {
+  console.log(`🧹 Cleaning up ${activeRequests.size} pending requests`);
+  activeRequests.forEach(controller => {
+    try {
+      controller.abort();
+    } catch (e) {
+      // Ignore abort errors
+    }
+  });
+  activeRequests.clear();
+}
+
+// Clean up on page navigation (for Next.js)
+if (typeof window !== 'undefined') {
+  // Clean up when navigating away
+  window.addEventListener('beforeunload', cleanupPendingRequests);
+  
+  // Clean up on route change (Next.js specific)
+  const originalPushState = history.pushState;
+  const originalReplaceState = history.replaceState;
+  
+  history.pushState = function(...args) {
+    cleanupPendingRequests();
+    return originalPushState.apply(history, args);
+  };
+  
+  history.replaceState = function(...args) {
+    cleanupPendingRequests();
+    return originalReplaceState.apply(history, args);
+  };
+}
+
+// Create Supabase client with FIXED fetch implementation
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -28,23 +65,50 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   global: {
     headers: {
       'X-Client-Info': 'tuinbeheer-systeem',
-      'X-Request-Id': (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : 'server-side',
     },
     fetch: async (url, options = {}) => {
-      // Add request timeout and retry logic with progressive timeouts
+      // Generate unique request ID for each request
+      requestCounter++;
+      const requestId = `req-${Date.now()}-${requestCounter}`;
+      
+      // Create abort controller for this request
       const controller = new AbortController();
+      
+      // Store controller for cleanup
+      activeRequests.set(requestId, controller);
+      
+      // Clean up old requests if too many are pending
+      if (activeRequests.size > 10) {
+        console.warn(`⚠️ ${activeRequests.size} requests pending - cleaning oldest`);
+        const oldestKey = activeRequests.keys().next().value;
+        const oldestController = activeRequests.get(oldestKey);
+        if (oldestController) {
+          oldestController.abort();
+          activeRequests.delete(oldestKey);
+        }
+      }
+      
+      // Determine timeout based on request type
       const isHealthCheck = url.includes('/rest/v1/gardens?select=count');
-      const timeoutMs = isHealthCheck ? 5000 : 20000; // Shorter timeout for health checks
-      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      const timeoutMs = isHealthCheck ? 5000 : 15000; // Reduced from 20s to 15s
+      const timeoutId = setTimeout(() => {
+        controller.abort();
+        activeRequests.delete(requestId);
+      }, timeoutMs);
       
       const startTime = performance.now();
       
       try {
         const response = await fetch(url, {
           ...options,
+          headers: {
+            ...options.headers,
+            'X-Request-Id': requestId,
+          },
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
+        activeRequests.delete(requestId);
         
         const responseTime = performance.now() - startTime;
         
@@ -67,10 +131,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
         return response;
       } catch (error: any) {
         clearTimeout(timeoutId);
+        activeRequests.delete(requestId);
         const responseTime = performance.now() - startTime;
         
         if (error.name === 'AbortError') {
-
+          console.warn(`⏱️ Request ${requestId} timed out after ${timeoutMs/1000}s`);
           throw new Error(`Verbinding time-out na ${timeoutMs/1000}s - probeer opnieuw`);
         }
         
@@ -86,7 +151,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   realtime: {
     params: {
-      eventsPerSecond: 10, // Rate limiting for real-time events
+      eventsPerSecond: 2, // Reduced from 10 to prevent connection overload
     },
   },
 });
