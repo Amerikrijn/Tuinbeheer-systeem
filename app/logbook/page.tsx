@@ -64,7 +64,7 @@ function LogbookPageContent() {
       if (!user) return
       
       // For users, ensure garden access is loaded
-      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
+      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0) {
 
         try {
           await loadGardenAccess()
@@ -97,7 +97,7 @@ function LogbookPageContent() {
 
   // Load specific user data if viewing for another user (admin only)
   const loadViewingUser = React.useCallback(async () => {
-    if (!viewingUserId || !isAdmin()) return
+    if (!viewingUserId || !isAdmin() return
     
     try {
       const { data: userData, error } = await supabase
@@ -123,7 +123,7 @@ function LogbookPageContent() {
     const operationId = `loadLogbookEntries-${Date.now()}`
     
     try {
-      setState(prev => ({ ...prev, loading: !append, error: null }))
+      setState(prev => ({ ...prev, loading: !append, error: null })
       
       // Wait for garden access to be loaded for regular users
       if (user?.role === 'user' && !gardenAccessLoaded) {
@@ -135,7 +135,7 @@ function LogbookPageContent() {
       let accessibleGardens: string[]
       let hasGardenRestriction: boolean
       
-      if (viewingUser && isAdmin()) {
+      if (viewingUser && isAdmin() {
         // Admin viewing specific user - get that user's garden access from database
         try {
           const { data: gardenAccess, error } = await supabase
@@ -174,7 +174,7 @@ function LogbookPageContent() {
       }
 
       // SECURITY: Apply strict garden access filtering
-      if (!isAdmin()) {
+      if (!isAdmin() {
         // NON-ADMIN USERS: ALWAYS filter by accessible gardens - NEVER allow cross-garden access
         if (accessibleGardens.length === 0) {
           throw new Error('Geen toegang tot tuinen')
@@ -182,7 +182,7 @@ function LogbookPageContent() {
         
         if (state.selectedGarden && state.selectedGarden !== "all") {
           // SECURITY CHECK: Verify user has access to selected garden
-          if (!accessibleGardens.includes(state.selectedGarden)) {
+          if (!accessibleGardens.includes(state.selectedGarden) {
             throw new Error('SECURITY VIOLATION: Geen toegang tot geselecteerde tuin')
           }
           filters.garden_id = state.selectedGarden
@@ -205,7 +205,7 @@ function LogbookPageContent() {
 
       // Load regular logbook entries with timeout
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Query timeout - verbinding te traag')), 30000) // 30 second timeout
+        setTimeout(() => reject(new Error('Query timeout - verbinding te traag'), 30000) // 30 second timeout
       })
       
       let response
@@ -258,7 +258,7 @@ function LogbookPageContent() {
           .eq('completed', true)
 
         // Apply same garden filtering as logbook entries
-        if (!isAdmin()) {
+        if (!isAdmin() {
           if (accessibleGardens.length === 0) {
 
             completedTasksData = []
@@ -292,7 +292,7 @@ function LogbookPageContent() {
             photo_url: null,
             is_completed_task: true, // Flag to identify this as a completed task
             original_task: task
-          }))
+          })
         }
       } catch (error) {
 
@@ -320,9 +320,9 @@ function LogbookPageContent() {
       // Then apply search filter (maintain chronological order)
       const filteredEntries = state.searchTerm 
         ? yearFilteredEntries.filter(entry => 
-            entry.notes.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-            entry.plant_bed_name.toLowerCase().includes(state.searchTerm.toLowerCase()) ||
-            (entry.plant_name && entry.plant_name.toLowerCase().includes(state.searchTerm.toLowerCase()))
+            entry.notes.toLowerCase().includes(state.searchTerm.toLowerCase() ||
+            entry.plant_bed_name.toLowerCase().includes(state.searchTerm.toLowerCase() ||
+            (entry.plant_name && entry.plant_name.toLowerCase().includes(state.searchTerm.toLowerCase())
           )
         : yearFilteredEntries
 
@@ -332,7 +332,7 @@ function LogbookPageContent() {
         loading: false,
         page,
         hasMore: filteredEntries.length === ITEMS_PER_PAGE
-      }))
+      })
 
       uiLogger.debug('Logbook entries loaded successfully', { 
         count: filteredEntries.length, 
@@ -342,16 +342,16 @@ function LogbookPageContent() {
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Er is een onbekende fout opgetreden'
-      setState(prev => ({ ...prev, loading: false, error: errorMessage }))
+      setState(prev => ({ ...prev, loading: false, error: errorMessage })
       uiLogger.error('Failed to load logbook entries', error as Error, { page, operationId })
       
       // More user-friendly error messages
       let userMessage = errorMessage
-      if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
+      if (errorMessage.includes('timeout') || errorMessage.includes('network') {
         userMessage = 'Verbinding verbroken. Probeer de pagina te vernieuwen.'
-      } else if (errorMessage.includes('SECURITY VIOLATION')) {
+      } else if (errorMessage.includes('SECURITY VIOLATION') {
         userMessage = 'Geen toegang tot deze gegevens.'
-      } else if (errorMessage.includes('Failed to fetch')) {
+      } else if (errorMessage.includes('Failed to fetch') {
         userMessage = 'Kan gegevens niet laden. Controleer je internetverbinding.'
       }
       
@@ -375,7 +375,7 @@ function LogbookPageContent() {
   const loadPlantBeds = React.useCallback(async () => {
     try {
       const plantBeds = await getPlantBeds()
-      setState(prev => ({ ...prev, plantBeds: (plantBeds || []) as PlantvakWithBloemen[] }))
+      setState(prev => ({ ...prev, plantBeds: (plantBeds || []) as PlantvakWithBloemen[] })
     } catch (error) {
       uiLogger.error('Failed to load plant beds for filtering', error as Error)
     }
@@ -388,7 +388,7 @@ function LogbookPageContent() {
 
   // Initial load
   React.useEffect(() => {
-    if (viewingUserId && !viewingUser && isAdmin()) {
+    if (viewingUserId && !viewingUser && isAdmin() {
       // Wait for viewing user to load first
       return
     }
@@ -398,7 +398,7 @@ function LogbookPageContent() {
 
   // Reload when filters change
   React.useEffect(() => {
-    if (state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.searchTerm !== "" || state.selectedYear !== new Date().getFullYear().toString()) {
+    if (state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.searchTerm !== "" || state.selectedYear !== new Date().getFullYear().toString() {
       loadEntries(1, false)
     }
   }, [state.selectedGarden, state.selectedPlantBed, state.searchTerm, state.selectedYear, loadEntries])
@@ -412,7 +412,7 @@ function LogbookPageContent() {
 
   // Handle search
   const handleSearchChange = (value: string) => {
-    setState(prev => ({ ...prev, searchTerm: value, page: 1 }))
+    setState(prev => ({ ...prev, searchTerm: value, page: 1 })
   }
 
   // Handle filter changes
@@ -422,15 +422,15 @@ function LogbookPageContent() {
       selectedGarden: value, 
       selectedPlantBed: "all", // Reset plant bed when garden changes
       page: 1 
-    }))
+    })
   }
 
   const handlePlantBedChange = (value: string) => {
-    setState(prev => ({ ...prev, selectedPlantBed: value, page: 1 }))
+    setState(prev => ({ ...prev, selectedPlantBed: value, page: 1 })
   }
 
   const handleYearChange = (value: string) => {
-    setState(prev => ({ ...prev, selectedYear: value, page: 1 }))
+    setState(prev => ({ ...prev, selectedYear: value, page: 1 })
   }
 
   // Clear filters
@@ -442,7 +442,7 @@ function LogbookPageContent() {
       selectedPlantBed: "all",
       selectedYear: new Date().getFullYear().toString(),
       page: 1 
-    }))
+    })
     loadEntries(1, false)
   }
 
@@ -476,11 +476,11 @@ function LogbookPageContent() {
   const gardens = React.useMemo(() => {
     const uniqueGardens = new Map()
     state.entries.forEach(entry => {
-      if (!uniqueGardens.has(entry.garden_id)) {
+      if (!uniqueGardens.has(entry.garden_id) {
         uniqueGardens.set(entry.garden_id, entry.garden_name)
       }
     })
-    return Array.from(uniqueGardens.entries()).map(([id, name]) => ({ id, name }))
+    return Array.from(uniqueGardens.entries().map(([id, name]) => ({ id, name })
   }, [state.entries])
 
   // Filter plant beds by selected garden
@@ -533,9 +533,8 @@ function LogbookPageContent() {
           {!isAdmin() && (
             <Button 
               onClick={() => {
-
-              router.push('/'))
-            }}
+                router.push('/')
+              }}
               variant="outline"
               size="sm"
               className="h-8 px-3 border-green-300 dark:border-green-700 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-950/30"
@@ -582,7 +581,7 @@ function LogbookPageContent() {
                   <SelectItem key={garden.id} value={garden.id}>
                     {garden.name}
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
 
@@ -597,7 +596,7 @@ function LogbookPageContent() {
                   <SelectItem key={bed.id} value={bed.id}>
                     {bed.name}
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
 
@@ -611,12 +610,12 @@ function LogbookPageContent() {
                   <SelectItem key={year} value={year.toString()}>
                     {year}
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
 
             {/* Clear filters */}
-            {(state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString()) && (
+            {(state.searchTerm || state.selectedGarden !== "all" || state.selectedPlantBed !== "all" || state.selectedYear !== new Date().getFullYear().toString() && (
               <Button variant="outline" onClick={clearFilters}>
                 <X className="h-4 w-4 mr-2" />
                 Wissen
@@ -641,7 +640,7 @@ function LogbookPageContent() {
                 <Skeleton className="h-3 w-2/3" />
               </CardContent>
             </Card>
-          ))}
+          )}
         </div>
       )}
 
@@ -683,8 +682,7 @@ function LogbookPageContent() {
                 }`}
                 onClick={() => {
                 if (!entry.is_completed_task) {
-
-                  router.push(`/logbook/${entry.id}`))
+                  router.push(`/logbook/${entry.id}`)
                 }
               }}
               >
@@ -784,7 +782,7 @@ function LogbookPageContent() {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )}
           </div>
         </div>
       )}

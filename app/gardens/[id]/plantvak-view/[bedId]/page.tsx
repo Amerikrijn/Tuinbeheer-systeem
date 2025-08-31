@@ -154,28 +154,28 @@ const FLOWER_STATUS_OPTIONS = [
   const plantCategory = (category || '').toLowerCase()
   
   // Exacte matches voor eenjarige bloemen
-  if (plantName.includes('zinnia')) return '🌻'
-  if (plantName.includes('marigold') || plantName.includes('tagetes')) return '🌼'
-  if (plantName.includes('impatiens')) return '🌸'
-  if (plantName.includes('ageratum')) return '🌸'
-  if (plantName.includes('salvia')) return '🌺'
-  if (plantName.includes('verbena')) return '🌸'
-  if (plantName.includes('lobelia')) return '🌸'
-  if (plantName.includes('alyssum')) return '🤍'
-  if (plantName.includes('cosmos')) return '🌸'
-  if (plantName.includes('petunia')) return '🌺'
-  if (plantName.includes('begonia')) return '🌸'
-  if (plantName.includes('viooltje') || plantName.includes('viola')) return '🌸'
-  if (plantName.includes('stiefmoedje') || plantName.includes('pansy')) return '🌸'
-  if (plantName.includes('snapdragon') || plantName.includes('leeuwenbek')) return '🌸'
-  if (plantName.includes('zonnebloem') || plantName.includes('sunflower')) return '🌻'
-  if (plantName.includes('calendula') || plantName.includes('goudsbloem')) return '🌼'
-  if (plantName.includes('nicotiana') || plantName.includes('siertabak')) return '🤍'
-  if (plantName.includes('cleome') || plantName.includes('spinnenbloem')) return '🌸'
-  if (plantName.includes('celosia') || plantName.includes('hanekam')) return '🌺'
+  if (plantName.includes('zinnia') return '🌻'
+  if (plantName.includes('marigold') || plantName.includes('tagetes') return '🌼'
+  if (plantName.includes('impatiens') return '🌸'
+  if (plantName.includes('ageratum') return '🌸'
+  if (plantName.includes('salvia') return '🌺'
+  if (plantName.includes('verbena') return '🌸'
+  if (plantName.includes('lobelia') return '🌸'
+  if (plantName.includes('alyssum') return '🤍'
+  if (plantName.includes('cosmos') return '🌸'
+  if (plantName.includes('petunia') return '🌺'
+  if (plantName.includes('begonia') return '🌸'
+  if (plantName.includes('viooltje') || plantName.includes('viola') return '🌸'
+  if (plantName.includes('stiefmoedje') || plantName.includes('pansy') return '🌸'
+  if (plantName.includes('snapdragon') || plantName.includes('leeuwenbek') return '🌸'
+  if (plantName.includes('zonnebloem') || plantName.includes('sunflower') return '🌻'
+  if (plantName.includes('calendula') || plantName.includes('goudsbloem') return '🌼'
+  if (plantName.includes('nicotiana') || plantName.includes('siertabak') return '🤍'
+  if (plantName.includes('cleome') || plantName.includes('spinnenbloem') return '🌸'
+  if (plantName.includes('celosia') || plantName.includes('hanekam') return '🌺'
   
   // Match by category
-  if (plantCategory.includes('eenjarig') || plantCategory.includes('annual')) return '🌸'
+  if (plantCategory.includes('eenjarig') || plantCategory.includes('annual') return '🌸'
   
   // Default: no emoji, show name instead
   return undefined
@@ -214,7 +214,7 @@ export default function PlantBedViewPage() {
   const [isEditCustomFlower, setIsEditCustomFlower] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('')
-  const [newFlower, setNewFlower] = useState<PlantFormData>(createInitialPlantFormData())
+  const [newFlower, setNewFlower] = useState<PlantFormData>(createInitialPlantFormData()
   const [newFlowerErrors, setNewFlowerErrors] = useState<PlantFormErrors>({})
   const [isEditingPlantBed, setIsEditingPlantBed] = useState(false)
   const [showDeletePlantBedDialog, setShowDeletePlantBedDialog] = useState(false)
@@ -255,7 +255,7 @@ export default function PlantBedViewPage() {
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [showAddTask, setShowAddTask] = useState(false)
   const [selectedTaskPlantId, setSelectedTaskPlantId] = useState<string | undefined>()
-  const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set())
+  const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set()
   
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -318,7 +318,7 @@ export default function PlantBedViewPage() {
   // Consistent task completion handler with automatic reordering
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
     // Add task to updating set for visual feedback
-    setUpdatingTasks(prev => new Set(prev).add(taskId))
+    setUpdatingTasks(prev => new Set(prev).add(taskId)
     
     try {
       // Immediately update local state for responsive UI
@@ -442,7 +442,7 @@ export default function PlantBedViewPage() {
           x: p.position_x,
           y: p.position_y,
           size: { w: p.visual_width, h: p.visual_height }
-        })))
+        }))
         
         setFlowerPositions(plants)
         }
@@ -487,16 +487,16 @@ export default function PlantBedViewPage() {
     
     if (plantvakAreaMeters <= 4) {
       // Small beds (≤ 2x2m): 1-3 flowers
-      targetFlowerCount = Math.min(3, Math.max(1, currentFlowerCount))
+      targetFlowerCount = Math.min(3, Math.max(1, currentFlowerCount)
     } else if (plantvakAreaMeters <= 9) {
       // Medium beds (≤ 3x3m): 2-5 flowers  
-      targetFlowerCount = Math.min(5, Math.max(2, currentFlowerCount + 1))
+      targetFlowerCount = Math.min(5, Math.max(2, currentFlowerCount + 1)
     } else if (plantvakAreaMeters <= 16) {
       // Large beds (≤ 4x4m): 3-7 flowers
-      targetFlowerCount = Math.min(7, Math.max(3, currentFlowerCount + 2))
+      targetFlowerCount = Math.min(7, Math.max(3, currentFlowerCount + 2)
     } else {
       // Very large beds (> 4x4m): 4-10 flowers max
-      targetFlowerCount = Math.min(10, Math.max(4, currentFlowerCount + 2))
+      targetFlowerCount = Math.min(10, Math.max(4, currentFlowerCount + 2)
     }
     
     // Only add flowers if we're below target and the bed is reasonably large
@@ -613,7 +613,7 @@ export default function PlantBedViewPage() {
           // Distribute flowers nicely within the plantvak
           if (flowersOutside.length <= 4) {
             // Use grid for few flowers
-            const cols = Math.ceil(Math.sqrt(flowersOutside.length))
+            const cols = Math.ceil(Math.sqrt(flowersOutside.length)
             const rows = Math.ceil(flowersOutside.length / cols)
             const col = i % cols
             const row = Math.floor(i / cols)
@@ -641,7 +641,7 @@ export default function PlantBedViewPage() {
             f.id === flower.id 
               ? { ...f, position_x: newX, position_y: newY }
               : f
-          ))
+          )
         } catch (error) {
 
         }
@@ -664,11 +664,11 @@ export default function PlantBedViewPage() {
   // }, [loading, plantBed, flowerPositions.length, cleanupFlowersOutsideBoundaries])
 
   const zoomIn = () => {
-    setScale(prev => Math.min(prev + 0.1, SCALE_MAX))
+    setScale(prev => Math.min(prev + 0.1, SCALE_MAX)
   }
 
   const zoomOut = () => {
-    setScale(prev => Math.max(prev - 0.1, SCALE_MIN))
+    setScale(prev => Math.max(prev - 0.1, SCALE_MIN)
   }
 
   const resetView = () => {
@@ -706,7 +706,7 @@ export default function PlantBedViewPage() {
           f.id === flower.id 
             ? { ...f, position_x: centerX, position_y: centerY }
             : f
-        ))
+        )
       } catch (error) {
 
       }
@@ -722,9 +722,9 @@ export default function PlantBedViewPage() {
 
     // Validate form
     const newErrors: PlantFormErrors = {}
-    if (!newFlower.name.trim()) newErrors.name = "Plantnaam is verplicht"
-    if (!newFlower.color.trim()) newErrors.color = "Kleur is verplicht"
-    if (!newFlower.height.trim()) newErrors.height = "Hoogte is verplicht"
+    if (!newFlower.name.trim() newErrors.name = "Plantnaam is verplicht"
+    if (!newFlower.color.trim() newErrors.color = "Kleur is verplicht"
+    if (!newFlower.height.trim() newErrors.height = "Hoogte is verplicht"
     
     if (Object.keys(newErrors).length > 0) {
       setNewFlowerErrors(newErrors)
@@ -781,7 +781,7 @@ export default function PlantBedViewPage() {
         setFlowerPositions(prev => [...prev, newPlant])
         setIsAddingFlower(false)
         setIsCustomFlower(false)
-        setNewFlower(createInitialPlantFormData())
+        setNewFlower(createInitialPlantFormData()
         setNewFlowerErrors({})
         
         // Removed toast notification
@@ -799,9 +799,9 @@ export default function PlantBedViewPage() {
 
     // Validate form
     const newErrors: PlantFormErrors = {}
-    if (!newFlower.name.trim()) newErrors.name = "Plantnaam is verplicht"
-    if (!newFlower.color.trim()) newErrors.color = "Kleur is verplicht"
-    if (!newFlower.height.trim()) newErrors.height = "Hoogte is verplicht"
+    if (!newFlower.name.trim() newErrors.name = "Plantnaam is verplicht"
+    if (!newFlower.color.trim() newErrors.color = "Kleur is verplicht"
+    if (!newFlower.height.trim() newErrors.height = "Hoogte is verplicht"
     
     if (Object.keys(newErrors).length > 0) {
       setNewFlowerErrors(newErrors)
@@ -821,11 +821,11 @@ export default function PlantBedViewPage() {
       if (updatedPlant) {
         setFlowerPositions(prev => prev.map(flower => 
           flower.id === selectedFlower.id ? updatedPlant : flower
-        ))
+        )
 
         setIsEditingFlower(false)
         setSelectedFlower(null)
-        setNewFlower(createInitialPlantFormData())
+        setNewFlower(createInitialPlantFormData()
         
         // Removed toast notification
       }
@@ -838,7 +838,7 @@ export default function PlantBedViewPage() {
   const removeFlower = async (flowerId: string) => {
     try {
       await deletePlant(flowerId)
-      setFlowerPositions(prev => prev.filter(f => f.id !== flowerId))
+      setFlowerPositions(prev => prev.filter(f => f.id !== flowerId)
       setSelectedFlower(null)
       setIsEditingFlower(false)
         // Removed toast notification
@@ -948,7 +948,7 @@ export default function PlantBedViewPage() {
       
       // Navigate back to garden
 
-        router.push(`/gardens/${params.id}`))
+        router.push(`/gardens/${params.id}`)
     } catch (error) {
 
         // Removed toast notification
@@ -994,9 +994,8 @@ export default function PlantBedViewPage() {
   const handleFlowerDoubleClick = useCallback((flower: PlantWithPosition) => {
 
     // Navigate to plant details page
-
-    router.push(`/plants/${flower.id}`))
-    }, [])
+    router.push(`/plants/${flower.id}`)
+  }, [])
 
   // Handle flower resize via interface - supports flower fields
   const handleFlowerResize = useCallback(async (flowerId: string, sizeChange: number) => {
@@ -1005,7 +1004,7 @@ export default function PlantBedViewPage() {
 
     const currentSize = Math.min(flower.visual_width, flower.visual_height)
     const maxSize = Math.min(canvasWidth * 0.9, canvasHeight * 0.9) // Can grow to almost fill the entire plantvak
-    const newSize = Math.max(FLOWER_SIZE_SMALL, Math.min(maxSize, currentSize + sizeChange))
+    const newSize = Math.max(FLOWER_SIZE_SMALL, Math.min(maxSize, currentSize + sizeChange)
     
     const updatedFlower = {
       ...flower,
@@ -1024,7 +1023,7 @@ export default function PlantBedViewPage() {
 
       setFlowerPositions(prev => prev.map(f => 
         f.id === flowerId ? updatedFlower : f
-      ))
+      )
       setSelectedFlower(updatedFlower)
       setHasChanges(true)
 
@@ -1052,7 +1051,7 @@ export default function PlantBedViewPage() {
     
     // Record touch start time for long press detection
     if ('touches' in e) {
-      setTouchStartTime(Date.now())
+      setTouchStartTime(Date.now()
       // For touch, only start dragging if we're in drag mode
       if (!isDragMode || selectedFlower?.id !== flowerId) {
         return
@@ -1086,7 +1085,7 @@ export default function PlantBedViewPage() {
 
   // Handle touch start for mobile - prepare for drag after click
   const handleFlowerTouchStart = useCallback((e: React.TouchEvent, flowerId: string) => {
-    setTouchStartTime(Date.now())
+    setTouchStartTime(Date.now()
     
     // Clear any existing long press timer
     if (longPressTimer) {
@@ -1188,8 +1187,8 @@ export default function PlantBedViewPage() {
 
       // SIMPLE: Just keep flowers within canvas bounds (like garden view)
       const margin = 10
-      const constrainedX = Math.max(margin, Math.min(newX, currentCanvasWidth - draggedFlowerData.visual_width - margin))
-      const constrainedY = Math.max(margin, Math.min(newY, currentCanvasHeight - draggedFlowerData.visual_height - margin))
+      const constrainedX = Math.max(margin, Math.min(newX, currentCanvasWidth - draggedFlowerData.visual_width - margin)
+      const constrainedY = Math.max(margin, Math.min(newY, currentCanvasHeight - draggedFlowerData.visual_height - margin)
       // Force redeploy - all flowers should move freely now
 
       // Only update the specific dragged flower
@@ -1224,8 +1223,8 @@ export default function PlantBedViewPage() {
       if (!draggedFlowerData) return prev
 
       // Constrain to canvas bounds using the flower's actual size
-      const constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width))
-      const constrainedY = Math.max(0, Math.min(newY, canvasHeight - draggedFlowerData.visual_height))
+      const constrainedX = Math.max(0, Math.min(newX, canvasWidth - draggedFlowerData.visual_width)
+      const constrainedY = Math.max(0, Math.min(newY, canvasHeight - draggedFlowerData.visual_height)
 
       // Only update the specific dragged flower
       return prev.map(f => {
@@ -1393,7 +1392,7 @@ export default function PlantBedViewPage() {
     let newSize = Math.max(FLOWER_SIZE_SMALL, resizeStartSize.width + delta)
     
     // Constrain to reasonable bounds
-    const maxSize = Math.min(200, Math.min(canvasWidth - flower.position_x, canvasHeight - flower.position_y))
+    const maxSize = Math.min(200, Math.min(canvasWidth - flower.position_x, canvasHeight - flower.position_y)
     newSize = Math.min(newSize, maxSize)
 
     // Update the flower size directly in the state
@@ -1406,7 +1405,7 @@ export default function PlantBedViewPage() {
         }
       }
       return f
-    }))
+    })
   }, [isResizing, resizeStartSize, resizeStartPos, canvasWidth, canvasHeight, flowerPositions, plantBed])
 
   // Handle resize end - save the updated flower size to database
@@ -1511,7 +1510,7 @@ export default function PlantBedViewPage() {
         <div className="animate-pulse space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-24 bg-green-100 dark:bg-green-900/30 rounded" />
-          ))}
+          )}
         </div>
         <div className="h-8 bg-green-100 dark:bg-green-900/30 rounded w-1/3 mb-4"></div>
         <div className="h-64 bg-green-100 dark:bg-green-900/30 rounded"></div>
@@ -1566,14 +1565,14 @@ export default function PlantBedViewPage() {
               setIsAddingFlower(open)
               if (!open) {
                 // Reset form when dialog closes
-                setNewFlower(createInitialPlantFormData())
+                setNewFlower(createInitialPlantFormData()
                 setIsCustomFlower(false)
               }
             }}>
               <DialogTrigger asChild>
                 <Button className="h-8 px-3 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black text-sm" onClick={() => {
                   // Reset form when opening dialog
-                  setNewFlower(createInitialPlantFormData())
+                  setNewFlower(createInitialPlantFormData()
                   setIsCustomFlower(false)
                 }}>
                   <Plus className="w-4 h-4 mr-2" />
@@ -1597,7 +1596,7 @@ export default function PlantBedViewPage() {
                       addFlower()
                     }}
                     onReset={() => {
-                      setNewFlower(createInitialPlantFormData())
+                      setNewFlower(createInitialPlantFormData()
                       setNewFlowerErrors({})
                     }}
                     submitLabel="Bloem toevoegen"
@@ -1607,7 +1606,7 @@ export default function PlantBedViewPage() {
                   <div className="flex gap-2 mt-4">
                     <Button variant="outline" onClick={() => {
                       setIsAddingFlower(false)
-                      setNewFlower(createInitialPlantFormData())
+                      setNewFlower(createInitialPlantFormData()
                       setNewFlowerErrors({})
                       setIsCustomFlower(false)
                     }}>
@@ -1622,7 +1621,7 @@ export default function PlantBedViewPage() {
           <Dialog open={isEditingFlower} onOpenChange={(open) => {
             setIsEditingFlower(open)
             if (!open) {
-              setNewFlower(createInitialPlantFormData())
+              setNewFlower(createInitialPlantFormData()
               setNewFlowerErrors({})
               setSelectedFlower(null)
             }
@@ -1644,7 +1643,7 @@ export default function PlantBedViewPage() {
                     updateFlower()
                   }}
                   onReset={() => {
-                    setNewFlower(createInitialPlantFormData())
+                    setNewFlower(createInitialPlantFormData()
                     setNewFlowerErrors({})
                   }}
                   submitLabel="Bloem wijzigen"
@@ -1662,7 +1661,7 @@ export default function PlantBedViewPage() {
                   </Button>
                   <Button variant="outline" onClick={() => {
                     setIsEditingFlower(false)
-                    setNewFlower(createInitialPlantFormData())
+                    setNewFlower(createInitialPlantFormData()
                     setNewFlowerErrors({})
                     setSelectedFlower(null)
                   }}>
@@ -1769,13 +1768,13 @@ export default function PlantBedViewPage() {
         // Removed toast notification
                     return
                   }
-                  setPlantBedForm(prev => ({ ...prev, name: newValue }))
+                  setPlantBedForm(prev => ({ ...prev, name: newValue })
                 }}
                 placeholder="Bijv. Rozen bed"
                 onBlur={(e) => {
                   // Restore original name if field is empty on blur
                   if (e.target.value.trim().length === 0 && plantBed?.name) {
-                    setPlantBedForm(prev => ({ ...prev, name: plantBed.name }))
+                    setPlantBedForm(prev => ({ ...prev, name: plantBed.name })
         // Removed toast notification
                   }
                 }}
@@ -1790,7 +1789,7 @@ export default function PlantBedViewPage() {
                   step="0.1"
                   min="0.1"
                   value={plantBedForm.length}
-                  onChange={(e) => setPlantBedForm(prev => ({ ...prev, length: e.target.value }))}
+                  onChange={(e) => setPlantBedForm(prev => ({ ...prev, length: e.target.value })}
                   placeholder="2.0"
                 />
               </div>
@@ -1801,7 +1800,7 @@ export default function PlantBedViewPage() {
                   step="0.1"
                   min="0.1"
                   value={plantBedForm.width}
-                  onChange={(e) => setPlantBedForm(prev => ({ ...prev, width: e.target.value }))}
+                  onChange={(e) => setPlantBedForm(prev => ({ ...prev, width: e.target.value })}
                   placeholder="1.5"
                 />
               </div>
@@ -1810,7 +1809,7 @@ export default function PlantBedViewPage() {
             <div>
               <label className="text-sm font-medium">Zonligging</label>
               <Select value={plantBedForm.sun_exposure} onValueChange={(value: 'full-sun' | 'partial-sun' | 'shade') => 
-                setPlantBedForm(prev => ({ ...prev, sun_exposure: value }))
+                setPlantBedForm(prev => ({ ...prev, sun_exposure: value })
               }>
                 <SelectTrigger>
                   <SelectValue />
@@ -1841,7 +1840,7 @@ export default function PlantBedViewPage() {
             <div>
               <label className="text-sm font-medium">Grondsoort</label>
               <Select value={plantBedForm.soil_type} onValueChange={(value: 'clay' | 'sand' | 'loam' | 'peat') => 
-                setPlantBedForm(prev => ({ ...prev, soil_type: value }))
+                setPlantBedForm(prev => ({ ...prev, soil_type: value })
               }>
                 <SelectTrigger>
                   <SelectValue />
@@ -1859,7 +1858,7 @@ export default function PlantBedViewPage() {
               <label className="text-sm font-medium">Beschrijving</label>
               <Input
                 value={plantBedForm.description}
-                onChange={(e) => setPlantBedForm(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => setPlantBedForm(prev => ({ ...prev, description: e.target.value })}
                 placeholder="Optionele beschrijving..."
               />
             </div>
@@ -2146,7 +2145,7 @@ export default function PlantBedViewPage() {
                       <div 
                         className="flex items-center justify-center"
                         style={{ 
-                          fontSize: Math.max(12, Math.min(48, flower.visual_width * 0.4)) + 'px'
+                          fontSize: Math.max(12, Math.min(48, flower.visual_width * 0.4) + 'px'
                         }}
                       >
                         {flower.photo_url ? (
@@ -2163,7 +2162,7 @@ export default function PlantBedViewPage() {
                           flower.emoji
                         ) : (
                           <div className="text-center text-white dark:text-black font-bold leading-tight" style={{ 
-                            fontSize: Math.max(8, Math.min(16, flower.visual_width * 0.2)) + 'px',
+                            fontSize: Math.max(8, Math.min(16, flower.visual_width * 0.2) + 'px',
                             textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
                           }}>
                             {flower.name}
@@ -2176,7 +2175,7 @@ export default function PlantBedViewPage() {
                         <div 
                           className="text-center text-white dark:text-black font-bold mt-1 px-1 leading-tight"
                           style={{ 
-                            fontSize: Math.max(8, Math.min(16, flower.visual_width * 0.15)) + 'px',
+                            fontSize: Math.max(8, Math.min(16, flower.visual_width * 0.15) + 'px',
                             textShadow: '1px 1px 2px rgba(0,0,0,0.8)'
                           }}
                         >
@@ -2269,7 +2268,7 @@ export default function PlantBedViewPage() {
                                    }
                                  }
                                  return f
-                               }))
+                               })
                                
                                // Calculate how many flowers should be in this area
                                const areaRatio = (newAreaSize * newAreaSize) / (FLOWER_SIZE * FLOWER_SIZE)
@@ -2301,8 +2300,8 @@ export default function PlantBedViewPage() {
                                        name: flower.name,
                                        color: flower.color || '#FF69B4',
                                        status: 'gezond',
-                                       position_x: Math.max(10, Math.min(x, canvasWidth - 50)),
-                                       position_y: Math.max(10, Math.min(y, canvasHeight - 50)),
+                                       position_x: Math.max(10, Math.min(x, canvasWidth - 50),
+                                       position_y: Math.max(10, Math.min(y, canvasHeight - 50),
                                        visual_width: FLOWER_SIZE,
                                        visual_height: FLOWER_SIZE,
                                        emoji: flower.emoji,
@@ -2485,7 +2484,7 @@ export default function PlantBedViewPage() {
                             variant="outline"
                             onClick={() => {
 
-                router.push(`/plants/${flower.id}`))
+                router.push(`/plants/${flower.id}`)
               }}
                             className="flex-1"
                           >
@@ -2524,7 +2523,7 @@ export default function PlantBedViewPage() {
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  )}
                 </div>
               )}
 

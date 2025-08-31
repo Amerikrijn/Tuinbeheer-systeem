@@ -23,17 +23,17 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
   const { user, getAccessibleGardens, loadGardenAccess } = useAuth()
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
-  const [currentWeek, setCurrentWeek] = useState(new Date())
+  const [currentWeek, setCurrentWeek] = useState(new Date()
   const [gardenNames, setGardenNames] = useState<string[]>([])
   const [gardenAccessLoaded, setGardenAccessLoaded] = useState(false)
-  const [completingTasks, setCompletingTasks] = useState<Set<string>>(new Set())
+  const [completingTasks, setCompletingTasks] = useState<Set<string>>(new Set()
 
   // Handle task completion
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
-    if (completingTasks.has(taskId)) return // Prevent double clicks
+    if (completingTasks.has(taskId) return // Prevent double clicks
     
     try {
-      setCompletingTasks(prev => new Set(prev).add(taskId))
+      setCompletingTasks(prev => new Set(prev).add(taskId)
       
       const { error } = await supabase
         .from('tasks')
@@ -91,7 +91,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
       if (!user) return
 
       // For users, ensure garden access is loaded
-      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
+      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0) {
 
         try {
           await loadGardenAccess()
@@ -140,7 +140,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
       setLoading(true)
       try {
         // Check if user garden access is loaded
-        if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
+        if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0) {
 
           setTasks([])
           setLoading(false)
@@ -241,7 +241,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
 
   const navigateWeek = (direction: 'prev' | 'next') => {
     const newWeek = new Date(currentWeek)
-    newWeek.setDate(currentWeek.getDate() + (direction === 'next' ? 7 : -7))
+    newWeek.setDate(currentWeek.getDate() + (direction === 'next' ? 7 : -7)
     setCurrentWeek(newWeek)
   }
 
@@ -260,7 +260,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
             <Button 
               onClick={() => {
 
-                router.push('/logbook'))
+                router.push('/logbook')
               }}
               variant="outline"
               className="flex items-center gap-2"
@@ -293,7 +293,7 @@ export function SimpleTasksView({ className }: SimpleTasksViewProps) {
           <Button 
             onClick={() => {
 
-              router.push('/logbook'))
+              router.push('/logbook')
             }}
             variant="outline"
             className="flex items-center gap-2"

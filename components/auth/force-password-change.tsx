@@ -81,11 +81,11 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
         // This ensures fresh authentication with new password
         try {
           await signOut()
-          router.push('/auth/login?message=password-changed'))
+          router.push('/auth/login?message=password-changed')
         } catch (error) {
 
           // Fallback: force redirect anyway
-          router.push('/auth/login?message=password-changed'))
+          router.push('/auth/login?message=password-changed')
         }
       }, 1500)
 
