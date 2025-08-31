@@ -64,7 +64,7 @@ function LogbookPageContent() {
       if (!user) return
       
       // For users, ensure garden access is loaded
-      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0) {
+      if (user.role === 'user' && (!user.garden_access || user.garden_access.length === 0)) {
 
         try {
           await loadGardenAccess()
