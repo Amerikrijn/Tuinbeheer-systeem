@@ -42,6 +42,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       try {
         const response = await fetch(url, {
           ...options,
+          headers: {
+            ...options.headers, // CRITICAL: Include all original headers (including API key!)
+          },
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
