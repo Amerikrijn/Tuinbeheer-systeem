@@ -201,75 +201,72 @@ export async function deleteGarden(id: string): Promise<void> {
 
 // Plant bed functions
 export async function getPlantBeds(gardenId?: string): Promise<PlantBedWithPlants[]> {
-  let query = supabase.from("plant_beds").select("*").eq("is_active", true).order("id").limit(100) // Added limit for performance
+  // Use JOIN query to fetch plant beds with plants in a single query
+  // This avoids N+1 query problem (1 query instead of N+1)
+  let query = supabase
+    .from("plant_beds")
+    .select(`
+      *,
+      plants (*)
+    `)
+    .eq("is_active", true)
+    .order("id")
+    .limit(100) // Limit plant beds to 100 for performance
 
   if (gardenId) {
     query = query.eq("garden_id", gardenId)
   }
 
-  const { data: plantBeds, error: plantBedsError } = await query
+  const { data: plantBedsWithPlants, error } = await query
 
-  if (plantBedsError) {
-    if (isMissingRelation(plantBedsError)) {
-
+  if (error) {
+    if (isMissingRelation(error)) {
+      logError("Missing relation in plant beds query", error)
       return []
     }
-
+    logError(`Error fetching plant beds${gardenId ? ` for garden ${gardenId}` : ''}`, error)
     return []
   }
 
-  // Fetch plants for each plant bed
-  const plantBedsWithPlants = await Promise.all(
-    (plantBeds || []).map(async (bed) => {
-      const { data: plants, error: plantsError } = await supabase
-        .from("plants")
-        .select("*")
-        .eq("plant_bed_id", bed.id)
-        .order("created_at", { ascending: false })
-        .limit(50) // Added limit - max 50 plants per bed
+  // Transform the data to match expected format
+  const transformedData = (plantBedsWithPlants || []).map(bed => ({
+    ...bed,
+    plants: bed.plants || []
+  }))
 
-      if (plantsError) {
-
-        return { ...bed, plants: [] }
-      }
-
-      return { ...bed, plants: plants || [] }
-    }),
-  )
-
-  return plantBedsWithPlants
+  return transformedData
 }
 
 export async function getPlantBed(id: string): Promise<PlantBedWithPlants | null> {
-  const { data: plantBed, error: plantBedError } = await supabase
+  // Use JOIN query to fetch plant bed with plants in a single query
+  const { data: plantBed, error } = await supabase
     .from("plant_beds")
-    .select("*")
+    .select(`
+      *,
+      plants (*)
+    `)
     .eq("id", id)
     .eq("is_active", true)
     .single()
 
-  if (plantBedError) {
-    if (isMissingRelation(plantBedError)) {
-
+  if (error) {
+    if (isMissingRelation(error)) {
+      logError("Missing relation in plant bed query", error)
       return null
     }
-
+    logError(`Error fetching plant bed ${id}`, error)
     return null
   }
 
-  const { data: plants, error: plantsError } = await supabase
-    .from("plants")
-    .select("*")
-    .eq("plant_bed_id", id)
-    .order("created_at", { ascending: false })
-    .limit(100) // Added limit for performance
-
-  if (plantsError) {
-
-    return { ...plantBed, plants: [] }
+  if (!plantBed) {
+    return null
   }
 
-  return { ...plantBed, plants: plants || [] }
+  // Transform the data to match expected format
+  return {
+    ...plantBed,
+    plants: plantBed.plants || []
+  }
 }
 
 export async function createPlantBed(plantBed: {
@@ -410,6 +407,7 @@ export async function getPlantsWithPositions(plantBedId: string): Promise<PlantW
     .select("*")
     .eq("plant_bed_id", plantBedId)
     .order("created_at", { ascending: true })
+    .limit(200) // Added limit for performance
     .limit(200) // Added limit - max 200 plants for visual designer
 
   if (error) {

@@ -1,265 +1,171 @@
 /**
  * Performance Monitoring Utility
- * Tracks and reports on database query performance and authentication metrics
+ * Tracks and reports on application performance metrics
  */
 
-interface PerformanceMetric {
+interface PerformanceMark {
   name: string
-  startTime: number
-  endTime?: number
-  duration?: number
-  success: boolean
-  error?: string
-  metadata?: Record<string, any>
+  timestamp: number
+}
+
+interface PerformanceMeasure {
+  name: string
+  duration: number
+  startMark: string
+  endMark: string
 }
 
 class PerformanceMonitor {
-  private metrics: PerformanceMetric[] = []
-  private readonly maxMetrics = 100 // Keep last 100 metrics in memory
-  private readonly slowQueryThreshold = 3000 // 3 seconds
-  private readonly criticalQueryThreshold = 10000 // 10 seconds
+  private marks: Map<string, PerformanceMark> = new Map()
+  private measures: PerformanceMeasure[] = []
+  private enabled: boolean = process.env.NODE_ENV === 'development'
 
   /**
-   * Start tracking a new metric
+   * Start a performance measurement
    */
-  startMetric(name: string, metadata?: Record<string, any>): PerformanceMetric {
-    const metric: PerformanceMetric = {
+  mark(name: string): void {
+    if (!this.enabled) return
+    
+    this.marks.set(name, {
       name,
-      startTime: performance.now(),
-      success: false,
-      metadata,
-    }
-
-    this.metrics.push(metric)
-
-    // Keep only the last maxMetrics entries
-    if (this.metrics.length > this.maxMetrics) {
-      this.metrics.shift()
-    }
-
-    return metric
+      timestamp: performance.now()
+    })
   }
 
   /**
-   * Complete a metric tracking
+   * Measure time between two marks
    */
-  endMetric(metric: PerformanceMetric, success: boolean, error?: string): void {
-    metric.endTime = performance.now()
-    metric.duration = metric.endTime - metric.startTime
-    metric.success = success
-    metric.error = error
-
-    // Log performance warnings
-    if (metric.duration > this.criticalQueryThreshold) {
-
+  measure(name: string, startMark: string, endMark: string): number | null {
+    if (!this.enabled) return null
+    
+    const start = this.marks.get(startMark)
+    const end = this.marks.get(endMark)
+    
+    if (!start || !end) {
+      console.warn(`Performance marks not found: ${startMark} or ${endMark}`)
+      return null
     }
-
-    // Send to analytics if available
-    this.sendToAnalytics(metric)
+    
+    const duration = end.timestamp - start.timestamp
+    
+    this.measures.push({
+      name,
+      duration,
+      startMark,
+      endMark
+    })
+    
+    // Log slow operations
+    if (duration > 1000) {
+      console.warn(`⚠️ Slow operation detected: ${name} took ${duration.toFixed(2)}ms`)
+    }
+    
+    return duration
   }
 
   /**
-   * Track an async operation
+   * Simple timing helper
    */
-  async track<T>(
-    name: string,
-    operation: () => Promise<T>,
-    metadata?: Record<string, any>
-  ): Promise<T> {
-    const metric = this.startMetric(name, metadata)
-
+  async time<T>(name: string, operation: () => Promise<T>): Promise<T> {
+    const startMark = `${name}-start`
+    const endMark = `${name}-end`
+    
+    this.mark(startMark)
+    
     try {
       const result = await operation()
-      this.endMetric(metric, true)
+      this.mark(endMark)
+      const duration = this.measure(name, startMark, endMark)
+      
+      if (duration && duration > 100) {
+        console.log(`⏱️ ${name}: ${duration.toFixed(2)}ms`)
+      }
+      
       return result
     } catch (error) {
-      this.endMetric(metric, false, error instanceof Error ? error.message : String(error))
+      this.mark(endMark)
+      this.measure(name, startMark, endMark)
       throw error
     }
   }
 
   /**
-   * Get performance statistics
+   * Get performance report
    */
-  getStats() {
-    const successfulMetrics = this.metrics.filter(m => m.success && m.duration)
-    const failedMetrics = this.metrics.filter(m => !m.success)
-
-    if (successfulMetrics.length === 0) {
-      return {
-        avgDuration: 0,
-        minDuration: 0,
-        maxDuration: 0,
-        p50Duration: 0,
-        p95Duration: 0,
-        p99Duration: 0,
-        successRate: 0,
-        totalRequests: this.metrics.length,
-        slowQueries: 0,
-        criticalQueries: 0,
-      }
-    }
-
-    const durations = successfulMetrics
-      .map(m => m.duration!)
-      .sort((a, b) => a - b)
-
-    const p50Index = Math.floor(durations.length * 0.5)
-    const p95Index = Math.floor(durations.length * 0.95)
-    const p99Index = Math.floor(durations.length * 0.99)
-
+  getReport(): { marks: PerformanceMark[], measures: PerformanceMeasure[] } {
     return {
-      avgDuration: durations.reduce((a, b) => a + b, 0) / durations.length,
-      minDuration: durations[0],
-      maxDuration: durations[durations.length - 1],
-      p50Duration: durations[p50Index],
-      p95Duration: durations[p95Index],
-      p99Duration: durations[p99Index],
-      successRate: (successfulMetrics.length / this.metrics.length) * 100,
-      totalRequests: this.metrics.length,
-      slowQueries: this.metrics.filter(m => m.duration && m.duration > this.slowQueryThreshold).length,
-      criticalQueries: this.metrics.filter(m => m.duration && m.duration > this.criticalQueryThreshold).length,
-      recentFailures: failedMetrics.slice(-5).map(m => ({
-        name: m.name,
-        error: m.error,
-        metadata: m.metadata,
-      })),
+      marks: Array.from(this.marks.values()),
+      measures: this.measures
     }
   }
 
   /**
-   * Send metrics to analytics service (if configured)
+   * Clear all measurements
    */
-  private sendToAnalytics(metric: PerformanceMetric): void {
-    // Only send critical metrics to avoid noise
-    if (!metric.duration || metric.duration < this.slowQueryThreshold) {
-      return
-    }
+  clear(): void {
+    this.marks.clear()
+    this.measures = []
+  }
 
-    // Check if we have analytics available
-    if (typeof window !== 'undefined' && (window as any).analytics) {
-      try {
-        (window as any).analytics.track('Database Performance Issue', {
-          metricName: metric.name,
-          duration: metric.duration,
-          success: metric.success,
-          error: metric.error,
-          ...metric.metadata,
-        })
-      } catch (error) {
-
+  /**
+   * Check Core Web Vitals
+   */
+  checkWebVitals(): void {
+    if (!this.enabled || typeof window === 'undefined') return
+    
+    // Largest Contentful Paint
+    const observer = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.entryType === 'largest-contentful-paint') {
+          const lcp = entry as any
+          const duration = lcp.renderTime || lcp.loadTime
+          
+          if (duration > 2500) {
+            console.warn(`⚠️ LCP is ${duration.toFixed(0)}ms (target: <2500ms)`)
+          } else {
+            console.log(`✅ LCP is ${duration.toFixed(0)}ms`)
+          }
+        }
       }
+    })
+    
+    observer.observe({ entryTypes: ['largest-contentful-paint'] })
+  }
+
+  /**
+   * Log performance metrics
+   */
+  logMetrics(operation: string, metrics: Record<string, any>): void {
+    if (!this.enabled) return
+    
+    const duration = metrics.duration || metrics.performanceDuration
+    
+    if (duration) {
+      const durationMs = typeof duration === 'string' 
+        ? parseFloat(duration.replace('ms', '')) 
+        : duration
+        
+      // Color code based on performance
+      let emoji = '🟢'
+      if (durationMs > 3000) emoji = '🔴'
+      else if (durationMs > 1000) emoji = '🟡'
+      
+      console.log(`${emoji} Performance: ${operation}`, {
+        ...metrics,
+        duration: `${durationMs.toFixed(2)}ms`
+      })
     }
-  }
-
-  /**
-   * Export metrics for debugging
-   */
-  exportMetrics(): string {
-    return JSON.stringify(this.metrics, null, 2)
-  }
-
-  /**
-   * Clear all metrics
-   */
-  clearMetrics(): void {
-    this.metrics = []
   }
 }
 
-// Create singleton instance
+// Export singleton instance
 export const performanceMonitor = new PerformanceMonitor()
 
-/**
- * React Hook for performance monitoring
- */
-export function usePerformanceMonitor() {
-  return {
-    track: performanceMonitor.track.bind(performanceMonitor),
-    getStats: performanceMonitor.getStats.bind(performanceMonitor),
-    exportMetrics: performanceMonitor.exportMetrics.bind(performanceMonitor),
-    clearMetrics: performanceMonitor.clearMetrics.bind(performanceMonitor),
-  }
-}
-
-/**
- * Circuit Breaker implementation for preventing cascading failures
- */
-export class CircuitBreaker {
-  private failures = 0
-  private lastFailureTime = 0
-  private state: 'closed' | 'open' | 'half-open' = 'closed'
-  private successCount = 0
-
-  constructor(
-    private name: string,
-    private threshold = 5,
-    private timeout = 60000, // 1 minute
-    private halfOpenSuccessThreshold = 3
-  ) {}
-
-  async execute<T>(fn: () => Promise<T>): Promise<T> {
-    // Check if circuit should be reset
-    if (this.state === 'open') {
-      const timeSinceLastFailure = Date.now() - this.lastFailureTime
-      if (timeSinceLastFailure > this.timeout) {
-
-        this.state = 'half-open'
-        this.successCount = 0
-      } else {
-        const timeRemaining = Math.ceil((this.timeout - timeSinceLastFailure) / 1000)
-        throw new Error(`Circuit breaker ${this.name} is open. Retry in ${timeRemaining}s`)
-      }
-    }
-
-    try {
-      const result = await fn()
-
-      // Handle successful execution
-      if (this.state === 'half-open') {
-        this.successCount++
-        if (this.successCount >= this.halfOpenSuccessThreshold) {
-
-          this.state = 'closed'
-          this.failures = 0
-        }
-      } else if (this.state === 'closed') {
-        // Reset failure count on success
-        this.failures = 0
-      }
-
-      return result
-    } catch (error) {
-      this.failures++
-      this.lastFailureTime = Date.now()
-
-      if (this.state === 'half-open') {
-
-        this.state = 'open'
-      } else if (this.failures >= this.threshold) {
-
-        this.state = 'open'
-      }
-
-      throw error
-    }
-  }
-
-  getState() {
-    return {
-      state: this.state,
-      failures: this.failures,
-      lastFailureTime: this.lastFailureTime,
-    }
-  }
-
-  reset() {
-    this.state = 'closed'
-    this.failures = 0
-    this.successCount = 0
-
-  }
-}
-
-// Export default circuit breaker for auth operations
-export const authCircuitBreaker = new CircuitBreaker('auth', 5, 60000, 3)
+// Export helper functions
+export const perfMark = (name: string) => performanceMonitor.mark(name)
+export const perfMeasure = (name: string, start: string, end: string) => 
+  performanceMonitor.measure(name, start, end)
+export const perfTime = <T>(name: string, operation: () => Promise<T>) => 
+  performanceMonitor.time(name, operation)
+export const perfLog = (operation: string, metrics: Record<string, any>) =>
+  performanceMonitor.logMetrics(operation, metrics)

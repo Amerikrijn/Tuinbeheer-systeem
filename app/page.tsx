@@ -172,22 +172,22 @@ function HomePageContent() {
   )
 
   // Handle search input change
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearchChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     debouncedSearch(value)
-  }
+  }, [debouncedSearch])
 
   // Handle page change
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = React.useCallback((newPage: number) => {
     setState(prev => ({ ...prev, page: newPage }))
-  }
+  }, [])
 
   // Handle load more
-  const handleLoadMore = () => {
+  const handleLoadMore = React.useCallback(() => {
     if (gardensData && state.page < gardensData.total_pages) {
       handlePageChange(state.page + 1)
     }
-  }
+  }, [gardensData, state.page, handlePageChange])
 
   // Extract data for easier access
   const gardens = gardensData?.data || []
@@ -419,7 +419,7 @@ interface GardenCardProps {
   onDelete: (gardenId: string, gardenName: string) => void
 }
 
-function GardenCard({ garden, onDelete }: GardenCardProps) {
+const GardenCard = React.memo(function GardenCard({ garden, onDelete }: GardenCardProps) {
   // 🚀 NO MORE N+1 QUERIES! Plant beds are already loaded via JOIN
   const plantBeds = React.useMemo(() => garden.plant_beds || [], [garden.plant_beds])
   const loadingFlowers = false // Always false since data is pre-loaded
@@ -579,7 +579,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
       </Card>
     </Link>
   )
-}
+})
 
 // Main page component with error boundary and auth protection
 export default function HomePage() {
