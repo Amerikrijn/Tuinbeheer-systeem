@@ -318,7 +318,7 @@ export default function PlantBedViewPage() {
   // Consistent task completion handler with automatic reordering
   const handleTaskComplete = async (taskId: string, completed: boolean) => {
     // Add task to updating set for visual feedback
-    setUpdatingTasks(prev => new Set(prev).add(taskId)
+    setUpdatingTasks(prev => new Set(prev).add(taskId))
     
     try {
       // Immediately update local state for responsive UI
@@ -442,7 +442,7 @@ export default function PlantBedViewPage() {
           x: p.position_x,
           y: p.position_y,
           size: { w: p.visual_width, h: p.visual_height }
-        }))
+        })))
         
         setFlowerPositions(plants)
         }

@@ -135,7 +135,7 @@ function LogbookPageContent() {
       let accessibleGardens: string[]
       let hasGardenRestriction: boolean
       
-      if (viewingUser && isAdmin() {
+      if (viewingUser && isAdmin()) {
         // Admin viewing specific user - get that user's garden access from database
         try {
           const { data: gardenAccess, error } = await supabase
@@ -174,7 +174,7 @@ function LogbookPageContent() {
       }
 
       // SECURITY: Apply strict garden access filtering
-      if (!isAdmin() {
+      if (!isAdmin()) {
         // NON-ADMIN USERS: ALWAYS filter by accessible gardens - NEVER allow cross-garden access
         if (accessibleGardens.length === 0) {
           throw new Error('Geen toegang tot tuinen')
@@ -182,7 +182,7 @@ function LogbookPageContent() {
         
         if (state.selectedGarden && state.selectedGarden !== "all") {
           // SECURITY CHECK: Verify user has access to selected garden
-          if (!accessibleGardens.includes(state.selectedGarden) {
+          if (!accessibleGardens.includes(state.selectedGarden)) {
             throw new Error('SECURITY VIOLATION: Geen toegang tot geselecteerde tuin')
           }
           filters.garden_id = state.selectedGarden
@@ -258,7 +258,7 @@ function LogbookPageContent() {
           .eq('completed', true)
 
         // Apply same garden filtering as logbook entries
-        if (!isAdmin() {
+        if (!isAdmin()) {
           if (accessibleGardens.length === 0) {
 
             completedTasksData = []
@@ -388,7 +388,7 @@ function LogbookPageContent() {
 
   // Initial load
   React.useEffect(() => {
-    if (viewingUserId && !viewingUser && isAdmin() {
+    if (viewingUserId && !viewingUser && isAdmin()) {
       // Wait for viewing user to load first
       return
     }
