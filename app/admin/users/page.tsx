@@ -253,7 +253,7 @@ function AdminUsersPageContent() {
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => router.push = '/admin/trash'}
+            onClick={() => router.push('/admin/trash')}
             className="flex items-center gap-2 min-w-0 flex-1 sm:min-w-[140px] sm:flex-initial"
           >
             <Trash2 className="w-4 h-4" />

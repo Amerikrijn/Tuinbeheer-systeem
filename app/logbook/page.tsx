@@ -534,7 +534,7 @@ function LogbookPageContent() {
             <Button 
               onClick={() => {
 
-              router.push = '/'
+              router.push('/'))
             }}
               variant="outline"
               size="sm"
@@ -684,7 +684,7 @@ function LogbookPageContent() {
                 onClick={() => {
                 if (!entry.is_completed_task) {
 
-                  router.push = `/logbook/${entry.id}`
+                  router.push(`/logbook/${entry.id}`))
                 }
               }}
               >

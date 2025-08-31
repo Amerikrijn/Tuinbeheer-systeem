@@ -948,7 +948,7 @@ export default function PlantBedViewPage() {
       
       // Navigate back to garden
 
-        router.push = `/gardens/${params.id}`
+        router.push(`/gardens/${params.id}`))
     } catch (error) {
 
         // Removed toast notification
@@ -995,7 +995,7 @@ export default function PlantBedViewPage() {
 
     // Navigate to plant details page
 
-    router.push = `/plants/${flower.id}`
+    router.push(`/plants/${flower.id}`))
     }, [])
 
   // Handle flower resize via interface - supports flower fields
@@ -2485,7 +2485,7 @@ export default function PlantBedViewPage() {
                             variant="outline"
                             onClick={() => {
 
-                router.push = `/plants/${flower.id}`
+                router.push(`/plants/${flower.id}`))
               }}
                             className="flex-1"
                           >
