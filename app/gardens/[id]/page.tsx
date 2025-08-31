@@ -999,8 +999,7 @@ export default function GardenDetailPage() {
           <h3 className="text-lg font-medium text-foreground mb-2">Tuin niet gevonden</h3>
           <p className="text-muted-foreground mb-4">De tuin die je zoekt bestaat niet of is verwijderd.</p>
           <Button onClick={() => {
-
-            window.location.href = '/gardens'
+            router.push('/gardens')
           }} className="bg-green-600 dark:bg-green-700 hover:bg-green-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Terug naar Tuinen

@@ -91,7 +91,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => window.location.href = '/'}
+                  onClick={() => router.push = '/'}
                   className="flex-1"
                 >
                   <Home className="mr-2 h-4 w-4" />

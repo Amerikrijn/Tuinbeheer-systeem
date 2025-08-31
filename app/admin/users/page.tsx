@@ -1,4 +1,5 @@
 'use client'
+import { useRouter } from 'next/navigation'
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/use-supabase-auth'
@@ -252,7 +253,7 @@ function AdminUsersPageContent() {
           </Button>
           <Button 
             variant="outline" 
-            onClick={() => window.location.href = '/admin/trash'}
+            onClick={() => router.push = '/admin/trash'}
             className="flex items-center gap-2 min-w-0 flex-1 sm:min-w-[140px] sm:flex-initial"
           >
             <Trash2 className="w-4 h-4" />

@@ -85,7 +85,7 @@ export function ForcePasswordChange({ user, onPasswordChanged }: ForcePasswordCh
         } catch (error) {
 
           // Fallback: force redirect anyway
-          window.location.href = '/auth/login?message=password-changed'
+          router.push = '/auth/login?message=password-changed'
         }
       }, 1500)
 

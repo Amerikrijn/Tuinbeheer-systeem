@@ -280,8 +280,7 @@ function HomePageContent() {
         
         <Button
           onClick={() => {
-
-            window.location.href = '/gardens/new'
+            router.push('/gardens/new')
           }}
           className="h-10 px-4 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black"
         >
@@ -563,8 +562,7 @@ function GardenCard({ garden, onDelete }: GardenCardProps) {
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
-
-            window.location.href = `/gardens/${garden.id}`
+            router.push(`/gardens/${garden.id}`)
           }}
         >
           <Leaf className="h-4 w-4 mr-2" />

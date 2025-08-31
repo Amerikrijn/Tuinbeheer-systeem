@@ -1,4 +1,5 @@
 'use client'
+import { useRouter } from 'next/navigation'
 
 import React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -7,6 +8,7 @@ import { Wifi, WifiOff, RefreshCw, Home, BookOpen, Calendar } from 'lucide-react
 import Link from 'next/link'
 
 export default function OfflinePage() {
+  const router = useRouter()
   const [isOnline, setIsOnline] = React.useState(true)
   const [lastOnline, setLastOnline] = React.useState<Date | null>(null)
 
@@ -37,7 +39,7 @@ export default function OfflinePage() {
   }
 
   const handleGoHome = () => {
-    window.location.href = '/'
+    router.push('/')
   }
 
   return (
