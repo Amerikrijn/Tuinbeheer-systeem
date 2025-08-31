@@ -255,7 +255,7 @@ export default function PlantBedViewPage() {
   const [loadingTasks, setLoadingTasks] = useState(false)
   const [showAddTask, setShowAddTask] = useState(false)
   const [selectedTaskPlantId, setSelectedTaskPlantId] = useState<string | undefined>()
-  const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set()
+  const [updatingTasks, setUpdatingTasks] = useState<Set<string>>(new Set())
   
   const containerRef = useRef<HTMLDivElement>(null)
 

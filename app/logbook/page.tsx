@@ -123,7 +123,7 @@ function LogbookPageContent() {
     const operationId = `loadLogbookEntries-${Date.now()}`
     
     try {
-      setState(prev => ({ ...prev, loading: !append, error: null })
+      setState(prev => ({ ...prev, loading: !append, error: null }))
       
       // Wait for garden access to be loaded for regular users
       if (user?.role === 'user' && !gardenAccessLoaded) {
