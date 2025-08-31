@@ -1,411 +1,180 @@
-import { supabase } from "./supabase"
-import type { Plantvak, Tuin, LogbookEntry, Bloem, Task, User, PlantvakWithBloemen, PlantWithPosition } from "./types/index"
+/**
+ * Optimized database functions with N+1 query fixes
+ * These functions use JOIN queries where possible, with fallback to original methods
+ */
 
-// Type aliases voor backward compatibility
+import { supabase } from "./supabase"
+import type { Plantvak, Tuin, Bloem, PlantvakWithBloemen } from "./types/index"
+
+// Type aliases for backward compatibility
 type PlantBed = Plantvak
 type Garden = Tuin
 type Plant = Bloem
-type PlantBedWithPlants = PlantvakWithBloemen & {
-  position_x: number
-  position_y: number
-  visual_width: number
-  visual_height: number
-  rotation: number
-  z_index: number
-  color_code: string
-  visual_updated_at: string
-}
-
-// ===================================================================
-// GEOPTIMALISEERDE DATABASE FUNCTIES
-// ===================================================================
-// Deze functies gebruiken JOINs in plaats van N+1 queries
-// Performance verbetering: 70-90% sneller
+type PlantBedWithPlants = PlantvakWithBloemen
 
 /**
- * ✅ GEOPTIMALISEERDE FUNCTIE: Haal alle tuinen op met plant bed counts
- * Gebruikt één query in plaats van meerdere
- */
-export async function getGardensOptimized(): Promise<Garden[]> {
-
-  try {
-    // ✅ Eén query met subquery voor plant bed count
-    const { data, error } = await supabase
-      .from('gardens')
-      .select(`
-        *,
-        plant_beds!inner(count)
-      `)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-
-      return []
-    }
-
-    return data || []
-  } catch (error) {
-
-    return []
-  }
-}
-
-/**
- * ✅ GEOPTIMALISEERDE FUNCTIE: Haal tuin op met alle plant beds en plants
- * Lost het N+1 query probleem volledig op
- */
-export async function getGardenWithPlantBedsOptimized(gardenId: string): Promise<Garden | null> {
-
-  try {
-    // ✅ Eén query met nested JOINs - geen N+1 probleem!
-    const { data, error } = await supabase
-      .from('gardens')
-      .select(`
-        *,
-        plant_beds!inner(
-          *,
-          plants(*)
-        )
-      `)
-      .eq('id', gardenId)
-      .eq('is_active', true)
-      .single()
-
-    if (error) {
-
-      return null
-    }
-
-    return data
-  } catch (error) {
-
-    return null
-  }
-}
-
-/**
- * ✅ GEOPTIMALISEERDE FUNCTIE: Haal alle plant beds op met plants
- * Gebruikt één query in plaats van N+1 queries
+ * Get plant beds with plants using optimized JOIN query
+ * Falls back to N+1 pattern if JOIN fails (e.g., RLS issues)
  */
 export async function getPlantBedsOptimized(gardenId?: string): Promise<PlantBedWithPlants[]> {
-
   try {
+    // Try optimized JOIN query first
     let query = supabase
-      .from('plant_beds')
+      .from("plant_beds")
       .select(`
         *,
-        plants(*)
+        plants!plant_bed_id (*)
       `)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
+      .eq("is_active", true)
+      .order("id")
+      .limit(100)
 
     if (gardenId) {
-      query = query.eq('garden_id', gardenId)
+      query = query.eq("garden_id", gardenId)
     }
 
     const { data, error } = await query
 
-    if (error) {
-
-      return []
+    if (!error && data) {
+      // Transform data to match expected format
+      return data.map(bed => ({
+        ...bed,
+        plants: bed.plants || []
+      }))
     }
 
-    return data || []
-  } catch (error) {
+    // If JOIN fails, log and fall back
+    console.warn('JOIN query failed, falling back to N+1 pattern:', error)
+    
+  } catch (joinError) {
+    console.warn('JOIN query exception, falling back to N+1 pattern:', joinError)
+  }
 
+  // Fallback: Original N+1 pattern (slower but reliable)
+  let fallbackQuery = supabase
+    .from("plant_beds")
+    .select("*")
+    .eq("is_active", true)
+    .order("id")
+    .limit(100)
+
+  if (gardenId) {
+    fallbackQuery = fallbackQuery.eq("garden_id", gardenId)
+  }
+
+  const { data: plantBeds, error: plantBedsError } = await fallbackQuery
+
+  if (plantBedsError || !plantBeds) {
+    console.error('Fallback query also failed:', plantBedsError)
     return []
   }
+
+  // Fetch plants for each bed (N+1 pattern)
+  const plantBedsWithPlants = await Promise.all(
+    plantBeds.map(async (bed) => {
+      const { data: plants } = await supabase
+        .from("plants")
+        .select("*")
+        .eq("plant_bed_id", bed.id)
+        .order("created_at", { ascending: false })
+        .limit(50)
+
+      return { ...bed, plants: plants || [] }
+    })
+  )
+
+  return plantBedsWithPlants
 }
 
 /**
- * ✅ GEOPTIMALISEERDE FUNCTIE: Haal plant bed op met plants
- * Gebruikt één query in plaats van twee aparte queries
+ * Get single plant bed with plants using optimized JOIN query
+ * Falls back to N+1 pattern if JOIN fails
  */
 export async function getPlantBedOptimized(id: string): Promise<PlantBedWithPlants | null> {
-
   try {
+    // Try optimized JOIN query first
     const { data, error } = await supabase
-      .from('plant_beds')
+      .from("plant_beds")
       .select(`
         *,
-        plants(*)
+        plants!plant_bed_id (*)
       `)
-      .eq('id', id)
-      .eq('is_active', true)
+      .eq("id", id)
+      .eq("is_active", true)
       .single()
 
-    if (error) {
-
-      return null
-    }
-
-    return data
-  } catch (error) {
-
-    return null
-  }
-}
-
-/**
- * ✅ GEOPTIMALISEERDE FUNCTIE: Zoek tuinen met full-text search
- * Gebruikt PostgreSQL full-text search met indexen
- */
-export async function searchGardensOptimized(searchTerm: string): Promise<Garden[]> {
-
-  try {
-    const { data, error } = await supabase
-      .from('gardens')
-      .select(`
-        *,
-        plant_beds!inner(count)
-      `)
-      .eq('is_active', true)
-      .or(`name.ilike.%${searchTerm}%,location.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-
-      return []
-    }
-
-    return data || []
-  } catch (error) {
-
-    return []
-  }
-}
-
-/**
- * ✅ GEOPTIMALISEERDE FUNCTIE: Haal taken op met alle gerelateerde data
- * Gebruikt één query in plaats van meerdere queries
- */
-export async function getTasksOptimized(gardenId?: string, userId?: string): Promise<Task[]> {
-
-  try {
-    let query = supabase
-      .from('tasks')
-      .select(`
-        *,
-        gardens!inner(name, location),
-        users!inner(full_name, email)
-      `)
-      .order('due_date', { ascending: true })
-
-    if (gardenId) {
-      query = query.eq('garden_id', gardenId)
-    }
-
-    if (userId) {
-      query = query.eq('assigned_user_id', userId)
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-
-      return []
-    }
-
-    return data || []
-  } catch (error) {
-
-    return []
-  }
-}
-
-/**
- * ✅ GEOPTIMALISEERDE FUNCTIE: Haal logboek entries op met gerelateerde data
- * Gebruikt één query in plaats van meerdere queries
- */
-export async function getLogbookEntriesOptimized(gardenId?: string, plantBedId?: string): Promise<LogbookEntry[]> {
-
-  try {
-    let query = supabase
-      .from('logbook_entries')
-      .select(`
-        *,
-        gardens!inner(name),
-        plant_beds!inner(name, letter_code),
-        users!inner(full_name)
-      `)
-      .order('entry_date', { ascending: false })
-
-    if (gardenId) {
-      query = query.eq('garden_id', gardenId)
-    }
-
-    if (plantBedId) {
-      query = query.eq('plant_bed_id', plantBedId)
-    }
-
-    const { data, error } = await query
-
-    if (error) {
-
-      return []
-    }
-
-    return data || []
-  } catch (error) {
-
-    return []
-  }
-}
-
-/**
- * ✅ GEOPTIMALISEERDE FUNCTIE: Haal dashboard statistieken op
- * Gebruikt één query met aggregaties
- */
-export async function getDashboardStatsOptimized(gardenId?: string): Promise<{
-  totalGardens: number
-  totalPlantBeds: number
-  totalPlants: number
-  activeTasks: number
-  recentLogbookEntries: number
-}> {
-
-  try {
-    // ✅ Eén query voor alle statistieken
-    const { data, error } = await supabase
-      .from('gardens')
-      .select(`
-        id,
-        plant_beds!inner(
-          id,
-          plants(count)
-        ),
-        tasks!inner(count)
-      `)
-      .eq('is_active', true)
-      .eq(gardenId ? 'id' : 'id', gardenId || '')
-
-    if (error) {
-
+    if (!error && data) {
       return {
-        totalGardens: 0,
-        totalPlantBeds: 0,
-        totalPlants: 0,
-        activeTasks: 0,
-        recentLogbookEntries: 0
+        ...data,
+        plants: data.plants || []
       }
     }
 
-    // Bereken statistieken uit de data
-    const stats = {
-      totalGardens: data?.length || 0,
-      totalPlantBeds: data?.reduce((sum, garden) => sum + (garden.plant_beds?.length || 0), 0) || 0,
-      totalPlants: data?.reduce((sum, garden) => 
-        sum + (garden.plant_beds?.reduce((bedSum, bed) => 
-          bedSum + (bed.plants?.[0]?.count || 0), 0) || 0), 0) || 0,
-      activeTasks: data?.reduce((sum, garden) => sum + (garden.tasks?.[0]?.count || 0), 0) || 0,
-      recentLogbookEntries: 0 // Wordt apart opgehaald indien nodig
-    }
-
-    return stats
-  } catch (error) {
-
-    return {
-      totalGardens: 0,
-      totalPlantBeds: 0,
-      totalPlants: 0,
-      activeTasks: 0,
-      recentLogbookEntries: 0
-    }
+    console.warn('JOIN query failed for single bed, falling back:', error)
+    
+  } catch (joinError) {
+    console.warn('JOIN query exception for single bed, falling back:', joinError)
   }
+
+  // Fallback: Original N+1 pattern
+  const { data: plantBed, error: plantBedError } = await supabase
+    .from("plant_beds")
+    .select("*")
+    .eq("id", id)
+    .eq("is_active", true)
+    .single()
+
+  if (plantBedError || !plantBed) {
+    return null
+  }
+
+  const { data: plants } = await supabase
+    .from("plants")
+    .select("*")
+    .eq("plant_bed_id", id)
+    .order("created_at", { ascending: false })
+    .limit(100)
+
+  return { ...plantBed, plants: plants || [] }
 }
 
 /**
- * ✅ GEOPTIMALISEERDE FUNCTIE: Batch update van plant bed posities
- * Gebruikt één query voor meerdere updates
+ * Test if JOIN queries work in current environment
+ * Returns true if JOINs are supported, false otherwise
  */
-export async function updatePlantBedPositionsBatch(updates: Array<{
-  id: string
-  position_x: number
-  position_y: number
-  visual_width?: number
-  visual_height?: number
-  rotation?: number
-  z_index?: number
-  color_code?: string
-}>): Promise<boolean> {
-
+export async function testJoinSupport(): Promise<boolean> {
   try {
-    // ✅ Batch update met één query
-    const { error } = await supabase
-      .from('plant_beds')
-      .upsert(updates, { 
-        onConflict: 'id',
-        ignoreDuplicates: false 
-      })
+    const { data, error } = await supabase
+      .from("plant_beds")
+      .select(`
+        id,
+        plants!plant_bed_id (id)
+      `)
+      .limit(1)
 
     if (error) {
-
+      console.log('JOIN test failed:', error.message)
       return false
     }
 
+    console.log('JOIN queries are supported!')
     return true
-  } catch (error) {
-
+    
+  } catch (e) {
+    console.log('JOIN test exception:', e)
     return false
   }
 }
 
-// ===================================================================
-// PERFORMANCE MONITORING FUNCTIES
-// ===================================================================
+// Export a flag to indicate if optimized queries should be used
+export let useOptimizedQueries = false
 
-/**
- * Meet de performance van database queries
- */
-export async function measureQueryPerformance<T>(
-  queryName: string,
-  queryFn: () => Promise<T>
-): Promise<{ data: T; duration: number }> {
-  const start = performance.now()
-  
-  try {
-    const data = await queryFn()
-    const duration = performance.now() - start
-    
-    // Log performance metrics
-    if (duration > 1000) {
-
-    } else if (duration > 500) {
-
-    } else {
-
-    }
-    
-    return { data, duration }
-  } catch (error) {
-    const duration = performance.now() - start
-
-    return {
-      oldDuration,
-      newDuration,
-      improvement: ((oldDuration - newDuration) / oldDuration * 100).toFixed(1)
-    }
-  } catch (error) {
-
-    return null
+// Test JOIN support on module load
+testJoinSupport().then(supported => {
+  useOptimizedQueries = supported
+  if (supported) {
+    console.log('✅ Database optimization enabled - using JOIN queries')
+  } else {
+    console.log('⚠️ Database optimization disabled - using fallback queries')
   }
-}
-
-// ===================================================================
-// EXPORT ALLE GEOPTIMALISEERDE FUNCTIES
-// ===================================================================
-
-export {
-  getGardensOptimized,
-  getGardenWithPlantBedsOptimized,
-  getPlantBedsOptimized,
-  getPlantBedOptimized,
-  searchGardensOptimized,
-  getTasksOptimized,
-  getLogbookEntriesOptimized,
-  getDashboardStatsOptimized,
-  updatePlantBedPositionsBatch,
-  measureQueryPerformance,
-  comparePerformance
-}
+})
