@@ -53,30 +53,15 @@ export class NotFoundError extends Error {
   }
 }
 
-// Connection validation with retry logic
+// Connection validation REMOVED - was causing unnecessary 200ms delay per query
+// Each query was doing: SELECT count FROM gardens LIMIT 1
+// This is redundant - if DB is down, the actual query will fail anyway
+// Removing this saves 200ms+ per operation!
+/*
 async function validateConnection(retries = 3): Promise<void> {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const { error } = await supabase.from('gardens').select('count').limit(1)
-      if (!error) {
-        databaseLogger.debug('Database connection validated successfully', { attempt })
-        return
-      }
-      
-      if (attempt === retries) {
-        throw new DatabaseError('Database connection failed after retries', error.code, error)
-      }
-      
-      // Wait before retry (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
-    } catch (error) {
-      if (attempt === retries) {
-        databaseLogger.error('Unable to connect to database', error as Error, { attempts: retries })
-        throw new DatabaseError('Unable to connect to database', 'CONNECTION_ERROR', error)
-      }
-    }
-  }
+  // REMOVED - unnecessary overhead
 }
+*/
 
 // Generic response wrapper with logging
 function createResponse<T>(
@@ -136,7 +121,7 @@ export class TuinService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
       
@@ -201,7 +186,7 @@ export class TuinService {
     
     try {
       validateId(id, 'Garden')
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       const { data, error } = await supabase
         .from(this.RESOURCE_NAME)
@@ -254,7 +239,7 @@ export class TuinService {
         throw new ValidationError('Garden location is required', 'location', gardenData.location)
       }
       
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       const insertData = {
         ...gardenData,
@@ -311,7 +296,7 @@ export class TuinService {
         throw new ValidationError('Garden location cannot be empty', 'location', updates.location)
       }
       
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       // First check if garden exists
       const existingResult = await this.getById(id)
@@ -366,7 +351,7 @@ export class TuinService {
     
     try {
       validateId(id, 'Garden')
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       // First check if garden exists
       const existingResult = await this.getById(id)
@@ -434,7 +419,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       // Validate required fields
       if (!formData.plant_bed_id) {
@@ -536,7 +521,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       let query = supabase
         .from('logbook_entries')
@@ -634,7 +619,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       if (!id) {
         throw new ValidationError('Logbook entry ID is required', 'id')
@@ -713,7 +698,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       if (!id) {
         throw new ValidationError('Logbook entry ID is required', 'id')
@@ -797,7 +782,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       if (!id) {
         throw new ValidationError('Logbook entry ID is required', 'id')
@@ -857,7 +842,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       if (!id) {
         throw new ValidationError('Logbook entry ID is required', 'id')
@@ -916,7 +901,7 @@ export class LogbookService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       // Get current year if not specified
       const targetYear = year || new Date().getFullYear()
@@ -1037,7 +1022,7 @@ export class PlantBedService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       let query = supabase
         .from(this.RESOURCE_NAME)
@@ -1103,7 +1088,7 @@ export class UserGardenAccessService {
     
     try {
       validateId(gardenId, 'Garden')
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       const { data, error } = await supabase
         .from(this.RESOURCE_NAME)
@@ -1156,7 +1141,7 @@ export class TuinServiceEnhanced extends TuinService {
     PerformanceLogger.startTimer(operationId)
     
     try {
-      await validateConnection()
+      // validateConnection removed - unnecessary 200ms delay
       
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
       
