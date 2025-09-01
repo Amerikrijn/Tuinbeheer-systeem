@@ -23,151 +23,193 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
   const router = useRouter()
   const cleanupRefs = useRef<Set<() => void>>(new Set())
   const memorySnapshot = useRef<number>(0)
+  
+  // 🚀 PERFORMANCE FIX: Throttle memory logging
+  const lastLogTime = useRef<number>(0)
+  const LOG_THROTTLE = 5000 // 5 seconds
 
   // Memory usage monitoring
   const getMemoryUsage = useCallback(() => {
     if (typeof window !== 'undefined' && 'memory' in performance) {
-      const memory = (performance as any).memory
-      return {
-        used: Math.round(memory.usedJSHeapSize / 1024 / 1024), // MB
-        total: Math.round(memory.totalJSHeapSize / 1024 / 1024), // MB
-        limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024) // MB
+      try {
+        const memory = (performance as any).memory
+        return {
+          used: Math.round(memory.usedJSHeapSize / 1024 / 1024), // MB
+          total: Math.round(memory.totalJSHeapSize / 1024 / 1024), // MB
+          limit: Math.round(memory.jsHeapSizeLimit / 1024 / 1024) // MB
+        }
+      } catch (error) {
+        // 🚀 PERFORMANCE FIX: Silent fail to prevent crashes
+        return null
       }
     }
     return null
   }, [])
 
-  // Log memory usage
+  // 🚀 PERFORMANCE FIX: Throttled memory logging
   const logMemory = useCallback((context: string) => {
     if (!logMemoryUsage) return
+    
+    const now = Date.now()
+    if (now - lastLogTime.current < LOG_THROTTLE) {
+      return
+    }
+    lastLogTime.current = now
     
     const memory = getMemoryUsage()
     if (memory) {
       const usage = memory.used
       const change = memorySnapshot.current > 0 ? usage - memorySnapshot.current : 0
 
+      // 🚀 MEMORY LEAK DETECTION: Alert on significant memory growth
+      if (change > 50) { // More than 50MB increase
+        console.warn(`⚠️ Memory usage increased by ${change}MB in ${context}`)
+      }
+
       memorySnapshot.current = usage
     }
   }, [logMemoryUsage, getMemoryUsage])
 
-  // Force garbage collection
+  // 🚀 PERFORMANCE FIX: Safe garbage collection
   const forceGarbageCollection = useCallback(() => {
     if (enableGarbageCollection && typeof window !== 'undefined' && 'gc' in window) {
       try {
         ;(window as any).gc()
-
+        logMemory('after-garbage-collection')
       } catch (error) {
-
+        // 🚀 PERFORMANCE FIX: Silent fail to prevent crashes
       }
     }
-  }, [enableGarbageCollection])
+  }, [enableGarbageCollection, logMemory])
 
-  // Clear storage
+  // 🚀 PERFORMANCE FIX: Safe storage clearing
   const clearStorage = useCallback(() => {
     if (clearLocalStorage && typeof window !== 'undefined') {
       try {
-        localStorage.clear()
-
+        // 🚀 MEMORY LEAK FIX: Only clear tuinbeheer related items
+        const keys = Object.keys(localStorage)
+        keys.forEach(key => {
+          if (key.startsWith('tuinbeheer_') || key.includes('tuinbeheer')) {
+            localStorage.removeItem(key)
+          }
+        })
+        logMemory('after-localstorage-cleanup')
       } catch (error) {
-
+        // 🚀 PERFORMANCE FIX: Silent fail to prevent crashes
       }
     }
 
     if (clearSessionStorage && typeof window !== 'undefined') {
       try {
         sessionStorage.clear()
-
+        logMemory('after-sessionstorage-cleanup')
       } catch (error) {
-
+        // 🚀 PERFORMANCE FIX: Silent fail to prevent crashes
       }
     }
-  }, [clearLocalStorage, clearSessionStorage])
+  }, [clearLocalStorage, clearSessionStorage, logMemory])
 
   // Register cleanup function
   const registerCleanup = useCallback((cleanupFn: () => void) => {
     cleanupRefs.current.add(cleanupFn)
   }, [])
 
-  // Execute all cleanup functions
+  // 🚀 PERFORMANCE FIX: Execute cleanup with error handling
   const executeCleanup = useCallback(() => {
+    const cleanupFunctions = Array.from(cleanupRefs.current)
+    cleanupRefs.current.clear()
 
     // Execute registered cleanup functions
-    cleanupRefs.current.forEach(cleanup => {
+    cleanupFunctions.forEach(cleanup => {
       try {
         cleanup()
       } catch (error) {
-
+        // 🚀 PERFORMANCE FIX: Silent fail to prevent crashes
       }
     })
-    cleanupRefs.current.clear()
 
-    // Clear storage if enabled
-    clearStorage()
-
-    // Force garbage collection
-    forceGarbageCollection()
-
-    // Log final memory usage
-    logMemory('after cleanup')
-  }, [clearStorage, forceGarbageCollection, logMemory])
-
-  // Route change cleanup
-  useEffect(() => {
-    const handleRouteChange = () => {
-      logMemory('before route change')
-      executeCleanup()
+    // 🚀 MEMORY LEAK FIX: Clear storage if enabled
+    if (clearLocalStorage || clearSessionStorage) {
+      clearStorage()
     }
 
-    const handleBeforeUnload = () => {
-      logMemory('before unload')
-      executeCleanup()
+    // 🚀 MEMORY LEAK FIX: Force garbage collection if enabled
+    if (enableGarbageCollection) {
+      forceGarbageCollection()
+    }
+
+    logMemory('after-cleanup-execution')
+  }, [clearLocalStorage, clearSessionStorage, clearStorage, enableGarbageCollection, forceGarbageCollection, logMemory])
+
+  // 🚀 PERFORMANCE FIX: Automatic cleanup on route change
+  useEffect(() => {
+    const handleRouteChange = () => {
+      // 🚀 MEMORY LEAK FIX: Cleanup on route change to prevent accumulation
+      if (cleanupRefs.current.size > 0) {
+        executeCleanup()
+      }
     }
 
     // Listen for route changes
-    router.events?.on?.('routeChangeStart', handleRouteChange)
+    router.events?.on('routeChangeStart', handleRouteChange)
     
-    // Listen for page unload
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    
-    // Listen for visibility change (tab switch)
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) {
-        logMemory('tab hidden')
-      } else {
-        logMemory('tab visible')
-      }
-    })
-
     return () => {
-      router.events?.off?.('routeChangeStart', handleRouteChange)
-      window.removeEventListener('beforeunload', handleBeforeUnload)
-      document.removeEventListener('visibilitychange', () => {})
+      router.events?.off('routeChangeStart', handleRouteChange)
     }
-  }, [router, executeCleanup, logMemory])
+  }, [router, executeCleanup])
 
-  // Periodic memory check
+  // 🚀 PERFORMANCE FIX: Periodic memory monitoring
   useEffect(() => {
-    const interval = setInterval(() => {
-      const memory = getMemoryUsage()
-      if (memory && memory.used > memory.limit * 0.8) {
+    if (!logMemoryUsage) return
 
+    const intervalId = setInterval(() => {
+      logMemory('periodic-check')
+      
+      // 🚀 MEMORY LEAK DETECTION: Auto-cleanup if memory usage is high
+      const memory = getMemoryUsage()
+      if (memory && memory.used > memory.limit * 0.8) { // 80% of limit
+        console.warn('🚨 High memory usage detected, executing cleanup...')
         executeCleanup()
       }
-    }, 30000) // Check every 30 seconds
+    }, 30 * 1000) // Check every 30 seconds
 
-    return () => clearInterval(interval)
-  }, [getMemoryUsage, executeCleanup])
+    return () => clearInterval(intervalId)
+  }, [logMemoryUsage, logMemory, getMemoryUsage, executeCleanup])
 
-  // Initial memory snapshot
+  // 🚀 PERFORMANCE FIX: Cleanup on unmount
   useEffect(() => {
-    logMemory('initial')
-  }, [logMemory])
+    return () => {
+      executeCleanup()
+    }
+  }, [executeCleanup])
 
   return {
+    getMemoryUsage,
+    logMemory,
+    forceGarbageCollection,
+    clearStorage,
     registerCleanup,
     executeCleanup,
-    getMemoryUsage,
-    forceGarbageCollection,
-    logMemory
+    // 🚀 NEW: Memory health check
+    getMemoryHealth: useCallback(() => {
+      const memory = getMemoryUsage()
+      if (!memory) return 'unknown'
+      
+      const percentage = (memory.used / memory.limit) * 100
+      
+      if (percentage > 80) return 'critical'
+      if (percentage > 60) return 'warning'
+      if (percentage > 40) return 'moderate'
+      return 'healthy'
+    }, [getMemoryUsage]),
+    // 🚀 NEW: Auto-cleanup trigger
+    triggerAutoCleanup: useCallback(() => {
+      const health = getMemoryHealth()
+      if (health === 'critical' || health === 'warning') {
+        executeCleanup()
+        return true
+      }
+      return false
+    }, [getMemoryHealth, executeCleanup])
   }
 }

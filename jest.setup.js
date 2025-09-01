@@ -33,7 +33,35 @@ if (typeof globalThis !== 'undefined') {
 
 // Ensure window object is available for jsdom
 if (typeof window === 'undefined') {
-  global.window = {};
+  global.window = {
+    history: {
+      length: 1,
+      back: jest.fn(),
+      forward: jest.fn(),
+      go: jest.fn(),
+      pushState: jest.fn(),
+      replaceState: jest.fn(),
+    },
+    location: {
+      href: 'http://localhost:3000',
+      pathname: '/',
+      search: '',
+      hash: '',
+    },
+    matchMedia: jest.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  };
 }
 
 // Ensure document object is available
@@ -69,12 +97,18 @@ jest.mock('next/link', () => {
 });
 
 // Mock voor console methods in tests
+const originalConsole = { ...console };
 global.console = {
   ...console,
   log: jest.fn(),
   info: jest.fn(),
   warn: jest.fn(),
   error: jest.fn(),
+};
+
+// Helper to restore console methods
+global.restoreConsole = () => {
+  global.console = { ...originalConsole };
 };
 
 // Mock voor ResizeObserver
@@ -246,6 +280,9 @@ global.supabaseAdmin = {
   })
 };
 
+// Mock createClient function
+global.createClient = jest.fn(() => global.supabaseAdmin);
+
 // Mock Supabase modules
 jest.mock('@/lib/supabase', () => ({
   supabaseAdmin: {
@@ -272,6 +309,25 @@ jest.mock('@/lib/supabase', () => ({
       })
     })
   }
+}));
+
+// Mock @supabase/supabase-js createClient
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => ({
+    from: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        limit: jest.fn().mockResolvedValue({ error: null })
+      })
+    }),
+    auth: {
+      admin: {
+        getUserById: jest.fn(),
+        updateUserById: jest.fn(),
+        createUser: jest.fn(),
+        deleteUser: jest.fn(),
+      }
+    }
+  }))
 }));
 
 
@@ -394,19 +450,6 @@ global.vi = {
   resetModules: jest.resetModules,
 };
 
-// Mock window.matchMedia for next-themes
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
+
 
 console.log('🧪 Jest setup loaded successfully');

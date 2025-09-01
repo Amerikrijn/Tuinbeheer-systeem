@@ -13,7 +13,8 @@ import {
   BarChart3,
   Activity,
   Cpu,
-  HardDrive
+  HardDrive,
+  Settings
 } from 'lucide-react'
 import { usePerformanceMonitor, type PerformanceMetrics } from '@/hooks/use-performance-monitor'
 import { useQueryClient } from '@tanstack/react-query'
@@ -25,6 +26,9 @@ interface PerformanceDashboardProps {
 }
 
 export function PerformanceDashboard({ className = '', showDetails = false }: PerformanceDashboardProps) {
+  // 🚀 PERFORMANCE FIX: Lazy load performance monitoring
+  const [isMonitoringEnabled, setIsMonitoringEnabled] = React.useState(false)
+  
   const performanceMonitor = usePerformanceMonitor()
   const { metrics, events, getPerformanceReport, clearPerformanceData } = performanceMonitor
   
@@ -32,24 +36,49 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
   const queryClient = useQueryClient()
   
   // Memory cleanup hook
-  const { getMemoryUsage, executeCleanup, forceGarbageCollection } = useMemoryCleanup({
+  const { getMemoryUsage, executeCleanup, forceGarbageCollection, getMemoryHealth, triggerAutoCleanup } = useMemoryCleanup({
     enableGarbageCollection: true,
     logMemoryUsage: true
   })
 
-  // Get React Query cache statistics
-  const getQueryCacheStats = () => {
-    const queries = queryClient.getQueryCache().getAll()
-    const mutations = queryClient.getMutationCache().getAll()
+  // 🚀 PERFORMANCE FIX: Throttled cache stats update
+  const [queryStats, setQueryStats] = React.useState({
+    activeQueries: 0,
+    totalQueries: 0,
+    activeMutations: 0,
+    totalMutations: 0,
+    cacheSize: 0
+  })
+
+  // 🚀 PERFORMANCE FIX: Update cache stats only when needed
+  React.useEffect(() => {
+    if (!isMonitoringEnabled) return
     
-    return {
-      activeQueries: queries.filter(q => q.isActive()).length,
-      totalQueries: queries.length,
-      activeMutations: mutations.filter(m => m.isPending()).length,
-      totalMutations: mutations.length,
-      cacheSize: queries.length + mutations.length
+    const updateStats = () => {
+      try {
+        const queries = queryClient.getQueryCache().getAll()
+        const mutations = queryClient.getMutationCache().getAll()
+        
+        setQueryStats({
+          activeQueries: queries.filter(q => q.isActive()).length,
+          totalQueries: queries.length,
+          activeMutations: mutations.filter(m => m.isPending()).length,
+          totalMutations: mutations.length,
+          cacheSize: queries.length + mutations.length
+        })
+      } catch (error) {
+        // Silent fail to prevent crashes
+      }
     }
-  }
+
+    // Update immediately
+    updateStats()
+    
+    // Update every 10 seconds instead of every render
+    const intervalId = setInterval(updateStats, 10000)
+    
+    return () => clearInterval(intervalId)
+  }, [queryClient, isMonitoringEnabled])
 
   // Get memory usage
   const getCurrentMemoryUsage = () => {
@@ -62,7 +91,7 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
     } : null
   }
 
-  // Bereken real-time statistieken
+  // 🚀 PERFORMANCE FIX: Simplified performance calculation
   const completedEvents = events.filter(e => e.duration !== undefined)
   const slowEvents = completedEvents.filter(e => (e.duration || 0) > 1000).length
   const avgEventDuration = completedEvents.length > 0 
@@ -72,7 +101,6 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
   // Performance status bepalen
   const getPerformanceStatus = () => {
     const memory = getCurrentMemoryUsage()
-    const queryStats = getQueryCacheStats()
     
     if (memory && memory.percentage > 80) return { status: 'error', text: 'High Memory Usage', color: 'bg-red-500 dark:bg-red-600' }
     if (metrics.slowQueries > 0) return { status: 'warning', text: 'Attention Needed', color: 'bg-yellow-500 dark:bg-yellow-600' }
@@ -82,8 +110,17 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
   }
 
   const performanceStatus = getPerformanceStatus()
-  const queryStats = getQueryCacheStats()
   const memoryUsage = getCurrentMemoryUsage()
+  const memoryHealth = getMemoryHealth()
+
+  // 🚀 PERFORMANCE FIX: Enable monitoring only when component is visible
+  React.useEffect(() => {
+    if (showDetails && !isMonitoringEnabled) {
+      setIsMonitoringEnabled(true)
+    } else if (!showDetails && isMonitoringEnabled) {
+      setIsMonitoringEnabled(false)
+    }
+  }, [showDetails, isMonitoringEnabled])
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -100,257 +137,198 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
                 {performanceStatus.text}
               </Badge>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                onClick={() => window.location.reload()}
-                className="h-8 w-8 p-0"
+                onClick={() => setIsMonitoringEnabled(!isMonitoringEnabled)}
+                className="flex items-center gap-2"
               >
-                <RefreshCw className="h-4 w-4" />
+                {isMonitoringEnabled ? (
+                  <>
+                    <Activity className="h-4 w-4" />
+                    Monitoring Aan
+                  </>
+                ) : (
+                  <>
+                    <Clock className="h-4 w-4" />
+                    Monitoring Uit
+                  </>
+                )}
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Database Queries */}
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg mx-auto mb-2">
-                <Database className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+        <CardContent className="space-y-4">
+          {/* 🚀 PERFORMANCE FIX: Only show metrics when monitoring is enabled */}
+          {isMonitoringEnabled ? (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">{metrics.pageLoadTime}ms</div>
+                  <div className="text-sm text-muted-foreground">Page Load</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{metrics.databaseQueries}</div>
+                  <div className="text-sm text-muted-foreground">DB Queries</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">{metrics.averageQueryTime}ms</div>
+                  <div className="text-sm text-muted-foreground">Avg Query</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-orange-600">{slowEvents}</div>
+                  <div className="text-sm text-muted-foreground">Slow Events</div>
+                </div>
               </div>
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{metrics.databaseQueries}</div>
-              <div className="text-sm text-muted-foreground">Database Queries</div>
-            </div>
 
-            {/* Average Query Time */}
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg mx-auto mb-2">
-                <Clock className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{metrics.averageQueryTime}ms</div>
-              <div className="text-sm text-muted-foreground">Avg Query Time</div>
+              {/* Memory Usage */}
+              {memoryUsage && (
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Memory Usage</span>
+                    <Badge 
+                      variant={memoryHealth === 'critical' ? 'destructive' : memoryHealth === 'warning' ? 'secondary' : 'default'}
+                    >
+                      {memoryHealth}
+                    </Badge>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div 
+                      className={`h-2 rounded-full ${
+                        memoryHealth === 'critical' ? 'bg-red-500' : 
+                        memoryHealth === 'warning' ? 'bg-yellow-500' : 'bg-green-500'
+                      }`}
+                      style={{ width: `${memoryUsage.percentage}%` }}
+                    ></div>
+                  </div>
+                  <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                    <span>{memoryUsage.used}MB</span>
+                    <span>{memoryUsage.limit}MB</span>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>Performance monitoring is uitgeschakeld</p>
+              <p className="text-sm mt-2">Schakel monitoring in om real-time metrics te bekijken</p>
             </div>
-
-            {/* Memory Usage */}
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-lg mx-auto mb-2">
-                <Cpu className="h-6 w-6 text-orange-600" />
-              </div>
-              <div className="text-2xl font-bold text-orange-600">
-                {memoryUsage ? `${memoryUsage.used}MB` : 'N/A'}
-              </div>
-              <div className="text-sm text-muted-foreground">Memory Usage</div>
-            </div>
-
-            {/* Slow Queries */}
-            <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg mx-auto mb-2">
-                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-              </div>
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{metrics.slowQueries}</div>
-              <div className="text-sm text-muted-foreground">Slow Queries</div>
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
       {/* React Query Cache Status */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">React Query Cache</CardTitle>
-              <CardDescription>Query and mutation cache status</CardDescription>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => queryClient.clear()}
-              className="text-xs"
-            >
-              Clear Cache
-            </Button>
-          </div>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Database className="h-5 w-5 text-blue-600" />
+            <span>React Query Cache</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Active Queries */}
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-2">
-                <Activity className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="text-2xl font-bold text-purple-600">{queryStats.activeQueries}</div>
+              <div className="text-2xl font-bold text-blue-600">{queryStats.activeQueries}</div>
               <div className="text-sm text-muted-foreground">Active Queries</div>
             </div>
-
-            {/* Total Queries */}
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-lg mx-auto mb-2">
-                <BarChart3 className="h-6 w-6 text-indigo-600" />
-              </div>
-              <div className="text-2xl font-bold text-indigo-600">{queryStats.totalQueries}</div>
+              <div className="text-2xl font-bold text-green-600">{queryStats.totalQueries}</div>
               <div className="text-sm text-muted-foreground">Total Queries</div>
             </div>
-
-            {/* Active Mutations */}
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-pink-100 rounded-lg mx-auto mb-2">
-                <TrendingUp className="h-6 w-6 text-pink-600" />
-              </div>
-              <div className="text-2xl font-bold text-pink-600">{queryStats.activeMutations}</div>
+              <div className="text-2xl font-bold text-purple-600">{queryStats.activeMutations}</div>
               <div className="text-sm text-muted-foreground">Active Mutations</div>
             </div>
-
-            {/* Cache Size */}
             <div className="text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg mx-auto mb-2">
-                <HardDrive className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-              </div>
-              <div className="text-2xl font-bold text-gray-600 dark:text-gray-300">{queryStats.cacheSize}</div>
+              <div className="text-2xl font-bold text-orange-600">{queryStats.cacheSize}</div>
               <div className="text-sm text-muted-foreground">Cache Size</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Memory Management */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg">Memory Management</CardTitle>
-              <CardDescription>Memory usage and cleanup tools</CardDescription>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={executeCleanup}
-                className="text-xs"
-              >
-                Cleanup
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={forceGarbageCollection}
-                className="text-xs"
-              >
-                GC
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {memoryUsage ? (
-            <div className="space-y-4">
-              {/* Memory Usage Bar */}
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Memory Usage</span>
-                  <span>{memoryUsage.used}MB / {memoryUsage.limit}MB ({memoryUsage.percentage}%)</span>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      memoryUsage.percentage > 80 ? 'bg-red-500 dark:bg-red-600' : 
-                      memoryUsage.percentage > 60 ? 'bg-yellow-500 dark:bg-yellow-600' : 'bg-green-500 dark:bg-green-600'
-                    }`}
-                    style={{ width: `${memoryUsage.percentage}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Memory Stats */}
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-lg font-semibold text-blue-600 dark:text-blue-400">{memoryUsage.used}MB</div>
-                  <div className="text-xs text-muted-foreground">Used</div>
-                </div>
-                <div>
-                  <div className="text-lg font-semibold text-green-600 dark:text-green-400">{memoryUsage.total}MB</div>
-                  <div className="text-xs text-muted-foreground">Total</div>
-                </div>
-                <div>
-                  <div className="text-lg font-semibold text-purple-600">{memoryUsage.limit}MB</div>
-                  <div className="text-xs text-muted-foreground">Limit</div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="text-center text-muted-foreground">
-              Memory metrics not available
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Performance Events */}
-      {showDetails && (
+      {/* 🚀 PERFORMANCE FIX: Only show detailed events when needed */}
+      {showDetails && isMonitoringEnabled && (
         <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Performance Events</CardTitle>
-                <CardDescription>Recent performance events and metrics</CardDescription>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearPerformanceData}
-                className="text-xs"
-              >
-                Clear Events
-              </Button>
-            </div>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5 text-purple-600" />
+              <span>Performance Events</span>
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {events.length === 0 ? (
-                <div className="text-center text-muted-foreground py-4">
-                  No performance events recorded
-                </div>
-              ) : (
-                events.slice(-10).reverse().map((event) => (
-                  <div key={event.id} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-900 rounded">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs font-mono">{event.type}</span>
-                      <span className="text-sm">{event.name}</span>
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {event.duration ? `${event.duration}ms` : 'pending'}
-                    </div>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {events.slice(-10).map((event) => (
+                <div key={event.id} className="flex items-center justify-between text-sm">
+                  <span className="font-medium">{event.name}</span>
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline" className="text-xs">
+                      {event.type}
+                    </Badge>
+                    {event.duration && (
+                      <span className="text-muted-foreground">
+                        {event.duration}ms
+                      </span>
+                    )}
                   </div>
-                ))
+                </div>
+              ))}
+              {events.length === 0 && (
+                <div className="text-center py-4 text-muted-foreground">
+                  Geen performance events geregistreerd
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Performance Summary */}
+      {/* Actions */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Performance Summary</CardTitle>
-          <CardDescription>Overall performance metrics</CardDescription>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Settings className="h-5 w-5 text-gray-600" />
+            <span>Actions</span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{completedEvents.length}</div>
-              <div className="text-sm text-muted-foreground">Total Events</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">{avgEventDuration}ms</div>
-              <div className="text-sm text-muted-foreground">Avg Duration</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">{slowEvents}</div>
-              <div className="text-sm text-muted-foreground">Slow Events</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">{metrics.pageLoadTime}ms</div>
-              <div className="text-sm text-muted-foreground">Page Load</div>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={executeCleanup}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Memory Cleanup
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={forceGarbageCollection}
+              className="flex items-center gap-2"
+            >
+              <HardDrive className="h-4 w-4" />
+              Garbage Collection
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearPerformanceData}
+              className="flex items-center gap-2"
+            >
+              <BarChart3 className="h-4 w-4" />
+              Clear Data
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={triggerAutoCleanup}
+              className="flex items-center gap-2"
+            >
+              <AlertTriangle className="h-4 w-4" />
+              Auto Cleanup
+            </Button>
           </div>
         </CardContent>
       </Card>

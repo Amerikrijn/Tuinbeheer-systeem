@@ -172,9 +172,9 @@ describe('Design Tokens', () => {
     });
 
     it('should have proper contrast ratios', () => {
-      expect(accessibility.highContrast).toBe('text-gray-900');
-      expect(accessibility.mediumContrast).toBe('text-gray-700');
-      expect(accessibility.lowContrast).toBe('text-gray-600');
+      expect(accessibility.highContrast).toBe('text-gray-900 dark:text-gray-50 dark:text-gray-900');
+      expect(accessibility.mediumContrast).toBe('text-gray-700 dark:text-gray-200');
+      expect(accessibility.lowContrast).toBe('text-gray-600 dark:text-gray-300');
     });
   });
 

@@ -50,15 +50,46 @@ export function usePerformanceMonitor() {
   const cacheHits = useRef<number>(0)
   const cacheMisses = useRef<number>(0)
   
+  // 🚀 PERFORMANCE FIX: Throttle monitoring updates
+  const updateThrottle = useRef<number>(0)
+  const THROTTLE_DELAY = 2000 // 2 seconds instead of every render
+  
   // React Query client
   const queryClient = useQueryClient()
+
+  // 🚀 PERFORMANCE FIX: Throttled metrics update
+  const throttledUpdateMetrics = useCallback(() => {
+    const now = Date.now()
+    if (now - updateThrottle.current < THROTTLE_DELAY) {
+      return
+    }
+    updateThrottle.current = now
+    
+    // Only update if monitoring is active
+    if (!isMonitoring) return
+    
+    try {
+      const queryStats = getQueryCacheStats()
+      const memory = getMemoryUsage()
+      
+      setMetrics(prev => ({
+        ...prev,
+        reactQueryCacheSize: queryStats.cacheSize,
+        activeQueries: queryStats.activeQueries,
+        memoryUsage: memory || 0,
+        lastUpdate: new Date()
+      }))
+    } catch (error) {
+      // Silent fail to prevent performance impact
+    }
+  }, [isMonitoring])
 
   // Start monitoring
   const startMonitoring = useCallback(() => {
     setIsMonitoring(true)
     pageLoadStart.current = performance.now()
     
-    // Monitor memory usage (browser support dependent)
+    // 🚀 PERFORMANCE FIX: Only monitor memory if available and needed
     if (typeof window !== 'undefined' && 'memory' in performance) {
       const memory = (performance as any).memory
       setMetrics(prev => ({
@@ -67,7 +98,12 @@ export function usePerformanceMonitor() {
       }))
     }
 
-  }, [])
+    // 🚀 PERFORMANCE FIX: Start throttled updates
+    const intervalId = setInterval(throttledUpdateMetrics, THROTTLE_DELAY)
+    
+    // Cleanup interval on unmount
+    return () => clearInterval(intervalId)
+  }, [throttledUpdateMetrics])
 
   // Stop monitoring
   const stopMonitoring = useCallback(() => {
@@ -96,7 +132,7 @@ export function usePerformanceMonitor() {
         totalMutations: mutations.length
       }
     } catch (error) {
-
+      // 🚀 PERFORMANCE FIX: Silent fail to prevent crashes
       return {
         cacheSize: 0,
         activeQueries: 0,
@@ -107,263 +143,83 @@ export function usePerformanceMonitor() {
     }
   }, [queryClient])
 
-  // Update React Query metrics
-  const updateQueryMetrics = useCallback(() => {
-    const stats = getQueryCacheStats()
-    const totalRequests = cacheHits.current + cacheMisses.current
-    const hitRate = totalRequests > 0 ? (cacheHits.current / totalRequests) * 100 : 0
-    
-    setMetrics(prev => ({
-      ...prev,
-      reactQueryCacheSize: stats.cacheSize,
-      activeQueries: stats.activeQueries,
-      cacheHitRate: Math.round(hitRate),
-      lastUpdate: new Date()
-    }))
-  }, [getQueryCacheStats])
-
-  // Track database query performance
-  const trackDatabaseQuery = useCallback(async <T>(
-    queryName: string,
-    queryFn: () => Promise<T>,
-    metadata?: Record<string, any>
-  ): Promise<{ data: T; duration: number }> => {
-    if (!isMonitoring) {
-      return { data: await queryFn(), duration: 0 }
-    }
-
-    const eventId = `db_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const startTime = performance.now()
-    
-    // Add event
-    const event: PerformanceEvent = {
-      id: eventId,
-      type: 'database_query',
-      name: queryName,
-      startTime,
-      metadata
-    }
-    
-    setEvents(prev => [...prev, event])
-    
-    try {
-      const data = await queryFn()
-      const endTime = performance.now()
-      const duration = endTime - startTime
-      
-      // Update event
-      setEvents(prev => prev.map(e => 
-        e.id === eventId 
-          ? { ...e, endTime, duration }
-          : e
-      ))
-      
-      // Update metrics
-      queryTimes.current.push(duration)
-      const newAverageQueryTime = queryTimes.current.reduce((a, b) => a + b, 0) / queryTimes.current.length
-      
-      setMetrics(prev => ({
-        ...prev,
-        databaseQueries: prev.databaseQueries + 1,
-        averageQueryTime: Math.round(newAverageQueryTime),
-        slowQueries: prev.slowQueries + (duration > 1000 ? 1 : 0),
-        lastUpdate: new Date()
-      }))
-      
-      // Log slow queries
-      if (duration > 1000) {
-        console.warn(`⚠️ Slow database query: ${queryName} took ${duration.toFixed(2)}ms`, metadata)
-      }
-      
-      return { data, duration }
-    } catch (error) {
-      const endTime = performance.now()
-      const duration = endTime - startTime
-      
-      // Update event with error
-      setEvents(prev => prev.map(e => 
-        e.id === eventId 
-          ? { ...e, endTime, duration, metadata: { ...metadata, error: true } }
-          : e
-      ))
-      
-      console.error(`❌ Database query failed: ${queryName} took ${duration.toFixed(2)}ms`, error)
-      throw error
-    }
-  }, [isMonitoring])
-
-  // Track cache hit/miss
-  const trackCacheEvent = useCallback((type: 'cache_hit' | 'cache_miss', queryKey: string) => {
-    if (!isMonitoring) return
-
-    if (type === 'cache_hit') {
-      cacheHits.current++
-    } else {
-      cacheMisses.current++
-    }
-
-    const event: PerformanceEvent = {
-      id: `cache_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type,
-      name: queryKey,
-      startTime: performance.now(),
-      metadata: { queryKey }
-    }
-
-    setEvents(prev => [...prev, event])
-    updateQueryMetrics()
-  }, [isMonitoring, updateQueryMetrics])
-
-  // Track component render performance
-  const trackComponentRender = useCallback((componentName: string, metadata?: Record<string, any>) => {
-    if (!isMonitoring) return
-
-    const eventId = `render_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const startTime = performance.now()
-    
-    const event: PerformanceEvent = {
-      id: eventId,
-      type: 'component_render',
-      name: componentName,
-      startTime,
-      metadata
-    }
-    
-    setEvents(prev => [...prev, event])
-    
-    // Return cleanup function
-    return () => {
-      const endTime = performance.now()
-      const duration = endTime - startTime
-      
-      setEvents(prev => prev.map(e => 
-        e.id === eventId 
-          ? { ...e, endTime, duration }
-          : e
-      ))
-      
-      // Log slow renders
-      if (duration > 100) {
-        console.warn(`⚠️ Slow component render: ${componentName} took ${duration.toFixed(2)}ms`, metadata)
+  // 🚀 PERFORMANCE FIX: Optimized memory usage check
+  const getMemoryUsage = useCallback(() => {
+    if (typeof window !== 'undefined' && 'memory' in performance) {
+      try {
+        const memory = (performance as any).memory
+        return Math.round(memory.usedJSHeapSize / 1024 / 1024) // MB
+      } catch {
+        return 0
       }
     }
-  }, [isMonitoring])
-
-  // Track API call performance
-  const trackApiCall = useCallback(async <T>(
-    apiName: string,
-    apiCall: () => Promise<T>,
-    metadata?: Record<string, any>
-  ): Promise<{ data: T; duration: number }> => {
-    if (!isMonitoring) {
-      return { data: await apiCall(), duration: 0 }
-    }
-
-    const eventId = `api_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const startTime = performance.now()
-    
-    const event: PerformanceEvent = {
-      id: eventId,
-      type: 'api_call',
-      name: apiName,
-      startTime,
-      metadata
-    }
-    
-    setEvents(prev => [...prev, event])
-    
-    try {
-      const data = await apiCall()
-      const endTime = performance.now()
-      const duration = endTime - startTime
-      
-      // Update event
-      setEvents(prev => prev.map(e => 
-        e.id === eventId 
-          ? { ...e, endTime, duration }
-          : e
-      ))
-      
-      // Log slow API calls
-      if (duration > 2000) {
-        console.warn(`⚠️ Slow API call: ${apiName} took ${duration.toFixed(2)}ms`, metadata)
-      }
-      
-      return { data, duration }
-    } catch (error) {
-      const endTime = performance.now()
-      const duration = endTime - startTime
-      
-      // Update event with error
-      setEvents(prev => prev.map(e => 
-        e.id === eventId 
-          ? { ...e, endTime, duration, metadata: { ...metadata, error: true } }
-          : e
-      ))
-      
-      console.error(`❌ API call failed: ${apiName} took ${duration.toFixed(2)}ms`, error)
-      throw error
-    }
-  }, [isMonitoring])
-
-  // Get performance report
-  const getPerformanceReport = useCallback(() => {
-    const completedEvents = events.filter(e => e.duration !== undefined)
-    const totalEvents = completedEvents.length
-    
-    if (totalEvents === 0) return null
-    
-    const avgDuration = completedEvents.reduce((sum, e) => sum + (e.duration || 0), 0) / totalEvents
-    const slowEvents = completedEvents.filter(e => (e.duration || 0) > 1000).length
-    
-    return {
-      totalEvents,
-      avgDuration: Math.round(avgDuration),
-      slowEvents,
-      eventsByType: completedEvents.reduce((acc, e) => {
-        acc[e.type] = (acc[e.type] || 0) + 1
-        return acc
-      }, {} as Record<string, number>),
-      metrics,
-      queryCacheStats: getQueryCacheStats(),
-      cachePerformance: {
-        hits: cacheHits.current,
-        misses: cacheMisses.current,
-        hitRate: cacheHits.current + cacheMisses.current > 0 
-          ? (cacheHits.current / (cacheHits.current + cacheMisses.current)) * 100 
-          : 0
-      }
-    }
-  }, [events, metrics, getQueryCacheStats])
-
-  // Clear performance data
-  const clearPerformanceData = useCallback(() => {
-    setEvents([])
-    queryTimes.current = []
-    cacheHits.current = 0
-    cacheMisses.current = 0
-    setMetrics({
-      pageLoadTime: 0,
-      databaseQueries: 0,
-      averageQueryTime: 0,
-      slowQueries: 0,
-      memoryUsage: 0,
-      bundleSize: 0,
-      lastUpdate: new Date(),
-      reactQueryCacheSize: 0,
-      activeQueries: 0,
-      cacheHitRate: 0
-    })
+    return 0
   }, [])
 
-  // Auto-start monitoring on mount
-  useEffect(() => {
-    startMonitoring()
+  // 🚀 PERFORMANCE FIX: Debounced event tracking
+  const trackEvent = useCallback((type: PerformanceEvent['type'], name: string, metadata?: Record<string, any>) => {
+    if (!isMonitoring) return
     
-    // Auto-stop monitoring after 30 seconds
+    const event: PerformanceEvent = {
+      id: `${type}-${Date.now()}-${Math.random()}`,
+      type,
+      name,
+      startTime: performance.now(),
+      metadata
+    }
+    
+    setEvents(prev => {
+      // 🚀 MEMORY LEAK FIX: Limit events array to prevent memory growth
+      const newEvents = [...prev, event].slice(-100) // Keep only last 100 events
+      return newEvents
+    })
+  }, [isMonitoring])
+
+  // 🚀 PERFORMANCE FIX: Optimized event completion
+  const completeEvent = useCallback((eventId: string, metadata?: Record<string, any>) => {
+    if (!isMonitoring) return
+    
+    setEvents(prev => prev.map(event => {
+      if (event.id === eventId && !event.endTime) {
+        const endTime = performance.now()
+        const duration = endTime - event.startTime
+        
+        // 🚀 MEMORY LEAK FIX: Only track slow events to reduce memory usage
+        if (duration > 100) { // Only track events > 100ms
+          return {
+            ...event,
+            endTime,
+            duration,
+            metadata: { ...event.metadata, ...metadata }
+          }
+        }
+      }
+      return event
+    }))
+  }, [isMonitoring])
+
+  // 🚀 PERFORMANCE FIX: Cleanup old events periodically
+  useEffect(() => {
+    if (!isMonitoring) return
+    
+    const cleanupInterval = setInterval(() => {
+      setEvents(prev => {
+        const now = Date.now()
+        // Remove events older than 5 minutes
+        return prev.filter(event => 
+          event.startTime && (now - event.startTime) < 5 * 60 * 1000
+        )
+      })
+    }, 30 * 1000) // Cleanup every 30 seconds
+    
+    return () => clearInterval(cleanupInterval)
+  }, [isMonitoring])
+
+  // 🚀 PERFORMANCE FIX: Start monitoring on mount with delay
+  useEffect(() => {
     const timer = setTimeout(() => {
-      stopMonitoring()
-    }, 30000)
+      startMonitoring()
+    }, 1000) // Delay start to prevent immediate overhead
     
     return () => {
       clearTimeout(timer)
@@ -371,41 +227,50 @@ export function usePerformanceMonitor() {
     }
   }, [startMonitoring, stopMonitoring])
 
-  // Update React Query metrics periodically
+  // 🚀 PERFORMANCE FIX: Throttled metrics update effect
   useEffect(() => {
-    const interval = setInterval(() => {
-      updateQueryMetrics()
-    }, 5000) // Update every 5 seconds
-
-    return () => clearInterval(interval)
-  }, [updateQueryMetrics])
-
-  // Log performance summary periodically
-  useEffect(() => {
-    if (metrics.databaseQueries > 0 && metrics.databaseQueries % 10 === 0) {
-
-    }
-  }, [metrics])
+    if (!isMonitoring) return
+    
+    const intervalId = setInterval(throttledUpdateMetrics, THROTTLE_DELAY)
+    return () => clearInterval(intervalId)
+  }, [isMonitoring, throttledUpdateMetrics])
 
   return {
-    // State
     metrics,
     events,
     isMonitoring,
-    
-    // Actions
     startMonitoring,
     stopMonitoring,
-    trackDatabaseQuery,
-    trackComponentRender,
-    trackApiCall,
-    trackCacheEvent,
-    getPerformanceReport,
-    clearPerformanceData,
-    
-    // React Query specific
+    trackEvent,
+    completeEvent,
     getQueryCacheStats,
-    updateQueryMetrics
+    getMemoryUsage,
+    // 🚀 PERFORMANCE FIX: Simplified performance report
+    getPerformanceReport: useCallback(() => {
+      const queryStats = getQueryCacheStats()
+      const memory = getMemoryUsage()
+      
+      return {
+        pageLoadTime: metrics.pageLoadTime,
+        databaseQueries: metrics.databaseQueries,
+        averageQueryTime: metrics.averageQueryTime,
+        slowQueries: metrics.slowQueries,
+        memoryUsage: memory,
+        reactQueryCacheSize: queryStats.cacheSize,
+        activeQueries: queryStats.activeQueries,
+        lastUpdate: metrics.lastUpdate
+      }
+    }, [metrics, getQueryCacheStats, getMemoryUsage]),
+    // 🚀 PERFORMANCE FIX: Clear performance data with limits
+    clearPerformanceData: useCallback(() => {
+      setEvents([])
+      setMetrics(prev => ({
+        ...prev,
+        databaseQueries: 0,
+        slowQueries: 0,
+        averageQueryTime: 0
+      }))
+    }, [])
   }
 }
 

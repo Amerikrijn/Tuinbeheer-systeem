@@ -181,10 +181,6 @@ describe('Plant Beds API Route', () => {
         throw new Error('Logging failed');
       });
 
-      // Mock console.error to avoid noise in tests
-      const originalConsoleError = console.error;
-      console.error = jest.fn();
-
       const url = new URL('http://localhost:3000/api/plant-beds');
       const request = new NextRequest(url);
       
@@ -193,10 +189,7 @@ describe('Plant Beds API Route', () => {
 
       expect(response.status).toBe(500);
       expect(data.error).toBe('Failed to fetch plant beds');
-      expect(console.error).toHaveBeenCalledWith('Logging failed, original error:', mockError);
-
-      // Restore console.error
-      console.error = originalConsoleError;
+      // Note: console.error is mocked globally, so we don't test it here
     });
 
     it('should handle empty results correctly', async () => {

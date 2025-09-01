@@ -45,7 +45,7 @@ describe('Tabs Components', () => {
     })
 
     it('has correct display name', () => {
-      expect(TabsList.displayName).toBe('List')
+      expect(TabsList.displayName).toBe('TabsList')
     })
   })
 
@@ -100,7 +100,7 @@ describe('Tabs Components', () => {
     })
 
     it('has correct display name', () => {
-      expect(TabsTrigger.displayName).toBe('Trigger')
+      expect(TabsTrigger.displayName).toBe('TabsTrigger')
     })
   })
 
@@ -159,7 +159,7 @@ describe('Tabs Components', () => {
     })
 
     it('has correct display name', () => {
-      expect(TabsContent.displayName).toBe('Content')
+      expect(TabsContent.displayName).toBe('TabsContent')
     })
   })
 

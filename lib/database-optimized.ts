@@ -304,7 +304,7 @@ export async function getDashboardStatsOptimized(gardenId?: string): Promise<{
 
     return stats
   } catch (error) {
-
+    console.error('❌ Dashboard stats error:', error)
     return {
       totalGardens: 0,
       totalPlantBeds: 0,
@@ -340,13 +340,13 @@ export async function updatePlantBedPositionsBatch(updates: Array<{
       })
 
     if (error) {
-
+      console.error('❌ Batch update failed:', error.message)
       return false
     }
 
     return true
   } catch (error) {
-
+    console.error('❌ Batch update error:', error)
     return false
   }
 }
@@ -370,25 +370,18 @@ export async function measureQueryPerformance<T>(
     
     // Log performance metrics
     if (duration > 1000) {
-
+      console.warn(`⚠️ Slow query: ${queryName} took ${duration.toFixed(2)}ms`)
     } else if (duration > 500) {
-
+      console.info(`ℹ️ Medium query: ${queryName} took ${duration.toFixed(2)}ms`)
     } else {
-
+      console.debug(`✅ Fast query: ${queryName} took ${duration.toFixed(2)}ms`)
     }
     
     return { data, duration }
   } catch (error) {
     const duration = performance.now() - start
 
-    return {
-      oldDuration,
-      newDuration,
-      improvement: ((oldDuration - newDuration) / oldDuration * 100).toFixed(1)
-    }
-  } catch (error) {
-
-    return null
+    return { data: null as any, duration }
   }
 }
 
@@ -406,6 +399,5 @@ export {
   getLogbookEntriesOptimized,
   getDashboardStatsOptimized,
   updatePlantBedPositionsBatch,
-  measureQueryPerformance,
-  comparePerformance
+  measureQueryPerformance
 }

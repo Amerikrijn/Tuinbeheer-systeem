@@ -46,11 +46,9 @@ const customJestConfig = {
   // Handle async operations better
   forceExit: true,
   
-  // Clear mocks between tests
-  clearMocks: true,
+
   
-  // Reset modules between tests
-  resetModules: true,
+
   
   // JSDOM specific options
   testEnvironmentOptions: {

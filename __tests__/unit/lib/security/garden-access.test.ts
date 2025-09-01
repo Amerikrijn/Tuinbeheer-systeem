@@ -5,10 +5,10 @@ describe('Garden Access Security', () => {
   let mockAdmin: User
 
   beforeEach(() => {
-    jest.clearAllMocks()
-    jest.spyOn(console, 'log').mockImplementation(() => {})
-    jest.spyOn(console, 'error').mockImplementation(() => {})
-    jest.spyOn(console, 'warn').mockImplementation(() => {})
+    // Reset console mocks to use the global mocked versions
+    (console.log as jest.Mock).mockClear()
+    ;(console.error as jest.Mock).mockClear()
+    ;(console.warn as jest.Mock).mockClear()
 
     mockUser = {
       id: 'user-1',
@@ -26,7 +26,10 @@ describe('Garden Access Security', () => {
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    // Clear console mocks but don't restore them
+    (console.log as jest.Mock).mockClear()
+    ;(console.error as jest.Mock).mockClear()
+    ;(console.warn as jest.Mock).mockClear()
   })
 
   describe('validateGardenAccess', () => {

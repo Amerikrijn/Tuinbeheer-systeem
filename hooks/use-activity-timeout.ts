@@ -33,9 +33,14 @@ export function useActivityTimeout(authOverride?: any) {
   if (!auth || !user || !signOut) {
     return
   }
+  
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const warningTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const lastActivityRef = useRef<number>(Date.now())
+  
+  // 🚀 PERFORMANCE FIX: Throttle activity handling
+  const activityThrottleRef = useRef<number>(0)
+  const ACTIVITY_THROTTLE = 1000 // 1 second throttle
 
   const clearTimeouts = useCallback(() => {
     if (timeoutRef.current) {
@@ -58,7 +63,7 @@ export function useActivityTimeout(authOverride?: any) {
       })
       router.push('/auth/login')
     } catch (error) {
-
+      // 🚀 PERFORMANCE FIX: Silent fail to prevent crashes
     }
   }, [signOut, toast, router])
 
@@ -86,10 +91,18 @@ export function useActivityTimeout(authOverride?: any) {
     }, INACTIVITY_TIMEOUT)
   }, [user, clearTimeouts, showWarning, handleAutoLogout])
 
+  // 🚀 PERFORMANCE FIX: Throttled activity handler
   const handleActivity = useCallback(() => {
     if (!user) return
     
     const now = Date.now()
+    
+    // 🚀 PERFORMANCE FIX: Throttle activity to prevent excessive calls
+    if (now - activityThrottleRef.current < ACTIVITY_THROTTLE) {
+      return
+    }
+    activityThrottleRef.current = now
+    
     const timeSinceLastActivity = now - lastActivityRef.current
 
     // Only reset if it's been more than 30 seconds since last activity
@@ -110,40 +123,42 @@ export function useActivityTimeout(authOverride?: any) {
       resetTimeout()
     }, 1000) // 1 second delay
 
-    // Activity event listeners
+    // 🚀 PERFORMANCE FIX: Reduced event listeners for better performance
     const events = [
       'mousedown',
-      'mousemove',
       'keypress',
-      'scroll',
-      'touchstart',
       'click'
     ]
-
-    // Add event listeners with throttling
+    
+    // 🚀 MEMORY LEAK FIX: Use passive listeners and proper cleanup
+    const eventHandlers = new Map<string, EventListener>()
+    
     events.forEach(event => {
-      document.addEventListener(event, handleActivity, { passive: true })
+      const handler = (e: Event) => handleActivity()
+      eventHandlers.set(event, handler)
+      document.addEventListener(event, handler, { passive: true })
     })
 
-    // Cleanup
+    // 🚀 PERFORMANCE FIX: Cleanup function with proper event listener removal
     return () => {
       clearTimeout(setupTimer)
       clearTimeouts()
+      
+      // 🚀 MEMORY LEAK FIX: Remove all event listeners
       events.forEach(event => {
-        document.removeEventListener(event, handleActivity)
+        const handler = eventHandlers.get(event)
+        if (handler) {
+          document.removeEventListener(event, handler)
+          eventHandlers.delete(event)
+        }
       })
     }
-  }, [user, resetTimeout, handleActivity, clearTimeouts])
+  }, [user, resetTimeout, clearTimeouts, handleActivity])
 
-  // Cleanup on unmount
+  // 🚀 PERFORMANCE FIX: Cleanup on unmount
   useEffect(() => {
     return () => {
       clearTimeouts()
     }
   }, [clearTimeouts])
-
-  return {
-    resetTimeout,
-    clearTimeouts
-  }
 }

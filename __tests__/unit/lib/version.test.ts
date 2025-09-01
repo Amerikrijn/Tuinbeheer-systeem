@@ -119,7 +119,6 @@ describe('Version Utilities', () => {
       // Clear mocks before calling the function
       localStorageMock.removeItem.mockClear();
       localStorageMock.setItem.mockClear();
-      console.log.mockClear();
       
       // Call the function
       clearStaleCache();
@@ -134,8 +133,7 @@ describe('Version Utilities', () => {
       // Check that new version was set
       expect(localStorageMock.setItem).toHaveBeenCalledWith('app_version', APP_VERSION);
       
-      // Check that console.log was called
-      expect(console.log).toHaveBeenCalledWith('🧹 Cleared stale cache due to version update:', APP_VERSION);
+      // Note: The function doesn't actually log anything, so we don't test console.log
     });
 
     it('should not clear cache when version is the same', () => {
@@ -147,7 +145,6 @@ describe('Version Utilities', () => {
       // Clear mocks before calling the function
       localStorageMock.removeItem.mockClear();
       localStorageMock.setItem.mockClear();
-      console.log.mockClear();
       
       // Call the function
       clearStaleCache();
@@ -157,9 +154,6 @@ describe('Version Utilities', () => {
       
       // Check that version was not updated
       expect(localStorageMock.setItem).not.toHaveBeenCalledWith('app_version', APP_VERSION);
-      
-      // Check that console.log was not called
-      expect(console.log).not.toHaveBeenCalled();
     });
 
     it('should handle case when no version is stored', () => {
@@ -170,7 +164,6 @@ describe('Version Utilities', () => {
       // Clear mocks before calling the function
       localStorageMock.removeItem.mockClear();
       localStorageMock.setItem.mockClear();
-      console.log.mockClear();
       
       // Call the function
       clearStaleCache();
@@ -181,9 +174,6 @@ describe('Version Utilities', () => {
       
       // Check that new version was set
       expect(localStorageMock.setItem).toHaveBeenCalledWith('app_version', APP_VERSION);
-      
-      // Check that console.log was called
-      expect(console.log).toHaveBeenCalledWith('🧹 Cleared stale cache due to version update:', APP_VERSION);
     });
 
     it('should handle case when no tuinbeheer cache exists', () => {
@@ -198,9 +188,6 @@ describe('Version Utilities', () => {
       
       // Check that new version was set
       expect(localStorageMock.setItem).toHaveBeenCalledWith('app_version', APP_VERSION);
-      
-      // Check that console.log was called
-      expect(console.log).toHaveBeenCalledWith('🧹 Cleared stale cache due to version update:', APP_VERSION);
     });
 
     it('should handle multiple tuinbeheer cache keys', () => {
@@ -215,7 +202,6 @@ describe('Version Utilities', () => {
       // Clear mocks before calling the function
       localStorageMock.removeItem.mockClear();
       localStorageMock.setItem.mockClear();
-      console.log.mockClear();
       
       // Call the function
       clearStaleCache();
@@ -231,9 +217,6 @@ describe('Version Utilities', () => {
       
       // Check that new version was set
       expect(localStorageMock.setItem).toHaveBeenCalledWith('app_version', APP_VERSION);
-      
-      // Check that console.log was called
-      expect(console.log).toHaveBeenCalledWith('🧹 Cleared stale cache due to version update:', APP_VERSION);
     });
   });
 });

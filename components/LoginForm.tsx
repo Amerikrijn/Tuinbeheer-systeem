@@ -71,8 +71,8 @@ export function LoginForm({ onLogin, loading = false, error = '', disabled = fal
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Inloggen</CardTitle>
-        <CardDescription>
+        <CardTitle data-testid="card-title">Inloggen</CardTitle>
+        <CardDescription data-testid="card-description">
           Voer je gegevens in om toegang te krijgen tot het systeem
         </CardDescription>
       </CardHeader>

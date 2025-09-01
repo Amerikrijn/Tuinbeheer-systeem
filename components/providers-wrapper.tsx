@@ -13,20 +13,29 @@ export function ProvidersWrapper({ children }: ProvidersWrapperProps) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+        // 🚀 PERFORMANCE FIX: Reduced stale time to prevent memory accumulation
+        staleTime: 2 * 60 * 1000, // 2 minutes (was 5 minutes)
+        // 🚀 MEMORY LEAK FIX: Faster garbage collection
+        gcTime: 5 * 60 * 1000, // 5 minutes (was 10 minutes)
         retry: 2,
+        // 🚀 PERFORMANCE FIX: Disable unnecessary refetches
         refetchOnWindowFocus: false,
-        // Disable retries on the server to avoid infinite loops
+        // 🚀 MEMORY LEAK FIX: Disable retries on mount to prevent loops
         retryOnMount: false,
-        // Disable refetching on window focus to improve performance
-        refetchOnWindowFocus: false,
-        // Disable refetching on reconnect to avoid unnecessary requests
+        // 🚀 PERFORMANCE FIX: Disable refetching on reconnect
         refetchOnReconnect: false,
+        // 🚀 NEW: Memory management for admin users
+        networkMode: 'online',
+        // 🚀 NEW: Prevent infinite query accumulation
+        maxRetries: 2,
+        // 🚀 NEW: Better error handling
+        throwOnError: false,
       },
       mutations: {
-        // Disable retries for mutations to avoid unexpected behavior
+        // 🚀 PERFORMANCE FIX: Disable retries for mutations
         retry: false,
+        // 🚀 NEW: Better mutation error handling
+        throwOnError: false,
       },
     },
   }))
