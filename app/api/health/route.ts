@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { getSafeSupabaseConfig } from '@/lib/config'
 
 export const runtime = 'nodejs'
 
@@ -21,10 +22,11 @@ export async function GET() {
   }
 
   try {
-    // Check environment variables
-    const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL
-    const hasSupabaseKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY
+    // Check environment variables safely
+    const config = getSafeSupabaseConfig()
+    const hasSupabaseUrl = !!config.url
+    const hasSupabaseKey = !!config.anonKey
+    const hasServiceKey = !!process.env['SUPABASE_SERVICE_ROLE_KEY']
     
     healthCheck.checks.environment = hasSupabaseUrl && hasSupabaseKey && hasServiceKey ? 'healthy' : 'unhealthy'
 

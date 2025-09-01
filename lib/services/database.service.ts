@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { databaseLogger, AuditLogger, PerformanceLogger } from '../logger'
+import { connectionManager } from './connection-manager'
 import type { 
   Tuin, 
   Plantvak, 
@@ -53,28 +54,19 @@ export class NotFoundError extends Error {
   }
 }
 
-// Connection validation with retry logic
-async function validateConnection(retries = 3): Promise<void> {
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      const { error } = await supabase.from('gardens').select('count').limit(1)
-      if (!error) {
-        databaseLogger.debug('Database connection validated successfully', { attempt })
-        return
+// Connection validation with connection manager
+async function validateConnection(): Promise<void> {
+  try {
+    await connectionManager.executeQuery(async (connection) => {
+      const { error } = await connection.from('gardens').select('count').limit(1)
+      if (error) {
+        throw new DatabaseError('Database connection validation failed', error.code, error)
       }
-      
-      if (attempt === retries) {
-        throw new DatabaseError('Database connection failed after retries', error.code, error)
-      }
-      
-      // Wait before retry (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
-    } catch (error) {
-      if (attempt === retries) {
-        databaseLogger.error('Unable to connect to database', error as Error, { attempts: retries })
-        throw new DatabaseError('Unable to connect to database', 'CONNECTION_ERROR', error)
-      }
-    }
+      databaseLogger.debug('Database connection validated successfully')
+    })
+  } catch (error) {
+    databaseLogger.error('Unable to connect to database', error as Error)
+    throw new DatabaseError('Unable to connect to database', 'CONNECTION_ERROR', error)
   }
 }
 

@@ -1,29 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getSafeSupabaseConfig } from '../../../../lib/config';
 
 // Force dynamic rendering since this route handles query parameters
 export const dynamic = 'force-dynamic';
 
-// 🏦 BANKING-GRADE: Validate required environment variables
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  throw new Error('NEXT_PUBLIC_SUPABASE_URL is required')
-}
-
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-
-}
-
-// Banking-grade admin client with service role
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
+// 🏦 BANKING-GRADE: Safe environment variable handling
+function getSupabaseAdminClient() {
+  const config = getSafeSupabaseConfig()
+  // Config is always available now, even during build time
+  
+  if (!process.env['SUPABASE_SERVICE_ROLE_KEY']) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required')
   }
-)
+
+  return createClient(
+    config.url,
+    process.env['SUPABASE_SERVICE_ROLE_KEY'],
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+}
 
 function localAuditLog(action: string, details: any) {
   console.log(`🔒 ADMIN AUDIT: ${action}`, {
@@ -36,6 +37,7 @@ function localAuditLog(action: string, details: any) {
 // GET - List deleted users
 export async function GET() {
   try {
+    const supabaseAdmin = getSupabaseAdminClient()
     const { data: deletedUsers, error } = await supabaseAdmin
       .from('users')
       .select('id, email, full_name, role, updated_at')
@@ -59,6 +61,7 @@ export async function GET() {
 // PUT - Restore user
 export async function PUT(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdminClient()
     const { userId } = await request.json()
 
     if (!userId) {
@@ -114,6 +117,7 @@ export async function PUT(request: NextRequest) {
 // DELETE - Permanent delete (banking compliance: only if no dependencies)
 export async function DELETE(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdminClient()
     const userId = request.nextUrl.searchParams.get('userId')
 
     if (!userId) {

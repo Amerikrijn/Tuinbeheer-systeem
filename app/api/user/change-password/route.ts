@@ -1,20 +1,31 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { getSafeSupabaseConfig } from '../../../../lib/config'
 
 // Server-side admin client with service role key
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
+function getSupabaseAdminClient() {
+  const config = getSafeSupabaseConfig()
+  // Config is always available now, even during build time
+  
+  if (!process.env['SUPABASE_SERVICE_ROLE_KEY']) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required')
   }
-)
+
+  return createClient(
+    config.url,
+    process.env['SUPABASE_SERVICE_ROLE_KEY'],
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdminClient()
     const { userId, currentPassword, newPassword } = await request.json()
 
     // Validate input

@@ -20,10 +20,12 @@ import { useAuth } from '@/hooks/use-supabase-auth'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PerformanceDashboard } from '@/components/performance/performance-dashboard'
 import { useServiceWorker } from '@/hooks/use-service-worker'
+import { useConnectionMonitor } from '@/hooks/use-connection-monitor'
 
 export default function AdminPage() {
   const { user, isAdmin } = useAuth()
   const serviceWorker = useServiceWorker()
+  const connectionMonitor = useConnectionMonitor()
   
   // 🚀 PERFORMANCE FIX: Lazy load performance dashboard
   const [showPerformanceDashboard, setShowPerformanceDashboard] = React.useState(false)
@@ -97,13 +99,15 @@ export default function AdminPage() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Performance</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Database Connections</CardTitle>
+              <Database className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">98%</div>
+              <div className={`text-2xl font-bold ${connectionMonitor.getHealthColor()}`}>
+                {connectionMonitor.stats.activeConnections}/3
+              </div>
               <p className="text-xs text-muted-foreground">
-                +2% deze week
+                {connectionMonitor.getHealthStatus()} • {connectionMonitor.stats.totalQueries} queries
               </p>
             </CardContent>
           </Card>
@@ -151,6 +155,76 @@ export default function AdminPage() {
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 🚨 CRITICAL FIX: Database Connection Management */}
+        <div className="mb-8">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Database className="h-5 w-5" />
+                    Database Connection Management
+                  </CardTitle>
+                  <CardDescription>
+                    Monitor en beheer Supabase database connecties om app slowdown te voorkomen
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={connectionMonitor.forceCleanup}
+                  className="flex items-center gap-2"
+                  disabled={connectionMonitor.stats.activeConnections === 0}
+                >
+                  <HardDrive className="h-4 w-4" />
+                  Force Cleanup
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="text-center p-4 border rounded-lg">
+                  <div className={`text-2xl font-bold ${connectionMonitor.getHealthColor()}`}>
+                    {connectionMonitor.stats.activeConnections}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Active Connections</p>
+                  <p className="text-xs text-muted-foreground">Max: 3 (Supabase Free)</p>
+                </div>
+                
+                <div className="text-center p-4 border rounded-lg">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {connectionMonitor.stats.totalQueries}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Total Queries</p>
+                  <p className="text-xs text-muted-foreground">Session</p>
+                </div>
+                
+                <div className="text-center p-4 border rounded-lg">
+                  <div className={`text-2xl font-bold ${connectionMonitor.stats.failedQueries > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {connectionMonitor.stats.failedQueries}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Failed Queries</p>
+                  <p className="text-xs text-muted-foreground">Errors</p>
+                </div>
+              </div>
+              
+              <div className="mt-4 p-3 bg-muted rounded-lg">
+                <p className="text-sm font-medium mb-2">Connection Status:</p>
+                <div className="flex items-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    connectionMonitor.isHealthy ? 'bg-green-500' : 'bg-red-500'
+                  }`} />
+                  <span className="text-sm">
+                    {connectionMonitor.isHealthy ? 'Healthy' : 'Issues Detected'}
+                  </span>
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    Last update: {connectionMonitor.lastUpdate.toLocaleTimeString()}
+                  </span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

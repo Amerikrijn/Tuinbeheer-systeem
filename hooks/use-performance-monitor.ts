@@ -25,7 +25,7 @@ interface PerformanceEvent {
   startTime: number
   endTime?: number
   duration?: number
-  metadata?: Record<string, any>
+  metadata: Record<string, any> | undefined
 }
 
 // Performance monitoring hook
@@ -215,25 +215,25 @@ export function usePerformanceMonitor() {
     return () => clearInterval(cleanupInterval)
   }, [isMonitoring])
 
-  // 🚀 PERFORMANCE FIX: Start monitoring on mount with delay
+  // 🚨 CRITICAL FIX: Disable performance monitoring to prevent overhead
   useEffect(() => {
-    const timer = setTimeout(() => {
-      startMonitoring()
-    }, 1000) // Delay start to prevent immediate overhead
+    // Performance monitoring disabled to prevent app slowdown
+    // Will be re-enabled once database connection issues are resolved
+    console.log('⚠️ Performance monitoring disabled to prevent app slowdown')
     
     return () => {
-      clearTimeout(timer)
-      stopMonitoring()
+      // Cleanup without starting monitoring
     }
-  }, [startMonitoring, stopMonitoring])
+  }, [])
 
-  // 🚀 PERFORMANCE FIX: Throttled metrics update effect
+  // 🚨 CRITICAL FIX: Disable metrics updates to prevent overhead
   useEffect(() => {
-    if (!isMonitoring) return
-    
-    const intervalId = setInterval(throttledUpdateMetrics, THROTTLE_DELAY)
-    return () => clearInterval(intervalId)
-  }, [isMonitoring, throttledUpdateMetrics])
+    // Metrics updates disabled to prevent app slowdown
+    // Will be re-enabled once database connection issues are resolved
+    return () => {
+      // Cleanup without starting intervals
+    }
+  }, [])
 
   return {
     metrics,

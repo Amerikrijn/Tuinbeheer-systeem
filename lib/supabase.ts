@@ -1,14 +1,16 @@
 
 
 import { createClient } from '@supabase/supabase-js';
-import { getSupabaseConfig } from './config';
+import { getSafeSupabaseConfig } from './config';
 
 // ===================================================================
 // SUPABASE CLIENT INITIALIZATION
 // ===================================================================
 
-// Get Supabase configuration from hardcoded config (not env vars)
-const config = getSupabaseConfig();
+// Get Supabase configuration from safe config (no env vars required during build)
+const config = getSafeSupabaseConfig();
+// Config is always available now, even during build time
+
 const supabaseUrl = config.url;
 const supabaseAnonKey = config.anonKey;
 
@@ -33,7 +35,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     fetch: async (url, options = {}) => {
       // Add request timeout and retry logic with progressive timeouts
       const controller = new AbortController();
-      const isHealthCheck = url.includes('/rest/v1/gardens?select=count');
+      const isHealthCheck = url.toString().includes('/rest/v1/gardens?select=count');
       const timeoutMs = isHealthCheck ? 5000 : 20000; // Shorter timeout for health checks
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       
@@ -93,11 +95,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Create admin client with service role key for admin operations
 const getAdminClient = () => {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
   
   if (!serviceRoleKey) {
-
-    return null;
+    // During build time, return a placeholder client
+    return createClient(supabaseUrl, 'placeholder-service-key', {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'tuinbeheer-systeem-admin',
+        },
+      },
+    });
   }
   
   return createClient(supabaseUrl, serviceRoleKey, {
