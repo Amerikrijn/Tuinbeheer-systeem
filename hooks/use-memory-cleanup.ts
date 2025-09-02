@@ -13,10 +13,10 @@ interface MemoryCleanupOptions {
 
 export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
   const {
-    enableGarbageCollection = true,
+    enableGarbageCollection = false, // SUPABASE FREE TIER: Disabled to reduce overhead
     clearLocalStorage = false,
     clearSessionStorage = false,
-    logMemoryUsage = true
+    logMemoryUsage = false // SUPABASE FREE TIER: Disabled to reduce overhead
   } = options
 
   const router = useRouter()

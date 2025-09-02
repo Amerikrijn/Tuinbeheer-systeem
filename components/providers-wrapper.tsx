@@ -13,58 +13,28 @@ export function ProvidersWrapper({ children }: ProvidersWrapperProps) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 2 * 60 * 1000, // 2 minutes - OPTIMIZED for admin interfaces
-        gcTime: 5 * 60 * 1000, // 5 minutes - OPTIMIZED to prevent memory buildup
-        retry: 2,
+        staleTime: 10 * 60 * 1000, // 10 minutes - CONSERVATIVE for Supabase Free Tier
+        gcTime: 30 * 60 * 1000, // 30 minutes - CONSERVATIVE to reduce database calls
+        retry: 1, // Reduced retries for Free Tier
         refetchOnWindowFocus: false,
         retryOnMount: false,
         refetchOnReconnect: false,
-        // PERFORMANCE OPTIMIZATION: Add query timeout
+        // SUPABASE FREE TIER OPTIMIZATION: Conservative settings
         networkMode: 'online',
-        maxRetries: 2,
+        maxRetries: 1,
         throwOnError: false,
       },
       mutations: {
         retry: false,
-        // PERFORMANCE OPTIMIZATION: Add mutation timeout
+        // SUPABASE FREE TIER OPTIMIZATION: Conservative settings
         networkMode: 'online',
         throwOnError: false,
       },
     },
   }))
 
-  // PERFORMANCE OPTIMIZATION: Add cache cleanup on unmount
-  useEffect(() => {
-    return () => {
-      // Clean up all queries and mutations when component unmounts
-      queryClient.clear()
-    }
-  }, [queryClient])
-
-  // PERFORMANCE OPTIMIZATION: Periodic cache cleanup
-  useEffect(() => {
-    const cleanupInterval = setInterval(() => {
-      const queries = queryClient.getQueryCache().getAll()
-      const mutations = queryClient.getMutationCache().getAll()
-      
-      // Remove queries that haven't been accessed in 10 minutes
-      const cutoffTime = Date.now() - (10 * 60 * 1000)
-      queries.forEach(query => {
-        if (query.state.dataUpdatedAt < cutoffTime) {
-          queryClient.removeQueries({ queryKey: query.queryKey })
-        }
-      })
-      
-      // Remove old mutations
-      mutations.forEach(mutation => {
-        if (mutation.state.submittedAt && mutation.state.submittedAt < cutoffTime) {
-          queryClient.removeQueries({ queryKey: mutation.options.mutationKey })
-        }
-      })
-    }, 5 * 60 * 1000) // Every 5 minutes
-
-    return () => clearInterval(cleanupInterval)
-  }, [queryClient])
+  // SUPABASE FREE TIER OPTIMIZATION: Conservative cache management
+  // Removed aggressive cache cleanup to reduce database calls
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -45,7 +45,7 @@ function auditLog(action: string, details: any) {
 // GET - List all active users
 export async function GET() {
   try {
-    const supabaseAdmin = supabaseAdmin
+    const supabaseAdmin = getSupabaseAdminClient()
     const { data: users, error } = await supabaseAdmin
       .from('users')
       .select('id, email, full_name, role, status, created_at, last_login, force_password_change')

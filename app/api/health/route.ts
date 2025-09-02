@@ -43,7 +43,7 @@ export async function GET() {
 
     // Test database connection using admin client
     try {
-      const supabase = supabaseAdmin
+      const supabase = getSupabaseAdminClient()
       const { error } = await supabase
         .from('users')
         .select('count')

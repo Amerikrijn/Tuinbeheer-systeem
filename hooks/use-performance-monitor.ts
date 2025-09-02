@@ -53,13 +53,17 @@ export function usePerformanceMonitor() {
   // React Query client
   const queryClient = useQueryClient()
 
-  // Start monitoring - PERFORMANCE OPTIMIZED: Reduced overhead
+  // Start monitoring - SUPABASE FREE TIER OPTIMIZATION: Disabled to reduce overhead
   const startMonitoring = useCallback(() => {
+    // DISABLED for Supabase Free Tier to reduce performance overhead
+    setIsMonitoring(false)
+    return
+    
     setIsMonitoring(true)
     pageLoadStart.current = performance.now()
     
-    // PERFORMANCE OPTIMIZATION: Only monitor memory if needed
-    if (typeof window !== 'undefined' && 'memory' in performance && process.env.NODE_ENV === 'development') {
+    // SUPABASE FREE TIER OPTIMIZATION: Disabled memory monitoring
+    if (false && typeof window !== 'undefined' && 'memory' in performance && process.env.NODE_ENV === 'development') {
       const memory = (performance as any).memory
       setMetrics(prev => ({
         ...prev,
