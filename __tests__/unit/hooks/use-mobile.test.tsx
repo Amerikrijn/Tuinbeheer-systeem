@@ -1,22 +1,36 @@
 import { renderHook, act } from '@testing-library/react'
 import { useIsMobile } from '@/hooks/use-mobile'
 
+// Mock window object for Node.js environment
+const mockWindow = {
+  matchMedia: jest.fn(),
+  addEventListener: jest.fn(),
+  removeEventListener: jest.fn(),
+  innerWidth: 1024
+}
+
+// Set up global window mock
+Object.defineProperty(global, 'window', {
+  value: mockWindow,
+  writable: true
+})
+
 // Mock window.matchMedia
 const mockMatchMedia = jest.fn()
 const mockAddEventListener = jest.fn()
 const mockRemoveEventListener = jest.fn()
 
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(mockWindow, 'matchMedia', {
   writable: true,
   value: mockMatchMedia
 })
 
-Object.defineProperty(window, 'addEventListener', {
+Object.defineProperty(mockWindow, 'addEventListener', {
   writable: true,
   value: mockAddEventListener
 })
 
-Object.defineProperty(window, 'removeEventListener', {
+Object.defineProperty(mockWindow, 'removeEventListener', {
   writable: true,
   value: mockRemoveEventListener
 })
@@ -29,7 +43,7 @@ describe('useIsMobile hook', () => {
     jest.clearAllMocks()
     
     // Reset window.innerWidth
-    Object.defineProperty(window, 'innerWidth', {
+    Object.defineProperty(mockWindow, 'innerWidth', {
       writable: true,
       value: 1024
     })

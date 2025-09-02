@@ -14,6 +14,27 @@ Object.defineProperty(global, 'crypto', {
   writable: true
 })
 
+// Mock environment variables
+process.env['SUPABASE_SERVICE_ROLE_KEY'] = 'test-service-key'
+
+// Mock Supabase admin client
+jest.mock('@/lib/config', () => ({
+  getSafeSupabaseConfig: jest.fn(() => ({
+    url: 'https://test.supabase.co',
+    anonKey: 'test-anon-key'
+  }))
+}))
+
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(() => ({
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        limit: jest.fn(() => Promise.resolve({ error: null }))
+      }))
+    }))
+  }))
+}))
+
 describe('Health API Integration', () => {
   // Increase timeout for integration tests
   jest.setTimeout(30000)

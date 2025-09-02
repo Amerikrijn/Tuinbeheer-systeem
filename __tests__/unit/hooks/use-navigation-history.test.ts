@@ -1,6 +1,20 @@
 import { renderHook, act } from '@testing-library/react'
 import { useNavigationHistory } from '@/hooks/use-navigation-history'
 
+// Mock window object for Node.js environment
+const mockWindow = {
+  history: {
+    back: jest.fn(),
+    length: 3
+  }
+}
+
+// Set up global window mock
+Object.defineProperty(global, 'window', {
+  value: mockWindow,
+  writable: true
+})
+
 // Mock Next.js router
 const mockPush = jest.fn()
 const mockRouter = {
@@ -13,7 +27,7 @@ jest.mock('next/navigation', () => ({
 
 // Mock window.history
 const mockHistoryBack = jest.fn()
-Object.defineProperty(window, 'history', {
+Object.defineProperty(mockWindow, 'history', {
   value: {
     back: mockHistoryBack,
     length: 3
@@ -25,7 +39,7 @@ describe('useNavigationHistory hook', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     // Reset history length
-    Object.defineProperty(window.history, 'length', {
+    Object.defineProperty(mockWindow.history, 'length', {
       value: 3,
       writable: true
     })

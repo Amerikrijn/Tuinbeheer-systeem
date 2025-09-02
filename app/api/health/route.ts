@@ -1,7 +1,24 @@
 import { NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+import { getSafeSupabaseConfig } from '@/lib/config'
 
 export const runtime = 'nodejs'
+
+function getSupabaseAdminClient() {
+  const config = getSafeSupabaseConfig()
+  const serviceKey = process.env['SUPABASE_SERVICE_ROLE_KEY'] || ''
+  
+  return createClient(
+    config.url,
+    serviceKey,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
+  )
+}
 
 export async function GET() {
   const startTime = Date.now()
