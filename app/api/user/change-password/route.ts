@@ -1,20 +1,27 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
+import { getSafeSupabaseConfig } from '@/lib/config'
 
 // Server-side admin client with service role key
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
+function getSupabaseAdminClient() {
+  const config = getSafeSupabaseConfig()
+  const serviceKey = process.env['SUPABASE_SERVICE_ROLE_KEY'] || ''
+  
+  return createClient(
+    config.url,
+    serviceKey,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
     }
-  }
-)
+  )
+}
 
 export async function POST(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdminClient()
     const { userId, currentPassword, newPassword } = await request.json()
 
     // Validate input

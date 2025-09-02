@@ -2452,10 +2452,10 @@ export default function PlantBedViewPage() {
                                 </div>
                               </div>
                             )}
-                            {flower.plant_height && (
+                            {flower.height && (
                               <div className="flex justify-between">
                                 <span>Hoogte:</span>
-                                <span>{flower.plant_height}</span>
+                                <span>{flower.height}</span>
                               </div>
                             )}
                             {flower.plants_per_sqm && (

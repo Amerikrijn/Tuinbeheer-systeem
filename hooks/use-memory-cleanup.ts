@@ -16,7 +16,6 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
     enableGarbageCollection = true,
     clearLocalStorage = false,
     clearSessionStorage = false,
-    clearEventListeners = true,
     logMemoryUsage = true
   } = options
 
@@ -62,11 +61,17 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
     }
   }, [enableGarbageCollection])
 
-  // Clear storage
+  // Clear storage - PERFORMANCE OPTIMIZED: Selective cleanup only
   const clearStorage = useCallback(() => {
     if (clearLocalStorage && typeof window !== 'undefined') {
       try {
-        localStorage.clear()
+        // PERFORMANCE OPTIMIZATION: Only clear tuinbeheer-related items, not everything
+        const keys = Object.keys(localStorage)
+        keys.forEach(key => {
+          if (key.startsWith('tuinbeheer_') || key.includes('tuinbeheer')) {
+            localStorage.removeItem(key)
+          }
+        })
 
       } catch (error) {
 
@@ -75,7 +80,13 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
 
     if (clearSessionStorage && typeof window !== 'undefined') {
       try {
-        sessionStorage.clear()
+        // PERFORMANCE OPTIMIZATION: Only clear tuinbeheer-related items
+        const keys = Object.keys(sessionStorage)
+        keys.forEach(key => {
+          if (key.startsWith('tuinbeheer_') || key.includes('tuinbeheer')) {
+            sessionStorage.removeItem(key)
+          }
+        })
 
       } catch (error) {
 
@@ -123,8 +134,7 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
       executeCleanup()
     }
 
-    // Listen for route changes
-    router.events?.on?.('routeChangeStart', handleRouteChange)
+    // Listen for route changes - removed due to Next.js 13+ App Router compatibility
     
     // Listen for page unload
     window.addEventListener('beforeunload', handleBeforeUnload)
@@ -139,7 +149,6 @@ export function useMemoryCleanup(options: MemoryCleanupOptions = {}) {
     })
 
     return () => {
-      router.events?.off?.('routeChangeStart', handleRouteChange)
       window.removeEventListener('beforeunload', handleBeforeUnload)
       document.removeEventListener('visibilitychange', () => {})
     }

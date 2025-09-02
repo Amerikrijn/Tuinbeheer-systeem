@@ -96,7 +96,7 @@ describe('Types Index', () => {
         color: 'red',
         plant_color: 'red',
         height: 50,
-        plant_height: 50,
+        height: 50, // PERFORMANCE OPTIMIZATION: Consolidated from plant_height
         stem_length: 30,
         plants_per_sqm: 4,
         sun_preference: 'full-sun',
@@ -173,7 +173,7 @@ describe('Types Index', () => {
         color: 'blue',
         plant_color: 'blue',
         height: 60,
-        plant_height: 60,
+        height: 60, // PERFORMANCE OPTIMIZATION: Consolidated from plant_height
         plants_per_sqm: 6,
         sun_preference: 'shade',
         planting_date: '2024-02-01',

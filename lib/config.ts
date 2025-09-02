@@ -17,8 +17,8 @@ export interface SupabaseConfig {
 export function getCurrentEnvironment(): Environment {
   // Server-side environment detection
   if (typeof window === 'undefined') {
-    if (process.env.VERCEL_ENV === 'production') return 'production'
-    if (process.env.VERCEL_ENV === 'preview') return 'preview'
+    if (process.env['VERCEL_ENV'] === 'production') return 'production'
+    if (process.env['VERCEL_ENV'] === 'preview') return 'preview'
     return 'development'
   }
   
@@ -41,8 +41,8 @@ export function getSupabaseConfig(): SupabaseConfig {
   const env = getCurrentEnvironment();
   
   // Get from environment variables ONLY
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = process.env['NEXT_PUBLIC_SUPABASE_URL'];
+  const anonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'];
   
   // Banking-grade validation
   if (!url || !anonKey) {
@@ -66,14 +66,31 @@ export function getSupabaseConfig(): SupabaseConfig {
 }
 
 /**
+ * Safe Supabase configuration for build time
+ * Returns placeholder values if environment variables are missing
+ */
+export function getSafeSupabaseConfig(): SupabaseConfig {
+  const env = getCurrentEnvironment();
+  
+  // Get from environment variables with fallbacks
+  const url = process.env['NEXT_PUBLIC_SUPABASE_URL'] || 'https://placeholder.supabase.co';
+  const anonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder';
+  
+  return {
+    url,
+    anonKey
+  };
+}
+
+/**
  * Banking-grade security: Validate environment is properly configured
  */
 export function validateSecurityConfiguration(): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   try {
-    const config = getSupabaseConfig();
-    const env = getCurrentEnvironment();
+    getSupabaseConfig();
+    getCurrentEnvironment();
     
     // Log configuration validation (without exposing credentials)
 

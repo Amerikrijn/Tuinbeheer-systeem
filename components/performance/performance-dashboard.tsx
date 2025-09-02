@@ -5,17 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { 
-  TrendingUp, 
   Database, 
   Clock, 
   AlertTriangle, 
   RefreshCw,
   BarChart3,
   Activity,
-  Cpu,
   HardDrive
 } from 'lucide-react'
-import { usePerformanceMonitor, type PerformanceMetrics } from '@/hooks/use-performance-monitor'
+import { usePerformanceMonitor } from '@/hooks/use-performance-monitor'
 import { useQueryClient } from '@tanstack/react-query'
 import { useMemoryCleanup } from '@/hooks/use-memory-cleanup'
 
@@ -26,7 +24,7 @@ interface PerformanceDashboardProps {
 
 export function PerformanceDashboard({ className = '', showDetails = false }: PerformanceDashboardProps) {
   const performanceMonitor = usePerformanceMonitor()
-  const { metrics, events, getPerformanceReport, clearPerformanceData } = performanceMonitor
+  const { metrics, events, clearPerformanceData } = performanceMonitor
   
   // React Query client for cache metrics
   const queryClient = useQueryClient()
@@ -63,10 +61,10 @@ export function PerformanceDashboard({ className = '', showDetails = false }: Pe
   }
 
   // Bereken real-time statistieken
-  const completedEvents = events.filter(e => e.duration !== undefined)
-  const slowEvents = completedEvents.filter(e => (e.duration || 0) > 1000).length
+  const completedEvents = events.filter((e: any) => e.duration !== undefined)
+  const slowEvents = completedEvents.filter((e: any) => (e.duration || 0) > 1000).length
   const avgEventDuration = completedEvents.length > 0 
-    ? Math.round(completedEvents.reduce((sum, e) => sum + (e.duration || 0), 0) / completedEvents.length)
+    ? Math.round(completedEvents.reduce((sum: any, e: any) => sum + (e.duration || 0), 0) / completedEvents.length)
     : 0
 
   // Performance status bepalen

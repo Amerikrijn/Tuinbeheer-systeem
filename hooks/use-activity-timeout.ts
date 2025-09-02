@@ -57,8 +57,8 @@ export function useActivityTimeout(authOverride?: any) {
         variant: "destructive",
       })
       router.push('/auth/login')
-    } catch (error) {
-
+    } catch {
+      // Error handling - user will be redirected to login
     }
   }, [signOut, toast, router])
 

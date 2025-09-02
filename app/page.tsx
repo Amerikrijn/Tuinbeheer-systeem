@@ -17,7 +17,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { TreePine, Plus, Search, MapPin, Calendar, Leaf, AlertCircle, Settings, Loader2, CheckCircle, BookOpen, ClipboardList, User, RefreshCw, TrendingUp, Database, HardDrive, X, Trash2 } from "lucide-react"
 import { TuinService, TuinServiceEnhanced, PlantBedService } from "@/lib/services/database.service"
 import { getPlantBeds } from "@/lib/database"
-import { getPlantBedsOptimized } from "@/lib/database-optimized"
 
 import { uiLogger, AuditLogger } from "@/lib/logger"
 import type { Tuin, PlantBedWithPlants, PlantvakWithBloemen, TuinWithPlantvakken } from "@/lib/types/index"

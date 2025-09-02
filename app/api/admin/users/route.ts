@@ -4,26 +4,24 @@ import { createClient } from '@supabase/supabase-js'
 // Force dynamic rendering since this route handles query parameters
 export const dynamic = 'force-dynamic';
 
-// 🏦 BANKING-GRADE: Validate required environment variables
-if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-  throw new Error('NEXT_PUBLIC_SUPABASE_URL is required')
-}
-
-if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
-
-}
+import { getSafeSupabaseConfig } from '@/lib/config'
 
 // Banking-grade admin client with service role
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
+function getSupabaseAdminClient() {
+  const config = getSafeSupabaseConfig()
+  const serviceKey = process.env['SUPABASE_SERVICE_ROLE_KEY'] || ''
+  
+  return createClient(
+    config.url,
+    serviceKey,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
     }
-  }
-)
+  )
+}
 
 // Secure password generator
 function generateSecurePassword(): string {
@@ -47,6 +45,7 @@ function auditLog(action: string, details: any) {
 // GET - List all active users
 export async function GET() {
   try {
+    const supabaseAdmin = supabaseAdmin
     const { data: users, error } = await supabaseAdmin
       .from('users')
       .select('id, email, full_name, role, status, created_at, last_login, force_password_change')

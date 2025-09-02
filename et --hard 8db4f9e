@@ -1,0 +1,10 @@
+[33mdf9f719d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mcursor-release[m[33m, [m[1;31morigin/cursor-release[m[33m)[m Fix Multiple GoTrueClient instances by using singleton Supabase client in connection manager
+[33m202c2966[m Fix Supabase singleton pattern and cleanupSupabaseClients import error
+[33mbaf334cd[m Fix performance issues: UnifiedButton import, Supabase singleton pattern, disable performance monitoring during build
+[33mf5954449[m Implement comprehensive performance management system
+[33m8db4f9e0[m Performance fixes: Database connection management, disabled monitoring, React Query optimization
+[33m48fb5a2b[m  Merge remote changes with local test fixes - All conflicts resolved
+[33ma245bd19[m ✅ Fix all tests: Achieve 100% test success rate
+[33m2bf398e2[m Fix admin garden access management: load and display current garden access correctly
+[33mf5861b1e[m Merge pull request #445 from Amerikrijn/cursor/fix-garden-line-alignment-65b6
+[33ma8a33e2d[m[33m ([m[1;31morigin/cursor/fix-garden-line-alignment-65b6[m[33m)[m Refactor garden detail page UI with improved styling and grid rendering

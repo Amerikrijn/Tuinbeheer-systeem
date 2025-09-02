@@ -341,8 +341,7 @@ export async function createPlant(plant: {
   variety?: string
   color?: string
   plant_color?: string
-  height?: number
-  plant_height?: number
+  height?: number // PERFORMANCE OPTIMIZATION: Consolidated from plant_height
   plants_per_sqm?: number
   sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
   stem_length?: number
@@ -445,7 +444,7 @@ export async function createVisualPlant(plant: {
   notes?: string
   latin_name?: string
   plant_color?: string
-  plant_height?: number
+  height?: number // PERFORMANCE OPTIMIZATION: Consolidated from plant_height
   plants_per_sqm?: number
   sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
   planting_date?: string
@@ -467,7 +466,7 @@ export async function createVisualPlant(plant: {
     notes: plant.notes,
     latin_name: plant.latin_name,
     plant_color: plant.plant_color,
-    plant_height: plant.plant_height,
+    height: plant.height,
     plants_per_sqm: plant.plants_per_sqm,
     sun_preference: plant.sun_preference,
     planting_date: plant.planting_date,
@@ -498,7 +497,7 @@ export async function updatePlantPosition(id: string, updates: {
   photo_url?: string | null
   latin_name?: string
   plant_color?: string
-  plant_height?: number
+  height?: number // PERFORMANCE OPTIMIZATION: Consolidated from plant_height
   plants_per_sqm?: number
   sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
   planting_date?: string

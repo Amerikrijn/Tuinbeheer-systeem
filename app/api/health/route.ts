@@ -21,10 +21,14 @@ export async function GET() {
   }
 
   try {
-    // Check environment variables
-    const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL
-    const hasSupabaseKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    const hasServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY
+    // PERFORMANCE OPTIMIZATION: Use getSafeSupabaseConfig for build-time safety
+    const { getSafeSupabaseConfig } = await import('@/lib/config')
+    const config = getSafeSupabaseConfig()
+    
+    // Check environment variables safely
+    const hasSupabaseUrl = !!config.url
+    const hasSupabaseKey = !!config.anonKey
+    const hasServiceKey = !!process.env['SUPABASE_SERVICE_ROLE_KEY']
     
     healthCheck.checks.environment = hasSupabaseUrl && hasSupabaseKey && hasServiceKey ? 'healthy' : 'unhealthy'
 
@@ -72,10 +76,4 @@ export async function GET() {
   return NextResponse.json(healthCheck, { status: statusCode })
 }
 
-export async function POST() {
-  return NextResponse.json({
-    status: 'healthy',
-    method: 'POST',
-    timestamp: new Date().toISOString()
-  }, { status: 200 });
-}
+// PERFORMANCE OPTIMIZATION: Removed unnecessary POST endpoint

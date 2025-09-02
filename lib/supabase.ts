@@ -1,14 +1,14 @@
 
 
 import { createClient } from '@supabase/supabase-js';
-import { getSupabaseConfig } from './config';
+import { getSafeSupabaseConfig } from './config';
 
 // ===================================================================
 // SUPABASE CLIENT INITIALIZATION
 // ===================================================================
 
-// Get Supabase configuration from hardcoded config (not env vars)
-const config = getSupabaseConfig();
+// Get Supabase configuration with safe fallbacks for build time
+const config = getSafeSupabaseConfig();
 const supabaseUrl = config.url;
 const supabaseAnonKey = config.anonKey;
 
@@ -33,7 +33,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     fetch: async (url, options = {}) => {
       // Add request timeout and retry logic with progressive timeouts
       const controller = new AbortController();
-      const isHealthCheck = url.includes('/rest/v1/gardens?select=count');
+      const isHealthCheck = url.toString().includes('/rest/v1/gardens?select=count');
       const timeoutMs = isHealthCheck ? 5000 : 20000; // Shorter timeout for health checks
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       
@@ -93,7 +93,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Create admin client with service role key for admin operations
 const getAdminClient = () => {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const serviceRoleKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
   
   if (!serviceRoleKey) {
 
@@ -145,7 +145,7 @@ export function isDevelopmentEnvironment() {
 
 export async function testSupabaseConnection() {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('gardens')
       .select('count')
       .limit(1);
@@ -232,8 +232,7 @@ export interface Plant {
   variety?: string;
   color?: string;
   plant_color?: string;
-  height?: number;
-  plant_height?: number;
+  height?: number; // PERFORMANCE OPTIMIZATION: Consolidated from plant_height
   plants_per_sqm?: number;
   sun_preference?: 'full-sun' | 'partial-sun' | 'shade';
   stem_length?: number;

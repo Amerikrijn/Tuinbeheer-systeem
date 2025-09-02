@@ -6,7 +6,6 @@ import type {
   Bloem, 
   PlantvakWithBloemen, 
   TuinWithPlantvakken,
-  PlantvakWithPlanten,
   LogbookEntry,
   LogbookEntryWithDetails,
   LogbookEntryFormData,
@@ -736,15 +735,15 @@ export class LogbookService {
         if (!formData.notes.trim()) {
           throw new ValidationError('Notes cannot be empty', 'notes')
         }
-        updateData.notes = formData.notes.trim()
+        updateData['notes'] = formData.notes.trim()
       }
       
       if (formData.entry_date !== undefined) {
-        updateData.entry_date = formData.entry_date
+        updateData['entry_date'] = formData.entry_date
       }
       
       if (formData.photo_url !== undefined) {
-        updateData.photo_url = formData.photo_url || null
+        updateData['photo_url'] = formData.photo_url || null
       }
 
       // Only update if there are changes
@@ -1213,7 +1212,7 @@ export class TuinServiceEnhanced extends TuinService {
       // Transform data to ensure plant_beds is always an array and plants are included
       const transformedData = (data || []).map(garden => ({
         ...garden,
-        plant_beds: (garden.plant_beds || []).map(bed => ({
+        plant_beds: (garden.plant_beds || []).map((bed: any) => ({
           ...bed,
           plants: bed.plants || []
         }))
@@ -1239,14 +1238,14 @@ export class TuinServiceEnhanced extends TuinService {
         resultCount: transformedData.length,
         totalPlantBeds: transformedData.reduce((sum, garden) => sum + garden.plant_beds.length, 0),
         totalPlants: transformedData.reduce((sum, garden) => 
-          sum + garden.plant_beds.reduce((bedSum, bed) => bedSum + bed.plants.length, 0), 0)
+          sum + garden.plant_beds.reduce((bedSum: any, bed: any) => bedSum + bed.plants.length, 0), 0)
       })
       
       databaseLogger.info('Gardens with full details loaded successfully (OPTIMIZED)', { 
         count: transformedData.length,
         totalPlantBeds: transformedData.reduce((sum, garden) => sum + garden.plant_beds.length, 0),
         totalPlants: transformedData.reduce((sum, garden) => 
-          sum + garden.plant_beds.reduce((bedSum, bed) => bedSum + bed.plants.length, 0), 0),
+          sum + garden.plant_beds.reduce((bedSum: any, bed: any) => bedSum + bed.plants.length, 0), 0),
         operationId,
         performance: 'OPTIMIZED_JOIN_QUERY'
       })

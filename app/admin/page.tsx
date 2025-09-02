@@ -19,11 +19,10 @@ import Link from 'next/link'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PerformanceDashboard } from '@/components/performance/performance-dashboard'
-import { useServiceWorker } from '@/hooks/use-service-worker'
+
 
 export default function AdminPage() {
-  const { user, isAdmin } = useAuth()
-  const serviceWorker = useServiceWorker()
+  const { isAdmin } = useAuth()
 
   // Check if user is admin
   if (!isAdmin()) {

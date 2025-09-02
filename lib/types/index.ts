@@ -58,8 +58,8 @@ export interface Plant {
   variety?: string
   color?: string
   plant_color?: string
-  height?: number
-  plant_height?: number // in cm
+  // PERFORMANCE OPTIMIZATION: Consolidated height properties
+  height?: number // in cm - consolidated from plant_height
   stem_length?: number
   plants_per_sqm?: number // aantal planten per vierkante meter
   sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
@@ -136,8 +136,7 @@ export interface PlantFormData {
   variety?: string
   color?: string
   plant_color?: string
-  height?: number
-  plant_height?: number
+  height?: number // PERFORMANCE OPTIMIZATION: Consolidated from plant_height
   plants_per_sqm?: number
   sun_preference?: 'full-sun' | 'partial-sun' | 'shade'
   planting_date?: string

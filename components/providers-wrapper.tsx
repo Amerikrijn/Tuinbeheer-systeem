@@ -13,23 +13,58 @@ export function ProvidersWrapper({ children }: ProvidersWrapperProps) {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+        staleTime: 2 * 60 * 1000, // 2 minutes - OPTIMIZED for admin interfaces
+        gcTime: 5 * 60 * 1000, // 5 minutes - OPTIMIZED to prevent memory buildup
         retry: 2,
         refetchOnWindowFocus: false,
-        // Disable retries on the server to avoid infinite loops
         retryOnMount: false,
-        // Disable refetching on window focus to improve performance
-        refetchOnWindowFocus: false,
-        // Disable refetching on reconnect to avoid unnecessary requests
         refetchOnReconnect: false,
+        // PERFORMANCE OPTIMIZATION: Add query timeout
+        networkMode: 'online',
+        maxRetries: 2,
+        throwOnError: false,
       },
       mutations: {
-        // Disable retries for mutations to avoid unexpected behavior
         retry: false,
+        // PERFORMANCE OPTIMIZATION: Add mutation timeout
+        networkMode: 'online',
+        throwOnError: false,
       },
     },
   }))
+
+  // PERFORMANCE OPTIMIZATION: Add cache cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Clean up all queries and mutations when component unmounts
+      queryClient.clear()
+    }
+  }, [queryClient])
+
+  // PERFORMANCE OPTIMIZATION: Periodic cache cleanup
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      const queries = queryClient.getQueryCache().getAll()
+      const mutations = queryClient.getMutationCache().getAll()
+      
+      // Remove queries that haven't been accessed in 10 minutes
+      const cutoffTime = Date.now() - (10 * 60 * 1000)
+      queries.forEach(query => {
+        if (query.state.dataUpdatedAt < cutoffTime) {
+          queryClient.removeQueries({ queryKey: query.queryKey })
+        }
+      })
+      
+      // Remove old mutations
+      mutations.forEach(mutation => {
+        if (mutation.state.submittedAt && mutation.state.submittedAt < cutoffTime) {
+          queryClient.removeQueries({ queryKey: mutation.options.mutationKey })
+        }
+      })
+    }, 5 * 60 * 1000) // Every 5 minutes
+
+    return () => clearInterval(cleanupInterval)
+  }, [queryClient])
 
   return (
     <QueryClientProvider client={queryClient}>

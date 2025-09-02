@@ -25,7 +25,7 @@ interface PerformanceEvent {
   startTime: number
   endTime?: number
   duration?: number
-  metadata?: Record<string, any>
+  metadata: Record<string, any> | undefined
 }
 
 // Performance monitoring hook
@@ -53,13 +53,13 @@ export function usePerformanceMonitor() {
   // React Query client
   const queryClient = useQueryClient()
 
-  // Start monitoring
+  // Start monitoring - PERFORMANCE OPTIMIZED: Reduced overhead
   const startMonitoring = useCallback(() => {
     setIsMonitoring(true)
     pageLoadStart.current = performance.now()
     
-    // Monitor memory usage (browser support dependent)
-    if (typeof window !== 'undefined' && 'memory' in performance) {
+    // PERFORMANCE OPTIMIZATION: Only monitor memory if needed
+    if (typeof window !== 'undefined' && 'memory' in performance && process.env.NODE_ENV === 'development') {
       const memory = (performance as any).memory
       setMetrics(prev => ({
         ...prev,
@@ -92,7 +92,7 @@ export function usePerformanceMonitor() {
         cacheSize: queries.length + mutations.length,
         activeQueries: queries.filter(q => q.isActive()).length,
         totalQueries: queries.length,
-        activeMutations: mutations.filter(m => m.isPending()).length,
+        activeMutations: mutations.filter(m => (m as any).isPending?.() || false).length,
         totalMutations: mutations.length
       }
     } catch (error) {
