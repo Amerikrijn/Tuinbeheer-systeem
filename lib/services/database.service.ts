@@ -1,5 +1,6 @@
 import { supabase } from '../supabase'
 import { databaseLogger, AuditLogger, PerformanceLogger } from '../logger'
+import { cacheService, CacheKeys, CacheTTL } from './cache.service'
 import type { 
   Tuin, 
   Plantvak, 
@@ -52,11 +53,19 @@ export class NotFoundError extends Error {
   }
 }
 
-// Connection validation with retry logic
-async function validateConnection(retries = 3): Promise<void> {
+// SUPABASE FREE TIER OPTIMIZATION: Connection validation with timeout
+async function validateConnection(retries = 2): Promise<void> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
-      const { error } = await supabase.from('gardens').select('count').limit(1)
+      // SUPABASE FREE TIER: Use timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Connection timeout')), 10000) // 10s timeout
+      )
+      
+      const queryPromise = supabase.from('gardens').select('count').limit(1)
+      
+      const { error } = await Promise.race([queryPromise, timeoutPromise]) as any
+      
       if (!error) {
         databaseLogger.debug('Database connection validated successfully', { attempt })
         return
@@ -66,14 +75,32 @@ async function validateConnection(retries = 3): Promise<void> {
         throw new DatabaseError('Database connection failed after retries', error.code, error)
       }
       
-      // Wait before retry (exponential backoff)
-      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
+      // SUPABASE FREE TIER: Shorter backoff to reduce connection time
+      await new Promise(resolve => setTimeout(resolve, 1000 * attempt))
     } catch (error) {
       if (attempt === retries) {
         databaseLogger.error('Unable to connect to database', error as Error, { attempts: retries })
         throw new DatabaseError('Unable to connect to database', 'CONNECTION_ERROR', error)
       }
     }
+  }
+}
+
+// SUPABASE FREE TIER OPTIMIZATION: Query timeout wrapper
+async function withTimeout<T>(
+  queryPromise: Promise<T>, 
+  timeoutMs: number = 15000, // 15s timeout for Free Tier
+  operation: string = 'database_query'
+): Promise<T> {
+  const timeoutPromise = new Promise<never>((_, reject) => 
+    setTimeout(() => reject(new Error(`${operation} timeout after ${timeoutMs}ms`)), timeoutMs)
+  )
+  
+  try {
+    return await Promise.race([queryPromise, timeoutPromise])
+  } catch (error) {
+    databaseLogger.error(`Query timeout: ${operation}`, error as Error, { timeoutMs })
+    throw new DatabaseError(`Query timeout: ${operation}`, 'TIMEOUT_ERROR', error)
   }
 }
 
@@ -1155,6 +1182,17 @@ export class TuinServiceEnhanced extends TuinService {
     PerformanceLogger.startTimer(operationId)
     
     try {
+      // SUPABASE FREE TIER: Generate cache key
+      const cacheKey = CacheKeys.gardens() + `:${JSON.stringify({ filters, sort, page, pageSize })}`
+      
+      // Check cache first
+      const cachedResult = cacheService.get<ApiResponse<PaginatedResponse<TuinWithPlantvakken>>>(cacheKey)
+      if (cachedResult) {
+        PerformanceLogger.endTimer(operationId, 'TuinService.getAllWithFullDetails (cached)')
+        databaseLogger.debug('Cache hit for getAllWithFullDetails', { cacheKey })
+        return cachedResult
+      }
+      
       await validateConnection()
       
       const { page: validPage, pageSize: validPageSize } = validatePaginationParams(page, pageSize)
@@ -1250,7 +1288,12 @@ export class TuinServiceEnhanced extends TuinService {
         performance: 'OPTIMIZED_JOIN_QUERY'
       })
       
-      return createResponse(result, null, 'get gardens with full details (optimized)')
+      const response = createResponse(result, null, 'get gardens with full details (optimized)')
+      
+      // SUPABASE FREE TIER: Cache the result
+      cacheService.set(cacheKey, response, CacheTTL.MEDIUM)
+      
+      return response
     } catch (error) {
       PerformanceLogger.endTimer(operationId, 'TuinService.getAllWithFullDetails', { error: true })
       
