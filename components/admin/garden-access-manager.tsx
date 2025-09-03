@@ -113,8 +113,8 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
         const accessEntries = userGardenAccess.map(gardenId => ({
           user_id: user.id,
           garden_id: gardenId,
-          granted_by: null, // In real implementation, this would be current admin user ID
-          granted_at: new Date().toISOString()
+          granted_by: 'admin', // Consistent with API route
+          created_at: new Date().toISOString() // Consistent with API route
         }))
 
         const { error: insertError } = await supabase
