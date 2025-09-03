@@ -90,7 +90,7 @@ describe('Admin Users API', () => {
       {
         user_id: 'new-user',
         garden_id: 'g1',
-        granted_by: 'admin',
+        granted_by: null,
         created_at: expect.any(String),
       },
     ])
@@ -167,7 +167,7 @@ describe('Admin Users API', () => {
       {
         user_id: '1',
         garden_id: 'g1',
-        granted_by: 'admin',
+        granted_by: null,
         created_at: expect.any(String),
       },
     ])

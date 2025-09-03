@@ -39,14 +39,10 @@ jest.mock('@/components/theme-toggle', () => ({
 
 // Import components AFTER mocks
 import { Navigation } from '@/components/navigation';
-import { AllTheProviders } from '@/__tests__/utils/test-utils'
+// import { AllTheProviders } from '@/__tests__/utils/test-utils' // TODO: Create test-utils if needed
 
 const renderWithProviders = (component: React.ReactElement) => {
-  return render(
-    <AllTheProviders>
-      {component}
-    </AllTheProviders>
-  )
+  return render(component)
 }
 
 describe('Navigation', () => {

@@ -1,5 +1,8 @@
 import { APP_VERSION, CACHE_BUST_TIMESTAMP, getCacheBustParam, clearStaleCache } from '@/lib/version';
 
+// Mock console.log
+const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
 // Mock localStorage
 const localStorageMock = {
   store: {} as { [key: string]: string },
@@ -58,6 +61,7 @@ describe('Version Utilities', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorageMock.store = {};
+    consoleSpy.mockClear();
   });
 
   describe('APP_VERSION', () => {

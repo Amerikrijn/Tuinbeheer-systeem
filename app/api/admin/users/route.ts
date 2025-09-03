@@ -162,8 +162,9 @@ export async function POST(request: NextRequest) {
       const gardenAccessRecords = gardenAccess.map((gardenId: string) => ({
         user_id: authData.user.id,
         garden_id: gardenId,
-        granted_by: 'admin', // Track who granted access
-        created_at: new Date().toISOString()
+        granted_by: null, // Set to null since we don't have the admin user ID
+        access_level: 'read', // Set default access level
+        is_active: true
       }))
 
       const { error: accessError } = await supabaseAdmin
@@ -355,8 +356,9 @@ export async function PUT(request: NextRequest) {
         const gardenAccessRecords = gardenAccess.map((gardenId: string) => ({
           user_id: userId,
           garden_id: gardenId,
-          granted_by: 'admin',
-          created_at: new Date().toISOString()
+          granted_by: null, // Set to null since we don't have the admin user ID
+          access_level: 'read', // Set default access level
+          is_active: true
         }))
 
         const { error: insertError } = await supabaseAdmin

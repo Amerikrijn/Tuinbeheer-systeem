@@ -37,8 +37,9 @@ const customJestConfig = {
   },
   
   // Enhanced timeout and error handling
-  testTimeout: 30000, // 30 seconds for all tests
+  testTimeout: 10000, // 10 seconds for all tests
   maxWorkers: '50%', // Limit concurrent tests to avoid resource issues
+  detectOpenHandles: true, // Detect async operations that keep running
   
   // Better error reporting
   verbose: true,

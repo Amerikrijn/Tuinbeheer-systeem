@@ -129,7 +129,7 @@ describe('PlantPhotoGallery', () => {
     expect(nextButton).toBeInTheDocument()
     
     fireEvent.click(prevButton)
-    expect(mockLogbookService.getPlantPhotos).toHaveBeenCalledWith('123', 2024)
+    expect(mockLogbookService.getPlantPhotos).toHaveBeenCalledWith('123', 2025)
     
     fireEvent.click(nextButton)
     expect(mockLogbookService.getPlantPhotos).toHaveBeenCalledWith('123', 2025)

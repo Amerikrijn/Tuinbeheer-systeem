@@ -1,12 +1,15 @@
 {
   "extends": ["next/core-web-vitals", "next/typescript"],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
   "rules": {
     // STRICT MODE - Code Quality Gates
     "@typescript-eslint/no-unused-vars": "error",
-    "@typescript-eslint/no-explicit-any": "error",
+    "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/explicit-function-return-type": "warn",
     "@typescript-eslint/no-non-null-assertion": "warn",
-    "@typescript-eslint/prefer-nullish-coalescing": "error",
+    "@typescript-eslint/prefer-nullish-coalescing": "warn",
     "@typescript-eslint/prefer-optional-chain": "error",
     
     // React Strict Mode

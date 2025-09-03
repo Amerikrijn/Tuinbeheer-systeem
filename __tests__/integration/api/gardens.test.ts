@@ -2,6 +2,9 @@ import { createRequest, createResponse } from 'node-mocks-http'
 import { GET, POST } from '@/app/api/gardens/route'
 import { mockGardenData, mockGardensArray } from '@/__tests__/setup/supabase-mock'
 
+// Mock fetch for integration tests
+global.fetch = jest.fn()
+
 // Mock NextRequest from next/server to use our mock
 jest.mock('next/server', () => ({
   NextRequest: global.NextRequest,
@@ -53,6 +56,20 @@ describe('Gardens API Integration Tests', () => {
   beforeEach(async () => {
     // Reset mocks and test data
     jest.clearAllMocks()
+    
+    // Mock fetch responses
+    ;(global.fetch as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes('/api/gardens')) {
+        return Promise.resolve({
+          status: 200,
+          json: () => Promise.resolve({ success: true, gardens: mockGardensArray })
+        })
+      }
+      return Promise.resolve({
+        status: 404,
+        json: () => Promise.resolve({ error: 'Not found' })
+      })
+    })
   })
 
   describe('GET /api/gardens', () => {

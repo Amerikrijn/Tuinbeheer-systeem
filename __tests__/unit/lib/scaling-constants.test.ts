@@ -123,7 +123,7 @@ describe('Scaling Constants', () => {
     });
 
     it('should handle invalid input gracefully', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       
       const result = parsePlantBedDimensions('invalid');
       expect(result).toBeNull();
@@ -133,7 +133,7 @@ describe('Scaling Constants', () => {
     });
 
     it('should handle null/undefined input', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
       
       const result = parsePlantBedDimensions(null as any);
       expect(result).toBeNull();

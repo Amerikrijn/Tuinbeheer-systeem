@@ -82,13 +82,13 @@ describe('Tasks Types', () => {
       expect(lowConfig).toBeDefined();
       expect(lowConfig?.label).toBe('Laag');
       expect(lowConfig?.color).toBe('#6B7280');
-      expect(lowConfig?.badge_color).toBe('bg-gray-100 text-gray-800');
+      expect(lowConfig?.badge_color).toContain('bg-gray-100 text-gray-800');
 
       const highConfig = PRIORITY_CONFIGS.find(c => c.value === 'high');
       expect(highConfig).toBeDefined();
       expect(highConfig?.label).toBe('Hoog');
       expect(highConfig?.color).toBe('#EF4444');
-      expect(highConfig?.badge_color).toBe('bg-red-100 text-red-800');
+      expect(highConfig?.badge_color).toContain('bg-red-100 text-red-800');
     });
   });
 

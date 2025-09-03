@@ -2,10 +2,10 @@ import { POST } from '@/app/api/user/change-password/route'
 import type { NextRequest } from 'next/server'
 import { jest } from '@jest/globals'
 
+const mockGetSupabaseAdminClient = jest.fn()
 jest.mock('@/lib/supabase', () => ({
-  getSupabaseAdminClient: jest.fn(),
+  getSupabaseAdminClient: mockGetSupabaseAdminClient,
 }))
-import { getSupabaseAdminClient } from '@/lib/supabase'
 
 const mockGetUserById = jest.fn()
 const mockUpdateUserById = jest.fn()
@@ -32,7 +32,7 @@ function createRequest(body: any): NextRequest {
 describe('Change Password API', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(getSupabaseAdminClient as jest.Mock).mockReturnValue(mockSupabase)
+    mockGetSupabaseAdminClient.mockReturnValue(mockSupabase)
   })
 
   it('returns 400 when fields are missing', async () => {

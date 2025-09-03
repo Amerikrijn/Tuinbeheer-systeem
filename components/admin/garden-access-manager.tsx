@@ -47,6 +47,9 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
     
     setLoading(true)
     try {
+      // First, ensure the table exists
+      await ensureUserGardenAccessTable()
+
       // Load only active gardens (exclude soft-deleted ones)
       const { data: gardensData, error: gardensError } = await supabase
         .from('gardens')
@@ -67,14 +70,16 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
         .eq('user_id', user.id)
 
       if (accessError) {
-        throw accessError
+        console.error('Access load error:', accessError)
+        // Don't throw here, just set empty access
+        setUserGardenAccess([])
+      } else {
+        const currentAccess = accessData?.map(item => item.garden_id) || []
+        setUserGardenAccess(currentAccess)
       }
 
-      const currentAccess = accessData?.map(item => item.garden_id) || []
-      setUserGardenAccess(currentAccess)
-
     } catch (error) {
-
+      console.error('Load error:', error)
       toast({
         title: "Fout bij laden",
         description: "Kon tuinen en toegang niet laden",
@@ -98,14 +103,18 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
 
     setSaving(true)
     try {
-      // First, remove all existing access for this user
+      // First, try to create the table if it doesn't exist
+      await ensureUserGardenAccessTable()
+
+      // Then, remove all existing access for this user
       const { error: deleteError } = await supabase
         .from('user_garden_access')
         .delete()
         .eq('user_id', user.id)
 
       if (deleteError) {
-        throw deleteError
+        console.error('Delete error:', deleteError)
+        // Don't throw here, continue with insert
       }
 
       // Then, add new access entries
@@ -113,8 +122,9 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
         const accessEntries = userGardenAccess.map(gardenId => ({
           user_id: user.id,
           garden_id: gardenId,
-          granted_by: 'admin', // Consistent with API route
-          created_at: new Date().toISOString() // Consistent with API route
+          granted_by: null, // Set to null since we don't have the admin user ID
+          access_level: 'read', // Set default access level
+          is_active: true
         }))
 
         const { error: insertError } = await supabase
@@ -122,6 +132,7 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
           .insert(accessEntries)
 
         if (insertError) {
+          console.error('Insert error:', insertError)
           throw insertError
         }
       }
@@ -135,14 +146,47 @@ export function GardenAccessManager({ user, isOpen, onClose, onSave }: GardenAcc
       onClose()
 
     } catch (error) {
-
+      console.error('Save error:', error)
       toast({
         title: "Fout bij opslaan",
-        description: "Kon tuin toegang niet bijwerken",
+        description: "Kon tuin toegang niet bijwerken. Probeer het opnieuw.",
         variant: "destructive"
       })
     } finally {
       setSaving(false)
+    }
+  }
+
+  // Function to ensure the user_garden_access table exists
+  const ensureUserGardenAccessTable = async () => {
+    try {
+      // Try to query the table to see if it exists
+      const { error: testError } = await supabase
+        .from('user_garden_access')
+        .select('*')
+        .limit(1)
+
+      if (testError && testError.message.includes('relation "user_garden_access" does not exist')) {
+        console.log('🔧 user_garden_access table does not exist, creating...')
+        
+        // Call our setup API to create the table
+        const response = await fetch('/api/admin/setup-database', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(`Failed to create table: ${errorData.error}`)
+        }
+
+        console.log('✅ user_garden_access table created successfully')
+      }
+    } catch (error) {
+      console.error('Error ensuring table exists:', error)
+      // Don't throw here, let the main operation continue
     }
   }
 

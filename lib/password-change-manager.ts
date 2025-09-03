@@ -8,8 +8,9 @@
  * - Banking compliance
  */
 
-import { supabase, supabaseAdmin } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+
+// import { supabase, supabaseAdmin } from '@/lib/supabase' // TODO: Remove if not used
 
 export interface PasswordChangeResult {
   success: boolean

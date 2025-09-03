@@ -1,0 +1,16 @@
+.agent/approvals.yml
+.cursor/rules/00-global.md
+.cursor/rules/05-orchestrator.md
+.cursor/rules/10-feature-agent.md
+.cursor/rules/20-test-agent.md
+.cursor/rules/30-secops-agent.md
+.cursor/rules/35-perf-agent.md
+.cursor/rules/40-docs-agent.md
+.cursor/rules/90-commands.md
+WORKFLOW.md
+tatus
+test-registry/TestRegistry.ts
+test-registry/registry.json
+test-registry/sync-tests.js
+test-registry/types.ts
+test-registry/validate-tests.js
