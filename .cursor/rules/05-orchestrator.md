@@ -80,6 +80,7 @@ Leid complexe enterprise features door een 8-stappen proces met banking-grade kw
 - Test automation
 - Test data management
 - Verslag in `docs/reports/<feature>-test.md`
+- Synchroniseer nieuwe test cases met CI/CD regressie tests via @pipeline-regression-sync
 
 **Quality Gates:**
 - [ ] 80% code coverage bereikt
@@ -87,6 +88,8 @@ Leid complexe enterprise features door een 8-stappen proces met banking-grade kw
 - [ ] Security tests geslaagd
 - [ ] Performance tests geslaagd
 - [ ] Test rapport voltooid
+- [ ] Regressie tests gesynchroniseerd met CI/CD
+- [ ] Banking compliance validatie geslaagd
 
 ### 5. SEC (Security & Compliance)
 **Doel:** Enterprise security validation

@@ -1,0 +1,24 @@
+{
+  "cursorTests": [],
+  "existingTests": [],
+  "regressionSuite": {
+    "id": "cursor-regression-suite",
+    "name": "Cursor Pipeline Regression Suite",
+    "description": "Comprehensive regression test suite integrating Cursor pipeline tests with existing CI/CD tests",
+    "testSuites": [],
+    "cursorTests": [],
+    "existingTests": [],
+    "bankingCompliance": true,
+    "totalCoverage": {
+      "lines": 0,
+      "functions": 0,
+      "branches": 0
+    },
+    "lastSync": "2025-01-09T16:00:00.000Z",
+    "syncStatus": "pending"
+  },
+  "syncHistory": [],
+  "bankingCompliance": true,
+  "lastUpdated": "2025-01-09T16:00:00.000Z"
+}
+

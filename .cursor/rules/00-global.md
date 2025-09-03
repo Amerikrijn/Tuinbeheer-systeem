@@ -84,3 +84,4 @@
 - **Learning:** Continuous learning en skill development
 - **Innovation:** Experimentation met nieuwe technologies en practices
 - **Feedback:** Regular feedback loops en process optimization
+

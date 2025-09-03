@@ -270,6 +270,35 @@
 @pipeline-banking-test
 ```
 
+### @pipeline-regression-sync
+**TestEngineer:** Sla nieuwe test cases op in test-registry/, update CI/CD regressie test files, valideer banking compliance, genereer test rapport
+**Acties:**
+1. Sla nieuwe test cases op in `test-registry/cursor-tests.json`
+2. Update `test-registry/regression-suite.json` met nieuwe test cases
+3. Genereer CI/CD compatible test files in `__tests__/regression/`
+4. Update package.json test scripts voor nieuwe regressie tests
+5. Valideer banking compliance voor alle test cases
+6. Genereer synchronisatie rapport
+
+**Gebruik:**
+```
+@pipeline-regression-sync
+```
+
+### @pipeline-regression-validate
+**TestEngineer:** Controleer of alle test cases voldoen aan banking standards, valideer test coverage (80% minimum), check backward compatibility, genereer validatie rapport
+**Acties:**
+1. Controleer banking compliance van alle test cases
+2. Valideer test coverage (80% minimum)
+3. Check backward compatibility met bestaande regressie tests
+4. Valideer test case integriteit
+5. Genereer validatie rapport met aanbevelingen
+
+**Gebruik:**
+```
+@pipeline-regression-validate
+```
+
 ### @pipeline-security-scan
 **SecOps:** Voer security scan uit via CI/CD
 **Acties:**

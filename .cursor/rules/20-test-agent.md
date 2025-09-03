@@ -458,6 +458,110 @@ export class TestReporter {
 }
 ```
 
+## 🔄 Regressie Testing Integratie
+
+### Test Registry System
+```typescript
+// ✅ Good: Test registry voor Cursor → CI/CD integratie
+export interface TestCase {
+  id: string;
+  name: string;
+  type: 'unit' | 'integration' | 'e2e' | 'security' | 'performance';
+  category: string;
+  description: string;
+  testFile: string;
+  testFunction: string;
+  coverage: {
+    lines: number;
+    functions: number;
+    branches: number;
+  };
+  bankingCompliance: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export class TestRegistry {
+  private cursorTests: TestCase[] = [];
+  private regressionSuite: TestCase[] = [];
+
+  // Voeg nieuwe test case toe vanuit Cursor pipeline
+  addCursorTest(testCase: TestCase): void {
+    this.cursorTests.push(testCase);
+    this.updateRegressionSuite();
+  }
+
+  // Update regressie suite met nieuwe tests
+  private updateRegressionSuite(): void {
+    // Merge cursor tests met bestaande regressie tests
+    const existingRegression = this.loadExistingRegressionTests();
+    this.regressionSuite = [...existingRegression, ...this.cursorTests];
+    
+    // Genereer CI/CD compatible test files
+    this.generateCICDTestFiles();
+  }
+
+  // Genereer CI/CD test files
+  private generateCICDTestFiles(): void {
+    // Genereer __tests__/regression/cursor-tests.ts
+    const cursorTestFile = this.generateCursorTestFile();
+    fs.writeFileSync('__tests__/regression/cursor-tests.ts', cursorTestFile);
+    
+    // Update package.json test scripts
+    this.updatePackageJsonScripts();
+    
+    // Genereer test registry JSON
+    this.saveTestRegistry();
+  }
+
+  // Genereer cursor test file voor CI/CD
+  private generateCursorTestFile(): string {
+    return `
+// Auto-generated from Cursor Pipeline
+// Do not edit manually - will be overwritten
+
+import { TestCase } from './test-registry/types';
+
+describe('Cursor Pipeline Regression Tests', () => {
+  ${this.cursorTests.map(test => `
+  describe('${test.name}', () => {
+    it('${test.description}', async () => {
+      // Import and run the actual test
+      const { ${test.testFunction} } = await import('${test.testFile}');
+      await ${test.testFunction}();
+    });
+  });`).join('')}
+});
+`;
+  }
+}
+```
+
+### CI/CD Integratie Commands
+```bash
+# Voer regressie tests uit vanuit Cursor pipeline
+@pipeline-regression-sync
+# - Sla nieuwe test cases op in test-registry/
+# - Update CI/CD regressie test files
+# - Valideer banking compliance
+# - Genereer test rapport
+
+@pipeline-regression-validate
+# - Controleer of alle test cases voldoen aan banking standards
+# - Valideer test coverage (80% minimum)
+# - Check backward compatibility
+# - Genereer validatie rapport
+```
+
+### Test Synchronisatie Workflow
+1. **Cursor Pipeline genereert nieuwe tests**
+2. **TestRegistry.addCursorTest()** wordt aangeroepen
+3. **Regressie suite wordt bijgewerkt** met nieuwe tests
+4. **CI/CD test files worden gegenereerd** in `__tests__/regression/`
+5. **Package.json scripts worden bijgewerkt** voor nieuwe test commands
+6. **Banking compliance wordt gevalideerd** voor alle test cases
+7. **Test rapport wordt gegenereerd** met synchronisatie status
+
 ## 🚨 Quality Gates
 - [ ] **Unit Tests:** 80% code coverage achieved
 - [ ] **Integration Tests:** All API endpoints tested
@@ -467,3 +571,6 @@ export class TestReporter {
 - [ ] **Test Report:** Comprehensive report generated
 - [ ] **Test Data:** Clean test data management
 - [ ] **Test Automation:** All tests automated in CI/CD
+- [ ] **Regressie Testing:** Cursor tests geïntegreerd in CI/CD
+- [ ] **Test Registry:** Alle test cases geregistreerd en gesynchroniseerd
+- [ ] **Banking Compliance:** Alle tests voldoen aan banking standards

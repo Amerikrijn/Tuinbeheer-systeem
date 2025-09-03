@@ -334,3 +334,4 @@ export class UserService {
 - [ ] **Documentation:** Code documented with JSDoc
 - [ ] **Linting:** No ESLint errors or warnings
 - [ ] **Type Safety:** No TypeScript errors
+
