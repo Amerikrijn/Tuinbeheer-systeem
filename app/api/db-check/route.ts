@@ -29,129 +29,67 @@ export async function GET() {
       vercelEnv: process.env.VERCEL_ENV || 'local',
       timestamp: new Date().toISOString(),
       responseTime: Math.round(responseTime),
-      connectionType: 'supabase-pooled',
-      hasDatabaseUrl: !!process.env.DATABASE_URL,
-      isPooledConnection: process.env.DATABASE_URL?.includes('pooler.supabase.com') || false,
-      poolerPort: process.env.DATABASE_URL?.includes(':6543') || false,
-      hasPgbouncer: process.env.DATABASE_URL?.includes('pgbouncer=true') || false,
+      connectionType: 'supabase-pooled'
     }
     
-    return NextResponse.json({ 
-      ok: true, 
-      ...connectionInfo,
-      message: 'Database connection healthy'
+    return NextResponse.json({
+      ok: true,
+      message: 'Database connection healthy',
+      ...connectionInfo
     })
-  } catch (error: any) {
-    const responseTime = performance.now() - startTime
     
-    return NextResponse.json({ 
-      ok: false, 
+  } catch (error: any) {
+    console.error('Database health check failed:', error)
+    
+    return NextResponse.json({
+      ok: false,
       error: error.message,
-      errorCode: error.code || 'UNKNOWN_ERROR',
-      environment: process.env.NODE_ENV || 'development',
-      vercelEnv: process.env.VERCEL_ENV || 'local',
       timestamp: new Date().toISOString(),
-      responseTime: Math.round(responseTime),
-      connectionType: 'failed',
-      hasDatabaseUrl: !!process.env.DATABASE_URL,
-      isPooledConnection: process.env.DATABASE_URL?.includes('pooler.supabase.com') || false,
-      poolerPort: process.env.DATABASE_URL?.includes(':6543') || false,
-      hasPgbouncer: process.env.DATABASE_URL?.includes('pgbouncer=true') || false,
-      message: 'Database connection failed'
+      environment: process.env.NODE_ENV || 'development'
     }, { status: 500 })
   }
 }
 
 /**
  * POST endpoint for detailed connection testing
- * Allows for more comprehensive connection diagnostics
  */
 export async function POST() {
   try {
     const startTime = performance.now()
-    const tests = []
     
-    // Test 1: Basic connection
-    const basicTest = await supabase
-      .from('gardens')
-      .select('count')
-      .limit(1)
+    // Test multiple operations to verify connection stability
+    const tests = await Promise.allSettled([
+      supabase.from('gardens').select('count').limit(1),
+      supabase.from('users').select('count').limit(1),
+      supabase.rpc('version')
+    ])
     
-    tests.push({
-      name: 'basic_connection',
-      success: !basicTest.error,
-      error: basicTest.error?.message || null,
-      duration: performance.now() - startTime
-    })
+    const responseTime = performance.now() - startTime
     
-    // Test 2: Complex query (if basic test passed)
-    if (!basicTest.error) {
-      const complexStartTime = performance.now()
-      const complexTest = await supabase
-        .from('plant_beds')
-        .select('id, name, garden_id')
-        .limit(5)
-      
-      tests.push({
-        name: 'complex_query',
-        success: !complexTest.error,
-        error: complexTest.error?.message || null,
-        duration: performance.now() - complexStartTime
-      })
-    }
+    const results = tests.map((test, index) => ({
+      test: ['gardens', 'users', 'version'][index],
+      success: test.status === 'fulfilled',
+      error: test.status === 'rejected' ? test.reason?.message : null
+    }))
     
-    // Test 3: Connection pooling test (multiple rapid queries)
-    if (!basicTest.error) {
-      const poolStartTime = performance.now()
-      const poolTests = await Promise.all([
-        supabase.from('gardens').select('count').limit(1),
-        supabase.from('plant_beds').select('count').limit(1),
-        supabase.from('plants').select('count').limit(1)
-      ])
-      
-      const poolSuccess = poolTests.every(test => !test.error)
-      tests.push({
-        name: 'connection_pooling',
-        success: poolSuccess,
-        error: poolTests.find(test => test.error)?.error?.message || null,
-        duration: performance.now() - poolStartTime,
-        concurrentQueries: poolTests.length
-      })
-    }
-    
-    const totalTime = performance.now() - startTime
-    const allTestsPassed = tests.every(test => test.success)
+    const allPassed = results.every(r => r.success)
     
     return NextResponse.json({
-      ok: allTestsPassed,
-      tests,
-      summary: {
-        totalTests: tests.length,
-        passedTests: tests.filter(test => test.success).length,
-        failedTests: tests.filter(test => !test.success).length,
-        totalDuration: Math.round(totalTime),
-        averageTestDuration: Math.round(totalTime / tests.length)
-      },
-      connectionInfo: {
-        environment: process.env.NODE_ENV || 'development',
-        vercelEnv: process.env.VERCEL_ENV || 'local',
-        timestamp: new Date().toISOString(),
-        connectionType: 'supabase-pooled',
-        hasDatabaseUrl: !!process.env.DATABASE_URL,
-        isPooledConnection: process.env.DATABASE_URL?.includes('pooler.supabase.com') || false,
-        poolerPort: process.env.DATABASE_URL?.includes(':6543') || false,
-        hasPgbouncer: process.env.DATABASE_URL?.includes('pgbouncer=true') || false,
-      }
+      ok: allPassed,
+      message: allPassed ? 'All connection tests passed' : 'Some connection tests failed',
+      responseTime: Math.round(responseTime),
+      tests: results,
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
     })
+    
   } catch (error: any) {
+    console.error('Detailed connection test failed:', error)
+    
     return NextResponse.json({
       ok: false,
       error: error.message,
-      errorCode: error.code || 'UNKNOWN_ERROR',
-      environment: process.env.NODE_ENV || 'development',
-      vercelEnv: process.env.VERCEL_ENV || 'local',
-      timestamp: new Date().toISOString(),
-      message: 'Comprehensive connection test failed'
+      timestamp: new Date().toISOString()
     }, { status: 500 })
   }
 }
