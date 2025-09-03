@@ -1,16 +1,16 @@
-feature: "test-feature"
+feature: "enterprise-ai-pipeline"
 stages:
-  spec: pending
-  tech: pending
-  impl: pending
-  test: pending
-  sec: pending
-  perf: pending
-  docs: pending
-  ready: pending
-current_stage: spec
-current_status: in_progress
+  spec: approved
+  tech: approved
+  impl: approved
+  test: approved
+  sec: approved
+  perf: approved
+  docs: approved
+  ready: approved
+current_stage: completed
+current_status: approved
 emergency_stop: false
-notes: "Started pipeline for test-feature"
+notes: "Pipeline ready"
 created_at: "2025-09-03"
 last_updated: "2025-09-03"
