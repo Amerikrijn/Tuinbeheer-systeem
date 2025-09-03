@@ -5,6 +5,13 @@ jest.mock('@/lib/supabase', () => ({
   getSupabaseAdminClient: jest.fn(),
 }))
 
+jest.mock('@/lib/config', () => ({
+  getSafeSupabaseConfig: jest.fn(() => ({
+    url: 'https://test.supabase.co',
+    anonKey: 'test-key'
+  }))
+}))
+
 const { getSupabaseAdminClient } = require('@/lib/supabase')
 
 function createJsonRequest(body: any, url = 'http://localhost:3000/api/admin/users'): NextRequest {
@@ -35,6 +42,10 @@ describe('Admin Users API', () => {
     getSupabaseAdminClient.mockReturnValue(supabase)
 
     const res = await GET()
+    if (res.status !== 200) {
+      const errorData = await res.json()
+      console.error('GET Error:', errorData)
+    }
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data).toEqual({ users: mockUsers })
@@ -82,6 +93,10 @@ describe('Admin Users API', () => {
     })
 
     const res = await POST(request)
+    if (res.status !== 200) {
+      const errorData = await res.json()
+      console.error('POST Error:', errorData)
+    }
     expect(res.status).toBe(200)
     const data = await res.json()
     expect(data.success).toBe(true)
@@ -90,8 +105,8 @@ describe('Admin Users API', () => {
       {
         user_id: 'new-user',
         garden_id: 'g1',
-        granted_by: 'admin',
-        created_at: expect.any(String),
+        granted_at: expect.any(String),
+        access_level: 'admin',
       },
     ])
   })
@@ -167,8 +182,8 @@ describe('Admin Users API', () => {
       {
         user_id: '1',
         garden_id: 'g1',
-        granted_by: 'admin',
-        created_at: expect.any(String),
+        granted_at: expect.any(String),
+        access_level: 'admin',
       },
     ])
   })

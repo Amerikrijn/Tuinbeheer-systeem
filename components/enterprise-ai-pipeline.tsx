@@ -4,11 +4,11 @@
 
 import React from 'react'
 
-interface enterprise-ai-pipelineProps {
+interface EnterpriseAiPipelineProps {
   // Add props based on requirements
 }
 
-export const enterprise-ai-pipeline: React.FC<enterprise-ai-pipelineProps> = (props) => {
+export const EnterpriseAiPipeline: React.FC<EnterpriseAiPipelineProps> = (props) => {
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold">enterprise-ai-pipeline</h2>
@@ -17,4 +17,4 @@ export const enterprise-ai-pipeline: React.FC<enterprise-ai-pipelineProps> = (pr
   )
 }
 
-export default enterprise-ai-pipeline
+export default EnterpriseAiPipeline

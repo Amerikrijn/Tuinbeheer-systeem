@@ -1,4 +1,4 @@
-feature: "enterprise-ai-pipeline"
+feature: "fix-beheerscherm-issues"
 stages:
   spec: approved
   tech: approved
@@ -11,6 +11,6 @@ stages:
 current_stage: completed
 current_status: approved
 emergency_stop: false
-notes: "Pipeline ready"
+notes: "Started pipeline for fix-beheerscherm-issues"
 created_at: "2025-09-03"
 last_updated: "2025-09-03"
