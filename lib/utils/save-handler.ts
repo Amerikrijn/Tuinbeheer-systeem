@@ -100,7 +100,7 @@ export async function executeSaveWithRetry<T>(
  * Convert technical errors to user-friendly Dutch messages
  */
 export function getFriendlyErrorMessage(error: Error): string {
-  const message = error.message.toLowerCase()
+  const message = (error?.message || String(error)).toLowerCase()
   
   // Database connection errors
   if (message.includes('network') || message.includes('connection')) {

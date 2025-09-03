@@ -321,6 +321,70 @@ describe('Validation Functions', () => {
       expect(result.errors.some(e => e.field === 'planting_date')).toBe(true)
       expect(result.errors.some(e => e.field === 'expected_harvest_date')).toBe(true)
     })
+
+    it('should validate sun preference options', () => {
+      const invalidSunPreference = {
+        name: 'Test Plant',
+        status: 'gezond' as const,
+        sun_preference: 'invalid-sun' as any,
+      }
+
+      const result = validateBloemFormData(invalidSunPreference)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContainEqual({
+        field: 'sun_preference',
+        message: 'Ongeldige zonvoorkeur geselecteerd',
+      })
+    })
+
+    it('should validate notes length', () => {
+      const longNotes = {
+        name: 'Test Plant',
+        status: 'gezond' as const,
+        notes: 'A'.repeat(1001),
+      }
+
+      const result = validateBloemFormData(longNotes)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContainEqual({
+        field: 'notes',
+        message: 'Opmerkingen mogen maximaal 1000 karakters bevatten',
+      })
+    })
+
+    it('should validate care instructions length', () => {
+      const longCareInstructions = {
+        name: 'Test Plant',
+        status: 'gezond' as const,
+        care_instructions: 'A'.repeat(1001),
+      }
+
+      const result = validateBloemFormData(longCareInstructions)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContainEqual({
+        field: 'care_instructions',
+        message: 'Verzorgingsinstructies mogen maximaal 1000 karakters bevatten',
+      })
+    })
+
+    it('should validate fertilizer schedule length', () => {
+      const longFertilizerSchedule = {
+        name: 'Test Plant',
+        status: 'gezond' as const,
+        fertilizer_schedule: 'A'.repeat(101),
+      }
+
+      const result = validateBloemFormData(longFertilizerSchedule)
+
+      expect(result.isValid).toBe(false)
+      expect(result.errors).toContainEqual({
+        field: 'fertilizer_schedule',
+        message: 'Bemestingsschema mag maximaal 100 karakters bevatten',
+      })
+    })
   })
 
   describe('validateEmail', () => {
