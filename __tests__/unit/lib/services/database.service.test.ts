@@ -13,7 +13,7 @@ jest.mock('@/lib/supabase', () => {
 const { supabase } = require('@/lib/supabase')
 const mockSupabase = supabase
 
-describe.skip('TuinService', () => {
+describe('TuinService', () => {
   beforeEach(() => {
     mockSupabase.mockQueryBuilder.reset()
     jest.clearAllMocks()

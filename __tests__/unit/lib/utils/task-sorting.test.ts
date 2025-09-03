@@ -1,4 +1,4 @@
-import { sortTasks, groupTasksByStatus } from '@/lib/utils/task-sorting'
+import { sortTasks, groupTasksByStatus, getTaskUrgency, getTaskUrgencyStyles } from '@/lib/utils/task-sorting'
 import type { Task } from '@/lib/types/index'
 
 // Mock task data
@@ -151,6 +151,76 @@ describe('Task Sorting Utilities', () => {
       expect(grouped.pending).toHaveLength(0)
       expect(grouped.completed).toHaveLength(0)
       expect(grouped.all).toHaveLength(0)
+    })
+  })
+
+  describe('getTaskUrgency', () => {
+    it('should return completed for completed tasks', () => {
+      const completedTask = { ...mockTasks[0], completed: true }
+      expect(getTaskUrgency(completedTask)).toBe('completed')
+    })
+
+    it('should return normal for tasks without due date', () => {
+      const taskWithoutDueDate = { ...mockTasks[0], due_date: null }
+      expect(getTaskUrgency(taskWithoutDueDate)).toBe('normal')
+    })
+
+    it('should return overdue for tasks past due date', () => {
+      const overdueTask = { ...mockTasks[0], due_date: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() }
+      expect(getTaskUrgency(overdueTask)).toBe('overdue')
+    })
+
+    it('should return urgent for tasks due today', () => {
+      const urgentTask = { ...mockTasks[0], due_date: new Date().toISOString() }
+      expect(getTaskUrgency(urgentTask)).toBe('urgent')
+    })
+
+    it('should return urgent for tasks due tomorrow', () => {
+      const urgentTask = { ...mockTasks[0], due_date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() }
+      expect(getTaskUrgency(urgentTask)).toBe('urgent')
+    })
+
+    it('should return normal for tasks due in more than 1 day', () => {
+      const normalTask = { ...mockTasks[0], due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() }
+      expect(getTaskUrgency(normalTask)).toBe('normal')
+    })
+  })
+
+  describe('getTaskUrgencyStyles', () => {
+    it('should return overdue styles', () => {
+      const styles = getTaskUrgencyStyles('overdue')
+      expect(styles.badgeText).toBe('🚨 Verlopen')
+      expect(styles.badge).toContain('bg-red-100')
+    })
+
+    it('should return urgent styles', () => {
+      const styles = getTaskUrgencyStyles('urgent')
+      expect(styles.badgeText).toBe('⚡ Urgent')
+      expect(styles.badge).toContain('bg-orange-100')
+    })
+
+    it('should return completed styles', () => {
+      const styles = getTaskUrgencyStyles('completed')
+      expect(styles.badgeText).toBe('✅ Voltooid')
+      expect(styles.badge).toContain('bg-green-100')
+    })
+
+    it('should return normal styles', () => {
+      const styles = getTaskUrgencyStyles('normal')
+      expect(styles.badgeText).toBe('📋 Actief')
+      expect(styles.badge).toContain('bg-blue-100')
+    })
+
+    it('should include container and title styles for all urgency levels', () => {
+      const urgencyLevels = ['overdue', 'urgent', 'completed', 'normal'] as const
+      
+      urgencyLevels.forEach(urgency => {
+        const styles = getTaskUrgencyStyles(urgency)
+        expect(styles.container).toBeDefined()
+        expect(styles.title).toBeDefined()
+        expect(styles.badge).toBeDefined()
+        expect(styles.badgeText).toBeDefined()
+      })
     })
   })
 })

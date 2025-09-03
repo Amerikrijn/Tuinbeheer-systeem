@@ -34,7 +34,7 @@ describe('LoadingSkeleton Components', () => {
       
       skeletons.forEach(skeleton => {
         expect(skeleton).toHaveClass('h-4'); // height for page type
-        expect(skeleton).toHaveClass('animate-pulse', 'bg-gray-200', 'rounded');
+        expect(skeleton).toHaveClass('bg-green-100', 'rounded');
       });
     });
 

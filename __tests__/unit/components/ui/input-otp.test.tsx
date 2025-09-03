@@ -7,47 +7,93 @@ jest.mock('@/lib/utils', () => ({
   cn: (...classes: any[]) => classes.filter(Boolean).join(' ')
 }));
 
-jest.mock('input-otp', () => ({
-  OTPInput: React.forwardRef(({ className, containerClassName, ...props }: any, ref: any) => (
-    <div
-      ref={ref}
-      className={className}
-      data-testid="otp-input"
-      data-container-class={containerClassName}
-      {...props}
-    />
-  )),
-  OTPInputGroup: ({ className, children, ...props }: any) => (
-    <div
-      className={className}
-      data-testid="otp-group"
-      {...props}
-    >
-      {children}
-    </div>
-  ),
-  OTPInputSlot: ({ className, index, ...props }: any) => (
-    <div
-      className={className}
-      data-testid="otp-input"
-      data-index={index}
-      {...props}
-    />
-  ),
-  OTPInputSeparator: ({ className, ...props }: any) => (
-    <div
-      className={className}
-      data-testid="otp-separator"
-      {...props}
-    />
-  ),
-}));
+// Mock the OTPInputContext
+const mockOTPInputContext = {
+  slots: [
+    { char: '', hasFakeCaret: false, isActive: false },
+    { char: '', hasFakeCaret: false, isActive: true },
+    { char: '', hasFakeCaret: false, isActive: false },
+    { char: '', hasFakeCaret: false, isActive: false },
+  ],
+  value: '',
+  setValue: jest.fn(),
+  setActiveIndex: jest.fn(),
+  next: jest.fn(),
+  prev: jest.fn(),
+  clear: jest.fn(),
+};
+
+jest.mock('input-otp', () => {
+  const mockContext = {
+    slots: [
+      { char: '', hasFakeCaret: false, isActive: false },
+      { char: '', hasFakeCaret: false, isActive: true },
+      { char: '', hasFakeCaret: false, isActive: false },
+      { char: '', hasFakeCaret: false, isActive: false },
+    ],
+    value: '',
+    setValue: jest.fn(),
+    setActiveIndex: jest.fn(),
+    next: jest.fn(),
+    prev: jest.fn(),
+    clear: jest.fn(),
+  };
+
+  return {
+    OTPInput: React.forwardRef(({ className, containerClassName, children, ...props }: any, ref: any) => (
+      <div
+        ref={ref}
+        className={className}
+        data-testid="otp-input"
+        data-container-class={containerClassName}
+        {...props}
+      >
+        {children}
+      </div>
+    )),
+    OTPInputGroup: ({ className, children, ...props }: any) => (
+      <div
+        className={className}
+        data-testid="otp-group"
+        {...props}
+      >
+        {children}
+      </div>
+    ),
+    OTPInputSlot: ({ className, index, ...props }: any) => (
+      <div
+        className={className}
+        data-testid="otp-input"
+        data-index={index}
+        {...props}
+      />
+    ),
+    OTPInputSeparator: ({ className, ...props }: any) => (
+      <div
+        className={className}
+        data-testid="otp-separator"
+        {...props}
+      />
+    ),
+    OTPInputContext: React.createContext(mockContext),
+  };
+});
 
 jest.mock('lucide-react', () => ({
   Dot: ({ ...props }: any) => (
     <span data-testid="dot-icon" {...props}>•</span>
   )
 }));
+
+// Test wrapper component to provide OTPInputContext
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { OTPInputContext } = require('input-otp');
+  return (
+    <OTPInputContext.Provider value={mockOTPInputContext}>
+      {children}
+    </OTPInputContext.Provider>
+  );
+};
 
 describe('InputOTP Components', () => {
   describe('InputOTP', () => {
@@ -138,31 +184,45 @@ describe('InputOTP Components', () => {
 
   describe('InputOTPSlot', () => {
     it('should render with default props', () => {
-      render(<InputOTPSlot index={0} />);
-      const slot = screen.getByTestId('otp-input');
+      render(
+        <TestWrapper>
+          <InputOTPSlot index={0} data-testid="otp-slot" />
+        </TestWrapper>
+      );
+      const slot = screen.getByTestId('otp-slot');
       expect(slot).toBeInTheDocument();
       expect(slot).toHaveClass('relative', 'flex', 'h-10', 'w-10', 'items-center', 'justify-center', 'border-y', 'border-r', 'border-input', 'text-sm', 'transition-all', 'first:rounded-l-md', 'first:border-l', 'last:rounded-r-md');
     });
 
     it('should render with custom className', () => {
-      render(<InputOTPSlot index={1} className="custom-slot" />);
-      const slot = screen.getByTestId('otp-input');
+      render(
+        <TestWrapper>
+          <InputOTPSlot index={1} className="custom-slot" data-testid="otp-slot" />
+        </TestWrapper>
+      );
+      const slot = screen.getByTestId('otp-slot');
       expect(slot).toHaveClass('custom-slot');
     });
 
     it('should handle active state', () => {
-      render(<InputOTPSlot index={1} />);
-      const slot = screen.getByTestId('otp-input');
+      render(
+        <TestWrapper>
+          <InputOTPSlot index={1} data-testid="otp-slot" />
+        </TestWrapper>
+      );
+      const slot = screen.getByTestId('otp-slot');
       expect(slot).toHaveClass('z-10', 'ring-2', 'ring-ring', 'ring-offset-background');
     });
 
     it('should pass through additional props', () => {
       render(
-        <InputOTPSlot
-          index={2}
-          data-testid="custom-slot"
-          aria-label="OTP slot 2"
-        />
+        <TestWrapper>
+          <InputOTPSlot
+            index={2}
+            data-testid="custom-slot"
+            aria-label="OTP slot 2"
+          />
+        </TestWrapper>
       );
       const slot = screen.getByTestId('custom-slot');
       expect(slot).toHaveAttribute('aria-label', 'OTP slot 2');
@@ -170,20 +230,32 @@ describe('InputOTP Components', () => {
 
     it('should forward ref correctly', () => {
       const ref = React.createRef<HTMLDivElement>();
-      render(<InputOTPSlot index={3} ref={ref} />);
+      render(
+        <TestWrapper>
+          <InputOTPSlot index={3} ref={ref} />
+        </TestWrapper>
+      );
       expect(ref.current).toBeInTheDocument();
     });
 
     it('should handle different indices', () => {
-      const { rerender } = render(<InputOTPSlot index={0} />);
+      const { rerender } = render(
+        <TestWrapper>
+          <InputOTPSlot index={0} data-testid="otp-slot" />
+        </TestWrapper>
+      );
       
       // Test first slot
-      let slot = screen.getByTestId('otp-input');
+      let slot = screen.getByTestId('otp-slot');
       expect(slot).toHaveClass('first:rounded-l-md', 'first:border-l');
       
       // Test last slot
-      rerender(<InputOTPSlot index={3} />);
-      slot = screen.getByTestId('otp-input');
+      rerender(
+        <TestWrapper>
+          <InputOTPSlot index={3} data-testid="otp-slot" />
+        </TestWrapper>
+      );
+      slot = screen.getByTestId('otp-slot');
       expect(slot).toHaveClass('last:rounded-r-md');
     });
   });
@@ -236,17 +308,19 @@ describe('InputOTP Components', () => {
   describe('Integration', () => {
     it('should render complete OTP input structure', () => {
       render(
-        <InputOTP maxLength={4}>
-          <InputOTPGroup>
-            <InputOTPSlot index={0} />
-            <InputOTPSeparator />
-            <InputOTPSlot index={1} />
-            <InputOTPSeparator />
-            <InputOTPSlot index={2} />
-            <InputOTPSeparator />
-            <InputOTPSlot index={3} />
-          </InputOTPGroup>
-        </InputOTP>
+        <TestWrapper>
+          <InputOTP maxLength={4}>
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSeparator />
+              <InputOTPSlot index={1} />
+              <InputOTPSeparator />
+              <InputOTPSlot index={2} />
+              <InputOTPSeparator />
+              <InputOTPSlot index={3} />
+            </InputOTPGroup>
+          </InputOTP>
+        </TestWrapper>
       );
 
       expect(screen.getByTestId('otp-input')).toBeInTheDocument();
@@ -256,21 +330,23 @@ describe('InputOTP Components', () => {
 
     it('should handle multiple OTP inputs', () => {
       render(
-        <div>
-          <InputOTP maxLength={6}>
-            <InputOTPGroup>
-              <InputOTPSlot index={0} />
-              <InputOTPSlot index={1} />
-              <InputOTPSlot index={2} />
-            </InputOTPGroup>
-          </InputOTP>
-          <InputOTP maxLength={4}>
-            <InputOTPGroup>
-              <InputOTPSlot index={0} />
-              <InputOTPSlot index={1} />
-            </InputOTPGroup>
-          </InputOTP>
-        </div>
+        <TestWrapper>
+          <div>
+            <InputOTP maxLength={6}>
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+              </InputOTPGroup>
+            </InputOTP>
+            <InputOTP maxLength={4}>
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+              </InputOTPGroup>
+            </InputOTP>
+          </div>
+        </TestWrapper>
       );
 
       const otpInputs = screen.getAllByTestId('otp-input');
@@ -281,13 +357,15 @@ describe('InputOTP Components', () => {
   describe('Accessibility', () => {
     it('should maintain proper semantic structure', () => {
       render(
-        <InputOTP>
-          <InputOTPGroup>
-            <InputOTPSlot index={0} />
-            <InputOTPSeparator />
-            <InputOTPSlot index={1} />
-          </InputOTPGroup>
-        </InputOTP>
+        <TestWrapper>
+          <InputOTP>
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSeparator />
+              <InputOTPSlot index={1} />
+            </InputOTPGroup>
+          </InputOTP>
+        </TestWrapper>
       );
 
       const separator = screen.getByRole('separator');
@@ -296,14 +374,16 @@ describe('InputOTP Components', () => {
 
     it('should handle aria attributes correctly', () => {
       render(
-        <InputOTP
-          aria-label="Enter verification code"
-          aria-describedby="otp-help"
-        >
-          <InputOTPGroup>
-            <InputOTPSlot index={0} />
-          </InputOTPGroup>
-        </InputOTP>
+        <TestWrapper>
+          <InputOTP
+            aria-label="Enter verification code"
+            aria-describedby="otp-help"
+          >
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+            </InputOTPGroup>
+          </InputOTP>
+        </TestWrapper>
       );
 
       const input = screen.getByTestId('otp-input');
