@@ -7,12 +7,13 @@ import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Calendar, CheckCircle, Clock, CloudRain, Sun, CloudDrizzle, Snowflake, Loader2 } from 'lucide-react'
+import { Calendar, CheckCircle, Clock, CloudRain, Sun, CloudDrizzle, Snowflake, Loader2, Wifi, WifiOff, RefreshCw } from 'lucide-react'
 import { useAuth } from '@/hooks/use-supabase-auth'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/hooks/use-toast'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Button } from '@/components/ui/button'
+import { useUserDashboardRealtime } from '@/hooks/use-realtime-updates'
 
 interface Task {
   id: string
@@ -43,10 +44,20 @@ function UserDashboardContent() {
   const { user, hasGardenAccess, getAccessibleGardens, loadGardenAccess } = useAuth()
   const { toast } = useToast()
   
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [logbookEntries, setLogbookEntries] = useState<LogbookEntry[]>([])
+  // Real-time data management
+  const {
+    tasks,
+    setTasks,
+    logbookEntries,
+    setLogbookEntries,
+    gardens,
+    setGardens,
+    realtimeStatus
+  } = useUserDashboardRealtime(user?.id || '')
+  
   const [loading, setLoading] = useState(true)
   const [gardenAccessLoaded, setGardenAccessLoaded] = useState(false)
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date())
 
   // Ensure garden access is loaded for regular users
   useEffect(() => {
