@@ -2,9 +2,9 @@
  * fix-beheerscherm-issues Tests
  */
 
-import { fix-beheerscherm-issues } from '@/components/fix-beheerscherm-issues'
+import { FixBeheerschermIssues } from '@/components/fix-beheerscherm-issues'
 
-describe('fix-beheerscherm-issues', () => {
+describe('FixBeheerschermIssues', () => {
   it('should implement basic functionality', () => {
     expect(true).toBe(true)
   })

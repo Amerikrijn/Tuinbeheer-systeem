@@ -4,11 +4,11 @@
 
 import React from 'react'
 
-interface fix-beheerscherm-issuesProps {
+interface FixBeheerschermIssuesProps {
   // Add props based on requirements
 }
 
-export const fix-beheerscherm-issues: React.FC<fix-beheerscherm-issuesProps> = (props) => {
+export const FixBeheerschermIssues: React.FC<FixBeheerschermIssuesProps> = (props) => {
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold">fix-beheerscherm-issues</h2>
@@ -17,4 +17,4 @@ export const fix-beheerscherm-issues: React.FC<fix-beheerscherm-issuesProps> = (
   )
 }
 
-export default fix-beheerscherm-issues
+export default FixBeheerschermIssues

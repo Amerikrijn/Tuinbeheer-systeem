@@ -2,9 +2,9 @@
  * enterprise-ai-pipeline Tests
  */
 
-import { enterprise-ai-pipeline } from '@/components/enterprise-ai-pipeline'
+import { EnterpriseAiPipeline } from '@/components/enterprise-ai-pipeline'
 
-describe('enterprise-ai-pipeline', () => {
+describe('EnterpriseAiPipeline', () => {
   it('should implement basic functionality', () => {
     expect(true).toBe(true)
   })
