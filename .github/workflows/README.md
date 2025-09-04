@@ -150,3 +150,24 @@ If you encounter issues:
 ---
 
 *This workflow transforms your test results into actionable business intelligence, helping you maintain high code quality and make informed decisions about your testing strategy.*
+
+## LLM Standards Review (Guideline-driven)
+
+### How to enable the LLM (optional)
+- Add GitHub Actions secrets in Repository settings → Secrets and variables → Actions:
+  - `LLM_API_URL`
+  - `LLM_API_KEY`
+- If these are not set, a safe fallback review runs that still checks your repository standards in `docs/` and posts a concise PR comment.
+
+### What you will see on a PR
+- Traditional banking tests (build → tests → reports) remain unchanged and authoritative.
+- A separate comment titled “LLM Standards Review” with:
+  - Executive summary
+  - Security/Compliance findings (based on your docs)
+  - Code quality and standards alignment
+  - Testability/coverage impact
+  - Actionable fixes and a pass/block recommendation
+
+### PR classification (bugfix vs change-request)
+- Workflow: `.github/workflows/classify-pr.yml`
+- Automatically labels your PR as `bugfix` or `change-request` using branch/title/labels. Use these labels to drive any risk-based CI variants if desired. Existing banking tests continue to run as they do today.

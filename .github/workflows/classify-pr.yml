@@ -1,0 +1,145 @@
+name: "PR Classifier (bugfix vs change-request)"
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited, reopened, labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Decide PR type
+        id: decide
+        run: |
+          set -e
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_LABELS='${{ toJson(github.event.pull_request.labels) }}'
+          HEAD_REF='${{ github.head_ref }}'
+
+          PR_TYPE="change-request"
+
+          if echo "$HEAD_REF" | grep -Eq '^bugfix/'; then PR_TYPE="bugfix"; fi
+          if echo "$PR_TITLE" | grep -Eq '^\s*fix(\(.+\))?:'; then PR_TYPE="bugfix"; fi
+          if echo "$PR_LABELS" | grep -iq 'bug'; then PR_TYPE="bugfix"; fi
+
+          echo "pr_type=$PR_TYPE" >> $GITHUB_OUTPUT
+          echo "Detected PR type: $PR_TYPE"
+
+      - name: Apply label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ steps.decide.outputs.pr_type }}
+
+      - name: Comment PR with classification
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prType = `${{ steps.decide.outputs.pr_type }}`;
+            const body = `### PR Classifier\n\n**Type**: ${prType === 'bugfix' ? '🔧 Bugfix' : '✨ Change Request'}\n\nThis label is used to select the right CI flow (fast checks for bugfixes, full suite for change requests) running in parallel with the existing banking tests.\n\n<!-- PR_CLASSIFIER -->`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const existing = comments.find(c => c.user.type === 'Bot' && c.body.includes('<!-- PR_CLASSIFIER -->'));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body,
+              });
+            }
+name: "PR Classifier (bugfix vs change-request)"
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited, reopened, labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  classify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Decide PR type
+        id: decide
+        run: |
+          set -e
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_LABELS='${{ toJson(github.event.pull_request.labels) }}'
+          HEAD_REF='${{ github.head_ref }}'
+
+          PR_TYPE="change-request"
+
+          if echo "$HEAD_REF" | grep -Eq '^bugfix/'; then PR_TYPE="bugfix"; fi
+          if echo "$PR_TITLE" | grep -Eq '^\s*fix(\(.+\))?:'; then PR_TYPE="bugfix"; fi
+          if echo "$PR_LABELS" | grep -iq 'bug'; then PR_TYPE="bugfix"; fi
+
+          echo "pr_type=$PR_TYPE" >> $GITHUB_OUTPUT
+          echo "Detected PR type: $PR_TYPE"
+
+      - name: Apply label
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          labels: ${{ steps.decide.outputs.pr_type }}
+
+      - name: Comment PR with classification
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prType = `${{ steps.decide.outputs.pr_type }}`;
+            const body = `### PR Classifier\n\n**Type**: ${prType === 'bugfix' ? '🔧 Bugfix' : '✨ Change Request'}\n\nThis label is used to select the right CI flow (fast checks for bugfixes, full suite for change requests) running in parallel with the existing banking tests.`;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const marker = '<!-- PR_CLASSIFIER -->';
+            const existing = comments.find(c => c.user.type === 'Bot' && c.body.includes(marker));
+            const content = body + `\n\n${marker}`;
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: content,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: content,
+              });
+            }
+
