@@ -228,6 +228,7 @@ export async function POST(request: NextRequest) {
 // PUT - Update user (password reset or edit user)
 export async function PUT(request: NextRequest) {
   try {
+    const supabaseAdmin = getSupabaseAdminClient()
     const { userId, action, fullName, role, gardenAccess } = await request.json()
 
     if (!userId || !action) {
