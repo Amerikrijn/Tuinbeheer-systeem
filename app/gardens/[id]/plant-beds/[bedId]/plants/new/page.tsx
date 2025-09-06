@@ -145,6 +145,10 @@ export default function NewPlantPage() {
     if (!plantData.bloomPeriod || !plantData.bloomStartMonth || !plantData.bloomEndMonth) {
       newErrors.bloomPeriod = 'Bloeiperiode is verplicht'
     }
+    // Enforce required sowing date
+    if (!plantData.plantingDate) {
+      newErrors.plantingDate = 'Zaaidatum is verplicht'
+    }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return

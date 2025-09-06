@@ -294,15 +294,33 @@ export function PlantForm({
             )}
           </div>
 
-          {/* Bloom Period (required) */}
+          {/* Sowing date + Bloom period (required, one row) */}
           <div className="space-y-2">
-            <Label className="text-sm font-medium text-foreground flex items-center gap-1">
-              Bloeiperiode
-              <span className="text-red-500 dark:text-red-400">*</span>
-            </Label>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs text-muted-foreground">Startmaand</Label>
+                <Label htmlFor="plantingDate" className="text-sm font-medium text-foreground flex items-center gap-1">
+                  Zaaidatum
+                  <span className="text-red-500 dark:text-red-400">*</span>
+                </Label>
+                <Input
+                  id="plantingDate"
+                  type="date"
+                  value={data.plantingDate}
+                  onChange={(e) => handleFieldChange('plantingDate', e.target.value)}
+                  className="border-gray-300 dark:border-gray-500 focus:border-green-500"
+                />
+                {errors.plantingDate && (
+                  <div className="mt-1 flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-2 rounded-md">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                    {errors.plantingDate}
+                  </div>
+                )}
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-foreground flex items-center gap-1">
+                  Bloeiperiode (start)
+                  <span className="text-red-500 dark:text-red-400">*</span>
+                </Label>
                 <Select 
                   value={data.bloomStartMonth || ''}
                   onValueChange={(value: string) => {
@@ -313,7 +331,7 @@ export function PlantForm({
                   }}
                 >
                   <SelectTrigger className="border-gray-300 dark:border-gray-500 focus:border-green-500">
-                    <SelectValue placeholder="Kies startmaand" />
+                    <SelectValue placeholder="Startmaand" />
                   </SelectTrigger>
                   <SelectContent>
                     {MONTHS_FULL.map(m => (
@@ -323,7 +341,10 @@ export function PlantForm({
                 </Select>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Eindmaand</Label>
+                <Label className="text-sm font-medium text-foreground flex items-center gap-1">
+                  Bloeiperiode (eind)
+                  <span className="text-red-500 dark:text-red-400">*</span>
+                </Label>
                 <Select 
                   value={data.bloomEndMonth || ''}
                   onValueChange={(value: string) => {
@@ -334,7 +355,7 @@ export function PlantForm({
                   }}
                 >
                   <SelectTrigger className="border-gray-300 dark:border-gray-500 focus:border-green-500">
-                    <SelectValue placeholder="Kies eindmaand" />
+                    <SelectValue placeholder="Eindmaand" />
                   </SelectTrigger>
                   <SelectContent>
                     {MONTHS_FULL.map(m => (
@@ -344,7 +365,7 @@ export function PlantForm({
                 </Select>
               </div>
             </div>
-            <div className="text-xs text-muted-foreground">Opslag als: "September-Oktober"</div>
+            <div className="text-xs text-muted-foreground">Bloeiperiode wordt opgeslagen als: "September-Oktober"</div>
             {errors.bloomPeriod && (
               <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-2 rounded-md">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
@@ -483,18 +504,6 @@ export function PlantForm({
                     <h4 className="font-medium text-foreground">Planning & Status</h4>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="plantingDate" className="text-sm font-medium text-foreground">
-                        Plantdatum
-                      </Label>
-                      <Input
-                        id="plantingDate"
-                        type="date"
-                        value={data.plantingDate}
-                        onChange={(e) => handleFieldChange('plantingDate', e.target.value)}
-                        className="border-gray-300 dark:border-gray-500 focus:border-blue-500"
-                      />
-                    </div>
 
                     {/* Bloeiperiode verwijderd uit deze sectie en verplaatst naar verplicht blok */}
 

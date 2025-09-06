@@ -156,6 +156,9 @@ export default function EditPlantPage() {
 
     // Validate form
     const newErrors = validateForm(plantData)
+    if (!plantData.plantingDate) {
+      newErrors.plantingDate = 'Zaaidatum is verplicht'
+    }
     if (!plantData.bloomPeriod || !plantData.bloomStartMonth || !plantData.bloomEndMonth) {
       newErrors.bloomPeriod = 'Bloeiperiode is verplicht'
     }
