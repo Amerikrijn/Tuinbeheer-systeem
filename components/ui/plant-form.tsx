@@ -38,6 +38,12 @@ export interface PlantFormData {
   plantsPerSqm: string
   sunPreference: 'full-sun' | 'partial-sun' | 'shade'
   plantingDate: string
+  // Bloom period (required) stored as canonical string e.g. "September-Oktober"
+  bloomPeriod: string
+  // Internal UI helpers for selects; not persisted
+  bloomStartMonth?: string
+  bloomEndMonth?: string
+  // Kept for backward compatibility (not used for bloom)
   expectedHarvestDate: string
   status: "gezond" | "aandacht_nodig" | "ziek" | "dood" | "geoogst"
   notes: string
@@ -52,6 +58,7 @@ export interface PlantFormErrors {
   name?: string
   color?: string
   height?: string
+  bloomPeriod?: string
   [key: string]: string | undefined
 }
 
@@ -78,6 +85,15 @@ export function PlantForm({
 }: PlantFormProps) {
   const [isAdvancedOpen, setIsAdvancedOpen] = React.useState(false)
   const [showSuggestions, setShowSuggestions] = React.useState(false)
+
+  const MONTHS_FULL = [
+    'Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'
+  ]
+
+  const normalizeMonth = (m: string) => {
+    const idx = MONTHS_FULL.findIndex(x => x.toLowerCase() === m.toLowerCase())
+    return idx >= 0 ? MONTHS_FULL[idx] : ''
+  }
 
   const handleFieldChange = (field: keyof PlantFormData, value: string | boolean) => {
     onChange({ ...data, [field]: value })
@@ -139,6 +155,21 @@ export function PlantForm({
       return value && value.toString().trim() !== '' && value !== 'partial-sun' && value !== 'gezond' && value !== '4'
     }).length
   }, [data])
+
+  // Keep selects in sync when bloomPeriod is prefilled
+  React.useEffect(() => {
+    if (data.bloomPeriod && (!data.bloomStartMonth || !data.bloomEndMonth)) {
+      const parts = data.bloomPeriod.split('-')
+      if (parts.length === 2) {
+        const start = normalizeMonth(parts[0].trim())
+        const end = normalizeMonth(parts[1].trim())
+        if (start && end) {
+          onChange({ ...data, bloomStartMonth: start, bloomEndMonth: end })
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.bloomPeriod])
 
   return (
     <form onSubmit={onSubmit} onReset={onReset} className="space-y-6">
@@ -259,6 +290,65 @@ export function PlantForm({
               <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-2 rounded-md">
                 <AlertCircle className="h-4 w-4 flex-shrink-0" />
                 {errors.height}
+              </div>
+            )}
+          </div>
+
+          {/* Bloom Period (required) */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium text-foreground flex items-center gap-1">
+              Bloeiperiode
+              <span className="text-red-500 dark:text-red-400">*</span>
+            </Label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-muted-foreground">Startmaand</Label>
+                <Select 
+                  value={data.bloomStartMonth || ''}
+                  onValueChange={(value: string) => {
+                    const start = normalizeMonth(value)
+                    const end = data.bloomEndMonth ? normalizeMonth(data.bloomEndMonth) : ''
+                    const bloomPeriod = start && end ? `${start}-${end}` : data.bloomPeriod
+                    onChange({ ...data, bloomStartMonth: start, bloomPeriod })
+                  }}
+                >
+                  <SelectTrigger className="border-gray-300 dark:border-gray-500 focus:border-green-500">
+                    <SelectValue placeholder="Kies startmaand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTHS_FULL.map(m => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Eindmaand</Label>
+                <Select 
+                  value={data.bloomEndMonth || ''}
+                  onValueChange={(value: string) => {
+                    const end = normalizeMonth(value)
+                    const start = data.bloomStartMonth ? normalizeMonth(data.bloomStartMonth) : ''
+                    const bloomPeriod = start && end ? `${start}-${end}` : data.bloomPeriod
+                    onChange({ ...data, bloomEndMonth: end, bloomPeriod })
+                  }}
+                >
+                  <SelectTrigger className="border-gray-300 dark:border-gray-500 focus:border-green-500">
+                    <SelectValue placeholder="Kies eindmaand" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MONTHS_FULL.map(m => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="text-xs text-muted-foreground">Opslag als: "September-Oktober"</div>
+            {errors.bloomPeriod && (
+              <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950 p-2 rounded-md">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                {errors.bloomPeriod}
               </div>
             )}
           </div>
@@ -406,19 +496,7 @@ export function PlantForm({
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="expectedHarvestDate" className="text-sm font-medium text-foreground">
-                        Bloeiperiode
-                      </Label>
-                      <Input
-                        id="expectedHarvestDate"
-                        type="text"
-                        value={data.expectedHarvestDate}
-                        onChange={(e) => handleFieldChange('expectedHarvestDate', e.target.value)}
-                        placeholder="Bijvoorbeeld: Mei-September"
-                        className="border-gray-300 dark:border-gray-500 focus:border-blue-500"
-                      />
-                    </div>
+                    {/* Bloeiperiode verwijderd uit deze sectie en verplaatst naar verplicht blok */}
 
                     <div className="space-y-2 md:col-span-2">
                       <Label htmlFor="status" className="text-sm font-medium text-foreground">
@@ -524,7 +602,13 @@ export function PlantForm({
       <div className="flex gap-3 pt-6 border-t border-gray-200 dark:border-gray-600">
         <Button 
           type="submit" 
-          disabled={isSubmitting || !data.name.trim() || !data.color.trim() || !data.height.trim()}
+          disabled={
+            isSubmitting || 
+            !data.name.trim() || 
+            !data.color.trim() || 
+            !data.height.trim() || 
+            !data.bloomPeriod || !data.bloomStartMonth || !data.bloomEndMonth
+          }
           className="flex-1 bg-green-600 dark:bg-green-700 hover:bg-green-700 text-white dark:text-black"
           size="lg"
         >
@@ -558,6 +642,9 @@ export function createInitialPlantFormData(): PlantFormData {
     plantsPerSqm: "4",
     sunPreference: 'partial-sun',
     plantingDate: "",
+    bloomPeriod: "",
+    bloomStartMonth: undefined,
+    bloomEndMonth: undefined,
     expectedHarvestDate: "",
     status: "gezond",
     notes: "",

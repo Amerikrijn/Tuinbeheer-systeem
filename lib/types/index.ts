@@ -91,6 +91,7 @@ export interface LogbookEntry {
   entry_date: string
   notes: string
   photo_url?: string
+  created_by?: string
   created_at: string
   updated_at: string
 }

@@ -499,12 +499,20 @@ export class LogbookService {
         }
       }
 
+      // Attach creator (require authentication)
+      const { data: authUser } = await supabase.auth.getUser()
+      const currentUserId = authUser?.user?.id || null
+      if (!currentUserId) {
+        throw new ValidationError('Niet geauthenticeerd', 'auth')
+      }
+
       const logbookData = {
         plant_bed_id: formData.plant_bed_id,
         plant_id: formData.plant_id || null,
         entry_date: formData.entry_date,
         notes: formData.notes.trim(),
-        photo_url: null // Will be updated after photo upload if provided
+        photo_url: null, // Will be updated after photo upload if provided
+        created_by: currentUserId
       }
 
       const { data, error } = await supabase
@@ -756,6 +764,22 @@ export class LogbookService {
         throw new NotFoundError('Logbook entry', id)
       }
 
+      // Authorization: only creator or admin can update
+      const { data: authUser } = await supabase.auth.getUser()
+      const currentUserId = authUser?.user?.id || null
+      if (!currentUserId) {
+        throw new ValidationError('Niet geauthenticeerd', 'auth')
+      }
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', currentUserId)
+        .single()
+      const isAdmin = profile?.role === 'admin'
+      if (!isAdmin && existing.created_by !== currentUserId) {
+        throw new ValidationError('Geen toestemming om deze entry te bewerken', 'authorization')
+      }
+
       const updateData: Record<string, any> = {}
       
       if (formData.notes !== undefined) {
@@ -771,6 +795,37 @@ export class LogbookService {
       
       if (formData.photo_url !== undefined) {
         updateData['photo_url'] = formData.photo_url || null
+      }
+
+      // Allow changing plant_bed and plant with validation similar to create
+      if (formData.plant_bed_id !== undefined) {
+        const { data: plantBed, error: plantBedError } = await supabase
+          .from('plant_beds')
+          .select('id')
+          .eq('id', formData.plant_bed_id)
+          .eq('is_active', true)
+          .single()
+        if (plantBedError || !plantBed) {
+          throw new NotFoundError('Plant bed', formData.plant_bed_id as string)
+        }
+        updateData['plant_bed_id'] = formData.plant_bed_id
+      }
+      if (formData.plant_id !== undefined) {
+        if (formData.plant_id) {
+          const targetBedId = (formData.plant_bed_id !== undefined ? formData.plant_bed_id : existing.plant_bed_id)
+          const { data: plant, error: plantError } = await supabase
+            .from('plants')
+            .select('id')
+            .eq('id', formData.plant_id)
+            .eq('plant_bed_id', targetBedId)
+            .single()
+          if (plantError || !plant) {
+            throw new NotFoundError('Plant', formData.plant_id as string)
+          }
+          updateData['plant_id'] = formData.plant_id
+        } else {
+          updateData['plant_id'] = null
+        }
       }
 
       // Only update if there are changes
@@ -832,12 +887,28 @@ export class LogbookService {
       // Verify entry exists
       const { data: existing, error: fetchError } = await supabase
         .from('logbook_entries')
-        .select('id, notes')
+        .select('id, notes, created_by')
         .eq('id', id)
         .single()
 
       if (fetchError || !existing) {
         throw new NotFoundError('Logbook entry', id)
+      }
+
+      // Authorization: only creator or admin can delete
+      const { data: authUser } = await supabase.auth.getUser()
+      const currentUserId = authUser?.user?.id || null
+      if (!currentUserId) {
+        throw new ValidationError('Niet geauthenticeerd', 'auth')
+      }
+      const { data: profile } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', currentUserId)
+        .single()
+      const isAdmin = profile?.role === 'admin'
+      if (!isAdmin && existing.created_by !== currentUserId) {
+        throw new ValidationError('Geen toestemming om deze entry te verwijderen', 'authorization')
       }
 
       const { error } = await supabase

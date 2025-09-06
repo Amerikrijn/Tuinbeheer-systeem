@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Calendar, Camera, Leaf, MapPin, Edit, Trash2, BookOpen } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
+import { useAuth } from "@/hooks/use-supabase-auth"
 import { uiLogger } from "@/lib/logger"
 import type { LogbookEntryWithDetails } from "@/lib/types/index"
 import { ErrorBoundary } from "@/components/error-boundary"
@@ -26,6 +27,7 @@ interface LogbookDetailPageState {
 function LogbookDetailPageContent({ params }: { params: { id: string } }) {
   const router = useRouter()
   const { toast } = useToast()
+  const { user, isAdmin } = useAuth()
   
   const [state, setState] = React.useState<LogbookDetailPageState>({
     entry: null,
@@ -117,6 +119,12 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
   React.useEffect(() => {
     loadEntry()
   }, [loadEntry])
+
+  const canModify = React.useMemo(() => {
+    if (!state.entry || !user) return false
+    if (isAdmin()) return true
+    return !!state.entry && (state.entry as any).created_by && (state.entry as any).created_by === user.id
+  }, [state.entry, user, isAdmin])
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -232,22 +240,25 @@ function LogbookDetailPageContent({ params }: { params: { id: string } }) {
             
             {/* Quick actions in header */}
             <div className="flex gap-2">
-              <Button asChild size="sm" variant="outline">
-                <Link href={`/logbook/${state.entry.id}/edit`}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Bewerken
-                </Link>
-              </Button>
-              
-              <Button 
-                variant="destructive" 
-                size="sm"
-                onClick={handleDelete}
-                disabled={state.deleting}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                {state.deleting ? 'Verwijderen...' : 'Verwijderen'}
-              </Button>
+              {canModify && (
+                <>
+                  <Button asChild size="sm" variant="outline">
+                    <Link href={`/logbook/${state.entry.id}/edit`}>
+                      <Edit className="h-4 w-4 mr-2" />
+                      Bewerken
+                    </Link>
+                  </Button>
+                  <Button 
+                    variant="destructive" 
+                    size="sm"
+                    onClick={handleDelete}
+                    disabled={state.deleting}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {state.deleting ? 'Verwijderen...' : 'Verwijderen'}
+                  </Button>
+                </>
+              )}
             </div>
           </div>
           

@@ -141,6 +141,10 @@ export default function NewPlantPage() {
 
     // Validate form
     const newErrors = validateForm(plantData)
+    // Enforce required bloom period
+    if (!plantData.bloomPeriod || !plantData.bloomStartMonth || !plantData.bloomEndMonth) {
+      newErrors.bloomPeriod = 'Bloeiperiode is verplicht'
+    }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return
@@ -160,7 +164,7 @@ export default function NewPlantPage() {
         plants_per_sqm: plantData.plantsPerSqm ? Number.parseInt(plantData.plantsPerSqm) : undefined,
         sun_preference: plantData.sunPreference,
         planting_date: plantData.plantingDate || undefined,
-        expected_harvest_date: plantData.expectedHarvestDate || undefined,
+        bloom_period: plantData.bloomPeriod,
         status: plantData.status,
         notes: plantData.notes || undefined,
         care_instructions: plantData.careInstructions || undefined,

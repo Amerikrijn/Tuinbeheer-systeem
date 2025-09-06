@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Calendar, Save, Upload, X, Image as ImageIcon } from "lucide-react"
 import { LogbookService } from "@/lib/services/database.service"
+import { useAuth } from "@/hooks/use-supabase-auth"
 import { getPlantBeds } from "@/lib/database"
 import { uploadImage, type UploadResult } from "@/lib/storage"
 import type { LogbookEntryWithDetails, PlantvakWithBloemen } from "@/lib/types/index"
@@ -39,6 +40,7 @@ export default function EditLogbookPage() {
   const router = useRouter()
   const params = useParams()
   const { toast } = useToast()
+  const { user, isAdmin } = useAuth()
   
   const [state, setState] = React.useState<EditLogbookState>({
     entry: null,
@@ -72,6 +74,13 @@ export default function EditLogbookPage() {
         }
 
         const entry = entryResponse.data
+
+        // Authorization: only creator or admin can access edit page
+        const creatorId = (entry as any).created_by
+        const canEdit = (isAdmin && isAdmin()) || (user && creatorId && user.id === creatorId)
+        if (!canEdit) {
+          throw new Error('Geen toestemming om deze entry te bewerken')
+        }
         
         // Load plant beds
         const plantBeds = await getPlantBeds(entry.garden_id)
