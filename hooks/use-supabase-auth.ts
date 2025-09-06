@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, createContext, useContext } from 'react'
+import { useState, useEffect, useRef, createContext, useContext } from 'react'
 import { supabase } from '@/lib/supabase'
 import { clearStaleCache } from '@/lib/version'
 import { performanceMonitor, authCircuitBreaker } from '@/lib/performance-monitor'
@@ -46,7 +46,7 @@ const AuthContext = createContext<AuthContextType | null>(null)
 
 // Session cache to prevent redundant database calls
 const SESSION_CACHE_KEY = 'tuinbeheer_user_profile'
-const CACHE_DURATION = 30 * 1000 // 30 seconds - shorter for critical updates
+const CACHE_DURATION = 60 * 1000 // 60 seconds - longer cache for better performance
 
 interface CachedUserProfile {
   user: User
@@ -107,6 +107,16 @@ export function useSupabaseAuth(): AuthContextType {
     error: null
   })
 
+  // 🚨 CRITICAL FIX: Use refs to avoid stale closures in auth callbacks
+  const userRef = useRef<User | null>(null)
+  const loadingProfileRef = useRef<boolean>(false)
+  const lastProfileLoadRef = useRef<number>(0)
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    userRef.current = state.user
+  }, [state.user])
+
   // Retry helper with exponential backoff
   const retryWithBackoff = async <T>(fn: () => Promise<T>, maxRetries = 3, baseDelay = 1000): Promise<T> => {
     let lastError: any = null
@@ -157,7 +167,7 @@ export function useSupabaseAuth(): AuthContextType {
     try {
       // 🏦 ENHANCED: Progressive timeout with retry logic and circuit breaker
       const performDatabaseQuery = async () => {
-        const timeouts = [3000, 8000, 15000] // Optimized progressive timeouts
+        const timeouts = [2000, 5000, 10000] // Faster progressive timeouts for better UX
         let lastError: any = null
         
         for (let i = 0; i < timeouts.length; i++) {
@@ -171,12 +181,12 @@ export function useSupabaseAuth(): AuthContextType {
               setTimeout(() => reject(new Error(`Database lookup timeout after ${timeouts[i]}ms (attempt ${i + 1}/${timeouts.length})`)), timeouts[i])
             })
 
-            // 🏦 OPTIMIZED: Use efficient query with proper ordering and health check
+            // 🏦 OPTIMIZED: Use efficient query with exact email match (faster than ilike)
             const databasePromise = supabase
               .from('users')
               .select('id, email, full_name, role, status, created_at, force_password_change, is_active')
               .eq('is_active', true) // Filter active users first (uses index if available)
-              .ilike('email', supabaseUser.email || '') // Then case-insensitive match
+              .eq('email', supabaseUser.email || '') // Exact match instead of ilike (much faster)
               .single()
 
             const result = await Promise.race([
@@ -440,34 +450,67 @@ export function useSupabaseAuth(): AuthContextType {
       }))
     }, 12000) // Slightly longer timeout with better messaging
 
-    // Listen for auth changes
+    // 🚨 CRITICAL FIX: Listen for auth changes with proper event handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        // Only load profile if we don't already have it or it's a different user
-        if (!state.user || state.user.id !== session.user.id) {
-          const userProfile = await loadUserProfile(session.user)
+      try {
+        // Handle sign-out immediately
+        if (event === 'SIGNED_OUT') {
+          clearCachedUserProfile()
           setState({
-            user: userProfile,
-            session,
+            user: null,
+            session: null,
             loading: false,
             error: null
           })
-        } else {
-          // Just update session if user is the same
+          return
+        }
+
+        // 🚨 CRITICAL: Handle token refresh without reloading profile
+        if (event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION') {
           setState(prev => ({
             ...prev,
             session,
             loading: false
           }))
+          return
         }
-      } else if (event === 'SIGNED_OUT') {
-        clearCachedUserProfile()
-        setState({
-          user: null,
-          session: null,
-          loading: false,
-          error: null
-        })
+
+        // Only handle SIGNED_IN events for new users
+        if (event === 'SIGNED_IN' && session?.user) {
+          const currentUser = userRef.current // Use ref to avoid stale closure
+          const isSameUser = !!currentUser && currentUser.id === session.user.id
+          const now = Date.now()
+
+          if (!isSameUser) {
+            // 🚨 CRITICAL: Prevent concurrent/in-flight profile loads
+            if (loadingProfileRef.current) return
+            if (now - lastProfileLoadRef.current < 3000) return // 3s debounce
+
+            loadingProfileRef.current = true
+            lastProfileLoadRef.current = now
+            try {
+              const userProfile = await loadUserProfile(session.user)
+              setState({
+                user: userProfile,
+                session,
+                loading: false,
+                error: null
+              })
+            } finally {
+              loadingProfileRef.current = false
+            }
+          } else {
+            // Same user: only update session
+            setState(prev => ({
+              ...prev,
+              session,
+              loading: false
+            }))
+          }
+        }
+      } catch (error) {
+        // Swallow errors in auth callback to prevent cascading failures
+        console.error('Auth state change error:', error)
       }
     })
 
