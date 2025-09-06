@@ -1,8 +1,8 @@
 # *Commands
 ## @pipeline-start
-Orchestrator: maak feature-branch, initialiseer SPEC, open DRAFT PR en pauzeer tot approval in `.agent/approvals.yml`.
+Orchestrator: maak feature-branch, initialiseer SPEC (gebruik README/docs voor eisen), open DRAFT PR en pauzeer.
 ## @pipeline-continue
-Orchestrator: lees `.agent/approvals.yml` en voer volgende stadium uit tot volgende pause.
+Orchestrator: lees `.agent/approvals.yml` en voer volgende stadium uit. Na alle approvals: READY → RELEASE flow.
 ## @pipeline-status
 Orchestrator: toon huidige pipeline status en progress.
 ## @pipeline-reset

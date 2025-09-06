@@ -1,0 +1,7 @@
+versioning: semver
+bump: auto
+changelog: CHANGELOG.md
+tag_prefix: "v"
+draft_release: false
+publish_release: true
+

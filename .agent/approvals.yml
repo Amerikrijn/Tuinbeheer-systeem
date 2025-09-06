@@ -1,3 +1,21 @@
+feature: "cursor-pipeline"
+stages:
+  spec:  pending
+  tech:  pending
+  impl:  pending
+  test:  pending
+  sec:   pending
+  perf:  pending
+  docs:  pending
+owners:
+  spec: "@product-owner"
+  tech: "@tech-lead"
+  impl: "@module-owner"
+  test: "@qa"
+  sec:  "@security"
+  perf: "@perf"
+  docs: "@docs"
+notes: ""
 feature: "fix-beheerscherm-issues"
 description: "Admin users need to assign gardens to users and save this data - critical functionality"
 stages:
