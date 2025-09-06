@@ -232,3 +232,26 @@
 **Status:** Active
 **Next Action:** Complete SPEC stage and await approval
 
+
+🧩 Merge — AI Workflow Backlog (Cursor-only pipeline)
+---
+# AI Workflow Backlog
+## Now
+- [FEATURE] <korte beschrijving>
+  - Acceptatiecriteria:
+    - [ ] AC1
+    - [ ] AC2
+## Next
+- [TEST] …
+- [SEC] …
+- [PERF] …
+- [DOCS] …
+## Done
+- (na merge verplaatsen)
+## Definition of Done
+- [ ] Alle AC’s groen
+- [ ] Lint/type/tests groen
+- [ ] SEC verslag aanwezig
+- [ ] PERF verslag aanwezig
+- [ ] Docs bijgewerkt
+- [ ] PR diff <400 regels of opgesplitst

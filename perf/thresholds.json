@@ -1,0 +1,3 @@
+{ "web": { "lcp_ms_p75": 2500, "cls_p75": 0.1 },
+  "api": { "latency_ms_p95": 300, "error_rate_pct": 1 } }
+
