@@ -46,7 +46,7 @@ const AuthContext = createContext<AuthContextType | null>(null)
 
 // Session cache to prevent redundant database calls
 const SESSION_CACHE_KEY = 'tuinbeheer_user_profile'
-const CACHE_DURATION = 30 * 1000 // 30 seconds - shorter for critical updates
+const CACHE_DURATION = 60 * 1000 // 60 seconds - longer cache for better performance
 
 interface CachedUserProfile {
   user: User
@@ -167,7 +167,7 @@ export function useSupabaseAuth(): AuthContextType {
     try {
       // 🏦 ENHANCED: Progressive timeout with retry logic and circuit breaker
       const performDatabaseQuery = async () => {
-        const timeouts = [3000, 8000, 15000] // Optimized progressive timeouts
+        const timeouts = [2000, 5000, 10000] // Faster progressive timeouts for better UX
         let lastError: any = null
         
         for (let i = 0; i < timeouts.length; i++) {
